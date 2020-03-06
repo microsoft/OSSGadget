@@ -5,9 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.OpenSource.Shared;
+using Microsoft.CST.OpenSource.Shared;
 
-namespace Microsoft.OpenSource
+namespace Microsoft.CST.OpenSource
 {
     class FindSourceTool
     {
@@ -96,7 +96,7 @@ namespace Microsoft.OpenSource
             }
             else
             {
-                throw new ArgumentException($"Invalid package-url type: {purlNoVersion.Type}");
+                throw new ArgumentException("Invalid Package URL type: {0}", purlNoVersion.Type);
             }
         }
 

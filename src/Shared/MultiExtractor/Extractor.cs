@@ -11,7 +11,7 @@ using SharpCompress.Archives.Rar;
 using SharpCompress.Compressors.BZip2;
 using SharpCompress.Compressors.Xz;
 
-namespace Microsoft.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.Shared
 {
     public static class Extractor
     {

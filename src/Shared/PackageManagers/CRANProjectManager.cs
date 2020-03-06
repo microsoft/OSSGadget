@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AngleSharp.Html.Parser;
 
-namespace Microsoft.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.Shared
 {
     class CRANProjectManager : BaseProjectManager
     {

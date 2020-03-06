@@ -4,9 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.OpenSource.Shared;
+using Microsoft.CST.OpenSource.Shared;
 
-namespace Microsoft.OpenSource
+namespace Microsoft.CST.OpenSource
 {
     public class DetectBackdoorTool
     {

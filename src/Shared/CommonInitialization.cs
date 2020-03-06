@@ -5,7 +5,7 @@ using System;
 using System.Net.Http;
 using System.Reflection;
 
-namespace Microsoft.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.Shared
 {
     public static class CommonInitialization
     {

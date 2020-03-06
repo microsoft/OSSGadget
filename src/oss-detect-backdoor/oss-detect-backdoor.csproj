@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <RootNamespace>Microsoft.OpenSource</RootNamespace>
+    <RootNamespace>Microsoft.CST.OpenSource</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

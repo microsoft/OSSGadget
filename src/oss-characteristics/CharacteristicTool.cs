@@ -1,19 +1,15 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-using Microsoft.AppInspector;
-using RulesEngine;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.OpenSource.Shared;
-using Microsoft.OpenSource.Characteristic;
 using System.Text;
+using System.Threading.Tasks;
+using Microsoft.CST.OpenSource.Characteristic;
+using Microsoft.CST.OpenSource.Shared;
 
-namespace Microsoft.OpenSource
+namespace Microsoft.CST.OpenSource
 {
     public class CharacteristicTool
     {

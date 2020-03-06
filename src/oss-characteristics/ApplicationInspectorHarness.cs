@@ -10,10 +10,10 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.OpenSource.Shared;
+using Microsoft.CST.OpenSource.Shared;
 using System.Runtime.InteropServices;
 
-namespace Microsoft.OpenSource.Characteristic
+namespace Microsoft.CST.OpenSource.Characteristic
 {
     public class ApplicationInspectorHarness
     {

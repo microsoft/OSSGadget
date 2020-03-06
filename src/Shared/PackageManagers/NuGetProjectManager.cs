@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Versioning;
 
-namespace Microsoft.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.Shared
 {
     class NuGetProjectManager : BaseProjectManager
     {

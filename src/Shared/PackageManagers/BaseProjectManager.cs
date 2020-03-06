@@ -11,7 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace Microsoft.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.Shared
 {
     abstract public class BaseProjectManager
     {

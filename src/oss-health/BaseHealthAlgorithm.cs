@@ -2,9 +2,9 @@
 // Licensed under the MIT License.
 
 using System.Threading.Tasks;
-using Microsoft.OpenSource.Shared;
+using Microsoft.CST.OpenSource.Shared;
 
-namespace Microsoft.OpenSource.Health
+namespace Microsoft.CST.OpenSource.Health
 {
     /// <summary>
     /// Abstract base class for health algorithms

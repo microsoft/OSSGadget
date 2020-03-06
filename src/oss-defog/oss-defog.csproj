@@ -3,8 +3,8 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <RootNamespace>Microsoft.OpenSource</RootNamespace>
-    <StartupObject>Microsoft.OpenSource.DefoggerTool</StartupObject>
+    <RootNamespace>Microsoft.CST.OpenSource</RootNamespace>
+    <StartupObject>Microsoft.CST.OpenSource.DefoggerTool</StartupObject>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

@@ -6,9 +6,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.OpenSource.Shared;
+using Microsoft.CST.OpenSource.Shared;
 
-namespace Microsoft.OpenSource
+namespace Microsoft.CST.OpenSource
 {
     public class DownloadTool
     {
@@ -108,7 +108,7 @@ namespace Microsoft.OpenSource
             }
             else
             {
-                throw new ArgumentException("Invalid package-url type: {0}", purl.Type);
+                throw new ArgumentException("Invalid Package URL type: {0}", purl.Type);
             }
 
             return downloadPaths;

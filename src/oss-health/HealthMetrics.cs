@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Microsoft.OpenSource.Health
+namespace Microsoft.CST.OpenSource.Health
 {
     public class HealthMetrics
     {

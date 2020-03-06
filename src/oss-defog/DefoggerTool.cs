@@ -8,10 +8,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using IronRe2;
-using Microsoft.OpenSource.Shared;
+using Microsoft.CST.OpenSource.Shared;
 using MimeTypes;
 
-namespace Microsoft.OpenSource
+namespace Microsoft.CST.OpenSource
 {
     class DefoggerTool
     {

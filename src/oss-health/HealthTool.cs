@@ -5,9 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.OpenSource.Shared;
+using Microsoft.CST.OpenSource.Shared;
 
-namespace Microsoft.OpenSource.Health
+namespace Microsoft.CST.OpenSource.Health
 {
     class HealthTool
     {
@@ -103,7 +103,7 @@ namespace Microsoft.OpenSource.Health
             }
             else
             {
-                throw new ArgumentException($"Invalid package-url type: {purl.Type}");
+                throw new ArgumentException("Invalid Package URL type: {0}", purl.Type);
             }
         }
 

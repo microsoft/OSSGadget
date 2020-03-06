@@ -4,10 +4,10 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.OpenSource.Shared;
+using Microsoft.CST.OpenSource.Shared;
 using Octokit;
 
-namespace Microsoft.OpenSource.Health
+namespace Microsoft.CST.OpenSource.Health
 {
 
     /// <summary>

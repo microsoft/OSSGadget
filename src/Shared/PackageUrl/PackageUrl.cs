@@ -30,7 +30,7 @@ using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Microsoft.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.Shared
 {
     /// <summary>
     /// Provides an object representation of a Package URL and easy access to its parts.

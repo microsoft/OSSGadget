@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using LibGit2Sharp;
 
-namespace Microsoft.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.Shared
 {
     class GitHubProjectManager : BaseProjectManager
     {

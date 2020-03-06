@@ -1,0 +1,7 @@
+﻿[*.cs]
+
+# CS1998: Async method lacks 'await' operators and will run synchronously
+dotnet_diagnostic.CS1998.severity = silent
+
+# CS1031: Do not catch general exception types
+dotnet_diagnostic.CA1031.severity = silent

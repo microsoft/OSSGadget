@@ -1,0 +1,19 @@
+[
+  {
+    "name": "Backdoor: Obfuscation",
+    "id": "BD000800",
+    "description": "Backdoor: Obfuscation",
+    "tags": [
+      "Security.Backdoor.Obfuscation"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": "base64|encodedcommand|obfuscate",
+        "type": "regex",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ]
+      }
+    ]
+  }
+]

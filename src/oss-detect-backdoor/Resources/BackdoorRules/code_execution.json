@@ -1,0 +1,43 @@
+[
+  {
+    "name": "Backdoor: Reverse Shell",
+    "id": "BD000100",
+    "description": "Backdoor: Reverse Shell",
+    "tags": [
+      "Security.Backdoor.ReverseShell"
+    ],
+    "severity": "moderate",
+    "patterns": [
+      {
+        "pattern": "\b(eval|exec).{1,15}(decode|base64|decrypt|unencode)\b",
+        "type": "regex",
+        "scopes": [ "code", "comment" ],
+        "modifiers": [ "i" ]
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Reverse Shell",
+    "id": "BD000101",
+    "description": "Backdoor: Reverse Shell",
+    "tags": [
+      "Security.Backdoor.ReverseShell"
+    ],
+    "applies_to": [ "powershell" ],
+    "severity": "moderate",
+    "patterns": [
+      {
+        "pattern": "(iex|invoke-expression) .*(webclient|openread|downloaddata|downloadfile|downloadstring)",
+        "type": "regex",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ]
+      },
+      {
+        "pattern": "(webclient|openread|downloaddata|downloadfile|downloadstring).{1,50}start-process",
+        "type": "regex",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ]
+      }
+    ]
+  }
+]

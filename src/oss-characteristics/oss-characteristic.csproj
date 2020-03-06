@@ -13,10 +13,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ApplicationInspector" Version="1.0.28" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\oss-download\oss-download.csproj" />
     <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>

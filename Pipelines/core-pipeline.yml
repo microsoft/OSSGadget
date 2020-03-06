@@ -46,6 +46,7 @@ stages:
         arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)/linux/OSSGadget_$(ReleaseVersion) -r linux-x64 /p:DebugType=None'
         publishWebProjects: false
         zipAfterPublish: false
+        workingDirectory: $(SolutionDirectory)
     - task: DotNetCoreCLI@2
       displayName: Dotnet Publish MacOS x64
       inputs:
@@ -53,6 +54,7 @@ stages:
         arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)/macos/OSSGadget_$(ReleaseVersion) -r osx-x64 /p:DebugType=None'
         publishWebProjects: false
         zipAfterPublish: false
+        workingDirectory: $(SolutionDirectory)
     - task: ArchiveFiles@2
       displayName: Archive Artifact - Linux
       inputs:
@@ -102,6 +104,7 @@ stages:
         arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)\windows\OSSGadget_$(ReleaseVersion) -r win-x86 /p:DebugType=None'
         publishWebProjects: false
         zipAfterPublish: false
+        workingDirectory: $(SolutionDirectory)
     - task: DotNetCoreCLI@2
       displayName: Dotnet Build .NET Core App
       inputs:
@@ -109,6 +112,7 @@ stages:
         arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)\netcoreapp\OSSGadget_$(ReleaseVersion) /p:DebugType=None'
         publishWebProjects: false
         zipAfterPublish: false
+        workingDirectory: $(SolutionDirectory)
     - task: DotNetCoreCLI@2
       displayName: Pack Nupkg (Lib)
       enabled: false
@@ -116,6 +120,7 @@ stages:
         command: 'custom'
         custom: 'pack'
         arguments: ''
+        workingDirectory: $(SolutionDirectory)
     - task: DotNetCoreCLI@2
       displayName: Pack Nupkg (Dotnet Tool)
       enabled: false
@@ -123,6 +128,7 @@ stages:
         command: 'custom'
         custom: 'pack'
         arguments: ''
+        workingDirectory: $(SolutionDirectory)
     - task: AntiMalware@3
       displayName: Anti-Malware Scan
       inputs:

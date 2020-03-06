@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RootNamespace>Microsoft.OpenSource</RootNamespace>
+    <Company>Microsoft Corporation</Company>
+    <Description></Description>
+    <Authors>Microsoft Corporation</Authors>
+    <RepositoryType>GitHub</RepositoryType>
+    <RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>
+    <PackageId />
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ApplicationInspector" Version="1.0.28" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\oss-download\oss-download.csproj" />
+    <ProjectReference Include="..\Shared\Shared.csproj" />
+  </ItemGroup>
+
+</Project>

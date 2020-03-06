@@ -1,0 +1,19 @@
+[
+  {
+    "name": "Backdoor: Reverse Shell",
+    "id": "BD000300",
+    "description": "Backdoor: Reverse Shell",
+    "tags": [
+      "Security.Backdoor.ReverseShell"
+    ],
+    "severity": "moderate",
+    "patterns": [
+      {
+        "pattern": "(shell\\.now\\.sh|tcp\\.ngrok\\.io|reverse shell)",
+        "type": "regex-word",
+        "scopes": [ "code", "comment" ],
+        "modifiers": [ "i" ]
+      }
+    ]
+  }
+]

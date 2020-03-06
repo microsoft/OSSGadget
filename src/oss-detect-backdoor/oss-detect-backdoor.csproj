@@ -1,0 +1,56 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RootNamespace>Microsoft.OpenSource</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\ad_networks.json" />
+    <None Remove="Resources\BackdoorRules\backdoor_signatures.json" />
+    <None Remove="Resources\BackdoorRules\code_execution.json" />
+    <None Remove="Resources\BackdoorRules\crypto_currency.json" />
+    <None Remove="Resources\BackdoorRules\data_exfilatration.json" />
+    <None Remove="Resources\BackdoorRules\ioc.json" />
+    <None Remove="Resources\BackdoorRules\lolbas.json" />
+    <None Remove="Resources\BackdoorRules\obfuscation.json" />
+    <None Remove="Resources\BackdoorRules\pastebin.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Resources\BackdoorRules\obfuscation.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\BackdoorRules\data_exfilatration.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\BackdoorRules\lolbas.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\BackdoorRules\pastebin.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\BackdoorRules\crypto_currency.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\BackdoorRules\backdoor_signatures.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\BackdoorRules\code_execution.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\BackdoorRules\ioc.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\BackdoorRules\reverse_shell.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\oss-characteristics\oss-characteristic.csproj" />
+    <ProjectReference Include="..\Shared\Shared.csproj" />
+  </ItemGroup>
+
+</Project>

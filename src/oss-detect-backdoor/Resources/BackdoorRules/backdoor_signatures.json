@@ -1,0 +1,36 @@
+[
+  {
+    "name": "Backdoor: CFDUID",
+    "id": "BD000200",
+    "description": "Backdoor: CFDUID",
+    "tags": [
+      "Security.Backdoor.Signature.CFDUID"
+    ],
+    "severity": "critical",
+    "patterns": [
+      {
+        "pattern": "___cfduid",
+        "type": "string",
+        "scopes": [ "code", "comment" ],
+        "modifiers": [ "i" ]
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: ZAUTHSS",
+    "id": "BD000201",
+    "description": "Backdoor: ZAUTHSS",
+    "tags": [
+      "Security.Backdoor.Signature.ZAUTHSS"
+    ],
+    "severity": "critical",
+    "patterns": [
+      {
+        "pattern": "ZAUTHSS",
+        "type": "string",
+        "scopes": [ "code", "comment" ],
+        "modifiers": [ "i" ]
+      }
+    ]
+  }
+]

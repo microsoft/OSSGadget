@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -28,7 +29,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">Package URL of the package to download.</param>
         /// <returns>n/a</returns>
-        public override async Task<string> DownloadVersion(PackageURL purl)
+        public override async Task<string> DownloadVersion(PackageURL purl, bool doExtract = true)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
@@ -69,8 +70,18 @@ namespace Microsoft.CST.OpenSource.Shared
                 {
                     var result = await WebClient.GetAsync(url);
                     result.EnsureSuccessStatusCode();
-                    Logger.Debug("Downloading {0}...", purl.ToString());
-                    downloadedPath = await ExtractArchive($"cocoapods-{packageName}@{packageVersion}", await result.Content.ReadAsByteArrayAsync());
+                    Logger.Debug("Downloading {0}...", purl);
+
+                    var targetName = $"cocoapods-{packageName}@{packageVersion}";
+                    if (doExtract)
+                    {
+                        downloadedPath = await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync());
+                    }
+                    else
+                    {
+                        await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
+                        downloadedPath = targetName;
+                    }
                 }
                 else
                 {

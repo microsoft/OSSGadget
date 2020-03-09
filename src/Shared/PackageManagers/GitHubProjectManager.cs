@@ -17,10 +17,14 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">Package URL of the package to download.</param>
         /// <returns>n/a</returns>
-        public override async Task<string> DownloadVersion(PackageURL purl)
+        public override async Task<string> DownloadVersion(PackageURL purl, bool doExtract = true)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
+            if (doExtract == false)
+            {
+                throw new NotImplementedException("GitHub does not support binary downloads yet.");
+            }
             var packageName = purl?.Name;
             var packageVersion = purl?.Version;
             string downloadedPath = null;

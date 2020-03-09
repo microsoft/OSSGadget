@@ -47,7 +47,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">PackageURL to download</param>
         /// <returns>Path to the directory containing the files extracted.</returns>
-        abstract public Task<string> DownloadVersion(PackageURL purl);
+        abstract public Task<string> DownloadVersion(PackageURL purl, bool doExtract=true);
 
         /// <summary>
         /// This method should return text reflecting metadata for the given package.
@@ -211,7 +211,10 @@ namespace Microsoft.CST.OpenSource.Shared
             //directoryName = directoryName.Replace("%2F", "-", StringComparison.InvariantCultureIgnoreCase);
             directoryName = directoryName.Replace(Path.DirectorySeparatorChar, '-');
             directoryName = directoryName.Replace(Path.AltDirectorySeparatorChar, '-');
-
+            while (Directory.Exists(directoryName) || File.Exists(directoryName))
+            {
+                directoryName += "-" + DateTime.Now.Ticks;
+            }
             foreach (var fileEntry in Extractor.ExtractFile(directoryName, bytes))
             {
                 var fullPath = fileEntry.FullPath.Replace(':', Path.DirectorySeparatorChar);
@@ -238,7 +241,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">package-url to download</param>
         /// <returns></returns>
-        public async Task<List<string>> Download(PackageURL purl)
+        public async Task<List<string>> Download(PackageURL purl, bool doExtract = true)
         {
             Logger.Trace("(Base) Download({0})", purl?.ToString());
             var downloadPaths = new List<string>();
@@ -247,19 +250,19 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 var versions = await EnumerateVersions(purl);
                 var vpurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, versions.Last(), purl.Qualifiers, purl.Subpath);
-                downloadPaths.Add(await DownloadVersion(vpurl));
+                downloadPaths.Add(await DownloadVersion(vpurl, doExtract));
             }
             else if (purl.Version.Equals("*"))
             {
                 foreach (var version in await EnumerateVersions(purl))
                 {
                     var vpurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, version, purl.Qualifiers, purl.Subpath);
-                    downloadPaths.Add(await DownloadVersion(vpurl));
+                    downloadPaths.Add(await DownloadVersion(vpurl, doExtract));
                 }
             }
             else
             {
-                downloadPaths.Add(await DownloadVersion(purl));
+                downloadPaths.Add(await DownloadVersion(purl, doExtract));
             }
             return downloadPaths;
         }

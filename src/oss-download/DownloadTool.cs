@@ -34,7 +34,7 @@ namespace Microsoft.CST.OpenSource
         {
             { "download-directory", "." },
             { "target", new List<string>() },
-
+            { "extract", "true" }
         };
 
         /// <summary>
@@ -104,7 +104,11 @@ namespace Microsoft.CST.OpenSource
                 var ctor = downloaderClass.GetConstructor(Array.Empty<Type>());
                 var _downloader = (BaseProjectManager)(ctor.Invoke(Array.Empty<object>()));
                 _downloader.TopLevelExtractionDirectory = destinationDirectory;
-                downloadPaths = await _downloader.Download(purl);
+                if (!bool.TryParse(Options["extract"]?.ToString(), out bool doExtract))
+                {
+                    doExtract = true;
+                }
+                downloadPaths = await _downloader.Download(purl, doExtract);
             }
             else
             {
@@ -145,6 +149,10 @@ namespace Microsoft.CST.OpenSource
                     case "--directory":
                         Options["download-directory"] = args[++i];
                         break;
+                    
+                    case "--no-extract":
+                        Options["extract"] = "false";
+                        break;
 
                     default:
                         ((IList<string>)Options["target"]).Add(args[i]);
@@ -169,6 +177,7 @@ positional arguments:
 {BaseProjectManager.GetCommonSupportedHelpText()}
 
 optional arguments:
+  --no-extract                  do not extract package contents 
   --help                        show this help message and exit
   --version                     show version of this tool
 ");

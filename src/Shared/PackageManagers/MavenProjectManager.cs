@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml;
@@ -19,7 +20,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">Package URL of the package to download.</param>
         /// <returns>n/a</returns>
-        public override async Task<string> DownloadVersion(PackageURL purl)
+        public override async Task<string> DownloadVersion(PackageURL purl, bool doExtract = true)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
@@ -43,7 +44,17 @@ namespace Microsoft.CST.OpenSource.Shared
                     var result = await WebClient.GetAsync(url);
                     result.EnsureSuccessStatusCode();
                     Logger.Debug($"Downloading {purl}...");
-                    downloadedPath = await ExtractArchive($"maven-{purl.Namespace}/{packageName}{suffix}@{packageVersion}", await result.Content.ReadAsByteArrayAsync());
+
+                    var targetName = $"maven-{purl.Namespace}/{packageName}{suffix}@{packageVersion}";
+                    if (doExtract)
+                    {
+                        downloadedPath = await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync());
+                    }
+                    else
+                    {
+                        await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
+                        downloadedPath = targetName;
+                    }
                 }
             }
             catch (Exception ex)

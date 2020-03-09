@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -19,13 +20,13 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">Package URL of the package to download.</param>
         /// <returns>n/a</returns>
-        public override async Task<string> DownloadVersion(PackageURL purl)
+        public override async Task<string> DownloadVersion(PackageURL purl, bool doExtract = true)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
             var packageName = purl?.Name;
             var packageVersion = purl?.Version;
-            string downloadPath = null;
+            string downloadedPath = null;
 
             if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
             {
@@ -44,7 +45,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
                 foreach (var versionObject in releases.EnumerateObject())
                 {
-                    if (versionObject.Name != packageVersion || downloadPath != null)
+                    if (versionObject.Name != packageVersion || downloadedPath != null)
                     {
                         continue;
                     }
@@ -55,7 +56,16 @@ namespace Microsoft.CST.OpenSource.Shared
                         {
                             var result = await WebClient.GetAsync(release.GetProperty("url").GetString());
                             result.EnsureSuccessStatusCode();
-                            downloadPath = await ExtractArchive($"pypi-{packageName}@{packageVersion}", await result.Content.ReadAsByteArrayAsync());
+                            var targetName = $"pypi-{packageName}@{packageVersion}";
+                            if (doExtract)
+                            {
+                                downloadedPath = await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync());
+                            }
+                            else
+                            {
+                                await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
+                                downloadedPath = targetName;
+                            }
                             break;
                         }
                     }
@@ -64,9 +74,9 @@ namespace Microsoft.CST.OpenSource.Shared
             catch (Exception ex)
             {
                 Logger.Warn(ex, "Error downloading PyPI package: {0}", ex.Message);
-                downloadPath = null;
+                downloadedPath = null;
             }
-            return downloadPath;
+            return downloadedPath;
         }
 
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)

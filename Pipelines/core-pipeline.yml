@@ -236,7 +236,7 @@ stages:
       inputs:
         ConnectedServiceName: ''
         FolderPath: '$(Build.BinariesDirectory)/linux/OSSGadget_$(ReleaseVersion)'
-        Pattern: ''
+        Pattern: 'oss-characteristic.dll, oss-defog.dll, oss-detect-backdoor.dll, oss-download.dll, oss-find-source.dll, oss-health.dll'
         signConfigType: 'inlineSignParams'
         inlineOperation: |
           [
@@ -270,7 +270,7 @@ stages:
       inputs:
         ConnectedServiceName: ''
         FolderPath: '$(Build.BinariesDirectory)/macos/OSSGadget_$(ReleaseVersion)'
-        Pattern: ''
+        Pattern: 'oss-characteristic.dll, oss-defog.dll, oss-detect-backdoor.dll, oss-download.dll, oss-find-source.dll, oss-health.dll'
         signConfigType: 'inlineSignParams'
         inlineOperation: |
           [
@@ -304,7 +304,7 @@ stages:
       inputs:
         ConnectedServiceName: ''
         FolderPath: '$(Build.BinariesDirectory)\windows\OSSGadget_$(ReleaseVersion)'
-        Pattern: ''
+        Pattern: 'oss-characteristic.exe, oss-characteristic.dll, oss-defog.exe, oss-defog.dll, oss-detect-backdoor.exe, oss-detect-backdoor.dll, oss-download.exe, oss-download.dll, oss-find-source.exe, oss-find-source.dll, oss-health.exe, oss-health.dll'
         signConfigType: 'inlineSignParams'
         inlineOperation: |
           [
@@ -338,7 +338,7 @@ stages:
       inputs:
         ConnectedServiceName: ''
         FolderPath: '$(Build.BinariesDirectory)/netcoreapp/OSSGadget_$(ReleaseVersion)'
-        Pattern: ''
+        Pattern: 'oss-characteristic.exe, oss-characteristic.dll, oss-defog.exe, oss-defog.dll, oss-detect-backdoor.exe, oss-detect-backdoor.dll, oss-download.exe, oss-download.dll, oss-find-source.exe, oss-find-source.dll, oss-health.exe, oss-health.dll'
         signConfigType: 'inlineSignParams'
         inlineOperation: |
           [

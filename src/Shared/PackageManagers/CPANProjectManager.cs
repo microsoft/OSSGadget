@@ -18,7 +18,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_CPAN_BINARY_ENDPOINT = "https://cpan.metacpan.org";
-
+        
         /// <summary>
         /// Download one CPAN package and extract it to the target directory.
         /// </summary>

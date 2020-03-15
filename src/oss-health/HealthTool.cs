@@ -9,7 +9,7 @@ using Microsoft.CST.OpenSource.Shared;
 
 namespace Microsoft.CST.OpenSource.Health
 {
-    class HealthTool
+    public class HealthTool
     {
         /// <summary>
         /// Name of this tool.

@@ -94,8 +94,9 @@ namespace Microsoft.CST.OpenSource.Characteristic
             Logger.Trace("ExtractArchive({0}, <bytes>)", directoryName);
 
             Directory.CreateDirectory(directoryName);
-
-            foreach (var fileEntry in Extractor.ExtractFile(directoryName, bytes))
+            
+            var extractor = new Extractor();
+            foreach (var fileEntry in extractor.ExtractFile(directoryName, bytes))
             {
                 var fullPath = fileEntry.FullPath.Replace(':', Path.DirectorySeparatorChar);
                 // @TODO: Does this prevent zip-slip?

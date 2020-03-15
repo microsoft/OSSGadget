@@ -9,10 +9,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AngleSharp" Version="0.14.0-alpha-794" />
+    <PackageReference Include="AngleSharp" Version="0.14.0-alpha-798" />
     <PackageReference Include="LibGit2Sharp" Version="0.27.0-preview-0034" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="3.1.2" />
     <PackageReference Include="NLog" Version="4.7.0-rc1" />
+    <PackageReference Include="NLog.Schema" Version="4.7.0-rc1" />
     <PackageReference Include="NuGet.Versioning" Version="5.5.0-preview.2.6382" />
     <PackageReference Include="SemanticVersioning" Version="1.2.2" />
     <PackageReference Include="sharpcompress" Version="0.24.0" />
@@ -24,6 +25,10 @@
     <None Update="nlog.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.1.71" />
   </ItemGroup>
 
 </Project>

@@ -36,10 +36,16 @@ namespace Microsoft.CST.OpenSource.Shared
         );
 
         /// <summary>
+        /// Per-object option container.
+        /// </summary>
+        public Dictionary<string, object> Options { get; private set; }
+
+        /// <summary>
         /// The location (directory) to extract files to.
         /// </summary>
         public string TopLevelExtractionDirectory { get; set; } = ".";
 
+        
         abstract public Task<IEnumerable<string>> EnumerateVersions(PackageURL purl);
 
         /// <summary>
@@ -62,6 +68,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         protected BaseProjectManager()
         {
+            this.Options = new Dictionary<string, object>();
             CommonInitialization.OverrideEnvironmentVariables(this);
             WebClient = CommonInitialization.WebClient;
         }
@@ -215,7 +222,8 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 directoryName += "-" + DateTime.Now.Ticks;
             }
-            foreach (var fileEntry in Extractor.ExtractFile(directoryName, bytes))
+            var extractor = new Extractor();
+            foreach (var fileEntry in extractor.ExtractFile(directoryName, bytes))
             {
                 var fullPath = fileEntry.FullPath.Replace(':', Path.DirectorySeparatorChar);
                 

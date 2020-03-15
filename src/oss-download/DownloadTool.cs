@@ -47,6 +47,7 @@ namespace Microsoft.CST.OpenSource
             Logger.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
 
             downloadTool.ParseOptions(args);
+
             if (((IList<string>)downloadTool.Options["target"]).Count > 0)
             {
                 foreach (var target in (IList<string>)downloadTool.Options["target"])
@@ -62,6 +63,7 @@ namespace Microsoft.CST.OpenSource
                     catch (Exception ex)
                     {
                         Logger.Warn(ex, "Error processing {0}: {1}", target, ex.Message);
+                        Logger.Info(ex.StackTrace);
                     }
                 }
             }

@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.CST.OpenSource.Shared;
 using Octokit;
@@ -69,9 +70,11 @@ namespace Microsoft.CST.OpenSource.Health
 
             // Choose a random token from the list
             var githubAccessTokens = ENV_GITHUB_ACCESS_TOKEN.Split(new char[] { ',' });
-            
+
             #pragma warning disable SEC0115 // Insecure Random Number Generator
+            #pragma warning disable SCS0005 // Weak random generator
             var githubAccessToken = githubAccessTokens.ElementAt(new Random().Next(githubAccessTokens.Count()));
+            #pragma warning restore SCS0005 // Weak random generator
             #pragma warning restore SEC0115 // Insecure Random Number Generator
 
             Client = new GitHubClient(new ProductHeaderValue(ENV_HTTPCLIENT_USER_AGENT))

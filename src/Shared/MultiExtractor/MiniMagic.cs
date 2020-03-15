@@ -55,7 +55,9 @@ namespace Microsoft.CST.OpenSource.Shared
 
         public static ArchiveFileType DetectFileType(string filename)
         {
+            #pragma warning disable SEC0116 // Path Tampering Unvalidated File Path
             using var stream = new MemoryStream(File.ReadAllBytes(filename));
+            #pragma warning restore SEC0116 // Path Tampering Unvalidated File Path
             var fileEntry = new FileEntry(filename, "", stream);
             return DetectFileType(fileEntry);
         }

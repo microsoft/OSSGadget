@@ -11,7 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Octokit" Version="0.43.0" />
+    <PackageReference Include="Octokit" Version="0.44.0" />
     <PackageReference Include="System.Console" Version="4.3.1" />
   </ItemGroup>
 
@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Update="Nerdbank.GitVersioning" Version="3.1.68" />
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.1.71" />
   </ItemGroup>
 
 </Project>

@@ -447,7 +447,7 @@ stages:
         artifact: 'Signed_Binaries'
     - task: GitHubRelease@1
       inputs:
-        gitHubConnection: 'SecurityEngineering'
+        gitHubConnection: 'OSSGadget'
         repositoryName: 'microsoft/OSSGadget'
         action: 'create'
         target: '$(Build.SourceVersion)'

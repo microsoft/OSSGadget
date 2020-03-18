@@ -232,9 +232,8 @@ stages:
         version: '2.1.804'
     - task: EsrpCodeSigning@1
       displayName: Code Sign Linux
-      enabled: false
       inputs:
-        ConnectedServiceName: ''
+        ConnectedServiceName: 'OSSGadget_CodeSign'
         FolderPath: '$(Build.BinariesDirectory)/linux/OSSGadget_$(ReleaseVersion)'
         Pattern: 'oss-characteristic.dll, oss-defog.dll, oss-detect-backdoor.dll, oss-download.dll, oss-find-source.dll, oss-health.dll'
         signConfigType: 'inlineSignParams'
@@ -266,9 +265,8 @@ stages:
         MaxRetryAttempts: '5'
     - task: EsrpCodeSigning@1
       displayName: Code Sign MacOS
-      enabled: false
       inputs:
-        ConnectedServiceName: ''
+        ConnectedServiceName: 'OSSGadget_CodeSign'
         FolderPath: '$(Build.BinariesDirectory)/macos/OSSGadget_$(ReleaseVersion)'
         Pattern: 'oss-characteristic.dll, oss-defog.dll, oss-detect-backdoor.dll, oss-download.dll, oss-find-source.dll, oss-health.dll'
         signConfigType: 'inlineSignParams'
@@ -300,9 +298,8 @@ stages:
         MaxRetryAttempts: '5'
     - task: EsrpCodeSigning@1
       displayName: Code Sign Windows
-      enabled: false
       inputs:
-        ConnectedServiceName: ''
+        ConnectedServiceName: 'OSSGadget_CodeSign'
         FolderPath: '$(Build.BinariesDirectory)\windows\OSSGadget_$(ReleaseVersion)'
         Pattern: 'oss-characteristic.exe, oss-characteristic.dll, oss-defog.exe, oss-defog.dll, oss-detect-backdoor.exe, oss-detect-backdoor.dll, oss-download.exe, oss-download.dll, oss-find-source.exe, oss-find-source.dll, oss-health.exe, oss-health.dll'
         signConfigType: 'inlineSignParams'
@@ -334,9 +331,8 @@ stages:
         MaxRetryAttempts: '5'
     - task: EsrpCodeSigning@1
       displayName: Code Sign .NET Core App
-      enabled: false
       inputs:
-        ConnectedServiceName: ''
+        ConnectedServiceName: 'OSSGadget_CodeSign'
         FolderPath: '$(Build.BinariesDirectory)/netcoreapp/OSSGadget_$(ReleaseVersion)'
         Pattern: 'oss-characteristic.exe, oss-characteristic.dll, oss-defog.exe, oss-defog.dll, oss-detect-backdoor.exe, oss-detect-backdoor.dll, oss-download.exe, oss-download.dll, oss-find-source.exe, oss-find-source.dll, oss-health.exe, oss-health.dll'
         signConfigType: 'inlineSignParams'
@@ -370,7 +366,7 @@ stages:
       displayName: Code Sign Nuget Packages
       enabled: false
       inputs:
-        ConnectedServiceName: ''
+        ConnectedServiceName: 'OSSGadget_CodeSign'
         FolderPath: '$(Build.BinariesDirectory)/nuget/OSSGadget_$(ReleaseVersion)'
         Pattern: '*.nupkg'
         signConfigType: 'inlineSignParams'
@@ -446,14 +442,12 @@ stages:
         script: 'mv $env:BUILD_BINARIESDIRECTORY/nuget/OSSGadget_$(ReleaseVersion)/*.nupkg $env:BUILD_STAGINGDIRECTORY/'
     - task: PublishPipelineArtifact@1
       displayName: Publish Signed Artifacts to Pipeline
-      enabled: false
       inputs:
         targetPath: '$(Build.StagingDirectory)'
         artifact: 'Signed_Binaries'
     - task: GitHubRelease@1
-      enabled: false
       inputs:
-        gitHubConnection: ''
+        gitHubConnection: 'SecurityEngineering'
         repositoryName: 'microsoft/OSSGadget'
         action: 'create'
         target: '$(Build.SourceVersion)'

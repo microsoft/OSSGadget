@@ -41,7 +41,6 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 var url = $"{ENV_RUBYGEMS_ENDPOINT}/downloads/{packageName}-{packageVersion}.gem";
-                Console.WriteLine(url);
                 var result = await WebClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
                 Logger.Debug("Downloading {0}...", purl);
@@ -67,6 +66,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
         {
+            Logger.Trace("EnumerateVersions {0}", purl?.ToString());
             try
             {
                 var packageName = purl.Name;

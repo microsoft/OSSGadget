@@ -22,7 +22,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <summary>
         /// Internal buffer size for extraction
         /// </summary>
-        private const int BUFFER_SIZE = 4096;
+        private const int BUFFER_SIZE = 32768;
 
         /// <summary>
         /// By default, stop extracting if the total number of bytes
@@ -40,7 +40,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <summary>
         /// The maximum number of bytes to extract from the archive and
         /// all embedded archives. Set to 0 to remove limit. Note that
-        /// MaxExpansionRatio may also apply.
+        /// MaxExpansionRatio may also apply. Defaults to 0.
         /// </summary>
         public long MaxExtractedBytes { get; set; } = 0;
 
@@ -87,6 +87,7 @@ namespace Microsoft.CST.OpenSource.Shared
         public Extractor()
         {
             MaxExtractedBytesRatio = DEFAULT_MAX_EXTRACTED_BYTES_RATIO;
+            GovernorStopwatch = new Stopwatch();
         }
 
         private void ResetResourceGovernor()
@@ -133,7 +134,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// This exists primarily to mitigate the risks of quines (archives that 
         /// contain themselves) and zip bombs (specially constructed to expand to huge
         /// sizes).
-        /// https://alf.nu/ZipQuine
+        /// Ref: https://alf.nu/ZipQuine
         /// </summary>
         /// <param name="additionalBytes"></param>
         private void CheckResourceGovernor(long additionalBytes = 0)
@@ -230,8 +231,6 @@ namespace Microsoft.CST.OpenSource.Shared
                         result = Extract7ZipFile(fileEntry);
                         break;
                     default:
-                        // We only increment the procesed bytes for non-archives,
-                        // since archives we process are never actually written to disk.
                         rawFileUsed = true;
                         result = new[] { fileEntry };
                         break;
@@ -246,6 +245,8 @@ namespace Microsoft.CST.OpenSource.Shared
 
             if (rawFileUsed)
             {
+                // We only increment the procesed bytes for non-archives,
+                // since archives we process are never actually written to disk.
                 CurrentOperationProcessedBytesLeft -= fileEntry.Content.Length;
             }
             return result;
@@ -301,7 +302,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 CheckResourceGovernor(entry.Size);
                 
                 var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
-                if (fileEntry.Name.EndsWith(".tgz", System.StringComparison.CurrentCultureIgnoreCase))
+                if (fileEntry.Name.EndsWith(".tgz", StringComparison.InvariantCultureIgnoreCase))
                 {
                     newFilename = newFilename[0..^4] + ".tar";
                 }
@@ -356,9 +357,11 @@ namespace Microsoft.CST.OpenSource.Shared
             // exceeded the governor's capacity.
             xzStream.CopyTo(memoryStream);
             
-            var streamLength = xzStream.Index.Records?.Select(r => r.UncompressedSize).Aggregate((ulong?)0, (a, b) => a + b);
+            var streamLength = xzStream.Index.Records?.Select(r => r.UncompressedSize)
+                                                      .Aggregate((ulong?)0, (a, b) => a + b);
             
-            // BUG: Technically, we're losing a bit here, but we don't expect 9 exabyte streams
+            // BUG: Technically, we're casting a ulong to a long, but we don't expect
+            // 9 exabyte steams, so low risk.
             CheckResourceGovernor((long)streamLength.Value);
 
             var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);

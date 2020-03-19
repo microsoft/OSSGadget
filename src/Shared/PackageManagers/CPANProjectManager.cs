@@ -51,7 +51,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
                 var value = option.GetAttribute("value");
                 var version = value.Split('-').Last();
-                if (version.StartsWith("v") || version.StartsWith("V"))
+                if (version.StartsWith("v", StringComparison.InvariantCultureIgnoreCase))
                 {
                     version = version.Substring(1);
                 }
@@ -124,15 +124,11 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
 
                 var result = SortVersions(versionList.Distinct());
-                foreach (var v in result)
-                {
-                    Console.WriteLine(v);
-                }
                 return result;
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"Error enumerating CPAN package: {ex.Message}");
+                Logger.Error(ex, "Error enumerating CPAN package: {0}", ex.Message);
                 return Array.Empty<string>();
             }
         }
@@ -147,7 +143,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"Error fetching CPAN metadata: {ex.Message}");
+                Logger.Error(ex, "Error fetching CPAN metadata: {0}", ex.Message);
                 return null;
             }
         }

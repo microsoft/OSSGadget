@@ -121,9 +121,10 @@ namespace Microsoft.CST.OpenSource.Shared
             }
 
             // Fall back to file extensions
-#pragma warning disable CA1308 // Normalize strings to uppercase
+            #pragma warning disable CA1308 // Normalize strings to uppercase
             string fileExtension = Path.GetExtension(fileEntry.Name.ToLowerInvariant());
-#pragma warning restore CA1308 // Normalize strings to uppercase
+            #pragma warning restore CA1308 // Normalize strings to uppercase
+
             if (fileExtension.StartsWith('.'))
             {
                 fileExtension = fileExtension.Substring(1);

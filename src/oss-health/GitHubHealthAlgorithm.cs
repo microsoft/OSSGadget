@@ -97,20 +97,21 @@ namespace Microsoft.CST.OpenSource.Health
             var remaining = initialRateLimit.Resources.Core.Remaining;
             if (remaining < 500)
             {
-                Logger.Warn("Your GitHub access token has only {0}/5000 tokens left.");
+                Logger.Warn("Your GitHub access token has only {0}/5000 tokens left.", remaining);
             }
             if (remaining == 0)
             {
                 throw new Exception("No remaining API tokens.");
             }
 
-            health.ProjectSizeHealth = await GetProjectSizeHealth();
-            health.IssueHealth = await GetIssueHealth();
-            health.CommitHealth = await GetCommitHealth();
-            health.ContributorHealth = await GetContributorHealth();
-            health.RecentActivityHealth = await GetRecentActivityHealth();
-            health.ReleaseHealth = await GetReleaseHealth();
-            health.PullRequestHealth = await GetPullRequestHealth();
+            await GetProjectSizeHealth(health);
+            await GetIssueHealth(health);
+            await GetCommitHealth(health);
+            await GetContributorHealth(health);
+            await GetRecentActivityHealth(health);
+            await GetReleaseHealth(health);
+            await GetPullRequestHealth(health);
+            
 
             return health;
         }
@@ -122,7 +123,7 @@ namespace Microsoft.CST.OpenSource.Health
         /// then it starts to approach zero.
         /// </summary>
         /// <returns></returns>
-        public async Task<double> GetProjectSizeHealth()
+        public async Task GetProjectSizeHealth(HealthMetrics metrics)
         {
             var repo = await Client.Repository.Get(purl.Namespace, purl.Name);
             long health = 100;
@@ -134,14 +135,14 @@ namespace Microsoft.CST.OpenSource.Health
             {
                 health = 500000 / repo.Size;
             }
-            return Clamp(health);
+            metrics.ProjectSizeHealth = Clamp(health);
         }
 
         /// <summary>
         /// Calculates commit health.
         /// </summary>
         /// <returns></returns>
-        public async Task<double> GetCommitHealth()
+        public async Task GetCommitHealth(HealthMetrics metrics)
         {
             Logger.Debug($"GetCommitHealth('{purl.Namespace}', '{purl.Name}')");
 
@@ -161,10 +162,15 @@ namespace Microsoft.CST.OpenSource.Health
             }
 
             double commitHealth = 7.0 * Math.Log(totalCommits) + weightedCommits;
-            return Math.Round(Clamp(commitHealth), 1);
+            metrics.CommitHealth = Math.Round(Clamp(commitHealth), 1);
         }
 
-        public async Task<double> GetPullRequestHealth()
+        /// <summary>
+        /// Calculates pull request health
+        /// </summary>
+        /// <param name="metrics"></param>
+        /// <returns></returns>
+        public async Task GetPullRequestHealth(HealthMetrics metrics)
         {
             Logger.Debug($"GetPullRequestHealth('{purl.Namespace}', '{purl.Name}')");
             double pullRequestHealth = 0;
@@ -195,7 +201,7 @@ namespace Microsoft.CST.OpenSource.Health
             {
                 pullRequestHealth = 100.0 * pullRequestClosed / (pullRequestOpen + pullRequestClosed);
             }
-            return pullRequestHealth;
+            metrics.PullRequestHealth = pullRequestHealth;
         }
 
         /**
@@ -203,9 +209,9 @@ namespace Microsoft.CST.OpenSource.Health
          * 
          * This is defined as 6 * (# contributors, subscribers, forks, stargazers), capped at 100
          */
-        public async Task<double> GetContributorHealth()
+        public async Task GetContributorHealth(HealthMetrics metrics)
         {
-            Logger.Debug($"GetContributorHealth('{purl.Namespace}', '{purl.Name}')");
+            Logger.Trace("GetContributorHealth({0}, {1}", purl.Namespace, purl.Name);
 
             var repository = await Client.Repository.Get(purl.Namespace, purl.Name);
             double contributorHealth = 6.0 * repository.StargazersCount +
@@ -218,7 +224,7 @@ namespace Microsoft.CST.OpenSource.Health
                 contributorHealth += 6.0 * contributors.Count;
             }
 
-            return Clamp(contributorHealth);
+            metrics.ContributorHealth = Clamp(contributorHealth);
         }
 
         /**
@@ -229,42 +235,39 @@ namespace Microsoft.CST.OpenSource.Health
          * Most recent activity.
          * Health calculated as the mean number of seconds in the past 30 activities.
          */
-        public async Task<double> GetRecentActivityHealth()
+        public async Task GetRecentActivityHealth(HealthMetrics metrics)
         {
-            Logger.Debug($"GetRecentActivityHealth('{purl.Namespace}', '{purl.Name}')");
+            Logger.Trace("GetRecentActivityHealth({0}, {1})", purl.Namespace, purl.Name);
 
             var activityList = await Client.Activity.Events.GetAllForRepository(purl.Namespace, purl.Name, DEFAULT_API_OPTIONS);
             double activityHealth = 0.50 * activityList.Count;
-            return Clamp(activityHealth);
+            metrics.RecentActivityHealth = Clamp(activityHealth);
         }
-
 
         /**
          * Release health is defined as:
          * # releases + # tags
          */
-        public async Task<double> GetReleaseHealth()
+        public async Task GetReleaseHealth(HealthMetrics metrics)
         {
-            Logger.Debug($"GetReleaseHealth('{purl.Namespace}', '{purl.Name}')");
+            Logger.Trace("GetReleaseHealth({0}, {1})", purl.Namespace, purl.Name);
 
             var releases = await Client.Repository.Release.GetAll(purl.Namespace, purl.Name, DEFAULT_API_OPTIONS);
             double releaseHealth = releases.Count();
 
             var tags = await Client.Repository.GetAllTags(purl.Namespace, purl.Name, DEFAULT_API_OPTIONS);
             releaseHealth += tags.Count();
-            return Clamp(releaseHealth);
+            metrics.ReleaseHealth = Clamp(releaseHealth);
         }
-
-
 
         /// <summary>
         /// Retrieves issue and security issue counts (subset) to minimize calls out.  
         /// Note: Octokit Search API was found earlier to be unreliable
         /// </summary>
         /// <returns></returns>
-        public async Task<double> GetIssueHealth()
+        public async Task GetIssueHealth(HealthMetrics metrics)
         {
-            Logger.Debug($"GetIssueHealth('{purl.Namespace}', '{purl.Name}')");
+            Logger.Trace("GetIssueHealth({0}, {1})", purl.Namespace, purl.Name);
 
             var securityFlags = new string[] {
                     "security", "insecure", "vulnerability", "cve", "valgrind", "xss",
@@ -327,16 +330,27 @@ namespace Microsoft.CST.OpenSource.Health
             {
                 issueHealth = 30.0 * openIssues / (openIssues + closedIssues);
             }
+            else
+            {
+                issueHealth = 50.0;
+            }
+
+            metrics.IssueHealth = issueHealth;
+
+            double securityIssueHealth = 0.0;
+
             if (openSecurityIssues + closedSecurityIssues > 0)
             {
-                issueHealth += 70.0 * openSecurityIssues / (openSecurityIssues + closedSecurityIssues);
+                securityIssueHealth = openSecurityIssues / (openSecurityIssues + closedSecurityIssues);
             }
             else
             {
-                issueHealth += 60.0;  // Lose a little credit if project never had a security issue
+                securityIssueHealth = 60.0;  // Lose a little credit if project never had a security issue
             }
-
-            return Clamp(issueHealth);
+            
+            metrics.SecurityIssueHealth = securityIssueHealth;
+            
+            return;
         }
     }
 }

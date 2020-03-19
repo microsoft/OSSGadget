@@ -57,13 +57,19 @@ namespace Microsoft.CST.OpenSource
                         var purl = new PackageURL(target);
                         foreach (var downloadPath in await downloadTool.Download(purl))
                         {
-                            Logger.Info("Downloaded {0} to {1}", purl.ToString(), downloadPath);
+                            if (string.IsNullOrEmpty(downloadPath))
+                            {
+                                Logger.Error("Unable to download {0}.", purl.ToString());
+                            }
+                            else
+                            {
+                                Logger.Info("Downloaded {0} to {1}", purl.ToString(), downloadPath);
+                            }
                         }
                     }
                     catch (Exception ex)
                     {
                         Logger.Warn(ex, "Error processing {0}: {1}", target, ex.Message);
-                        Logger.Info(ex.StackTrace);
                     }
                 }
             }
@@ -91,7 +97,7 @@ namespace Microsoft.CST.OpenSource
             if (!Directory.Exists(destinationDirectory))
             {
                 Logger.Warn("Invalid directory, {0} does not exist.", destinationDirectory);
-                return null;
+                return new List<string>();
             }
 
             // Use reflection to find the correct package management class

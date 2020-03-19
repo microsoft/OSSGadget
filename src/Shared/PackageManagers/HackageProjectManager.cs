@@ -61,10 +61,10 @@ namespace Microsoft.CST.OpenSource.Shared
 
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
         {
+            Logger.Trace("EnumerateVersions {0}", purl?.ToString());
             try
             {
                 var packageName = purl.Name;
-                Console.WriteLine($"{ENV_HACKAGE_ENDPOINT}/package/{packageName}");
                 var html = await WebClient.GetAsync($"{ENV_HACKAGE_ENDPOINT}/package/{packageName}");
                 html.EnsureSuccessStatusCode();
                 var parser = new HtmlParser();

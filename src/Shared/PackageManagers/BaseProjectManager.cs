@@ -237,9 +237,11 @@ namespace Microsoft.CST.OpenSource.Shared
                 Directory.CreateDirectory(Path.GetDirectoryName(filePathToWrite));
                 await File.WriteAllBytesAsync(filePathToWrite, fileEntry.Content.ToArray());
             }
+            
             var fullExtractionPath = Path.Combine(TopLevelExtractionDirectory, directoryName);
             fullExtractionPath = Path.GetFullPath(fullExtractionPath);
-            Logger.Debug($"Archive extracted to {fullExtractionPath}");
+            Logger.Debug("Archive extracted to {0}", fullExtractionPath);
+
             return fullExtractionPath;
         }
 

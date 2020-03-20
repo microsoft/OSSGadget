@@ -49,7 +49,7 @@ namespace Microsoft.CST.OpenSource.Health
                     try
                     {
                         var purl = new PackageURL(target);
-                        CheckHealth(purl).Wait();
+                        healthTool.CheckHealth(purl).Wait();
                     }
                     catch (Exception ex)
                     {
@@ -71,7 +71,7 @@ namespace Microsoft.CST.OpenSource.Health
             Logger = CommonInitialization.Logger;
         }
         
-        public async static Task CheckHealth(PackageURL purl)
+        public async Task CheckHealth(PackageURL purl)
         {
             // Use reflection to find the correct package management class
             var projectManagerClass = typeof(BaseProjectManager).Assembly.GetTypes()

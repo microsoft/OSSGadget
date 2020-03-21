@@ -5,6 +5,8 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>Microsoft.CST.OpenSource</RootNamespace>
     <StartupObject>Microsoft.CST.OpenSource.DefoggerTool</StartupObject>
+    <Configurations>Debug;Release</Configurations>
+    <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

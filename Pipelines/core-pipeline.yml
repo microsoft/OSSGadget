@@ -22,6 +22,7 @@ stages:
 - stage: Build
   jobs:
   - job: build_nix
+    condition: eq(1,2)
     displayName: Build Linux & Mac
     pool:
       vmImage: 'ubuntu-latest'
@@ -98,15 +99,16 @@ stages:
           $version = (nbgv get-version -v AssemblyInformationalVersion).split('+')[0]
           Write-Host "##vso[task.setvariable variable=ReleaseVersion;]$version"
     - task: DotNetCoreCLI@2
-      displayName: Dotnet Publish Windows x86
+      displayName: Dotnet Publish Windows 10 x64
       inputs:
         command: 'publish'
-        arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)\windows\OSSGadget_$(ReleaseVersion) -r win-x86 /p:DebugType=None'
+        arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)\windows\OSSGadget_$(ReleaseVersion) -r win10-x64 /p:DebugType=None'
         publishWebProjects: false
         zipAfterPublish: false
         workingDirectory: $(SolutionDirectory)
     - task: DotNetCoreCLI@2
       displayName: Dotnet Build .NET Core App
+      enabled: false
       inputs:
         command: 'build'
         arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)\netcoreapp\OSSGadget_$(ReleaseVersion) /p:DebugType=None'
@@ -150,6 +152,7 @@ stages:
         replaceExistingArchive: true
     - task: ArchiveFiles@2
       displayName: Archive Artifact - .NET Core App
+      enabled: false
       inputs:
         rootFolderOrFile: '$(Build.BinariesDirectory)\netcoreapp'
         includeRootFolder: true
@@ -197,6 +200,7 @@ stages:
           Write-Host "##vso[task.setvariable variable=ReleaseVersion;]$version"
     - task: DownloadBuildArtifacts@0
       displayName: Retrieve Linux & Mac Archives
+      enabled: false
       inputs:
         buildType: 'current'
         downloadType: 'specific'
@@ -222,7 +226,7 @@ stages:
         ScanType: 'CustomScan'
         FileDirPath: '$(Build.BinariesDirectory)'
         EnableServices: true
-        SupportLogOnError: false
+        SupportLogOnError: true
         TreatSignatureUpdateFailureAs: 'Warning'
         SignatureFreshness: 'UpToDate'
         TreatStaleSignatureAs: 'Error'
@@ -232,6 +236,7 @@ stages:
         version: '2.1.804'
     - task: EsrpCodeSigning@1
       displayName: Code Sign Linux
+      enabled: false
       inputs:
         ConnectedServiceName: 'OSSGadget_CodeSign'
         FolderPath: '$(Build.BinariesDirectory)/linux/OSSGadget_$(ReleaseVersion)'
@@ -265,6 +270,7 @@ stages:
         MaxRetryAttempts: '5'
     - task: EsrpCodeSigning@1
       displayName: Code Sign MacOS
+      enabled: false
       inputs:
         ConnectedServiceName: 'OSSGadget_CodeSign'
         FolderPath: '$(Build.BinariesDirectory)/macos/OSSGadget_$(ReleaseVersion)'
@@ -331,6 +337,7 @@ stages:
         MaxRetryAttempts: '5'
     - task: EsrpCodeSigning@1
       displayName: Code Sign .NET Core App
+      enabled: false
       inputs:
         ConnectedServiceName: 'OSSGadget_CodeSign'
         FolderPath: '$(Build.BinariesDirectory)/netcoreapp/OSSGadget_$(ReleaseVersion)'
@@ -394,6 +401,7 @@ stages:
       displayName: 'Delete Code Sign Summaries'
     - task: ArchiveFiles@2
       displayName: Archive Artifact - Linux
+      enabled: false
       inputs:
         rootFolderOrFile: '$(Build.BinariesDirectory)/linux/OSSGadget_$(ReleaseVersion)'
         includeRootFolder: true
@@ -402,6 +410,7 @@ stages:
         replaceExistingArchive: true
     - task: ArchiveFiles@2
       displayName: Archive Artifact - MacOS
+      enabled: false
       inputs:
         rootFolderOrFile: '$(Build.BinariesDirectory)/macos/OSSGadget_$(ReleaseVersion)'
         includeRootFolder: true
@@ -418,6 +427,7 @@ stages:
         replaceExistingArchive: true
     - task: ArchiveFiles@2
       displayName: Archive Artifact - .NET Core App
+      enabled: false
       inputs:
         rootFolderOrFile: '$(Build.BinariesDirectory)/netcoreapp/OSSGadget_$(ReleaseVersion)'
         includeRootFolder: true

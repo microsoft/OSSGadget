@@ -179,7 +179,7 @@ stages:
   - job: sign_hash_release
     displayName: Code Sign, Generate Hashes, Publish Public Releases
     dependsOn:
-    - build_nix
+    # - build_nix Temporarily disabled
     - build_win
     condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI', 'BatchedCI', 'Manual'))
     pool:

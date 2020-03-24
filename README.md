@@ -2,11 +2,11 @@
 
 > **Note:** OSS Gadget is currently in **public preview** and is not ready for production use.
 
-OSS Gadget is a collection is tools that can help analyze open source projects. These are intended to make it simple to
+OSS Gadget is a collection of tools that can help analyze open source projects. These are intended to make it simple to
 perform low-level tasks, like locating the source code of a given package, downloading it, performing basic analyses on
-it, or estimating its health. The tools included in OSS Gadget will grow over time; currently they include:
+it, or estimating its health. The tools included in OSS Gadget will grow over time; currently, they include:
 
-* *oss-characteristic*: Identify a package's notable characteristics and features. Uses 
+* *oss-characteristic*: Identify a package's notable characteristics and features. Uses
   [Application Inspector](https://github.com/Microsoft/ApplicationInspector).
 * *oss-defog*: Searches a package for obfuscated strings (Base-64).
 * *oss-detect-backdoor*: Identifies *potential* backdoors and malicious code within a package. Currently has a high
@@ -17,10 +17,10 @@ it, or estimating its health. The tools included in OSS Gadget will grow over ti
 
 All OSS Gadget tools accept one or more [Package URLs](https://github.com/package-url/purl-spec) as a way to uniquely
 identify a package. Package URLs look like `pkg:npm/express` or `pkg:gem/azure@0.7.10`. If you leave the
-version number off, it implicitly means, "attempt to find the latest version". Using using an asterisk
+version number off, it implicitly means, "attempt to find the latest version". Using an asterisk
 (`pkg:npm/express@*`) means "perform the action on all available versions".
 
-OSS Gadget supports packages coming from these sources:
+OSS Gadget supports packages provided by these sources:
 
 * Cargo - `pkg:cargo/...`
 * Cocoapods - `pkg:cocoapods/...`
@@ -35,7 +35,7 @@ OSS Gadget supports packages coming from these sources:
 * RubyGems - `pkg:gem/...`
 * PyPI - `pkg:pypi/...`
 
-We will continue expanding this list to cover additional package management systems, and would be happy to accept
+We shall continue expanding this list to cover additional package management systems and would be happy to accept
 contributions from the community.
 
 ### Basic Usage

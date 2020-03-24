@@ -6,7 +6,7 @@ OSS Gadget is a collection is tools that can help analyze open source projects. 
 perform low-level tasks, like locating the source code of a given package, downloading it, performing basic analyses on
 it, or estimating its health. The tools included in OSS Gadget will grow over time; currently they include:
 
-* *oss-characteristic*: Identify a pacakge's notable characteristics and features. Uses 
+* *oss-characteristic*: Identify a package's notable characteristics and features. Uses 
   [Application Inspector](https://github.com/Microsoft/ApplicationInspector).
 * *oss-defog*: Searches a package for obfuscated strings (Base-64).
 * *oss-detect-backdoor*: Identifies *potential* backdoors and malicious code within a package. Currently has a high
@@ -81,13 +81,13 @@ by default, extracts it into a new directory.
 It's often useful to locate the source code to a given package. OSS Find Source works by searching through package metadata
 (obtained by querying an API or scraping relevant web pages) for GitHub URLs. It then outputs that list of URLs.
 
-Currently, OSS Find Source is only aware of GitHub. Adding support for Bitbucket, GitLab, and other sources may be added in
+Currently, OSS Find Source is only aware of GitHub. Support for Bitbucket, GitLab, and other sources may be added in
 the future.
 
 #### OSS Health
 
 As the name suggests, OSS Health estimates the health of an open source package. It does this by collecting various metrics
-from a (currently only) GitHub project, combining them through and algorithm that we think is reasonable, and displaying
+from a project (currently only supported for GitHub), combining them through an algorithm that we think is reasonable, and displaying
 the output.
 
 In this context, we mean "health" to mean, roughly, the likelihood that a package will continue to meet stakeholder
@@ -96,7 +96,7 @@ expectations in the future. We can divide this into different areas:
 * Will the project continue to address bugs?
 * Will there be new/improved features?
 * How vibrant is the community?
-* What is the so-called bus-factor?
+* What is the so-called "[bus factor](https://en.wikipedia.org/wiki/Bus_factor)"?
 * Are security issues addressed promptly?
 
 We recognize that the algorithm implemented isn't perfect, and welcome dialogue and contributions on how to improve it.

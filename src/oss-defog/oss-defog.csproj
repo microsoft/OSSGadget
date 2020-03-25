@@ -4,9 +4,13 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>Microsoft.CST.OpenSource</RootNamespace>
+    <Company>Microsoft Corporation</Company>
+    <Description>OSS Gadget - Obfuscated String Detector</Description>
+    <Authors>Michael Scovetta</Authors>
+    <RepositoryType>GitHub</RepositoryType>
+    <RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>
     <StartupObject>Microsoft.CST.OpenSource.DefoggerTool</StartupObject>
     <Configurations>Debug;Release</Configurations>
-    <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

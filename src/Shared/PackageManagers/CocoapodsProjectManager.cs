@@ -131,15 +131,15 @@ namespace Microsoft.CST.OpenSource.Shared
             // The Cocoapods standard uses MD5(project name) as a prefix for sharing.
             // There is no security issue here, but we cannot use another algorithm.
             #pragma warning disable SCS0006 // Weak hashing function
-            var prefixMD5 = BitConverter
-                                
-                                .ToString(MD5.Create().ComputeHash(packageNameBytes))
+            using var hashAlgorithm = MD5.Create();
+            #pragma warning restore SCS0006 // Weak hashing function
 
+            var prefixMD5 = BitConverter
+                                .ToString(hashAlgorithm.ComputeHash(packageNameBytes))
                                 .Replace("-", "")
                                 .ToLowerInvariant()
                                 .ToCharArray();
-            #pragma warning restore SCS0006 // Weak hashing function
-
+            
             var prefix = string.Format("{0}/{1}/{2}", prefixMD5[0], prefixMD5[1], prefixMD5[2]);
             return prefix;
         }
@@ -149,8 +149,6 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 var packageName = purl.Name;
-                var prefix = GetCocoapodsPrefix(packageName);
-
                 var cocoapodsWebContent = await GetHttpStringCache($"{ENV_COCOAPODS_METADATA_ENDPOINT}/pods/{packageName}");
                 var podSpecContent = "";
 

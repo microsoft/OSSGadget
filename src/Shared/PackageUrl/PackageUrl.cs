@@ -239,15 +239,15 @@ namespace Microsoft.CST.OpenSource.Shared
             // Test for namespaces
             if (firstPartArray.Length > 2)
             {
-                string @namespace = "";
+                var @namespace = new StringBuilder();
                 int i;
                 for (i = 1; i < firstPartArray.Length - 2; ++i)
                 {
-                    @namespace += firstPartArray[i] + ',';
+                    @namespace.Append(firstPartArray[i] + ',');
                 }
-                @namespace += firstPartArray[i];
+                @namespace.Append(firstPartArray[i]);
 
-                Namespace = ValidateNamespace(@namespace);
+                Namespace = ValidateNamespace(@namespace.ToString());
             }
         }
 

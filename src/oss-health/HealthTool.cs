@@ -6,8 +6,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CST.OpenSource.Shared;
+using Microsoft.CST.OpenSource.Health;
 
-namespace Microsoft.CST.OpenSource.Health
+namespace Microsoft.CST.OpenSource
 {
     public class HealthTool
     {
@@ -34,7 +35,6 @@ namespace Microsoft.CST.OpenSource.Health
             { "target", new List<string>() }
 
         };
-
 
         static void Main(string[] args)
         {

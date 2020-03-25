@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using IronRe2;
+using System.Text.RegularExpressions;
 using Microsoft.CST.OpenSource.Shared;
 using MimeTypes;
 
@@ -33,26 +33,22 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         /// Regular expression that matches Base64-encoded text.
         /// </summary>
-        static readonly Regex BASE64_REGEX = new Regex("(([A-Za-z0-9+\\/]{4})+([A-Za-z0-9+\\/]{3}=|[A-Za-z0-9+\\/]{2}==)?)");
+        static readonly Regex BASE64_REGEX = new Regex("(([A-Z0-9+\\/]{4})+([A-Z0-9+\\/]{3}=|[A-Z0-9+\\/]{2}==)?)", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(5000));
 
         /// <summary>
         /// Regular expression that matches hex-encoded text.
         /// </summary>
-        static readonly Regex HEX_REGEX = new Regex(@"(0[xX])?([A-Fa-f0-9]{16,})");
+        static readonly Regex HEX_REGEX = new Regex(@"(0x)?([A-F0-9]{16,})", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
         /// <summary>
         /// Short strings must match this regular expression to be reported.
         /// </summary>
-        static readonly Regex SHORT_INTERESTING_STRINGS_REGEX = new Regex(@"^[a-zA-Z0-9\-:]+$");
+        static readonly Regex SHORT_INTERESTING_STRINGS_REGEX = new Regex(@"^[A-Z0-9\-:]+$", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(5000));
 
         /// <summary>
         /// Do not analyze binary files (those with a MIME type that matches this regular expression).
         /// </summary>
-        static readonly Regex IGNORE_MIME_REGEX = new Regex(@"audio|video|x-msdownload", new IronRe2.Options()
-        {
-            CaseSensitive = false,
-            MaxMemory = 1024 * 1024 * 5
-        });
+        static readonly Regex IGNORE_MIME_REGEX = new Regex(@"audio|video|x-msdownload", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(5000));
 
         /// <summary>
         /// Only report detected strings this length or longer.
@@ -207,17 +203,22 @@ namespace Microsoft.CST.OpenSource
             }
 
             #pragma warning disable SEC0116 // Path Tampering Unvalidated File Path
-            var fileContents = new ReadOnlyMemory<byte>(File.ReadAllBytes(filename));
+            var fileContents = File.ReadAllText(filename);
             #pragma warning restore SEC0116 // Path Tampering Unvalidated File Path
 
-            foreach (var match in BASE64_REGEX.CaptureAll(fileContents))
+            foreach (Match match in BASE64_REGEX.Matches(fileContents))
             {
+                if (!match.Success)
+                {
+                    continue;
+                }
+
                 // Try to decode and then re-encode. Are we successful, and
                 // do we get the same value we started out with? This will filter out
                 // Base64-encoded binary data, which is what we want.
                 try
                 {
-                    var bytes = Convert.FromBase64String(match.ExtractedText);
+                    var bytes = Convert.FromBase64String(match.Value);
                     var decoded = Encoding.UTF8.GetString(bytes);
 
                     // Bail out early if the decoded string isn't interesting.
@@ -228,12 +229,12 @@ namespace Microsoft.CST.OpenSource
 
                     // Does the re-encoded string match?
                     var reencoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(decoded));
-                    if (match.ExtractedText.Equals(reencoded))
+                    if (match.Value.Equals(reencoded))
                     {
                         Findings.Add(new EncodedString()
                         {
                             Filename = filename,
-                            EncodedText = match.ExtractedText,
+                            EncodedText = match.Value,
                             DecodedText = decoded,
                             Type = EncodedStringType.Base64
                         });
@@ -243,13 +244,13 @@ namespace Microsoft.CST.OpenSource
                 catch (Exception ex)
                 {
                     // No action needed
-                    Logger.Trace("Invalid match for {0}: {1}", match.ExtractedText, ex.Message);
+                    Logger.Trace("Invalid match for {0}: {1}", match.Value, ex.Message);
                 }
             }
             
-            foreach (var match in HEX_REGEX.CaptureAll(fileContents))
+            foreach (Match match in HEX_REGEX.Matches(fileContents))
             {
-                var decodedText = HexToString(match.ExtractedText);
+                var decodedText = HexToString(match.Value);
 
                 // Bail out if the decoded string isn't interesting
                 if (!IsInterestingString(decodedText))
@@ -260,7 +261,7 @@ namespace Microsoft.CST.OpenSource
                 Findings.Append(new EncodedString()
                 {
                     Filename = filename,
-                    EncodedText = match.ExtractedText,
+                    EncodedText = match.Value,
                     DecodedText = decodedText,
                     Type = EncodedStringType.Hex
                 });

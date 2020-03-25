@@ -36,9 +36,34 @@ namespace Microsoft.CST.OpenSource.Health
                 if (property.Name.EndsWith("Health"))
                 {
                     var textualName = Regex.Replace(property.Name, "(\\B[A-Z])", " $1");
-                    sb.AppendFormat("{0}: {1:N1}%\n", textualName, property.GetValue(this));
+                    var result = Convert.ToDouble(property.GetValue(this));
+                    var bar = new StringBuilder();
+                    bar.Append("|");
+
+                    //Create a ascii horizontal bar chart with one "*" for every full 5%
+                    //And a "|" every 25% with a key on the bottom
+                    for (int i = 1; i <= 20; i++)
+                    {
+                        if (result >= (i * 5)) //As long as the total is still greater than this multiple of 5
+                        {
+                            bar.Append("*");
+                        }
+                        else
+                        {
+                            bar.Append(" ");
+                        }
+                        if (i % 5 == 0)
+                        {
+                            bar.Append("|"); //Print a pipe after every five chars
+                        }
+                    }
+                    //Space it out so it looks pretty
+                    sb.AppendFormat("{0,24}: {1,25} {2:N2}%\n", textualName, bar, result);
                 }
             }
+            //Print the lower key, I'm sure there are better ways to do this.
+            var key = "0%   25%   50%   75%   100%";
+            sb.AppendFormat("{0,25} {1} \n", "", key);
             return sb.ToString();
         }
 

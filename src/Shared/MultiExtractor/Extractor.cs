@@ -292,7 +292,6 @@ namespace Microsoft.CST.OpenSource.Shared
         private IEnumerable<FileEntry> ExtractGZipFile(FileEntry fileEntry)
         {
             using var gzipArchive = GZipArchive.Open(fileEntry.Content);
-            using var memoryStream = new MemoryStream();
             foreach (var entry in gzipArchive.Entries)
             {
                 if (entry.IsDirectory)
@@ -359,10 +358,13 @@ namespace Microsoft.CST.OpenSource.Shared
             
             var streamLength = xzStream.Index.Records?.Select(r => r.UncompressedSize)
                                                       .Aggregate((ulong?)0, (a, b) => a + b);
-            
+
             // BUG: Technically, we're casting a ulong to a long, but we don't expect
             // 9 exabyte steams, so low risk.
-            CheckResourceGovernor((long)streamLength.Value);
+            if (streamLength.HasValue)
+            {
+                CheckResourceGovernor((long)streamLength.Value);
+            }
 
             var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
             var newFileEntry = new FileEntry(newFilename, fileEntry.FullPath, memoryStream);
@@ -401,7 +403,6 @@ namespace Microsoft.CST.OpenSource.Shared
         {
 
             using var rarArchive = RarArchive.Open(fileEntry.Content);
-            using var memoryStream = new MemoryStream();
             foreach (var entry in rarArchive.Entries)
             {
                 if (entry.IsDirectory)
@@ -425,7 +426,6 @@ namespace Microsoft.CST.OpenSource.Shared
         private IEnumerable<FileEntry> Extract7ZipFile(FileEntry fileEntry)
         {
             using var sevenZipArchive = SevenZipArchive.Open(fileEntry.Content);
-            using var memoryStream = new MemoryStream();
             foreach (var entry in sevenZipArchive.Entries)
             {
                 if (entry.IsDirectory)

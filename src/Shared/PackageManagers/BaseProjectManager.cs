@@ -230,7 +230,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 // TODO: Does this prevent zip-slip?
                 foreach (var c in Path.GetInvalidPathChars())
                 {
-                    fullPath = fullPath.Replace(c, '-');
+                    fullPath = fullPath.Replace(c, '-');    // ignore: lgtm [cs/string-concatenation-in-loop] 
                 }
                 var filePathToWrite = Path.Combine(TopLevelExtractionDirectory, fullPath);
                 filePathToWrite = filePathToWrite.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
@@ -256,7 +256,12 @@ namespace Microsoft.CST.OpenSource.Shared
             Logger.Trace("(Base) Download({0})", purl?.ToString());
             var downloadPaths = new List<string>();
 
-            if (purl.Version == null)
+
+            if (purl == null)
+            {
+                return null;
+            }
+            else if (purl.Version == null)
             {
                 var versions = await EnumerateVersions(purl);
                 var vpurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, versions.Last(), purl.Qualifiers, purl.Subpath);

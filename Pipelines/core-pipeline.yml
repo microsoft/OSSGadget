@@ -22,7 +22,6 @@ stages:
 - stage: Build
   jobs:
   - job: build_nix
-    condition: eq(1,2)
     displayName: Build Linux & Mac
     pool:
       vmImage: 'ubuntu-latest'
@@ -108,7 +107,6 @@ stages:
         workingDirectory: $(SolutionDirectory)
     - task: DotNetCoreCLI@2
       displayName: Dotnet Build .NET Core App
-      enabled: false
       inputs:
         command: 'build'
         arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)\netcoreapp\OSSGadget_$(ReleaseVersion) /p:DebugType=None'
@@ -152,7 +150,6 @@ stages:
         replaceExistingArchive: true
     - task: ArchiveFiles@2
       displayName: Archive Artifact - .NET Core App
-      enabled: false
       inputs:
         rootFolderOrFile: '$(Build.BinariesDirectory)\netcoreapp'
         includeRootFolder: true
@@ -179,9 +176,10 @@ stages:
   - job: sign_hash_release
     displayName: Code Sign, Generate Hashes, Publish Public Releases
     dependsOn:
-    # - build_nix Temporarily disabled
+    - build_nix
     - build_win
-    condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI', 'BatchedCI', 'Manual'))
+    # TODO: remove eq(1,2) from condition after verifying artifacts
+    condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI', 'BatchedCI', 'Manual'), eq(1,2))
     pool:
       vmImage: 'windows-latest'
     steps:
@@ -200,7 +198,6 @@ stages:
           Write-Host "##vso[task.setvariable variable=ReleaseVersion;]$version"
     - task: DownloadBuildArtifacts@0
       displayName: Retrieve Linux & Mac Archives
-      enabled: false
       inputs:
         buildType: 'current'
         downloadType: 'specific'
@@ -236,7 +233,6 @@ stages:
         version: '2.1.804'
     - task: EsrpCodeSigning@1
       displayName: Code Sign Linux
-      enabled: false
       inputs:
         ConnectedServiceName: 'OSSGadget_CodeSign'
         FolderPath: '$(Build.BinariesDirectory)/linux/OSSGadget_$(ReleaseVersion)'
@@ -270,7 +266,6 @@ stages:
         MaxRetryAttempts: '5'
     - task: EsrpCodeSigning@1
       displayName: Code Sign MacOS
-      enabled: false
       inputs:
         ConnectedServiceName: 'OSSGadget_CodeSign'
         FolderPath: '$(Build.BinariesDirectory)/macos/OSSGadget_$(ReleaseVersion)'
@@ -337,7 +332,6 @@ stages:
         MaxRetryAttempts: '5'
     - task: EsrpCodeSigning@1
       displayName: Code Sign .NET Core App
-      enabled: false
       inputs:
         ConnectedServiceName: 'OSSGadget_CodeSign'
         FolderPath: '$(Build.BinariesDirectory)/netcoreapp/OSSGadget_$(ReleaseVersion)'
@@ -401,7 +395,6 @@ stages:
       displayName: 'Delete Code Sign Summaries'
     - task: ArchiveFiles@2
       displayName: Archive Artifact - Linux
-      enabled: false
       inputs:
         rootFolderOrFile: '$(Build.BinariesDirectory)/linux/OSSGadget_$(ReleaseVersion)'
         includeRootFolder: true
@@ -410,7 +403,6 @@ stages:
         replaceExistingArchive: true
     - task: ArchiveFiles@2
       displayName: Archive Artifact - MacOS
-      enabled: false
       inputs:
         rootFolderOrFile: '$(Build.BinariesDirectory)/macos/OSSGadget_$(ReleaseVersion)'
         includeRootFolder: true
@@ -427,7 +419,6 @@ stages:
         replaceExistingArchive: true
     - task: ArchiveFiles@2
       displayName: Archive Artifact - .NET Core App
-      enabled: false
       inputs:
         rootFolderOrFile: '$(Build.BinariesDirectory)/netcoreapp/OSSGadget_$(ReleaseVersion)'
         includeRootFolder: true

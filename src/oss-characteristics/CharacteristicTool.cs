@@ -5,7 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.ApplicationInspector.Commands;
 using Microsoft.CST.OpenSource.Characteristic;
 using Microsoft.CST.OpenSource.Shared;
 
@@ -120,52 +122,63 @@ namespace Microsoft.CST.OpenSource
         {
             Logger.Trace("AnalyzeDirectory({0})", directory);
 
-            var harness = new ApplicationInspectorHarness();
-            var commands = new List<string>();
-            
-            // Add custom commands
+            // Call Application Inspector using the NuGet package
+            var options = new AnalyzeCommandOptions()
+            {
+                ConsoleVerbosityLevel = "None",
+                LogFileLevel = "Off"
+            };
+
             var customRuleDirectory = (string)Options["custom-rule-directory"];
             if (customRuleDirectory != null)
             {
-                commands.Add("-r");
-                commands.Add(customRuleDirectory);
+                options.CustomRulesPath = customRuleDirectory;
             }
-
+            
             if ((bool)Options["disable-default-rules"])
             {
-                commands.Add("-i");
+                options.IgnoreDefaultRules = true;
             }
-            harness.RuleCommands = commands;
+            
+            options.SourcePath = directory;
 
-            var results = await harness.ExecuteApplicationInspector(directory);
-            Logger.Debug("Operation Complete: {0}", results);
-
-            if (results != default)
+            try
             {
-                foreach (var result in results.RootElement.EnumerateArray())
+
+                var analyzeCommand = new AnalyzeCommand(options);
+                var resultsJson = analyzeCommand.GetResult();
+                Logger.Debug("Operation Complete: {0}", resultsJson?.Length);
+
+                if (resultsJson != default)
                 {
-                    if (result.TryGetProperty("matchDetails", out var matchDetails))
+                    var results = await JsonDocument.ParseAsync(new MemoryStream(Encoding.UTF8.GetBytes(resultsJson)));
+                    foreach (var matchDetail in results.RootElement.GetProperty("FormattedMatchList").EnumerateArray())
                     {
-                        foreach (var matchDetail in matchDetails.EnumerateArray())
+                        var sb = new StringBuilder();
+                        sb.AppendFormat("{0}:\n", matchDetail.GetProperty("ruleName").GetString());
+                        sb.AppendFormat("{0}\n", matchDetail.GetProperty("fileName").GetString());
+                        sb.AppendFormat("Excerpt:\n");
+                        var excerpt = Encoding.UTF8.GetString(Convert.FromBase64String(matchDetail.GetProperty("excerpt").GetString()));
+                        foreach (var excerptLine in excerpt.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None))
                         {
-                            var sb = new StringBuilder();
-                            sb.AppendFormat("Characteristic {0} ({1}):\n", matchDetail.GetProperty("ruleId"), matchDetail.GetProperty("ruleName"));
-                            sb.AppendFormat("  Filename: {0}\n", matchDetail.GetProperty("fileName").GetString());
-                            sb.AppendFormat("  Excerpt:\n");
-                            var excerpt = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(matchDetail.GetProperty("excerpt").GetString()));
-                            foreach (var excerptLine in excerpt.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None))
+                            if (!string.IsNullOrEmpty(excerptLine.TrimEnd()))
                             {
-                                sb.AppendFormat("    {0}\n", excerptLine.TrimEnd());
+                                sb.AppendFormat("  {0}\n", excerptLine.TrimEnd());
                             }
-                            sb.AppendLine();
-                            Logger.Info(sb.ToString());
                         }
+                        sb.AppendLine();
+                        
+                        //Logger.Info(sb.ToString());
+                        Console.WriteLine(sb.ToString());   // Workaround due to https://github.com/microsoft/ApplicationInspector/issues/179
                     }
                 }
-            }
-            else
+                else
+                {
+                    throw new Exception("No output retrieved from Application Inspector.");
+                }
+            } catch(Exception ex)
             {
-                Logger.Warn("No output retrieved from Application Inspector.");
+                Logger.Warn("Error analyzing {0}: {1}", directory, ex.Message);
             }
         }
 

@@ -3,12 +3,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.ApplicationInspector.Commands;
-using Microsoft.CST.OpenSource.Characteristic;
 using Microsoft.CST.OpenSource.Shared;
 
 namespace Microsoft.CST.OpenSource
@@ -84,18 +85,21 @@ namespace Microsoft.CST.OpenSource
         /// Analyze a package by downloading it first.
         /// </summary>
         /// <param name="purl">The package-url of the package to analyze.</param>
-        /// <returns>n/a</returns>
-        public async Task AnalyzePackage(PackageURL purl)
+        /// <returns>List of tags identified</returns>
+        public async Task<List<string>> AnalyzePackage(PackageURL purl)
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
+            
+            var analysisResults = new List<string>();
 
             string targetDirectoryName = null;
             while (targetDirectoryName == null || Directory.Exists(targetDirectoryName))
             {
                 targetDirectoryName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             }
+
+            Logger.Trace("Creating directory [{0}]", targetDirectoryName);
             Directory.CreateDirectory(targetDirectoryName);
-            Logger.Trace("Creating [{0}]", targetDirectoryName);
 
             var downloadTool = new DownloadTool();
             var directoryNames = await downloadTool.Download(purl, targetDirectoryName);
@@ -103,48 +107,55 @@ namespace Microsoft.CST.OpenSource
             {
                 foreach (var directoryName in directoryNames)
                 {
-                    await AnalyzeDirectory(directoryName);
-                    Logger.Trace("Deleting {0}", directoryName);
-                    Directory.Delete(directoryName, true);
+                    var singleResult = await AnalyzeDirectory(directoryName);
+                    if (singleResult != default)
+                    {
+                        analysisResults.AddRange(singleResult);
+                    }
+
+                    Logger.Trace("Removing directory {0}", directoryName);
+                    try
+                    {
+                        Directory.Delete(directoryName, true);
+                    }
+                    catch(Exception ex)
+                    {
+                        Logger.Warn("Error removing {0}: {1}", directoryName, ex.Message);
+                    }
                 }
             }
             else
             {
                 Logger.Warn("Error downloading {0}.", purl.ToString());
             }
+            
+            // Need Distinct() because same tag could appear from multiple runs
+            return analysisResults.Distinct().ToList();
         }
 
         /// <summary>
         /// Analyzes a directory of files.
         /// </summary>
         /// <param name="directory">directory to analyze.</param>
-        public async Task AnalyzeDirectory(string directory)
+        /// <returns>List of tags identified</returns>
+        public async Task<List<string>> AnalyzeDirectory(string directory)
         {
             Logger.Trace("AnalyzeDirectory({0})", directory);
+
+            var analysisResults = new List<string>();
 
             // Call Application Inspector using the NuGet package
             var options = new AnalyzeCommandOptions()
             {
                 ConsoleVerbosityLevel = "None",
-                LogFileLevel = "Off"
+                LogFileLevel = "Off",
+                SourcePath = directory,
+                IgnoreDefaultRules = (bool)Options["disable-default-rules"],
+                CustomRulesPath = (string)Options["custom-rule-directory"]
             };
-
-            var customRuleDirectory = (string)Options["custom-rule-directory"];
-            if (customRuleDirectory != null)
-            {
-                options.CustomRulesPath = customRuleDirectory;
-            }
             
-            if ((bool)Options["disable-default-rules"])
-            {
-                options.IgnoreDefaultRules = true;
-            }
-            
-            options.SourcePath = directory;
-
             try
             {
-
                 var analyzeCommand = new AnalyzeCommand(options);
                 var resultsJson = analyzeCommand.GetResult();
                 Logger.Debug("Operation Complete: {0}", resultsJson?.Length);
@@ -167,7 +178,11 @@ namespace Microsoft.CST.OpenSource
                             }
                         }
                         sb.AppendLine();
-                        
+
+                        foreach (var tag in matchDetail.GetProperty("tags").EnumerateArray())
+                        {
+                            analysisResults.Add(tag.GetString());
+                        }
                         //Logger.Info(sb.ToString());
                         Console.WriteLine(sb.ToString());   // Workaround due to https://github.com/microsoft/ApplicationInspector/issues/179
                     }
@@ -180,6 +195,8 @@ namespace Microsoft.CST.OpenSource
             {
                 Logger.Warn("Error analyzing {0}: {1}", directory, ex.Message);
             }
+
+            return analysisResults;
         }
 
         /// <summary>

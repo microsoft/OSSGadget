@@ -19,18 +19,19 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">Package URL of the package to download.</param>
         /// <returns>n/a</returns>
-        public override async Task<string> DownloadVersion(PackageURL purl, bool doExtract = true)
+        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract = true)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
             var packageName = $"{purl?.Namespace}/{purl?.Name}";
             var packageVersion = purl?.Version;
-            string downloadedPath = null;
+            var downloadedPaths = new List<string>();
 
-            if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
+            if (string.IsNullOrWhiteSpace(purl?.Namespace) || string.IsNullOrWhiteSpace(purl?.Name) || 
+                string.IsNullOrWhiteSpace(packageVersion))
             {
                 Logger.Error("Unable to download [{0} {1}]. Both must be defined.", packageName, packageVersion);
-                return downloadedPath;
+                return downloadedPaths;
             }
 
             try
@@ -52,41 +53,44 @@ namespace Microsoft.CST.OpenSource.Shared
                         var targetName = $"composer-{packageName}@{packageVersion}";
                         if (doExtract)
                         {
-                            downloadedPath = await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync());
+                            downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync()));
                         }
                         else
                         {
+                            targetName += Path.GetExtension(url) ?? "";
                             await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
-                            downloadedPath = targetName;
+                            downloadedPaths.Add(targetName);
                         }
                     }
                 }
-                if (downloadedPath == null)
+                if (downloadedPaths.Count == 0)
                 {
-                    Logger.Warn("Unable to find version to download.");
+                    Logger.Warn("Unable to find version {0} to download.", packageVersion);
                 }
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"Error downloading Composer package: {ex.Message}");
-                downloadedPath = null;
+                Logger.Error(ex, "Error downloading Composer package: {0}", ex.Message);
             }
-            return downloadedPath;
+            return downloadedPaths;
         }
 
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
-            if (purl == null)
+
+            var versionList = new List<string>();
+            var packageName = $"{purl.Namespace}/{purl.Name}";
+
+            if (string.IsNullOrWhiteSpace(purl?.Namespace) || string.IsNullOrWhiteSpace(purl?.Name))
             {
-                return new List<string>();
+                return versionList;
             }
 
             try
             {
-                var packageName = $"{purl.Namespace}/{purl.Name}";
                 var doc = await GetJsonCache($"{ENV_COMPOSER_ENDPOINT}/p/{packageName}.json");
-                var versionList = new List<string>();
+                
                 foreach (var topObject in doc.RootElement.GetProperty("packages").EnumerateObject())
                 {
                     foreach (var versionObject in topObject.Value.EnumerateObject())
@@ -100,9 +104,10 @@ namespace Microsoft.CST.OpenSource.Shared
             catch (Exception ex)
             {
                 Logger.Error(ex, $"Error enumerating Composer package: {ex.Message}");
-                return Array.Empty<string>();
             }
+            return versionList;
         }
+
         public override async Task<string> GetMetadata(PackageURL purl)
         {
             try
@@ -113,7 +118,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"Error fetching Composer metadata: {ex.Message}");
+                Logger.Error(ex, "Error fetching Composer metadata: {0}", ex.Message);
                 return null;
             }
         }

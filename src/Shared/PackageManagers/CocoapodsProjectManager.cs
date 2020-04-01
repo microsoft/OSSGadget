@@ -29,18 +29,18 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">Package URL of the package to download.</param>
         /// <returns>n/a</returns>
-        public override async Task<string> DownloadVersion(PackageURL purl, bool doExtract = true)
+        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract = true)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
             var packageName = purl?.Name;
             var packageVersion = purl?.Version;
-            string downloadedPath = null;
+            var downloadedPaths = new List<string>();
 
             if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
             {
                 Logger.Error("Unable to download [{0} {1}]. Both must be defined.", packageName, packageVersion);
-                return downloadedPath;
+                return downloadedPaths;
             }
 
             var prefix = GetCocoapodsPrefix(packageName);
@@ -68,28 +68,28 @@ namespace Microsoft.CST.OpenSource.Shared
 
                 if (url != null)
                 {
+                    Logger.Debug("Downloading {0}...", purl);
                     var result = await WebClient.GetAsync(url);
                     result.EnsureSuccessStatusCode();
-                    Logger.Debug("Downloading {0}...", purl);
-
+                    
                     var targetName = $"cocoapods-{packageName}@{packageVersion}";
                     if (doExtract)
                     {
-                        downloadedPath = await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync());
+                        downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync()));
                     }
                     else
                     {
+                        targetName += Path.GetExtension(url) ?? "";
                         await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
-                        downloadedPath = targetName;
+                        downloadedPaths.Add(targetName);
                     }
                 }
                 else
                 {
-                    Logger.Warn($"Unable to find download location for {packageName}@{packageVersion}.");
-                    downloadedPath = null;
+                    Logger.Warn("Unable to find download location for {0}@{1}", packageName, packageVersion);
                 }
             }
-            return downloadedPath;
+            return downloadedPaths;
         }
 
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)

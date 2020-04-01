@@ -44,7 +44,7 @@ namespace Microsoft.CST.OpenSource
         static async Task Main(string[] args)
         {
             var downloadTool = new DownloadTool();
-            Logger.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
+            Logger.Info($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
 
             downloadTool.ParseOptions(args);
 
@@ -120,7 +120,7 @@ namespace Microsoft.CST.OpenSource
             }
             else
             {
-                throw new ArgumentException("Invalid Package URL type: {0}", purl?.Type);
+                throw new ArgumentException(string.Format("Invalid Package URL type: {0}", purl?.Type));
             }
 
             return downloadPaths;

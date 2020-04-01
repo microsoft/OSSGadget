@@ -260,12 +260,17 @@ namespace Microsoft.CST.OpenSource.Shared
             return type.ToLower();
         }
 
-        private static string ValidateNamespace(string @namespace)
+        private string ValidateNamespace(string @namespace)
         {
             if (@namespace == null)
             {
                 return null;
             }
+            if (Type == "vsm")
+            {
+                return WebUtility.UrlDecode(@namespace);
+            }
+
             return WebUtility.UrlDecode(@namespace.ToLower());
         }
 
@@ -279,7 +284,7 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 name = name.Replace('_', '-');
             }
-            if (Type == "nuget" || Type == "cocoapods" || Type == "cpan")
+            if (Type == "nuget" || Type == "cocoapods" || Type == "cpan" || Type == "vsm")
             {
                 return name;
             }

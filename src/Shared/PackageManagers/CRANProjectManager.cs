@@ -20,18 +20,18 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">Package URL of the package to download.</param>
         /// <returns>n/a</returns>
-        public override async Task<string> DownloadVersion(PackageURL purl, bool doExtract = true)
+        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract = true)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
             var packageName = purl?.Name;
             var packageVersion = purl?.Version;
-            string downloadedPath = null;
+            var downloadedPaths = new List<string>();
 
             if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
             {
                 Logger.Error("Unable to download [{0} {1}]. Both must be defined.", packageName, packageVersion);
-                return downloadedPath;
+                return downloadedPaths;
             }
 
             // Current Version
@@ -45,22 +45,22 @@ namespace Microsoft.CST.OpenSource.Shared
                 var targetName = $"cran-{packageName}@{packageVersion}";
                 if (doExtract)
                 {
-                    downloadedPath = await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync());
+                    downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync()));
                 }
                 else
                 {
+                    targetName += Path.GetExtension(url) ?? "";
                     await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
-                    downloadedPath = targetName;
+                    downloadedPaths.Add(targetName);
                 }
             }
             catch (Exception ex)
             {
-                Logger.Debug(ex, $"Error downloading CRAN package: {ex.Message}. Checking archives instead.");
-                downloadedPath = null;
+                Logger.Debug(ex, "Error downloading CRAN package: {0}@{1}. Checking archives instead.", packageName, packageVersion);
             }
-            if (downloadedPath != null)
+            if (downloadedPaths.Count > 0)
             {
-                return downloadedPath;
+                return downloadedPaths;
             }
 
             // Archive Version - Only continue here if needed
@@ -74,20 +74,20 @@ namespace Microsoft.CST.OpenSource.Shared
                 var targetName = $"cran-{packageName}@{packageVersion}";
                 if (doExtract)
                 {
-                    downloadedPath = await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync());
+                    downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync()));
                 }
                 else
                 {
+                    targetName += Path.GetExtension(url) ?? "";
                     await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
-                    downloadedPath = targetName;
+                    downloadedPaths.Add(targetName);
                 }
             }
             catch (Exception ex)
             {
                 Logger.Warn(ex, "Error downloading CRAN package: {0}", ex.Message);
-                downloadedPath = null;
             }
-            return downloadedPath;
+            return downloadedPaths;
         }
 
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)

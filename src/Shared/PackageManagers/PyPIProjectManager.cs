@@ -20,18 +20,18 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">Package URL of the package to download.</param>
         /// <returns>the path or file written.</returns>
-        public override async Task<string> DownloadVersion(PackageURL purl, bool doExtract = true)
+        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract = true)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
             var packageName = purl?.Name;
             var packageVersion = purl?.Version;
-            string downloadedPath = null;
+            var downloadedPaths = new List<string>();
 
             if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
             {
                 Logger.Error("Unable to download [{0} {1}]. Both must be defined.", packageName, packageVersion);
-                return null;
+                return downloadedPaths;
             }
 
             try
@@ -40,33 +40,32 @@ namespace Microsoft.CST.OpenSource.Shared
 
                 if (!doc.RootElement.TryGetProperty("releases", out JsonElement releases))
                 {
-                    return null;
+                    return downloadedPaths;
                 }
 
                 foreach (var versionObject in releases.EnumerateObject())
                 {
-                    if (versionObject.Name != packageVersion || downloadedPath != null)
+                    if (versionObject.Name != packageVersion)
                     {
                         continue;
                     }
                     foreach (var release in versionObject.Value.EnumerateArray())
                     {
-                        // For PyPI projects, we only download source distributions
-                        if (release.GetProperty("packagetype").GetString() == "sdist")
+                        if (!release.TryGetProperty("packagetype", out JsonElement packageType))
                         {
-                            var result = await WebClient.GetAsync(release.GetProperty("url").GetString());
-                            result.EnsureSuccessStatusCode();
-                            var targetName = $"pypi-{packageName}@{packageVersion}";
-                            if (doExtract)
-                            {
-                                downloadedPath = await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync());
-                            }
-                            else
-                            {
-                                await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
-                                downloadedPath = targetName;
-                            }
-                            break;
+                            continue;   // Missing a package type
+                        }
+                        var result = await WebClient.GetAsync(release.GetProperty("url").GetString());
+                        result.EnsureSuccessStatusCode();
+                        var targetName = $"pypi-{packageType}-{packageName}@{packageVersion}";
+                        if (doExtract)
+                        {
+                            downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync()));
+                        }
+                        else
+                        {
+                            await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
+                            downloadedPaths.Add(targetName);
                         }
                     }
                 }
@@ -74,9 +73,8 @@ namespace Microsoft.CST.OpenSource.Shared
             catch (Exception ex)
             {
                 Logger.Warn(ex, "Error downloading PyPI package: {0}", ex.Message);
-                downloadedPath = null;
             }
-            return downloadedPath;
+            return downloadedPaths;
         }
 
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)

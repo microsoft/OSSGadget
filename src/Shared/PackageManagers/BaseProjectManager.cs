@@ -26,9 +26,9 @@ namespace Microsoft.CST.OpenSource.Shared
         protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
         /// <summary>
-        /// Private memory cache to make subsequent loads of the same URL fast and transparent.
+        /// Protected memory cache to make subsequent loads of the same URL fast and transparent.
         /// </summary>
-        private static readonly MemoryCache DataCache = new MemoryCache(
+        protected static readonly MemoryCache DataCache = new MemoryCache(
             new MemoryCacheOptions
             {
                 SizeLimit = 1024 * 1024 * 8
@@ -52,8 +52,8 @@ namespace Microsoft.CST.OpenSource.Shared
         /// Downloads a given PackageURL and extracts it locally to a directory.
         /// </summary>
         /// <param name="purl">PackageURL to download</param>
-        /// <returns>Path to the directory containing the files extracted.</returns>
-        abstract public Task<string> DownloadVersion(PackageURL purl, bool doExtract=true);
+        /// <returns>Paths (either files or directory names) pertaining to the downloaded files.</returns>
+        abstract public Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract=true);
 
         /// <summary>
         /// This method should return text reflecting metadata for the given package.
@@ -256,7 +256,6 @@ namespace Microsoft.CST.OpenSource.Shared
             Logger.Trace("(Base) Download({0})", purl?.ToString());
             var downloadPaths = new List<string>();
 
-
             if (purl == null)
             {
                 return null;
@@ -265,20 +264,22 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 var versions = await EnumerateVersions(purl);
                 var vpurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, versions.Last(), purl.Qualifiers, purl.Subpath);
-                downloadPaths.Add(await DownloadVersion(vpurl, doExtract));
+                downloadPaths.AddRange(await DownloadVersion(vpurl, doExtract));
             }
             else if (purl.Version.Equals("*"))
             {
                 foreach (var version in await EnumerateVersions(purl))
                 {
                     var vpurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, version, purl.Qualifiers, purl.Subpath);
-                    downloadPaths.Add(await DownloadVersion(vpurl, doExtract));
+                    downloadPaths.AddRange(await DownloadVersion(vpurl, doExtract));
                 }
             }
             else
             {
-                downloadPaths.Add(await DownloadVersion(purl, doExtract));
+                downloadPaths.AddRange(await DownloadVersion(purl, doExtract));
             }
+
+            Logger.Debug("Downloaded to {0} paths", downloadPaths.Count);
             return downloadPaths;
         }
 
@@ -358,6 +359,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
   pkg:npm/express               The latest version of Express (via npm.org)
   pkg:nuget/Newtonsoft.JSON     The latest version of Newtonsoft.JSON (via nuget.org)
   pkg:pypi/django@1.11.1        Version 1.11.1 fo Django (via pypi.org)
+  pkg:vsm/MLNET/07              The latest version of MLNET.07 (from marketplace.visualstudio.com)
 ";
             return supportedHelpText;
         }

@@ -20,18 +20,18 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">Package URL of the package to download.</param>
         /// <returns>n/a</returns>
-        public override async Task<string> DownloadVersion(PackageURL purl, bool doExtract = true)
+        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract = true)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
             var packageName = purl?.Name;
             var packageVersion = purl?.Version;
-            string downloadedPath;
+            var downloadedPaths = new List<string>();
 
             if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
             {
                 Logger.Error("Unable to download [{0} {1}]. Both must be defined.", packageName, packageVersion);
-                return null; ;
+                return downloadedPaths;
             }
 
             try
@@ -45,20 +45,20 @@ namespace Microsoft.CST.OpenSource.Shared
                 var targetName = $"nuget-{packageName}@{packageVersion}";
                 if (doExtract)
                 {
-                    downloadedPath = await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync());
+                    downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync()));
                 }
                 else
                 {
+                    targetName += Path.GetExtension(archive) ?? "";
                     await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
-                    downloadedPath = targetName;
+                    downloadedPaths.Add(targetName);
                 }
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"Error downloading NuGet package: {ex.Message}");
-                downloadedPath = null;
+                Logger.Error(ex, "Error downloading NuGet package: {0}", ex.Message);
             }
-            return downloadedPath;
+            return downloadedPaths;
         }
 
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)

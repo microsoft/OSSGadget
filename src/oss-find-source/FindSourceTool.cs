@@ -82,16 +82,23 @@ namespace Microsoft.CST.OpenSource
                                                StringComparison.InvariantCultureIgnoreCase))
                .FirstOrDefault();
 
-            if (projectManagerClass != null)
+            if (projectManagerClass != default)
             {
                 var ctor = projectManagerClass.GetConstructor(Array.Empty<Type>());
                 var projectManager = (BaseProjectManager)(ctor.Invoke(Array.Empty<object>()));
                 var content = await projectManager.GetMetadata(purlNoVersion);
 
-                foreach (var githubPurl in BaseProjectManager.ExtractGitHubPackageURLs(content))
+                if (!string.IsNullOrWhiteSpace(content))
                 {
-                    var githubUrl = $"https://github.com/{githubPurl.Namespace}/{githubPurl.Name}";
-                    Logger.Info("Found: {0} ({1})", githubPurl.ToString(), githubUrl);
+                    foreach (var githubPurl in BaseProjectManager.ExtractGitHubPackageURLs(content))
+                    {
+                        var githubUrl = $"https://github.com/{githubPurl.Namespace}/{githubPurl.Name}";
+                        Logger.Info("Found: {0} ({1})", githubPurl.ToString(), githubUrl);
+                    }
+                }
+                else
+                {
+                    Logger.Warn("No metadata found for {0}", purlNoVersion.ToString());
                 }
             }
             else

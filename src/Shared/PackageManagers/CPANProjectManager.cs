@@ -83,7 +83,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 result.EnsureSuccessStatusCode();
                 Logger.Debug("Downloading {0}...", purl);
 
-                var targetName = $"cran-{packageName}@{packageVersion}";
+                var targetName = $"cpan-{packageName}@{packageVersion}";
                 if (doExtract)
                 {
                     downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync()));

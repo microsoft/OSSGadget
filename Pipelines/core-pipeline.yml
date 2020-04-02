@@ -225,7 +225,7 @@ stages:
         SupportLogOnError: true
         TreatSignatureUpdateFailureAs: 'Warning'
         SignatureFreshness: 'UpToDate'
-        TreatStaleSignatureAs: 'Error'
+        TreatStaleSignatureAs: 'Warning'
     - task: UseDotNet@2
       inputs:
         packageType: 'sdk'

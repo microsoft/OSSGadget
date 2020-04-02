@@ -63,6 +63,11 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
                 repo.Dispose();
             }
+            catch (LibGit2Sharp.NotFoundException ex)
+            {
+                Logger.Warn(ex, "The version {0} is not a valid git reference: {1}", purl.Version, ex.Message);
+                downloadedPath = null;
+            }
             catch (Exception ex)
             {
                 Logger.Warn(ex, "Error downloading GitHub package: {0}", ex.Message);

@@ -266,7 +266,7 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 return null;
             }
-            if (Type == "vsm")
+            if (Type == "vsm" || Type == "cran")
             {
                 return WebUtility.UrlDecode(@namespace);
             }
@@ -284,7 +284,7 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 name = name.Replace('_', '-');
             }
-            if (Type == "nuget" || Type == "cocoapods" || Type == "cpan" || Type == "vsm")
+            if (Type == "nuget" || Type == "cocoapods" || Type == "cpan" || Type == "vsm" || Type == "cran")
             {
                 return name;
             }

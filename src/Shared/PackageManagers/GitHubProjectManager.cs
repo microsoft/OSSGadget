@@ -54,13 +54,14 @@ namespace Microsoft.CST.OpenSource.Shared
                                         Path.Join(TopLevelExtractionDirectory, $"github-{fsNamespace}-{fsName}-{fsVersion}");
 
                 Repository.Clone(url, workingDirectory);
-                using var repo = new Repository(workingDirectory);
-
+                
+                var repo = new Repository(workingDirectory);
                 if (!string.IsNullOrWhiteSpace(purl.Version))
                 {
                     var b = Commands.Checkout(repo, purl.Version);
                     downloadedPaths.Add(workingDirectory);
                 }
+                repo.Dispose();
             }
             catch (Exception ex)
             {

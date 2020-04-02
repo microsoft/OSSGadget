@@ -57,7 +57,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\oss-characteristics\oss-characteristic.csproj" />
-    <ProjectReference Include="..\Shared\shared.csproj" />
+    <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>

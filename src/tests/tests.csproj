@@ -21,7 +21,7 @@
     <ProjectReference Include="..\oss-find-source\oss-find-source.csproj" />
     <ProjectReference Include="..\oss-health\oss-health.csproj" />
     <ProjectReference Include="..\oss-risk-calculator\oss-risk-calculator.csproj" />
-    <ProjectReference Include="..\Shared\shared.csproj" />
+    <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>
 
 </Project>

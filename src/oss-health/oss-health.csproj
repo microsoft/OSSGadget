@@ -24,7 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\oss-download\oss-download.csproj" />
-    <ProjectReference Include="..\Shared\shared.csproj" />
+    <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>

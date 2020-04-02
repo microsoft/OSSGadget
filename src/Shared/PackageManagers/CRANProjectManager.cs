@@ -23,14 +23,17 @@ namespace Microsoft.CST.OpenSource.Shared
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract = true)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
-
+            
+            var packageNamespace = purl?.Namespace;
             var packageName = purl?.Name;
             var packageVersion = purl?.Version;
+            
             var downloadedPaths = new List<string>();
 
-            if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
+            if (string.IsNullOrWhiteSpace(packageNamespace) || string.IsNullOrWhiteSpace(packageName) ||
+                string.IsNullOrWhiteSpace(packageVersion))
             {
-                Logger.Error("Unable to download [{0} {1}]. Both must be defined.", packageName, packageVersion);
+                Logger.Error("Unable to download [{0} {1} {2}]. All must be defined.", packageNamespace, packageName, packageVersion);
                 return downloadedPaths;
             }
 
@@ -66,7 +69,7 @@ namespace Microsoft.CST.OpenSource.Shared
             // Archive Version - Only continue here if needed
             try
             {
-                var url = $"{ENV_CRAN_ENDPOINT}/src/contrib/Archive/{packageName}/{packageName}_{packageVersion}.tar.gz";
+                var url = $"{ENV_CRAN_ENDPOINT}/src/contrib/{packageNamespace}/{packageName}/{packageName}_{packageVersion}.tar.gz";
                 var result = await WebClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
                 Logger.Debug("Downloading {0}...", purl);

@@ -73,11 +73,6 @@ namespace Microsoft.CST.OpenSource.Shared
             WebClient = CommonInitialization.WebClient;
         }
 
-        ~BaseProjectManager()
-        {
-            DataCache.Dispose();
-        }
-
         /// <summary>
         /// Retrieves JSON content from a given URI.
         /// </summary>

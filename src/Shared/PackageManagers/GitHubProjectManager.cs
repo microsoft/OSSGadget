@@ -66,7 +66,6 @@ namespace Microsoft.CST.OpenSource.Shared
             catch (LibGit2Sharp.NotFoundException ex)
             {
                 Logger.Warn(ex, "The version {0} is not a valid git reference: {1}", purl.Version, ex.Message);
-                downloadedPath = null;
             }
             catch (Exception ex)
             {

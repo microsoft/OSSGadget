@@ -22,6 +22,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "oss-detect-backdoor", "oss-detect-backdoor\oss-detect-backdoor.csproj", "{4F3F5D54-9C66-4366-969B-35ACF18DC03F}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "oss-risk-calculator", "oss-risk-calculator\oss-risk-calculator.csproj", "{B4EBCD11-EEA6-4A1A-BB64-70C8435137F3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tests", "tests\tests.csproj", "{501992E3-6026-40C3-9E36-139C8130FF41}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -56,6 +60,14 @@ Global
 		{4F3F5D54-9C66-4366-969B-35ACF18DC03F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4F3F5D54-9C66-4366-969B-35ACF18DC03F}.Release|Any CPU.ActiveCfg = Debug|Any CPU
 		{4F3F5D54-9C66-4366-969B-35ACF18DC03F}.Release|Any CPU.Build.0 = Debug|Any CPU
+		{B4EBCD11-EEA6-4A1A-BB64-70C8435137F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4EBCD11-EEA6-4A1A-BB64-70C8435137F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4EBCD11-EEA6-4A1A-BB64-70C8435137F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4EBCD11-EEA6-4A1A-BB64-70C8435137F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{501992E3-6026-40C3-9E36-139C8130FF41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{501992E3-6026-40C3-9E36-139C8130FF41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{501992E3-6026-40C3-9E36-139C8130FF41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{501992E3-6026-40C3-9E36-139C8130FF41}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

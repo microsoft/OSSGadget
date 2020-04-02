@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="2.0.0" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.0.0" />
+    <PackageReference Include="coverlet.collector" Version="1.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\oss-characteristics\oss-characteristic.csproj" />
+    <ProjectReference Include="..\oss-defog\oss-defog.csproj" />
+    <ProjectReference Include="..\oss-detect-backdoor\oss-detect-backdoor.csproj" />
+    <ProjectReference Include="..\oss-download\oss-download.csproj" />
+    <ProjectReference Include="..\oss-find-source\oss-find-source.csproj" />
+    <ProjectReference Include="..\oss-health\oss-health.csproj" />
+    <ProjectReference Include="..\oss-risk-calculator\oss-risk-calculator.csproj" />
+    <ProjectReference Include="..\Shared\shared.csproj" />
+  </ItemGroup>
+
+</Project>

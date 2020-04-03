@@ -9,6 +9,12 @@ using System.Text.RegularExpressions;
 
 namespace Microsoft.CST.OpenSource.Health
 {
+    [Flags]
+    public enum BestPracticeFlags
+    {
+        HasSecurityMd = 1
+    };
+
     public class HealthMetrics
     {
         private const int MAX_HEALTH = 100;
@@ -18,10 +24,11 @@ namespace Microsoft.CST.OpenSource.Health
         public double PullRequestHealth { get; set; }
         public double IssueHealth { get; set; }
         public double SecurityIssueHealth { get; set; }
-        public double ReleaseHealth;
+        public double ReleaseHealth { get; set; }
         public double ContributorHealth { get; set; }
         public double RecentActivityHealth { get; set; }
         public double ProjectSizeHealth { get; set; }
+        public BestPracticeFlags Flags { get; set; }
 
         public override string ToString()
         {
@@ -40,11 +47,11 @@ namespace Microsoft.CST.OpenSource.Health
                     var bar = new StringBuilder();
                     bar.Append("|");
 
-                    //Create a ascii horizontal bar chart with one "*" for every full 5%
-                    //And a "|" every 25% with a key on the bottom
+                    // Create a ascii horizontal bar chart with one "*" for every full 5%
+                    // and a "|" every 25% with a key on the bottom
                     for (int i = 1; i <= 20; i++)
                     {
-                        if (result >= (i * 5)) //As long as the total is still greater than this multiple of 5
+                        if (result >= (i * 5)) // As long as the total is still greater than this multiple of 5
                         {
                             bar.Append("*");
                         }
@@ -54,16 +61,29 @@ namespace Microsoft.CST.OpenSource.Health
                         }
                         if (i % 5 == 0)
                         {
-                            bar.Append("|"); //Print a pipe after every five chars
+                            bar.Append("|"); // Print a pipe after every five chars
                         }
                     }
-                    //Space it out so it looks pretty
+                    // Space it out so it looks pretty
                     sb.AppendFormat("{0,24}: {1,25} {2:N2}%\n", textualName, bar, result);
                 }
             }
-            //Print the lower key, I'm sure there are better ways to do this.
+            // Print the lower key
             var key = "0%   25%   50%   75%   100%";
             sb.AppendFormat("{0,25} {1} \n", "", key);
+
+            sb.AppendFormat("\n");
+
+            // Add extra flags
+            if (Flags.HasFlag(BestPracticeFlags.HasSecurityMd))
+            {
+                sb.AppendFormat($"[x] Uses SECURITY.md\n");
+            }
+            else
+            {
+                sb.AppendFormat($"[ ] Does not use SECURITY.md\n");
+            }
+
             return sb.ToString();
         }
 

@@ -49,7 +49,13 @@ namespace Microsoft.CST.OpenSource
                     try
                     {
                         var purl = new PackageURL(target);
-                        healthTool.CheckHealth(purl).Wait();
+                        var healthMetrics = healthTool.CheckHealth(purl).Result;
+                        if (healthMetrics != default)
+                        {
+                            // @TODO Improve this output
+                            Logger.Info($"Health for {purl} (via {purl})");
+                            Logger.Info(healthMetrics.ToString());
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -71,7 +77,7 @@ namespace Microsoft.CST.OpenSource
             Logger = CommonInitialization.Logger;
         }
         
-        public async Task CheckHealth(PackageURL purl)
+        public async Task<HealthMetrics> CheckHealth(PackageURL purl)
         {
             // Use reflection to find the correct package management class
             var projectManagerClass = typeof(BaseProjectManager).Assembly.GetTypes()
@@ -80,31 +86,37 @@ namespace Microsoft.CST.OpenSource
                                                StringComparison.InvariantCultureIgnoreCase))
                .FirstOrDefault();
 
-            if (projectManagerClass != null)
+            if (projectManagerClass != default)
             {
                 var ctor = projectManagerClass.GetConstructor(Array.Empty<Type>());
                 var projectManager = (BaseProjectManager)(ctor.Invoke(Array.Empty<object>()));
                 var content = await projectManager.GetMetadata(purl);
-                foreach (var githubPurl in BaseProjectManager.ExtractGitHubPackageURLs(content))
+                if (!string.IsNullOrWhiteSpace(content))
                 {
-                    try
+                    foreach (var githubPurl in BaseProjectManager.ExtractGitHubPackageURLs(content))
                     {
-                        var healthAlgorithm = new GitHubHealthAlgorithm(githubPurl);
-                        var health = await healthAlgorithm.GetHealth();
-                        // @TODO Improve this output
-                        Logger.Info($"Health for {purl} (via {githubPurl})");
-                        Logger.Info(health.ToString());
+                        try
+                        {
+                            var healthAlgorithm = new GitHubHealthAlgorithm(githubPurl);
+                            var health = await healthAlgorithm.GetHealth();
+                            return health;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Warn(ex, "Unable to calculate health for {0}: {1}", githubPurl, ex.Message);
+                        }
                     }
-                    catch (Exception ex)
-                    {
-                        Logger.Warn(ex, "Unable to calculate health for {0}: {1}", githubPurl, ex.Message);
-                    }
+                }
+                else
+                {
+                    Logger.Warn("No metadata found for {0}", purl.ToString());
                 }
             }
             else
             {
                 throw new ArgumentException("Invalid Package URL type: {0}", purl.Type);
             }
+            return default;
         }
 
         /// <summary>

@@ -111,7 +111,7 @@ namespace Microsoft.CST.OpenSource.Health
             await GetRecentActivityHealth(health);
             await GetReleaseHealth(health);
             await GetPullRequestHealth(health);
-            
+            await GetBestPracticeFlags(health);
 
             return health;
         }
@@ -262,7 +262,6 @@ namespace Microsoft.CST.OpenSource.Health
 
         /// <summary>
         /// Retrieves issue and security issue counts (subset) to minimize calls out.  
-        /// Note: Octokit Search API was found earlier to be unreliable
         /// </summary>
         /// <returns></returns>
         public async Task GetIssueHealth(HealthMetrics metrics)
@@ -351,6 +350,25 @@ namespace Microsoft.CST.OpenSource.Health
             metrics.SecurityIssueHealth = securityIssueHealth;
             
             return;
+        }
+
+        /**
+         * Release health is defined as:
+         * # releases + # tags
+         */
+        public async Task GetBestPracticeFlags(HealthMetrics metrics)
+        {
+            Logger.Trace("GetBestPracticeFlags({0}, {1})", purl.Namespace, purl.Name);
+
+            // Code of Conduct
+            // Waiting on https://github.com/octokit/octokit.net/issues/2135
+
+            // SECURITY.md
+            var files = await Client.Repository.Content.GetAllContents(purl.Namespace, purl.Name, "SECURITY.md");
+            if (files.Any())
+            {
+                metrics.Flags |= BestPracticeFlags.HasSecurityMd;
+            }
         }
     }
 }

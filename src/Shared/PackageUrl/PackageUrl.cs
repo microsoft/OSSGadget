@@ -284,7 +284,7 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 name = name.Replace('_', '-');
             }
-            if (Type == "nuget" || Type == "cocoapods" || Type == "cpan" || Type == "vsm" || Type == "cran")
+            if (Type == "cocoapods" || Type == "cpan" || Type == "vsm" || Type == "cran")
             {
                 return name;
             }

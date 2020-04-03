@@ -55,10 +55,12 @@ namespace Microsoft.CST.OpenSource.Shared
                     var response = await WebClient.SendAsync(requestMessage);
                     resultStream = await response.Content.ReadAsStreamAsync();
 
-                    SetCache(packageName, new StreamReader(resultStream).ReadToEnd());
+                    using var resultStreamReader = new StreamReader(resultStream);
+                    SetCache(packageName, resultStreamReader.ReadToEnd());
                     resultStream.Seek(0, SeekOrigin.Begin);
                 }
-                var doc = await JsonDocument.ParseAsync(resultStream);
+                var doc = JsonDocument.Parse(resultStream);
+                await resultStream.DisposeAsync();
 
                 if (!doc.RootElement.TryGetProperty("results", out JsonElement results))
                 {
@@ -193,10 +195,12 @@ namespace Microsoft.CST.OpenSource.Shared
                     requestMessage.Content = new StringContent(postContent, Encoding.UTF8, "application/json");
                     var response = await WebClient.SendAsync(requestMessage);
                     resultStream = await response.Content.ReadAsStreamAsync();
-                    SetCache(packageName, new StreamReader(resultStream).ReadToEnd());
+                    using var resultStreamReader = new StreamReader(resultStream, leaveOpen: true);
+                    SetCache(packageName, resultStreamReader.ReadToEnd());
                     resultStream.Seek(0, SeekOrigin.Begin);
                 }
                 var doc = await JsonDocument.ParseAsync(resultStream);
+                await resultStream.DisposeAsync();
 
                 if (!doc.RootElement.TryGetProperty("results", out JsonElement results))
                 {

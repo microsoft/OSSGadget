@@ -99,7 +99,7 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         [DataTestMethod]
-        [DataRow("pkg:vsm/ms-vscode.PowerShell", "extension.vsixmanifest")]
+        [DataRow("pkg:vsm/ms-vscode/PowerShell", "extension.vsixmanifest")]
         public async Task VSM_Download_Version_Succeeds(string purl, string targetFilename)
         {
             await TestDownload(purl, targetFilename);

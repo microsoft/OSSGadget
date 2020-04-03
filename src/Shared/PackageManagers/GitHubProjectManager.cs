@@ -31,7 +31,6 @@ namespace Microsoft.CST.OpenSource.Shared
 
             var packageNamespace = purl?.Namespace;
             var packageName = purl?.Name;
-            var packageVersion = purl?.Version;
             var downloadedPaths = new List<string>();
 
             if (string.IsNullOrWhiteSpace(packageNamespace) || string.IsNullOrWhiteSpace(packageName))
@@ -58,7 +57,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 var repo = new Repository(workingDirectory);
                 if (!string.IsNullOrWhiteSpace(purl.Version))
                 {
-                    var b = Commands.Checkout(repo, purl.Version);
+                    Commands.Checkout(repo, purl.Version);
                     downloadedPaths.Add(workingDirectory);
                 }
                 repo.Dispose();

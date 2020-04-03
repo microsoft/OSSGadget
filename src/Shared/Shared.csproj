@@ -9,6 +9,7 @@
     <RepositoryType>GitHub</RepositoryType>
     <RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>
     <Configurations>Debug;Release</Configurations>
+    <AssemblyName>Shared</AssemblyName>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

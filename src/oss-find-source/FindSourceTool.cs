@@ -9,7 +9,7 @@ using Microsoft.CST.OpenSource.Shared;
 
 namespace Microsoft.CST.OpenSource
 {
-    class FindSourceTool
+    public class FindSourceTool
     {
         /// <summary>
         /// Name of this tool.
@@ -46,8 +46,10 @@ namespace Microsoft.CST.OpenSource
                 {
                     try
                     {
-                        var purl = new PackageURL(target);
-                        findSourceTool.FindSource(purl).Wait();
+                        foreach (var purl in findSourceTool.FindSource(new PackageURL(target)).Result)
+                        {
+                            Logger.Info($"Located: https://github.com/{purl.Namespace}/{purl.Name}");
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -69,7 +71,7 @@ namespace Microsoft.CST.OpenSource
             Logger = CommonInitialization.Logger;
         }
 
-        public async Task FindSource(PackageURL purl)
+        public async Task<IEnumerable<PackageURL>> FindSource(PackageURL purl)
         {
             var purlNoVersion = new PackageURL(purl.Type, purl.Namespace, purl.Name,
                                                null, purl.Qualifiers, purl.Subpath);
@@ -82,22 +84,32 @@ namespace Microsoft.CST.OpenSource
                                                StringComparison.InvariantCultureIgnoreCase))
                .FirstOrDefault();
 
-            if (projectManagerClass != null)
+            var sourceList = new List<PackageURL>();
+
+            if (projectManagerClass != default)
             {
                 var ctor = projectManagerClass.GetConstructor(Array.Empty<Type>());
                 var projectManager = (BaseProjectManager)(ctor.Invoke(Array.Empty<object>()));
                 var content = await projectManager.GetMetadata(purlNoVersion);
 
-                foreach (var githubPurl in BaseProjectManager.ExtractGitHubPackageURLs(content))
+                if (!string.IsNullOrWhiteSpace(content))
                 {
-                    var githubUrl = $"https://github.com/{githubPurl.Namespace}/{githubPurl.Name}";
-                    Logger.Info("Found: {0} ({1})", githubPurl.ToString(), githubUrl);
+                    foreach (var githubPurl in BaseProjectManager.ExtractGitHubPackageURLs(content))
+                    {
+                        sourceList.Add(githubPurl);
+                        Logger.Debug("Identified GitHub Source: {0})", githubPurl.ToString());
+                    }
+                }
+                else
+                {
+                    Logger.Warn("No metadata found for {0}", purlNoVersion.ToString());
                 }
             }
             else
             {
                 throw new ArgumentException("Invalid Package URL type: {0}", purlNoVersion.Type);
             }
+            return sourceList;
         }
 
         /// <summary>

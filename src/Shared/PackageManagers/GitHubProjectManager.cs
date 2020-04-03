@@ -12,12 +12,15 @@ namespace Microsoft.CST.OpenSource.Shared
 {
     class GitHubProjectManager : BaseProjectManager
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
+        public static string ENV_GITHUB_ENDPOINT = "https://github.com";
+
         /// <summary>
         /// Download one GitHub package and extract it to the target directory.
         /// </summary>
         /// <param name="purl">Package URL of the package to download.</param>
         /// <returns>n/a</returns>
-        public override async Task<string> DownloadVersion(PackageURL purl, bool doExtract = true)
+        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract = true)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
@@ -25,21 +28,23 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 throw new NotImplementedException("GitHub does not support binary downloads yet.");
             }
-            var packageName = purl?.Name;
-            var packageVersion = purl?.Version;
-            string downloadedPath = null;
 
-            if (string.IsNullOrWhiteSpace(packageName))
+            var packageNamespace = purl?.Namespace;
+            var packageName = purl?.Name;
+            var downloadedPaths = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(packageNamespace) || string.IsNullOrWhiteSpace(packageName))
             {
-                Logger.Error("Unable to download [{0}]", packageName);
-                return null;
+                Logger.Error("Unable to download [{0} {1}]. Both must be defined.", packageNamespace, packageName);
+                return downloadedPaths;
             }
 
             try
             {
-                var url = $"https://github.com/{purl.Namespace}/{purl.Name}";
+                var url = $"{ENV_GITHUB_ENDPOINT}/{purl.Namespace}/{purl.Name}";
                 var invalidChars = Path.GetInvalidFileNameChars();
 
+                // TODO: Externalize this normalization
                 var fsNamespace = new String(purl.Namespace.Select(ch => invalidChars.Contains(ch) ? '_' : ch).ToArray());
                 var fsName = new String(purl.Name.Select(ch => invalidChars.Contains(ch) ? '_' : ch).ToArray());
                 var fsVersion = new String(purl.Version.Select(ch => invalidChars.Contains(ch) ? '_' : ch).ToArray());
@@ -48,25 +53,24 @@ namespace Microsoft.CST.OpenSource.Shared
                                         Path.Join(TopLevelExtractionDirectory, $"github-{fsNamespace}-{fsName}-{fsVersion}");
 
                 Repository.Clone(url, workingDirectory);
-                using var repo = new Repository(workingDirectory);
-
+                
+                var repo = new Repository(workingDirectory);
                 if (!string.IsNullOrWhiteSpace(purl.Version))
                 {
                     Commands.Checkout(repo, purl.Version);
-                    downloadedPath = workingDirectory;
+                    downloadedPaths.Add(workingDirectory);
                 }
+                repo.Dispose();
             }
             catch (LibGit2Sharp.NotFoundException ex)
             {
                 Logger.Warn(ex, "The version {0} is not a valid git reference: {1}", purl.Version, ex.Message);
-                downloadedPath = null;
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error downloading GitHub package: {0}", ex.Message);
-                downloadedPath = null;
+                Logger.Warn(ex, "Error downloading GitHub package: {0}", ex.Message);
             }
-            return downloadedPath;
+            return downloadedPaths;
         }
 
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
@@ -74,7 +78,9 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 var versionList = new List<string>();
-                var url = $"https://github.com/{purl.Namespace}/{purl.Name}";
+                var url = $"{ENV_GITHUB_ENDPOINT}/{purl.Namespace}/{purl.Name}";
+                
+                // TODO: Document why we're wrapping this in a task
                 await Task.Run(() =>
                 {
                     foreach (var reference in Repository.ListRemoteReferences(url))
@@ -98,7 +104,7 @@ namespace Microsoft.CST.OpenSource.Shared
         public override async Task<string> GetMetadata(PackageURL purl)
         {
             await Task.Run(() => { });  // Avoid async warning -- @HACK
-            return $"https://github.com/{purl.Namespace}/{purl.Name}";
+            return $"{ENV_GITHUB_ENDPOINT}/{purl.Namespace}/{purl.Name}";
         }
     }
 }

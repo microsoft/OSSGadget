@@ -33,9 +33,8 @@ stages:
     - task: DotNetCoreCLI@2
       displayName: 'Build Tests'
       inputs:
-        projects: 'tests/tests.csproj'
+        projects: 'src/tests/tests.csproj'
         arguments: '-c $(BuildConfiguration) -o $(build.binariesdirectory)\Tests'
-        workingDirectory: $(SolutionDirectory)
     - task: VSTest@2
       displayName: 'Run Tests'
       inputs:

@@ -135,6 +135,25 @@ Time Elapsed 00:00:06.62
 
 You can also use any of the normal `dotnet` parameters to target a specific framework, configuration, and runtime.
 
+### Docker image
+
+If you don't have the development environment configured or you want to run OSSGadget without additional overhead, you can use Docker. This repository contains a "Dockerfile" which allows us to build an image and use that to run a container with the latest code.
+
+```
+# Clone repository
+$> git clone https://github.com/microsoft/OSSGadget.git
+$> cd OSSGadget
+
+# Build OSSGadget and create a docker image
+$> docker build -t ossgadget:latest .
+
+# Run container
+$> docker run -it ossgadget:latest /bin/bash
+
+# Inside container - run oss-download binary
+root@container:/app/src# ./oss-download/bin/Debug/netcoreapp3.1/oss-download 
+```
+
 ### Advanced Usage
 
 #### Encoding

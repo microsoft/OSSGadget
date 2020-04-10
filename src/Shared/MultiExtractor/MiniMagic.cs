@@ -18,6 +18,7 @@ namespace Microsoft.CST.OpenSource.Shared
         BZIP2,
         RAR,
         P7ZIP,
+        DEB,
         UNKNOWN,
     }
 
@@ -50,7 +51,9 @@ namespace Microsoft.CST.OpenSource.Shared
 
             {"rar", ArchiveFileType.RAR },
 
-            {"7z", ArchiveFileType.P7ZIP }
+            {"7z", ArchiveFileType.P7ZIP },
+
+            {"deb", ArchiveFileType.DEB }
         };
 
         public static ArchiveFileType DetectFileType(string filename)
@@ -106,6 +109,11 @@ namespace Microsoft.CST.OpenSource.Shared
                 if (buffer[0] == 0x37 && buffer[1] == 0x7A && buffer[2] == 0xBC && buffer[3] == 0xAF && buffer[4] == 0x27 && buffer[5] == 0x1C)
                 {
                     return ArchiveFileType.P7ZIP;
+                }
+                // .deb - https://manpages.debian.org/unstable/dpkg-dev/deb.5.en.html
+                if (buffer[0] == 0x21 && buffer[1] == 0x3c && buffer[2] == 0x61 && buffer[3] == 0x72 && buffer[4] == 0x63 && buffer[5] == 0x68 && buffer[6] == 0x3e)
+                {
+                    return ArchiveFileType.DEB;
                 }
             }
 

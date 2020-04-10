@@ -72,6 +72,7 @@ namespace Microsoft.CST.OpenSource.Shared
                                 // Never re-download the same file twice.
                                 continue;
                             }
+                            Logger.Debug("Downloading binary: {0}", fullDownloadUrl);
 
                             var downloadResult = await WebClient.GetAsync(fullDownloadUrl);
                             if (!downloadResult.IsSuccessStatusCode)
@@ -81,7 +82,7 @@ namespace Microsoft.CST.OpenSource.Shared
                             }
 
                             // TODO: Add distro version id
-                            var targetName = $"ubuntu-{purl.Name}@{packageVersion}-{Path.GetFileNameWithoutExtension(anchorHref)}";
+                            var targetName = $"ubuntu-{purl.Name}@{packageVersion}-{anchorHref}";
 
                             if (doExtract)
                             {
@@ -115,9 +116,16 @@ namespace Microsoft.CST.OpenSource.Shared
                             foreach (var secondAnchor in document.QuerySelectorAll("a"))
                             {
                                 var secondHref = secondAnchor.GetAttribute("href");
-                                var fullDownloadUrl = archiveBaseUrl + "/" + secondHref;
-                                if (seenFiles.Any(f => secondHref.Contains(f) && !secondHref.EndsWith(".deb") && !secondHref.EndsWith(".dsc")))
+                                if (seenFiles.Any(f => f.Equals(secondHref) && !secondHref.EndsWith(".deb") && !secondHref.EndsWith(".dsc")))
                                 {
+                                    var fullDownloadUrl = archiveBaseUrl + "/" + secondHref;
+                                    if (!downloadedUrls.Add(fullDownloadUrl))
+                                    {
+                                        // Never re-download the same file twice.
+                                        continue;
+                                    }
+                                    Logger.Debug("Downloading source code: {0}", fullDownloadUrl);
+                                    
                                     var downloadResult = await WebClient.GetAsync(fullDownloadUrl);
                                     if (!downloadResult.IsSuccessStatusCode)
                                     {
@@ -126,7 +134,7 @@ namespace Microsoft.CST.OpenSource.Shared
                                     }
 
                                     // TODO: Add distro version id
-                                    var targetName = $"ubuntu-{purl.Name}@{packageVersion}-{Path.GetFileNameWithoutExtension(anchorHref)}";
+                                    var targetName = $"ubuntu-{purl.Name}@{packageVersion}-{secondHref}";
 
                                     if (doExtract)
                                     {

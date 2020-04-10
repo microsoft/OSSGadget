@@ -1,0 +1,58 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RootNamespace>Microsoft.CST.OpenSource</RootNamespace>
+    <Company>Microsoft Corporation</Company>
+    <Description>OSS Gadget - Cryptography Detector</Description>
+    <Authors>Michael Scovetta</Authors>
+    <RepositoryType>GitHub</RepositoryType>
+    <RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>
+    <StartupObject>Microsoft.CST.OpenSource.DetectCryptographyTool</StartupObject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\CryptographyRules\implementation-asymmetric.json" />
+    <None Remove="Resources\CryptographyRules\implementation-crypto-generic.json" />
+    <None Remove="Resources\CryptographyRules\implementation-hash.json" />
+    <None Remove="Resources\CryptographyRules\implementation-prng.json" />
+    <None Remove="Resources\CryptographyRules\implementation-signature.json" />
+    <None Remove="Resources\CryptographyRules\implementation-symmetric.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\CryptographyRules\implementation-signature.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\CryptographyRules\implementation-symmetric.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\CryptographyRules\implementation-asymmetric.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\CryptographyRules\implementation-crypto-generic.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\CryptographyRules\implementation-prng.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\CryptographyRules\implementation-hash.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ELFSharp" Version="2.7.0" />
+    <PackageReference Include="ICSharpCode.Decompiler" Version="5.0.2.5153" />
+    <PackageReference Include="Microsoft.CST.DevSkim" Version="0.4.118" />
+    <PackageReference Include="PeNet" Version="2.0.0" />
+    <PackageReference Include="SharpDisasm" Version="1.1.11" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\oss-download\oss-download.csproj" />
+    <ProjectReference Include="..\Shared\Shared.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,383 @@
+[
+  {
+    "name": "Implementation of Blowfish",
+    "id": "DS802000",
+    "description": "An implementation Blowfish",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Blowfish"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "d1310ba6|487cac60|243f6a88|608135816",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Blowfish Constants"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of bcrypt-pbkdf",
+    "id": "DS802001",
+    "description": "An implementation bcrypt-pbkdf.",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.BCryptPBKDF"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "99,\\s*66,\\s*108,\\s*111|OxychromaticBlowfishSwatDynamite",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Magic Constant for BCrypt-PBKDF"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of SHA-2",
+    "id": "DS802002",
+    "description": "An implementation SHA-2.",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.SHA2"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "c1059ed8|367cd507|914150663",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Magic Constant for SHA-224"
+      },
+      {
+        "pattern": "53380d13|5cb0a9dc|1555081692",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Magic Constant for SHA-256"
+      },
+      {
+        "pattern": "9159015a|f70e5939|4144912697",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Magic Constant for SHA-384"
+      },
+      {
+        "pattern": "428A2F98|D728AE22|CBBB9D5D|FC2BF72C|8C3D37C8|6A09E667|1779033703",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Magic Constant for SHA-512"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of SHA-1",
+    "id": "DS802003",
+    "description": "An implementation SHA-1.",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.SHA1"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "8F1BBCDC|5A827999|C3D2E1F0|3285377520",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Magic Constant for SHA-1"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of MD5",
+    "id": "DS802004",
+    "description": "An implementation MD5",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.MD5"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "d76aa478|4787c62a|680876936|1069501632|1236535329",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Magic Constant for MD5"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of RIPEMD",
+    "id": "DS802005",
+    "description": "An implementation RIPEMD",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.RIPEMD"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "A953FD4E|2840853838",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Magic Constant for RIPEMD"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of HMAC",
+    "id": "DS802006",
+    "description": "An implementation HMAC",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.HMAC"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "\\^.*(5c5c5c5c|36363636|909522486)",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Magic Constant for HMAC"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of BCrypt",
+    "id": "DS802007",
+    "description": "An implementation BCrypt",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.BCrypt"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "OrpheanBeholderScryDoubt",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "all"
+        ],
+        "_comment": "Magic Constant for BCrypt"
+      },
+      {
+        "pattern": "4f.{1,10}72.{1,10}70.{1,10}68",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Magic Constant for BCrypt"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of Blake2b",
+    "id": "DS802007",
+    "description": "An implementation Blake2b",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Blake2b"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "ae8584c|10e527fade6",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "all"
+        ],
+        "_comment": "Magic Constant for Blake2b"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of MD2",
+    "id": "DS802007",
+    "description": "An implementation MD2",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.MD2"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "29.{0,10}2e.{0,10}43.{0,10}c9.{0,10}a2.{0,10}d8",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "all"
+        ],
+        "_comment": "Magic Constant for MD2"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of MD4",
+    "id": "DS802008",
+    "description": "An implementation MD4",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.MD4"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "67452301|6ED9EBA1|1732584193",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "all"
+        ],
+        "_comment": "Magic Constant for MD4"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of Whirlpool",
+    "id": "DS802009",
+    "description": "An implementation Whirlpool",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Whirlpool"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "18.{0,10}18.{0,10}60.{0,10}18.{0,10}c0.{0,10}78.{0,10}30",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "all"
+        ],
+        "_comment": "Magic Constant for Whirlpool"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of SM3",
+    "id": "DS802010",
+    "description": "An implementation SM3",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.SM3"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "79CC4519|7311465E|11465E73|2043430169",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "all"
+        ],
+        "_comment": "Magic Constant for SM3"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of SM4",
+    "id": "DS802011",
+    "description": "An implementation SM4",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.SM4"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "d6.{0,10}90.{0,10}e9.{0,10}fe.{0,10}cc.{0,10}e1.{0,10}3d",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "all"
+        ],
+        "_comment": "Magic Constant for SM4"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of Siphash",
+    "id": "DS802011",
+    "description": "An implementation Siphash",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Siphash"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "736f6d6570736575|6c7967656e657261|8317987319222330741",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "all"
+        ],
+        "_comment": "Magic Constant for Siphash"
+      }
+    ]
+  }
+]

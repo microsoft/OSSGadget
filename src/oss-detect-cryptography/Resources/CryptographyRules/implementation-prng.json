@@ -1,0 +1,89 @@
+[
+  {
+    "name": "Use of random.org",
+    "id": "DS802020",
+    "description": "Use of random.org",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.PRNG.RandomOrg"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "api.random.org",
+        "type": "string",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Random.org API"
+      }
+    ]
+  },
+  {
+    "name": "LCG-looking construct",
+    "id": "DS802021",
+    "description": "LCG-looking construct",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.PRNG.LCG"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "=.{0,10}\\S+\\s{0,10}\\*\\s{0,10}\\S+\\s{0,10}\\+\\s{0,10}\\S+\\s{0,10}\\)\\s{0,10}\\%\\s{0,10}\\S{1,10}",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "x = (a * b + c) % d"
+      },
+      {
+        "pattern": "=.{0,10}\\S+\\s{0,10}\\*\\s{0,10}\\S+\\s{0,10}\\)\\s{0,10}\\%\\s{0,10}\\S{1,10}",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "x = (a * b) % d"
+      },
+      {
+        "pattern": "1013904223|18851643",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "https://github.com/francoislaberge/arbitrary/blob/master/src/Generator.js"
+      }
+    ]
+  },
+  {
+    "name": "LCG-looking construct",
+    "id": "DS802022",
+    "description": "LCG-looking construct",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.PRNG.LCG"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "1013904223|18851643",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "https://github.com/francoislaberge/arbitrary/blob/master/src/Generator.js"
+      }
+    ]
+  }
+]

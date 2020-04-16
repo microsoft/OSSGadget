@@ -145,12 +145,12 @@ namespace Microsoft.CST.OpenSource.Shared
             Match match = GithubMatchRegex.Match(uri.AbsoluteUri);
             var matches = match.Groups;
             PackageURL packageURL = new PackageURL(
-                "GH",
+                "github",
                 matches["namespace"].Value,
                 matches["name"].Value,
                 /* version doesnt make sense for source repo */ null,
                 null,
-                matches["subpath"].Value);
+                string.IsNullOrEmpty(matches["subpath"].Value) ? null : matches["subpath"].Value);
             return packageURL;
         }
 
@@ -168,6 +168,11 @@ namespace Microsoft.CST.OpenSource.Shared
         public static IEnumerable<PackageURL> ExtractGitHubUris(PackageURL purl, string searchText)
         {
             List<PackageURL> repos = new List<PackageURL>();
+            if (string.IsNullOrEmpty(searchText))
+            {
+                return repos;
+            }
+
             MatchCollection matches = GithubExtractorRegex.Matches(searchText);
             try
             {

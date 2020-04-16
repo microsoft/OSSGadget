@@ -16,16 +16,21 @@ namespace Microsoft.CST.OpenSource.Tests
     {
         [DataTestMethod]
         [DataRow("pkg:npm/md5", "pkg:github/pvorb/node-md5")]
+        [DataRow("pkg:pypi/moment", "pkg:github/zachwill/moment")]
+        [DataRow("pkg:nuget/Newtonsoft.Json", "pkg:github/jamesnk/newtonsoft.json")]
         public async Task FindSource_Success(string purl, string targetResult)
         {
+            // for initialization
             FindSourceTool tool = new FindSourceTool();
-            var results = await tool.FindSource(new PackageURL(purl));
+
+            RepoSearch searchTool = new RepoSearch();
+            var results = await searchTool.ResolvePackageLibraryAsync(new PackageURL(purl));
             var targetPurl = new PackageURL(targetResult);
             var success = false;
 
-            foreach (var resultPurl in results)
+            foreach (var resultEntry in results)
             {
-                if (resultPurl.Equals(targetPurl))
+                if (resultEntry.Key.Equals(targetPurl))
                 {
                     success = true;
                 }
@@ -35,10 +40,15 @@ namespace Microsoft.CST.OpenSource.Tests
 
         [DataTestMethod]
         [DataRow("pkg:npm/hjkfashfkjafhakfjsa", "pkg:github/pvorb/node-md5")]
+        [DataRow("pkg:pypi/hjkfashfkjafhakfjsa", "pkg:github/pvorb/node-md5")]
+        [DataRow("pkg:nuget/hjkfashfkjafhakfjsa", "pkg:github/pvorb/node-md5")]
         public async Task FindSource_NonExistentPackage(string purl, string targetResult)
         {
+            // for initialization
             FindSourceTool tool = new FindSourceTool();
-            var results = await tool.FindSource(new PackageURL(purl));
+
+            RepoSearch searchTool = new RepoSearch();
+            var results = await searchTool.ResolvePackageLibraryAsync(new PackageURL(purl));
             Assert.IsTrue(results.Count() == 0, $"Result {results} obtained from non-existent {purl}");
         }
     }

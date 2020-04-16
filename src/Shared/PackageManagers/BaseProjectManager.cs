@@ -385,7 +385,7 @@ namespace Microsoft.CST.OpenSource.Shared
             List<PackageURL> RepoEntries = GitHubProjectManager.ExtractGitHubUris(purl, content).ToList();
 
             Dictionary<PackageURL, float> mapping = new Dictionary<PackageURL, float>();
-            if (RepoEntries.Count > 0)
+            if (RepoEntries != null && RepoEntries.Count > 0)
             {
                 // group by count, reverse sort, and get the first item (with the most count)
                 KeyValuePair<string, int> mostAppeared = RepoEntries.GroupBy((item) => item.ToString()).ToImmutableSortedDictionary((x) => x.Key, (y) => y.Count()).Reverse().FirstOrDefault();

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using NuGet.Versioning;
+using HtmlAgilityPack;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
@@ -14,6 +14,7 @@ namespace Microsoft.CST.OpenSource.Shared
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_NUGET_ENDPOINT_API = "https://api.nuget.org";
+        static string ENV_NUGET_HOMEPAGE = "https://www.nuget.org/packages";
 
         /// <summary>
         /// Download one NuGet package and extract it to the target directory.
@@ -64,7 +65,7 @@ namespace Microsoft.CST.OpenSource.Shared
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
-            
+
             if (purl == null)
             {
                 return new List<string>();
@@ -98,7 +99,7 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 var packageName = purl.Name;
-                var content = await GetHttpStringCache($"{ENV_NUGET_ENDPOINT_API}/v3/registration3/{packageName}/index.json");
+                var content = await GetHttpStringCache($"{ENV_NUGET_ENDPOINT_API}/v3/registration3/{packageName.ToLower()}/index.json");
                 return content;
             }
             catch (Exception ex)
@@ -106,6 +107,44 @@ namespace Microsoft.CST.OpenSource.Shared
                 Logger.Error(ex, $"Error fetching NuGet metadata: {ex.Message}");
                 return null;
             }
+        }
+
+        protected async override Task<Dictionary<PackageURL, float>> PackageMetadataSearch(PackageURL purl, string metadata)
+        {
+            Dictionary<PackageURL, float> mapping = new Dictionary<PackageURL, float>();
+            try
+            {
+                var packageName = purl.Name;
+
+                // nuget doesnt provide repository information in the json metadata; we have to extract it from the html home page
+                HtmlWeb web = new HtmlWeb();
+                HtmlDocument doc = web.Load($"{ENV_NUGET_HOMEPAGE}/{packageName}");
+
+                string repoCandidate = doc.DocumentNode.SelectSingleNode("//a[@title=\"View the source code for this package\"]/@href").GetAttributeValue("href", string.Empty);
+                if (!string.IsNullOrEmpty(repoCandidate))
+                {
+                    PackageURL repoPurl = GitHubProjectManager.ExtractGitHubPackageURLs(repoCandidate).ToList().FirstOrDefault();
+                    mapping.Add(repoPurl, 1.0F);
+                    return mapping;
+                }
+
+                // if that didn't work, check the homepage xpath
+                repoCandidate = doc.DocumentNode.SelectSingleNode("//a[@title=\"Visit the project site to learn more about this package\"]/@href").GetAttributeValue("href", string.Empty);
+                if (!string.IsNullOrEmpty(repoCandidate))
+                {
+                    PackageURL repoPurl = GitHubProjectManager.ExtractGitHubPackageURLs(repoCandidate).ToList().FirstOrDefault();
+                    mapping.Add(repoPurl, 1.0F);
+                    return mapping;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, $"Error fetching/parsing NuGet homepage: {ex.Message}");
+                return mapping;
+            }
+
+            // if nothing worked, return empty
+            return mapping;
         }
     }
 }

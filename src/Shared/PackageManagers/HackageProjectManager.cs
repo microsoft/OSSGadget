@@ -114,5 +114,9 @@ namespace Microsoft.CST.OpenSource.Shared
                 return null;
             }
         }
+        protected override Task<Dictionary<PackageURL, float>> PackageMetadataSearch(PackageURL purl, string metadata)
+        {
+            return null;
+        }
     }
 }

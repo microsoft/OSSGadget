@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -45,7 +47,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         public string TopLevelExtractionDirectory { get; set; } = ".";
 
-        
+
         abstract public Task<IEnumerable<string>> EnumerateVersions(PackageURL purl);
 
         /// <summary>
@@ -53,7 +55,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">PackageURL to download</param>
         /// <returns>Paths (either files or directory names) pertaining to the downloaded files.</returns>
-        abstract public Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract=true);
+        abstract public Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract = true);
 
         /// <summary>
         /// This method should return text reflecting metadata for the given package.
@@ -63,6 +65,13 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <returns>a string containing metadata.</returns>
         abstract public Task<string> GetMetadata(PackageURL purl);
 
+        /// <summary>
+        /// Implemented by all package managers to search the metadata, and either
+        /// return a successful result for the package repository, or return a null 
+        /// in case of failure/nothing to do.
+        /// </summary>
+        /// <returns></returns>
+        protected abstract Task<Dictionary<PackageURL, float>> PackageMetadataSearch(PackageURL purl, string metadata);
         /// <summary>
         /// Initializes a new project management object.
         /// </summary>
@@ -221,7 +230,7 @@ namespace Microsoft.CST.OpenSource.Shared
             foreach (var fileEntry in extractor.ExtractFile(directoryName, bytes))
             {
                 var fullPath = fileEntry.FullPath.Replace(':', Path.DirectorySeparatorChar);
-                
+
                 // TODO: Does this prevent zip-slip?
                 foreach (var c in Path.GetInvalidPathChars())
                 {
@@ -232,7 +241,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 Directory.CreateDirectory(Path.GetDirectoryName(filePathToWrite));
                 await File.WriteAllBytesAsync(filePathToWrite, fileEntry.Content.ToArray());
             }
-            
+
             var fullExtractionPath = Path.Combine(TopLevelExtractionDirectory, directoryName);
             fullExtractionPath = Path.GetFullPath(fullExtractionPath);
             Logger.Debug("Archive extracted to {0}", fullExtractionPath);
@@ -336,6 +345,54 @@ namespace Microsoft.CST.OpenSource.Shared
                 Logger.Debug("List is not sortable, returning as-is: {0}", string.Join(", ", versionList));
             }
             return versionList;
+        }
+
+        /// <summary>
+        /// Tries to find out the package repository from the metadata of the package.
+        /// Check with the specific package manager, if they have any specific extraction 
+        /// to do, w.r.t the metadata. If they found some package specific well defined metadata,
+        /// use that.
+        /// If that doesn't work, do a search across the metadata to find probable
+        /// source repository urls
+        /// </summary>
+        /// <param name="purl">PackageURL to search</param>
+        /// <returns>A dictionary, mapping each possible repo source entry to its probability</returns>
+        public async Task<Dictionary<PackageURL, float>> SearchMetadata(PackageURL purl)
+        {
+            Dictionary<PackageURL, float> mapping = null;
+            var content = await GetMetadata(purl);
+            // check if the package manager specific searcher has anything to return
+            mapping = await PackageMetadataSearch(purl, content);
+            if (mapping != null && mapping.Count > 0) { return mapping; }
+
+            // if we reached here, we dont have any proper metadata tagged for the source repository -
+            // so we search all the metadata for any github urls and return one that appears the most
+            mapping = GetMostAppearingRepoEntry(purl, content);
+            if (mapping != null && mapping.Count > 0) { return mapping; }
+
+            // if nothing worked, return null
+            return mapping;
+        }
+
+        /// <summary>
+        /// Choose the top count entry, if all entries have only single entries, the first one is returned.
+        /// </summary>
+        /// <param name="purl">the package</param>
+        /// <param name="content">metadata of the package</param>
+        /// <returns></returns>
+        protected Dictionary<PackageURL, float> GetMostAppearingRepoEntry(PackageURL purl, string content)
+        {
+            List<PackageURL> RepoEntries = GitHubProjectManager.ExtractGitHubUris(purl, content).ToList();
+
+            Dictionary<PackageURL, float> mapping = new Dictionary<PackageURL, float>();
+            if (RepoEntries.Count > 0)
+            {
+                // group by count, reverse sort, and get the first item (with the most count)
+                KeyValuePair<string, int> mostAppeared = RepoEntries.GroupBy((item) => item.ToString()).ToImmutableSortedDictionary((x) => x.Key, (y) => y.Count()).Reverse().FirstOrDefault();
+                mapping.Add(new PackageURL(mostAppeared.Key), 0.9F); // we are not a 100% sure about this, so set the score as 0.9F
+            }
+
+            return mapping;
         }
 
         public static string GetCommonSupportedHelpText()

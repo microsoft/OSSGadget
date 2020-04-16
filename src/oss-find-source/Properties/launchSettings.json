@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "oss-find-source": {
+      "commandName": "Project",
+      "commandLineArgs": "pkg:pypi/moment"
+    }
+  }
+}

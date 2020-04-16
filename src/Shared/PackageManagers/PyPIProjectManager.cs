@@ -130,11 +130,9 @@ namespace Microsoft.CST.OpenSource.Shared
             var mapping = new Dictionary<PackageURL, float>();
             if (purl.Name.StartsWith('_')) // TODO: there are internal modules which do not start with _
             {
-                // url = 'https://github.com/python/cpython/tree/master/Lib/' + package.name,
-                // TODO: it could also be in https://github.com/python/cpython/tree/master/Modules/
+                // TODO: internal modules could also be in https://github.com/python/cpython/tree/master/Modules/
                 mapping.Add(new PackageURL(purl.Type, purl.Namespace, purl.Name, null, null, "cpython/tree/master/Lib/"), 1.0F);
                 return mapping;
-
             }
             if (string.IsNullOrEmpty(metadata))
             {

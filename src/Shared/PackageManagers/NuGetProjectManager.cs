@@ -121,21 +121,21 @@ namespace Microsoft.CST.OpenSource.Shared
                 HtmlWeb web = new HtmlWeb();
                 HtmlDocument doc = web.Load($"{ENV_NUGET_HOMEPAGE}/{packageName}");
 
-                string repoCandidate = doc.DocumentNode.SelectSingleNode("//a[@title=\"View the source code for this package\"]/@href").GetAttributeValue("href", string.Empty);
-                if (!string.IsNullOrEmpty(repoCandidate))
+                var paths = new List<string>()
                 {
-                    PackageURL repoPurl = GitHubProjectManager.ExtractGitHubPackageURLs(repoCandidate).ToList().FirstOrDefault();
-                    mapping.Add(repoPurl, 1.0F);
-                    return mapping;
-                }
+                    "//a[@title=\"View the source code for this package\"]/@href",
+                    "//a[@title=\"Visit the project site to learn more about this package\"]/@href"
+                };
 
-                // if that didn't work, check the homepage xpath
-                repoCandidate = doc.DocumentNode.SelectSingleNode("//a[@title=\"Visit the project site to learn more about this package\"]/@href").GetAttributeValue("href", string.Empty);
-                if (!string.IsNullOrEmpty(repoCandidate))
+                foreach (string path in paths)
                 {
-                    PackageURL repoPurl = GitHubProjectManager.ExtractGitHubPackageURLs(repoCandidate).ToList().FirstOrDefault();
-                    mapping.Add(repoPurl, 1.0F);
-                    return mapping;
+                    string repoCandidate = doc.DocumentNode.SelectSingleNode(path).GetAttributeValue("href", string.Empty);
+                    if (!string.IsNullOrEmpty(repoCandidate))
+                    {
+                        PackageURL repoPurl = GitHubProjectManager.ExtractGitHubPackageURLs(repoCandidate).ToList().FirstOrDefault();
+                        mapping.Add(repoPurl, 1.0F);
+                        return mapping;
+                    }
                 }
             }
             catch (Exception ex)

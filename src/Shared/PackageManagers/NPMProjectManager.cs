@@ -149,16 +149,17 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">the package for which we need to find the source code repository</param>
         /// <returns>A dictionary, mapping each possible repo source entry to its probability</returns>
-        protected async override Task<Dictionary<PackageURL, float>> PackageMetadataSearch(PackageURL purl, string metadata)
+        protected async override Task<Dictionary<PackageURL, float>> PackageMetadataSearch(PackageURL purl, 
+            string metadata)
         {
             var mapping = new Dictionary<PackageURL, float>();
             if (purl.Name.StartsWith('_') || npm_internal_modules.Contains(purl.Name))
             {
                 // url = 'https://github.com/nodejs/node/tree/master/lib' + package.name,
 
-                mapping.Add(new PackageURL(purl.Type, purl.Namespace, purl.Name, null, null, "node/tree/master/lib"), 1.0F);
+                mapping.Add(new PackageURL(purl.Type, purl.Namespace, purl.Name, 
+                    null, null, "node/tree/master/lib"), 1.0F);
                 return mapping;
-
             }
             if (string.IsNullOrEmpty(metadata))
             {
@@ -166,9 +167,12 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             JsonDocument contentJSON = JsonDocument.Parse(metadata);
 
-            // if a version is provided, search that JSONElement, otherwise, just search the latest version, which is more likely best maintained
-            // TODO: If the latest version JSONElement doesnt have the repo infor, should we search all elements on that chance that one of them might have it?
-            JsonElement version = string.IsNullOrEmpty(purl.Version) ? GetLatestVersion(contentJSON) : GetVersion(contentJSON, new Version(purl.Version));
+            // if a version is provided, search that JSONElement, otherwise, just search the latest version,
+            // which is more likely best maintained
+            // TODO: If the latest version JSONElement doesnt have the repo infor, should we search all elements 
+            // on that chance that one of them might have it?
+            JsonElement version = string.IsNullOrEmpty(purl.Version) ? GetLatestVersion(contentJSON) : 
+                GetVersion(contentJSON, new Version(purl.Version));
 
             JsonElement versionJSON = GetLatestVersion(contentJSON);
 

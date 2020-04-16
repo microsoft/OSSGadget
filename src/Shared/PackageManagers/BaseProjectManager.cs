@@ -71,7 +71,8 @@ namespace Microsoft.CST.OpenSource.Shared
         /// in case of failure/nothing to do.
         /// </summary>
         /// <returns></returns>
-        protected abstract Task<Dictionary<PackageURL, float>> PackageMetadataSearch(PackageURL purl, string metadata);
+        protected abstract Task<Dictionary<PackageURL, float>> PackageMetadataSearch(PackageURL purl, 
+            string metadata);
         /// <summary>
         /// Initializes a new project management object.
         /// </summary>
@@ -380,18 +381,23 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <param name="purl">the package</param>
         /// <param name="content">metadata of the package</param>
         /// <returns></returns>
-        protected Dictionary<PackageURL, float> GetMostAppearingRepoEntry(PackageURL purl, string content)
+        protected Dictionary<PackageURL, float> GetMostAppearingRepoEntry(PackageURL purl, 
+            string content)
         {
-            List<PackageURL> RepoEntries = GitHubProjectManager.ExtractGitHubUris(purl, content).ToList();
+            List<PackageURL> RepoEntries = GitHubProjectManager.ExtractGitHubUris(purl, content).
+                ToList();
 
             Dictionary<PackageURL, float> mapping = new Dictionary<PackageURL, float>();
             if (RepoEntries != null && RepoEntries.Count > 0)
             {
                 // group by count, reverse sort, and get the first item (with the most count)
-                KeyValuePair<string, int> mostAppeared = RepoEntries.GroupBy((item) => item.ToString()).ToImmutableSortedDictionary((x) => x.Key, (y) => y.Count()).Reverse().FirstOrDefault();
-                mapping.Add(new PackageURL(mostAppeared.Key), 0.9F); // we are not a 100% sure about this, so set the score as 0.9F
-            }
+                KeyValuePair<string, int> mostAppeared = RepoEntries.GroupBy((item) => item
+                .ToString()).ToImmutableSortedDictionary((x) => x.Key, (y) => y.Count())
+                .Reverse().FirstOrDefault();
 
+                // we are not a 100% sure about this, so set the score as 0.9F
+                mapping.Add(new PackageURL(mostAppeared.Key), 0.9F);
+            }
             return mapping;
         }
 

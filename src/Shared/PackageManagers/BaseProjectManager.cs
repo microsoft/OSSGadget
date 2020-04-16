@@ -55,7 +55,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">PackageURL to download</param>
         /// <returns>Paths (either files or directory names) pertaining to the downloaded files.</returns>
-        abstract public Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract = true);
+        abstract public Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract=true);
 
         /// <summary>
         /// This method should return text reflecting metadata for the given package.

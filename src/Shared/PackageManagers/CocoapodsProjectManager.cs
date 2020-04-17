@@ -130,9 +130,9 @@ namespace Microsoft.CST.OpenSource.Shared
 
             // The Cocoapods standard uses MD5(project name) as a prefix for sharing.
             // There is no security issue here, but we cannot use another algorithm.
-            #pragma warning disable SCS0006 // Weak hashing function
+            #pragma warning disable SCS0006, CA5351 // Weak hashing function
             using var hashAlgorithm = MD5.Create();
-            #pragma warning restore SCS0006 // Weak hashing function
+            #pragma warning restore SCS0006, CA5351 // Weak hashing function
 
             var prefixMD5 = BitConverter
                                 .ToString(hashAlgorithm.ComputeHash(packageNameBytes))

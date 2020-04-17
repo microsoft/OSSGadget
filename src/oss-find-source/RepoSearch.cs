@@ -72,7 +72,7 @@ namespace Microsoft.CST.OpenSource
 
                 repoMappings = await projectManager.SearchMetadata(purl);
 
-                if (!repoMappings.Any())
+                if (repoMappings == default || !repoMappings.Any())
                 {
                     Logger.Info("Could not figure out the repository from the package metadata");
                 }

@@ -73,7 +73,7 @@ namespace Microsoft.CST.OpenSource
                     try
                     {
                         List<IssueRecord> results = null;
-                        if (target.StartsWith("pkg:"))
+                        if (target.StartsWith("pkg:", StringComparison.InvariantCulture))
                         {
                             var purl = new PackageURL(target);
                             results = await detectCryptographyTool.AnalyzePackage(purl);
@@ -114,7 +114,7 @@ namespace Microsoft.CST.OpenSource
                             }
                         }
                         
-                        if (results.Count() == 0)
+                        if (!results.Any())
                         {
                             sb.AppendLine($"[ ] {target} - This software package does NOT appear to implement cryptography.");
                         }
@@ -310,9 +310,9 @@ namespace Microsoft.CST.OpenSource
                     Disassembler.Translator.IncludeAddress = false;
                     Disassembler.Translator.IncludeBinary = false;
                     var architecture = buffer.Length > 5 && buffer[5] == 0x02 ? ArchitectureMode.x86_64 : ArchitectureMode.x86_32;
-                    Disassembler d = new Disassembler(buffer, architecture);
+                    using var disassembler = new Disassembler(buffer, architecture);
                     var resultStrings = new HashSet<string>();
-                    foreach (var instruction in d.Disassemble())
+                    foreach (var instruction in disassembler.Disassemble())
                     {
                         resultStrings.Add(instruction.ToString());
                         
@@ -440,8 +440,7 @@ namespace Microsoft.CST.OpenSource
                     }
 
                     Logger.Debug("Operation Complete: {0}", fileResults?.Length);
-
-                    foreach (var issue in fileResults)
+                    foreach (var issue in fileResults ?? Array.Empty<Issue>())
                     {
                         var fileContentArray = buffer.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
                         var excerpt = new List<string>();

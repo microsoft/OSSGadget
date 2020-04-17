@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
 
@@ -34,9 +34,10 @@ namespace Microsoft.CST.OpenSource.Shared
                 var entryHeader = innerContent.Slice(0, 60);
                 var filename = Encoding.ASCII.GetString(innerContent.Slice(0, 16)).Trim();  // filename is 16 bytes
                 var fileSizeBytes = entryHeader.Slice(48, 10); // File size is decimal-encoded, 10 bytes long
-                var fileSize = int.Parse(Encoding.ASCII.GetString(fileSizeBytes.ToArray()).Trim());
+                var fileSize = int.Parse(Encoding.ASCII.GetString(fileSizeBytes.ToArray()).Trim(), CultureInfo.InvariantCulture);
                 var entryContent = innerContent.Slice(60, fileSize);
-                results.Add(new FileEntry(filename, fileEntry.FullPath, new MemoryStream(entryContent.ToArray())));
+                using var entryStream = new MemoryStream(entryContent.ToArray());
+                results.Add(new FileEntry(filename, fileEntry.FullPath, entryStream));
                 innerContent = innerContent[(60 + fileSize)..];
             }
             return results;

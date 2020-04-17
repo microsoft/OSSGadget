@@ -453,7 +453,6 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             foreach (var entry in ArArchiveFile.GetFileEntries(fileEntry))
             {
-                using var memoryStream = new MemoryStream();
                 CheckResourceGovernor((long)entry.Content.Length);
                 foreach (var extractedFile in ExtractFile(entry))
                 {

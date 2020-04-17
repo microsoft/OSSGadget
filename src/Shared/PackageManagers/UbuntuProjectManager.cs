@@ -255,6 +255,11 @@ namespace Microsoft.CST.OpenSource.Shared
         public override async Task<string> GetMetadata(PackageURL purl)
         {
             Logger.Trace("GetMetadata {0}", purl?.ToString());
+            
+            if (purl == default || purl.Name == default)
+            {
+                return string.Empty;
+            }
 
             var metadataContent = new StringBuilder();
 

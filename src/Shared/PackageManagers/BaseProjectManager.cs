@@ -218,10 +218,13 @@ namespace Microsoft.CST.OpenSource.Shared
                 directoryName += "-" + DateTime.Now.Ticks;
             }
             var extractor = new Extractor();
+            //extractor.MaxExtractedBytes = 1000 * 1000 * 10;  // 10 MB maximum package size
+
             foreach (var fileEntry in extractor.ExtractFile(directoryName, bytes))
             {
                 var fullPath = fileEntry.FullPath.Replace(':', Path.DirectorySeparatorChar);
                 
+
                 // TODO: Does this prevent zip-slip?
                 foreach (var c in Path.GetInvalidPathChars())
                 {
@@ -229,6 +232,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
                 var filePathToWrite = Path.Combine(TopLevelExtractionDirectory, fullPath);
                 filePathToWrite = filePathToWrite.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+
                 Directory.CreateDirectory(Path.GetDirectoryName(filePathToWrite));
                 await File.WriteAllBytesAsync(filePathToWrite, fileEntry.Content.ToArray());
             }
@@ -354,6 +358,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
   pkg:npm/express               The latest version of Express (via npm.org)
   pkg:nuget/Newtonsoft.JSON     The latest version of Newtonsoft.JSON (via nuget.org)
   pkg:pypi/django@1.11.1        Version 1.11.1 fo Django (via pypi.org)
+  pkg:ubuntu/zerofree           The latest version of zerofree from Ubuntu (via packages.ubuntu.com)
   pkg:vsm/MLNET/07              The latest version of MLNET.07 (from marketplace.visualstudio.com)
 ";
             return supportedHelpText;

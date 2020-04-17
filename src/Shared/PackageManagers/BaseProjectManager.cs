@@ -404,16 +404,16 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             var content = await GetMetadata(purl);
             // Check the specific PackageManager implementation.
-            //var candidates = await PackageMetadataSearch(purl, content);
-            //if (candidates != default && candidates.Any())
-            //{
-             //   return candidates;
-            //}
+            var candidates = await PackageMetadataSearch(purl, content);
+            if (candidates != default && candidates.Any())
+            {
+                return candidates;
+            }
 
             // if we reached here, we don't have any proper metadata
             // tagged for the source repository, so search for all
             // GitHub URLs and return all possible candidates.
-            var candidates = GetRepoCandidates(purl, content);
+            candidates = GetRepoCandidates(purl, content);
 
             // return a sort
             var sortedCandidates = from entry in candidates orderby entry.Value descending select entry;

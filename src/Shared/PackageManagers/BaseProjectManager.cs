@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -73,6 +75,17 @@ namespace Microsoft.CST.OpenSource.Shared
             throw new NotImplementedException("BaseProjectManager does not implement GetMetadata.");
         }
 
+
+        /// <summary>
+        /// Implemented by all package managers to search the metadata, and either
+        /// return a successful result for the package repository, or return a null 
+        /// in case of failure/nothing to do.
+        /// </summary>
+        /// <returns></returns>
+        protected virtual Task<Dictionary<PackageURL, double>> PackageMetadataSearch(PackageURL purl, string metadata)
+        {
+            throw new NotImplementedException("BaseProjectManager does not implement PackageMetadataSearch.");
+        }
 
         /// <summary>
         /// Initializes a new project management object.
@@ -250,7 +263,6 @@ namespace Microsoft.CST.OpenSource.Shared
             foreach (var fileEntry in extractor.ExtractFile(directoryName, bytes))
             {
                 var fullPath = fileEntry.FullPath.Replace(':', Path.DirectorySeparatorChar);
-                
 
                 // TODO: Does this prevent zip-slip?
                 foreach (var c in Path.GetInvalidPathChars())
@@ -263,7 +275,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 Directory.CreateDirectory(Path.GetDirectoryName(filePathToWrite));
                 await File.WriteAllBytesAsync(filePathToWrite, fileEntry.Content.ToArray());
             }
-            
+
             var fullExtractionPath = Path.Combine(TopLevelExtractionDirectory, directoryName);
             fullExtractionPath = Path.GetFullPath(fullExtractionPath);
             Logger.Debug("Archive extracted to {0}", fullExtractionPath);
@@ -374,6 +386,67 @@ namespace Microsoft.CST.OpenSource.Shared
                 Logger.Debug("List is not sortable, returning as-is: {0}", string.Join(", ", versionList));
             }
             return versionList;
+        }
+
+        /// <summary>
+        /// Tries to find out the package repository from the metadata of the package.
+        /// Check with the specific package manager, if they have any specific extraction 
+        /// to do, w.r.t the metadata. If they found some package specific well defined metadata,
+        /// use that.
+        /// If that doesn't work, do a search across the metadata to find probable
+        /// source repository urls
+        /// </summary>
+        /// <param name="purl">PackageURL to search</param>
+        /// <returns>A dictionary, mapping each possible repo source entry to its probability</returns>
+        public async Task<Dictionary<PackageURL, double>> SearchMetadata(PackageURL purl)
+        {
+            var content = await GetMetadata(purl);
+            if (content != default)
+            {
+                // Check the specific PackageManager implementation.
+                var candidates = await PackageMetadataSearch(purl, content);
+                if (candidates != default && candidates.Any())
+                {
+                    return candidates;
+                }
+
+                // if we reached here, we don't have any proper metadata
+                // tagged for the source repository, so search for all
+                // GitHub URLs and return the one that appears most.
+                candidates = GetMostAppearingRepoEntry(purl, content);
+                if (candidates != default && candidates.Any())
+                {
+                    return candidates;
+                }
+            }
+            return default;
+        }
+
+        /// <summary>
+        /// Choose the top count entry, if all entries have only single entries, the first one is returned.
+        /// </summary>
+        /// <param name="purl">the package</param>
+        /// <param name="content">metadata of the package</param>
+        /// <returns></returns>
+        protected Dictionary<PackageURL, double> GetMostAppearingRepoEntry(PackageURL purl, string content)
+        {
+            var sourceUrls = GitHubProjectManager.ExtractGitHubUris(purl, content);
+            var candidates = new Dictionary<PackageURL, double>();
+
+            if (sourceUrls != default && sourceUrls.Any())
+            {
+                // group by count, reverse sort, and get the first item (with the most count)
+                // TODO: If there's a tie, we should return them both, unless maybe they're both ther once?
+                var mostAppeared = sourceUrls
+                                    .GroupBy((item) => item.ToString())
+                                    .ToImmutableSortedDictionary((x) => x.Key, (y) => y.Count())
+                                    .Reverse()
+                                    .FirstOrDefault();
+
+                // Since this is non-exact, we'll assign our confidence to 90%
+                candidates.Add(new PackageURL(mostAppeared.Key), 0.90);
+            }
+            return candidates;
         }
 
         public static string GetCommonSupportedHelpText()

@@ -3,8 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Tracing;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using LibGit2Sharp;
 
@@ -12,6 +14,38 @@ namespace Microsoft.CST.OpenSource.Shared
 {
     class GitHubProjectManager : BaseProjectManager
     {
+        /// <summary>
+        /// Download one GitHub package and extract it to the target directory.
+        /// </summary>
+        /// <param name="purl">Package URL of the package to download.</param>
+        /// <returns>n/a</returns>
+        /// 
+
+        static readonly Regex GithubMatchRegex = new Regex(
+            @"^((?<protocol>https?|git|ssh|rsync)\+?)+\://" +
+            @"(?:(?<user>.+)@)*" +
+            @"(?<resource>[a-z0-9_.-]*)" +
+            @"[:/]*" +
+            @"(?<port>[\d]+){0,1}" +
+            @"(?<pathname>\/((?<namespace>[\w\-]+)\/)" +
+            @"(?<subpath>[\w\-]+\/)*" +
+            @"((?<name>[\w\-\.]+?)(\.git|\/)?)?)$",
+                RegexOptions.Singleline | RegexOptions.Compiled);
+
+
+        static readonly Regex GithubExtractorRegex = new Regex(
+            @"((?<protocol>https?|git|ssh|rsync)\+?)+\://" +
+            @"(?:(?<user>[\w-]+)@)*" +
+            @"(?<resource>[a-z0-9_.-]*)" + // github/bitbucket etc
+            @"[:/]*" +
+            @"(?<port>[\d]+){0,1}" +
+            @"(?<pathname>\/((?<namespace>[\w\-]+)\/))" +
+            @"(?<subpath>[\w\-]+\/)*" + // rest of the path like tree/master/packages
+            @"((?<name>[\w\-\.]+?)(\.git)+)+",
+                RegexOptions.Singleline | RegexOptions.Compiled);
+
+        static readonly string GithubUriFormat = "https://github.com/{0}/{1}";
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_GITHUB_ENDPOINT = "https://github.com";
 
@@ -53,7 +87,7 @@ namespace Microsoft.CST.OpenSource.Shared
                                         Path.Join(TopLevelExtractionDirectory, $"github-{fsNamespace}-{fsName}-{fsVersion}");
 
                 Repository.Clone(url, workingDirectory);
-                
+
                 var repo = new Repository(workingDirectory);
                 if (!string.IsNullOrWhiteSpace(purl.Version))
                 {
@@ -78,8 +112,7 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 var versionList = new List<string>();
-                var url = $"{ENV_GITHUB_ENDPOINT}/{purl.Namespace}/{purl.Name}";
-                
+                var url = ToFullUri(purl);
                 // TODO: Document why we're wrapping this in a task
                 await Task.Run(() =>
                 {
@@ -104,7 +137,49 @@ namespace Microsoft.CST.OpenSource.Shared
         public override async Task<string> GetMetadata(PackageURL purl)
         {
             await Task.Run(() => { });  // Avoid async warning -- @HACK
-            return $"{ENV_GITHUB_ENDPOINT}/{purl.Namespace}/{purl.Name}";
+            return ToFullUri(purl);
+        }
+
+        public static PackageURL ParseUri(Uri uri)
+        {
+            Match match = GithubMatchRegex.Match(uri.AbsoluteUri);
+            var matches = match.Groups;
+            PackageURL packageURL = new PackageURL(
+                "github",
+                matches["namespace"].Value,
+                matches["name"].Value,
+                /* version doesnt make sense for source repo */ null,
+                null,
+                string.IsNullOrEmpty(matches["subpath"].Value) ? null : matches["subpath"].Value);
+            return packageURL;
+        }
+
+        public static string ToFullUri(PackageURL purl)
+        {
+            return string.Format(GithubUriFormat, purl.Namespace, purl.Name);
+        }
+
+        /// <summary>
+        /// Return all github repo patterns in the searchText which have the same name as the package repo
+        /// </summary>
+        /// <param name="purl"></param>
+        /// <param name="searchText"></param>
+        /// <returns></returns>
+        public static IEnumerable<PackageURL> ExtractGitHubUris(PackageURL purl, string searchText)
+        {
+            List<PackageURL> repos = new List<PackageURL>();
+            if (string.IsNullOrEmpty(searchText))
+            {
+                return repos;
+            }
+
+            MatchCollection matches = GithubExtractorRegex.Matches(searchText);
+            try
+            {
+                matches.ToList().ForEach((item) => { repos.Add(GitHubProjectManager.ParseUri(new Uri(item.Value))); });
+            }
+            catch (UriFormatException) {  /* that was an invalid url, ignore */ }
+            return repos.Where((item) => item.Name == purl.Name);
         }
     }
 }

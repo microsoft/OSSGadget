@@ -230,6 +230,9 @@ namespace Microsoft.CST.OpenSource.Shared
                     case ArchiveFileType.P7ZIP:
                         result = Extract7ZipFile(fileEntry);
                         break;
+                    case ArchiveFileType.DEB:
+                        result = ExtractArFile(fileEntry);
+                        break;
                     default:
                         rawFileUsed = true;
                         result = new[] { fileEntry };
@@ -435,6 +438,23 @@ namespace Microsoft.CST.OpenSource.Shared
                 CheckResourceGovernor(entry.Size);
                 var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream());
                 foreach (var extractedFile in ExtractFile(newFileEntry))
+                {
+                    yield return extractedFile;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Extracts an .ar (deb) file contained in fileEntry.
+        /// </summary>
+        /// <param name="fileEntry">FileEntry to extract</param>
+        /// <returns>Extracted files</returns>
+        private IEnumerable<FileEntry> ExtractArFile(FileEntry fileEntry)
+        {
+            foreach (var entry in ArArchiveFile.GetFileEntries(fileEntry))
+            {
+                CheckResourceGovernor((long)entry.Content.Length);
+                foreach (var extractedFile in ExtractFile(entry))
                 {
                     yield return extractedFile;
                 }

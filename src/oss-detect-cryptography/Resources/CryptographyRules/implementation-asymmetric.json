@@ -1,0 +1,16 @@
+[
+  {
+    "name": "OAEP",
+    "id": "DS802020",
+    "description": "An implementation bcrypt-pbkdf.",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.BCryptPBKDF"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+    ]
+  }
+]

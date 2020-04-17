@@ -1,0 +1,23 @@
+[
+  {
+    "name": "Cryptographic Words",
+    "id": "DS802030",
+    "description": "Cryptographic Words",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.GenericImplementation.CryptographicWords"
+    ],
+    "severity": "moderate",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "(roundkey|keyround|mixcolumns|s-?box|key\\s*schedule|(linear congruential)|(substitution box)|publickeymodulus|publickeyexponent)",
+        "type": "regex",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "Words that are often used with crypto implementations"
+      }
+    ]
+  }
+]

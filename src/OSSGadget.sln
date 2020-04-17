@@ -24,6 +24,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "oss-detect-backdoor", "oss-
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "tests", "tests\tests.csproj", "{501992E3-6026-40C3-9E36-139C8130FF41}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "oss-detect-cryptography", "oss-detect-cryptography\oss-detect-cryptography.csproj", "{CD18B51D-21B0-4E1F-B0A2-F41E80D3BBDD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -62,6 +64,10 @@ Global
 		{501992E3-6026-40C3-9E36-139C8130FF41}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{501992E3-6026-40C3-9E36-139C8130FF41}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{501992E3-6026-40C3-9E36-139C8130FF41}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CD18B51D-21B0-4E1F-B0A2-F41E80D3BBDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD18B51D-21B0-4E1F-B0A2-F41E80D3BBDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CD18B51D-21B0-4E1F-B0A2-F41E80D3BBDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CD18B51D-21B0-4E1F-B0A2-F41E80D3BBDD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

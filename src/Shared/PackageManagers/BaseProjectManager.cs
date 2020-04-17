@@ -13,7 +13,7 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
-    abstract public class BaseProjectManager
+    public class BaseProjectManager
     {
         /// <summary>
         /// Static HttpClient for use in all HTTP connections.
@@ -46,14 +46,21 @@ namespace Microsoft.CST.OpenSource.Shared
         public string TopLevelExtractionDirectory { get; set; } = ".";
 
         
-        abstract public Task<IEnumerable<string>> EnumerateVersions(PackageURL purl);
+        public virtual Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
+        {
+            throw new NotImplementedException("BaseProjectManager does not implement EnumerateVersions.");
+        }
+
 
         /// <summary>
         /// Downloads a given PackageURL and extracts it locally to a directory.
         /// </summary>
         /// <param name="purl">PackageURL to download</param>
         /// <returns>Paths (either files or directory names) pertaining to the downloaded files.</returns>
-        abstract public Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract=true);
+        public virtual Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract=true)
+        {
+            throw new NotImplementedException("BaseProjectManager does not implement DownloadVersion.");
+        }
 
         /// <summary>
         /// This method should return text reflecting metadata for the given package.
@@ -61,12 +68,16 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">PackageURL to search</param>
         /// <returns>a string containing metadata.</returns>
-        abstract public Task<string> GetMetadata(PackageURL purl);
+        public virtual Task<string> GetMetadata(PackageURL purl)
+        {
+            throw new NotImplementedException("BaseProjectManager does not implement GetMetadata.");
+        }
+
 
         /// <summary>
         /// Initializes a new project management object.
         /// </summary>
-        protected BaseProjectManager()
+        public BaseProjectManager()
         {
             this.Options = new Dictionary<string, object>();
             CommonInitialization.OverrideEnvironmentVariables(this);
@@ -114,32 +125,48 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="uri">URI to load.</param>
         /// <returns></returns>
-        public static async Task<string> GetHttpStringCache(string uri, bool useCache = true)
+        public static async Task<string> GetHttpStringCache(string uri, bool useCache = true, bool neverThrow = false)
         {
             Logger.Trace("GetHttpStringCache({0}, {1})", uri, useCache);
 
-            if (useCache)
+            string resultString;
+            
+            try
             {
-                lock (DataCache)
+                if (useCache)
                 {
-                    if (DataCache.TryGetValue(uri, out string s))
+                    lock (DataCache)
                     {
-                        return s;
+                        if (DataCache.TryGetValue(uri, out string s))
+                        {
+                            return s;
+                        }
                     }
                 }
-            }
 
-            var result = await WebClient.GetAsync(uri);
-            result.EnsureSuccessStatusCode();   // Don't cache error codes
-            var contentLength = result.Content.Headers.ContentLength ?? 8192;
-            var resultString = await result.Content.ReadAsStringAsync();
 
-            if (useCache)
-            {
-                lock (DataCache)
+                var result = await WebClient.GetAsync(uri);
+                result.EnsureSuccessStatusCode();   // Don't cache error codes
+                var contentLength = result.Content.Headers.ContentLength ?? 8192;
+                resultString = await result.Content.ReadAsStringAsync();
+
+                if (useCache)
                 {
-                    var mce = new MemoryCacheEntryOptions() { Size = contentLength };
-                    DataCache.Set<string>(uri, resultString, mce);
+                    lock (DataCache)
+                    {
+                        var mce = new MemoryCacheEntryOptions() { Size = contentLength };
+                        DataCache.Set<string>(uri, resultString, mce);
+                    }
+                }
+            } catch(Exception)
+            {
+                if (neverThrow)
+                {
+                    return default;
+                }
+                else
+                {
+                    throw;
                 }
             }
 
@@ -199,10 +226,10 @@ namespace Microsoft.CST.OpenSource.Shared
         /// Extracts an archive (given by 'bytes') into a directory named
         /// 'directoryName', recursively, using MultiExtractor.
         /// </summary>
-        /// <param name="directoryName"></param>
-        /// <param name="bytes"></param>
+        /// <param name="directoryName"> directory to extract content into (within TopLevelExtractionDirectory)</param>
+        /// <param name="bytes">bytes to extract (should be an archive file)</param>
         /// <returns></returns>
-        protected async Task<string> ExtractArchive(string directoryName, byte[] bytes)
+        public async Task<string> ExtractArchive(string directoryName, byte[] bytes)
         {
             Logger.Trace("ExtractArchive({0}, <bytes> len={1})", directoryName, bytes?.Length);
 
@@ -258,8 +285,15 @@ namespace Microsoft.CST.OpenSource.Shared
             else if (purl.Version == null)
             {
                 var versions = await EnumerateVersions(purl);
-                var vpurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, versions.Last(), purl.Qualifiers, purl.Subpath);
-                downloadPaths.AddRange(await DownloadVersion(vpurl, doExtract));
+                if (versions.Count() > 0)
+                {
+                    var vpurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, versions.Last(), purl.Qualifiers, purl.Subpath);
+                    downloadPaths.AddRange(await DownloadVersion(vpurl, doExtract));
+                }
+                else
+                {
+                    Logger.Warn("Unable to enumerate versions, so cannot identify the latest.");
+                }
             }
             else if (purl.Version.Equals("*"))
             {

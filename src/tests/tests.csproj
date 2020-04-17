@@ -20,7 +20,6 @@
     <ProjectReference Include="..\oss-download\oss-download.csproj" />
     <ProjectReference Include="..\oss-find-source\oss-find-source.csproj" />
     <ProjectReference Include="..\oss-health\oss-health.csproj" />
-    <ProjectReference Include="..\oss-risk-calculator\oss-risk-calculator.csproj" />
     <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>
 

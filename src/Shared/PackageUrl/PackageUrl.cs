@@ -26,6 +26,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -168,6 +169,12 @@ namespace Microsoft.CST.OpenSource.Shared
                 purl.Append("#").Append(Subpath);
             }
             return purl.ToString();
+        }
+
+        public string ToStringFilename()
+        {
+            var invalidChars = new string(Path.GetInvalidFileNameChars()) + new string(Path.GetInvalidPathChars());
+            return Regex.Replace(this.ToString(), "[" + Regex.Escape(invalidChars) + "]", "-");
         }
 
         private void Parse(string purl)

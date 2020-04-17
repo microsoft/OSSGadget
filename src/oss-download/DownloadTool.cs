@@ -34,7 +34,8 @@ namespace Microsoft.CST.OpenSource
         {
             { "download-directory", "." },
             { "target", new List<string>() },
-            { "extract", "true" }
+            { "extract", "true" },
+            { "download-metadata-only", false}
         };
 
         /// <summary>
@@ -70,6 +71,7 @@ namespace Microsoft.CST.OpenSource
                     catch (Exception ex)
                     {
                         Logger.Warn(ex, "Error processing {0}: {1}", target, ex.Message);
+                        Logger.Warn(ex.StackTrace);
                     }
                 }
             }
@@ -91,7 +93,7 @@ namespace Microsoft.CST.OpenSource
         {
             Logger.Trace("Download({0})", purl?.ToString());
 
-            List<string> downloadPaths = null;
+            var downloadPaths = new List<string>();
             
             destinationDirectory ??= (string)Options["download-directory"] ?? ".";
             if (!Directory.Exists(destinationDirectory))
@@ -112,11 +114,28 @@ namespace Microsoft.CST.OpenSource
                 var ctor = downloaderClass.GetConstructor(Array.Empty<Type>());
                 var _downloader = (BaseProjectManager)(ctor.Invoke(Array.Empty<object>()));
                 _downloader.TopLevelExtractionDirectory = destinationDirectory;
-                if (!bool.TryParse(Options["extract"]?.ToString(), out bool doExtract))
+                if ((bool)Options["download-metadata-only"])
                 {
-                    doExtract = true;
+                    var metadata = await _downloader.GetMetadata(purl);
+                    if (metadata != default)
+                    {
+                        var outputFilename = Path.Combine(destinationDirectory, $"metadata-{purl.ToStringFilename()}");
+                        while (File.Exists(outputFilename))
+                        {
+                            outputFilename = Path.Combine(destinationDirectory, $"metadata-{purl.ToStringFilename()}-{DateTime.Now.Ticks}");
+                        }
+                        File.WriteAllText(outputFilename, metadata);
+                        downloadPaths.Add(outputFilename);
+                    }
                 }
-                downloadPaths = await _downloader.Download(purl, doExtract);
+                else
+                {
+                    if (!bool.TryParse(Options["extract"]?.ToString(), out bool doExtract))
+                    {
+                        doExtract = true;
+                    }
+                    downloadPaths = await _downloader.Download(purl, doExtract);
+                }
             }
             else
             {
@@ -153,7 +172,11 @@ namespace Microsoft.CST.OpenSource
                         Console.Error.WriteLine($"{TOOL_NAME} {VERSION}");
                         Environment.Exit(1);
                         break;
-
+                    
+                    case "--metadata":
+                        Options["download-metadata-only"] = true;
+                        break;
+                    
                     case "--directory":
                         Options["download-directory"] = args[++i];
                         break;
@@ -186,6 +209,7 @@ positional arguments:
 
 optional arguments:
   --no-extract                  do not extract package contents 
+  --metadata                    only download metadata, not package content
   --help                        show this help message and exit
   --version                     show version of this tool
 ");

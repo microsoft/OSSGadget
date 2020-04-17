@@ -10,7 +10,6 @@
     <RepositoryType>GitHub</RepositoryType>
     <RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>
     <StartupObject>Microsoft.CST.OpenSource.DownloadTool</StartupObject>
-    <RuntimeIdentifiers>win10-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

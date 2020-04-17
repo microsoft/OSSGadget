@@ -74,7 +74,7 @@
     "description": "ChaCha",
     "recommendation": "",
     "tags": [
-      "Cryptography.Implementation.DES"
+      "Cryptography.Implementation.ChaCha"
     ],
     "severity": "important",
     "_comment": "",
@@ -87,7 +87,7 @@
         "scopes": [
           "code"
         ],
-        "_comment": "ChaCha "
+        "_comment": "ChaCha"
       }
     ]
   }

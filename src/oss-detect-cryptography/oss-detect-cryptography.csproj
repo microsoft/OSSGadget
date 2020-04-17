@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <None Remove="Resources\CryptographyRules\implementation-asymmetric.json" />
+    <None Remove="Resources\CryptographyRules\implementation-block-cipher.json" />
     <None Remove="Resources\CryptographyRules\implementation-crypto-generic.json" />
     <None Remove="Resources\CryptographyRules\implementation-hash.json" />
     <None Remove="Resources\CryptographyRules\implementation-prng.json" />
@@ -22,6 +23,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Resources\CryptographyRules\implementation-block-cipher.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
     <EmbeddedResource Include="Resources\CryptographyRules\implementation-signature.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>

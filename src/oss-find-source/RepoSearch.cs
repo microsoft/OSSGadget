@@ -1,8 +1,10 @@
-﻿using Microsoft.CST.OpenSource.Shared;
+﻿using AngleSharp.Common;
+using Microsoft.CST.OpenSource.Shared;
 using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource
@@ -44,7 +46,7 @@ namespace Microsoft.CST.OpenSource
         /// <param name="github_apikey"></param>
         /// <param name="package_name"></param>
         /// <returns></returns>
-        public async Task<Dictionary<PackageURL, double>> ResolvePackageLibraryAsync(PackageURL purl)
+        public async Task<Dictionary<PackageURL, double>> ResolvePackageLibraryAsync(PackageURL purl, bool returnAllMatches = false)
         {
             Logger.Trace("ResolvePackageLibraryAsync({0})", purl);
 
@@ -64,7 +66,7 @@ namespace Microsoft.CST.OpenSource
                .Where(type => type.Name.Equals($"{purl.Type}ProjectManager",
                                                StringComparison.InvariantCultureIgnoreCase))
                .FirstOrDefault();
-            
+
             if (projectManagerClass != null)
             {
                 var ctor = projectManagerClass.GetConstructor(Array.Empty<Type>());
@@ -75,12 +77,23 @@ namespace Microsoft.CST.OpenSource
                 if (repoMappings == default || !repoMappings.Any())
                 {
                     Logger.Info("Could not figure out the repository from the package metadata");
+                    return repoMappings;
                 }
             }
             else
             {
                 throw new ArgumentException("Invalid Package URL type: {0}", purlNoVersion.Type);
             }
+
+            // if the flag to return only the best match is true, do so
+            if (!returnAllMatches)
+            {
+                var bestMatch = repoMappings.OrderByDescending((item) => item.Value).FirstOrDefault();
+                var retVal = new Dictionary<PackageURL, double>();
+                retVal.Add(bestMatch.Key, bestMatch.Value);
+                return retVal;
+            }
+            
             return repoMappings;
         }
     }

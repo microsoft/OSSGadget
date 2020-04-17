@@ -32,6 +32,7 @@ namespace Microsoft.CST.OpenSource
         private readonly Dictionary<string, object> Options = new Dictionary<string, object>()
         {
             { "target", new List<string>() },
+            { "listAll", false },
         };
 
         static void Main(string[] args)
@@ -76,7 +77,7 @@ namespace Microsoft.CST.OpenSource
             Logger.Debug("Searching for source code for {0}", purlNoVersion.ToString());
 
             RepoSearch repoSearcher = new RepoSearch();
-            Dictionary<PackageURL, double> repos = await repoSearcher.ResolvePackageLibraryAsync(purl);
+            Dictionary<PackageURL, double> repos = await repoSearcher.ResolvePackageLibraryAsync(purl, (bool)Options["listAll"]);
             if (repos.Any())
             {
                 foreach (KeyValuePair<PackageURL, double> item in repos)
@@ -111,6 +112,11 @@ namespace Microsoft.CST.OpenSource
                     case "--help":
                         ShowUsage();
                         Environment.Exit(1);
+                        break;
+
+                    case "-a":
+                    case "--all":
+                        Options["listAll"] = true;
                         break;
 
                     case "-v":
@@ -150,6 +156,7 @@ positional arguments:
 
 optional arguments:
   --help                        show this help message and exit
+  --all                         show all possibilities of the package source repositories (default shows the best option)
   --version                     show version of this tool
 ");
         }

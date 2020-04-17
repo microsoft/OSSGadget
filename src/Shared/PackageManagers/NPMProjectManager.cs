@@ -148,7 +148,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// Searches the package manager metadata to figure out the source code repository
         /// </summary>
         /// <param name="purl">the package for which we need to find the source code repository</param>
-        /// <returns>A dictionary, mapping each possible repo source entry to its probability</returns>
+        /// <returns>A dictionary, mapping each possible repo source entry to its probability/empty dictionary</returns>
         protected async override Task<Dictionary<PackageURL, double>> PackageMetadataSearch(PackageURL purl, 
             string metadata)
         {
@@ -163,7 +163,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             if (string.IsNullOrEmpty(metadata))
             {
-                return null;
+                return mapping;
             }
             JsonDocument contentJSON = JsonDocument.Parse(metadata);
 
@@ -171,8 +171,8 @@ namespace Microsoft.CST.OpenSource.Shared
             // which is more likely best maintained
             // TODO: If the latest version JSONElement doesnt have the repo infor, should we search all elements 
             // on that chance that one of them might have it?
-            JsonElement versionJSON = string.IsNullOrEmpty(purl.Version) ? GetLatestVersion(contentJSON) : 
-                GetVersion(contentJSON, new Version(purl.Version));
+            JsonElement versionJSON = string.IsNullOrEmpty(purl.Version) ? GetLatestVersionElement(contentJSON) : 
+                GetVersionElement(contentJSON, new Version(purl.Version));
 
             try
             {
@@ -196,7 +196,6 @@ namespace Microsoft.CST.OpenSource.Shared
             catch (KeyNotFoundException) { /* continue onwards */ }
             catch (UriFormatException) {  /* the uri specified in the metadata invalid */ }
 
-
             return mapping;
         }
 
@@ -219,21 +218,21 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// Do inplace sorting of the versions array - this will modify the input
+        /// Gets the latest version of the package
         /// </summary>
         /// <param name="contentJSON"></param>
         /// <returns></returns>
-        public JsonElement GetLatestVersion(JsonDocument contentJSON)
+        public JsonElement GetLatestVersionElement(JsonDocument contentJSON)
         {
             List<Version> versions = GetVersions(contentJSON);
             Version maxVersion = versions.Max();
-            return GetVersion(contentJSON, maxVersion);
+            return GetVersionElement(contentJSON, maxVersion);
         }
 
-        public JsonElement GetVersion(JsonDocument contentJSON, Version version)
+        public JsonElement GetVersionElement(JsonDocument contentJSON, Version version)
         {
             JsonElement root = contentJSON.RootElement;
-            List<Version> versions = GetVersions(contentJSON);
+
             try
             {
                 JsonElement versionsJSON = root.GetProperty("versions");
@@ -243,7 +242,6 @@ namespace Microsoft.CST.OpenSource.Shared
                     {
                         return versionsJSON.GetProperty(version.ToString());
                     }
-
                 }
             }
             catch (KeyNotFoundException) { return default; }

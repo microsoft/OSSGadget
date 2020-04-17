@@ -179,7 +179,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 matches.ToList().ForEach((item) => { repos.Add(GitHubProjectManager.ParseUri(new Uri(item.Value))); });
             }
             catch (UriFormatException) {  /* that was an invalid url, ignore */ }
-            return repos.Where((item) => item.Name == purl.Name);
+            return repos;
         }
     }
 }

@@ -10,6 +10,8 @@
     <RepositoryType>GitHub</RepositoryType>
     <RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>
     <StartupObject>Microsoft.CST.OpenSource.DetectCryptographyTool</StartupObject>
+    <LangVersion>8.0</LangVersion>
+    <Nullable>Enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -52,6 +54,7 @@
     <PackageReference Include="Microsoft.CST.DevSkim" Version="0.4.118" />
     <PackageReference Include="PeNet" Version="2.0.0" />
     <PackageReference Include="SharpDisasm" Version="1.1.11" />
+    <PackageReference Include="Microsoft.ML" Version="1.4.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -13,7 +13,9 @@ namespace Microsoft.CST.OpenSource.Tests
     {
         [DataTestMethod]
         [DataRow("pkg:npm/md5", "Cryptography.Implementation.Hash.MD5")]
-        public async Task Test_NPM_Succeeds(string purl, params string[] expectedTags)
+        [DataRow("pkg:npm/aes-js", "Cryptography.Implementation.BlockCipher.AES")]
+        [DataRow("pkg:npm/des", "Cryptography.Implementation.BlockCipher.DES")]
+        public async Task TestPackageDectionSucceeds(string purl, params string[] expectedTags)
         {
             await TestDetectCryptography(purl, expectedTags);
         }
@@ -24,7 +26,9 @@ namespace Microsoft.CST.OpenSource.Tests
             var results = await detectCryptographyTool.AnalyzePackage(new PackageURL(purl));
 
             var distinctTargets = expectedTags.Distinct();
-            var distinctFindings = results.SelectMany(s => s.Issue.Rule.Tags).Distinct();
+            var distinctFindings = results.SelectMany(s => s.Issue.Rule.Tags)
+                                          .Where(s => s.StartsWith("Cryptography.Implementation"))
+                                          .Distinct();
 
             if (distinctTargets.Except(distinctFindings).Any())
             {

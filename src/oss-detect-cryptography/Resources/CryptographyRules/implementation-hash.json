@@ -104,13 +104,13 @@
     "rule_info": "http://www.groestl.info/implementations.html",
     "patterns": [
       {
-        "pattern": "0x63,\\s?0x7c,\\s?0x77,\\s?0x7b,\\s?0xf2,\\s?0x6b,\\s?0x6f,\\s?0xc5",
+        "pattern": "0f0a0702050e0906|a5f432c6",
         "type": "regex",
         "modifiers": [ "i" ],
         "scopes": [
           "code"
         ],
-        "_comment": "Grøstl s-box"
+        "_comment": "Grøstl constants"
       }
     ]
   },
@@ -371,7 +371,7 @@
         "_comment": "SHA-1 constants (hex)"
       },
       {
-        "pattern": "1732584193|271733879|1732584194|271733878",
+        "pattern": "1518500249|1859775393|1894007588|899497514",
         "type": "regex",
         "modifiers": [ "i" ],
         "scopes": [
@@ -662,8 +662,7 @@
       }
     ]
   },
-
-
+  {
     "name": "Implementation of BCrypt",
     "id": "DS802026",
     "description": "An implementation BCrypt",

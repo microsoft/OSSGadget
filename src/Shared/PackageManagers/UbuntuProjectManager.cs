@@ -48,7 +48,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 var archiveBaseUrl = await GetArchiveBaseUrlForProject(purl, pool);
                 if (archiveBaseUrl == default)
                 {
-                    Logger.Debug("Unable to find archive base URL.");
+                    Logger.Debug("Unable to find archive base URL for {0}, pool {1}", purl.ToString(), pool);
                     continue;
                 }
 
@@ -57,6 +57,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     var html = await GetHttpStringCache(archiveBaseUrl, neverThrow: true);
                     if (html == default)
                     {
+                        Logger.Debug("Error reading {0}", archiveBaseUrl);
                         continue;
                     }
 
@@ -116,7 +117,7 @@ namespace Microsoft.CST.OpenSource.Shared
                             foreach (var secondAnchor in document.QuerySelectorAll("a"))
                             {
                                 var secondHref = secondAnchor.GetAttribute("href");
-                                if (seenFiles.Any(f => f.Equals(secondHref) && !secondHref.EndsWith(".deb") && !secondHref.EndsWith(".dsc")))
+                                if (seenFiles.Any(f => f.Equals(secondHref) && !secondHref.EndsWith(".deb") && !secondHref.EndsWith(".dsc") && !secondHref.EndsWith(".asc")))
                                 {
                                     var fullDownloadUrl = archiveBaseUrl + "/" + secondHref;
                                     if (!downloadedUrls.Add(fullDownloadUrl))
@@ -322,7 +323,11 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             try
             {
-                var html = await GetHttpStringCache($"{ENV_UBUNTU_ENDPOINT}/{pool}/{purl.Name}");
+                var html = await GetHttpStringCache($"{ENV_UBUNTU_ENDPOINT}/{pool}/{purl.Name}", neverThrow: true);
+                if (html == default)
+                {
+                    return default;
+                }
                 var document = await new HtmlParser().ParseDocumentAsync(html);
                 foreach (var anchor in document.QuerySelectorAll("a"))
                 {

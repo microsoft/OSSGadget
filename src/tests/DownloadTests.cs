@@ -99,6 +99,13 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         [DataTestMethod]
+        [DataRow("pkg:ubuntu/zerofree", "source")]
+        public async Task Ubuntu_Download_Version_Succeeds(string purl, string targetFilename)
+        {
+            await TestDownload(purl, targetFilename);
+        }
+
+        [DataTestMethod]
         [DataRow("pkg:vsm/ms-vscode/PowerShell", "extension.vsixmanifest")]
         public async Task VSM_Download_Version_Succeeds(string purl, string targetFilename)
         {

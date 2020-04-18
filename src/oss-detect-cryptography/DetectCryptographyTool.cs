@@ -18,6 +18,9 @@ using ICSharpCode.Decompiler.CSharp;
 using System.Text.RegularExpressions;
 using System.Reflection;
 using SharpDisasm;
+using WebAssembly; // Acquire from https://www.nuget.org/packages/WebAssembly
+using WebAssembly.Instructions;
+using WebAssembly.Runtime;
 
 namespace Microsoft.CST.OpenSource
 {
@@ -60,6 +63,8 @@ namespace Microsoft.CST.OpenSource
         /// <param name="args">parameters passed in from the user</param>
         static async Task Main(string[] args)
         {
+
+
             var detectCryptographyTool = new DetectCryptographyTool();
             Logger.Info($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
 
@@ -166,7 +171,7 @@ namespace Microsoft.CST.OpenSource
                                             sb.AppendLine($" {result.Filename}:");
                                             if (result.Issue.Rule.Id == "_CRYPTO_DENSITY")
                                             {
-                                                // No excert for cryptogrpahic density
+                                                // No excerpt for cryptogrpahic density
                                                 // TODO: We stuffed the density in the unused 'Description' field. This is code smell.
                                                 sb.AppendLine($"  | The maximum cryptographic density is {result.Issue.Rule.Description}.");
                                             }
@@ -303,6 +308,8 @@ namespace Microsoft.CST.OpenSource
                         Logger.Warn("Unable to decompile {0}: {1}", filename, ex.Message);
                     }
                 }
+                
+                var resultStrings = new HashSet<string>();
 
                 try
                 {
@@ -311,17 +318,56 @@ namespace Microsoft.CST.OpenSource
                     Disassembler.Translator.IncludeBinary = false;
                     var architecture = buffer.Length > 5 && buffer[5] == 0x02 ? ArchitectureMode.x86_64 : ArchitectureMode.x86_32;
                     using var disassembler = new Disassembler(buffer, architecture);
-                    var resultStrings = new HashSet<string>();
                     foreach (var instruction in disassembler.Disassemble())
                     {
                         resultStrings.Add(instruction.ToString());
                         
                     }
-                    return string.Join('\n', resultStrings);
+                    
                 }
                 catch(Exception ex)
                 {
                     Logger.Warn("Unable to decompile {0}: {1}", filename, ex.Message);
+                }
+
+                try
+                {
+                    // Maybe it's WebAseembly -- @TODO Make this less random.
+                    using var webAssemblyByteStream = new MemoryStream(buffer);
+                    var m = WebAssembly.Module.ReadFromBinary(webAssemblyByteStream);
+
+                    foreach (var data in m.Data)
+                    {
+                        resultStrings.Add(Encoding.ASCII.GetString(data.RawData.ToArray()));
+                    }
+
+                    foreach (var functionBody in m.Codes)
+                    {
+                        foreach (var instruction in functionBody.Code)
+                        {
+                            switch (instruction.OpCode)
+                            {
+                                case OpCode.Int32Constant:
+                                    resultStrings.Add(((Int32Constant)instruction).Value.ToString());
+                                    break;
+                                case OpCode.Int64Constant:
+                                    resultStrings.Add(((Int64Constant)instruction).Value.ToString());
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+                    return string.Join('\n', resultStrings);
+                }
+                catch(Exception ex)
+                {
+                    Logger.Warn("Unable to analyze WebAssembly {0}: {1}", filename, ex.Message);
+                }
+
+                if (resultStrings.Any())
+                {
+                    return string.Join('\n', resultStrings);
                 }
 
                 return string.Join('\n', UniqueStringsFromBinary(buffer));

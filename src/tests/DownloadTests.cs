@@ -99,7 +99,7 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         [DataTestMethod]
-        [DataRow("pkg:ubuntu/zerofree", "source")]
+        [DataRow("pkg:ubuntu/zerofree", "zerofree.c")]
         public async Task Ubuntu_Download_Version_Succeeds(string purl, string targetFilename)
         {
             await TestDownload(purl, targetFilename);

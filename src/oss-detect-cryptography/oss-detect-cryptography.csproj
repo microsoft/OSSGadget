@@ -19,6 +19,7 @@
     <None Remove="Resources\CryptographyRules\implementation-hash.json" />
     <None Remove="Resources\CryptographyRules\implementation-prng.json" />
     <None Remove="Resources\CryptographyRules\implementation-signature.json" />
+    <None Remove="Resources\CryptographyRules\implementation-stream-cipher.json" />
     <None Remove="Resources\CryptographyRules\implementation-symmetric.json" />
   </ItemGroup>
 
@@ -27,6 +28,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\CryptographyRules\implementation-signature.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\CryptographyRules\implementation-stream-cipher.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\CryptographyRules\implementation-symmetric.json">

@@ -103,7 +103,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
             if (stream == null)
             {
-                throw new ArgumentNullException("MemoryStream must not be null.");
+                throw new ArgumentNullException(nameof(stream), "MemoryStream must not be null.");
             }
 
             GovernorStopwatch = Stopwatch.StartNew();

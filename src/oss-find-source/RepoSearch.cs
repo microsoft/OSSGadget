@@ -43,10 +43,9 @@ namespace Microsoft.CST.OpenSource
         ///     2) Try searching github
         ///     3) Try calculating metrics for same name repos
         /// </summary>
-        /// <param name="github_apikey"></param>
         /// <param name="package_name"></param>
         /// <returns></returns>
-        public async Task<Dictionary<PackageURL, double>> ResolvePackageLibraryAsync(PackageURL purl, bool returnAllMatches = false)
+        public async Task<Dictionary<PackageURL, double>> ResolvePackageLibraryAsync(PackageURL purl)
         {
             Logger.Trace("ResolvePackageLibraryAsync({0})", purl);
 
@@ -67,33 +66,22 @@ namespace Microsoft.CST.OpenSource
                                                StringComparison.InvariantCultureIgnoreCase))
                .FirstOrDefault();
 
-            if (projectManagerClass != null)
+            if (projectManagerClass != default)
             {
                 var ctor = projectManagerClass.GetConstructor(Array.Empty<Type>());
                 var projectManager = (BaseProjectManager)(ctor.Invoke(Array.Empty<object>()));
 
-                repoMappings = await projectManager.SearchMetadata(purl);
+                repoMappings = await projectManager.IdentifySourceRepository(purl);
 
                 if (repoMappings == default || !repoMappings.Any())
                 {
-                    Logger.Info("Could not figure out the repository from the package metadata");
-                    return repoMappings;
+                    Logger.Info("No repositories were found after searching metadata.");
                 }
             }
             else
             {
                 throw new ArgumentException("Invalid Package URL type: {0}", purlNoVersion.Type);
             }
-
-            // if the flag to return only the best match is true, do so
-            if (!returnAllMatches)
-            {
-                var bestMatch = repoMappings.OrderByDescending((item) => item.Value).FirstOrDefault();
-                var retVal = new Dictionary<PackageURL, double>();
-                retVal.Add(bestMatch.Key, bestMatch.Value);
-                return retVal;
-            }
-            
             return repoMappings;
         }
     }

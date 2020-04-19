@@ -42,7 +42,7 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("pkg:npm/hjkfashfkjafhakfjsa", "pkg:github/pvorb/node-md5")]
         [DataRow("pkg:pypi/hjkfashfkjafhakfjsa", "pkg:github/pvorb/node-md5")]
         [DataRow("pkg:nuget/hjkfashfkjafhakfjsa", "pkg:github/pvorb/node-md5")]
-        public async Task FindSource_NonExistentPackage(string purl, string targetResult)
+        public async Task FindSource_NonExistentPackage(string purl, string _)
         {
             // for initialization
             FindSourceTool tool = new FindSourceTool();

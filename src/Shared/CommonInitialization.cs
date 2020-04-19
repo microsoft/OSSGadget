@@ -42,11 +42,14 @@ namespace Microsoft.CST.OpenSource.Shared
             }
 
             // Initialize the static HttpClient
+            #pragma warning disable CA2000 // Held onto by WebClient
             var handler = new HttpClientHandler()
             {
                 AllowAutoRedirect = true,
                 UseCookies = false
             };
+            #pragma warning restore CA2000
+
             WebClient = new HttpClient(handler);
             WebClient.DefaultRequestHeaders.UserAgent.ParseAdd(ENV_HTTPCLIENT_USER_AGENT);
 

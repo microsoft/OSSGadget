@@ -32,6 +32,7 @@ namespace Microsoft.CST.OpenSource
         private readonly Dictionary<string, object> Options = new Dictionary<string, object>()
         {
             { "target", new List<string>() },
+            { "listAll", false },
         };
 
         static void Main(string[] args)
@@ -46,10 +47,8 @@ namespace Microsoft.CST.OpenSource
                 {
                     try
                     {
-                        foreach (var purl in findSourceTool.FindSource(new PackageURL(target)).Result)
-                        {
-                            Logger.Info($"Located: https://github.com/{purl.Namespace}/{purl.Name}");
-                        }
+                        var purl = new PackageURL(target);
+                        findSourceTool.FindSource(purl).Wait();
                     }
                     catch (Exception ex)
                     {
@@ -71,45 +70,26 @@ namespace Microsoft.CST.OpenSource
             Logger = CommonInitialization.Logger;
         }
 
-        public async Task<IEnumerable<PackageURL>> FindSource(PackageURL purl)
+        public async Task FindSource(PackageURL purl)
         {
             var purlNoVersion = new PackageURL(purl.Type, purl.Namespace, purl.Name,
                                                null, purl.Qualifiers, purl.Subpath);
             Logger.Debug("Searching for source code for {0}", purlNoVersion.ToString());
 
-            // Use reflection to find the correct downloader class
-            var projectManagerClass = typeof(BaseProjectManager).Assembly.GetTypes()
-               .Where(type => type.IsSubclassOf(typeof(BaseProjectManager)))
-               .Where(type => type.Name.Equals($"{purl.Type}ProjectManager",
-                                               StringComparison.InvariantCultureIgnoreCase))
-               .FirstOrDefault();
-
-            var sourceList = new List<PackageURL>();
-
-            if (projectManagerClass != default)
+            RepoSearch repoSearcher = new RepoSearch();
+            Dictionary<PackageURL, double> repos = await repoSearcher.ResolvePackageLibraryAsync(purl, (bool)Options["listAll"]);
+            if (repos.Any())
             {
-                var ctor = projectManagerClass.GetConstructor(Array.Empty<Type>());
-                var projectManager = (BaseProjectManager)(ctor.Invoke(Array.Empty<object>()));
-                var content = await projectManager.GetMetadata(purlNoVersion);
-
-                if (!string.IsNullOrWhiteSpace(content))
+                foreach (KeyValuePair<PackageURL, double> item in repos)
                 {
-                    foreach (var githubPurl in BaseProjectManager.ExtractGitHubPackageURLs(content))
-                    {
-                        sourceList.Add(githubPurl);
-                        Logger.Debug("Identified GitHub Source: {0})", githubPurl.ToString());
-                    }
-                }
-                else
-                {
-                    Logger.Warn("No metadata found for {0}", purlNoVersion.ToString());
+                    var githubUrl = $"https://github.com/{item.Key.Namespace}/{item.Key.Name}";
+                    Logger.Info("Found: {0} ({1}). Probability Score: {2}", item.Key.ToString(), githubUrl, item.Value);
                 }
             }
             else
             {
-                throw new ArgumentException("Invalid Package URL type: {0}", purlNoVersion.Type);
+                Logger.Warn("Could not find repository for package {0}", purl.ToString());
             }
-            return sourceList;
         }
 
         /// <summary>
@@ -134,16 +114,28 @@ namespace Microsoft.CST.OpenSource
                         Environment.Exit(1);
                         break;
 
+                    case "-a":
+                    case "--all":
+                        Options["listAll"] = true;
+                        break;
+
                     case "-v":
                     case "--version":
                         Console.Error.WriteLine($"{TOOL_NAME} {VERSION}");
                         Environment.Exit(1);
                         break;
-
                     default:
                         ((IList<string>)Options["target"]).Add(args[i]);
                         break;
                 }
+            }
+
+            if (((IList<string>)Options["target"]).Count == 0)
+            {
+
+                Logger.Error("Please enter the package(s) to search for");
+                ShowUsage();
+                Environment.Exit(1);
             }
         }
 
@@ -164,6 +156,7 @@ positional arguments:
 
 optional arguments:
   --help                        show this help message and exit
+  --all                         show all possibilities of the package source repositories (default shows the best option)
   --version                     show version of this tool
 ");
         }

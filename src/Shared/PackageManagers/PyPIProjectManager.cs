@@ -124,5 +124,53 @@ namespace Microsoft.CST.OpenSource.Shared
                 return null;
             }
         }
+
+        protected async override Task<Dictionary<PackageURL, double>> PackageMetadataSearch(PackageURL purl, string metadata)
+        {
+            var mapping = new Dictionary<PackageURL, double>();
+            if (purl.Name.StartsWith('_')) // TODO: there are internal modules which do not start with _
+            {
+                // TODO: internal modules could also be in https://github.com/python/cpython/tree/master/Modules/
+                mapping.Add(new PackageURL(purl.Type, purl.Namespace, purl.Name, null, null, "cpython/tree/master/Lib/"), 1.0F);
+                return mapping;
+            }
+            if (string.IsNullOrEmpty(metadata))
+            {
+                return null;
+            }
+            JsonDocument contentJSON = JsonDocument.Parse(metadata);
+
+            List<string> possibleProperties = new List<string>() { "homepage", "home_page" };
+            JsonElement infoJSON;
+            try
+            {
+                infoJSON = contentJSON.RootElement.GetProperty("info");
+            }
+            catch (Exception)
+            {
+                return mapping;
+            }
+
+            foreach (var property in infoJSON.EnumerateObject())
+            {   // there are a couple of possibilities where the repository url might be present - check all of them
+                try
+                {
+                    if (possibleProperties.Contains(property.Name.ToLower()))
+                    {
+                        string homepage = property.Value.ToString();
+                        var packageUrls = GitHubProjectManager.ExtractGitHubPackageURLs(homepage);
+                        // if we were able to extract a github url, return
+                        if (packageUrls != null && packageUrls.Count() > 0)
+                        {
+                            mapping.Add(packageUrls.FirstOrDefault(), 1.0F);
+                            return mapping;
+                        }
+                    }
+                }
+                catch (Exception) { continue; /* try the next property */ }
+            }
+
+            return mapping;
+        }
     }
 }

@@ -52,6 +52,7 @@
     <PackageReference Include="Microsoft.CST.DevSkim" Version="0.4.118" />
     <PackageReference Include="PeNet" Version="2.0.0" />
     <PackageReference Include="SharpDisasm" Version="1.1.11" />
+    <PackageReference Include="WebAssembly" Version="0.8.0-preview" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -17,6 +17,7 @@
     <ProjectReference Include="..\oss-characteristics\oss-characteristic.csproj" />
     <ProjectReference Include="..\oss-defog\oss-defog.csproj" />
     <ProjectReference Include="..\oss-detect-backdoor\oss-detect-backdoor.csproj" />
+    <ProjectReference Include="..\oss-detect-cryptography\oss-detect-cryptography.csproj" />
     <ProjectReference Include="..\oss-download\oss-download.csproj" />
     <ProjectReference Include="..\oss-find-source\oss-find-source.csproj" />
     <ProjectReference Include="..\oss-health\oss-health.csproj" />

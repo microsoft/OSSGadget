@@ -1,0 +1,49 @@
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.CST.OpenSource;
+using Microsoft.CST.OpenSource.Shared;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using System;
+
+namespace Microsoft.CST.OpenSource.Tests
+{
+    [TestClass]
+    public class DetectCryptographyTests
+    {
+        [DataTestMethod]
+        [DataRow("pkg:npm/blake2", "Cryptography.Implementation.Hash.Blake", "Cryptography.Implementation.Hash.Blake2", "Cryptography.Implementation.Hash.JH", "Cryptography.Implementation.Hash.SHA-512")]
+        [DataRow("pkg:npm/blake3", "Cryptography.Implementation.Hash.Blake3", "Cryptography.Implementation.Hash.SHA-512")]
+        [DataRow("pkg:cargo/md2", "Cryptography.Implementation.Hash.MD2")]
+        [DataRow("pkg:cargo/md4", "Cryptography.Implementation.Hash.MD4", "Cryptography.Implementation.Hash.SHA-1")]
+        [DataRow("pkg:npm/md5", "Cryptography.Implementation.Hash.MD5")]
+        [DataRow("pkg:cargo/md5", "Cryptography.Implementation.Hash.MD5")]
+        [DataRow("pkg:npm/aes-js", "Cryptography.Implementation.BlockCipher.AES")]
+        [DataRow("pkg:npm/des", "Cryptography.Implementation.BlockCipher.DES")]
+        [DataRow("pkg:npm/sm4-demo", "Cryptography.Implementation.BlockCipher.SM4")]
+        public async Task TestPackageDectionSucceeds(string purl, params string[] expectedTags)
+        {
+            await TestDetectCryptography(purl, expectedTags);
+        }
+
+        private async Task TestDetectCryptography(string purl, params string[] expectedTags)
+        {
+            var detectCryptographyTool = new DetectCryptographyTool();
+            var results = await detectCryptographyTool.AnalyzePackage(new PackageURL(purl));
+
+            var distinctTargets = expectedTags.Distinct();
+            var distinctFindings = results.SelectMany(s => s.Issue.Rule.Tags)
+                                          .Where(s => s.StartsWith("Cryptography.Implementation"))
+                                          .Distinct();
+
+            if (distinctTargets.Except(distinctFindings).Any())
+            {
+                Assert.Fail("Missing findings: {0}", string.Join(", ", distinctTargets.Except(distinctFindings)));
+            }
+            if (distinctFindings.Except(distinctTargets).Any())
+            {
+                Assert.Fail("Unexpected findings: {0}", string.Join(", ", distinctFindings.Except(distinctTargets)));
+            }
+        }
+    }
+}

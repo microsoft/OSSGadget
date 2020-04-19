@@ -123,6 +123,3 @@ namespace Microsoft.CST.OpenSource.Shared
         }
     }
 }
-
-// test case: https://repo1.maven.org/maven2/glass/phil/auto/moshi/auto-moshi-annotations/0.2.0/auto-moshi-annotations-0.2.0.pom
-

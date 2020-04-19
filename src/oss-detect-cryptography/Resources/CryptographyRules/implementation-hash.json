@@ -65,6 +65,15 @@
           "code"
         ],
         "_comment": "Blake3 message schedule"
+      },
+      {
+        "pattern": "1150833019",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Blake3 constants"
       }
     ]
   },
@@ -104,13 +113,13 @@
     "rule_info": "http://www.groestl.info/implementations.html",
     "patterns": [
       {
-        "pattern": "0x63,\\s?0x7c,\\s?0x77,\\s?0x7b,\\s?0xf2,\\s?0x6b,\\s?0x6f,\\s?0xc5",
+        "pattern": "0f0a0702050e0906|a5f432c6",
         "type": "regex",
         "modifiers": [ "i" ],
         "scopes": [
           "code"
         ],
-        "_comment": "Grøstl s-box"
+        "_comment": "Grøstl constants"
       }
     ]
   },
@@ -205,7 +214,7 @@
         "_comment": "Non-optimized 32-bit bit-slice reference implementation"
       },
       {
-        "pattern": "6[0x\\s,]{0,4}a[0x\\s,]{0,4}9[0x\\s,]{0,4}e[0x\\s,]{0,4}6[0x\\s,]{0,4}6[0x\\s,]{0,4}7[0x\\s,]{0,4}f[0x\\s,]{0,4}3",
+        "pattern": "6[0x\\s,]{0,4}a[0x\\s,]{0,4}0[0x\\s,]{0,4}9[0x\\s,]{0,4}e[0x\\s,]{0,4}6[0x\\s,]{0,4}6[0x\\s,]{0,4}7[0x\\s,]{0,4}f[0x\\s,]{0,4}3",
         "type": "regex",
         "modifiers": [ "i" ],
         "scopes": [
@@ -261,7 +270,7 @@
     "rule_info": "https://en.wikipedia.org/wiki/MD4_(hash_function)",
     "patterns": [
       {
-        "pattern": "6ed9eba1|5a827999",
+        "pattern": "6ed9_?eba1|5a82_?7999",
         "type": "regex",
         "modifiers": [ "i" ],
         "scopes": [
@@ -371,7 +380,7 @@
         "_comment": "SHA-1 constants (hex)"
       },
       {
-        "pattern": "1732584193|271733879|1732584194|271733878",
+        "pattern": "1518500249|1859775393|1894007588|899497514",
         "type": "regex",
         "modifiers": [ "i" ],
         "scopes": [
@@ -382,12 +391,12 @@
     ]
   },
   {
-    "name": "Implementation of SHA-2",
+    "name": "Implementation of SHA-224",
     "id": "DS802015",
-    "description": "An implementation SHA-2.",
+    "description": "An implementation SHA-224.",
     "recommendation": "",
     "tags": [
-      "Cryptography.Implementation.Hash.SHA-2"
+      "Cryptography.Implementation.Hash.SHA-224"
     ],
     "severity": "important",
     "_comment": "",
@@ -401,7 +410,21 @@
           "code"
         ],
         "_comment": "Magic Constant for SHA-224"
-      },
+      }
+    ]
+  },
+  {
+    "name": "Implementation of SHA-256",
+    "id": "DS802015",
+    "description": "An implementation SHA-2.",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Hash.SHA-256"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "https://en.wikipedia.org/wiki/SHA-2",
+    "patterns": [
       {
         "pattern": "53380d13|5cb0a9dc|1555081692",
         "type": "regex",
@@ -410,7 +433,21 @@
           "code"
         ],
         "_comment": "Magic Constant for SHA-256"
-      },
+      }
+    ]
+  },
+  {
+    "name": "Implementation of SHA-384",
+    "id": "DS802015",
+    "description": "An implementation SHA-384.",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Hash.SHA-384"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "https://en.wikipedia.org/wiki/SHA-2",
+    "patterns": [
       {
         "pattern": "9159015a|f70e5939|4144912697",
         "type": "regex",
@@ -419,7 +456,21 @@
           "code"
         ],
         "_comment": "Magic Constant for SHA-384"
-      },
+      }
+    ]
+  },
+  {
+    "name": "Implementation of SHA-512",
+    "id": "DS802015",
+    "description": "An implementation SHA-512.",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Hash.SHA-512"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "https://en.wikipedia.org/wiki/SHA-2",
+    "patterns": [
       {
         "pattern": "428A2F98|D728AE22|CBBB9D5D|FC2BF72C|8C3D37C8|6A09E667|1779033703",
         "type": "regex",
@@ -662,8 +713,7 @@
       }
     ]
   },
-
-
+  {
     "name": "Implementation of BCrypt",
     "id": "DS802026",
     "description": "An implementation BCrypt",

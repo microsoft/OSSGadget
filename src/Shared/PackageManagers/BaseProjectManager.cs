@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -10,6 +12,8 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
+using F23.StringSimilarity;
+using AngleSharp.Dom;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
@@ -73,6 +77,17 @@ namespace Microsoft.CST.OpenSource.Shared
             throw new NotImplementedException("BaseProjectManager does not implement GetMetadata.");
         }
 
+
+        /// <summary>
+        /// Implemented by all package managers to search the metadata, and either
+        /// return a successful result for the package repository, or return a null 
+        /// in case of failure/nothing to do.
+        /// </summary>
+        /// <returns></returns>
+        protected virtual Task<Dictionary<PackageURL, double>> PackageMetadataSearch(PackageURL purl, string metadata)
+        {
+            throw new NotImplementedException("BaseProjectManager does not implement PackageMetadataSearch.");
+        }
 
         /// <summary>
         /// Initializes a new project management object.
@@ -245,10 +260,12 @@ namespace Microsoft.CST.OpenSource.Shared
                 directoryName += "-" + DateTime.Now.Ticks;
             }
             var extractor = new Extractor();
+            //extractor.MaxExtractedBytes = 1000 * 1000 * 10;  // 10 MB maximum package size
+
             foreach (var fileEntry in extractor.ExtractFile(directoryName, bytes))
             {
                 var fullPath = fileEntry.FullPath.Replace(':', Path.DirectorySeparatorChar);
-                
+
                 // TODO: Does this prevent zip-slip?
                 foreach (var c in Path.GetInvalidPathChars())
                 {
@@ -256,10 +273,11 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
                 var filePathToWrite = Path.Combine(TopLevelExtractionDirectory, fullPath);
                 filePathToWrite = filePathToWrite.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+
                 Directory.CreateDirectory(Path.GetDirectoryName(filePathToWrite));
                 await File.WriteAllBytesAsync(filePathToWrite, fileEntry.Content.ToArray());
             }
-            
+
             var fullExtractionPath = Path.Combine(TopLevelExtractionDirectory, directoryName);
             fullExtractionPath = Path.GetFullPath(fullExtractionPath);
             Logger.Debug("Archive extracted to {0}", fullExtractionPath);
@@ -372,6 +390,71 @@ namespace Microsoft.CST.OpenSource.Shared
             return versionList;
         }
 
+        /// <summary>
+        /// Tries to find out the package repository from the metadata of the package.
+        /// Check with the specific package manager, if they have any specific extraction 
+        /// to do, w.r.t the metadata. If they found some package specific well defined metadata,
+        /// use that.
+        /// If that doesn't work, do a search across the metadata to find probable
+        /// source repository urls
+        /// </summary>
+        /// <param name="purl">PackageURL to search</param>
+        /// <returns>A dictionary, mapping each possible repo source entry to its probability/empty dictionary</returns>
+        public async Task<Dictionary<PackageURL, double>> SearchMetadata(PackageURL purl)
+        {
+            var content = await GetMetadata(purl);
+            // Check the specific PackageManager implementation.
+            var candidates = await PackageMetadataSearch(purl, content);
+            if (candidates != default && candidates.Any())
+            {
+                return candidates;
+            }
+
+            // if we reached here, we don't have any proper metadata
+            // tagged for the source repository, so search for all
+            // GitHub URLs and return all possible candidates.
+            candidates = GetRepoCandidates(purl, content);
+
+            // return a sort
+            var sortedCandidates = from entry in candidates orderby entry.Value descending select entry;
+            return sortedCandidates.ToDictionary(item => item.Key, item => item.Value);
+        }
+
+        /// <summary>
+        /// Rank the source repo entry candidates by their edit distance.
+        /// </summary>
+        /// <param name="purl">the package</param>
+        /// <param name="content">metadata of the package</param>
+        /// <returns>Possible candidates of the package/empty dictionary</returns>
+        protected Dictionary<PackageURL, double> GetRepoCandidates(PackageURL purl, string content)
+        {
+            var sourceUrls = GitHubProjectManager.ExtractGitHubUris(purl, content);
+            var candidates = new Dictionary<PackageURL, double>();
+
+            var uniqueItemsGroup = sourceUrls.GroupBy(item => item);
+            if (sourceUrls != default && sourceUrls.Any())
+            {
+                // Since this is non-exact, we'll assign our confidence to 80%
+                float baseScore = 0.8F;
+
+                var l = new NormalizedLevenshtein();
+                foreach (var group in uniqueItemsGroup)
+                {
+                    // the cumulative boosts should be < 0.2; otherwise it'd be an 1.0
+                    // score by Levenshtein distance
+                    double similarityBoost = l.Similarity(purl.Name, group.Key.Name) * 0.0001;
+                    // give a similarly weighted boost based on the number of times a particular 
+                    // candidate appear in the metadata
+                    double countBoost = (double)(group.Count()) * 0.0001;
+                    candidates.Add(group.Key,
+                        baseScore +
+                        similarityBoost +
+                        countBoost);
+                }
+            }
+            return candidates;
+        }
+
         public static string GetCommonSupportedHelpText()
         {
             var supportedHelpText = @"
@@ -388,6 +471,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
   pkg:npm/express               The latest version of Express (via npm.org)
   pkg:nuget/Newtonsoft.JSON     The latest version of Newtonsoft.JSON (via nuget.org)
   pkg:pypi/django@1.11.1        Version 1.11.1 fo Django (via pypi.org)
+  pkg:ubuntu/zerofree           The latest version of zerofree from Ubuntu (via packages.ubuntu.com)
   pkg:vsm/MLNET/07              The latest version of MLNET.07 (from marketplace.visualstudio.com)
 ";
             return supportedHelpText;

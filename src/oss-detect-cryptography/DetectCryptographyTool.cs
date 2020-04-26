@@ -18,6 +18,8 @@ using ICSharpCode.Decompiler.CSharp;
 using System.Text.RegularExpressions;
 using System.Reflection;
 using SharpDisasm;
+using Microsoft.CST.OpenSource.ML;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.CST.OpenSource
 {
@@ -54,6 +56,8 @@ namespace Microsoft.CST.OpenSource
             ".signature.p7s"
         };
 
+        private static ImplementsCryptoModel? model = null;
+
         /// <summary>
         /// Main entrypoint for the download program.
         /// </summary>
@@ -65,150 +69,164 @@ namespace Microsoft.CST.OpenSource
 
             detectCryptographyTool.ParseOptions(args);
 
-            if (((IList<string>)detectCryptographyTool.Options["target"]).Count > 0)
+            // Model build mode
+            if (detectCryptographyTool.Options.ContainsKey("ml-files"))
             {
-                foreach (var target in (IList<string>)detectCryptographyTool.Options["target"])
-                {
-                    var sb = new StringBuilder();
-                    try
-                    {
-                        List<IssueRecord> results = null;
-                        if (target.StartsWith("pkg:"))
-                        {
-                            var purl = new PackageURL(target);
-                            results = await detectCryptographyTool.AnalyzePackage(purl);
-                        }
-                        else if (Directory.Exists(target))
-                        {
-                            results = await detectCryptographyTool.AnalyzeDirectory(target);
-                        }
-                        else if (File.Exists(target))
-                        {
-                            string targetDirectoryName = null;
-                            while (targetDirectoryName == null || Directory.Exists(targetDirectoryName))
-                            {
-                                targetDirectoryName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-                            }
-                            var projectManager = new BaseProjectManager()
-                            {
-                                TopLevelExtractionDirectory = targetDirectoryName
-                            };
-                            
-                            #pragma warning disable SCS0018 // Path traversal: injection possible in {1} argument passed to '{0}'
-                            var path = await projectManager.ExtractArchive("temp", File.ReadAllBytes(target));
-                            #pragma warning restore SCS0018 // Path traversal: injection possible in {1} argument passed to '{0}'
-                            
-                            results = await detectCryptographyTool.AnalyzeDirectory(path);
-                            
-                            // Clean up after ourselves
-                            try
-                            {
-                                if (targetDirectoryName != null)
-                                {
-                                    Directory.Delete(targetDirectoryName, true);
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Logger.Warn("Unable to delete {0}: {1}", targetDirectoryName, ex.Message);
-                            }
-                        }
-                        
-                        if (results.Count() == 0)
-                        {
-                            sb.AppendLine($"[ ] {target} - This software package does NOT appear to implement cryptography.");
-                        }
-                        else
-                        {
-                            var shortTags = results.SelectMany(r => r.Issue.Rule.Tags)
-                                                   .Distinct()
-                                                   .Where (t => t.StartsWith("Cryptography.Implementation."))
-                                                   .Select(t => t.Replace("Cryptography.Implementation.", ""));
-                            var otherTags = results.SelectMany(r => r.Issue.Rule.Tags)
-                                                   .Distinct()
-                                                   .Where(t => !t.StartsWith("Cryptography.Implementation."));
-
-                            if (shortTags.Count() > 0)
-                            {
-                                sb.AppendLine($"[X] {target} - This software package appears to implement {string.Join(", ", shortTags)}.");
-                            }
-
-                            if (otherTags.Contains("Cryptography.GenericImplementation.HighDensityOperators"))
-                            {
-                                sb.AppendLine($"[X] {target} - This software package has a high-density of cryptographic operators.");
-                            }
-                            else
-                            {
-                                sb.AppendLine($"[ ] {target} - This software package does NOT have a high-density of cryptographic operators.");
-                            }
-
-                            if (otherTags.Contains("Cryptography.GenericImplementation.CryptographicWords"))
-                            {
-                                sb.AppendLine($"[X] {target} - This software package contains words that suggest cryptography.");
-                            }
-                            else
-                            {
-                                sb.AppendLine($"[ ] {target} - This software package does NOT contains words that suggest cryptography.");
-                            }
-                            
-                            if ((bool)detectCryptographyTool.Options["verbose"])
-                            {
-                                var items = results.GroupBy(k => k.Issue.Rule.Name).OrderByDescending(k => k.Count());
-                                foreach (var item in items)
-                                {
-                                    sb.AppendLine();
-                                    sb.AppendLine($"There were {item.Count()} finding(s) of type [{item.Key}].");
-                                    
-                                    foreach (var result in results)
-                                    {
-                                        if (result.Issue.Rule.Name == item.Key)
-                                        {
-                                            sb.AppendLine($" {result.Filename}:");
-                                            if (result.Issue.Rule.Id == "_CRYPTO_DENSITY")
-                                            {
-                                                // No excert for cryptogrpahic density
-                                                // TODO: We stuffed the density in the unused 'Description' field. This is code smell.
-                                                sb.AppendLine($"  | The maximum cryptographic density is {result.Issue.Rule.Description}.");
-                                            }
-                                            else
-                                            {
-                                                // Show the excerpt
-                                                foreach (var line in result.TextSample.Split(new char[] { '\n', '\r' }))
-                                                {
-                                                    if (!string.IsNullOrWhiteSpace(line))
-                                                    {
-                                                        sb.AppendLine($"  | {line.Trim()}");
-                                                    }
-                                                }
-                                            }
-                                            sb.AppendLine();
-                                        }
-                                    }
-                                }
-                            }
-
-                            if (Logger.IsDebugEnabled)
-                            {
-                                foreach (var result in results)
-                                {
-                                    Logger.Debug($"Result: {result.Filename} {result.Issue.Rule.Name} {result.TextSample}");
-                                }
-                            }
-                        }
-                        Console.WriteLine(sb.ToString());
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Warn(ex, "Error processing {0}: {1}", target, ex.Message);
-                        Logger.Warn(ex.StackTrace);
-                    }
-                }
+                var model = ImplementsCryptoModel.CreateModelFromDirectory((string)detectCryptographyTool.Options["ml-files"]);
+                model.SaveModel("implementsCryptoMl.zip");
             }
             else
             {
-                Logger.Warn("No target provided; nothing to analyze.");
-                DetectCryptographyTool.ShowUsage();
-                Environment.Exit(1);
+                // Use ML
+                if (detectCryptographyTool.Options.ContainsKey("ml-zip"))
+                {
+                    model = ImplementsCryptoModel.LoadImplementsCryptoModelFromFile((string)detectCryptographyTool.Options["ml-zip"]);
+                }
+                if (((IList<string>)detectCryptographyTool.Options["target"]).Count > 0)
+                {
+                    foreach (var target in (IList<string>)detectCryptographyTool.Options["target"])
+                    {
+                        var sb = new StringBuilder();
+                        try
+                        {
+                            List<IssueRecord> results = null;
+                            if (target.StartsWith("pkg:"))
+                            {
+                                var purl = new PackageURL(target);
+                                results = await detectCryptographyTool.AnalyzePackage(purl);
+                            }
+                            else if (Directory.Exists(target))
+                            {
+                                results = await detectCryptographyTool.AnalyzeDirectory(target);
+                            }
+                            else if (File.Exists(target))
+                            {
+                                string targetDirectoryName = null;
+                                while (targetDirectoryName == null || Directory.Exists(targetDirectoryName))
+                                {
+                                    targetDirectoryName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+                                }
+                                var projectManager = new BaseProjectManager()
+                                {
+                                    TopLevelExtractionDirectory = targetDirectoryName
+                                };
+
+#pragma warning disable SCS0018 // Path traversal: injection possible in {1} argument passed to '{0}'
+                                var path = await projectManager.ExtractArchive("temp", File.ReadAllBytes(target));
+#pragma warning restore SCS0018 // Path traversal: injection possible in {1} argument passed to '{0}'
+
+                                results = await detectCryptographyTool.AnalyzeDirectory(path);
+
+                                // Clean up after ourselves
+                                try
+                                {
+                                    if (targetDirectoryName != null)
+                                    {
+                                        Directory.Delete(targetDirectoryName, true);
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    Logger.Warn("Unable to delete {0}: {1}", targetDirectoryName, ex.Message);
+                                }
+                            }
+
+                            if (results.Count() == 0)
+                            {
+                                sb.AppendLine($"[ ] {target} - This software package does NOT appear to implement cryptography.");
+                            }
+                            else
+                            {
+                                var shortTags = results.SelectMany(r => r.Issue.Rule.Tags)
+                                                       .Distinct()
+                                                       .Where(t => t.StartsWith("Cryptography.Implementation."))
+                                                       .Select(t => t.Replace("Cryptography.Implementation.", ""));
+                                var otherTags = results.SelectMany(r => r.Issue.Rule.Tags)
+                                                       .Distinct()
+                                                       .Where(t => !t.StartsWith("Cryptography.Implementation."));
+
+                                if (shortTags.Count() > 0)
+                                {
+                                    sb.AppendLine($"[X] {target} - This software package appears to implement {string.Join(", ", shortTags)}.");
+                                }
+
+                                if (otherTags.Contains("Cryptography.GenericImplementation.HighDensityOperators"))
+                                {
+                                    sb.AppendLine($"[X] {target} - This software package has a high-density of cryptographic operators.");
+                                }
+                                else
+                                {
+                                    sb.AppendLine($"[ ] {target} - This software package does NOT have a high-density of cryptographic operators.");
+                                }
+
+                                if (otherTags.Contains("Cryptography.GenericImplementation.CryptographicWords"))
+                                {
+                                    sb.AppendLine($"[X] {target} - This software package contains words that suggest cryptography.");
+                                }
+                                else
+                                {
+                                    sb.AppendLine($"[ ] {target} - This software package does NOT contains words that suggest cryptography.");
+                                }
+
+                                if ((bool)detectCryptographyTool.Options["verbose"])
+                                {
+                                    var items = results.GroupBy(k => k.Issue.Rule.Name).OrderByDescending(k => k.Count());
+                                    foreach (var item in items)
+                                    {
+                                        sb.AppendLine();
+                                        sb.AppendLine($"There were {item.Count()} finding(s) of type [{item.Key}].");
+
+                                        foreach (var result in results)
+                                        {
+                                            if (result.Issue.Rule.Name == item.Key)
+                                            {
+                                                sb.AppendLine($" {result.Filename}:");
+                                                if (result.Issue.Rule.Id == "_CRYPTO_DENSITY")
+                                                {
+                                                    // No excert for cryptogrpahic density
+                                                    // TODO: We stuffed the density in the unused 'Description' field. This is code smell.
+                                                    sb.AppendLine($"  | The maximum cryptographic density is {result.Issue.Rule.Description}.");
+                                                }
+                                                else
+                                                {
+                                                    // Show the excerpt
+                                                    foreach (var line in result.TextSample.Split(new char[] { '\n', '\r' }))
+                                                    {
+                                                        if (!string.IsNullOrWhiteSpace(line))
+                                                        {
+                                                            sb.AppendLine($"  | {line.Trim()}");
+                                                        }
+                                                    }
+                                                }
+                                                sb.AppendLine();
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (Logger.IsDebugEnabled)
+                                {
+                                    foreach (var result in results)
+                                    {
+                                        Logger.Debug($"Result: {result.Filename} {result.Issue.Rule.Name} {result.TextSample}");
+                                    }
+                                }
+                            }
+                            Console.WriteLine(sb.ToString());
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Warn(ex, "Error processing {0}: {1}", target, ex.Message);
+                            Logger.Warn(ex.StackTrace);
+                        }
+                    }
+                }
+                else
+                {
+                    Logger.Warn("No target provided; nothing to analyze.");
+                    DetectCryptographyTool.ShowUsage();
+                    Environment.Exit(1);
+                }
             }
         }
 
@@ -395,6 +413,34 @@ namespace Microsoft.CST.OpenSource
                 var buffer = NormalizeFileContent(filename, File.ReadAllBytes(filename));
                 Logger.Debug("Normalization complete.");
 
+
+                // TODO: Add the language details
+                var ImplementsCryptoML = model?.Predict(new CodeSnippet(CodeLanguage.unknown, filename) { Content = buffer });
+
+                if (ImplementsCryptoML is CodeSnippetPrediction ImplementsPrediction)
+                {
+                    analysisResults.Add(new IssueRecord(
+                            Filename: filename,
+                            Filesize: buffer.Length,
+                            TextSample: "n/a",
+                            Issue: new Issue(
+                                Boundary: new Boundary(),
+                                StartLocation: new Location(),
+                                EndLocation: new Location(),
+                                Rule: new Rule("Crypto Symbols")
+                                {
+                                    Id = "_CRYPTO_DENSITY",
+                                    Name = "Cryptographic symbols",
+                                    Description = ImplementsPrediction.ToString(),
+                                    Tags = new string[]
+                                    {
+                                        "Cryptography.GenericImplementation.ImplementsCryptoML"
+                                    }
+                                }
+                            )
+                        ));
+                }
+
                 double MIN_CRYPTO_OP_DENSITY = 0.10;
                 try
                 {
@@ -425,9 +471,10 @@ namespace Microsoft.CST.OpenSource
                             )
                         ));
                     }
+
                     Logger.Debug($"Analyzing {filename}, length={buffer.Length}");
                     
-                    Issue[] fileResults = null;
+                    Issue[]? fileResults = null;
                     var task = Task.Run(() => processor.Analyze(buffer, Language.FromFileName(filename)));
                     if (task.Wait(TimeSpan.FromSeconds(2)))
                     {
@@ -441,7 +488,7 @@ namespace Microsoft.CST.OpenSource
 
                     Logger.Debug("Operation Complete: {0}", fileResults?.Length);
 
-                    foreach (var issue in fileResults)
+                    foreach (var issue in fileResults ?? Array.Empty<Issue>())
                     {
                         var fileContentArray = buffer.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
                         var excerpt = new List<string>();
@@ -576,6 +623,14 @@ namespace Microsoft.CST.OpenSource
 
                     case "--disable-default-rules":
                         Options["disable-default-rules"] = true;
+                        break;
+
+                    case "--build-ml-from-files":
+                        Options["ml-files"] = args[++i];
+                        break;
+
+                    case "--load-ml-from-zip":
+                        Options["ml-zip"] = args[++i];
                         break;
 
                     default:

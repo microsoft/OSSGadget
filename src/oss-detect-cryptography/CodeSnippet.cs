@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Security.Cryptography.Pkcs;
-using Microsoft.DevSkim;
+using System.Linq;
 using Newtonsoft.Json;
 using NLog.Fluent;
 
@@ -15,7 +14,8 @@ namespace Microsoft.CST.OpenSource.ML
         public string? PackageName { get; set; }
         public string? Src { get; set; }
         public string? Content { get; set; }
-        public const string Separator = "----CODE_BEGINS----";
+        public const string Separator = "----CODE-BEGINS----";
+        public bool ImplementsCrypto { get { return CodeAlgorithm.Any(); } }
 
         public CodeSnippet(CodeLanguage CodeLanguage,string Identifier)
         {
@@ -30,7 +30,7 @@ namespace Microsoft.CST.OpenSource.ML
             if (splits.Length > 1)
             {
                 var CodeSnippet = JsonConvert.DeserializeObject<CodeSnippet>(splits[0]);
-                // If somehow the code contained a seaprator put it back together and then save into content.
+                // If somehow the code contained another separator put it back together and then save into content.
                 CodeSnippet.Content = string.Join(Separator, splits[1..]);
                 return CodeSnippet;
             }

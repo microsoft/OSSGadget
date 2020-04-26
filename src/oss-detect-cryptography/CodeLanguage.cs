@@ -2,6 +2,7 @@
 {
     public enum CodeLanguage
     {
+        unknown,
         csharp,
         cpp,
         c,

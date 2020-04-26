@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using Humanizer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.ML;
@@ -19,7 +22,8 @@ namespace Microsoft.CST.OpenSource.ML
         private IDataView? trainingData;
         private IDataView? testData;
 
-        private const int SEED = 9238546;
+        // Arbitrary but reproducible.
+        private const int SEED = 8675309;
 
         public ImplementsCryptoModel(IEnumerable<CodeSnippet> snippets)
         {
@@ -27,7 +31,7 @@ namespace Microsoft.CST.OpenSource.ML
             mlContext = new MLContext(seed: SEED);
 
             //Load Data
-            IDataView data = mlContext.Data.LoadFromEnumerable<CodeSnippet>(snippets);
+            IDataView data = mlContext.Data.LoadFromEnumerable(snippets);
 
             TrainTestData trainTestSplit = mlContext.Data.TrainTestSplit(data, testFraction: 0.2);
             trainingData = trainTestSplit.TrainSet;
@@ -36,7 +40,7 @@ namespace Microsoft.CST.OpenSource.ML
             modelSchema = trainingData.Schema;
 
             // STEP 2: Common data process configuration with pipeline data transformations          
-            var dataProcessPipeline = mlContext.Transforms.Text.FeaturizeText(outputColumnName: "Features", inputColumnName: nameof(CodeSnippet.Code));
+            var dataProcessPipeline = mlContext.Transforms.Text.FeaturizeText(outputColumnName: "Features", inputColumnName: nameof(CodeSnippet.Content));
 
             // STEP 3: Set the training algorithm, then create and config the modelBuilder                            
             var trainer = mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(labelColumnName: "ImplementsCrypto", featureColumnName: "Features");
@@ -55,25 +59,30 @@ namespace Microsoft.CST.OpenSource.ML
             predEngine = mlContext.Model.CreatePredictionEngine<CodeSnippet, CodeSnippetPrediction>(trainedModel);
         }
 
-        public static ImplementsCryptoModel? CreateImplementsCryptoModelFromJson(string Path)
+        public static ImplementsCryptoModel CreateModelFromDirectory(string Path)
         {
-            using StreamReader file = System.IO.File.OpenText(Path);
-            var snippets = JsonConvert.DeserializeObject<List<CodeSnippet>>(file.ReadToEnd());
-            if (snippets != null)
-            {
-                return new ImplementsCryptoModel(snippets);
-            }
-            return null;
+
+            var Snippets = new ConcurrentBag<CodeSnippet>();
+            Parallel.ForEach(Directory.EnumerateFiles(Path, "crypto-patterns",
+                new EnumerationOptions() { RecurseSubdirectories = true }), (file) =>
+                 {
+                     var Snippet = CodeSnippet.FromString(File.ReadAllText(file));
+                     if (Snippet != null)
+                     {
+                         Snippets.Add(Snippet);
+                     }
+                 });
+            return new ImplementsCryptoModel(Snippets);
         }
 
-        public static ImplementsCryptoModel? LoadImplementsCryptoModelFromPath(string Path)
+        public static ImplementsCryptoModel? LoadImplementsCryptoModelFromFile(string Path)
         {
             var mlContext = new MLContext(seed: SEED);
             //Define DataViewSchema for data preparation pipeline and trained model
             DataViewSchema modelSchema;
 
             // Load trained model
-            ITransformer trainedModel = mlContext.Model.Load("model.zip", out modelSchema);
+            ITransformer trainedModel = mlContext.Model.Load(Path, out modelSchema);
 
             return new ImplementsCryptoModel(mlContext, trainedModel, modelSchema);
         }

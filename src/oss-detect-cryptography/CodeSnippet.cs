@@ -7,7 +7,7 @@ namespace Microsoft.CST.OpenSource.ML
 {
     public class CodeSnippet
     {
-        public int Version { get; set; } = 1;
+        public int Version { get; set; } = 2;
         public string Identifier { get; set; } //This is the string at the end of the filename
         public CodeLanguage CodeLanguage { get; set; }
         public List<CodeAlgorithm> CodeAlgorithm { get; set; } = new List<CodeAlgorithm>();

@@ -61,7 +61,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Update="Nerdbank.GitVersioning" Version="3.1.71" />
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.1.74" />
   </ItemGroup>
 
 </Project>

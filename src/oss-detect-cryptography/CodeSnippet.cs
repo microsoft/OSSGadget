@@ -41,6 +41,11 @@ namespace Microsoft.CST.OpenSource.ML
             }
         }
 
+        public static bool ShouldSerializeContent()
+        {
+            return false;
+        }
+
         public override string ToString()
         {
             return $"{JsonConvert.SerializeObject(this)}{Separator}{Content}";

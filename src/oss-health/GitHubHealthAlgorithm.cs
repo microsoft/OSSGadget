@@ -341,7 +341,7 @@ namespace Microsoft.CST.OpenSource.Health
 
             if (openSecurityIssues + closedSecurityIssues > 0)
             {
-                securityIssueHealth = openSecurityIssues / (openSecurityIssues + closedSecurityIssues);
+                securityIssueHealth = (double)openSecurityIssues / (double)(openSecurityIssues + closedSecurityIssues);
             }
             else
             {

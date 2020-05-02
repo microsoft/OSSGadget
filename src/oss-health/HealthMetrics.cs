@@ -44,7 +44,7 @@ namespace Microsoft.CST.OpenSource.Health
                     //And a "|" every 25% with a key on the bottom
                     for (int i = 1; i <= 20; i++)
                     {
-                        if (result >= (i * 5)) //As long as the total is still greater than this multiple of 5
+                        if (result >= (i * 5)) // As long as the total is still greater than this multiple of 5
                         {
                             bar.Append("*");
                         }

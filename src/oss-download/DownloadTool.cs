@@ -92,6 +92,11 @@ namespace Microsoft.CST.OpenSource
         public async Task<List<string>> Download(PackageURL purl, string destinationDirectory = null)
         {
             Logger.Trace("Download({0})", purl?.ToString());
+            if (purl == default)
+            {
+                Logger.Warn("Invalid PackageURL (null)");
+                return new List<string>();
+            }
 
             var downloadPaths = new List<string>();
             

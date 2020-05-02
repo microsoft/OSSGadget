@@ -72,9 +72,10 @@ namespace Microsoft.CST.OpenSource
 
             if (((IList<string>)detectCryptographyTool.Options["target"]).Count > 0)
             {
+                var sb = new StringBuilder();
                 foreach (var target in (IList<string>)detectCryptographyTool.Options["target"])
                 {
-                    var sb = new StringBuilder();
+                    sb.Clear();
                     try
                     {
                         List<IssueRecord> results = null;
@@ -119,7 +120,11 @@ namespace Microsoft.CST.OpenSource
                             }
                         }
                         
-                        if (!results.Any())
+                        if (results == default)
+                        {
+                            Logger.Warn("Error generating results, was null.");
+                        }
+                        else if (!results.Any())
                         {
                             sb.AppendLine($"[ ] {target} - This software package does NOT appear to implement cryptography.");
                         }
@@ -205,7 +210,6 @@ namespace Microsoft.CST.OpenSource
                     catch (Exception ex)
                     {
                         Logger.Warn(ex, "Error processing {0}: {1}", target, ex.Message);
-                        Logger.Warn(ex.StackTrace);
                     }
                 }
             }

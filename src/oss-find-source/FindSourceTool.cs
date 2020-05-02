@@ -182,8 +182,9 @@ positional arguments:
 {BaseProjectManager.GetCommonSupportedHelpText()}
 
 optional arguments:
+  --show-all                    show all possibilities of the package source repositories
+                                 (default: show only the top result)
   --help                        show this help message and exit
-  --all                         show all possibilities of the package source repositories (default shows the best option)
   --version                     show version of this tool
 ");
         }

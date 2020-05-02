@@ -303,6 +303,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 var versions = await EnumerateVersions(purl);
                 if (versions.Count() > 0)
                 {
+                    Logger.Trace(string.Join(",", versions));
                     var vpurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, versions.Last(), purl.Qualifiers, purl.Subpath);
                     downloadPaths.AddRange(await DownloadVersion(vpurl, doExtract));
                 }
@@ -355,7 +356,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 (s) => new SemVer.Version(s, loose: true),
                 (s) => s
             };
-
+            
             // Iterate through each method we defined above.
             foreach (var method in methods)
             {
@@ -364,7 +365,17 @@ namespace Microsoft.CST.OpenSource.Shared
                 {
                     foreach (var version in versionList)
                     {
-                        objList.Add(method(version));
+                        var verResult = method(version);
+                        // Make sure the method doesn't mangle the version
+                        // This is due to System.Version normalizalizing "0.01" to "0.1".
+                        if (verResult != default && verResult.ToString().Equals(version))
+                        {
+                            objList.Add(verResult);
+                        }
+                        else
+                        {
+                            Logger.Debug("Mangled version [{0}] => [{1}]", version, verResult);
+                        }
                     }
                     objList.Sort();  // Sort using the built-in sort, delegating to the type's comparator
                 }

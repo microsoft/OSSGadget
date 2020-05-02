@@ -32,7 +32,7 @@ namespace Microsoft.CST.OpenSource.Shared
         static readonly Regex GithubExtractorRegex = new Regex(
             @"((?<protocol>https?|git|ssh|rsync)\+?)+\://" +
             @"(?:(?<username>[\w-]+)@)*" +
-            @"(?<resource>[a-z0-9_.-]*)" +
+            @"(github\.com)" +
             @"[:/]*" +
             @"(?<port>[\d]+){0,1}" +
             @"\/(?<user>[\w-]+)" +

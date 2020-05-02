@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "oss-risk-calculator": {
+      "commandName": "Project",
+      "commandLineArgs": "pkg:npm/left-pad"
+    }
+  }
+}

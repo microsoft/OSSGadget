@@ -51,10 +51,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ELFSharp" Version="2.7.0" />
-    <PackageReference Include="ICSharpCode.Decompiler" Version="5.0.2.5153" />
-    <PackageReference Include="Microsoft.CST.DevSkim" Version="0.4.130" />
-    <PackageReference Include="PeNet" Version="2.0.0" />
+    <PackageReference Include="ELFSharp" Version="2.9.0" />
+    <PackageReference Include="ICSharpCode.Decompiler" Version="6.0.0.5671-preview3" />
+    <PackageReference Include="Microsoft.CST.DevSkim" Version="0.4.131" />
+    <PackageReference Include="PeNet" Version="2.2.0" />
     <PackageReference Include="SharpDisasm" Version="1.1.11" />
     <PackageReference Include="WebAssembly" Version="0.8.0-preview" />
   </ItemGroup>
@@ -65,7 +65,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Update="Nerdbank.GitVersioning" Version="3.1.74" />
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.1.91" />
   </ItemGroup>
 
 </Project>

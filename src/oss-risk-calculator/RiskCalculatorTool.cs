@@ -90,9 +90,6 @@ namespace Microsoft.CST.OpenSource
             var characteristicTool = new CharacteristicTool();
             var characteristics = characteristicTool.AnalyzePackage(purl).Result;
 
-            // Remove once closed https://github.com/microsoft/ApplicationInspector/issues/179
-            NLog.LogManager.LoadConfiguration("nlog.config");
-
             var healthTool = new HealthTool();
             var healthMetrics = healthTool.CheckHealth(purl).Result;
             if (healthMetrics == default)

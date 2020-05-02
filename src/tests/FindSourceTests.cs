@@ -18,6 +18,7 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("pkg:npm/md5", "pkg:github/pvorb/node-md5")]
         [DataRow("pkg:pypi/moment", "pkg:github/zachwill/moment")]
         [DataRow("pkg:nuget/Newtonsoft.Json", "pkg:github/jamesnk/newtonsoft.json")]
+        [DataRow("pkg:pypi/django", "pkg:github/django/django")]
         public async Task FindSource_Success(string purl, string targetResult)
         {
             // for initialization
@@ -39,9 +40,9 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         [DataTestMethod]
-        [DataRow("pkg:npm/hjkfashfkjafhakfjsa", "pkg:github/pvorb/node-md5")]
-        [DataRow("pkg:pypi/hjkfashfkjafhakfjsa", "pkg:github/pvorb/node-md5")]
-        [DataRow("pkg:nuget/hjkfashfkjafhakfjsa", "pkg:github/pvorb/node-md5")]
+        [DataRow("pkg:npm/hjkfashfkjafhakfjsa", "")]
+        [DataRow("pkg:pypi/hjkfashfkjafhakfjsa", "")]
+        [DataRow("pkg:nuget/hjkfashfkjafhakfjsa", "")]
         public async Task FindSource_NonExistentPackage(string purl, string _)
         {
             // for initialization

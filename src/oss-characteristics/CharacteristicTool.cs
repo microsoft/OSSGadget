@@ -57,9 +57,6 @@ namespace Microsoft.CST.OpenSource
                         var purl = new PackageURL(target);
                         var analysisResult = characteristicTool.AnalyzePackage(purl).Result;
 
-                        // Remove once closed https://github.com/microsoft/ApplicationInspector/issues/179
-                        NLog.LogManager.LoadConfiguration("nlog.config");
-
                         var sb = new StringBuilder();
                         sb.AppendLine(target);
                         foreach (var key in analysisResult.Keys)

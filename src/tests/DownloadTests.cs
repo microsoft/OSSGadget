@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System;
+using System.Threading;
 
 namespace Microsoft.CST.OpenSource.Tests
 {
@@ -125,7 +126,21 @@ namespace Microsoft.CST.OpenSource.Tests
             Assert.IsNotNull(packageUrl);
 
             Directory.CreateDirectory(tempDirectoryName);
-            downloadTool.Download(packageUrl, tempDirectoryName).Wait();
+            int numAttempts = 3;
+            int numSecondsWait = 10;
+            while (numAttempts-- > 0)
+            {
+                try
+                {
+                    downloadTool.Download(packageUrl, tempDirectoryName).Wait();
+                    break;
+                }
+                catch (Exception)
+                {
+                    Thread.Sleep(numSecondsWait * 1000);
+                }
+            }
+            
             var fileMatchCount = Directory.EnumerateFiles(tempDirectoryName, targetFilename, SearchOption.AllDirectories).Count();
             try
             {

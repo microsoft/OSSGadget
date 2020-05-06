@@ -63,8 +63,6 @@ namespace Microsoft.CST.OpenSource
         /// <param name="args">parameters passed in from the user</param>
         static async Task Main(string[] args)
         {
-
-
             var detectCryptographyTool = new DetectCryptographyTool();
             Logger.Info($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
 
@@ -210,6 +208,7 @@ namespace Microsoft.CST.OpenSource
                     catch (Exception ex)
                     {
                         Logger.Warn(ex, "Error processing {0}: {1}", target, ex.Message);
+                        Logger.Warn(ex.StackTrace);
                     }
                 }
             }
@@ -441,6 +440,19 @@ namespace Microsoft.CST.OpenSource
                     Logger.Trace($"Ignoring {filename}");
                     continue;
                 }
+
+                try
+                {
+                    if (!File.OpenRead(filename).CanRead)
+                    {
+                        throw new IOException("Unable to read from file.");
+                    }
+                } catch(Exception)
+                {
+                    Logger.Trace($"File {filename} cannot be read, ignoring.");
+                    continue;
+                }
+
 
                 var buffer = NormalizeFileContent(filename, File.ReadAllBytes(filename));
                 Logger.Debug("Normalization complete.");

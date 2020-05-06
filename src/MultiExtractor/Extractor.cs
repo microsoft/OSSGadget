@@ -15,7 +15,7 @@ using SharpCompress.Archives.SevenZip;
 using SharpCompress.Compressors.BZip2;
 using SharpCompress.Compressors.Xz;
 
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.MultiExtractor
 {
     public class Extractor
     {
@@ -163,6 +163,19 @@ namespace Microsoft.CST.OpenSource.Shared
             if (!File.Exists(filename))
             {
                 Logger.Warn("ExtractFile called, but {0} does not exist.", filename);
+                return Array.Empty<FileEntry>();
+            }
+
+            try
+            {
+                if (!File.OpenRead(filename).CanRead)
+                {
+                    throw new IOException($"ExtractFile called, but {filename} cannot be read.");
+                }
+            }
+            catch (Exception)
+            {
+                Logger.Trace($"File {filename} cannot be read, ignoring.", filename);
                 return Array.Empty<FileEntry>();
             }
 

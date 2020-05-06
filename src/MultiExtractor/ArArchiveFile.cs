@@ -4,7 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.MultiExtractor
 {
     /**
      * Very simple implementation of an Ar format parser, needed for Debian .deb archives.

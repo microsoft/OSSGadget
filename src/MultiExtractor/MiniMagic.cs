@@ -4,7 +4,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.MultiExtractor
 {
     /// <summary>
     /// ArchiveTypes are the kinds of archive files that this module can process.

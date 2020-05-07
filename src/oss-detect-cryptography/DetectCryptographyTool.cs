@@ -441,20 +441,17 @@ namespace Microsoft.CST.OpenSource
                     continue;
                 }
 
+                byte[] fileContents;
                 try
                 {
-                    if (!File.OpenRead(filename).CanRead)
-                    {
-                        throw new IOException("Unable to read from file.");
-                    }
-                } catch(Exception)
+                    fileContents = File.ReadAllBytes(filename);
+                } catch(Exception ex)
                 {
-                    Logger.Trace($"File {filename} cannot be read, ignoring.");
+                    Logger.Trace(ex, "File {0} cannot be read, ignoring.", filename);
                     continue;
                 }
 
-
-                var buffer = NormalizeFileContent(filename, File.ReadAllBytes(filename));
+                var buffer = NormalizeFileContent(filename, fileContents);
                 Logger.Debug("Normalization complete.");
 
                 double MIN_CRYPTO_OP_DENSITY = 0.10;

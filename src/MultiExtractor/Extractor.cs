@@ -166,23 +166,20 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 return Array.Empty<FileEntry>();
             }
 
+            byte[] fileContent;
             try
             {
-                if (!File.OpenRead(filename).CanRead)
-                {
-                    throw new IOException($"ExtractFile called, but {filename} cannot be read.");
-                }
+                #pragma warning disable SEC0116 // Path Tampering Unvalidated File Path
+                fileContent = File.ReadAllBytes(filename);
+                #pragma warning restore SEC0116 // Path Tampering Unvalidated File Path
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                Logger.Trace($"File {filename} cannot be read, ignoring.", filename);
+                Logger.Trace(ex, $"File {0} cannot be read, ignoring.", filename);
                 return Array.Empty<FileEntry>();
             }
 
-            #pragma warning disable SEC0116 // Path Tampering Unvalidated File Path
-            using var memoryStream = new MemoryStream(File.ReadAllBytes(filename));
-            #pragma warning restore SEC0116 // Path Tampering Unvalidated File Path
-
+            using var memoryStream = new MemoryStream(fileContent);
             ResetResourceGovernor(memoryStream);
             var result = ExtractFile(new FileEntry(filename, "", memoryStream));
             return result;

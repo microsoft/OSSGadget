@@ -92,7 +92,7 @@ namespace Microsoft.CST.OpenSource
 
             var healthTool = new HealthTool();
             var healthMetrics = healthTool.CheckHealth(purl).Result;
-            if (healthMetrics == default)
+            if (healthMetrics == null)
             {
                 Logger.Warn("Unable to determine health metrics, will use a default of 0");
                 healthMetrics = new HealthMetrics()

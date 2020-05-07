@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
+using NLog;
+using SharpCompress.Common;
 
 namespace Microsoft.CST.OpenSource.MultiExtractor
 {
@@ -58,9 +61,19 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
         public static ArchiveFileType DetectFileType(string filename)
         {
-            #pragma warning disable SEC0116 // Path Tampering Unvalidated File Path
-            using var stream = new MemoryStream(File.ReadAllBytes(filename));
-            #pragma warning restore SEC0116 // Path Tampering Unvalidated File Path
+            byte[] fileContent;
+            try
+            {
+                #pragma warning disable SEC0116 // Path Tampering Unvalidated File Path
+                fileContent = File.ReadAllBytes(filename);
+                #pragma warning restore SEC0116 // Path Tampering Unvalidated File Path
+            }
+            catch (Exception)
+            {
+                fileContent = Array.Empty<byte>();
+            }
+
+            using var stream = new MemoryStream(fileContent);
             var fileEntry = new FileEntry(filename, "", stream);
             return DetectFileType(fileEntry);
         }

@@ -168,7 +168,7 @@ namespace Microsoft.CST.OpenSource.Shared
             IEnumerable<FileEntry> result = null;
             try
             {
-                var ms = new MemoryStream(File.ReadAllBytes(filename));
+                using var ms = new MemoryStream(File.ReadAllBytes(filename));
                 ResetResourceGovernor(ms);
                 result = ExtractFile(new FileEntry(filename, "", ms),parallel);
             }
@@ -361,21 +361,25 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 Logger.Debug("Failed to extract Tar file {0} {1}", fileEntry.FullPath, e.GetType());
             }
-            while ((tarEntry = tarStream.GetNextEntry()) != null)
+            if (tarStream != null)
             {
-                if (tarEntry.IsDirectory)
+                while ((tarEntry = tarStream.GetNextEntry()) != null)
                 {
-                    continue;
-                }
-                using var memoryStream = new MemoryStream();
-                CheckResourceGovernor((long)tarStream.Length);
-                tarStream.CopyEntryContents(memoryStream);
+                    if (tarEntry.IsDirectory)
+                    {
+                        continue;
+                    }
+                    using var memoryStream = new MemoryStream();
+                    CheckResourceGovernor((long)tarStream.Length);
+                    tarStream.CopyEntryContents(memoryStream);
 
-                var newFileEntry = new FileEntry(tarEntry.Name, fileEntry.FullPath, memoryStream);
-                foreach (var extractedFile in ExtractFile(newFileEntry))
-                {
-                    yield return extractedFile;
+                    var newFileEntry = new FileEntry(tarEntry.Name, fileEntry.FullPath, memoryStream);
+                    foreach (var extractedFile in ExtractFile(newFileEntry))
+                    {
+                        yield return extractedFile;
+                    }
                 }
+                tarStream.Dispose();
             }
         }
 

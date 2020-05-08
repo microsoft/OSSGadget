@@ -544,5 +544,83 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
             }
         }
+
+        /// <summary>
+        /// Extracts a RAR file contained in fileEntry.
+        /// </summary>
+        /// <param name="fileEntry">FileEntry to extract</param>
+        /// <returns>Extracted files</returns>
+        public List<FileEntry> ParallelExtractRarFile(FileEntry fileEntry)
+        {
+            List<FileEntry> files = new List<FileEntry>();
+            RarArchive rarArchive = null;
+            try
+            {
+                rarArchive = RarArchive.Open(fileEntry.Content);
+            }
+            catch (Exception e)
+            {
+                Logger.Debug("Failed to extract Rar file {0} {1}", fileEntry.FullPath, e.GetType());
+            }
+            if (rarArchive != null)
+            {
+                rarArchive.Entries.AsParallel().ForAll(entry =>
+                {
+                    if (!entry.IsDirectory)
+                    {
+                        CheckResourceGovernor((long)entry.Size);
+                        var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream());
+                        foreach (var extractedFile in ExtractFile(newFileEntry))
+                        {
+                            files.Add(extractedFile);
+                        }
+                    }
+                });
+            }
+            return files;
+        }
+
+        /// <summary>
+        /// Extracts an zip file contained in fileEntry.
+        /// </summary>
+        /// <param name="fileEntry">FileEntry to extract</param>
+        /// <returns>Extracted files</returns>
+        public IEnumerable<FileEntry> ParallelExtractZipFile(FileEntry fileEntry)
+        {
+            ZipFile zipFile = null;
+            List<FileEntry> files = new List<FileEntry>();
+            try
+            {
+                zipFile = new ZipFile(fileEntry.Content);
+            }
+            catch (Exception e)
+            {
+                Logger.Debug("Failed to extract Zip file {0} {1}", fileEntry.FullPath, e.GetType());
+            }
+            if (zipFile != null)
+            {
+                var zipEntries = new List<ZipEntry>();
+                foreach (ZipEntry zipEntry in zipFile)
+                {
+                    zipEntries.Add(zipEntry);
+                }
+                zipEntries.AsParallel().ForAll(zipEntry =>
+                {
+                    if (!zipEntry.IsDirectory &&
+                        !zipEntry.IsCrypted &&
+                        zipEntry.CanDecompress)
+                    {
+                        using var memoryStream = new MemoryStream();
+                        byte[] buffer = new byte[BUFFER_SIZE];
+                        var zipStream = zipFile.GetInputStream(zipEntry);
+                        StreamUtils.Copy(zipStream, memoryStream, buffer);
+
+                        var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, memoryStream);
+                        files.AddRange(ExtractFile(newFileEntry));
+                    }
+                });
+            }
+            return files;
+        }
     }
 }

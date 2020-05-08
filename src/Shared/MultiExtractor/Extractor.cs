@@ -166,13 +166,18 @@ namespace Microsoft.CST.OpenSource.Shared
                 Logger.Warn("ExtractFile called, but {0} does not exist.", filename);
                 return Array.Empty<FileEntry>();
             }
+            IEnumerable<FileEntry> result = null;
+            try
+            {
+                var fs = new FileStream(filename, FileMode.Open);
 
-            #pragma warning disable SEC0116 // Path Tampering Unvalidated File Path
-            using var memoryStream = new MemoryStream(File.ReadAllBytes(filename));
-            #pragma warning restore SEC0116 // Path Tampering Unvalidated File Path
+                result = ExtractFile(new FileEntry(filename, "", fs));
+            }
+            catch(Exception e)
+            {
+                Logger.Debug("Failed to extract file {0} {1}", filename, e.GetType());
+            }
 
-            ResetResourceGovernor(memoryStream);
-            var result = ExtractFile(new FileEntry(filename, "", memoryStream));
             return result;
         }
 

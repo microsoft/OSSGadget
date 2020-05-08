@@ -531,7 +531,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception e)
             {
-                Logger.Debug("Failed to extract 7Zip file {0} {1}", fileEntry.FullPath, e.GetType());
+                Logger.Debug("Failed to extract Ar file {0} {1}", fileEntry.FullPath, e.GetType());
             }
             if (fileEntries != null)
             {
@@ -569,7 +569,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 {
                     if (!entry.IsDirectory)
                     {
-                        CheckResourceGovernor((long)entry.Size);
+                        CheckResourceGovernor(entry.Size);
                         var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream());
                         files.AddRange(ExtractFile(newFileEntry));
                     }

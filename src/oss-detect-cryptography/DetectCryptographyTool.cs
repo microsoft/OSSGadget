@@ -63,8 +63,6 @@ namespace Microsoft.CST.OpenSource
         /// <param name="args">parameters passed in from the user</param>
         static async Task Main(string[] args)
         {
-
-
             var detectCryptographyTool = new DetectCryptographyTool();
             Logger.Info($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
 
@@ -72,9 +70,10 @@ namespace Microsoft.CST.OpenSource
 
             if (((IList<string>)detectCryptographyTool.Options["target"]).Count > 0)
             {
+                var sb = new StringBuilder();
                 foreach (var target in (IList<string>)detectCryptographyTool.Options["target"])
                 {
-                    var sb = new StringBuilder();
+                    sb.Clear();
                     try
                     {
                         List<IssueRecord> results = null;
@@ -119,7 +118,11 @@ namespace Microsoft.CST.OpenSource
                             }
                         }
                         
-                        if (!results.Any())
+                        if (results == default)
+                        {
+                            Logger.Warn("Error generating results, was null.");
+                        }
+                        else if (!results.Any())
                         {
                             sb.AppendLine($"[ ] {target} - This software package does NOT appear to implement cryptography.");
                         }
@@ -438,7 +441,17 @@ namespace Microsoft.CST.OpenSource
                     continue;
                 }
 
-                var buffer = NormalizeFileContent(filename, File.ReadAllBytes(filename));
+                byte[] fileContents;
+                try
+                {
+                    fileContents = File.ReadAllBytes(filename);
+                } catch(Exception ex)
+                {
+                    Logger.Trace(ex, "File {0} cannot be read, ignoring.", filename);
+                    continue;
+                }
+
+                var buffer = NormalizeFileContent(filename, fileContents);
                 Logger.Debug("Normalization complete.");
 
                 double MIN_CRYPTO_OP_DENSITY = 0.10;

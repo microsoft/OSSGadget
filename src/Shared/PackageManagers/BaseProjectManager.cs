@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Data;
 using System.IO;
 using System.Linq;
@@ -11,9 +10,9 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Caching.Memory;
 using F23.StringSimilarity;
-using AngleSharp.Dom;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.CST.OpenSource.MultiExtractor;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
@@ -262,7 +261,7 @@ namespace Microsoft.CST.OpenSource.Shared
             var extractor = new Extractor();
             //extractor.MaxExtractedBytes = 1000 * 1000 * 10;  // 10 MB maximum package size
 
-            foreach (var fileEntry in extractor.ExtractFile(directoryName, bytes))
+            foreach (var fileEntry in extractor.ExtractFile(directoryName, bytes, false))
             {
                 var fullPath = fileEntry.FullPath.Replace(':', Path.DirectorySeparatorChar);
 
@@ -305,6 +304,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 var versions = await EnumerateVersions(purl);
                 if (versions.Count() > 0)
                 {
+                    Logger.Trace(string.Join(",", versions));
                     var vpurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, versions.Last(), purl.Qualifiers, purl.Subpath);
                     downloadPaths.AddRange(await DownloadVersion(vpurl, doExtract));
                 }
@@ -357,7 +357,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 (s) => new SemVer.Version(s, loose: true),
                 (s) => s
             };
-
+            
             // Iterate through each method we defined above.
             foreach (var method in methods)
             {
@@ -366,7 +366,17 @@ namespace Microsoft.CST.OpenSource.Shared
                 {
                     foreach (var version in versionList)
                     {
-                        objList.Add(method(version));
+                        var verResult = method(version);
+                        // Make sure the method doesn't mangle the version
+                        // This is due to System.Version normalizalizing "0.01" to "0.1".
+                        if (verResult != default && verResult.ToString().Equals(version))
+                        {
+                            objList.Add(verResult);
+                        }
+                        else
+                        {
+                            Logger.Debug("Mangled version [{0}] => [{1}]", version, verResult);
+                        }
                     }
                     objList.Sort();  // Sort using the built-in sort, delegating to the type's comparator
                 }
@@ -400,59 +410,79 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">PackageURL to search</param>
         /// <returns>A dictionary, mapping each possible repo source entry to its probability/empty dictionary</returns>
-        public async Task<Dictionary<PackageURL, double>> SearchMetadata(PackageURL purl)
+        public async Task<Dictionary<PackageURL, double>> IdentifySourceRepository(PackageURL purl)
         {
-            var content = await GetMetadata(purl);
-            // Check the specific PackageManager implementation.
-            var candidates = await PackageMetadataSearch(purl, content);
-            if (candidates != default && candidates.Any())
+            Logger.Trace("IdentifySourceRepository({0})", purl);
+
+            var rawMetadataString = await GetMetadata(purl);
+            var sourceRepositoryMap = new Dictionary<PackageURL, double>();
+            
+            // Check the specific PackageManager-specific implementation first
+            try
             {
-                return candidates;
+                foreach (var result in await PackageMetadataSearch(purl, rawMetadataString))
+                {
+                    sourceRepositoryMap.Add(result.Key, result.Value);
+                }
+
+                // Return now if we've succeeded
+                if (sourceRepositoryMap.Any())
+                {
+                    return sourceRepositoryMap;
+                }
+            }
+            catch(Exception ex)
+            {
+                Logger.Warn(ex, "Error searching package metadata for {0}: {1}", purl, ex.Message);
             }
 
-            // if we reached here, we don't have any proper metadata
-            // tagged for the source repository, so search for all
-            // GitHub URLs and return all possible candidates.
-            candidates = GetRepoCandidates(purl, content);
+            // Fall back to searching the metadata string for all possible GitHub URLs.
+            foreach (var result in ExtractRankedSourceRepositories(purl, rawMetadataString))
+            {
+                sourceRepositoryMap.Add(result.Key, result.Value);
+            }
 
-            // return a sort
-            var sortedCandidates = from entry in candidates orderby entry.Value descending select entry;
-            return sortedCandidates.ToDictionary(item => item.Key, item => item.Value);
+            return sourceRepositoryMap;
         }
 
         /// <summary>
         /// Rank the source repo entry candidates by their edit distance.
         /// </summary>
         /// <param name="purl">the package</param>
-        /// <param name="content">metadata of the package</param>
+        /// <param name="rawMetadataString">metadata of the package</param>
         /// <returns>Possible candidates of the package/empty dictionary</returns>
-        protected Dictionary<PackageURL, double> GetRepoCandidates(PackageURL purl, string content)
+        protected Dictionary<PackageURL, double> ExtractRankedSourceRepositories(PackageURL purl, string rawMetadataString)
         {
-            var sourceUrls = GitHubProjectManager.ExtractGitHubUris(purl, content);
-            var candidates = new Dictionary<PackageURL, double>();
+            Logger.Trace("ExtractRankedSourceRepositories({0})", purl);
+            var sourceRepositoryMap = new Dictionary<PackageURL, double>();
 
-            var uniqueItemsGroup = sourceUrls.GroupBy(item => item);
+            if (purl == default || string.IsNullOrWhiteSpace(rawMetadataString))
+            {
+                return sourceRepositoryMap;   // Empty
+            }
+
+            // Simple regular expression, looking for GitHub URLs
+            // TODO: Expand this to Bitbucket, GitLab, etc.
+            var sourceUrls = GitHubProjectManager.ExtractGitHubUris(purl, rawMetadataString);
             if (sourceUrls != default && sourceUrls.Any())
             {
-                // Since this is non-exact, we'll assign our confidence to 80%
-                float baseScore = 0.8F;
-
-                var l = new NormalizedLevenshtein();
-                foreach (var group in uniqueItemsGroup)
+                var baseScore = 0.8;     // Max confidence: 0.80
+                var levenshtein = new NormalizedLevenshtein();
+                
+                foreach (var group in sourceUrls.GroupBy(item => item))
                 {
                     // the cumulative boosts should be < 0.2; otherwise it'd be an 1.0
                     // score by Levenshtein distance
-                    double similarityBoost = l.Similarity(purl.Name, group.Key.Name) * 0.0001;
+                    double similarityBoost = levenshtein.Similarity(purl.Name, group.Key.Name) * 0.0001;
+                    
                     // give a similarly weighted boost based on the number of times a particular 
                     // candidate appear in the metadata
                     double countBoost = (double)(group.Count()) * 0.0001;
-                    candidates.Add(group.Key,
-                        baseScore +
-                        similarityBoost +
-                        countBoost);
+                    
+                    sourceRepositoryMap.Add(group.Key, baseScore + similarityBoost + countBoost);
                 }
             }
-            return candidates;
+            return sourceRepositoryMap;
         }
 
         public static string GetCommonSupportedHelpText()

@@ -19,6 +19,7 @@
     <None Remove="Resources\CryptographyRules\implementation-hash.json" />
     <None Remove="Resources\CryptographyRules\implementation-prng.json" />
     <None Remove="Resources\CryptographyRules\implementation-signature.json" />
+    <None Remove="Resources\CryptographyRules\implementation-stream-cipher.json" />
     <None Remove="Resources\CryptographyRules\implementation-symmetric.json" />
   </ItemGroup>
 
@@ -27,6 +28,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\CryptographyRules\implementation-signature.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\CryptographyRules\implementation-stream-cipher.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\CryptographyRules\implementation-symmetric.json">
@@ -47,10 +51,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ELFSharp" Version="2.7.0" />
-    <PackageReference Include="ICSharpCode.Decompiler" Version="5.0.2.5153" />
-    <PackageReference Include="Microsoft.CST.DevSkim" Version="0.4.118" />
-    <PackageReference Include="PeNet" Version="2.0.0" />
+    <PackageReference Include="ELFSharp" Version="2.9.0" />
+    <PackageReference Include="ICSharpCode.Decompiler" Version="6.0.0.5671-preview3" />
+    <PackageReference Include="Microsoft.CST.DevSkim" Version="0.4.132" />
+    <PackageReference Include="PeNet" Version="2.2.3" />
     <PackageReference Include="SharpDisasm" Version="1.1.11" />
     <PackageReference Include="WebAssembly" Version="0.8.0-preview" />
   </ItemGroup>
@@ -58,6 +62,10 @@
   <ItemGroup>
     <ProjectReference Include="..\oss-download\oss-download.csproj" />
     <ProjectReference Include="..\Shared\Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.1.91" />
   </ItemGroup>
 
 </Project>

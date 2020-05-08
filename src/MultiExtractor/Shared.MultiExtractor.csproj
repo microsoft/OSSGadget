@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RootNamespace>Microsoft.CST.OpenSource</RootNamespace>
+    <Company>Microsoft Corporation</Company>
+    <Description>OSS Gadget - Recursive Multi-Format Extractor</Description>
+    <Authors>Michael Scovetta</Authors>
+    <RepositoryType>GitHub</RepositoryType>
+    <RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>
+    <Configurations>Debug;Release</Configurations>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NLog" Version="4.7.0" />
+    <PackageReference Include="SharpCompress" Version="0.25.0" />
+    <PackageReference Include="SharpZipLib" Version="1.2.0" />
+  </ItemGroup>
+</Project>

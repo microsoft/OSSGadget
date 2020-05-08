@@ -32,7 +32,7 @@ namespace Microsoft.CST.OpenSource
         private readonly Dictionary<string, object> Options = new Dictionary<string, object>()
         {
             { "target", new List<string>() },
-            { "listAll", false },
+            { "show-all", false },
         };
 
         static void Main(string[] args)
@@ -48,7 +48,16 @@ namespace Microsoft.CST.OpenSource
                     try
                     {
                         var purl = new PackageURL(target);
-                        findSourceTool.FindSource(purl).Wait();
+                        var results = findSourceTool.FindSource(purl).Result.ToList();
+                        results.Sort((a, b) => (a.Value.CompareTo(b.Value)));
+                        results.Reverse();
+
+                        foreach (var result in results)
+                        {
+                            var confidence = result.Value * 100.0;
+                            Logger.Info($"{confidence:0.0}%\thttps://github.com/{result.Key.Namespace}/{result.Key.Name} ({result.Key})");
+                        }
+
                     }
                     catch (Exception ex)
                     {
@@ -70,26 +79,45 @@ namespace Microsoft.CST.OpenSource
             Logger = CommonInitialization.Logger;
         }
 
-        public async Task FindSource(PackageURL purl)
+        public async Task<Dictionary<PackageURL, double>> FindSource(PackageURL purl)
         {
+            Logger.Trace("FindSource({0})", purl);
+
+            var repositoryMap = new Dictionary<PackageURL, double>();
+            
+            if (purl == default)
+            {
+                Logger.Warn("FindSource was passed an invalid purl.");
+                return repositoryMap;
+            }
+
             var purlNoVersion = new PackageURL(purl.Type, purl.Namespace, purl.Name,
                                                null, purl.Qualifiers, purl.Subpath);
             Logger.Debug("Searching for source code for {0}", purlNoVersion.ToString());
 
-            RepoSearch repoSearcher = new RepoSearch();
-            Dictionary<PackageURL, double> repos = await repoSearcher.ResolvePackageLibraryAsync(purl, (bool)Options["listAll"]);
-            if (repos.Any())
+            try
             {
-                foreach (KeyValuePair<PackageURL, double> item in repos)
+                var repoSearcher = new RepoSearch();
+                var repos = await repoSearcher.ResolvePackageLibraryAsync(purl);
+                if (repos.Any())
                 {
-                    var githubUrl = $"https://github.com/{item.Key.Namespace}/{item.Key.Name}";
-                    Logger.Info("Found: {0} ({1}). Probability Score: {2}", item.Key.ToString(), githubUrl, item.Value);
+                    foreach (var key in repos.Keys)
+                    {
+                        repositoryMap[key] = repos[key];
+                    }
+                    Logger.Debug("Identified {0} repositories.", repos.Count);
+                }
+                else
+                {
+                    Logger.Warn("No repositories found for package {0}", purl);
                 }
             }
-            else
+            catch(Exception ex)
             {
-                Logger.Warn("Could not find repository for package {0}", purl.ToString());
+                Logger.Warn(ex, "Error identifying source repository for {0}: {1}", purl, ex.Message);
             }
+
+            return repositoryMap;
         }
 
         /// <summary>
@@ -114,9 +142,8 @@ namespace Microsoft.CST.OpenSource
                         Environment.Exit(1);
                         break;
 
-                    case "-a":
-                    case "--all":
-                        Options["listAll"] = true;
+                    case "--show-all":
+                        Options["show-all"] = true;
                         break;
 
                     case "-v":
@@ -155,8 +182,9 @@ positional arguments:
 {BaseProjectManager.GetCommonSupportedHelpText()}
 
 optional arguments:
+  --show-all                    show all possibilities of the package source repositories
+                                 (default: show only the top result)
   --help                        show this help message and exit
-  --all                         show all possibilities of the package source repositories (default shows the best option)
   --version                     show version of this tool
 ");
         }

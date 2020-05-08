@@ -4,7 +4,7 @@
 using System;
 using System.IO;
 
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.MultiExtractor
 {
     public class FileEntry
     {

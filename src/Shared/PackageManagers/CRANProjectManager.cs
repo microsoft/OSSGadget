@@ -24,16 +24,14 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
             
-            var packageNamespace = purl?.Namespace;
             var packageName = purl?.Name;
             var packageVersion = purl?.Version;
             
             var downloadedPaths = new List<string>();
 
-            if (string.IsNullOrWhiteSpace(packageNamespace) || string.IsNullOrWhiteSpace(packageName) ||
-                string.IsNullOrWhiteSpace(packageVersion))
+            if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
             {
-                Logger.Error("Unable to download [{0} {1} {2}]. All must be defined.", packageNamespace, packageName, packageVersion);
+                Logger.Error("Unable to download [{0} {1}]. All must be defined.", packageName, packageVersion);
                 return downloadedPaths;
             }
 
@@ -69,7 +67,7 @@ namespace Microsoft.CST.OpenSource.Shared
             // Archive Version - Only continue here if needed
             try
             {
-                var url = $"{ENV_CRAN_ENDPOINT}/src/contrib/{packageNamespace}/{packageName}/{packageName}_{packageVersion}.tar.gz";
+                var url = $"{ENV_CRAN_ENDPOINT}/src/contrib/Archive/{packageName}/{packageName}_{packageVersion}.tar.gz";
                 var result = await WebClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
                 Logger.Debug("Downloading {0}...", purl);
@@ -95,6 +93,12 @@ namespace Microsoft.CST.OpenSource.Shared
 
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
         {
+            Logger.Trace("EnumerateVersions {0}", purl?.ToString());
+            if (purl == null)
+            {
+                return new List<string>();
+            }
+
             try
             {
                 var packageName = purl.Name;
@@ -126,7 +130,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     if (href.Contains(".tar.gz"))
                     {
                         var version = href.Replace(".tar.gz", "");
-                        version = version.Replace(packageName + "_", "");
+                        version = version.Replace(packageName + "_", "").Trim();
                         Logger.Debug("Identified {0} version {1}.", packageName, version);
                         versionList.Add(version);
                     }

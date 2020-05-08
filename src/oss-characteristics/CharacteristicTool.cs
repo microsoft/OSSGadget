@@ -3,11 +3,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.ApplicationInspector.Commands;
 using Microsoft.CST.OpenSource.Shared;
@@ -58,7 +55,24 @@ namespace Microsoft.CST.OpenSource
                     try
                     {
                         var purl = new PackageURL(target);
-                        characteristicTool.AnalyzePackage(purl).Wait();
+                        var analysisResult = characteristicTool.AnalyzePackage(purl).Result;
+
+                        var sb = new StringBuilder();
+                        sb.AppendLine(target);
+                        foreach (var key in analysisResult.Keys)
+                        {
+                            var metadata = analysisResult[key].Metadata;
+
+                            
+                            sb.AppendFormat("Programming Language: {0}\n", string.Join(", ", metadata.Languages.Keys));
+                            sb.AppendLine("Unique Tags: ");
+                            foreach (var tag in metadata.UniqueTags)
+                            {
+                                sb.AppendFormat($" * {tag}\n");
+                            }
+                        }
+
+                        Logger.Info(sb.ToString());
                     }
                     catch (Exception ex)
                     {
@@ -86,11 +100,11 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         /// <param name="purl">The package-url of the package to analyze.</param>
         /// <returns>List of tags identified</returns>
-        public async Task<List<string>> AnalyzePackage(PackageURL purl)
+        public async Task<Dictionary<string, AnalyzeResult>> AnalyzePackage(PackageURL purl)
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
             
-            var analysisResults = new List<string>();
+            var analysisResults = new Dictionary<string, AnalyzeResult>();
 
             string targetDirectoryName = null;
             while (targetDirectoryName == null || Directory.Exists(targetDirectoryName))
@@ -108,17 +122,13 @@ namespace Microsoft.CST.OpenSource
                 foreach (var directoryName in directoryNames)
                 {
                     var singleResult = await AnalyzeDirectory(directoryName);
-                    if (singleResult != default)
-                    {
-                        analysisResults.AddRange(singleResult);
-                    }
-
+                    analysisResults[directoryName] = singleResult;
                     Logger.Trace("Removing directory {0}", directoryName);
                     try
                     {
                         Directory.Delete(directoryName, true);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Logger.Warn("Error removing {0}: {1}", directoryName, ex.Message);
                     }
@@ -128,9 +138,8 @@ namespace Microsoft.CST.OpenSource
             {
                 Logger.Warn("Error downloading {0}.", purl.ToString());
             }
-            
-            // Need Distinct() because same tag could appear from multiple runs
-            return analysisResults.Distinct().ToList();
+
+            return analysisResults;
         }
 
         /// <summary>
@@ -138,14 +147,14 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         /// <param name="directory">directory to analyze.</param>
         /// <returns>List of tags identified</returns>
-        public async Task<List<string>> AnalyzeDirectory(string directory)
+        public async Task<AnalyzeResult> AnalyzeDirectory(string directory)
         {
             Logger.Trace("AnalyzeDirectory({0})", directory);
 
-            var analysisResults = new List<string>();
+            AnalyzeResult analysisResult = default;
 
             // Call Application Inspector using the NuGet package
-            var options = new AnalyzeCommandOptions()
+            var options = new AnalyzeOptions()
             {
                 ConsoleVerbosityLevel = "None",
                 LogFileLevel = "Off",
@@ -157,46 +166,15 @@ namespace Microsoft.CST.OpenSource
             try
             {
                 var analyzeCommand = new AnalyzeCommand(options);
-                var resultsJson = analyzeCommand.GetResult();
-                Logger.Debug("Operation Complete: {0}", resultsJson?.Length);
-
-                if (resultsJson != default)
-                {
-                    var results = await JsonDocument.ParseAsync(new MemoryStream(Encoding.UTF8.GetBytes(resultsJson)));
-                    foreach (var matchDetail in results.RootElement.GetProperty("FormattedMatchList").EnumerateArray())
-                    {
-                        var sb = new StringBuilder();
-                        sb.AppendFormat("{0}:\n", matchDetail.GetProperty("ruleName").GetString());
-                        sb.AppendFormat("{0}\n", matchDetail.GetProperty("fileName").GetString());
-                        sb.AppendFormat("Excerpt:\n");
-                        var excerpt = Encoding.UTF8.GetString(Convert.FromBase64String(matchDetail.GetProperty("excerpt").GetString()));
-                        foreach (var excerptLine in excerpt.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None))
-                        {
-                            if (!string.IsNullOrEmpty(excerptLine.TrimEnd()))
-                            {
-                                sb.AppendFormat("  {0}\n", excerptLine.TrimEnd());
-                            }
-                        }
-                        sb.AppendLine();
-
-                        foreach (var tag in matchDetail.GetProperty("tags").EnumerateArray())
-                        {
-                            analysisResults.Add(tag.GetString());
-                        }
-                        //Logger.Info(sb.ToString());
-                        Console.WriteLine(sb.ToString());   // Workaround due to https://github.com/microsoft/ApplicationInspector/issues/179
-                    }
-                }
-                else
-                {
-                    throw new Exception("No output retrieved from Application Inspector.");
-                }
-            } catch(Exception ex)
+                analysisResult = analyzeCommand.GetResult();
+                Logger.Debug("Operation Complete: {0} files analyzed.", analysisResult?.Metadata?.TotalFiles);
+            }
+            catch(Exception ex)
             {
                 Logger.Warn("Error analyzing {0}: {1}", directory, ex.Message);
             }
 
-            return analysisResults;
+            return analysisResult;
         }
 
         /// <summary>

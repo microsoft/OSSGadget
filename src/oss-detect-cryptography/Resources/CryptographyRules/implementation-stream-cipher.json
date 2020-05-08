@@ -1,0 +1,35 @@
+[
+  {
+    "name": "Implementation of Salsa20/ChaCha",
+    "id": "DS802043",
+    "description": "ChaCha",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.StreamCipher.ChaCha",
+      "Cryptography.Implementation.StreamCipher.Salsa20"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "https://en.wikipedia.org/wiki/Salsa20",
+    "patterns": [
+      {
+        "pattern": "61707865|3320646e",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "ChaCha constants (hex)"
+      },
+      {
+        "pattern": "1634760805|857760878",
+        "type": "regex",
+        "modifiers": [],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "ChaCha constants (decimal)"
+      }
+    ]
+  }
+]

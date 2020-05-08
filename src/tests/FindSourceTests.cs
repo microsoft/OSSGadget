@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.CST.OpenSource;
-using Microsoft.CST.OpenSource.Shared;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CST.OpenSource.Shared;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Microsoft.CST.OpenSource.Tests
 {
@@ -18,6 +15,7 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("pkg:npm/md5", "pkg:github/pvorb/node-md5")]
         [DataRow("pkg:pypi/moment", "pkg:github/zachwill/moment")]
         [DataRow("pkg:nuget/Newtonsoft.Json", "pkg:github/jamesnk/newtonsoft.json")]
+        [DataRow("pkg:pypi/django", "pkg:github/django/django")]
         public async Task FindSource_Success(string purl, string targetResult)
         {
             // for initialization
@@ -39,10 +37,10 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         [DataTestMethod]
-        [DataRow("pkg:npm/hjkfashfkjafhakfjsa", "pkg:github/pvorb/node-md5")]
-        [DataRow("pkg:pypi/hjkfashfkjafhakfjsa", "pkg:github/pvorb/node-md5")]
-        [DataRow("pkg:nuget/hjkfashfkjafhakfjsa", "pkg:github/pvorb/node-md5")]
-        public async Task FindSource_NonExistentPackage(string purl, string targetResult)
+        [DataRow("pkg:npm/hjkfashfkjafhakfjsa", "")]
+        [DataRow("pkg:pypi/hjkfashfkjafhakfjsa", "")]
+        [DataRow("pkg:nuget/hjkfashfkjafhakfjsa", "")]
+        public async Task FindSource_NonExistentPackage(string purl, string _)
         {
             // for initialization
             FindSourceTool tool = new FindSourceTool();

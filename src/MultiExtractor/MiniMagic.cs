@@ -1,16 +1,20 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
 
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.MultiExtractor
 {
     /// <summary>
     /// ArchiveTypes are the kinds of archive files that this module can process.
     /// </summary>
     public enum ArchiveFileType
     {
+        UNKNOWN,
         ZIP,
         TAR,
         XZ,
@@ -19,7 +23,7 @@ namespace Microsoft.CST.OpenSource.Shared
         RAR,
         P7ZIP,
         DEB,
-        UNKNOWN,
+        GNU_AR,
     }
 
     /// <summary>
@@ -51,9 +55,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
             {"rar", ArchiveFileType.RAR },
 
-            {"7z", ArchiveFileType.P7ZIP },
-
-            {"deb", ArchiveFileType.DEB }
+            {"7z", ArchiveFileType.P7ZIP }
         };
 
         public static ArchiveFileType DetectFileType(string filename)
@@ -110,10 +112,35 @@ namespace Microsoft.CST.OpenSource.Shared
                 {
                     return ArchiveFileType.P7ZIP;
                 }
-                // .deb - https://manpages.debian.org/unstable/dpkg-dev/deb.5.en.html
+                // some kind of .ar https://en.wikipedia.org/wiki/Ar_(Unix)#BSD_variant
                 if (buffer[0] == 0x21 && buffer[1] == 0x3c && buffer[2] == 0x61 && buffer[3] == 0x72 && buffer[4] == 0x63 && buffer[5] == 0x68 && buffer[6] == 0x3e)
                 {
-                    return ArchiveFileType.DEB;
+                    // .deb -https://manpages.debian.org/unstable/dpkg-dev/deb.5.en.html
+                    fileEntry.Content.Position = 68;
+                    fileEntry.Content.Read(buffer, 0, 4);
+                    fileEntry.Content.Position = 0;
+                    var encoding = new ASCIIEncoding();
+                    if (encoding.GetString(buffer,0,4) == "2.0\n")
+                    {
+                        return ArchiveFileType.DEB;
+                    }
+                    // Some other kind of .ar
+                    else
+                    {
+                        using var reader = new StreamReader(fileEntry.Content, leaveOpen: true);
+                        // Skip magic string
+                        reader.ReadLine();
+                        // Get header
+                        var headerLine = reader.ReadLine();
+                        int.TryParse(headerLine.Split(' ').Last(), out int headerSize);
+                        if (headerSize > 0)
+                        {
+                            if (headerLine.EndsWith('`'))
+                            {
+                                return ArchiveFileType.GNU_AR;
+                            }
+                        }
+                    }
                 }
             }
 
@@ -145,4 +172,3 @@ namespace Microsoft.CST.OpenSource.Shared
         }
     }
 }
-

@@ -95,6 +95,11 @@ namespace Microsoft.CST.OpenSource.Shared
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
+            if (purl == null)
+            {
+                return new List<string>();
+            }
+
             try
             {
                 var packageName = purl.Name;
@@ -130,16 +135,16 @@ namespace Microsoft.CST.OpenSource.Shared
 
             // The Cocoapods standard uses MD5(project name) as a prefix for sharing.
             // There is no security issue here, but we cannot use another algorithm.
-            #pragma warning disable SCS0006, CA5351 // Weak hashing function
+            #pragma warning disable SCS0006, CA5351, CA1308 // Weak hash, ToLowerInvarant()
             using var hashAlgorithm = MD5.Create();
-            #pragma warning restore SCS0006, CA5351 // Weak hashing function
-
+            
             var prefixMD5 = BitConverter
                                 .ToString(hashAlgorithm.ComputeHash(packageNameBytes))
                                 .Replace("-", "")
                                 .ToLowerInvariant()
                                 .ToCharArray();
-            
+            #pragma warning restore SCS0006, CA5351, CA1308 // Weak hash, ToLowerInvarant()
+
             var prefix = string.Format("{0}/{1}/{2}", prefixMD5[0], prefixMD5[1], prefixMD5[2]);
             return prefix;
         }

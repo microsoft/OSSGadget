@@ -55,6 +55,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 {
                     version = version.Substring(1);
                 }
+                Logger.Trace("Comparing {0} to {1}", version, packageVersion);
 
                 if (version == packageVersion)
                 {
@@ -67,7 +68,9 @@ namespace Microsoft.CST.OpenSource.Shared
                 Logger.Warn($"Unable to find CPAN package {packageName}@{packageVersion}.");
                 return downloadedPaths;
             }
-
+            
+            Logger.Debug($"Downloading {packageVersionUrl}");
+            
             html = await GetHttpStringCache(packageVersionUrl);
             document = await parser.ParseDocumentAsync(html);
             foreach (var italic in document.QuerySelectorAll("li a i.fa-download"))
@@ -101,6 +104,12 @@ namespace Microsoft.CST.OpenSource.Shared
 
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
         {
+            Logger.Trace("EnumerateVersions {0}", purl?.ToString());
+            if (purl == null)
+            {
+                return new List<string>();
+            }
+
             try
             {
                 var packageName = purl.Name;

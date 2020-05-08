@@ -253,10 +253,10 @@ namespace Microsoft.CST.OpenSource.Health
             Logger.Trace("GetReleaseHealth({0}, {1})", purl.Namespace, purl.Name);
 
             var releases = await Client.Repository.Release.GetAll(purl.Namespace, purl.Name, DEFAULT_API_OPTIONS);
-            double releaseHealth = releases.Count();
+            double releaseHealth = releases.Count;
 
             var tags = await Client.Repository.GetAllTags(purl.Namespace, purl.Name, DEFAULT_API_OPTIONS);
-            releaseHealth += tags.Count();
+            releaseHealth += tags.Count;
             metrics.ReleaseHealth = Clamp(releaseHealth);
         }
 
@@ -341,7 +341,7 @@ namespace Microsoft.CST.OpenSource.Health
 
             if (openSecurityIssues + closedSecurityIssues > 0)
             {
-                securityIssueHealth = openSecurityIssues / (openSecurityIssues + closedSecurityIssues);
+                securityIssueHealth = (double)openSecurityIssues / (double)(openSecurityIssues + closedSecurityIssues);
             }
             else
             {

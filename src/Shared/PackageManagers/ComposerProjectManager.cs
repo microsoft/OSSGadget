@@ -78,7 +78,11 @@ namespace Microsoft.CST.OpenSource.Shared
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
-            
+            if (purl == null)
+            {
+                return new List<string>();
+            }
+
             var versionList = new List<string>();
 
             if (string.IsNullOrWhiteSpace(purl?.Namespace) || string.IsNullOrWhiteSpace(purl?.Name))

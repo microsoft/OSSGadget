@@ -1,10 +1,13 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.CST.OpenSource;
-using Microsoft.CST.OpenSource.Shared;
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using System;
+using Microsoft.CST.OpenSource.Shared;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Microsoft.CST.OpenSource.Tests
 {
@@ -125,7 +128,21 @@ namespace Microsoft.CST.OpenSource.Tests
             Assert.IsNotNull(packageUrl);
 
             Directory.CreateDirectory(tempDirectoryName);
-            downloadTool.Download(packageUrl, tempDirectoryName).Wait();
+            int numAttempts = 3;
+            int numSecondsWait = 10;
+            while (numAttempts-- > 0)
+            {
+                try
+                {
+                    downloadTool.Download(packageUrl, tempDirectoryName).Wait();
+                    break;
+                }
+                catch (Exception)
+                {
+                    Thread.Sleep(numSecondsWait * 1000);
+                }
+            }
+            
             var fileMatchCount = Directory.EnumerateFiles(tempDirectoryName, targetFilename, SearchOption.AllDirectories).Count();
             try
             {

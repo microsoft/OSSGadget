@@ -4,8 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using NLog;
-using SharpCompress.Common;
+using System.Text;
 
 namespace Microsoft.CST.OpenSource.MultiExtractor
 {
@@ -61,19 +60,9 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
         public static ArchiveFileType DetectFileType(string filename)
         {
-            byte[] fileContent;
-            try
-            {
-                #pragma warning disable SEC0116 // Path Tampering Unvalidated File Path
-                fileContent = File.ReadAllBytes(filename);
-                #pragma warning restore SEC0116 // Path Tampering Unvalidated File Path
-            }
-            catch (Exception)
-            {
-                fileContent = Array.Empty<byte>();
-            }
-
-            using var stream = new MemoryStream(fileContent);
+            #pragma warning disable SEC0116 // Path Tampering Unvalidated File Path
+            using var stream = new MemoryStream(File.ReadAllBytes(filename));
+            #pragma warning restore SEC0116 // Path Tampering Unvalidated File Path
             var fileEntry = new FileEntry(filename, "", stream);
             return DetectFileType(fileEntry);
         }
@@ -126,7 +115,18 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 // .deb - https://manpages.debian.org/unstable/dpkg-dev/deb.5.en.html
                 if (buffer[0] == 0x21 && buffer[1] == 0x3c && buffer[2] == 0x61 && buffer[3] == 0x72 && buffer[4] == 0x63 && buffer[5] == 0x68 && buffer[6] == 0x3e)
                 {
-                    return ArchiveFileType.DEB;
+                    fileEntry.Content.Position = 68;
+                    fileEntry.Content.Read(buffer, 0, 4);
+                    fileEntry.Content.Position = 0;
+                    var encoding = new ASCIIEncoding();
+                    if (encoding.GetString(buffer,0,4) == "2.0\n")
+                    {
+                        return ArchiveFileType.DEB;
+                    }
+                    else
+                    {
+                        // Some other kind of .ar
+                    }
                 }
             }
 
@@ -158,4 +158,3 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         }
     }
 }
-

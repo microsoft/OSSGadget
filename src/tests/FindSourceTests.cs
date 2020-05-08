@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.CST.OpenSource;
-using Microsoft.CST.OpenSource.Shared;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CST.OpenSource.Shared;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Microsoft.CST.OpenSource.Tests
 {

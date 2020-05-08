@@ -1,11 +1,13 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.CST.OpenSource;
-using Microsoft.CST.OpenSource.Shared;
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+using System;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
-using System;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CST.OpenSource.Shared;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Microsoft.CST.OpenSource.Tests
 {

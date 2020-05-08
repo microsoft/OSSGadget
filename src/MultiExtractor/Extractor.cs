@@ -168,7 +168,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             IEnumerable<FileEntry> result = null;
             try
             {
-                var ms = new MemoryStream(File.ReadAllBytes(filename));
+                using var ms = new MemoryStream(File.ReadAllBytes(filename));
                 ResetResourceGovernor(ms);
                 result = ExtractFile(new FileEntry(filename, "", ms),parallel);
             }
@@ -236,7 +236,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         result = parallel ? ParallelExtract7ZipFile(fileEntry) : Extract7ZipFile(fileEntry);
                         break;
                     case ArchiveFileType.DEB:
-                        result = parallel ? ParallelExtractArFile(fileEntry) : ExtractArFile(fileEntry);
+                        result = parallel ? ParallelExtractDebFile(fileEntry) : ExtractDebFile(fileEntry);
                         break;
                     default:
                         rawFileUsed = true;
@@ -361,21 +361,25 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             {
                 Logger.Debug("Failed to extract Tar file {0} {1}", fileEntry.FullPath, e.GetType());
             }
-            while ((tarEntry = tarStream.GetNextEntry()) != null)
+            if (tarStream != null)
             {
-                if (tarEntry.IsDirectory)
+                while ((tarEntry = tarStream.GetNextEntry()) != null)
                 {
-                    continue;
-                }
-                using var memoryStream = new MemoryStream();
-                CheckResourceGovernor((long)tarStream.Length);
-                tarStream.CopyEntryContents(memoryStream);
+                    if (tarEntry.IsDirectory)
+                    {
+                        continue;
+                    }
+                    using var memoryStream = new MemoryStream();
+                    CheckResourceGovernor((long)tarStream.Length);
+                    tarStream.CopyEntryContents(memoryStream);
 
-                var newFileEntry = new FileEntry(tarEntry.Name, fileEntry.FullPath, memoryStream);
-                foreach (var extractedFile in ExtractFile(newFileEntry))
-                {
-                    yield return extractedFile;
+                    var newFileEntry = new FileEntry(tarEntry.Name, fileEntry.FullPath, memoryStream);
+                    foreach (var extractedFile in ExtractFile(newFileEntry))
+                    {
+                        yield return extractedFile;
+                    }
                 }
+                tarStream.Dispose();
             }
         }
 
@@ -463,6 +467,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             {
                 Logger.Debug("Failed to extract Rar file {0} {1}", fileEntry.FullPath, e.GetType());
             }
+
             if (rarArchive != null)
             {
                 foreach (var entry in rarArchive.Entries)
@@ -516,25 +521,30 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         }
 
         /// <summary>
-        /// Extracts an .ar (deb) file contained in fileEntry.
+        /// Extracts a .deb file contained in fileEntry.
         /// </summary>
         /// <param name="fileEntry">FileEntry to extract</param>
         /// <returns>Extracted files</returns>
-        private IEnumerable<FileEntry> ExtractArFile(FileEntry fileEntry)
+        private IEnumerable<FileEntry> ExtractDebFile(FileEntry fileEntry)
         {
             IEnumerable<FileEntry> fileEntries = null;
             try
             {
-                fileEntries = ArArchiveFile.GetFileEntries(fileEntry);
+                fileEntries = DebArchiveFile.GetFileEntries(fileEntry);
             }
             catch (Exception e)
             {
-                Logger.Debug("Failed to extract Ar file {0} {1}", fileEntry.FullPath, e.GetType());
+                Logger.Debug("Failed to extract Deb file {0} {1}", fileEntry.FullPath, e.GetType());
             }
             if (fileEntries != null)
             {
                 foreach (var entry in fileEntries)
                 {
+                    if (entry.Name == "control.tar.xz")
+                    {
+                        // This is control information for debian and not part of the actual files
+                        continue;
+                    }
                     CheckResourceGovernor(entry.Content.Length);
                     foreach (var extractedFile in ExtractFile(entry))
                     {
@@ -564,6 +574,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             if (rarArchive != null)
             {
                 var entries = rarArchive.Entries.ToList();
+                Logger.Debug("There are {0} entries in the .rar.",entries.Count);
                 entries.AsParallel().ForAll(entry =>
                 {
                     if (!entry.IsDirectory)
@@ -653,28 +664,32 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         }
 
         /// <summary>
-        /// Extracts an .ar (deb) file contained in fileEntry.
+        /// Extracts a .deb file contained in fileEntry.
         /// </summary>
         /// <param name="fileEntry">FileEntry to extract</param>
         /// <returns>Extracted files</returns>
-        private List<FileEntry> ParallelExtractArFile(FileEntry fileEntry)
+        private List<FileEntry> ParallelExtractDebFile(FileEntry fileEntry)
         {
             List<FileEntry> files = new List<FileEntry>();
             IEnumerable<FileEntry> fileEntries = null;
             try
             {
-                fileEntries = ArArchiveFile.GetFileEntries(fileEntry);
+                fileEntries = DebArchiveFile.GetFileEntries(fileEntry);
             }
             catch (Exception e)
             {
-                Logger.Debug("Failed to extract 7Zip file {0} {1}", fileEntry.FullPath, e.GetType());
+                Logger.Debug("Failed to extract Deb file {0} {1}", fileEntry.FullPath, e.GetType());
             }
             if (fileEntries != null)
             {
                 fileEntries.AsParallel().ForAll(entry =>
                 {
-                    CheckResourceGovernor((long)entry.Content.Length);
-                    files.AddRange(ExtractFile(entry));
+                    // This is control information for Debian's installer wizardy and not part of the actual files
+                    if (entry.Name != "control.tar.xz")
+                    {
+                        CheckResourceGovernor(entry.Content.Length);
+                        files.AddRange(ExtractFile(entry));
+                    }
                 });
             }
             return files;

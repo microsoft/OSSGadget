@@ -1,5 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.CST.OpenSource.Shared;
+using Microsoft.CST.OpenSource.MultiExtractor;
 using System.IO;
 using System.Linq;
 
@@ -25,14 +25,16 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("Shared.tar.gz", true)]
         [DataRow("Shared.tar.xz", false)]
         [DataRow("Shared.tar.xz", true)]
+        [DataRow("sysvbanner_1.0-17fakesync1_amd64.deb", true, 15)]
+        [DataRow("sysvbanner_1.0-17fakesync1_amd64.deb", false, 15)]
         [DataRow("Shared.a", false)]
         [DataRow("Shared.a", true)]
-        public void ExtractArchive(string fileName, bool parallel)
+        public void ExtractArchive(string fileName, bool parallel, int expectedNumFiles = 26)
         {
             var extractor = new Extractor();
             var path = Path.Combine(Directory.GetCurrentDirectory(), "TestData", fileName);
             var results = extractor.ExtractFile(path, parallel);
-            Assert.IsTrue(results.Count() == 26);
+            Assert.IsTrue(results.Count() == expectedNumFiles);
         }
 
         [DataTestMethod]

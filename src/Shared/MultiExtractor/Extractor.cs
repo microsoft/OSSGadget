@@ -521,7 +521,7 @@ namespace Microsoft.CST.OpenSource.Shared
             IEnumerable<FileEntry> fileEntries = null;
             try
             {
-                fileEntries = ArArchiveFile.GetFileEntries(fileEntry)
+                fileEntries = ArArchiveFile.GetFileEntries(fileEntry);
             }
             catch (Exception e)
             {

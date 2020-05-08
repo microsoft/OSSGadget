@@ -521,7 +521,7 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// Extracts an .deb file contained in fileEntry.
+        /// Extracts a .deb file contained in fileEntry.
         /// </summary>
         /// <param name="fileEntry">FileEntry to extract</param>
         /// <returns>Extracted files</returns>
@@ -663,7 +663,7 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// Extracts an .ar (deb) file contained in fileEntry.
+        /// Extracts a .deb file contained in fileEntry.
         /// </summary>
         /// <param name="fileEntry">FileEntry to extract</param>
         /// <returns>Extracted files</returns>

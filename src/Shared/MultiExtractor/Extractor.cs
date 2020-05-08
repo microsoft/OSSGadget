@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Tar;
 using ICSharpCode.SharpZipLib.Zip;
@@ -159,7 +160,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="fileEntry">FileEntry to extract</param>
         /// <returns>Extracted files</returns>
-        public IEnumerable<FileEntry> ExtractFile(string filename)
+        public IEnumerable<FileEntry> ExtractFile(string filename, bool parallel = false)
         {
             if (!File.Exists(filename))
             {
@@ -171,7 +172,7 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 var fs = new FileStream(filename, FileMode.Open);
 
-                result = ExtractFile(new FileEntry(filename, "", fs));
+                result = ExtractFile(new FileEntry(filename, "", fs,),parallel);
             }
             catch(Exception e)
             {
@@ -188,11 +189,11 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="fileEntry">FileEntry to extract</param>
         /// <returns>Extracted files</returns>
-        public IEnumerable<FileEntry> ExtractFile(string filename, byte[] archiveBytes)
+        public IEnumerable<FileEntry> ExtractFile(string filename, byte[] archiveBytes, bool parallel = false)
         {
             using var memoryStream = new MemoryStream(archiveBytes);
             ResetResourceGovernor(memoryStream);
-            var result = ExtractFile(new FileEntry(filename, "", memoryStream));
+            var result = ExtractFile(new FileEntry(filename, "", memoryStream),parallel);
             return result;
         }
 
@@ -202,7 +203,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="fileEntry">FileEntry to extract</param>
         /// <returns>Extracted files</returns>
-        private IEnumerable<FileEntry> ExtractFile(FileEntry fileEntry)
+        private IEnumerable<FileEntry> ExtractFile(FileEntry fileEntry, bool parallel = false)
         {
             Logger.Trace("ExtractFile({0})", fileEntry.FullPath);
             var rawFileUsed = false;
@@ -216,7 +217,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 switch(fileEntryType)
                 {
                     case ArchiveFileType.ZIP:
-                        result = ExtractZipFile(fileEntry);
+                        result = parallel ? ParallelExtractZipFile(fileEntry) : ExtractZipFile(fileEntry);
                         break;
                     case ArchiveFileType.GZIP:
                         result = ExtractGZipFile(fileEntry);
@@ -231,13 +232,13 @@ namespace Microsoft.CST.OpenSource.Shared
                         result = ExtractBZip2File(fileEntry);
                         break;
                     case ArchiveFileType.RAR:
-                        result = ExtractRarFile(fileEntry);
+                        result = parallel ? ParallelExtractRarFile(fileEntry) : ExtractRarFile(fileEntry);
                         break;
                     case ArchiveFileType.P7ZIP:
-                        result = Extract7ZipFile(fileEntry);
+                        result = parallel ? ParallelExtract7ZipFile(fileEntry) : Extract7ZipFile(fileEntry);
                         break;
                     case ArchiveFileType.DEB:
-                        result = ExtractArFile(fileEntry);
+                        result = parallel ? ParallelExtractArFile(fileEntry) : ExtractArFile(fileEntry);
                         break;
                     default:
                         rawFileUsed = true;
@@ -550,7 +551,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="fileEntry">FileEntry to extract</param>
         /// <returns>Extracted files</returns>
-        public List<FileEntry> ParallelExtractRarFile(FileEntry fileEntry)
+        private List<FileEntry> ParallelExtractRarFile(FileEntry fileEntry)
         {
             List<FileEntry> files = new List<FileEntry>();
             RarArchive rarArchive = null;
@@ -570,10 +571,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     {
                         CheckResourceGovernor((long)entry.Size);
                         var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream());
-                        foreach (var extractedFile in ExtractFile(newFileEntry))
-                        {
-                            files.Add(extractedFile);
-                        }
+                        files.AddRange(ExtractFile(newFileEntry));
                     }
                 });
             }
@@ -585,7 +583,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="fileEntry">FileEntry to extract</param>
         /// <returns>Extracted files</returns>
-        public IEnumerable<FileEntry> ParallelExtractZipFile(FileEntry fileEntry)
+        private List<FileEntry> ParallelExtractZipFile(FileEntry fileEntry)
         {
             ZipFile zipFile = null;
             List<FileEntry> files = new List<FileEntry>();
@@ -618,6 +616,66 @@ namespace Microsoft.CST.OpenSource.Shared
                         var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, memoryStream);
                         files.AddRange(ExtractFile(newFileEntry));
                     }
+                });
+            }
+            return files;
+        }
+
+        /// <summary>
+        /// Extracts a 7-Zip file contained in fileEntry.
+        /// </summary>
+        /// <param name="fileEntry">FileEntry to extract</param>
+        /// <returns>Extracted files</returns>
+        private IEnumerable<FileEntry> ParallelExtract7ZipFile(FileEntry fileEntry)
+        {
+            SevenZipArchive sevenZipArchive = null;
+            List<FileEntry> files = new List<FileEntry>();
+            try
+            {
+                SevenZipArchive.Open(fileEntry.Content);
+            }
+            catch (Exception e)
+            {
+                Logger.Debug("Failed to extract 7Zip file {0} {1}", fileEntry.FullPath, e.GetType());
+            }
+            if (sevenZipArchive != null)
+            {
+                sevenZipArchive.Entries.AsParallel().ForAll(entry =>
+                {
+                    if (!entry.IsDirectory)
+                    {
+                        CheckResourceGovernor(entry.Size);
+                        var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream());
+                        files.AddRange(ExtractFile(newFileEntry));
+                    }
+                });
+            }
+            return files;
+        }
+
+        /// <summary>
+        /// Extracts an .ar (deb) file contained in fileEntry.
+        /// </summary>
+        /// <param name="fileEntry">FileEntry to extract</param>
+        /// <returns>Extracted files</returns>
+        private List<FileEntry> ParallelExtractArFile(FileEntry fileEntry)
+        {
+            List<FileEntry> files = new List<FileEntry>();
+            IEnumerable<FileEntry> fileEntries = null;
+            try
+            {
+                fileEntries = ArArchiveFile.GetFileEntries(fileEntry);
+            }
+            catch (Exception e)
+            {
+                Logger.Debug("Failed to extract 7Zip file {0} {1}", fileEntry.FullPath, e.GetType());
+            }
+            if (fileEntries != null)
+            {
+                fileEntries.AsParallel().ForAll(entry =>
+                {
+                    CheckResourceGovernor((long)entry.Content.Length);
+                    files.AddRange(ExtractFile(entry));
                 });
             }
             return files;

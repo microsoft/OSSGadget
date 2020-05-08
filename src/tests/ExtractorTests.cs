@@ -25,8 +25,8 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("Shared.tar.gz", true)]
         [DataRow("Shared.tar.xz", false)]
         [DataRow("Shared.tar.xz", true)]
-        //[DataRow("Shared.a", false)]
-        //[DataRow("Shared.a", true)]
+        [DataRow("Shared.a", false)]
+        [DataRow("Shared.a", true)]
         public void ExtractArchive(string fileName, bool parallel)
         {
             var extractor = new Extractor();

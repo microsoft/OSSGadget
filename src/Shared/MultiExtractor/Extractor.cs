@@ -535,7 +535,7 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 foreach (var entry in fileEntries)
                 {
-                    CheckResourceGovernor((long)entry.Content.Length);
+                    CheckResourceGovernor(entry.Content.Length);
                     foreach (var extractedFile in ExtractFile(entry))
                     {
                         yield return extractedFile;

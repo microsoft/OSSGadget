@@ -9,7 +9,6 @@ using System.Linq;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Tar;
 using ICSharpCode.SharpZipLib.Zip;
-using NLog.Fluent;
 using SharpCompress.Archives.GZip;
 using SharpCompress.Archives.Rar;
 using SharpCompress.Archives.SevenZip;

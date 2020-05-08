@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
@@ -113,7 +115,15 @@ namespace Microsoft.CST.OpenSource.Shared
                 // .deb - https://manpages.debian.org/unstable/dpkg-dev/deb.5.en.html
                 if (buffer[0] == 0x21 && buffer[1] == 0x3c && buffer[2] == 0x61 && buffer[3] == 0x72 && buffer[4] == 0x63 && buffer[5] == 0x68 && buffer[6] == 0x3e)
                 {
-                    return ArchiveFileType.DEB;
+                    var encoding = new ASCIIEncoding();
+                    if (encoding.GetString(buffer,68,4) == "2.0\n")
+                    {
+                        return ArchiveFileType.DEB;
+                    }
+                    else
+                    {
+                        // Some other kind of .ar
+                    }
                 }
             }
 

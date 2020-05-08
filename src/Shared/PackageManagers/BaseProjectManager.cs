@@ -261,7 +261,7 @@ namespace Microsoft.CST.OpenSource.Shared
             var extractor = new Extractor();
             //extractor.MaxExtractedBytes = 1000 * 1000 * 10;  // 10 MB maximum package size
 
-            foreach (var fileEntry in extractor.ExtractFile(directoryName, bytes))
+            foreach (var fileEntry in extractor.ExtractFile(directoryName, bytes, false))
             {
                 var fullPath = fileEntry.FullPath.Replace(':', Path.DirectorySeparatorChar);
 

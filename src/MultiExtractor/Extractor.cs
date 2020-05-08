@@ -150,7 +150,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
             if (CurrentOperationProcessedBytesLeft - additionalBytes <= 0)
             {
-                throw new OverflowException(string.Format($"Too many bytes extracted, exceeding limit."));
+                throw new OverflowException("Too many bytes extracted, exceeding limit.");
             }
         }
 
@@ -171,17 +171,14 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             try
             {
                 var fs = new FileStream(filename, FileMode.Open);
-
-                result = ExtractFile(new FileEntry(filename, "", fs,),parallel);
+                result = ExtractFile(new FileEntry(filename, "", fs), parallel);
+                ResetResourceGovernor(fs);
             }
-            catch(Exception e)
+            catch(Exception ex)
             {
-                Logger.Debug("Failed to extract file {0} {1}", filename, e.GetType());
+                Logger.Debug(ex, "Failed to extract file {0}", filename);
             }
 
-            using var memoryStream = new MemoryStream(fileContent);
-            ResetResourceGovernor(memoryStream);
-            var result = ExtractFile(new FileEntry(filename, "", memoryStream));
             return result;
         }
 

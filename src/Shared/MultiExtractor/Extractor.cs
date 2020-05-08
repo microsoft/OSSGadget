@@ -9,6 +9,7 @@ using System.Linq;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Tar;
 using ICSharpCode.SharpZipLib.Zip;
+using NLog.Fluent;
 using SharpCompress.Archives.GZip;
 using SharpCompress.Archives.Rar;
 using SharpCompress.Archives.SevenZip;
@@ -574,6 +575,7 @@ namespace Microsoft.CST.OpenSource.Shared
             if (rarArchive != null)
             {
                 var entries = rarArchive.Entries.ToList();
+                Logger.Debug("There are {0} entries in the .rar.",entries.Count);
                 entries.AsParallel().ForAll(entry =>
                 {
                     if (!entry.IsDirectory)

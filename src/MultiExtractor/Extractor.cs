@@ -6,11 +6,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Tar;
 using ICSharpCode.SharpZipLib.Zip;
-using NLog.Fluent;
 using SharpCompress.Archives.GZip;
 using SharpCompress.Archives.Rar;
 using SharpCompress.Archives.SevenZip;
@@ -170,9 +168,9 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             IEnumerable<FileEntry> result = null;
             try
             {
-                var fs = new FileStream(filename, FileMode.Open);
-                result = ExtractFile(new FileEntry(filename, "", fs), parallel);
-                ResetResourceGovernor(fs);
+                var ms = new MemoryStream(File.ReadAllBytes(filename));
+                ResetResourceGovernor(ms);
+                result = ExtractFile(new FileEntry(filename, "", ms),parallel);
             }
             catch(Exception ex)
             {
@@ -493,7 +491,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             SevenZipArchive sevenZipArchive = null;
             try
             {
-                SevenZipArchive.Open(fileEntry.Content);
+                sevenZipArchive = SevenZipArchive.Open(fileEntry.Content);
             }
             catch (Exception e)
             {
@@ -531,13 +529,13 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             catch (Exception e)
             {
-                Logger.Debug("Failed to extract 7Zip file {0} {1}", fileEntry.FullPath, e.GetType());
+                Logger.Debug("Failed to extract Ar file {0} {1}", fileEntry.FullPath, e.GetType());
             }
             if (fileEntries != null)
             {
                 foreach (var entry in fileEntries)
                 {
-                    CheckResourceGovernor((long)entry.Content.Length);
+                    CheckResourceGovernor(entry.Content.Length);
                     foreach (var extractedFile in ExtractFile(entry))
                     {
                         yield return extractedFile;
@@ -565,11 +563,12 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             if (rarArchive != null)
             {
-                rarArchive.Entries.AsParallel().ForAll(entry =>
+                var entries = rarArchive.Entries.ToList();
+                entries.AsParallel().ForAll(entry =>
                 {
                     if (!entry.IsDirectory)
                     {
-                        CheckResourceGovernor((long)entry.Size);
+                        CheckResourceGovernor(entry.Size);
                         var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream());
                         files.AddRange(ExtractFile(newFileEntry));
                     }
@@ -632,7 +631,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             List<FileEntry> files = new List<FileEntry>();
             try
             {
-                SevenZipArchive.Open(fileEntry.Content);
+                sevenZipArchive = SevenZipArchive.Open(fileEntry.Content);
             }
             catch (Exception e)
             {

@@ -268,16 +268,16 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// </summary>
         /// <param name="fileEntry"></param>
         /// <returns></returns>
-        private IEnumerable<FileEntry> ExtractGnuArFile(FileEntry fileEntry)
+        private List<FileEntry> ExtractGnuArFile(FileEntry fileEntry)
         {
-            IEnumerable<FileEntry> fileEntries = null;
+            List<FileEntry> fileEntries = null;
             try
             {
-                fileEntries = GnuArFile.GetFileEntries(fileEntry);
+                fileEntries = GnuArFile.GetFileEntries(fileEntry).ToList();
             }
             catch (Exception e)
             {
-                Logger.Debug("Failed to extract Deb file {0} {1}", fileEntry.FullPath, e.GetType());
+                Logger.Debug("Failed to extract Gnu Ar file {0} {1}", fileEntry.FullPath, e.GetType());
             }
             if (fileEntries != null)
             {
@@ -286,10 +286,16 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     CheckResourceGovernor(entry.Content.Length);
                     foreach (var extractedFile in ExtractFile(entry))
                     {
-                        yield return extractedFile;
+                        fileEntries.Add(extractedFile);
                     }
                 }
             }
+            // If we couldn't extract return the original
+            if (fileEntries == null)
+            {
+                return new List<FileEntry>() { fileEntry };
+            }
+            return fileEntries;
         }
 
         /// <summary>

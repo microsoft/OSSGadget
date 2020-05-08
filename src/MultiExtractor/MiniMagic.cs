@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 
 namespace Microsoft.CST.OpenSource.MultiExtractor
@@ -127,15 +126,14 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     // Some other kind of .ar
                     else
                     {
-                        using var reader = new StreamReader(fileEntry.Content, leaveOpen: true);
-                        // Skip magic string
-                        reader.ReadLine();
-                        // Get header
-                        var headerLine = reader.ReadLine();
-                        int.TryParse(headerLine.Split(' ').Last(), out int headerSize);
-                        if (headerSize > 0)
+                        byte[] headerBuffer = new byte[60];
+                        fileEntry.Content.Position = 8;
+                        fileEntry.Content.Read(headerBuffer, 0, 60);
+                        fileEntry.Content.Position = 0;
+                        var size = int.Parse(Encoding.ASCII.GetString(headerBuffer.AsSpan().Slice(48, 10))); // header size in bytes
+                        if (size > 0)
                         {
-                            if (headerLine.EndsWith('`'))
+                            if (headerBuffer[58]=='`')
                             {
                                 return ArchiveFileType.GNU_AR;
                             }

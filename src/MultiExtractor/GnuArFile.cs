@@ -35,47 +35,58 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     break;
                 }
                 var entryHeader = innerContent.Slice(0, 60);
-                var size = int.Parse(Encoding.ASCII.GetString(entryHeader.Slice(48, 10))); // header size in bytes
-
-                // Header with list of file names
-                if (entryHeader[0] == '/' && entryHeader[1] == '/')
+                if (int.TryParse(Encoding.ASCII.GetString(entryHeader.Slice(48, 10)), out int size))// header size in bytes
                 {
-                    var fileNameBytes = innerContent.Slice(60, size);
-                    var name = new StringBuilder();
-                    var index = 0;
-                    for (int i = 0; i< fileNameBytes.Length; i++)
+                    // Header with list of file names
+                    if (entryHeader[0] == '/' && entryHeader[1] == '/')
                     {
-                        if (fileNameBytes[i] == '/')
+                        var fileNameBytes = innerContent.Slice(60, size);
+                        var name = new StringBuilder();
+                        var index = 0;
+                        for (int i = 0; i < fileNameBytes.Length; i++)
                         {
-                            filenameLookup.Add(index, name.ToString());
-                            name.Clear();
-                            index = i + 1;
-                        }
-                        else
-                        {
-                            name.Append(fileNameBytes[i]);
+                            if (fileNameBytes[i] == '/')
+                            {
+                                filenameLookup.Add(index, name.ToString());
+                                name.Clear();
+                                // Skip the newline
+                                index = i + 2;
+                            }
+                            else if (fileNameBytes[i] == '\n')
+                            {
+                                continue;
+                            }
+                            else
+                            {
+                                name.Append((char)fileNameBytes[i]);
+                            }
                         }
                     }
+                    else
+                    {
+                        var filename = Encoding.ASCII.GetString(innerContent.Slice(0, 16)).Trim();  // filename is 16 bytes
+                        if (filename.StartsWith('/'))
+                        {
+                            if (int.TryParse(filename[1..], out int index))
+                            {
+                                try
+                                {
+                                    filename = filenameLookup[index];
+                                }
+                                catch (Exception) { }
+                            }
+                        }
+                        var entryContent = innerContent.Slice(60, size);
+                        using var entryStream = new MemoryStream(entryContent.ToArray());
+                        results.Add(new FileEntry(filename, fileEntry.FullPath, entryStream));
+                    }
+                    innerContent = innerContent[(60 + size)..];
                 }
                 else
                 {
-                    var filename = Encoding.ASCII.GetString(innerContent.Slice(0, 16)).Trim();  // filename is 16 bytes
-                    if (filename.StartsWith('/'))
-                    {
-                        if (int.TryParse(filename, out int index))
-                        {
-                            try
-                            {
-                                filename = filenameLookup[index];
-                            }
-                            catch (Exception) { }
-                        }
-                    }
-                    var entryContent = innerContent.Slice(60, size);
-                    using var entryStream = new MemoryStream(entryContent.ToArray());
-                    results.Add(new FileEntry(filename, fileEntry.FullPath, entryStream));
+                    // Not a valid header, we couldn't parse the file size.
+                    return results;
                 }
-                innerContent = innerContent[(60 + size)..];
             }
             return results;
         }

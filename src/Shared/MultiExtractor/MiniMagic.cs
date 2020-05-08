@@ -115,8 +115,12 @@ namespace Microsoft.CST.OpenSource.Shared
                 // .deb - https://manpages.debian.org/unstable/dpkg-dev/deb.5.en.html
                 if (buffer[0] == 0x21 && buffer[1] == 0x3c && buffer[2] == 0x61 && buffer[3] == 0x72 && buffer[4] == 0x63 && buffer[5] == 0x68 && buffer[6] == 0x3e)
                 {
+                    var miniBuffer = new byte[4];
+                    fileEntry.Content.Position = 68;
+                    fileEntry.Content.Read(miniBuffer, 0, 4);
+                    fileEntry.Content.Position = 0;
                     var encoding = new ASCIIEncoding();
-                    if (encoding.GetString(buffer,68,4) == "2.0\n")
+                    if (encoding.GetString(miniBuffer,0,4) == "2.0\n")
                     {
                         return ArchiveFileType.DEB;
                     }

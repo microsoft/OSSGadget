@@ -14,6 +14,8 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
      */
     public static class GnuArFile
     {
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
         // Simple method which returns a the file entries. We can't make this a continuation because
         // we're using spans.
         public static IEnumerable<FileEntry> GetFileEntries(FileEntry fileEntry)
@@ -65,7 +67,24 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     else
                     {
                         var filename = Encoding.ASCII.GetString(innerContent.Slice(0, 16)).Trim();  // filename is 16 bytes
-                        if (filename.StartsWith('/'))
+                        // TODO: If either of these lookup tables exist they should be first and indicate we can parallelize the rest of the lookups using the symbol table.
+                        if (filename.Equals('/'))
+                        {
+                            // TODO https://en.wikipedia.org/wiki/Ar_(Unix)#System_V_(or_GNU)_variant
+                            // System V symbol lookup table
+                            // N = 32 bit big endian integers (entries in table)
+                            // then N 32 bit big endian integers representing prositions in archive
+                            // then N \0 terminated strings "symbol name" (possibly filename)
+                        }
+                        else if (filename.Equals("/SYM64/"))
+                        {
+                            // TODO https://en.wikipedia.org/wiki/Ar_(Unix)#System_V_(or_GNU)_variant
+                            // GNU lookup table (archives larger than 4GB)
+                            // N = 64 bit big endian integers (entries in table)
+                            // then N 64 bit big endian integers representing prositions in archive
+                            // then N \0 terminated strings "symbol name" (possibly filename)
+                        }
+                        else if (filename.StartsWith('/'))
                         {
                             if (int.TryParse(filename[1..], out int index))
                             {
@@ -73,13 +92,19 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                                 {
                                     filename = filenameLookup[index];
                                 }
-                                catch (Exception) { }
+                                catch (Exception)
+                                {
+                                    Logger.Debug("Expected to find a filename at index {0}", index);
+                                }
                             }
                         }
                         var entryContent = innerContent.Slice(60, size);
                         using var entryStream = new MemoryStream(entryContent.ToArray());
                         results.Add(new FileEntry(filename, fileEntry.FullPath, entryStream));
                     }
+                    // Entries are padded on even byte boundaries
+                    // https://docs.oracle.com/cd/E36784_01/html/E36873/ar.h-3head.html
+                    size = size % 2 == 1 ? size + 1 : size;
                     innerContent = innerContent[(60 + size)..];
                 }
                 else

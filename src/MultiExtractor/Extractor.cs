@@ -274,7 +274,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             IEnumerable<FileEntry>? fileEntries = null;
             try
             {
-                fileEntries = GnuArFile.GetFileEntries(fileEntry).ToList();
+                fileEntries = GnuArFile.GetFileEntries(fileEntry);
             }
             catch (Exception e)
             {

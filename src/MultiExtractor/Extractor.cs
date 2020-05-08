@@ -238,6 +238,9 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     case ArchiveFileType.DEB:
                         result = parallel ? ParallelExtractDebFile(fileEntry) : ExtractDebFile(fileEntry);
                         break;
+                    case ArchiveFileType.GNU_AR:
+                        result = ExtractGnuArFile(fileEntry);
+                        break;
                     default:
                         rawFileUsed = true;
                         result = new[] { fileEntry };
@@ -258,6 +261,35 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 CurrentOperationProcessedBytesLeft -= fileEntry.Content.Length;
             }
             return result;
+        }
+
+        /// <summary>
+        /// Extracts an archive file created with GNU ar
+        /// </summary>
+        /// <param name="fileEntry"></param>
+        /// <returns></returns>
+        private IEnumerable<FileEntry> ExtractGnuArFile(FileEntry fileEntry)
+        {
+            IEnumerable<FileEntry> fileEntries = null;
+            try
+            {
+                fileEntries = GnuArFile.GetFileEntries(fileEntry);
+            }
+            catch (Exception e)
+            {
+                Logger.Debug("Failed to extract Deb file {0} {1}", fileEntry.FullPath, e.GetType());
+            }
+            if (fileEntries != null)
+            {
+                foreach (var entry in fileEntries)
+                {
+                    CheckResourceGovernor(entry.Content.Length);
+                    foreach (var extractedFile in ExtractFile(entry))
+                    {
+                        yield return extractedFile;
+                    }
+                }
+            }
         }
 
         /// <summary>

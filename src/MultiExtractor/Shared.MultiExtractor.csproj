@@ -4,7 +4,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>Microsoft.CST.OpenSource</RootNamespace>
     <Company>Microsoft Corporation</Company>
-    <Description>OSS Gadget - Characteristic Identifier</Description>
+    <Description>OSS Gadget - Recursive Multi-Format Extractor</Description>
     <Authors>Michael Scovetta</Authors>
     <RepositoryType>GitHub</RepositoryType>
     <RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>

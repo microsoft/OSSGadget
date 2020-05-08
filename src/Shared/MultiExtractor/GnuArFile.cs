@@ -17,12 +17,12 @@ namespace Microsoft.CST.OpenSource.Shared
         // we're using spans.
         public static IEnumerable<FileEntry> GetFileEntries(FileEntry fileEntry)
         {
+            var results = new List<FileEntry>();
+
             if (fileEntry == null)
             {
-                yield break;
+                return results;
             }
-
-            var results = new List<FileEntry>();
 
             // First, cut out the file signature (8 bytes)
             var innerContent = new Span<byte>(fileEntry.Content.ToArray(), 8, (int)fileEntry.Content.Length - 8);
@@ -72,10 +72,11 @@ namespace Microsoft.CST.OpenSource.Shared
                     }
                     var entryContent = innerContent.Slice(60, size);
                     using var entryStream = new MemoryStream(entryContent.ToArray());
-                    yield return new FileEntry(filename, fileEntry.FullPath, entryStream);                    
+                    results.Add(new FileEntry(filename, fileEntry.FullPath, entryStream));
                 }
                 innerContent = innerContent[(60 + size)..];
             }
+            return results;
         }
     }
 }

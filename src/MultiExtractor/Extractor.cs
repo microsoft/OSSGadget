@@ -6,9 +6,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Tar;
 using ICSharpCode.SharpZipLib.Zip;
+using NLog.Fluent;
 using SharpCompress.Archives.GZip;
 using SharpCompress.Archives.Rar;
 using SharpCompress.Archives.SevenZip;
@@ -158,25 +160,23 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// </summary>
         /// <param name="fileEntry">FileEntry to extract</param>
         /// <returns>Extracted files</returns>
-        public IEnumerable<FileEntry> ExtractFile(string filename)
+        public IEnumerable<FileEntry> ExtractFile(string filename, bool parallel = false)
         {
             if (!File.Exists(filename))
             {
                 Logger.Warn("ExtractFile called, but {0} does not exist.", filename);
                 return Array.Empty<FileEntry>();
             }
-
-            byte[] fileContent;
+            IEnumerable<FileEntry> result = null;
             try
             {
-                #pragma warning disable SEC0116 // Path Tampering Unvalidated File Path
-                fileContent = File.ReadAllBytes(filename);
-                #pragma warning restore SEC0116 // Path Tampering Unvalidated File Path
+                var fs = new FileStream(filename, FileMode.Open);
+
+                result = ExtractFile(new FileEntry(filename, "", fs,),parallel);
             }
-            catch (Exception ex)
+            catch(Exception e)
             {
-                Logger.Trace(ex, $"File {0} cannot be read, ignoring.", filename);
-                return Array.Empty<FileEntry>();
+                Logger.Debug("Failed to extract file {0} {1}", filename, e.GetType());
             }
 
             using var memoryStream = new MemoryStream(fileContent);
@@ -192,11 +192,11 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// </summary>
         /// <param name="fileEntry">FileEntry to extract</param>
         /// <returns>Extracted files</returns>
-        public IEnumerable<FileEntry> ExtractFile(string filename, byte[] archiveBytes)
+        public IEnumerable<FileEntry> ExtractFile(string filename, byte[] archiveBytes, bool parallel = false)
         {
             using var memoryStream = new MemoryStream(archiveBytes);
             ResetResourceGovernor(memoryStream);
-            var result = ExtractFile(new FileEntry(filename, "", memoryStream));
+            var result = ExtractFile(new FileEntry(filename, "", memoryStream),parallel);
             return result;
         }
 
@@ -206,7 +206,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// </summary>
         /// <param name="fileEntry">FileEntry to extract</param>
         /// <returns>Extracted files</returns>
-        private IEnumerable<FileEntry> ExtractFile(FileEntry fileEntry)
+        private IEnumerable<FileEntry> ExtractFile(FileEntry fileEntry, bool parallel = false)
         {
             Logger.Trace("ExtractFile({0})", fileEntry.FullPath);
             var rawFileUsed = false;
@@ -220,7 +220,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 switch(fileEntryType)
                 {
                     case ArchiveFileType.ZIP:
-                        result = ExtractZipFile(fileEntry);
+                        result = parallel ? ParallelExtractZipFile(fileEntry) : ExtractZipFile(fileEntry);
                         break;
                     case ArchiveFileType.GZIP:
                         result = ExtractGZipFile(fileEntry);
@@ -235,13 +235,13 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         result = ExtractBZip2File(fileEntry);
                         break;
                     case ArchiveFileType.RAR:
-                        result = ExtractRarFile(fileEntry);
+                        result = parallel ? ParallelExtractRarFile(fileEntry) : ExtractRarFile(fileEntry);
                         break;
                     case ArchiveFileType.P7ZIP:
-                        result = Extract7ZipFile(fileEntry);
+                        result = parallel ? ParallelExtract7ZipFile(fileEntry) : Extract7ZipFile(fileEntry);
                         break;
                     case ArchiveFileType.DEB:
-                        result = ExtractArFile(fileEntry);
+                        result = parallel ? ParallelExtractArFile(fileEntry) : ExtractArFile(fileEntry);
                         break;
                     default:
                         rawFileUsed = true;
@@ -272,25 +272,36 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns>Extracted files</returns>
         private IEnumerable<FileEntry> ExtractZipFile(FileEntry fileEntry)
         {
-            using var zipFile = new ZipFile(fileEntry.Content);
-            foreach (ZipEntry zipEntry in zipFile)
+            ZipFile zipFile = null;
+            try
             {
-                if (zipEntry.IsDirectory ||
-                    zipEntry.IsCrypted ||
-                    !zipEntry.CanDecompress)
+                zipFile = new ZipFile(fileEntry.Content);
+            }
+            catch(Exception e)
+            {
+                Logger.Debug("Failed to extract Zip file {0} {1}", fileEntry.FullPath, e.GetType());
+            }
+            if (zipFile != null)
+            {
+                foreach (ZipEntry zipEntry in zipFile)
                 {
-                    continue;
-                }
+                    if (zipEntry.IsDirectory ||
+                        zipEntry.IsCrypted ||
+                        !zipEntry.CanDecompress)
+                    {
+                        continue;
+                    }
 
-                using var memoryStream = new MemoryStream();
-                byte[] buffer = new byte[BUFFER_SIZE];
-                var zipStream = zipFile.GetInputStream(zipEntry);
-                StreamUtils.Copy(zipStream, memoryStream, buffer);
+                    using var memoryStream = new MemoryStream();
+                    byte[] buffer = new byte[BUFFER_SIZE];
+                    var zipStream = zipFile.GetInputStream(zipEntry);
+                    StreamUtils.Copy(zipStream, memoryStream, buffer);
 
-                var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, memoryStream);
-                foreach (var extractedFile in ExtractFile(newFileEntry))
-                {
-                    yield return extractedFile;
+                    var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, memoryStream);
+                    foreach (var extractedFile in ExtractFile(newFileEntry))
+                    {
+                        yield return extractedFile;
+                    }
                 }
             }
         }
@@ -304,25 +315,36 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns>Extracted files</returns>
         private IEnumerable<FileEntry> ExtractGZipFile(FileEntry fileEntry)
         {
-            using var gzipArchive = GZipArchive.Open(fileEntry.Content);
-            foreach (var entry in gzipArchive.Entries)
+            GZipArchive gzipArchive = null;
+            try
             {
-                if (entry.IsDirectory)
+                gzipArchive = GZipArchive.Open(fileEntry.Content);
+            }
+            catch (Exception e)
+            {
+                Logger.Debug("Failed to extract GZip file {0} {1}", fileEntry.FullPath, e.GetType());
+            }
+            if (gzipArchive != null)
+            {
+                foreach (var entry in gzipArchive.Entries)
                 {
-                    continue;
-                }
-                CheckResourceGovernor(entry.Size);
-                
-                var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
-                if (fileEntry.Name.EndsWith(".tgz", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    newFilename = newFilename[0..^4] + ".tar";
-                }
+                    if (entry.IsDirectory)
+                    {
+                        continue;
+                    }
+                    CheckResourceGovernor(entry.Size);
 
-                var newFileEntry = new FileEntry(newFilename, fileEntry.FullPath, entry.OpenEntryStream());
-                foreach (var extractedFile in ExtractFile(newFileEntry))
-                {
-                    yield return extractedFile;
+                    var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
+                    if (fileEntry.Name.EndsWith(".tgz", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        newFilename = newFilename[0..^4] + ".tar";
+                    }
+
+                    var newFileEntry = new FileEntry(newFilename, fileEntry.FullPath, entry.OpenEntryStream());
+                    foreach (var extractedFile in ExtractFile(newFileEntry))
+                    {
+                        yield return extractedFile;
+                    }
                 }
             }
         }
@@ -335,7 +357,15 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         private IEnumerable<FileEntry> ExtractTarFile(FileEntry fileEntry)
         {
             TarEntry tarEntry;
-            using var tarStream = new TarInputStream(fileEntry.Content);
+            TarInputStream tarStream = null;
+            try
+            {
+                tarStream = new TarInputStream(fileEntry.Content);
+            }
+            catch(Exception e)
+            {
+                Logger.Debug("Failed to extract Tar file {0} {1}", fileEntry.FullPath, e.GetType());
+            }
             while ((tarEntry = tarStream.GetNextEntry()) != null)
             {
                 if (tarEntry.IsDirectory)
@@ -361,22 +391,30 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns>Extracted files</returns>
         private IEnumerable<FileEntry> ExtractXZFile(FileEntry fileEntry)
         {
-            using var xzStream = new XZStream(fileEntry.Content);
             using var memoryStream = new MemoryStream();
 
-            // SharpCompress does not expose metadata without a full read,
-            // so we need to decompress first, and then abort if the bytes
-            // exceeded the governor's capacity.
-            xzStream.CopyTo(memoryStream);
-            
-            var streamLength = xzStream.Index.Records?.Select(r => r.UncompressedSize)
-                                                      .Aggregate((ulong?)0, (a, b) => a + b);
-
-            // BUG: Technically, we're casting a ulong to a long, but we don't expect
-            // 9 exabyte steams, so low risk.
-            if (streamLength.HasValue)
+            try
             {
-                CheckResourceGovernor((long)streamLength.Value);
+                using var xzStream = new XZStream(fileEntry.Content);
+
+                // SharpCompress does not expose metadata without a full read,
+                // so we need to decompress first, and then abort if the bytes
+                // exceeded the governor's capacity.
+                xzStream.CopyTo(memoryStream);
+
+                var streamLength = xzStream.Index.Records?.Select(r => r.UncompressedSize)
+                                          .Aggregate((ulong?)0, (a, b) => a + b);
+
+                // BUG: Technically, we're casting a ulong to a long, but we don't expect
+                // 9 exabyte steams, so low risk.
+                if (streamLength.HasValue)
+                {
+                    CheckResourceGovernor((long)streamLength.Value);
+                }
+            }
+            catch(Exception e)
+            {
+                Logger.Debug("Failed to extract XZ file {0} {1}", fileEntry.FullPath, e.GetType());
             }
 
             var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
@@ -394,10 +432,17 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns>Extracted files</returns>
         private IEnumerable<FileEntry> ExtractBZip2File(FileEntry fileEntry)
         {
-            using var bzip2Stream = new BZip2Stream(fileEntry.Content, SharpCompress.Compressors.CompressionMode.Decompress, false);
             using var memoryStream = new MemoryStream();
-            CheckResourceGovernor((long)bzip2Stream.Length);
-            bzip2Stream.CopyTo(memoryStream);
+            try
+            {
+                using var bzip2Stream = new BZip2Stream(fileEntry.Content, SharpCompress.Compressors.CompressionMode.Decompress, false);
+                CheckResourceGovernor((long)bzip2Stream.Length);
+                bzip2Stream.CopyTo(memoryStream);
+            }
+            catch(Exception e)
+            {
+                Logger.Debug("Failed to extract BZip2 file {0} {1}", fileEntry.FullPath, e.GetType());
+            }
 
             var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
             var newFileEntry = new FileEntry(newFilename, fileEntry.FullPath, memoryStream);
@@ -414,19 +459,29 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns>Extracted files</returns>
         private IEnumerable<FileEntry> ExtractRarFile(FileEntry fileEntry)
         {
-
-            using var rarArchive = RarArchive.Open(fileEntry.Content);
-            foreach (var entry in rarArchive.Entries)
+            RarArchive rarArchive = null;
+            try
             {
-                if (entry.IsDirectory)
+                rarArchive = RarArchive.Open(fileEntry.Content);
+            }
+            catch (Exception e)
+            {
+                Logger.Debug("Failed to extract Rar file {0} {1}", fileEntry.FullPath, e.GetType());
+            }
+            if (rarArchive != null)
+            {
+                foreach (var entry in rarArchive.Entries)
                 {
-                    continue;
-                }
-                CheckResourceGovernor((long)entry.Size);
-                var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream());
-                foreach (var extractedFile in ExtractFile(newFileEntry))
-                {
-                    yield return extractedFile;
+                    if (entry.IsDirectory)
+                    {
+                        continue;
+                    }
+                    CheckResourceGovernor((long)entry.Size);
+                    var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream());
+                    foreach (var extractedFile in ExtractFile(newFileEntry))
+                    {
+                        yield return extractedFile;
+                    }
                 }
             }
         }
@@ -438,18 +493,29 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns>Extracted files</returns>
         private IEnumerable<FileEntry> Extract7ZipFile(FileEntry fileEntry)
         {
-            using var sevenZipArchive = SevenZipArchive.Open(fileEntry.Content);
-            foreach (var entry in sevenZipArchive.Entries)
+            SevenZipArchive sevenZipArchive = null;
+            try
             {
-                if (entry.IsDirectory)
+                SevenZipArchive.Open(fileEntry.Content);
+            }
+            catch (Exception e)
+            {
+                Logger.Debug("Failed to extract 7Zip file {0} {1}", fileEntry.FullPath, e.GetType());
+            }
+            if (sevenZipArchive != null)
+            {
+                foreach (var entry in sevenZipArchive.Entries)
                 {
-                    continue;
-                }
-                CheckResourceGovernor(entry.Size);
-                var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream());
-                foreach (var extractedFile in ExtractFile(newFileEntry))
-                {
-                    yield return extractedFile;
+                    if (entry.IsDirectory)
+                    {
+                        continue;
+                    }
+                    CheckResourceGovernor(entry.Size);
+                    var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream());
+                    foreach (var extractedFile in ExtractFile(newFileEntry))
+                    {
+                        yield return extractedFile;
+                    }
                 }
             }
         }
@@ -461,14 +527,161 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns>Extracted files</returns>
         private IEnumerable<FileEntry> ExtractArFile(FileEntry fileEntry)
         {
-            foreach (var entry in ArArchiveFile.GetFileEntries(fileEntry))
+            IEnumerable<FileEntry> fileEntries = null;
+            try
             {
-                CheckResourceGovernor((long)entry.Content.Length);
-                foreach (var extractedFile in ExtractFile(entry))
+                fileEntries = ArArchiveFile.GetFileEntries(fileEntry);
+            }
+            catch (Exception e)
+            {
+                Logger.Debug("Failed to extract 7Zip file {0} {1}", fileEntry.FullPath, e.GetType());
+            }
+            if (fileEntries != null)
+            {
+                foreach (var entry in fileEntries)
                 {
-                    yield return extractedFile;
+                    CheckResourceGovernor((long)entry.Content.Length);
+                    foreach (var extractedFile in ExtractFile(entry))
+                    {
+                        yield return extractedFile;
+                    }
                 }
             }
+        }
+
+        /// <summary>
+        /// Extracts a RAR file contained in fileEntry.
+        /// </summary>
+        /// <param name="fileEntry">FileEntry to extract</param>
+        /// <returns>Extracted files</returns>
+        private List<FileEntry> ParallelExtractRarFile(FileEntry fileEntry)
+        {
+            List<FileEntry> files = new List<FileEntry>();
+            RarArchive rarArchive = null;
+            try
+            {
+                rarArchive = RarArchive.Open(fileEntry.Content);
+            }
+            catch (Exception e)
+            {
+                Logger.Debug("Failed to extract Rar file {0} {1}", fileEntry.FullPath, e.GetType());
+            }
+            if (rarArchive != null)
+            {
+                rarArchive.Entries.AsParallel().ForAll(entry =>
+                {
+                    if (!entry.IsDirectory)
+                    {
+                        CheckResourceGovernor((long)entry.Size);
+                        var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream());
+                        files.AddRange(ExtractFile(newFileEntry));
+                    }
+                });
+            }
+            return files;
+        }
+
+        /// <summary>
+        /// Extracts an zip file contained in fileEntry.
+        /// </summary>
+        /// <param name="fileEntry">FileEntry to extract</param>
+        /// <returns>Extracted files</returns>
+        private List<FileEntry> ParallelExtractZipFile(FileEntry fileEntry)
+        {
+            ZipFile zipFile = null;
+            List<FileEntry> files = new List<FileEntry>();
+            try
+            {
+                zipFile = new ZipFile(fileEntry.Content);
+            }
+            catch (Exception e)
+            {
+                Logger.Debug("Failed to extract Zip file {0} {1}", fileEntry.FullPath, e.GetType());
+            }
+            if (zipFile != null)
+            {
+                var zipEntries = new List<ZipEntry>();
+                foreach (ZipEntry zipEntry in zipFile)
+                {
+                    zipEntries.Add(zipEntry);
+                }
+                zipEntries.AsParallel().ForAll(zipEntry =>
+                {
+                    if (!zipEntry.IsDirectory &&
+                        !zipEntry.IsCrypted &&
+                        zipEntry.CanDecompress)
+                    {
+                        using var memoryStream = new MemoryStream();
+                        byte[] buffer = new byte[BUFFER_SIZE];
+                        var zipStream = zipFile.GetInputStream(zipEntry);
+                        StreamUtils.Copy(zipStream, memoryStream, buffer);
+
+                        var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, memoryStream);
+                        files.AddRange(ExtractFile(newFileEntry));
+                    }
+                });
+            }
+            return files;
+        }
+
+        /// <summary>
+        /// Extracts a 7-Zip file contained in fileEntry.
+        /// </summary>
+        /// <param name="fileEntry">FileEntry to extract</param>
+        /// <returns>Extracted files</returns>
+        private IEnumerable<FileEntry> ParallelExtract7ZipFile(FileEntry fileEntry)
+        {
+            SevenZipArchive sevenZipArchive = null;
+            List<FileEntry> files = new List<FileEntry>();
+            try
+            {
+                SevenZipArchive.Open(fileEntry.Content);
+            }
+            catch (Exception e)
+            {
+                Logger.Debug("Failed to extract 7Zip file {0} {1}", fileEntry.FullPath, e.GetType());
+            }
+            if (sevenZipArchive != null)
+            {
+                sevenZipArchive.Entries.AsParallel().ForAll(entry =>
+                {
+                    if (!entry.IsDirectory)
+                    {
+                        CheckResourceGovernor(entry.Size);
+                        var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream());
+                        files.AddRange(ExtractFile(newFileEntry));
+                    }
+                });
+            }
+            return files;
+        }
+
+        /// <summary>
+        /// Extracts an .ar (deb) file contained in fileEntry.
+        /// </summary>
+        /// <param name="fileEntry">FileEntry to extract</param>
+        /// <returns>Extracted files</returns>
+        private List<FileEntry> ParallelExtractArFile(FileEntry fileEntry)
+        {
+            List<FileEntry> files = new List<FileEntry>();
+            IEnumerable<FileEntry> fileEntries = null;
+            try
+            {
+                fileEntries = ArArchiveFile.GetFileEntries(fileEntry);
+            }
+            catch (Exception e)
+            {
+                Logger.Debug("Failed to extract 7Zip file {0} {1}", fileEntry.FullPath, e.GetType());
+            }
+            if (fileEntries != null)
+            {
+                fileEntries.AsParallel().ForAll(entry =>
+                {
+                    CheckResourceGovernor((long)entry.Content.Length);
+                    files.AddRange(ExtractFile(entry));
+                });
+            }
+            return files;
         }
     }
 }

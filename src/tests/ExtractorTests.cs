@@ -19,7 +19,6 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("Shared.Tar", false)]
         [DataRow("Shared.Tar", true)]
         [DataRow("Shared.rar", false)]
-        [DataRow("Shared.rar", true)]
         [DataRow("Shared.rar4", false)]
         [DataRow("Shared.rar4", true)]
         [DataRow("Shared.tar.bz2", false)]

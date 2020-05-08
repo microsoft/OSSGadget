@@ -236,7 +236,7 @@ namespace Microsoft.CST.OpenSource.Shared
                         result = parallel ? ParallelExtract7ZipFile(fileEntry) : Extract7ZipFile(fileEntry);
                         break;
                     case ArchiveFileType.DEB:
-                        result = parallel ? ParallelExtractArFile(fileEntry) : ExtractArFile(fileEntry);
+                        result = parallel ? ParallelExtractArFile(fileEntry) : ExtractDebFile(fileEntry);
                         break;
                     default:
                         rawFileUsed = true;
@@ -521,20 +521,20 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// Extracts an .ar (deb) file contained in fileEntry.
+        /// Extracts an .deb file contained in fileEntry.
         /// </summary>
         /// <param name="fileEntry">FileEntry to extract</param>
         /// <returns>Extracted files</returns>
-        private IEnumerable<FileEntry> ExtractArFile(FileEntry fileEntry)
+        private IEnumerable<FileEntry> ExtractDebFile(FileEntry fileEntry)
         {
             IEnumerable<FileEntry> fileEntries = null;
             try
             {
-                fileEntries = ArArchiveFile.GetFileEntries(fileEntry);
+                fileEntries = DebArchiveFile.GetFileEntries(fileEntry);
             }
             catch (Exception e)
             {
-                Logger.Debug("Failed to extract Ar file {0} {1}", fileEntry.FullPath, e.GetType());
+                Logger.Debug("Failed to extract Deb file {0} {1}", fileEntry.FullPath, e.GetType());
             }
             if (fileEntries != null)
             {
@@ -662,17 +662,17 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="fileEntry">FileEntry to extract</param>
         /// <returns>Extracted files</returns>
-        private List<FileEntry> ParallelExtractArFile(FileEntry fileEntry)
+        private List<FileEntry> ParallelExtractDebFile(FileEntry fileEntry)
         {
             List<FileEntry> files = new List<FileEntry>();
             IEnumerable<FileEntry> fileEntries = null;
             try
             {
-                fileEntries = ArArchiveFile.GetFileEntries(fileEntry);
+                fileEntries = DebArchiveFile.GetFileEntries(fileEntry);
             }
             catch (Exception e)
             {
-                Logger.Debug("Failed to extract 7Zip file {0} {1}", fileEntry.FullPath, e.GetType());
+                Logger.Debug("Failed to extract Deb file {0} {1}", fileEntry.FullPath, e.GetType());
             }
             if (fileEntries != null)
             {

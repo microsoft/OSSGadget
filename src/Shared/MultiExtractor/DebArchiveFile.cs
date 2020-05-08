@@ -7,11 +7,10 @@ using System.Text;
 namespace Microsoft.CST.OpenSource.Shared
 {
     /**
-     * Very simple implementation of an Ar format parser, needed for Debian .deb archives.
-     * Reference: https://en.wikipedia.org/wiki/Ar_(Unix)
+     * Very simple implementation of an .Deb format parser, needed for Debian .deb archives.
      * See: https://en.wikipedia.org/wiki/Deb_(file_format)#/media/File:Deb_File_Structure.svg
      */
-    public static class ArArchiveFile
+    public static class DebArchiveFile
     {
         // Simple method which returns a the file entries. We can't make this a continuation because
         // we're using spans.

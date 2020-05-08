@@ -25,8 +25,8 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("Shared.tar.gz", true)]
         [DataRow("Shared.tar.xz", false)]
         [DataRow("Shared.tar.xz", true)]
-        [DataRow("Shared.a", false)]
-        [DataRow("Shared.a", true)]
+        [DataRow("Shared.deb", false)]
+        [DataRow("Shared.deb", true)]
         public void ExtractArchive(string fileName, bool parallel)
         {
             var extractor = new Extractor();
@@ -44,7 +44,7 @@ namespace Microsoft.CST.OpenSource.Tests
             var extractor = new Extractor();
             var path = Path.Combine(Directory.GetCurrentDirectory(), "TestData", fileName);
             // 26 each times the number of sub archives
-            Assert.IsTrue(extractor.ExtractFile(path, parallel).Count() == 26 * 8);
+            Assert.IsTrue(extractor.ExtractFile(path, parallel).Count() == 26 * 9);
         }
     }
 }

@@ -236,7 +236,7 @@ namespace Microsoft.CST.OpenSource.Shared
                         result = parallel ? ParallelExtract7ZipFile(fileEntry) : Extract7ZipFile(fileEntry);
                         break;
                     case ArchiveFileType.DEB:
-                        result = parallel ? ParallelExtractArFile(fileEntry) : ExtractDebFile(fileEntry);
+                        result = parallel ? ParallelExtractDebFile(fileEntry) : ExtractDebFile(fileEntry);
                         break;
                     default:
                         rawFileUsed = true;
@@ -540,6 +540,11 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 foreach (var entry in fileEntries)
                 {
+                    if (entry.Name == "control.tar.xz")
+                    {
+                        // This is control information for debian and not part of the actual files
+                        continue;
+                    }
                     CheckResourceGovernor(entry.Content.Length);
                     foreach (var extractedFile in ExtractFile(entry))
                     {
@@ -678,8 +683,12 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 fileEntries.AsParallel().ForAll(entry =>
                 {
-                    CheckResourceGovernor((long)entry.Content.Length);
-                    files.AddRange(ExtractFile(entry));
+                    // This is control information for Debian's installer wizardy and not part of the actual files
+                    if (entry.Name != "control.tar.xz")
+                    {
+                        CheckResourceGovernor(entry.Content.Length);
+                        files.AddRange(ExtractFile(entry));
+                    }
                 });
             }
             return files;

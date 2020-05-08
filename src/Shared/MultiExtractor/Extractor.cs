@@ -170,9 +170,9 @@ namespace Microsoft.CST.OpenSource.Shared
             IEnumerable<FileEntry> result = null;
             try
             {
-                var fs = new FileStream(filename, FileMode.Open);
-
-                result = ExtractFile(new FileEntry(filename, "", fs,),parallel);
+                var ms = new MemoryStream(File.ReadAllBytes(filename));
+                ResetResourceGovernor(ms);
+                result = ExtractFile(new FileEntry(filename, "", ms),parallel);
             }
             catch(Exception e)
             {
@@ -493,7 +493,7 @@ namespace Microsoft.CST.OpenSource.Shared
             SevenZipArchive sevenZipArchive = null;
             try
             {
-                SevenZipArchive.Open(fileEntry.Content);
+                sevenZipArchive = SevenZipArchive.Open(fileEntry.Content);
             }
             catch (Exception e)
             {
@@ -632,7 +632,7 @@ namespace Microsoft.CST.OpenSource.Shared
             List<FileEntry> files = new List<FileEntry>();
             try
             {
-                SevenZipArchive.Open(fileEntry.Content);
+                sevenZipArchive = SevenZipArchive.Open(fileEntry.Content);
             }
             catch (Exception e)
             {

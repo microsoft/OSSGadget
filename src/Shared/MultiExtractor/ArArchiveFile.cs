@@ -9,6 +9,7 @@ namespace Microsoft.CST.OpenSource.Shared
     /**
      * Very simple implementation of an Ar format parser, needed for Debian .deb archives.
      * Reference: https://en.wikipedia.org/wiki/Ar_(Unix)
+     * See: https://en.wikipedia.org/wiki/Deb_(file_format)#/media/File:Deb_File_Structure.svg
      */
     public static class ArArchiveFile
     {
@@ -21,13 +22,13 @@ namespace Microsoft.CST.OpenSource.Shared
                 return Array.Empty<FileEntry>();
             }
 
-            // First, cut out the global file header (8 bytes)
-            var innerContent = new Span<byte>(fileEntry.Content.ToArray(), 8, (int)fileEntry.Content.Length - 8);
+            // First, cut out the file signature (8 bytes) and global header (64 bytes)
+            var innerContent = new Span<byte>(fileEntry.Content.ToArray(), 72, (int)fileEntry.Content.Length - 72);
             var results = new List<FileEntry>();
 
             while (true)
             {
-                if (innerContent.Length < 60)  // The header is 60 bytes
+                if (innerContent.Length < 60)  // The header for each file is 60 bytes
                 {
                     break;
                 }

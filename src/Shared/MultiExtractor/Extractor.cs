@@ -463,6 +463,7 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 Logger.Debug("Failed to extract Rar file {0} {1}", fileEntry.FullPath, e.GetType());
             }
+
             if (rarArchive != null)
             {
                 foreach (var entry in rarArchive.Entries)

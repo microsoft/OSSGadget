@@ -541,11 +541,11 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     {
                         continue;
                     }
-                    CheckResourceGovernor((long)entry.Size);
+                    CheckResourceGovernor(entry.Size);
                     FileEntry? newFileEntry = null;
                     try
                     {
-                        new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream());
+                        newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream());
                     }
                     catch (Exception e)
                     {
@@ -650,45 +650,43 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         {
             List<FileEntry> files = new List<FileEntry>();
             RarArchive? rarArchive = null;
+            List<RarArchiveEntry> entries = new List<RarArchiveEntry>();
             try
             {
                 rarArchive = RarArchive.Open(fileEntry.Content);
+                entries.AddRange(rarArchive.Entries);
             }
             catch (Exception e)
             {
                 Logger.Debug(DEBUG_STRING, ArchiveFileType.RAR, fileEntry.FullPath, string.Empty, e.GetType());
             }
-            if (rarArchive != null)
+
+            while (entries.Any())
             {
-                var entries = rarArchive.Entries.ToList();
-
-                while (entries.Count() > 0)
+                int batchSize = Math.Min(MAX_BATCH_SIZE, entries.Count());
+                entries.GetRange(0, batchSize).AsParallel().ForAll(entry =>
                 {
-                    int batchSize = Math.Min(MAX_BATCH_SIZE, entries.Count());
-                    entries.GetRange(0, batchSize).AsParallel().ForAll(entry =>
+                    if (!entry.IsDirectory && !entry.IsEncrypted)
                     {
-                        if (!entry.IsDirectory && !entry.IsEncrypted)
+                        CheckResourceGovernor(entry.Size);
+                        try
                         {
-                            CheckResourceGovernor(entry.Size);
-                            try
-                            {
-                                var stream = entry.OpenEntryStream();
-                                var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, stream);
-                                files.AddRange(ExtractFile(newFileEntry));
-                            }
-                            catch (Exception e)
-                            {
-                                Logger.Debug(DEBUG_STRING, ArchiveFileType.RAR, fileEntry.FullPath, entry.Key, e.GetType());
-                            }
+                            var stream = entry.OpenEntryStream();
+                            var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, stream);
+                            files.AddRange(ExtractFile(newFileEntry));
                         }
-                    });
-                    entries.RemoveRange(0, batchSize);
-
-                    while (files.Count > 0)
-                    {
-                        yield return files[0];
-                        files.RemoveAt(0);
+                        catch (Exception e)
+                        {
+                            Logger.Debug(DEBUG_STRING, ArchiveFileType.RAR, fileEntry.FullPath, entry.Key, e.GetType());
+                        }
                     }
+                });
+                entries.RemoveRange(0, batchSize);
+
+                while (files.Count > 0)
+                {
+                    yield return files[0];
+                    files.RemoveAt(0);
                 }
             }
         }

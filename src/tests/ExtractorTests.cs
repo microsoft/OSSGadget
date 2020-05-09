@@ -11,6 +11,11 @@ namespace Microsoft.CST.OpenSource.Tests
     [TestClass]
     public class ExtractorTests
     {
+        /// <summary>
+        /// Logger for interesting events.
+        /// </summary>
+        private readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
         [DataTestMethod]
         [DataRow("Shared.zip", false)]
         [DataRow("Shared.zip", true)]
@@ -39,6 +44,7 @@ namespace Microsoft.CST.OpenSource.Tests
             var extractor = new Extractor();
             var path = Path.Combine(Directory.GetCurrentDirectory(), "TestData", fileName);
             var results = extractor.ExtractFile(path, parallel);
+            Logger.Debug("Found {0}, expected {1}",results.Count(),expectedNumFiles);
             Assert.IsTrue(results.Count() == expectedNumFiles);
         }
 

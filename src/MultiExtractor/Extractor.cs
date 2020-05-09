@@ -231,8 +231,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         result = ExtractBZip2File(fileEntry);
                         break;
                     case ArchiveFileType.RAR:
-                        //result = parallel ? ParallelExtractRarFile(fileEntry) : ExtractRarFile(fileEntry);
-                        result = ExtractRarFile(fileEntry);
+                        result = parallel ? ParallelExtractRarFile(fileEntry) : ExtractRarFile(fileEntry);
                         break;
                     case ArchiveFileType.P7ZIP:
                         result = parallel ? ParallelExtract7ZipFile(fileEntry) : Extract7ZipFile(fileEntry);

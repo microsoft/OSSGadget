@@ -46,30 +46,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 {
                     break;
                 }
-                int startingSlice = 0;
 
-                var fullLine = Encoding.ASCII.GetString(innerContent.Slice(0, localHeaderSize));
-
-                // Dust off any leading whitespace
-                if (fullLine.TrimStart() != fullLine)
-                {
-                    bool toBreak = false;
-                    while (!toBreak)
-                    {
-                        if (innerContent.Length > startingSlice && innerContent[startingSlice] == '\r' || innerContent[startingSlice] == '\n')
-                        {
-                            startingSlice++;
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-                }
-
-                var entryHeader = innerContent.Slice(startingSlice, localHeaderSize);
-                var versionString = Encoding.ASCII.GetString(entryHeader.Slice(48, 10));
-                if (int.TryParse(Encoding.ASCII.GetString(entryHeader.Slice(48, 10)), out int size))// header size in bytes
+                var entryHeader = innerContent.Slice(0, localHeaderSize);
+                var versionString = Encoding.ASCII.GetString(entryHeader.Slice(48, 10)).Trim();
+                if (int.TryParse(versionString, out int size))// header size in bytes
                 {
                     // Header with list of file names
                     if (entryHeader[0] == '/' && entryHeader[1] == '/')
@@ -151,6 +131,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         using var entryStream = new MemoryStream(entryContent.ToArray());
                         results.Add(new FileEntry(filename, fileEntry.FullPath, entryStream));
                     }
+                    // Data ends on even blocks
                     size = size % 2 == 1 ? size + 1 : size;
                     innerContent = innerContent[(localHeaderSize + size)..];
                 }

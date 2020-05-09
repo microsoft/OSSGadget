@@ -25,6 +25,11 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         private const int BUFFER_SIZE = 32768;
 
         /// <summary>
+        /// The maximum number of items to take at once in the parallel extractors
+        /// </summary>
+        private const int MAX_BATCH_SIZE = 50;
+
+        /// <summary>
         /// By default, stop extracting if the total number of bytes
         /// seen is greater than this multiple of the original archive
         /// size. Used to avoid denial of service (zip bombs and the like).
@@ -607,7 +612,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             if (rarArchive != null)
             {
                 var entries = rarArchive.Entries.ToList();
-                int MAX_BATCH_SIZE = 50;
+
                 while (entries.Count() > 0)
                 {
                     int batchSize = Math.Min(MAX_BATCH_SIZE, entries.Count());
@@ -663,7 +668,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
                     zipEntries.Add(zipEntry);
                 }
-                int MAX_BATCH_SIZE = 50;
+
                 while (zipEntries.Count > 0)
                 {
                     int batchSize = Math.Min(MAX_BATCH_SIZE, zipEntries.Count);
@@ -707,7 +712,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             if (sevenZipArchive != null)
             {
-                int MAX_BATCH_SIZE = 50;
+
                 var entries = sevenZipArchive.Entries.ToList();
                 while (entries.Count() > 0)
                 {
@@ -751,7 +756,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             if (fileEntries != null)
             {
-                int MAX_BATCH_SIZE = 50;
+
                 var entries = fileEntries.ToList();
                 while (entries.Count() > 0)
                 {

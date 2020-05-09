@@ -31,7 +31,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             // TODO: This only supports < 4GB files because the span cannot be longer than int
             if (fileEntry.Content.Length > int.MaxValue)
             {
-                Logger.Debug("Could read entire archive. Larger than 32 byte number long. {0}:{1} is {2} bytes",fileEntry.FullPath,fileEntry.Name,fileEntry.Content.Length)
+                Logger.Debug("Could not read entire archive. Larger than 32 bit number can represent. Will attempt to read the first ~4GB {0}:{1} is {2} bytes", fileEntry.FullPath, fileEntry.Name, fileEntry.Content.Length);
             }
             var innerContent = new Span<byte>(fileEntry.Content.ToArray(), 8, (int)fileEntry.Content.Length - 8);
             var filenameLookup = new Dictionary<int, string>();
@@ -143,10 +143,11 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             // TODO https://en.wikipedia.org/wiki/Ar_(Unix)#System_V_(or_GNU)_variant
                             // GNU lookup table (archives larger than 4GB)
                             // N = 64 bit big endian integers (entries in table)
-                            // then N 64 bit big endian integers representing prositions in archive
+                            // then N 64 bit big endian integers representing positions in archive
                             // then N \0 terminated strings "symbol name" (possibly filename)
 
                             // This needs some other implementation as spans can only be int long
+                            Logger.Debug("64 bit lookup table .ars are not yet supported. {0}:{1}", fileEntry.FullPath, fileEntry.Name);
                         }
                         else if (filename.StartsWith('/'))
                         {

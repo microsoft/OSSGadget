@@ -268,7 +268,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// </summary>
         /// <param name="fileEntry"></param>
         /// <returns></returns>
-        private List<FileEntry> ExtractGnuArFile(FileEntry fileEntry)
+        private List<FileEntry> ExtractGnuArFile(FileEntry fileEntry, bool parallel)
         {
             List<FileEntry> fileEntries = null;
             try
@@ -284,7 +284,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 foreach (var entry in fileEntries)
                 {
                     CheckResourceGovernor(entry.Content.Length);
-                    foreach (var extractedFile in ExtractFile(entry))
+                    foreach (var extractedFile in ExtractFile(entry, parallel))
                     {
                         fileEntries.Add(extractedFile);
                     }
@@ -650,7 +650,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     {
                         CheckResourceGovernor(entry.Size);
                         var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream());
-                        files.AddRange(ExtractFile(newFileEntry, parallel));
+                        files.AddRange(ExtractFile(newFileEntry, true));
                     }
                 });
             }
@@ -693,7 +693,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         StreamUtils.Copy(zipStream, memoryStream, buffer);
 
                         var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, memoryStream);
-                        files.AddRange(ExtractFile(newFileEntry, parallel));
+                        files.AddRange(ExtractFile(newFileEntry, true));
                     }
                 });
             }
@@ -725,7 +725,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     {
                         CheckResourceGovernor(entry.Size);
                         var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream());
-                        files.AddRange(ExtractFile(newFileEntry, parallel));
+                        files.AddRange(ExtractFile(newFileEntry, true));
                     }
                 });
             }
@@ -757,7 +757,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     if (entry.Name != "control.tar.xz")
                     {
                         CheckResourceGovernor(entry.Content.Length);
-                        files.AddRange(ExtractFile(entry, parallel));
+                        files.AddRange(ExtractFile(entry, true));
                     }
                 });
             }

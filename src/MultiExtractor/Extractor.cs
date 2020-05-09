@@ -166,7 +166,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 Logger.Warn("ExtractFile called, but {0} does not exist.", filename);
                 return Array.Empty<FileEntry>();
             }
-            IEnumerable<FileEntry> result = null;
+            IEnumerable<FileEntry> result = Array.Empty<FileEntry>();
             try
             {
                 using var ms = new MemoryStream(File.ReadAllBytes(filename));
@@ -271,7 +271,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns></returns>
         private IEnumerable<FileEntry> ExtractGnuArFile(FileEntry fileEntry)
         {
-            IEnumerable<FileEntry> fileEntries = null;
+            IEnumerable<FileEntry>? fileEntries = null;
             try
             {
                 fileEntries = GnuArFile.GetFileEntries(fileEntry);
@@ -300,7 +300,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns>Extracted files</returns>
         private IEnumerable<FileEntry> ExtractZipFile(FileEntry fileEntry)
         {
-            ZipFile zipFile = null;
+            ZipFile? zipFile = null;
             try
             {
                 zipFile = new ZipFile(fileEntry.Content);
@@ -311,9 +311,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             if (zipFile != null)
             {
-                foreach (ZipEntry zipEntry in zipFile)
+                foreach (ZipEntry? zipEntry in zipFile)
                 {
-                    if (zipEntry.IsDirectory ||
+                    if (zipEntry is null ||
+                        zipEntry.IsDirectory ||
                         zipEntry.IsCrypted ||
                         !zipEntry.CanDecompress)
                     {
@@ -343,7 +344,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns>Extracted files</returns>
         private IEnumerable<FileEntry> ExtractGZipFile(FileEntry fileEntry)
         {
-            GZipArchive gzipArchive = null;
+            GZipArchive? gzipArchive = null;
             try
             {
                 gzipArchive = GZipArchive.Open(fileEntry.Content);
@@ -385,7 +386,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         private IEnumerable<FileEntry> ExtractTarFile(FileEntry fileEntry)
         {
             TarEntry tarEntry;
-            TarInputStream tarStream = null;
+            TarInputStream? tarStream = null;
             try
             {
                 tarStream = new TarInputStream(fileEntry.Content);
@@ -491,7 +492,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns>Extracted files</returns>
         private IEnumerable<FileEntry> ExtractRarFile(FileEntry fileEntry)
         {
-            RarArchive rarArchive = null;
+            RarArchive? rarArchive = null;
             try
             {
                 rarArchive = RarArchive.Open(fileEntry.Content);
@@ -526,7 +527,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns>Extracted files</returns>
         private IEnumerable<FileEntry> Extract7ZipFile(FileEntry fileEntry)
         {
-            SevenZipArchive sevenZipArchive = null;
+            SevenZipArchive? sevenZipArchive = null;
             try
             {
                 sevenZipArchive = SevenZipArchive.Open(fileEntry.Content);
@@ -560,7 +561,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns>Extracted files</returns>
         private IEnumerable<FileEntry> ExtractDebFile(FileEntry fileEntry)
         {
-            IEnumerable<FileEntry> fileEntries = null;
+            IEnumerable<FileEntry>? fileEntries = null;
             try
             {
                 fileEntries = DebArchiveFile.GetFileEntries(fileEntry);
@@ -595,7 +596,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         private List<FileEntry> ParallelExtractRarFile(FileEntry fileEntry)
         {
             List<FileEntry> files = new List<FileEntry>();
-            RarArchive rarArchive = null;
+            RarArchive? rarArchive = null;
             try
             {
                 rarArchive = RarArchive.Open(fileEntry.Content);
@@ -628,7 +629,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns>Extracted files</returns>
         private List<FileEntry> ParallelExtractZipFile(FileEntry fileEntry)
         {
-            ZipFile zipFile = null;
+            ZipFile? zipFile = null;
             List<FileEntry> files = new List<FileEntry>();
             try
             {
@@ -641,9 +642,12 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             if (zipFile != null)
             {
                 var zipEntries = new List<ZipEntry>();
-                foreach (ZipEntry zipEntry in zipFile)
+                foreach (ZipEntry? zipEntry in zipFile)
                 {
-                    zipEntries.Add(zipEntry);
+                    if (zipEntry != null)
+                    {
+                        zipEntries.Add(zipEntry);
+                    }
                 }
                 zipEntries.AsParallel().ForAll(zipEntry =>
                 {
@@ -671,7 +675,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns>Extracted files</returns>
         private IEnumerable<FileEntry> ParallelExtract7ZipFile(FileEntry fileEntry)
         {
-            SevenZipArchive sevenZipArchive = null;
+            SevenZipArchive? sevenZipArchive = null;
             List<FileEntry> files = new List<FileEntry>();
             try
             {
@@ -704,7 +708,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         private List<FileEntry> ParallelExtractDebFile(FileEntry fileEntry)
         {
             List<FileEntry> files = new List<FileEntry>();
-            IEnumerable<FileEntry> fileEntries = null;
+            IEnumerable<FileEntry>? fileEntries = null;
             try
             {
                 fileEntries = DebArchiveFile.GetFileEntries(fileEntry);

@@ -29,7 +29,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             // First, cut out the file signature (8 bytes)
             fileEntry.Content.Position = 8;
             var filenameLookup = new Dictionary<int, string>();
-            var headerBuffer = new Span<byte>(new byte[60]);
+            var headerBuffer = new byte[60];
             while (true)
             {
                 if (fileEntry.Content.Length - fileEntry.Content.Position < 60)  // The header for each file is 60 bytes
@@ -37,16 +37,15 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     break;
                 }
 
-                fileEntry.Content.Read(headerBuffer);
-                fileEntry.Content.Position += 60;
-                if (int.TryParse(Encoding.ASCII.GetString(headerBuffer.Slice(48, 10)), out int size))// header size in bytes
+                fileEntry.Content.Read(headerBuffer,0,60);
+                if (int.TryParse(Encoding.ASCII.GetString(headerBuffer[48..58]), out int size))// header size in bytes
                 {
                     // Header with list of file names
                     if (headerBuffer[0] == '/' && headerBuffer[1] == '/')
                     {
-                        var fileNamesBytes = new Span<byte>(new byte[size]);
-                        fileEntry.Content.Read(fileNamesBytes);
-                        fileEntry.Content.Position += size;
+                        var fileNamesBytes = new byte[size];
+                        fileEntry.Content.Read(fileNamesBytes,0,size);
+
                         var name = new StringBuilder();
                         var index = 0;
                         for (int i = 0; i < fileNamesBytes.Length; i++)
@@ -69,9 +68,8 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
                     else
                     {
-                        var fileNameBytes = new Span<byte>(new byte[16]);// filename is 16 bytes
-                        fileEntry.Content.Read(fileNameBytes);
-                        var filename = Encoding.ASCII.GetString(fileNameBytes).Trim();  
+
+                        var filename = Encoding.ASCII.GetString(headerBuffer[0..16]).Trim();  
 
                         if (filename.Equals('/'))
                         {
@@ -82,7 +80,6 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
                             var tableContents = new Span<byte>(new byte[size]);
                             fileEntry.Content.Read(tableContents);
-                            fileEntry.Content.Position += size;
 
                             var numEntries = IntFromBigEndianBytes(tableContents.Slice(0, 4).ToArray());
                             var filePositions = new int[numEntries];
@@ -111,14 +108,12 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             foreach (var entry in fileEntries)
                             {
                                 fileEntry.Content.Position = entry.Item1;
-                                fileEntry.Content.Read(headerBuffer);
-                                fileEntry.Content.Position += 60;
+                                fileEntry.Content.Read(headerBuffer,0,60);
 
-                                if (int.TryParse(Encoding.ASCII.GetString(headerBuffer.Slice(48, 10)), out int innerSize))// header size in bytes
+                                if (int.TryParse(Encoding.ASCII.GetString(headerBuffer[48..58]), out int innerSize))// header size in bytes
                                 {
                                     var entryContent = new byte[innerSize];
                                     fileEntry.Content.Read(entryContent);
-                                    fileEntry.Content.Position += innerSize;
 
                                     if (filename.StartsWith('/'))
                                     {
@@ -156,7 +151,6 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
                             var buffer = new byte[8];
                             fileEntry.Content.Read(buffer, 0, 8);
-                            fileEntry.Content.Position += 8;
 
                             var numEntries = Int64FromBigEndianBytes(buffer);
                             var filePositions = new long[numEntries];
@@ -164,7 +158,6 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             for (int i = 0; i < numEntries; i++)
                             {
                                 fileEntry.Content.Read(buffer, 0, 8);
-                                fileEntry.Content.Position += 8;
                                 filePositions[i] = Int64FromBigEndianBytes(buffer);
                             }
 
@@ -175,7 +168,6 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             while (fileEntry.Content.Position < size)
                             {
                                 fileEntry.Content.Read(buffer, 0, 1);
-                                fileEntry.Content.Position += 1;
                                 if (buffer[0] == '\0')
                                 {
                                     fileEntries.Add((filePositions[index++], sb.ToString()));
@@ -191,10 +183,9 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             {
                                 fileEntry.Content.Position = innerEntry.Item1;
 
-                                fileEntry.Content.Read(headerBuffer);
-                                fileEntry.Content.Position += 60;
+                                fileEntry.Content.Read(headerBuffer,0,60);
 
-                                if (int.TryParse(Encoding.ASCII.GetString(headerBuffer.Slice(48, 10)), out int innerSize))// header size in bytes
+                                if (int.TryParse(Encoding.ASCII.GetString(headerBuffer[48..58]), out int innerSize))// header size in bytes
                                 {
                                     if (filename.StartsWith('/'))
                                     {
@@ -223,9 +214,6 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         }
                         else if (filename.StartsWith('/'))
                         {
-                            fileEntry.Content.Read(headerBuffer);
-                            fileEntry.Content.Position += 60;
-
                             if (int.TryParse(filename[1..], out int index))
                             {
                                 try
@@ -240,7 +228,6 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
                             var bytes = new byte[size];
                             fileEntry.Content.Read(bytes, 0, size);
-                            fileEntry.Content.Position += size;
 
                             using var entryStream = new MemoryStream(bytes);
                             yield return new FileEntry(filename, fileEntry.FullPath, entryStream);
@@ -249,7 +236,6 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         {
                             var bytes = new byte[size];
                             fileEntry.Content.Read(bytes, 0, size);
-                            fileEntry.Content.Position += size;
 
                             using var entryStream = new MemoryStream(bytes);
                             yield return new FileEntry(filename, fileEntry.FullPath, entryStream);

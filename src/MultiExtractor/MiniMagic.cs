@@ -136,7 +136,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         if (size > 0)
                         {
                             // Defined ending characters for a header
-                            if (headerBuffer[58]=='`' && headerBuffer[58] == '\n')
+                            if (headerBuffer[58]=='`' && headerBuffer[59] == '\n')
                             {
                                 return ArchiveFileType.GNU_AR;
                             }

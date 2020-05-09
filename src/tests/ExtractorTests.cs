@@ -19,6 +19,7 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("Shared.Tar", false)]
         [DataRow("Shared.Tar", true)]
         [DataRow("Shared.rar", false)]
+        [DataRow("Shared.rar", true)]
         [DataRow("Shared.rar4", false)]
         [DataRow("Shared.rar4", true)]
         [DataRow("Shared.tar.bz2", false)]
@@ -51,7 +52,8 @@ namespace Microsoft.CST.OpenSource.Tests
         {
             var extractor = new Extractor();
             var path = Path.Combine(Directory.GetCurrentDirectory(), "TestData", fileName);
-            Assert.IsTrue(extractor.ExtractFile(path, parallel).Count() == expectedNumFiles);
+            var results = extractor.ExtractFile(path, parallel);
+            Assert.IsTrue(results.Count() == expectedNumFiles);
         }
     }
 }

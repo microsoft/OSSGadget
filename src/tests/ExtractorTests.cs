@@ -83,7 +83,8 @@ namespace Microsoft.CST.OpenSource.Tests
             // Or we should throw one of these overflow exceptions which occur when we are iterating
             catch (Exception e) when (
                     e is OverflowException
-                    || e is TimeoutException)
+                    || e is TimeoutException
+                    || e is IOException)
             {
                 return;
             }

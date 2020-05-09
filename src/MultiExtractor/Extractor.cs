@@ -24,6 +24,8 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// </summary>
         private const int BUFFER_SIZE = 32768;
 
+        private const string DEBUG_STRING = "Failed parsing {0}:{1} ({2})";
+
         /// <summary>
         /// The maximum number of items to take at once in the parallel extractors
         /// </summary>
@@ -282,7 +284,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             catch (Exception e)
             {
-                Logger.Debug("Failed to extract Gnu Ar file {0} {1}", fileEntry.FullPath, e.GetType());
+                Logger.Debug(DEBUG_STRING, fileEntry.FullPath, string.Empty, e.GetType());
             }
             if (fileEntries != null)
             {
@@ -311,7 +313,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             catch(Exception e)
             {
-                Logger.Debug("Failed to extract Zip file {0} {1}", fileEntry.FullPath, e.GetType());
+                Logger.Debug(DEBUG_STRING, fileEntry.FullPath, string.Empty, e.GetType());
             }
             if (zipFile != null)
             {
@@ -332,9 +334,9 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         var zipStream = zipFile.GetInputStream(zipEntry);
                         StreamUtils.Copy(zipStream, memoryStream, buffer);
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
-                        Logger.Debug("Failed to extract {0}:{1}", fileEntry.FullPath, zipEntry.Name);
+                        Logger.Debug(DEBUG_STRING, fileEntry.FullPath, zipEntry.Name, e.GetType());
                     }
 
                     var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, memoryStream);
@@ -362,7 +364,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             catch (Exception e)
             {
-                Logger.Debug("Failed to extract GZip file {0} {1}", fileEntry.FullPath, e.GetType());
+                Logger.Debug(DEBUG_STRING, fileEntry.FullPath, string.Empty, e.GetType());
             }
             if (gzipArchive != null)
             {
@@ -385,9 +387,9 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     {
                         newFileEntry = new FileEntry(newFilename, fileEntry.FullPath, entry.OpenEntryStream());
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
-                        Logger.Debug("Failed to extract {0}:{1}", fileEntry.FullPath, newFilename);
+                        Logger.Debug(DEBUG_STRING, fileEntry.FullPath, newFilename, e.GetType());
                     }
                     if (newFileEntry != null)
                     {
@@ -415,7 +417,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             catch(Exception e)
             {
-                Logger.Debug("Failed to extract Tar file {0} {1}", fileEntry.FullPath, e.GetType());
+                Logger.Debug(DEBUG_STRING, fileEntry.FullPath, string.Empty, e.GetType());
             }
             if (tarStream != null)
             {
@@ -469,7 +471,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             catch(Exception e)
             {
-                Logger.Debug("Failed to extract XZ file {0} {1}", fileEntry.FullPath, e.GetType());
+                Logger.Debug(DEBUG_STRING, fileEntry.FullPath, string.Empty, e.GetType());
             }
 
             var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
@@ -496,7 +498,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             catch(Exception e)
             {
-                Logger.Debug("Failed to extract BZip2 file {0} {1}", fileEntry.FullPath, e.GetType());
+                Logger.Debug(DEBUG_STRING, fileEntry.FullPath, string.Empty, e.GetType());
             }
 
             var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
@@ -521,7 +523,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             catch (Exception e)
             {
-                Logger.Debug("Failed to extract Rar file {0} {1}", fileEntry.FullPath, e.GetType());
+                Logger.Debug(DEBUG_STRING, fileEntry.FullPath, string.Empty, e.GetType());
             }
 
             if (rarArchive != null)
@@ -538,9 +540,9 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     {
                         new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream());
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
-                        Logger.Debug("Failed to extract {0}:{1}", fileEntry.FullPath, entry.Key);
+                        Logger.Debug(DEBUG_STRING, fileEntry.FullPath, entry.Key, e.GetType());
                     }
                     if (newFileEntry != null)
                     {
@@ -567,7 +569,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             catch (Exception e)
             {
-                Logger.Debug("Failed to extract 7Zip file {0} {1}", fileEntry.FullPath, e.GetType());
+                Logger.Debug(DEBUG_STRING, fileEntry.FullPath, string.Empty, e.GetType());
             }
             if (sevenZipArchive != null)
             {
@@ -583,9 +585,9 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     {
                          newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream());
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
-                        Logger.Debug("Failed to extract {0}:{1}", fileEntry.FullPath, entry.Key);
+                        Logger.Debug(DEBUG_STRING, fileEntry.FullPath, entry.Key, e.GetType());
                     }
                     if (newFileEntry != null)
                     {
@@ -612,7 +614,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             catch (Exception e)
             {
-                Logger.Debug("Failed to extract Deb file {0} {1}", fileEntry.FullPath, e.GetType());
+                Logger.Debug(DEBUG_STRING, fileEntry.FullPath, string.Empty, e.GetType());
             }
             if (fileEntries != null)
             {
@@ -647,7 +649,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             catch (Exception e)
             {
-                Logger.Debug("Failed to extract Rar file {0} {1}", fileEntry.FullPath, e.GetType());
+                Logger.Debug(DEBUG_STRING, fileEntry.FullPath, string.Empty, e.GetType());
             }
             if (rarArchive != null)
             {
@@ -667,9 +669,9 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                                 var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, stream);
                                 files.AddRange(ExtractFile(newFileEntry));
                             }
-                            catch (Exception)
+                            catch (Exception e)
                             {
-                                Logger.Debug("Failed to extract rar entry {0} of file {1}", entry.Key, fileEntry.FullPath);
+                                Logger.Debug(DEBUG_STRING, fileEntry.FullPath, entry.Key, e.GetType());
                             }
                         }
                     });
@@ -700,7 +702,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             catch (Exception e)
             {
-                Logger.Debug("Failed to extract Zip file {0} {1}", fileEntry.FullPath, e.GetType());
+                Logger.Debug(DEBUG_STRING, fileEntry.FullPath, string.Empty, e.GetType());
             }
             if (zipFile != null)
             {
@@ -732,9 +734,9 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, memoryStream);
                             files.AddRange(ExtractFile(newFileEntry, true));
                         }
-                        catch(Exception)
+                        catch(Exception e)
                         {
-                            Logger.Debug("Failed to extract {0}:{1}", fileEntry.FullPath, zipEntry.Name);
+                            Logger.Debug(DEBUG_STRING, fileEntry.FullPath, zipEntry.Name, e.GetType());
                         }
                     });
                     zipEntries.RemoveRange(0, batchSize);
@@ -763,7 +765,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             catch (Exception e)
             {
-                Logger.Debug("Failed to extract 7Zip file {0} {1}", fileEntry.FullPath, e.GetType());
+                Logger.Debug(DEBUG_STRING, fileEntry.FullPath, string.Empty, e.GetType());
             }
             if (sevenZipArchive != null)
             {
@@ -783,9 +785,9 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                                 var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, stream);
                                 files.AddRange(ExtractFile(newFileEntry));
                             }
-                            catch (Exception)
+                            catch (Exception e)
                             {
-                                Logger.Debug("Failed to extract {0}:{1}", fileEntry.FullPath, entry.Key);
+                                Logger.Debug(DEBUG_STRING, fileEntry.FullPath, entry.Key, e.GetType());
                             }
                         }
                     });
@@ -815,7 +817,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             catch (Exception e)
             {
-                Logger.Debug("Failed to extract Deb file {0} {1}", fileEntry.FullPath, e.GetType());
+                Logger.Debug(DEBUG_STRING, fileEntry.FullPath, string.Empty, e.GetType());
             }
             if (fileEntries != null)
             {

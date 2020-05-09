@@ -621,8 +621,16 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         if (!entry.IsDirectory && !entry.IsEncrypted)
                         {
                             CheckResourceGovernor(entry.Size);
-                            var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream());
-                            files.AddRange(ExtractFile(newFileEntry));
+                            try
+                            {
+                                var stream = entry.OpenEntryStream();
+                                var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, stream);
+                                files.AddRange(ExtractFile(newFileEntry));
+                            }
+                            catch (Exception)
+                            {
+                                Logger.Debug("Failed to extract rar entry {0}", entry.Key);
+                            }
                         }
                     });
                     entries.RemoveRange(0, batchSize);

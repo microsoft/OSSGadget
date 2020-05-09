@@ -592,7 +592,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// </summary>
         /// <param name="fileEntry">FileEntry to extract</param>
         /// <returns>Extracted files</returns>
-        private List<FileEntry> ParallelExtractRarFile(FileEntry fileEntry)
+        private IEnumerable<FileEntry> ParallelExtractRarFile(FileEntry fileEntry)
         {
             List<FileEntry> files = new List<FileEntry>();
             RarArchive? rarArchive = null;
@@ -607,18 +607,28 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             if (rarArchive != null)
             {
                 var entries = rarArchive.Entries.ToList();
-                Logger.Debug("There are {0} entries in the .rar.",entries.Count);
-                entries.AsParallel().ForAll(entry =>
+                int MAX_BATCH_SIZE = 50;
+                while (entries.Count() > 0)
                 {
-                    if (!entry.IsDirectory)
+                    int batchSize = Math.Min(MAX_BATCH_SIZE, entries.Count());
+                    entries.GetRange(0, batchSize).AsParallel().ForAll(entry =>
                     {
-                        CheckResourceGovernor(entry.Size);
-                        var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream());
-                        files.AddRange(ExtractFile(newFileEntry));
+                        if (!entry.IsDirectory && !entry.IsEncrypted)
+                        {
+                            CheckResourceGovernor(entry.Size);
+                            var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream());
+                            files.AddRange(ExtractFile(newFileEntry));
+                        }
+                    });
+                    entries.RemoveRange(0, batchSize);
+
+                    while (files.Count > 0)
+                    {
+                        yield return files[0];
+                        files.RemoveAt(0);
                     }
-                });
+                }
             }
-            return files;
         }
 
         /// <summary>
@@ -644,45 +654,31 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 var zipEntries = new List<ZipEntry>();
                 foreach (ZipEntry? zipEntry in zipFile)
                 {
-                    if (zipEntry != null)
+                    if (zipEntry is null ||
+                        zipEntry.IsDirectory ||
+                        zipEntry.IsCrypted ||
+                        !zipEntry.CanDecompress)
                     {
-                        zipEntries.Add(zipEntry);
+                        continue;
                     }
+                    zipEntries.Add(zipEntry);
                 }
-                int MIN_BATCH_SIZE = 10;
                 int MAX_BATCH_SIZE = 50;
                 while (zipEntries.Count > 0)
                 {
-                    if (zipEntries.Count > MIN_BATCH_SIZE)
+                    int batchSize = Math.Min(MAX_BATCH_SIZE, zipEntries.Count);
+                    zipEntries.GetRange(0,batchSize).AsParallel().ForAll(zipEntry =>
                     {
-                        int batchSize = Math.Min(MAX_BATCH_SIZE, zipEntries.Count);
-                        zipEntries.GetRange(0,batchSize).AsParallel().ForAll(zipEntry =>
-                        {
-                            using var memoryStream = new MemoryStream();
-                            byte[] buffer = new byte[BUFFER_SIZE];
-                            var zipStream = zipFile.GetInputStream(zipEntry);
-                            StreamUtils.Copy(zipStream, memoryStream, buffer);
-                            var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, memoryStream);
-                            files.AddRange(ExtractFile(newFileEntry, true));
-                        });
-                        zipEntries.RemoveRange(0, batchSize);
-                    }
-                    else
-                    {
-                        foreach (var zipEntry in zipEntries)
-                        {
-                            using var memoryStream = new MemoryStream();
-                            byte[] buffer = new byte[BUFFER_SIZE];
-                            var zipStream = zipFile.GetInputStream(zipEntry);
-                            StreamUtils.Copy(zipStream, memoryStream, buffer);
-                            var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, memoryStream);
-                            foreach (var extractedFile in ExtractFile(newFileEntry, true))
-                            {
-                                yield return extractedFile;
-                            }
-                        }
-                        zipEntries.Clear();
-                    }
+
+                        using var memoryStream = new MemoryStream();
+                        byte[] buffer = new byte[BUFFER_SIZE];
+                        var zipStream = zipFile.GetInputStream(zipEntry);
+                        StreamUtils.Copy(zipStream, memoryStream, buffer);
+                        var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, memoryStream);
+                        files.AddRange(ExtractFile(newFileEntry, true));
+                    });
+                    zipEntries.RemoveRange(0, batchSize);
+                    
                     while (files.Count > 0)
                     {
                         yield return files[0];
@@ -711,17 +707,29 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             if (sevenZipArchive != null)
             {
-                sevenZipArchive.Entries.AsParallel().ForAll(entry =>
+                int MAX_BATCH_SIZE = 50;
+                var entries = sevenZipArchive.Entries.ToList();
+                while (entries.Count() > 0)
                 {
-                    if (!entry.IsDirectory)
+                    int batchSize = Math.Min(MAX_BATCH_SIZE, entries.Count());
+                    entries.GetRange(0, batchSize).AsParallel().ForAll(entry =>
                     {
-                        CheckResourceGovernor(entry.Size);
-                        var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream());
-                        files.AddRange(ExtractFile(newFileEntry));
+                        if (!entry.IsDirectory && !entry.IsEncrypted)
+                        {
+                            CheckResourceGovernor(entry.Size);
+                            var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream());
+                            files.AddRange(ExtractFile(newFileEntry));
+                        }
+                    });
+                    entries.RemoveRange(0, batchSize);
+
+                    while (files.Count > 0)
+                    {
+                        yield return files[0];
+                        files.RemoveAt(0);
                     }
-                });
+                }
             }
-            return files;
         }
 
         /// <summary>
@@ -729,7 +737,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// </summary>
         /// <param name="fileEntry">FileEntry to extract</param>
         /// <returns>Extracted files</returns>
-        private List<FileEntry> ParallelExtractDebFile(FileEntry fileEntry)
+        private IEnumerable<FileEntry> ParallelExtractDebFile(FileEntry fileEntry)
         {
             List<FileEntry> files = new List<FileEntry>();
             IEnumerable<FileEntry>? fileEntries = null;
@@ -743,17 +751,29 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             if (fileEntries != null)
             {
-                fileEntries.AsParallel().ForAll(entry =>
+                int MAX_BATCH_SIZE = 50;
+                var entries = fileEntries.ToList();
+                while (fileEntries.Count() > 0)
                 {
-                    // This is control information for Debian's installer wizardy and not part of the actual files
-                    if (entry.Name != "control.tar.xz")
+                    int batchSize = Math.Min(MAX_BATCH_SIZE, entries.Count());
+                    entries.GetRange(0, batchSize).AsParallel().ForAll(entry =>
                     {
-                        CheckResourceGovernor(entry.Content.Length);
-                        files.AddRange(ExtractFile(entry));
+                        // This is control information for Debian's installer wizardy and not part of the actual files
+                        if (entry.Name != "control.tar.xz")
+                        {
+                            CheckResourceGovernor(entry.Content.Length);
+                            files.AddRange(ExtractFile(entry));
+                        }
+                    });
+                    entries.RemoveRange(0, batchSize);
+
+                    while (files.Count > 0)
+                    {
+                        yield return files[0];
+                        files.RemoveAt(0);
                     }
-                });
+                }                
             }
-            return files;
         }
     }
 }

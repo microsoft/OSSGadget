@@ -753,7 +753,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             {
                 int MAX_BATCH_SIZE = 50;
                 var entries = fileEntries.ToList();
-                while (fileEntries.Count() > 0)
+                while (entries.Count() > 0)
                 {
                     int batchSize = Math.Min(MAX_BATCH_SIZE, entries.Count());
                     entries.GetRange(0, batchSize).AsParallel().ForAll(entry =>

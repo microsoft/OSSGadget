@@ -126,8 +126,18 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     // Some other kind of .ar
                     else
                     {
+                        // Windows
+                        if (buffer[7] == '\r')
+                        {
+                            // TODO: Support Windows /r/n formatted .ars
+                            return ArchiveFileType.UNKNOWN;
+                            fileEntry.Content.Position = 9;
+                        }
+                        else
+                        {
+                            fileEntry.Content.Position = 8;
+                        }
                         byte[] headerBuffer = new byte[60];
-                        fileEntry.Content.Position = 8;
                         fileEntry.Content.Read(headerBuffer, 0, 60);
                         fileEntry.Content.Position = 0;
                         var size = int.Parse(Encoding.ASCII.GetString(headerBuffer.AsSpan().Slice(48, 10))); // header size in bytes

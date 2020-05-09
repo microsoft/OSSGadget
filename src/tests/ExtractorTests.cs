@@ -29,10 +29,11 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("Shared.tar.xz", true)]
         [DataRow("sysvbanner_1.0-17fakesync1_amd64.deb", true, 6)]
         [DataRow("sysvbanner_1.0-17fakesync1_amd64.deb", false, 6)]
-        [DataRow("Shared.a", false, 1)]
-        [DataRow("Shared.a", true, 1)]
         [DataRow("Shared.deb", false)]
         [DataRow("Shared.deb", true)]
+        [DataRow("Shared.ar", false)]
+        [DataRow("Shared.ar", true)]
+
         public void ExtractArchive(string fileName, bool parallel, int expectedNumFiles = 26)
         {
             var extractor = new Extractor();
@@ -42,8 +43,8 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         [DataTestMethod]
-        [DataRow("Nested.Zip", false, 26 * 9)]
-        [DataRow("Nested.Zip", true, 26 * 9)]
+        [DataRow("Nested.Zip", false, 26 * 10)]
+        [DataRow("Nested.Zip", true, 26 * 10)]
 
         public void ExtractNestedArchive(string fileName, bool parallel, int expectedNumFiles)
         {

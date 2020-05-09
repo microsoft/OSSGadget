@@ -37,6 +37,9 @@
     <None Update="TestData\Shared.a">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="TestData\Shared.ar">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="TestData\Shared.deb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

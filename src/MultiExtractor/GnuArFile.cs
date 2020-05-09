@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using NLog.Fluent;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -28,45 +29,86 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
 
             // First, cut out the file signature (8 bytes)
-            var innerContent = new Span<byte>(fileEntry.Content.ToArray(), 8, (int)fileEntry.Content.Length - 8);
+            var content = new Span<byte>(fileEntry.Content.ToArray());
+            (int globalHeaderSize, int localHeaderSize) = (8, 60);
+            if (content[7] == '\r')
+            {
+                Logger.Debug("Couldn't parse Windows formatted .ar file.");
+                return results;
+                // Windows format
+                (globalHeaderSize, localHeaderSize) = (9, 61);
+            }
+            var innerContent = content.Slice(globalHeaderSize);
             var filenameLookup = new Dictionary<int, string>();
             while (true)
             {
-                if (innerContent.Length < 60)  // The header for each file is 60 bytes
+                if (innerContent.Length < localHeaderSize)  // The header for each file is 60 bytes
                 {
                     break;
                 }
-                var entryHeader = innerContent.Slice(0, 60);
+                int startingSlice = 0;
+
+                var fullLine = Encoding.ASCII.GetString(innerContent.Slice(0, localHeaderSize));
+
+                // Dust off any leading whitespace
+                if (fullLine.TrimStart() != fullLine)
+                {
+                    bool toBreak = false;
+                    while (!toBreak)
+                    {
+                        if (innerContent.Length > startingSlice && innerContent[startingSlice] == '\r' || innerContent[startingSlice] == '\n')
+                        {
+                            startingSlice++;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                var entryHeader = innerContent.Slice(startingSlice, localHeaderSize);
+                var versionString = Encoding.ASCII.GetString(entryHeader.Slice(48, 10));
                 if (int.TryParse(Encoding.ASCII.GetString(entryHeader.Slice(48, 10)), out int size))// header size in bytes
                 {
                     // Header with list of file names
                     if (entryHeader[0] == '/' && entryHeader[1] == '/')
                     {
-                        var fileNameBytes = innerContent.Slice(60, size);
+                        var fileNameBytes = innerContent.Slice(localHeaderSize, size);
                         var name = new StringBuilder();
                         var index = 0;
-                        for (int i = 0; i < fileNameBytes.Length; i++)
+                        var currentByte = 0;
+                        var initialLength = fileNameBytes.Length;
+                        while (currentByte < size)
                         {
-                            if (fileNameBytes[i] == '/')
+                            if (fileNameBytes[currentByte] == '/')
                             {
                                 filenameLookup.Add(index, name.ToString());
                                 name.Clear();
-                                // Skip the newline
-                                index = i + 2;
                             }
-                            else if (fileNameBytes[i] == '\n')
+                            else if (fileNameBytes[currentByte] == '\r')
                             {
-                                continue;
+                                // GNU Ar on windows adds /r/n and doesn't count the /r.
+                                // Everytime we encounter an \r we have to bump up the size by one to account for it
+                                fileNameBytes = innerContent.Slice(localHeaderSize, ++size);
+                            }
+                            else if (fileNameBytes[currentByte] == '\n')
+                            {
+                                // Update the index for looking up the tags later
+                                // We Adjust the index by the number of \r we've seen (size - initialLength).  
+                                // These are present in Windows generated AR file but are not counted in the size specified in the header
+                                index = currentByte + 1 - (size - initialLength);
                             }
                             else
                             {
-                                name.Append((char)fileNameBytes[i]);
+                                name.Append((char)fileNameBytes[currentByte]);
                             }
+                            currentByte++;
                         }
                     }
                     else
                     {
-                        var filename = Encoding.ASCII.GetString(innerContent.Slice(0, 16)).Trim();  // filename is 16 bytes
+                        var filename = Encoding.ASCII.GetString(innerContent.Slice(0, 16)).TrimEnd();  // filename is 16 bytes
                         // TODO: If either of these lookup tables exist they should be first and indicate we can parallelize the rest of the lookups using the symbol table.
                         if (filename.Equals('/'))
                         {
@@ -98,14 +140,16 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                                 }
                             }
                         }
-                        var entryContent = innerContent.Slice(60, size);
+                        else if (filename.EndsWith('/'))
+                        {
+                            filename = filename[0..^1];
+                        }
+                        var entryContent = innerContent.Slice(localHeaderSize, size);
                         using var entryStream = new MemoryStream(entryContent.ToArray());
                         results.Add(new FileEntry(filename, fileEntry.FullPath, entryStream));
                     }
-                    // Entries are padded on even byte boundaries
-                    // https://docs.oracle.com/cd/E36784_01/html/E36873/ar.h-3head.html
                     size = size % 2 == 1 ? size + 1 : size;
-                    innerContent = innerContent[(60 + size)..];
+                    innerContent = innerContent[(localHeaderSize + size)..];
                 }
                 else
                 {

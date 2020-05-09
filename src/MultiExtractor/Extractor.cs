@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Tar;
 using ICSharpCode.SharpZipLib.Zip;
@@ -268,12 +269,12 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// </summary>
         /// <param name="fileEntry"></param>
         /// <returns></returns>
-        private List<FileEntry> ExtractGnuArFile(FileEntry fileEntry)
+        private IEnumerable<FileEntry> ExtractGnuArFile(FileEntry fileEntry)
         {
-            List<FileEntry> fileEntries = null;
+            IEnumerable<FileEntry> fileEntries = null;
             try
             {
-                fileEntries = GnuArFile.GetFileEntries(fileEntry).ToList();
+                fileEntries = GnuArFile.GetFileEntries(fileEntry);
             }
             catch (Exception e)
             {
@@ -286,16 +287,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     CheckResourceGovernor(entry.Content.Length);
                     foreach (var extractedFile in ExtractFile(entry))
                     {
-                        fileEntries.Add(extractedFile);
+                        yield return extractedFile;
                     }
                 }
             }
-            // If we couldn't extract return the original
-            if (fileEntries == null)
-            {
-                return new List<FileEntry>() { fileEntry };
-            }
-            return fileEntries;
         }
 
         /// <summary>

@@ -666,7 +666,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 int batchSize = Math.Min(MAX_BATCH_SIZE, entries.Count());
                 entries.GetRange(0, batchSize).AsParallel().ForAll(entry =>
                 {
-                    if (!entry.IsDirectory && !entry.IsEncrypted)
+                    if (!entry.IsDirectory && !entry.IsEncrypted && entry.IsComplete)
                     {
                         CheckResourceGovernor(entry.Size);
                         try

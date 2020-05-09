@@ -33,6 +33,8 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("Shared.a", true, 1)]
         [DataRow("Shared.deb", false)]
         [DataRow("Shared.deb", true)]
+        [DataRow("Shared.ar", false)]
+        [DataRow("Shared.ar", true)]
         public void ExtractArchive(string fileName, bool parallel, int expectedNumFiles = 26)
         {
             var extractor = new Extractor();

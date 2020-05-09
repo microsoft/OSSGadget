@@ -417,8 +417,8 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         yield return extractedFile;
                     }
                 }
-                tarStream.Dispose();
             }
+            tarStream?.Dispose();
         }
 
         /// <summary>

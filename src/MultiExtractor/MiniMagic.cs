@@ -113,10 +113,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 {
                     return ArchiveFileType.P7ZIP;
                 }
-                // some kind of .ar https://en.wikipedia.org/wiki/Ar_(Unix)
+                // some kind of unix Archive https://en.wikipedia.org/wiki/Ar_(Unix)
                 if (buffer[0] == 0x21 && buffer[1] == 0x3c && buffer[2] == 0x61 && buffer[3] == 0x72 && buffer[4] == 0x63 && buffer[5] == 0x68 && buffer[6] == 0x3e)
                 {
-                    // .deb -https://manpages.debian.org/unstable/dpkg-dev/deb.5.en.html
+                    // .deb https://manpages.debian.org/unstable/dpkg-dev/deb.5.en.html
                     fileEntry.Content.Position = 68;
                     fileEntry.Content.Read(buffer, 0, 4);
                     fileEntry.Content.Position = 0;

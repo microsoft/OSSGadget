@@ -28,6 +28,11 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
 
             // First, cut out the file signature (8 bytes)
+            // TODO: This only supports < 4GB files because the span cannot be longer than int
+            if (fileEntry.Content.Length > int.MaxValue)
+            {
+                Logger.Debug("Could read entire archive. Larger than 32 byte number long. {0}:{1} is {2} bytes",fileEntry.FullPath,fileEntry.Name,fileEntry.Content.Length)
+            }
             var innerContent = new Span<byte>(fileEntry.Content.ToArray(), 8, (int)fileEntry.Content.Length - 8);
             var filenameLookup = new Dictionary<int, string>();
             while (true)
@@ -65,15 +70,73 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
                     else
                     {
+                        var entryContent = innerContent.Slice(60, size);
                         var filename = Encoding.ASCII.GetString(innerContent.Slice(0, 16)).Trim();  // filename is 16 bytes
+
                         // TODO: If either of these lookup tables exist they should be first and indicate we can parallelize the rest of the lookups using the symbol table.
                         if (filename.Equals('/'))
                         {
-                            // TODO https://en.wikipedia.org/wiki/Ar_(Unix)#System_V_(or_GNU)_variant
                             // System V symbol lookup table
                             // N = 32 bit big endian integers (entries in table)
                             // then N 32 bit big endian integers representing prositions in archive
                             // then N \0 terminated strings "symbol name" (possibly filename)
+
+                            var numEntries = IntFromBigEndianBytes(entryContent.Slice(0, 4).ToArray());
+                            var filePositions = new int[numEntries];
+                            for (int i = 0; i < numEntries; i++)
+                            {
+                                filePositions[i] = IntFromBigEndianBytes(entryContent.Slice((i + 1) * 4, 4).ToArray());
+                            }
+                            var position = numEntries * 4;
+                            var index = 0;
+                            var sb = new StringBuilder();
+                            var fileEntries = new List<(int, string)>();
+                            while (position < entryContent.Length)
+                            {
+                                if (entryContent.Slice(position, 1).ToArray()[0] == '\0')
+                                {
+                                    fileEntries.Add((filePositions[index++], sb.ToString()));
+                                    sb.Clear();
+                                }
+                                else
+                                {
+                                    sb.Append(entryContent.Slice(position, 1).ToArray()[0]);
+                                }
+                            }
+                            var fullData = new Span<byte>(fileEntry.Content.ToArray(), 0, (int)fileEntry.Content.Length);
+                            foreach (var entry in fileEntries)
+                            {
+                                var entryData = fullData.Slice(entry.Item1, 60);
+                                var innerEntryHeader = entryData.Slice(0, 60);
+                                size += 60;
+                                if (int.TryParse(Encoding.ASCII.GetString(innerEntryHeader.Slice(48, 10)), out int innerSize))// header size in bytes
+                                {
+                                    size += innerSize;
+                                    if (filename.StartsWith('/'))
+                                    {
+                                        if (int.TryParse(filename[1..], out int innerIndex))
+                                        {
+                                            try
+                                            {
+                                                filename = filenameLookup[innerIndex];
+                                            }
+                                            catch (Exception)
+                                            {
+                                                Logger.Debug("Expected to find a filename at index {0}", innerIndex);
+                                            }
+                                        }
+
+                                        using var entryStream = new MemoryStream(entryContent.ToArray());
+                                        results.Add(new FileEntry(filename, fileEntry.FullPath, entryStream));
+                                    }
+                                    else
+                                    {
+                                        filename = entry.Item2;
+                                        using var entryStream = new MemoryStream(entryContent.ToArray());
+                                        results.Add(new FileEntry(filename, fileEntry.FullPath, entryStream));
+                                    }
+                                }
+                            }
                         }
                         else if (filename.Equals("/SYM64/"))
                         {
@@ -82,6 +145,8 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             // N = 64 bit big endian integers (entries in table)
                             // then N 64 bit big endian integers representing prositions in archive
                             // then N \0 terminated strings "symbol name" (possibly filename)
+
+                            // This needs some other implementation as spans can only be int long
                         }
                         else if (filename.StartsWith('/'))
                         {
@@ -96,10 +161,15 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                                     Logger.Debug("Expected to find a filename at index {0}", index);
                                 }
                             }
+
+                            using var entryStream = new MemoryStream(entryContent.ToArray());
+                            results.Add(new FileEntry(filename, fileEntry.FullPath, entryStream));
                         }
-                        var entryContent = innerContent.Slice(60, size);
-                        using var entryStream = new MemoryStream(entryContent.ToArray());
-                        results.Add(new FileEntry(filename, fileEntry.FullPath, entryStream));
+                        else
+                        {
+                            using var entryStream = new MemoryStream(entryContent.ToArray());
+                            results.Add(new FileEntry(filename, fileEntry.FullPath, entryStream));
+                        }
                     }
                     // Entries are padded on even byte boundaries
                     // https://docs.oracle.com/cd/E36784_01/html/E36873/ar.h-3head.html
@@ -113,6 +183,32 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 }
             }
             return results;
+        }
+
+        public static int IntFromBigEndianBytes(byte[] value)
+        {
+            if (value.Length == 4)
+            {
+                if (BitConverter.IsLittleEndian)
+                {
+                    Array.Reverse(value);
+                }
+                return BitConverter.ToInt32(value);
+            }
+            return -1;
+        }
+
+        public static long Int64FromBigEndianBytes(byte[] value)
+        {
+            if (value.Length == 8)
+            {
+                if (BitConverter.IsLittleEndian)
+                {
+                    Array.Reverse(value);
+                }
+                return BitConverter.ToInt64(value);
+            }
+            return -1;
         }
     }
 }

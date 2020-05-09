@@ -278,6 +278,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             catch (Exception e)
             {
                 Logger.Debug("Failed to extract Gnu Ar file {0} {1}", fileEntry.FullPath, e.GetType());
+                throw e;
             }
             if (fileEntries != null)
             {

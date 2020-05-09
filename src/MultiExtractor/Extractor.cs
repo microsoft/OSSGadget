@@ -629,7 +629,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             }
                             catch (Exception)
                             {
-                                Logger.Debug("Failed to extract rar entry {0}", entry.Key);
+                                Logger.Debug("Failed to extract rar entry {0} of file {1}", entry.Key, fileEntry.FullPath);
                             }
                         }
                     });

@@ -126,6 +126,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             // then N 64 bit big endian integers representing prositions in archive
                             // then N \0 terminated strings "symbol name" (possibly filename)
                         }
+                        // Reference names start with a / and refer to the filename table
                         else if (filename.StartsWith('/'))
                         {
                             if (int.TryParse(filename[1..], out int index))
@@ -140,10 +141,12 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                                 }
                             }
                         }
+                        // Literal names end with a /, which we don't want
                         else if (filename.EndsWith('/'))
                         {
                             filename = filename[0..^1];
                         }
+
                         var entryContent = innerContent.Slice(localHeaderSize, size);
                         using var entryStream = new MemoryStream(entryContent.ToArray());
                         results.Add(new FileEntry(filename, fileEntry.FullPath, entryStream));
@@ -153,7 +156,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 }
                 else
                 {
-                    // Not a valid header, we couldn't parse the file size.
+                    // Not a valid header, we couldn't parse the file size, return what we have.
                     return results;
                 }
             }

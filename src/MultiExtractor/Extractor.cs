@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net.Http.Headers;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Tar;
 using ICSharpCode.SharpZipLib.Zip;
@@ -627,10 +626,11 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// </summary>
         /// <param name="fileEntry">FileEntry to extract</param>
         /// <returns>Extracted files</returns>
-        private List<FileEntry> ParallelExtractZipFile(FileEntry fileEntry)
+        private IEnumerable<FileEntry> ParallelExtractZipFile(FileEntry fileEntry)
         {
-            ZipFile? zipFile = null;
             List<FileEntry> files = new List<FileEntry>();
+
+            ZipFile? zipFile = null;
             try
             {
                 zipFile = new ZipFile(fileEntry.Content);
@@ -649,23 +649,47 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         zipEntries.Add(zipEntry);
                     }
                 }
-                zipEntries.AsParallel().ForAll(zipEntry =>
+                int MIN_BATCH_SIZE = 10;
+                int MAX_BATCH_SIZE = 50;
+                while (zipEntries.Count > 0)
                 {
-                    if (!zipEntry.IsDirectory &&
-                        !zipEntry.IsCrypted &&
-                        zipEntry.CanDecompress)
+                    if (zipEntries.Count > MIN_BATCH_SIZE)
                     {
-                        using var memoryStream = new MemoryStream();
-                        byte[] buffer = new byte[BUFFER_SIZE];
-                        var zipStream = zipFile.GetInputStream(zipEntry);
-                        StreamUtils.Copy(zipStream, memoryStream, buffer);
-
-                        var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, memoryStream);
-                        files.AddRange(ExtractFile(newFileEntry));
+                        int batchSize = Math.Min(MAX_BATCH_SIZE, zipEntries.Count);
+                        zipEntries.GetRange(0,batchSize).AsParallel().ForAll(zipEntry =>
+                        {
+                            using var memoryStream = new MemoryStream();
+                            byte[] buffer = new byte[BUFFER_SIZE];
+                            var zipStream = zipFile.GetInputStream(zipEntry);
+                            StreamUtils.Copy(zipStream, memoryStream, buffer);
+                            var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, memoryStream);
+                            files.AddRange(ExtractFile(newFileEntry, true));
+                        });
+                        zipEntries.RemoveRange(0, batchSize);
                     }
-                });
+                    else
+                    {
+                        foreach (var zipEntry in zipEntries)
+                        {
+                            using var memoryStream = new MemoryStream();
+                            byte[] buffer = new byte[BUFFER_SIZE];
+                            var zipStream = zipFile.GetInputStream(zipEntry);
+                            StreamUtils.Copy(zipStream, memoryStream, buffer);
+                            var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, memoryStream);
+                            foreach (var extractedFile in ExtractFile(newFileEntry, true))
+                            {
+                                yield return extractedFile;
+                            }
+                        }
+                        zipEntries.Clear();
+                    }
+                    while (files.Count > 0)
+                    {
+                        yield return files[0];
+                        files.RemoveAt(0);
+                    }
+                }
             }
-            return files;
         }
 
         /// <summary>

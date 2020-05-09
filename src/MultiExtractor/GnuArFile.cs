@@ -51,12 +51,11 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             {
                                 filenameLookup.Add(index, name.ToString());
                                 name.Clear();
-                                // Skip the newline
-                                index = i + 2;
                             }
                             else if (fileNameBytes[i] == '\n')
                             {
-                                continue;
+                                // The next filename would start on the next line
+                                index = i + 1;
                             }
                             else
                             {

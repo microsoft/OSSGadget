@@ -326,9 +326,16 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
 
                     using var memoryStream = new MemoryStream();
-                    byte[] buffer = new byte[BUFFER_SIZE];
-                    var zipStream = zipFile.GetInputStream(zipEntry);
-                    StreamUtils.Copy(zipStream, memoryStream, buffer);
+                    try
+                    {
+                        byte[] buffer = new byte[BUFFER_SIZE];
+                        var zipStream = zipFile.GetInputStream(zipEntry);
+                        StreamUtils.Copy(zipStream, memoryStream, buffer);
+                    }
+                    catch (Exception)
+                    {
+                        Logger.Debug("Failed to extract {0}:{1}", fileEntry.FullPath, zipEntry.Name);
+                    }
 
                     var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, memoryStream);
                     foreach (var extractedFile in ExtractFile(newFileEntry))
@@ -373,10 +380,21 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         newFilename = newFilename[0..^4] + ".tar";
                     }
 
-                    var newFileEntry = new FileEntry(newFilename, fileEntry.FullPath, entry.OpenEntryStream());
-                    foreach (var extractedFile in ExtractFile(newFileEntry))
+                    FileEntry? newFileEntry = null;
+                    try
                     {
-                        yield return extractedFile;
+                        newFileEntry = new FileEntry(newFilename, fileEntry.FullPath, entry.OpenEntryStream());
+                    }
+                    catch (Exception)
+                    {
+                        Logger.Debug("Failed to extract {0}:{1}", fileEntry.FullPath, newFilename);
+                    }
+                    if (newFileEntry != null)
+                    {
+                        foreach (var extractedFile in ExtractFile(newFileEntry))
+                        {
+                            yield return extractedFile;
+                        }
                     }
                 }
             }
@@ -515,10 +533,21 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         continue;
                     }
                     CheckResourceGovernor((long)entry.Size);
-                    var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream());
-                    foreach (var extractedFile in ExtractFile(newFileEntry))
+                    FileEntry? newFileEntry = null;
+                    try
                     {
-                        yield return extractedFile;
+                        new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream());
+                    }
+                    catch (Exception)
+                    {
+                        Logger.Debug("Failed to extract {0}:{1}", fileEntry.FullPath, entry.Key);
+                    }
+                    if (newFileEntry != null)
+                    {
+                        foreach (var extractedFile in ExtractFile(newFileEntry))
+                        {
+                            yield return extractedFile;
+                        }
                     }
                 }
             }
@@ -549,10 +578,21 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         continue;
                     }
                     CheckResourceGovernor(entry.Size);
-                    var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream());
-                    foreach (var extractedFile in ExtractFile(newFileEntry))
+                    FileEntry? newFileEntry = null;
+                    try
                     {
-                        yield return extractedFile;
+                         newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream());
+                    }
+                    catch (Exception)
+                    {
+                        Logger.Debug("Failed to extract {0}:{1}", fileEntry.FullPath, entry.Key);
+                    }
+                    if (newFileEntry != null)
+                    {
+                        foreach (var extractedFile in ExtractFile(newFileEntry))
+                        {
+                            yield return extractedFile;
+                        }
                     }
                 }
             }

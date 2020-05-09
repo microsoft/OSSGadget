@@ -24,7 +24,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// </summary>
         private const int BUFFER_SIZE = 32768;
 
-        private const string DEBUG_STRING = "Failed parsing {0}:{1} ({2})";
+        private const string DEBUG_STRING = "Failed parsing archive of type {0} {1}:{2} ({3})";
 
         /// <summary>
         /// The maximum number of items to take at once in the parallel extractors
@@ -284,7 +284,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             catch (Exception e)
             {
-                Logger.Debug(DEBUG_STRING, fileEntry.FullPath, string.Empty, e.GetType());
+                Logger.Debug(DEBUG_STRING, ArchiveFileType.GNU_AR, fileEntry.FullPath, string.Empty, e.GetType());
             }
             if (fileEntries != null)
             {
@@ -313,7 +313,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             catch(Exception e)
             {
-                Logger.Debug(DEBUG_STRING, fileEntry.FullPath, string.Empty, e.GetType());
+                Logger.Debug(DEBUG_STRING, ArchiveFileType.ZIP, fileEntry.FullPath, string.Empty, e.GetType());
             }
             if (zipFile != null)
             {
@@ -336,7 +336,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
                     catch (Exception e)
                     {
-                        Logger.Debug(DEBUG_STRING, fileEntry.FullPath, zipEntry.Name, e.GetType());
+                        Logger.Debug(DEBUG_STRING, ArchiveFileType.ZIP, fileEntry.FullPath, zipEntry.Name, e.GetType());
                     }
 
                     var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, memoryStream);
@@ -364,7 +364,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             catch (Exception e)
             {
-                Logger.Debug(DEBUG_STRING, fileEntry.FullPath, string.Empty, e.GetType());
+                Logger.Debug(DEBUG_STRING, ArchiveFileType.GZIP, fileEntry.FullPath, string.Empty, e.GetType());
             }
             if (gzipArchive != null)
             {
@@ -389,7 +389,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
                     catch (Exception e)
                     {
-                        Logger.Debug(DEBUG_STRING, fileEntry.FullPath, newFilename, e.GetType());
+                        Logger.Debug(DEBUG_STRING, ArchiveFileType.GZIP, fileEntry.FullPath, newFilename, e.GetType());
                     }
                     if (newFileEntry != null)
                     {
@@ -417,7 +417,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             catch(Exception e)
             {
-                Logger.Debug(DEBUG_STRING, fileEntry.FullPath, string.Empty, e.GetType());
+                Logger.Debug(DEBUG_STRING, ArchiveFileType.TAR, fileEntry.FullPath, string.Empty, e.GetType());
             }
             if (tarStream != null)
             {
@@ -428,8 +428,15 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         continue;
                     }
                     using var memoryStream = new MemoryStream();
-                    CheckResourceGovernor((long)tarStream.Length);
-                    tarStream.CopyEntryContents(memoryStream);
+                    CheckResourceGovernor(tarStream.Length);
+                    try
+                    {
+                        tarStream.CopyEntryContents(memoryStream);
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Debug(DEBUG_STRING, ArchiveFileType.TAR, fileEntry.FullPath, tarEntry.Name, e.GetType());
+                    }
 
                     var newFileEntry = new FileEntry(tarEntry.Name, fileEntry.FullPath, memoryStream);
                     foreach (var extractedFile in ExtractFile(newFileEntry))
@@ -471,7 +478,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             catch(Exception e)
             {
-                Logger.Debug(DEBUG_STRING, fileEntry.FullPath, string.Empty, e.GetType());
+                Logger.Debug(DEBUG_STRING, ArchiveFileType.XZ, fileEntry.FullPath, string.Empty, e.GetType());
             }
 
             var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
@@ -493,12 +500,12 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             try
             {
                 using var bzip2Stream = new BZip2Stream(fileEntry.Content, SharpCompress.Compressors.CompressionMode.Decompress, false);
-                CheckResourceGovernor((long)bzip2Stream.Length);
+                CheckResourceGovernor(bzip2Stream.Length);
                 bzip2Stream.CopyTo(memoryStream);
             }
             catch(Exception e)
             {
-                Logger.Debug(DEBUG_STRING, fileEntry.FullPath, string.Empty, e.GetType());
+                Logger.Debug(DEBUG_STRING, ArchiveFileType.BZIP2, fileEntry.FullPath, string.Empty, e.GetType());
             }
 
             var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
@@ -523,7 +530,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             catch (Exception e)
             {
-                Logger.Debug(DEBUG_STRING, fileEntry.FullPath, string.Empty, e.GetType());
+                Logger.Debug(DEBUG_STRING, ArchiveFileType.RAR, fileEntry.FullPath, string.Empty, e.GetType());
             }
 
             if (rarArchive != null)
@@ -542,7 +549,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
                     catch (Exception e)
                     {
-                        Logger.Debug(DEBUG_STRING, fileEntry.FullPath, entry.Key, e.GetType());
+                        Logger.Debug(DEBUG_STRING, ArchiveFileType.RAR, fileEntry.FullPath, entry.Key, e.GetType());
                     }
                     if (newFileEntry != null)
                     {
@@ -569,7 +576,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             catch (Exception e)
             {
-                Logger.Debug(DEBUG_STRING, fileEntry.FullPath, string.Empty, e.GetType());
+                Logger.Debug(DEBUG_STRING, ArchiveFileType.P7ZIP, fileEntry.FullPath, string.Empty, e.GetType());
             }
             if (sevenZipArchive != null)
             {
@@ -587,7 +594,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
                     catch (Exception e)
                     {
-                        Logger.Debug(DEBUG_STRING, fileEntry.FullPath, entry.Key, e.GetType());
+                        Logger.Debug(DEBUG_STRING, ArchiveFileType.P7ZIP, fileEntry.FullPath, entry.Key, e.GetType());
                     }
                     if (newFileEntry != null)
                     {
@@ -614,7 +621,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             catch (Exception e)
             {
-                Logger.Debug(DEBUG_STRING, fileEntry.FullPath, string.Empty, e.GetType());
+                Logger.Debug(DEBUG_STRING, ArchiveFileType.DEB, fileEntry.FullPath, string.Empty, e.GetType());
             }
             if (fileEntries != null)
             {
@@ -649,7 +656,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             catch (Exception e)
             {
-                Logger.Debug(DEBUG_STRING, fileEntry.FullPath, string.Empty, e.GetType());
+                Logger.Debug(DEBUG_STRING, ArchiveFileType.RAR, fileEntry.FullPath, string.Empty, e.GetType());
             }
             if (rarArchive != null)
             {
@@ -671,7 +678,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             }
                             catch (Exception e)
                             {
-                                Logger.Debug(DEBUG_STRING, fileEntry.FullPath, entry.Key, e.GetType());
+                                Logger.Debug(DEBUG_STRING, ArchiveFileType.RAR, fileEntry.FullPath, entry.Key, e.GetType());
                             }
                         }
                     });
@@ -702,7 +709,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             catch (Exception e)
             {
-                Logger.Debug(DEBUG_STRING, fileEntry.FullPath, string.Empty, e.GetType());
+                Logger.Debug(DEBUG_STRING, ArchiveFileType.ZIP, fileEntry.FullPath, string.Empty, e.GetType());
             }
             if (zipFile != null)
             {
@@ -736,7 +743,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         }
                         catch(Exception e)
                         {
-                            Logger.Debug(DEBUG_STRING, fileEntry.FullPath, zipEntry.Name, e.GetType());
+                            Logger.Debug(DEBUG_STRING, ArchiveFileType.ZIP, fileEntry.FullPath, zipEntry.Name, e.GetType());
                         }
                     });
                     zipEntries.RemoveRange(0, batchSize);
@@ -765,7 +772,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             catch (Exception e)
             {
-                Logger.Debug(DEBUG_STRING, fileEntry.FullPath, string.Empty, e.GetType());
+                Logger.Debug(DEBUG_STRING, ArchiveFileType.P7ZIP, fileEntry.FullPath, string.Empty, e.GetType());
             }
             if (sevenZipArchive != null)
             {
@@ -787,7 +794,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             }
                             catch (Exception e)
                             {
-                                Logger.Debug(DEBUG_STRING, fileEntry.FullPath, entry.Key, e.GetType());
+                                Logger.Debug(DEBUG_STRING, ArchiveFileType.P7ZIP, fileEntry.FullPath, entry.Key, e.GetType());
                             }
                         }
                     });
@@ -817,7 +824,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             catch (Exception e)
             {
-                Logger.Debug(DEBUG_STRING, fileEntry.FullPath, string.Empty, e.GetType());
+                Logger.Debug(DEBUG_STRING, ArchiveFileType.DEB, fileEntry.FullPath, string.Empty, e.GetType());
             }
             if (fileEntries != null)
             {

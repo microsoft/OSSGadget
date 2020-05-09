@@ -22,11 +22,9 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         // we're using spans.
         public static IEnumerable<FileEntry> GetFileEntries(FileEntry fileEntry)
         {
-            var results = new List<FileEntry>();
-
             if (fileEntry == null)
             {
-                return results;
+                yield break;
             }
             // First, cut out the file signature (8 bytes)
             fileEntry.Content.Position = 8;
@@ -137,13 +135,13 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                                         }
 
                                         using var entryStream = new MemoryStream(entryContent);
-                                        results.Add(new FileEntry(filename, fileEntry.FullPath, entryStream));
+                                        yield return new FileEntry(filename, fileEntry.FullPath, entryStream);
                                     }
                                     else
                                     {
                                         filename = entry.Item2;
                                         using var entryStream = new MemoryStream(entryContent);
-                                        results.Add(new FileEntry(filename, fileEntry.FullPath, entryStream));
+                                        yield return new FileEntry(filename, fileEntry.FullPath, entryStream);
                                     }
                                 }
                             }
@@ -219,7 +217,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                                     var bytes = new byte[innerSize];
                                     fileEntry.Content.Read(bytes, 0, innerSize);
                                     using var entryStream = new MemoryStream(bytes);
-                                    results.Add(new FileEntry(filename, fileEntry.FullPath, entryStream));
+                                    yield return new FileEntry(filename, fileEntry.FullPath, entryStream);
                                 }
                             }
                         }
@@ -245,7 +243,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             fileEntry.Content.Position += size;
 
                             using var entryStream = new MemoryStream(bytes);
-                            results.Add(new FileEntry(filename, fileEntry.FullPath, entryStream));
+                            yield return new FileEntry(filename, fileEntry.FullPath, entryStream);
                         }
                         else
                         {
@@ -254,7 +252,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             fileEntry.Content.Position += size;
 
                             using var entryStream = new MemoryStream(bytes);
-                            results.Add(new FileEntry(filename, fileEntry.FullPath, entryStream));
+                            yield return new FileEntry(filename, fileEntry.FullPath, entryStream);
                         }
                     }
                     // Entries are padded on even byte boundaries
@@ -264,10 +262,9 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 else
                 {
                     // Not a valid header, we couldn't parse the file size.
-                    return results;
+                    yield break;
                 }
             }
-            return results;
         }
 
         public static int IntFromBigEndianBytes(byte[] value)

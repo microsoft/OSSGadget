@@ -682,13 +682,20 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     int batchSize = Math.Min(MAX_BATCH_SIZE, zipEntries.Count);
                     zipEntries.GetRange(0,batchSize).AsParallel().ForAll(zipEntry =>
                     {
-
-                        using var memoryStream = new MemoryStream();
-                        byte[] buffer = new byte[BUFFER_SIZE];
-                        var zipStream = zipFile.GetInputStream(zipEntry);
-                        StreamUtils.Copy(zipStream, memoryStream, buffer);
-                        var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, memoryStream);
-                        files.AddRange(ExtractFile(newFileEntry, true));
+                        CheckResourceGovernor(zipEntry.Size);
+                        try
+                        {
+                            using var memoryStream = new MemoryStream();
+                            byte[] buffer = new byte[BUFFER_SIZE];
+                            var zipStream = zipFile.GetInputStream(zipEntry);
+                            StreamUtils.Copy(zipStream, memoryStream, buffer);
+                            var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, memoryStream);
+                            files.AddRange(ExtractFile(newFileEntry, true));
+                        }
+                        catch(Exception)
+                        {
+                            Logger.Debug("Failed to extract {0}:{1}", fileEntry.FullPath, zipEntry.Name);
+                        }
                     });
                     zipEntries.RemoveRange(0, batchSize);
                     
@@ -730,8 +737,16 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         if (!entry.IsDirectory && !entry.IsEncrypted)
                         {
                             CheckResourceGovernor(entry.Size);
-                            var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream());
-                            files.AddRange(ExtractFile(newFileEntry));
+                            try
+                            {
+                                var stream = entry.OpenEntryStream();
+                                var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, stream);
+                                files.AddRange(ExtractFile(newFileEntry));
+                            }
+                            catch (Exception)
+                            {
+                                Logger.Debug("Failed to extract {0}:{1}", fileEntry.FullPath, entry.Key);
+                            }
                         }
                     });
                     entries.RemoveRange(0, batchSize);

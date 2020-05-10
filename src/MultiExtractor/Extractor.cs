@@ -454,6 +454,11 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 }
                 tarStream.Dispose();
             }
+            else
+            {
+                // If we couldn't parse it just return it
+                yield return fileEntry;
+            }
         }
 
         /// <summary>
@@ -464,10 +469,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         private IEnumerable<FileEntry> ExtractXZFile(FileEntry fileEntry, bool parallel)
         {
             using var memoryStream = new MemoryStream();
-
+            XZStream? xzStream = null;
             try
             {
-                using var xzStream = new XZStream(fileEntry.Content);
+                xzStream = new XZStream(fileEntry.Content);
 
                 // SharpCompress does not expose metadata without a full read,
                 // so we need to decompress first, and then abort if the bytes
@@ -488,12 +493,19 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             {
                 Logger.Debug(DEBUG_STRING, ArchiveFileType.XZ, fileEntry.FullPath, string.Empty, e.GetType());
             }
-
-            var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
-            var newFileEntry = new FileEntry(newFilename, fileEntry.FullPath, memoryStream);
-            foreach (var extractedFile in ExtractFile(newFileEntry, parallel))
+            if (xzStream != null)
             {
-                yield return extractedFile;
+                var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
+                var newFileEntry = new FileEntry(newFilename, fileEntry.FullPath, memoryStream);
+                foreach (var extractedFile in ExtractFile(newFileEntry, parallel))
+                {
+                    yield return extractedFile;
+                }
+                xzStream.Dispose();
+            }
+            else
+            {
+                yield return fileEntry;
             }
         }
 
@@ -505,9 +517,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         private IEnumerable<FileEntry> ExtractBZip2File(FileEntry fileEntry, bool parallel)
         {
             using var memoryStream = new MemoryStream();
+            BZip2Stream? bzip2Stream = null;
             try
             {
-                using var bzip2Stream = new BZip2Stream(fileEntry.Content, SharpCompress.Compressors.CompressionMode.Decompress, false);
+                bzip2Stream = new BZip2Stream(fileEntry.Content, SharpCompress.Compressors.CompressionMode.Decompress, false);
                 CheckResourceGovernor(bzip2Stream.Length);
                 bzip2Stream.CopyTo(memoryStream);
             }
@@ -515,12 +528,19 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             {
                 Logger.Debug(DEBUG_STRING, ArchiveFileType.BZIP2, fileEntry.FullPath, string.Empty, e.GetType());
             }
-
-            var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
-            var newFileEntry = new FileEntry(newFilename, fileEntry.FullPath, memoryStream);
-            foreach (var extractedFile in ExtractFile(newFileEntry, parallel))
+            if (bzip2Stream != null)
             {
-                yield return extractedFile;
+                var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
+                var newFileEntry = new FileEntry(newFilename, fileEntry.FullPath, memoryStream);
+                foreach (var extractedFile in ExtractFile(newFileEntry, parallel))
+                {
+                    yield return extractedFile;
+                }
+                bzip2Stream.Dispose();
+            }
+            else
+            {
+                yield return fileEntry;
             }
         }
 
@@ -576,6 +596,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
                 }
             }
+            else
+            {
+                yield return fileEntry;
+            }
         }
 
         /// <summary>
@@ -629,6 +653,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
                 }
             }
+            else
+            {
+                yield return fileEntry;
+            }
         }
 
         /// <summary>
@@ -671,6 +699,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
                 }
             }
+            else
+            {
+                yield return fileEntry;
+            }
         }
 
         /// <summary>
@@ -693,6 +725,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 Logger.Debug(DEBUG_STRING, ArchiveFileType.RAR, fileEntry.FullPath, string.Empty, e.GetType());
             }
 
+            if (!entries.Any())
+            {
+                yield return fileEntry;
+            }
             while (entries.Any())
             {
                 int batchSize = Math.Min(MAX_BATCH_SIZE, entries.Count());
@@ -785,6 +821,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
                 }
             }
+            else
+            {
+                yield return fileEntry;
+            }
         }
 
         /// <summary>
@@ -806,7 +846,6 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             if (sevenZipArchive != null)
             {
-
                 var entries = sevenZipArchive.Entries.ToList();
                 while (entries.Count() > 0)
                 {
@@ -837,6 +876,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
                 }
             }
+            else
+            {
+                yield return fileEntry;
+            }
         }
 
         /// <summary>
@@ -858,9 +901,8 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             if (fileEntries != null)
             {
-
                 var entries = fileEntries.ToList();
-                while (entries.Count() > 0)
+                while (entries.Any())
                 {
                     int batchSize = Math.Min(MAX_BATCH_SIZE, entries.Count());
                     entries.GetRange(0, batchSize).AsParallel().ForAll(entry =>
@@ -879,7 +921,11 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         yield return files[0];
                         files.RemoveAt(0);
                     }
-                }                
+                }
+            }
+            else
+            {
+                yield return fileEntry;
             }
         }
     }

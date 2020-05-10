@@ -23,12 +23,13 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             {
                 throw new ArgumentNullException(nameof(content));
             }
+            // TODO Replace with a > 32bit stream
             Content = new MemoryStream();
             if (content.CanSeek)
             {
                 content.Position = 0;
             }
-            Content = content;
+            content.CopyTo(Content);
         }
 
         public string FullPath { get; set; }

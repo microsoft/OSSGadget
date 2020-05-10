@@ -28,12 +28,12 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             {
                 content.Position = 0;
             }
-            content.CopyTo(Content);
+            Content = content;
         }
 
         public string FullPath { get; set; }
         public string Name { get; set; }
-        public MemoryStream Content { get; set; }
+        public Stream Content { get; set; }
 
     }
 }

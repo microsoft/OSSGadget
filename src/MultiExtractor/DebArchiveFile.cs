@@ -37,7 +37,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     fileEntry.Content.Write(entryContent, 0, fileSize);
                     using var fs = new FileStream(Path.GetTempFileName(), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
                     fs.Write(entryContent, 0, entryContent.Length);
-                    yield return new FileEntry(filename, fileEntry.FullPath, fs, passthroughStream: true);
+                    yield return new FileEntry(filename, fileEntry.FullPath, fs);
                 }
                 else
                 {

@@ -62,9 +62,9 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         public static ArchiveFileType DetectFileType(string filename)
         {
             #pragma warning disable SEC0116 // Path Tampering Unvalidated File Path
-            using var stream = new MemoryStream(File.ReadAllBytes(filename));
+            using var fs = new FileStream(filename,FileMode.Open);
             #pragma warning restore SEC0116 // Path Tampering Unvalidated File Path
-            var fileEntry = new FileEntry(filename, "", stream);
+            var fileEntry = new FileEntry(filename, "", fs, true);
             return DetectFileType(fileEntry);
         }
 

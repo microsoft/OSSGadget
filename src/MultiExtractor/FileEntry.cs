@@ -8,7 +8,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 {
     public class FileEntry
     {
-        public FileEntry(string name, string parentPath, Stream content)
+        public FileEntry(string name, string parentPath, Stream content, bool passthroughStream = false)
         {
             Name = name;
             if (string.IsNullOrEmpty(parentPath))
@@ -23,13 +23,20 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             {
                 throw new ArgumentNullException(nameof(content));
             }
-            // Back with a temporary filestream, this is optimized to be cached in memory when possible automatically
-            Content = new FileStream(Path.GetTempFileName(), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
-            if (content.CanSeek)
+            if (passthroughStream)
             {
-                content.Position = 0;
+                Content = content;
             }
-            content.CopyTo(Content);
+            else
+            {
+                // Back with a temporary filestream, this is optimized to be cached in memory when possible automatically
+                Content = new FileStream(Path.GetTempFileName(), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
+                if (content.CanSeek)
+                {
+                    content.Position = 0;
+                }
+                content.CopyTo(Content);
+            }
         }
 
         public string FullPath { get; set; }

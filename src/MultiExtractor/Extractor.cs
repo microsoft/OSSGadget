@@ -334,6 +334,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     {
                         continue;
                     }
+                    CheckResourceGovernor(zipEntry.Size);
 
                     Stream? stream = null;
                     try
@@ -391,17 +392,18 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         newFilename = newFilename[0..^4] + ".tar";
                     }
 
-                    FileEntry? newFileEntry = null;
+                    Stream? stream = null;
                     try
                     {
-                        newFileEntry = new FileEntry(newFilename, fileEntry.FullPath, entry.OpenEntryStream());
+                        entry.OpenEntryStream();
                     }
                     catch (Exception e)
                     {
                         Logger.Debug(DEBUG_STRING, ArchiveFileType.GZIP, fileEntry.FullPath, newFilename, e.GetType());
                     }
-                    if (newFileEntry != null)
+                    if (stream != null)
                     {
+                        FileEntry newFileEntry = new FileEntry(newFilename, fileEntry.FullPath, stream);
                         foreach (var extractedFile in ExtractFile(newFileEntry, parallel))
                         {
                             yield return extractedFile;
@@ -478,6 +480,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 // SharpCompress does not expose metadata without a full read,
                 // so we need to decompress first, and then abort if the bytes
                 // exceeded the governor's capacity.
+                // TODO: Support larger than 2gb XZ files
                 xzStream.CopyTo(memoryStream);
 
                 var streamLength = xzStream.Index.Records?.Select(r => r.UncompressedSize)
@@ -523,7 +526,6 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             {
                 bzip2Stream = new BZip2Stream(fileEntry.Content, SharpCompress.Compressors.CompressionMode.Decompress, false);
                 CheckResourceGovernor(bzip2Stream.Length);
-                bzip2Stream.CopyTo(memoryStream);
             }
             catch(Exception e)
             {
@@ -532,7 +534,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             if (bzip2Stream != null)
             {
                 var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
-                var newFileEntry = new FileEntry(newFilename, fileEntry.FullPath, memoryStream);
+                var newFileEntry = new FileEntry(newFilename, fileEntry.FullPath, bzip2Stream);
                 foreach (var extractedFile in ExtractFile(newFileEntry, parallel))
                 {
                     yield return extractedFile;
@@ -580,16 +582,19 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
                     CheckResourceGovernor(entry.Size);
                     FileEntry? newFileEntry = null;
+                    Stream? stream = null;
                     try
                     {
-                        newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream());
+                        stream = entry.OpenEntryStream();
                     }
                     catch (Exception e)
                     {
                         Logger.Debug(DEBUG_STRING, ArchiveFileType.RAR, fileEntry.FullPath, entry.Key, e.GetType());
                     }
-                    if (newFileEntry != null)
+                    if (stream != null)
                     {
+                        newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, stream);
+
                         foreach (var extractedFile in ExtractFile(newFileEntry, parallel))
                         {
                             yield return extractedFile;
@@ -637,16 +642,19 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
                     CheckResourceGovernor(entry.Size);
                     FileEntry? newFileEntry = null;
+                    Stream? stream = null;
                     try
                     {
-                         newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream());
+                        stream = entry.OpenEntryStream();
                     }
                     catch (Exception e)
                     {
                         Logger.Debug(DEBUG_STRING, ArchiveFileType.P7ZIP, fileEntry.FullPath, entry.Key, e.GetType());
                     }
-                    if (newFileEntry != null)
+                    if (stream != null)
                     {
+                        newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, stream);
+
                         foreach (var extractedFile in ExtractFile(newFileEntry, parallel))
                         {
                             yield return extractedFile;
@@ -804,8 +812,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             using var memoryStream = new MemoryStream();
                             byte[] buffer = new byte[BUFFER_SIZE];
                             var zipStream = zipFile.GetInputStream(zipEntry);
-                            StreamUtils.Copy(zipStream, memoryStream, buffer);
-                            var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, memoryStream);
+                            var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, zipStream);
                             files.AddRange(ExtractFile(newFileEntry, true));
                         }
                         catch(Exception e)

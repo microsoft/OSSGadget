@@ -222,31 +222,31 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 switch(fileEntryType)
                 {
                     case ArchiveFileType.ZIP:
-                        result = parallel ? ParallelExtractZipFile(fileEntry) : ExtractZipFile(fileEntry);
-                        break;
-                    case ArchiveFileType.GZIP:
-                        result = ExtractGZipFile(fileEntry);
-                        break;
-                    case ArchiveFileType.TAR:
-                        result = ExtractTarFile(fileEntry);
-                        break;
-                    case ArchiveFileType.XZ:
-                        result = ExtractXZFile(fileEntry);
-                        break;
-                    case ArchiveFileType.BZIP2:
-                        result = ExtractBZip2File(fileEntry);
+                        result = ExtractZipFile(fileEntry, parallel);
                         break;
                     case ArchiveFileType.RAR:
-                        result = parallel ? ParallelExtractRarFile(fileEntry) : ExtractRarFile(fileEntry);
+                        result = ExtractRarFile(fileEntry, parallel);
                         break;
                     case ArchiveFileType.P7ZIP:
-                        result = parallel ? ParallelExtract7ZipFile(fileEntry) : Extract7ZipFile(fileEntry);
+                        result = Extract7ZipFile(fileEntry, parallel);
                         break;
                     case ArchiveFileType.DEB:
-                        result = parallel ? ParallelExtractDebFile(fileEntry) : ExtractDebFile(fileEntry);
+                        result = ExtractDebFile(fileEntry, parallel);
+                        break;
+                    case ArchiveFileType.GZIP:
+                        result = ExtractGZipFile(fileEntry, parallel);
+                        break;
+                    case ArchiveFileType.TAR:
+                        result = ExtractTarFile(fileEntry, parallel);
+                        break;
+                    case ArchiveFileType.XZ:
+                        result = ExtractXZFile(fileEntry, parallel);
+                        break;
+                    case ArchiveFileType.BZIP2:
+                        result = ExtractBZip2File(fileEntry, parallel);
                         break;
                     case ArchiveFileType.GNU_AR:
-                        result = ExtractGnuArFile(fileEntry);
+                        result = ExtractGnuArFile(fileEntry, parallel);
                         break;
                     default:
                         rawFileUsed = true;
@@ -275,7 +275,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// </summary>
         /// <param name="fileEntry"></param>
         /// <returns></returns>
-        private IEnumerable<FileEntry> ExtractGnuArFile(FileEntry fileEntry)
+        private IEnumerable<FileEntry> ExtractGnuArFile(FileEntry fileEntry, bool parallel)
         {
             IEnumerable<FileEntry>? fileEntries = null;
             try
@@ -304,8 +304,16 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// </summary>
         /// <param name="fileEntry">FileEntry to extract</param>
         /// <returns>Extracted files</returns>
-        private IEnumerable<FileEntry> ExtractZipFile(FileEntry fileEntry)
+        private IEnumerable<FileEntry> ExtractZipFile(FileEntry fileEntry, bool parallel)
         {
+            if (parallel)
+            {
+                foreach (var entry in ParallelExtractZipFile(fileEntry))
+                {
+                    yield return entry;
+                }
+                yield break;
+            }
             ZipFile? zipFile = null;
             try
             {
@@ -340,7 +348,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
 
                     var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, memoryStream);
-                    foreach (var extractedFile in ExtractFile(newFileEntry))
+                    foreach (var extractedFile in ExtractFile(newFileEntry, parallel))
                     {
                         yield return extractedFile;
                     }
@@ -355,7 +363,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// </summary>
         /// <param name="fileEntry">FileEntry to extract</param>
         /// <returns>Extracted files</returns>
-        private IEnumerable<FileEntry> ExtractGZipFile(FileEntry fileEntry)
+        private IEnumerable<FileEntry> ExtractGZipFile(FileEntry fileEntry, bool parallel)
         {
             GZipArchive? gzipArchive = null;
             try
@@ -393,7 +401,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
                     if (newFileEntry != null)
                     {
-                        foreach (var extractedFile in ExtractFile(newFileEntry))
+                        foreach (var extractedFile in ExtractFile(newFileEntry, parallel))
                         {
                             yield return extractedFile;
                         }
@@ -407,7 +415,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// </summary>
         /// <param name="fileEntry">FileEntry to extract</param>
         /// <returns>Extracted files</returns>
-        private IEnumerable<FileEntry> ExtractTarFile(FileEntry fileEntry)
+        private IEnumerable<FileEntry> ExtractTarFile(FileEntry fileEntry, bool parallel)
         {
             TarEntry tarEntry;
             TarInputStream? tarStream = null;
@@ -439,7 +447,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
 
                     var newFileEntry = new FileEntry(tarEntry.Name, fileEntry.FullPath, memoryStream);
-                    foreach (var extractedFile in ExtractFile(newFileEntry))
+                    foreach (var extractedFile in ExtractFile(newFileEntry, parallel))
                     {
                         yield return extractedFile;
                     }
@@ -453,7 +461,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// </summary>
         /// <param name="fileEntry">FileEntry to extract</param>
         /// <returns>Extracted files</returns>
-        private IEnumerable<FileEntry> ExtractXZFile(FileEntry fileEntry)
+        private IEnumerable<FileEntry> ExtractXZFile(FileEntry fileEntry, bool parallel)
         {
             using var memoryStream = new MemoryStream();
 
@@ -483,7 +491,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
             var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
             var newFileEntry = new FileEntry(newFilename, fileEntry.FullPath, memoryStream);
-            foreach (var extractedFile in ExtractFile(newFileEntry))
+            foreach (var extractedFile in ExtractFile(newFileEntry, parallel))
             {
                 yield return extractedFile;
             }
@@ -494,7 +502,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// </summary>
         /// <param name="fileEntry">FileEntry to extract</param>
         /// <returns>Extracted files</returns>
-        private IEnumerable<FileEntry> ExtractBZip2File(FileEntry fileEntry)
+        private IEnumerable<FileEntry> ExtractBZip2File(FileEntry fileEntry, bool parallel)
         {
             using var memoryStream = new MemoryStream();
             try
@@ -510,7 +518,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
             var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
             var newFileEntry = new FileEntry(newFilename, fileEntry.FullPath, memoryStream);
-            foreach (var extractedFile in ExtractFile(newFileEntry))
+            foreach (var extractedFile in ExtractFile(newFileEntry, parallel))
             {
                 yield return extractedFile;
             }
@@ -521,8 +529,16 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// </summary>
         /// <param name="fileEntry">FileEntry to extract</param>
         /// <returns>Extracted files</returns>
-        private IEnumerable<FileEntry> ExtractRarFile(FileEntry fileEntry)
+        private IEnumerable<FileEntry> ExtractRarFile(FileEntry fileEntry, bool parallel)
         {
+            if (parallel)
+            {
+                foreach (var entry in ParallelExtractRarFile(fileEntry))
+                {
+                    yield return entry;
+                }
+                yield break;
+            }
             RarArchive? rarArchive = null;
             try
             {
@@ -553,7 +569,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
                     if (newFileEntry != null)
                     {
-                        foreach (var extractedFile in ExtractFile(newFileEntry))
+                        foreach (var extractedFile in ExtractFile(newFileEntry, parallel))
                         {
                             yield return extractedFile;
                         }
@@ -567,8 +583,16 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// </summary>
         /// <param name="fileEntry">FileEntry to extract</param>
         /// <returns>Extracted files</returns>
-        private IEnumerable<FileEntry> Extract7ZipFile(FileEntry fileEntry)
+        private IEnumerable<FileEntry> Extract7ZipFile(FileEntry fileEntry, bool parallel)
         {
+            if (parallel)
+            {
+                foreach (var entry in ParallelExtract7ZipFile(fileEntry))
+                {
+                    yield return entry;
+                }
+                yield break;
+            }
             SevenZipArchive? sevenZipArchive = null;
             try
             {
@@ -598,7 +622,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
                     if (newFileEntry != null)
                     {
-                        foreach (var extractedFile in ExtractFile(newFileEntry))
+                        foreach (var extractedFile in ExtractFile(newFileEntry, parallel))
                         {
                             yield return extractedFile;
                         }
@@ -612,8 +636,16 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// </summary>
         /// <param name="fileEntry">FileEntry to extract</param>
         /// <returns>Extracted files</returns>
-        private IEnumerable<FileEntry> ExtractDebFile(FileEntry fileEntry)
+        private IEnumerable<FileEntry> ExtractDebFile(FileEntry fileEntry, bool parallel)
         {
+            if (parallel)
+            {
+                foreach (var entry in ParallelExtractDebFile(fileEntry))
+                {
+                    yield return entry;
+                }
+                yield break;
+            }
             IEnumerable<FileEntry>? fileEntries = null;
             try
             {
@@ -633,7 +665,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         continue;
                     }
                     CheckResourceGovernor(entry.Content.Length);
-                    foreach (var extractedFile in ExtractFile(entry))
+                    foreach (var extractedFile in ExtractFile(entry, parallel))
                     {
                         yield return extractedFile;
                     }
@@ -673,7 +705,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         {
                             var stream = entry.OpenEntryStream();
                             var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, stream);
-                            files.AddRange(ExtractFile(newFileEntry));
+                            files.AddRange(ExtractFile(newFileEntry, true));
                         }
                         catch (Exception e)
                         {
@@ -788,7 +820,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             {
                                 var stream = entry.OpenEntryStream();
                                 var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, stream);
-                                files.AddRange(ExtractFile(newFileEntry));
+                                files.AddRange(ExtractFile(newFileEntry, true));
                             }
                             catch (Exception e)
                             {
@@ -837,7 +869,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         if (entry.Name != "control.tar.xz")
                         {
                             CheckResourceGovernor(entry.Content.Length);
-                            files.AddRange(ExtractFile(entry));
+                            files.AddRange(ExtractFile(entry, true));
                         }
                     });
                     entries.RemoveRange(0, batchSize);

@@ -12,35 +12,38 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
      */
     public static class DebArchiveFile
     {
-        // Simple method which returns a the file entries. We can't make this a continuation because
-        // we're using spans.
         public static IEnumerable<FileEntry> GetFileEntries(FileEntry fileEntry)
         {
             if (fileEntry == null)
             {
-                return Array.Empty<FileEntry>();
+                yield break;
             }
 
             // First, cut out the file signature (8 bytes) and global header (64 bytes)
-            var innerContent = new Span<byte>(fileEntry.Content.ToArray(), 72, (int)fileEntry.Content.Length - 72);
-            var results = new List<FileEntry>();
+            fileEntry.Content.Position = 72;
+            var headerBytes = new byte[60];
 
             while (true)
             {
-                if (innerContent.Length < 60)  // The header for each file is 60 bytes
+                if (fileEntry.Content.Length - fileEntry.Content.Position < 60)  // The header for each file is 60 bytes
                 {
                     break;
                 }
-                var entryHeader = innerContent.Slice(0, 60);
-                var filename = Encoding.ASCII.GetString(innerContent.Slice(0, 16)).Trim();  // filename is 16 bytes
-                var fileSizeBytes = entryHeader.Slice(48, 10); // File size is decimal-encoded, 10 bytes long
-                var fileSize = int.Parse(Encoding.ASCII.GetString(fileSizeBytes.ToArray()).Trim(), CultureInfo.InvariantCulture);
-                var entryContent = innerContent.Slice(60, fileSize);
-                using var entryStream = new MemoryStream(entryContent.ToArray());
-                results.Add(new FileEntry(filename, fileEntry.FullPath, entryStream));
-                innerContent = innerContent[(60 + fileSize)..];
+                fileEntry.Content.Read(headerBytes, 0, 60);
+                var filename = Encoding.ASCII.GetString(headerBytes[0..16]).Trim();  // filename is 16 bytes
+                var fileSizeBytes = headerBytes[48..58]; // File size is decimal-encoded, 10 bytes long
+                if (int.TryParse(Encoding.ASCII.GetString(fileSizeBytes).Trim(), out int fileSize))
+                {
+                    var entryContent = new byte[fileSize];
+                    fileEntry.Content.Read(entryContent, 0, fileSize);
+                    using var entryStream = new MemoryStream(entryContent);
+                    yield return new FileEntry(filename, fileEntry.FullPath, entryStream);
+                }
+                else
+                {
+                    break;
+                }                
             }
-            return results;
         }
     }
 }

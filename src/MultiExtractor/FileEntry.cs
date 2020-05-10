@@ -23,7 +23,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             {
                 throw new ArgumentNullException(nameof(content));
             }
-            // Back with a temporary filestream, this will be optimized to be cached in memory when possible automatically
+            // Back with a temporary filestream, this is optimized to be cached in memory when possible automatically
             Content = new FileStream(Path.GetTempFileName(), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
             if (content.CanSeek)
             {

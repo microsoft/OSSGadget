@@ -167,23 +167,25 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns>Extracted files</returns>
         public IEnumerable<FileEntry> ExtractFile(string filename, bool parallel = false)
         {
-            if (!File.Exists(filename))
+           if (!File.Exists(filename))
             {
                 Logger.Warn("ExtractFile called, but {0} does not exist.", filename);
                 return Array.Empty<FileEntry>();
             }
             IEnumerable<FileEntry> result = Array.Empty<FileEntry>();
+            FileStream? fs = null;
             try
             {
-                using var fs = new FileStream(filename,FileMode.Open);
+                fs = new FileStream(filename,FileMode.Open);
                 ResetResourceGovernor(fs);
-                result = ExtractFile(new FileEntry(filename, "", fs, true),parallel);
+                result = ExtractFile(new FileEntry(filename, "", fs),parallel);
             }
             catch(Exception ex)
             {
                 Logger.Debug(ex, "Failed to extract file {0}", filename);
             }
-
+            fs?.Close();
+            fs?.Dispose();
             return result;
         }
 
@@ -196,7 +198,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns>Extracted files</returns>
         public IEnumerable<FileEntry> ExtractFile(string filename, byte[] archiveBytes, bool parallel = false)
         {
-            using var fs = new FileStream(Path.GetTempFileName(), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
+            using var fs = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
             fs.Write(archiveBytes, 0, archiveBytes.Length);
             ResetResourceGovernor(fs);
             var result = ExtractFile(new FileEntry(filename, "", fs, true),parallel);
@@ -336,7 +338,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         continue;
                     }
 
-                    using var fs = new FileStream(Path.GetTempFileName(), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
+                    using var fs = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
                     try
                     {
                         byte[] buffer = new byte[BUFFER_SIZE];
@@ -348,7 +350,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         Logger.Debug(DEBUG_STRING, ArchiveFileType.ZIP, fileEntry.FullPath, zipEntry.Name, e.GetType());
                     }
 
-                    var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, fs, true);
+                    var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, fs);
                     foreach (var extractedFile in ExtractFile(newFileEntry, parallel))
                     {
                         yield return extractedFile;
@@ -436,7 +438,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     {
                         continue;
                     }
-                    using var fs = new FileStream(Path.GetTempFileName(), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
+                    using var fs = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
                     CheckResourceGovernor(tarStream.Length);
                     try
                     {
@@ -469,7 +471,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns>Extracted files</returns>
         private IEnumerable<FileEntry> ExtractXZFile(FileEntry fileEntry, bool parallel)
         {
-            using var fs = new FileStream(Path.GetTempFileName(), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
+            using var fs = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
             XZStream? xzStream = null;
             try
             {
@@ -517,7 +519,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns>Extracted files</returns>
         private IEnumerable<FileEntry> ExtractBZip2File(FileEntry fileEntry, bool parallel)
         {
-            using var fs = new FileStream(Path.GetTempFileName(), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
+            using var fs = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
             BZip2Stream? bzip2Stream = null;
             try
             {
@@ -801,7 +803,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         CheckResourceGovernor(zipEntry.Size);
                         try
                         {
-                            using var fs = new FileStream(Path.GetTempFileName(), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
+                            using var fs = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
                             byte[] buffer = new byte[BUFFER_SIZE];
                             var zipStream = zipFile.GetInputStream(zipEntry);
                             StreamUtils.Copy(zipStream, fs, buffer);

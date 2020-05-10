@@ -34,10 +34,9 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 if (int.TryParse(Encoding.ASCII.GetString(fileSizeBytes).Trim(), out int fileSize))
                 {
                     var entryContent = new byte[fileSize];
-                    fileEntry.Content.Write(entryContent, 0, fileSize);
-                    using var fs = new FileStream(Path.GetTempFileName(), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
-                    fs.Write(entryContent, 0, entryContent.Length);
-                    yield return new FileEntry(filename, fileEntry.FullPath, fs);
+                    fileEntry.Content.Read(entryContent, 0, fileSize);
+                    using var stream = new MemoryStream(entryContent);
+                    yield return new FileEntry(filename, fileEntry.FullPath, stream);
                 }
                 else
                 {

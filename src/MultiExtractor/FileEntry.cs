@@ -23,20 +23,14 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             {
                 throw new ArgumentNullException(nameof(content));
             }
-            if (passthroughStream)
-            {
-                Content = content;
-            }
-            else
-            {
                 // Back with a temporary filestream, this is optimized to be cached in memory when possible automatically
-                Content = new FileStream(Path.GetTempFileName(), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
+                Content = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
                 if (content.CanSeek)
                 {
                     content.Position = 0;
                 }
                 content.CopyTo(Content);
-            }
+            
         }
 
         public string FullPath { get; set; }

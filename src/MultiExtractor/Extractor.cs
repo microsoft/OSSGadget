@@ -175,7 +175,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             IEnumerable<FileEntry> result = Array.Empty<FileEntry>();
             try
             {
-                using var ms = new FileStream(filename,FileMode.Open);
+                using var ms = new MemoryStream(File.ReadAllBytes(filename));
                 ResetResourceGovernor(ms);
                 result = ExtractFile(new FileEntry(filename, "", ms),parallel);
             }
@@ -336,23 +336,22 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
                     CheckResourceGovernor(zipEntry.Size);
 
-                    Stream? stream = null;
+                    using var memoryStream = new MemoryStream();
                     try
                     {
-                        stream = zipFile.GetInputStream(zipEntry);
+                        byte[] buffer = new byte[BUFFER_SIZE];
+                        var zipStream = zipFile.GetInputStream(zipEntry);
+                        StreamUtils.Copy(zipStream, memoryStream, buffer);
                     }
                     catch (Exception e)
                     {
                         Logger.Debug(DEBUG_STRING, ArchiveFileType.ZIP, fileEntry.FullPath, zipEntry.Name, e.GetType());
                     }
 
-                    if (stream != null)
+                    var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, memoryStream);
+                    foreach (var extractedFile in ExtractFile(newFileEntry, parallel))
                     {
-                        var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, stream);
-                        foreach (var extractedFile in ExtractFile(newFileEntry, parallel))
-                        {
-                            yield return extractedFile;
-                        }
+                        yield return extractedFile;
                     }
                 }
             }

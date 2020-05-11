@@ -36,6 +36,7 @@ namespace Microsoft.CST.OpenSource
         private readonly Dictionary<string, object> Options = new Dictionary<string, object>()
         {
             { "target", new List<string>() },
+            { "cache-directory", null }
 
         };
 
@@ -61,7 +62,7 @@ namespace Microsoft.CST.OpenSource
                     try
                     {
                         var purl = new PackageURL(target);
-                        characteristicTool.AnalyzePackage(purl).Wait();
+                        characteristicTool.AnalyzePackage(purl, (string)(detectBackdoorTool.Options["cache-directory"])).Wait();
                     }
                     catch (Exception ex)
                     {

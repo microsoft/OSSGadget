@@ -23,7 +23,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">Package URL of the package to download.</param>
         /// <returns>Path to the downloaded package</returns>
-        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract = true)
+        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract = true, bool skipIfCached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
@@ -37,13 +37,21 @@ namespace Microsoft.CST.OpenSource.Shared
                 return downloadedPaths;
             }
 
+            var url = $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}/{packageVersion}/download";
             try
             {
-                var url = $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}/{packageVersion}/download";
+                var targetName = $"cargo-{packageName}@{packageVersion}";
+                var extractionPath = GetDirSafePackageName(targetName);
+                // if the cache is already present, no need to extract
+                if (doExtract && Directory.Exists(extractionPath) && skipIfCached == true)
+                {
+                    downloadedPaths.Add(extractionPath);
+                    return downloadedPaths;
+                }
                 Logger.Debug("Downloading {0}", url);
                 var result = await WebClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
-                var targetName = $"cargo-{packageName}@{packageVersion}";
+
                 if (doExtract)
                 {
                     downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync()));

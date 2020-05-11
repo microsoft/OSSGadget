@@ -36,7 +36,8 @@ namespace Microsoft.CST.OpenSource
         public Dictionary<string, object> Options = new Dictionary<string, object>()
         {
             { "target", new List<string>() },
-            { "external-risk", 0 }
+            { "external-risk", 0 },
+            { "cache-directory", null }
         };
 
         /// <summary>
@@ -60,7 +61,7 @@ namespace Microsoft.CST.OpenSource
                     try
                     {
                         var purl = new PackageURL(target);
-                        var riskLevel = riskCalculator.CalculateRisk(purl).Result;
+                        var riskLevel = riskCalculator.CalculateRisk(purl, (string)riskCalculator.Options["cache-directory"]).Result;
                         Logger.Info($"Risk Level: {riskLevel}");
                     }
                     catch (Exception ex)
@@ -83,12 +84,12 @@ namespace Microsoft.CST.OpenSource
             Logger = CommonInitialization.Logger;
         }
 
-        public async Task<double> CalculateRisk(PackageURL purl)
+        public async Task<double> CalculateRisk(PackageURL purl, string targetDirectory)
         {
             Logger.Trace("CalculateRisk({0})", purl?.ToString());
 
             var characteristicTool = new CharacteristicTool();
-            var characteristics = characteristicTool.AnalyzePackage(purl).Result;
+            var characteristics = characteristicTool.AnalyzePackage(purl, targetDirectory).Result;
 
             var healthTool = new HealthTool();
             var healthMetrics = healthTool.CheckHealth(purl).Result;

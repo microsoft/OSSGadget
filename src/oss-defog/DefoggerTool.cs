@@ -65,7 +65,8 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         private readonly IDictionary<string, object> Options = new Dictionary<string, object>()
         {
-            { "target", new List<string>() }
+            { "target", new List<string>() },
+            { "cache-directory", null }
         };
 
         /// <summary>
@@ -160,7 +161,7 @@ namespace Microsoft.CST.OpenSource
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
 
             var downloadTool = new DownloadTool();
-            foreach (var directory in await downloadTool.Download(purl))
+            foreach (var directory in await downloadTool.EnsureDownloadExists(purl, (string)(this.Options["cache-directory"])))
             {
                 AnalyzeDirectory(directory);
             }

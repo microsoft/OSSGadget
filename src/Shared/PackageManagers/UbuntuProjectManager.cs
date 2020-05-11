@@ -29,7 +29,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">Package URL of the package to download.</param>
         /// <returns>the path or file written.</returns>
-        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract = true)
+        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract = true, bool skipIfCached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
             
@@ -84,6 +84,12 @@ namespace Microsoft.CST.OpenSource.Shared
 
                             // TODO: Add distro version id
                             var targetName = $"ubuntu-{purl.Name}@{packageVersion}-{anchorHref}";
+                            var extractionPath = GetDirSafePackageName(targetName);
+                            if (doExtract && Directory.Exists(extractionPath) && skipIfCached == true)
+                            {
+                                downloadedPaths.Add(extractionPath);
+                                return downloadedPaths;
+                            }
 
                             if (doExtract)
                             {

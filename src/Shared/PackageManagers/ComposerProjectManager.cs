@@ -19,7 +19,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">Package URL of the package to download.</param>
         /// <returns>n/a</returns>
-        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract = true)
+        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract = true, bool skipIfCached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
@@ -51,6 +51,12 @@ namespace Microsoft.CST.OpenSource.Shared
                         Logger.Debug("Downloading {0}...", purl);
 
                         var targetName = $"composer-{packageName}@{packageVersion}";
+                        var extractionPath = GetDirSafePackageName(targetName);
+                        if (doExtract && Directory.Exists(extractionPath) && skipIfCached == true)
+                        {
+                            downloadedPaths.Add(extractionPath);
+                            return downloadedPaths;
+                        }
                         if (doExtract)
                         {
                             downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync()));

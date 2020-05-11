@@ -49,7 +49,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">Package URL of the package to download.</param>
         /// <returns>n/a</returns>
-        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract = true)
+        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract = true, bool skipIfCached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
@@ -80,6 +80,12 @@ namespace Microsoft.CST.OpenSource.Shared
                 var workingDirectory = string.IsNullOrWhiteSpace(purl.Version) ?
                                         Path.Join(TopLevelExtractionDirectory, $"github-{fsNamespace}-{fsName}") :
                                         Path.Join(TopLevelExtractionDirectory, $"github-{fsNamespace}-{fsName}-{fsVersion}");
+                var extractionPath = GetDirSafePackageName(workingDirectory);
+                if (doExtract && Directory.Exists(extractionPath) && skipIfCached == true)
+                {
+                    downloadedPaths.Add(extractionPath);
+                    return downloadedPaths;
+                }
 
                 Repository.Clone(url, workingDirectory);
 

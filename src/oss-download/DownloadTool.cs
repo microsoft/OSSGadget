@@ -5,8 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.CST.OpenSource.Shared;
+using NLog.Targets;
 
 namespace Microsoft.CST.OpenSource
 {
@@ -56,7 +58,7 @@ namespace Microsoft.CST.OpenSource
                     try
                     {
                         var purl = new PackageURL(target);
-                        foreach (var downloadPath in await downloadTool.Download(purl))
+                        foreach (var downloadPath in await downloadTool.EnsureDownloadExists(purl, (string)downloadTool.Options["download-directory"]))
                         {
                             if (string.IsNullOrEmpty(downloadPath))
                             {
@@ -89,23 +91,23 @@ namespace Microsoft.CST.OpenSource
             Logger = CommonInitialization.Logger;
         }
 
-        public async Task<List<string>> Download(PackageURL purl, string destinationDirectory = null)
+        /// <summary>
+        /// Check if the target folder has a directory in the name of the package. If it does not,
+        /// download the package
+        /// </summary>
+        /// <param name="purl"></param>
+        /// <param name="destinationDirectory"></param>
+        /// <returns></returns>
+        public async Task<List<string>> EnsureDownloadExists(PackageURL purl, string destinationDirectory = null)
         {
-            Logger.Trace("Download({0})", purl?.ToString());
             if (purl == default)
             {
                 Logger.Warn("Invalid PackageURL (null)");
                 return new List<string>();
             }
 
-            var downloadPaths = new List<string>();
-            
-            destinationDirectory ??= (string)Options["download-directory"] ?? ".";
-            if (!Directory.Exists(destinationDirectory))
-            {
-                Logger.Warn("Invalid directory, {0} does not exist.", destinationDirectory);
-                return new List<string>();
-            }
+            List<string> downloadDirectories = new List<string>();
+            destinationDirectory ??= ".";
 
             // Use reflection to find the correct package management class
             var downloaderClass = typeof(BaseProjectManager).Assembly.GetTypes()
@@ -119,13 +121,45 @@ namespace Microsoft.CST.OpenSource
                 var ctor = downloaderClass.GetConstructor(Array.Empty<Type>());
                 var _downloader = (BaseProjectManager)(ctor.Invoke(Array.Empty<object>()));
                 _downloader.TopLevelExtractionDirectory = destinationDirectory;
+                var targetDirectory = _downloader.GetDirSafePackageName(destinationDirectory);
+
+                if (Directory.Exists(targetDirectory))
+                {
+                    // if the package directory exists in the target directory, 
+                    // assume that the cache exists
+                    downloadDirectories.Add(targetDirectory);
+                    return downloadDirectories;
+                }
+                else
+                {
+                    // atleast does the destination dir exist?
+                    if (!Directory.Exists(destinationDirectory))
+                    {
+                        Logger.Trace("Creating directory [{0}]", destinationDirectory);
+                        Directory.CreateDirectory(destinationDirectory);
+                    }
+                    Logger.Trace("Download({0})", purl?.ToString());
+                    var directoryNames = await Download(_downloader, purl, destinationDirectory);
+                    downloadDirectories.AddRange(directoryNames);
+                    return downloadDirectories;
+                }
+            }
+            else
+            {
+                throw new ArgumentException(string.Format("Invalid Package URL type: {0}", purl?.Type));
+            }
+        }
+
+        public async Task<List<string>> Download(BaseProjectManager _downloader, PackageURL purl, string destinationDirectory = null)
+        {
+            List<string> downloadPaths = new List<string>();
                 if ((bool)Options["download-metadata-only"])
                 {
                     var metadata = await _downloader.GetMetadata(purl);
                     if (metadata != default)
                     {
                         var outputFilename = Path.Combine(destinationDirectory, $"metadata-{purl.ToStringFilename()}");
-                        while (File.Exists(outputFilename))
+                            while (File.Exists(outputFilename))
                         {
                             outputFilename = Path.Combine(destinationDirectory, $"metadata-{purl.ToStringFilename()}-{DateTime.Now.Ticks}");
                         }
@@ -141,12 +175,7 @@ namespace Microsoft.CST.OpenSource
                     }
                     downloadPaths = await _downloader.Download(purl, doExtract);
                 }
-            }
-            else
-            {
-                throw new ArgumentException(string.Format("Invalid Package URL type: {0}", purl?.Type));
-            }
-
+            
             return downloadPaths;
         }
 

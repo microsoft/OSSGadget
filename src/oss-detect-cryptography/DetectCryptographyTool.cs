@@ -49,6 +49,7 @@ namespace Microsoft.CST.OpenSource
             { "target", new List<string>() },
             { "disable-default-rules", false },
             { "custom-rule-directory", null },
+            { "cache-directory", null },
             { "verbose", false }
         };
 
@@ -80,7 +81,7 @@ namespace Microsoft.CST.OpenSource
                         if (target.StartsWith("pkg:", StringComparison.InvariantCulture))
                         {
                             var purl = new PackageURL(target);
-                            results = await detectCryptographyTool.AnalyzePackage(purl);
+                            results = await detectCryptographyTool.AnalyzePackage(purl, (string)detectCryptographyTool.Options["cache-directory"]);
                         }
                         else if (Directory.Exists(target))
                         {
@@ -232,23 +233,14 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         /// <param name="purl">The package-url of the package to analyze.</param>
         /// <returns>List of tags identified</returns>
-        public async Task<List<IssueRecord>> AnalyzePackage(PackageURL purl)
+        public async Task<List<IssueRecord>> AnalyzePackage(PackageURL purl, string targetDirectoryName)
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
 
             var analysisResults = new List<IssueRecord>();
 
-            string targetDirectoryName = null;
-            while (targetDirectoryName == null || Directory.Exists(targetDirectoryName))
-            {
-                targetDirectoryName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            }
-
-            Logger.Trace("Creating directory [{0}]", targetDirectoryName);
-            Directory.CreateDirectory(targetDirectoryName);
-
             var downloadTool = new DownloadTool();
-            var directoryNames = await downloadTool.Download(purl, targetDirectoryName);
+            var directoryNames = await downloadTool.EnsureDownloadExists(purl, targetDirectoryName);
             directoryNames = directoryNames.Distinct().ToList<string>();
 
             if (directoryNames.Count > 0)

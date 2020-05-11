@@ -29,7 +29,7 @@ namespace Microsoft.CST.OpenSource.Tests
         private async Task TestDetectCryptography(string purl, params string[] expectedTags)
         {
             var detectCryptographyTool = new DetectCryptographyTool();
-            var results = await detectCryptographyTool.AnalyzePackage(new PackageURL(purl));
+            var results = await detectCryptographyTool.AnalyzePackage(new PackageURL(purl), ".");
 
             var distinctTargets = expectedTags.Distinct();
             var distinctFindings = results.SelectMany(s => s.Issue.Rule.Tags)

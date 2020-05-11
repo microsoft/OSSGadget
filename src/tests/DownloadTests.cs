@@ -134,7 +134,7 @@ namespace Microsoft.CST.OpenSource.Tests
             {
                 try
                 {
-                    downloadTool.Download(packageUrl, tempDirectoryName).Wait();
+                    downloadTool.EnsureDownloadExists(packageUrl, tempDirectoryName).Wait();
                     break;
                 }
                 catch (Exception)

@@ -32,7 +32,8 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         private readonly Dictionary<string, object> Options = new Dictionary<string, object>()
         {
-            { "target", new List<string>() }
+            { "target", new List<string>() },
+            { "cache-directory", null }
 
         };
 

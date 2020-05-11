@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.ApplicationInspector.Commands;
 using Microsoft.CST.OpenSource.Shared;
+using NLog.Targets;
 
 namespace Microsoft.CST.OpenSource
 {
@@ -35,7 +36,8 @@ namespace Microsoft.CST.OpenSource
         {
             { "target", new List<string>() },
             { "disable-default-rules", false },
-            { "custom-rule-directory", null }
+            { "custom-rule-directory", null },
+            { "cache-directory", null },
         };
 
         /// <summary>
@@ -54,8 +56,9 @@ namespace Microsoft.CST.OpenSource
                 {
                     try
                     {
+                        string destinationDirectory = (string)characteristicTool.Options["cache-directory"] ?? ".";
                         var purl = new PackageURL(target);
-                        var analysisResult = characteristicTool.AnalyzePackage(purl).Result;
+                        var analysisResult = characteristicTool.AnalyzePackage(purl, destinationDirectory).Result;
 
                         var sb = new StringBuilder();
                         sb.AppendLine(target);
@@ -100,25 +103,21 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         /// <param name="purl">The package-url of the package to analyze.</param>
         /// <returns>List of tags identified</returns>
-        public async Task<Dictionary<string, AnalyzeResult>> AnalyzePackage(PackageURL purl)
+        public async Task<Dictionary<string, AnalyzeResult>> AnalyzePackage(PackageURL purl, string targetDirectoryName)
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
             
             var analysisResults = new Dictionary<string, AnalyzeResult>();
-
-            string targetDirectoryName = null;
-            while (targetDirectoryName == null || Directory.Exists(targetDirectoryName))
-            {
-                targetDirectoryName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            }
-
-            Logger.Trace("Creating directory [{0}]", targetDirectoryName);
-            Directory.CreateDirectory(targetDirectoryName);
+            List<string> directoryNames = new List<string>();
 
             var downloadTool = new DownloadTool();
-            var directoryNames = await downloadTool.Download(purl, targetDirectoryName);
-            if (directoryNames.Count > 0)
+            // ensure that the cache directory has the required package, download it otherwise
+            if (!string.IsNullOrEmpty(targetDirectoryName))
             {
+                directoryNames.AddRange(await downloadTool.EnsureDownloadExists(purl, targetDirectoryName));
+            }
+            if (directoryNames.Count > 0)
+            { 
                 foreach (var directoryName in directoryNames)
                 {
                     var singleResult = await AnalyzeDirectory(directoryName);
@@ -204,11 +203,15 @@ namespace Microsoft.CST.OpenSource
                         Console.Error.WriteLine($"{TOOL_NAME} {VERSION}");
                         Environment.Exit(1);
                         break;
-                    
+
                     case "--custom-rule-directory":
                         Options["custom-rule-directory"] = args[++i];
                         break;
-                    
+
+                    case "--cache-directory":
+                        Options["cache-directory"] = args[++i];
+                        break;
+
                     case "--disable-default-rules":
                         Options["disable-default-rules"] = true;
                         break;

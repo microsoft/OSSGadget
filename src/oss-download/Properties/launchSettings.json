@@ -1,8 +1,7 @@
 {
   "profiles": {
     "oss-download": {
-      "commandName": "Project",
-      "commandLineArgs": " --directory e:\\test\\target pkg:npm/postcss@7.0.27"
+      "commandName": "Project"
     }
   }
 }

@@ -146,6 +146,10 @@ namespace Microsoft.CST.OpenSource
                         Environment.Exit(1);
                         break;
 
+                    case "--cache-directory":
+                        Options["cache-directory"] = args[++i];
+                        break;
+
                     default:
                         ((IList<string>)Options["target"]).Add(args[i]);
                         break;

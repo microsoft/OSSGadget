@@ -93,7 +93,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
                             if (doExtract)
                             {
-                                downloadedPaths.Add(await ExtractArchive(targetName, await downloadResult.Content.ReadAsByteArrayAsync()));
+                                downloadedPaths.Add(await ExtractArchive(targetName, await downloadResult.Content.ReadAsByteArrayAsync(), cached));
                             }
                             else
                             {
@@ -145,7 +145,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
                                     if (doExtract)
                                     {
-                                        downloadedPaths.Add(await ExtractArchive(targetName, await downloadResult.Content.ReadAsByteArrayAsync()));
+                                        downloadedPaths.Add(await ExtractArchive(targetName, await downloadResult.Content.ReadAsByteArrayAsync(), cached));
                                     }
                                     else
                                     {

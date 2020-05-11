@@ -112,8 +112,8 @@ namespace Microsoft.CST.OpenSource
                         Environment.Exit(1);
                         break;
 
-                    case "--directory":
-                        Options["download-directory"] = args[++i];
+                    case "--cache-directory":
+                        Options["cache-directory"] = args[++i];
                         break;
 
                     default:

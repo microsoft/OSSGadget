@@ -113,7 +113,7 @@ namespace Microsoft.CST.OpenSource
             var downloadTool = new DownloadTool();
             // ensure that the cache directory has the required package, download it otherwise
             bool cached = !string.IsNullOrEmpty(targetDirectoryName);
-            if (!string.IsNullOrEmpty(targetDirectoryName))
+            if (cached)
             {
                 directoryNames.AddRange(await downloadTool.EnsureDownloadExists(purl, targetDirectoryName));
             }

@@ -255,17 +255,18 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <param name="directoryName"> directory to extract content into (within TopLevelExtractionDirectory)</param>
         /// <param name="bytes">bytes to extract (should be an archive file)</param>
         /// <returns></returns>
-        public async Task<string> ExtractArchive(string directoryName, byte[] bytes)
+        public async Task<string> ExtractArchive(string directoryName, byte[] bytes, bool cached = false)
         {
             Logger.Trace("ExtractArchive({0}, <bytes> len={1})", directoryName, bytes?.Length);
 
             Directory.CreateDirectory(TopLevelExtractionDirectory);
 
-            // This will result in "npm-@types-foo@1.2.3" instead of "npm-%40types%2Ffoo@1.2.3"
-
-            while (Directory.Exists(directoryName) || File.Exists(directoryName))
+            if (!cached)
             {
-                directoryName += "-" + DateTime.Now.Ticks;
+                while (Directory.Exists(directoryName) || File.Exists(directoryName))
+                {
+                    directoryName += "-" + DateTime.Now.Ticks;
+                }
             }
             var extractor = new Extractor();
             //extractor.MaxExtractedBytes = 1000 * 1000 * 10;  // 10 MB maximum package size

@@ -154,10 +154,14 @@ namespace Microsoft.CST.OpenSource
                     if (metadata != default)
                     {
                         var outputFilename = Path.Combine(_downloader.TopLevelExtractionDirectory, $"metadata-{purl.ToStringFilename()}");
-                            while (File.Exists(outputFilename))
+
+                    if (!cached)
+                    {
+                        while (File.Exists(outputFilename))
                         {
                             outputFilename = Path.Combine(_downloader.TopLevelExtractionDirectory, $"metadata-{purl.ToStringFilename()}-{DateTime.Now.Ticks}");
                         }
+                    }
                         File.WriteAllText(outputFilename, metadata);
                         downloadPaths.Add(outputFilename);
                     }

@@ -32,9 +32,7 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         private readonly Dictionary<string, object> Options = new Dictionary<string, object>()
         {
-            { "target", new List<string>() },
-            { "cache-directory", null }
-
+            { "target", new List<string>() }
         };
 
         static void Main(string[] args)
@@ -92,6 +90,7 @@ namespace Microsoft.CST.OpenSource
                 var content = await projectManager.GetMetadata(purl);
                 if (!string.IsNullOrWhiteSpace(content))
                 {
+                    // TODO: Move to the new oss-find-source algorithm
                     foreach (var githubPurl in BaseProjectManager.ExtractGitHubPackageURLs(content))
                     {
                         try
@@ -146,10 +145,6 @@ namespace Microsoft.CST.OpenSource
                         Environment.Exit(1);
                         break;
 
-                    case "--cache-directory":
-                        Options["cache-directory"] = args[++i];
-                        break;
-
                     default:
                         ((IList<string>)Options["target"]).Add(args[i]);
                         break;
@@ -168,7 +163,7 @@ namespace Microsoft.CST.OpenSource
 Usage: {TOOL_NAME} [options] package-url...
 
 positional arguments:
-    package-url                 PackgeURL specifier to download (required, repeats OK)
+    package-url                 PackgeURL specifier to check health for (required, repeats OK)
 
 {BaseProjectManager.GetCommonSupportedHelpText()}
 

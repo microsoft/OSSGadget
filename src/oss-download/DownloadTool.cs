@@ -107,6 +107,7 @@ namespace Microsoft.CST.OpenSource
             }
 
             List<string> downloadDirectories = new List<string>();
+            bool cached = !string.IsNullOrEmpty(destinationDirectory);
             destinationDirectory ??= ".";
 
             // Use reflection to find the correct package management class
@@ -121,7 +122,7 @@ namespace Microsoft.CST.OpenSource
                 var ctor = downloaderClass.GetConstructor(Array.Empty<Type>());
                 var _downloader = (BaseProjectManager)(ctor.Invoke(Array.Empty<object>()));
                 _downloader.TopLevelExtractionDirectory = destinationDirectory;
-                var targetDirectory = _downloader.GetDirSafePackageName(destinationDirectory);
+                var targetDirectory = _downloader.GetFullExtractionPath(purl);
 
                 if (Directory.Exists(targetDirectory))
                 {
@@ -132,14 +133,8 @@ namespace Microsoft.CST.OpenSource
                 }
                 else
                 {
-                    // atleast does the destination dir exist?
-                    if (!Directory.Exists(destinationDirectory))
-                    {
-                        Logger.Trace("Creating directory [{0}]", destinationDirectory);
-                        Directory.CreateDirectory(destinationDirectory);
-                    }
                     Logger.Trace("Download({0})", purl?.ToString());
-                    var directoryNames = await Download(_downloader, purl, destinationDirectory);
+                    var directoryNames = await Download(_downloader, purl, cached);
                     downloadDirectories.AddRange(directoryNames);
                     return downloadDirectories;
                 }
@@ -150,7 +145,7 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        public async Task<List<string>> Download(BaseProjectManager _downloader, PackageURL purl, string destinationDirectory = null)
+        public async Task<List<string>> Download(BaseProjectManager _downloader, PackageURL purl, bool cached = false)
         {
             List<string> downloadPaths = new List<string>();
                 if ((bool)Options["download-metadata-only"])
@@ -158,10 +153,10 @@ namespace Microsoft.CST.OpenSource
                     var metadata = await _downloader.GetMetadata(purl);
                     if (metadata != default)
                     {
-                        var outputFilename = Path.Combine(destinationDirectory, $"metadata-{purl.ToStringFilename()}");
+                        var outputFilename = Path.Combine(_downloader.TopLevelExtractionDirectory, $"metadata-{purl.ToStringFilename()}");
                             while (File.Exists(outputFilename))
                         {
-                            outputFilename = Path.Combine(destinationDirectory, $"metadata-{purl.ToStringFilename()}-{DateTime.Now.Ticks}");
+                            outputFilename = Path.Combine(_downloader.TopLevelExtractionDirectory, $"metadata-{purl.ToStringFilename()}-{DateTime.Now.Ticks}");
                         }
                         File.WriteAllText(outputFilename, metadata);
                         downloadPaths.Add(outputFilename);
@@ -173,7 +168,7 @@ namespace Microsoft.CST.OpenSource
                     {
                         doExtract = true;
                     }
-                    downloadPaths = await _downloader.Download(purl, doExtract);
+                    downloadPaths = await _downloader.Download(purl, doExtract, cached);
                 }
             
             return downloadPaths;

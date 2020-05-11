@@ -60,7 +60,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">PackageURL to download</param>
         /// <returns>Paths (either files or directory names) pertaining to the downloaded files.</returns>
-        public virtual Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract=true, bool skipIfCached = false)
+        public virtual Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract=true, bool cached = false)
         {
             throw new NotImplementedException("BaseProjectManager does not implement DownloadVersion.");
         }
@@ -237,18 +237,17 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        // This will result in "npm-@types-foo@1.2.3" instead of "npm-%40types%2Ffoo@1.2.3"
+        /// Get the full path where the package is to be extracted
         /// </summary>
         /// <param name="directoryName"></param>
         /// <returns></returns>
-        public string GetDirSafePackageName(string directoryName) {
-            directoryName = directoryName.Replace(Path.DirectorySeparatorChar, '-');
-            directoryName = directoryName.Replace(Path.AltDirectorySeparatorChar, '-');
+        public string GetFullExtractionPath(PackageURL purl)
+        {
+            string directoryName = purl.ToStringFilename();
             var fullExtractionPath = Path.Combine(TopLevelExtractionDirectory, directoryName);
             fullExtractionPath = Path.GetFullPath(fullExtractionPath);
             return fullExtractionPath;
         }
-
         /// <summary>
         /// Extracts an archive (given by 'bytes') into a directory named
         /// 'directoryName', recursively, using MultiExtractor.
@@ -264,7 +263,6 @@ namespace Microsoft.CST.OpenSource.Shared
 
             // This will result in "npm-@types-foo@1.2.3" instead of "npm-%40types%2Ffoo@1.2.3"
 
-            directoryName = GetDirSafePackageName(directoryName);
             while (Directory.Exists(directoryName) || File.Exists(directoryName))
             {
                 directoryName += "-" + DateTime.Now.Ticks;
@@ -301,7 +299,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">package-url to download</param>
         /// <returns></returns>
-        public async Task<List<string>> Download(PackageURL purl, bool doExtract = true, bool skipIfCached = false)
+        public async Task<List<string>> Download(PackageURL purl, bool doExtract = true, bool cached = false)
         {
             Logger.Trace("(Base) Download({0})", purl?.ToString());
             var downloadPaths = new List<string>();
@@ -317,7 +315,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 {
                     Logger.Trace(string.Join(",", versions));
                     var vpurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, versions.Last(), purl.Qualifiers, purl.Subpath);
-                    downloadPaths.AddRange(await DownloadVersion(vpurl, doExtract, skipIfCached));
+                    downloadPaths.AddRange(await DownloadVersion(vpurl, doExtract, cached));
                 }
                 else
                 {
@@ -329,12 +327,12 @@ namespace Microsoft.CST.OpenSource.Shared
                 foreach (var version in await EnumerateVersions(purl))
                 {
                     var vpurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, version, purl.Qualifiers, purl.Subpath);
-                    downloadPaths.AddRange(await DownloadVersion(vpurl, doExtract, skipIfCached));
+                    downloadPaths.AddRange(await DownloadVersion(vpurl, doExtract, cached));
                 }
             }
             else
             {
-                downloadPaths.AddRange(await DownloadVersion(purl, doExtract, skipIfCached));
+                downloadPaths.AddRange(await DownloadVersion(purl, doExtract, cached));
             }
 
             Logger.Debug("Downloaded to {0} paths", downloadPaths.Count);

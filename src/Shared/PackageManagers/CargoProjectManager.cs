@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using AngleSharp.Css;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -23,7 +24,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">Package URL of the package to download.</param>
         /// <returns>Path to the downloaded package</returns>
-        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract = true, bool skipIfCached = false)
+        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract = true, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
@@ -40,10 +41,10 @@ namespace Microsoft.CST.OpenSource.Shared
             var url = $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}/{packageVersion}/download";
             try
             {
-                var targetName = $"cargo-{packageName}@{packageVersion}";
-                var extractionPath = GetDirSafePackageName(targetName);
+                string targetName = $"cargo-{purl.ToStringFilename()}";
+                string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                 // if the cache is already present, no need to extract
-                if (doExtract && Directory.Exists(extractionPath) && skipIfCached == true)
+                if (doExtract && Directory.Exists(extractionPath) && cached == true)
                 {
                     downloadedPaths.Add(extractionPath);
                     return downloadedPaths;
@@ -58,9 +59,9 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
                 else
                 {
-                    targetName += Path.GetExtension(url) ?? "";
-                    await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
-                    downloadedPaths.Add(targetName);
+                    extractionPath += Path.GetExtension(url) ?? "";
+                    await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
+                    downloadedPaths.Add(extractionPath);
                 }
             }
             catch (Exception ex)

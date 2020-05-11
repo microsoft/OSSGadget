@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CST.OpenSource.Shared;
@@ -29,7 +30,8 @@ namespace Microsoft.CST.OpenSource.Tests
         private async Task TestDetectCryptography(string purl, params string[] expectedTags)
         {
             var detectCryptographyTool = new DetectCryptographyTool();
-            var results = await detectCryptographyTool.AnalyzePackage(new PackageURL(purl), ".");
+            string targetDirectoryName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var results = await detectCryptographyTool.AnalyzePackage(new PackageURL(purl), targetDirectoryName);
 
             var distinctTargets = expectedTags.Distinct();
             var distinctFindings = results.SelectMany(s => s.Issue.Rule.Tags)

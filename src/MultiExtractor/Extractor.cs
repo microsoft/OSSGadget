@@ -81,6 +81,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// Logger for interesting events.
         /// </summary>
         private readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+        private readonly string IS_QUINE_STRING = "Detected Quine {0} in {1}. Aborting Extraction.";
 
         /// <summary>
         /// Times extraction operations to avoid denial of service.
@@ -355,6 +356,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
                     if (IsQuine(fileEntry, newFileEntry))
                     {
+                        Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
                         throw new OverflowException();
                     }
 
@@ -492,6 +494,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     
                     if (IsQuine(fileEntry, newFileEntry))
                     {
+                        Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
                         throw new OverflowException();
                     }
 
@@ -548,6 +551,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
                 if (IsQuine(fileEntry, newFileEntry))
                 {
+                    Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
                     throw new OverflowException();
                 }
 
@@ -589,6 +593,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
                 if (IsQuine(fileEntry, newFileEntry))
                 {
+                    Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
                     throw new OverflowException();
                 }
 
@@ -651,6 +656,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     {
                         if (IsQuine(fileEntry, newFileEntry))
                         {
+                            Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
                             throw new OverflowException();
                         }
                         foreach (var extractedFile in ExtractFile(newFileEntry, parallel))
@@ -712,6 +718,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     {
                         if (IsQuine(fileEntry, newFileEntry))
                         {
+                            Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
                             throw new OverflowException();
                         }
                         foreach (var extractedFile in ExtractFile(newFileEntry, parallel))
@@ -811,6 +818,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, stream);
                             if (IsQuine(fileEntry, newFileEntry))
                             {
+                                Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
                                 CurrentOperationProcessedBytesLeft = -1;
                             }
                             else
@@ -883,6 +891,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, fs, true);
                             if (IsQuine(fileEntry, newFileEntry))
                             {
+                                Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
                                 CurrentOperationProcessedBytesLeft = -1;
                             }
                             else
@@ -945,6 +954,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                                 var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, stream);
                                 if (IsQuine(fileEntry, newFileEntry))
                                 {
+                                    Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
                                     CurrentOperationProcessedBytesLeft = -1;
                                 }
                                 else

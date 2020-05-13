@@ -354,7 +354,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
                     var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, fs);
 
-                    if (IsQuine(fileEntry, newFileEntry))
+                    if (AreIdentical(fileEntry, newFileEntry))
                     {
                         Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
                         throw new OverflowException();
@@ -366,38 +366,6 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
                 }
             }
-        }
-
-        private bool IsQuine(FileEntry newFileEntry, FileEntry extractedFile)
-        {
-            if (newFileEntry.Name == extractedFile.Name && newFileEntry.Content.Length == extractedFile.Content.Length)
-            {
-                var buffer1 = new Span<byte>(new byte[1024]);
-                var buffer2 = new Span<byte>(new byte[1024]);
-                var stream1 = newFileEntry.Content;
-                var stream2 = extractedFile.Content;
-                var position1 = newFileEntry.Content.Position;
-                var position2 = extractedFile.Content.Position;
-                stream1.Position = 0;
-                stream2.Position = 0;
-                var bytesRemaining = stream2.Length;
-                while(bytesRemaining > 0)
-                {
-                    stream1.Read(buffer1);
-                    stream2.Read(buffer2);
-                    if (!buffer1.SequenceEqual(buffer2))
-                    {
-                        stream1.Position = position1;
-                        stream2.Position = position2;
-                        return false;
-                    }
-                    bytesRemaining = stream2.Length - stream2.Position;
-                }
-                stream1.Position = position1;
-                stream2.Position = position2;
-                return true;
-            }
-            return false;
         }
 
         /// <summary>
@@ -492,7 +460,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
                     var newFileEntry = new FileEntry(tarEntry.Name, fileEntry.FullPath, fs, true);
                     
-                    if (IsQuine(fileEntry, newFileEntry))
+                    if (AreIdentical(fileEntry, newFileEntry))
                     {
                         Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
                         throw new OverflowException();
@@ -549,7 +517,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
                 var newFileEntry = new FileEntry(newFilename, fileEntry.FullPath, fs, true);
 
-                if (IsQuine(fileEntry, newFileEntry))
+                if (AreIdentical(fileEntry, newFileEntry))
                 {
                     Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
                     throw new OverflowException();
@@ -591,7 +559,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
                 var newFileEntry = new FileEntry(newFilename, fileEntry.FullPath, fs, true);
 
-                if (IsQuine(fileEntry, newFileEntry))
+                if (AreIdentical(fileEntry, newFileEntry))
                 {
                     Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
                     throw new OverflowException();
@@ -616,6 +584,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns>Extracted files</returns>
         private IEnumerable<FileEntry> ExtractRarFile(FileEntry fileEntry, bool parallel)
         {
+            // TODO: This produces unpredictable results when run on Azure Pipelines, but cannot reproduce locally
             //if (parallel)
             //{
             //    foreach (var entry in ParallelExtractRarFile(fileEntry))
@@ -654,7 +623,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
                     if (newFileEntry != null)
                     {
-                        if (IsQuine(fileEntry, newFileEntry))
+                        if (AreIdentical(fileEntry, newFileEntry))
                         {
                             Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
                             throw new OverflowException();
@@ -716,7 +685,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
                     if (newFileEntry != null)
                     {
-                        if (IsQuine(fileEntry, newFileEntry))
+                        if (AreIdentical(fileEntry, newFileEntry))
                         {
                             Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
                             throw new OverflowException();
@@ -816,7 +785,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         {
                             var stream = entry.OpenEntryStream();
                             var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, stream);
-                            if (IsQuine(fileEntry, newFileEntry))
+                            if (AreIdentical(fileEntry, newFileEntry))
                             {
                                 Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
                                 CurrentOperationProcessedBytesLeft = -1;
@@ -889,7 +858,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             var zipStream = zipFile.GetInputStream(zipEntry);
                             StreamUtils.Copy(zipStream, fs, buffer);
                             var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, fs, true);
-                            if (IsQuine(fileEntry, newFileEntry))
+                            if (AreIdentical(fileEntry, newFileEntry))
                             {
                                 Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
                                 CurrentOperationProcessedBytesLeft = -1;
@@ -952,7 +921,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             {
                                 var stream = entry.OpenEntryStream();
                                 var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, stream);
-                                if (IsQuine(fileEntry, newFileEntry))
+                                if (AreIdentical(fileEntry, newFileEntry))
                                 {
                                     Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
                                     CurrentOperationProcessedBytesLeft = -1;
@@ -1029,6 +998,44 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             {
                 yield return fileEntry;
             }
+        }
+
+        /// <summary>
+        /// Check if the two files are identical (i.e. Extraction is a quine)
+        /// </summary>
+        /// <param name="fileEntry1"></param>
+        /// <param name="fileEntry2"></param>
+        /// <returns></returns>
+        public static bool AreIdentical(FileEntry fileEntry1, FileEntry fileEntry2)
+        {
+            if (fileEntry1.Name == fileEntry2.Name && fileEntry1.Content.Length == fileEntry2.Content.Length)
+            {
+                var buffer1 = new Span<byte>(new byte[1024]);
+                var buffer2 = new Span<byte>(new byte[1024]);
+                var stream1 = fileEntry1.Content;
+                var stream2 = fileEntry2.Content;
+                var position1 = fileEntry1.Content.Position;
+                var position2 = fileEntry2.Content.Position;
+                stream1.Position = 0;
+                stream2.Position = 0;
+                var bytesRemaining = stream2.Length;
+                while (bytesRemaining > 0)
+                {
+                    stream1.Read(buffer1);
+                    stream2.Read(buffer2);
+                    if (!buffer1.SequenceEqual(buffer2))
+                    {
+                        stream1.Position = position1;
+                        stream2.Position = position2;
+                        return false;
+                    }
+                    bytesRemaining = stream2.Length - stream2.Position;
+                }
+                stream1.Position = position1;
+                stream2.Position = position2;
+                return true;
+            }
+            return false;
         }
     }
 }

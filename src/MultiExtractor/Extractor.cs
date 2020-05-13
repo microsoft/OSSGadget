@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Tar;
 using ICSharpCode.SharpZipLib.Zip;
@@ -42,7 +43,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// By default, stop processing after this time span. Used to avoid
         /// denial of service (zip bombs and the like).
         /// </summary>
-        public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(5);
+        public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(300);
 
         /// <summary>
         /// The maximum number of bytes to extract from the archive and
@@ -351,12 +352,51 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
 
                     var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, fs);
+
+                    if (IsQuine(fileEntry, newFileEntry))
+                    {
+                        throw new OverflowException();
+                    }
+
                     foreach (var extractedFile in ExtractFile(newFileEntry, parallel))
                     {
+                        
                         yield return extractedFile;
                     }
                 }
             }
+        }
+
+        private bool IsQuine(FileEntry newFileEntry, FileEntry extractedFile)
+        {
+            if (newFileEntry.Name == extractedFile.Name && newFileEntry.Content.Length == extractedFile.Content.Length)
+            {
+                var buffer1 = new Span<byte>(new byte[1024]);
+                var buffer2 = new Span<byte>(new byte[1024]);
+                var stream1 = newFileEntry.Content;
+                var stream2 = extractedFile.Content;
+                var position1 = newFileEntry.Content.Position;
+                var position2 = extractedFile.Content.Position;
+                stream1.Position = 0;
+                stream2.Position = 0;
+                var bytesRemaining = stream2.Length;
+                while(bytesRemaining > 0)
+                {
+                    stream1.Read(buffer1);
+                    stream2.Read(buffer2);
+                    if (!buffer1.SequenceEqual(buffer2))
+                    {
+                        stream1.Position = position1;
+                        stream2.Position = position2;
+                        return false;
+                    }
+                    bytesRemaining = stream2.Length - stream2.Position;
+                }
+                stream1.Position = position1;
+                stream2.Position = position2;
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -808,7 +848,15 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             var zipStream = zipFile.GetInputStream(zipEntry);
                             StreamUtils.Copy(zipStream, fs, buffer);
                             var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, fs, true);
+                            if (IsQuine(fileEntry, newFileEntry))
+                            {
+                                throw new OverflowException();
+                            }
                             files.AddRange(ExtractFile(newFileEntry, true));
+                        }
+                        catch(Exception e) when (e is OverflowException)
+                        {
+                            throw;
                         }
                         catch(Exception e)
                         {

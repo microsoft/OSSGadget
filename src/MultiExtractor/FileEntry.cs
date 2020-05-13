@@ -19,6 +19,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             {
                 FullPath = $"{parentPath}:{name}";
             }
+            ParentPath = parentPath;
             if (content == null)
             {
                 throw new ArgumentNullException(nameof(content));
@@ -32,7 +33,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 content.CopyTo(Content);
             
         }
-
+        public string ParentPath { get; set; }
         public string FullPath { get; set; }
         public string Name { get; set; }
         public Stream Content { get; set; }

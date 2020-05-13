@@ -42,7 +42,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// By default, stop processing after this time span. Used to avoid
         /// denial of service (zip bombs and the like).
         /// </summary>
-        public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(300);
+        public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(5);
 
         /// <summary>
         /// The maximum number of bytes to extract from the archive and
@@ -214,15 +214,15 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         private IEnumerable<FileEntry> ExtractFile(FileEntry fileEntry, bool parallel = false)
         {
             Logger.Trace("ExtractFile({0})", fileEntry.FullPath);
-            var rawFileUsed = false;
-
+            CurrentOperationProcessedBytesLeft -= fileEntry.Content.Length;
             CheckResourceGovernor();
             IEnumerable<FileEntry> result;
-            
+            bool useRaw = false;
+
             try
             {
                 var fileEntryType = MiniMagic.DetectFileType(fileEntry);
-                switch(fileEntryType)
+                switch (fileEntryType)
                 {
                     case ArchiveFileType.ZIP:
                         result = ExtractZipFile(fileEntry, parallel);
@@ -252,24 +252,24 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         result = ExtractGnuArFile(fileEntry, parallel);
                         break;
                     default:
-                        rawFileUsed = true;
+                        useRaw = true;
                         result = new[] { fileEntry };
                         break;
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Logger.Debug(ex, "Error extracting {0}: {1}", fileEntry.FullPath, ex.Message);
-                rawFileUsed = true;
+                useRaw = true;
                 result = new[] { fileEntry };   // Default is to not try to extract.
             }
 
-            if (rawFileUsed)
+            // After we are done with an archive subtract its bytes. Contents have been counted now separately
+            if (!useRaw)
             {
-                // We only increment the procesed bytes for non-archives,
-                // since archives we process are never actually written to disk.
-                CurrentOperationProcessedBytesLeft -= fileEntry.Content.Length;
+                CurrentOperationProcessedBytesLeft += fileEntry.Content.Length;
             }
+
             return result;
         }
 

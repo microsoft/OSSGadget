@@ -616,14 +616,14 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns>Extracted files</returns>
         private IEnumerable<FileEntry> ExtractRarFile(FileEntry fileEntry, bool parallel)
         {
-            if (parallel)
-            {
-                foreach (var entry in ParallelExtractRarFile(fileEntry))
-                {
-                    yield return entry;
-                }
-                yield break;
-            }
+            //if (parallel)
+            //{
+            //    foreach (var entry in ParallelExtractRarFile(fileEntry))
+            //    {
+            //        yield return entry;
+            //    }
+            //    yield break;
+            //}
             RarArchive? rarArchive = null;
             try
             {

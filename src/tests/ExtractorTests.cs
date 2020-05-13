@@ -76,15 +76,11 @@ namespace Microsoft.CST.OpenSource.Tests
             var path = Path.Combine(Directory.GetCurrentDirectory(), "TestData", fileName);
             try
             {
-                // Either we should get exactly 1 result and its the thing we passed in
-                // This happens when the exception gets triggered inside the extractor
-                // (In parallel we fully generate the list in memory)
                 var results = extractor.ExtractFile(path, parallel).ToList();
-                Assert.IsTrue(results.Count == 1);
-                Assert.IsTrue(results[0].FullPath == path);
+                Assert.Fail();
                 return;
             }
-            // Or we should throw one of these overflow exceptions which occur when we are iterating
+            // We should throw an overflow exception
             catch (Exception e) when (
                     e is OverflowException)
             {
@@ -93,7 +89,7 @@ namespace Microsoft.CST.OpenSource.Tests
             // Getting here means we didnt catch the bomb
             catch (Exception e)
             {
-                // TimeoutException shoudnt happen in these tests.
+                // Other exceptions shoudn't happen in these tests.
                 Assert.Fail();
             }
             Assert.Fail();

@@ -90,7 +90,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <summary>
         /// Stores the number of bytes left before we abort (denial of service).
         /// </summary>
-        private long CurrentOperationProcessedBytesLeft = 0;
+        private long CurrentOperationProcessedBytesLeft = -1;
 
         public Extractor()
         {
@@ -102,7 +102,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         {
             Logger.Trace("ResetResourceGovernor()");
             GovernorStopwatch.Reset();
-            CurrentOperationProcessedBytesLeft = 0;
+            CurrentOperationProcessedBytesLeft = -1;
         }
 
         private void ResetResourceGovernor(Stream stream)
@@ -360,7 +360,6 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
                     foreach (var extractedFile in ExtractFile(newFileEntry, parallel))
                     {
-                        
                         yield return extractedFile;
                     }
                 }
@@ -490,6 +489,12 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
 
                     var newFileEntry = new FileEntry(tarEntry.Name, fileEntry.FullPath, fs, true);
+                    
+                    if (IsQuine(fileEntry, newFileEntry))
+                    {
+                        throw new OverflowException();
+                    }
+
                     foreach (var extractedFile in ExtractFile(newFileEntry, parallel))
                     {
                         yield return extractedFile;
@@ -540,6 +545,12 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             {
                 var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
                 var newFileEntry = new FileEntry(newFilename, fileEntry.FullPath, fs, true);
+
+                if (IsQuine(fileEntry, newFileEntry))
+                {
+                    throw new OverflowException();
+                }
+
                 foreach (var extractedFile in ExtractFile(newFileEntry, parallel))
                 {
                     yield return extractedFile;
@@ -575,6 +586,12 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             {
                 var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
                 var newFileEntry = new FileEntry(newFilename, fileEntry.FullPath, fs, true);
+
+                if (IsQuine(fileEntry, newFileEntry))
+                {
+                    throw new OverflowException();
+                }
+
                 foreach (var extractedFile in ExtractFile(newFileEntry, parallel))
                 {
                     yield return extractedFile;
@@ -632,6 +649,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
                     if (newFileEntry != null)
                     {
+                        if (IsQuine(fileEntry, newFileEntry))
+                        {
+                            throw new OverflowException();
+                        }
                         foreach (var extractedFile in ExtractFile(newFileEntry, parallel))
                         {
                             yield return extractedFile;
@@ -689,6 +710,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
                     if (newFileEntry != null)
                     {
+                        if (IsQuine(fileEntry, newFileEntry))
+                        {
+                            throw new OverflowException();
+                        }
                         foreach (var extractedFile in ExtractFile(newFileEntry, parallel))
                         {
                             yield return extractedFile;
@@ -784,7 +809,14 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         {
                             var stream = entry.OpenEntryStream();
                             var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, stream);
-                            files.AddRange(ExtractFile(newFileEntry, true));
+                            if (IsQuine(fileEntry, newFileEntry))
+                            {
+                                CurrentOperationProcessedBytesLeft = -1;
+                            }
+                            else
+                            {
+                                files.AddRange(ExtractFile(newFileEntry, true));
+                            }
                         }
                         catch (Exception e)
                         {
@@ -792,6 +824,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         }
                     }
                 });
+                CheckResourceGovernor(0);
                 entries.RemoveRange(0, batchSize);
 
                 while (files.Count > 0)
@@ -850,19 +883,19 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, fs, true);
                             if (IsQuine(fileEntry, newFileEntry))
                             {
-                                throw new OverflowException();
+                                CurrentOperationProcessedBytesLeft = -1;
                             }
-                            files.AddRange(ExtractFile(newFileEntry, true));
-                        }
-                        catch(Exception e) when (e is OverflowException)
-                        {
-                            throw;
+                            else
+                            {
+                                files.AddRange(ExtractFile(newFileEntry, true));
+                            }
                         }
                         catch(Exception e)
                         {
                             Logger.Debug(DEBUG_STRING, ArchiveFileType.ZIP, fileEntry.FullPath, zipEntry.Name, e.GetType());
                         }
                     });
+                    CheckResourceGovernor(0);
                     zipEntries.RemoveRange(0, batchSize);
                     
                     while (files.Count > 0)
@@ -910,7 +943,14 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             {
                                 var stream = entry.OpenEntryStream();
                                 var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, stream);
-                                files.AddRange(ExtractFile(newFileEntry, true));
+                                if (IsQuine(fileEntry, newFileEntry))
+                                {
+                                    CurrentOperationProcessedBytesLeft = -1;
+                                }
+                                else
+                                {
+                                    files.AddRange(ExtractFile(newFileEntry, true));
+                                }
                             }
                             catch (Exception e)
                             {
@@ -918,6 +958,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             }
                         }
                     });
+                    CheckResourceGovernor(0);
                     entries.RemoveRange(0, batchSize);
 
                     while (files.Count > 0)

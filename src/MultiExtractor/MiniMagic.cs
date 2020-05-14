@@ -54,15 +54,17 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
             {"rar", ArchiveFileType.RAR },
 
-            {"7z", ArchiveFileType.P7ZIP }
+            {"7z", ArchiveFileType.P7ZIP },
+
+            {".deb", ArchiveFileType.DEB }
         };
 
         public static ArchiveFileType DetectFileType(string filename)
         {
             #pragma warning disable SEC0116 // Path Tampering Unvalidated File Path
-            using var stream = new MemoryStream(File.ReadAllBytes(filename));
+            using var fs = new FileStream(filename,FileMode.Open);
             #pragma warning restore SEC0116 // Path Tampering Unvalidated File Path
-            var fileEntry = new FileEntry(filename, "", stream);
+            var fileEntry = new FileEntry(filename, "", fs, true);
             return DetectFileType(fileEntry);
         }
 
@@ -111,10 +113,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 {
                     return ArchiveFileType.P7ZIP;
                 }
-                // some kind of .ar https://en.wikipedia.org/wiki/Ar_(Unix)#BSD_variant
+                // some kind of unix Archive https://en.wikipedia.org/wiki/Ar_(Unix)
                 if (buffer[0] == 0x21 && buffer[1] == 0x3c && buffer[2] == 0x61 && buffer[3] == 0x72 && buffer[4] == 0x63 && buffer[5] == 0x68 && buffer[6] == 0x3e)
                 {
-                    // .deb -https://manpages.debian.org/unstable/dpkg-dev/deb.5.en.html
+                    // .deb https://manpages.debian.org/unstable/dpkg-dev/deb.5.en.html
                     fileEntry.Content.Position = 68;
                     fileEntry.Content.Read(buffer, 0, 4);
                     fileEntry.Content.Position = 0;
@@ -123,21 +125,23 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     {
                         return ArchiveFileType.DEB;
                     }
-                    // Some other kind of .ar
+                    // Created by GNU ar https://en.wikipedia.org/wiki/Ar_(Unix)#System_V_(or_GNU)_variant
                     else
                     {
                         byte[] headerBuffer = new byte[60];
                         fileEntry.Content.Position = 8;
                         fileEntry.Content.Read(headerBuffer, 0, 60);
-                        fileEntry.Content.Position = 0;
                         var size = int.Parse(Encoding.ASCII.GetString(headerBuffer.AsSpan().Slice(48, 10))); // header size in bytes
+
                         if (size > 0)
                         {
-                            if (headerBuffer[58]=='`')
+                            // Defined ending characters for a header
+                            if (headerBuffer[58]=='`' && headerBuffer[59] == '\n')
                             {
                                 return ArchiveFileType.GNU_AR;
                             }
                         }
+                        fileEntry.Content.Position = 0;
                     }
                 }
             }

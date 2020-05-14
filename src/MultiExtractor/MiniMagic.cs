@@ -23,6 +23,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         P7ZIP,
         DEB,
         GNU_AR,
+        ISO_9660
     }
 
     /// <summary>
@@ -56,7 +57,9 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
             {"7z", ArchiveFileType.P7ZIP },
 
-            {".deb", ArchiveFileType.DEB }
+            {".deb", ArchiveFileType.DEB },
+
+            {".iso", ArchiveFileType.ISO_9660 }
         };
 
         public static ArchiveFileType DetectFileType(string filename)
@@ -157,8 +160,21 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 }
             }
 
+            // ISO Format https://en.wikipedia.org/wiki/ISO_9660#Overall_structure
+            // Reserved space + 1 header
+            if (fileEntry.Content.Length > 32768 + 2048)
+            {
+                fileEntry.Content.Position = 32768;
+                fileEntry.Content.Read(buffer, 0, 5);
+                fileEntry.Content.Position = 0;
+                if (buffer[0] == 'C' && buffer[1] == 'D' && buffer[2] == '0' && buffer[3] == '0' && buffer[4] == '1')
+                {
+                    return ArchiveFileType.ISO_9660;
+                }
+            }
+
             // Fall back to file extensions
-            #pragma warning disable CA1308 // Normalize strings to uppercase
+#pragma warning disable CA1308 // Normalize strings to uppercase
             string fileExtension = Path.GetExtension(fileEntry.Name.ToLowerInvariant());
             #pragma warning restore CA1308 // Normalize strings to uppercase
 

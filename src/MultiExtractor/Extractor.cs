@@ -7,6 +7,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.ExceptionServices;
+using DiscUtils.Complete;
+using DiscUtils.Iso9660;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Tar;
 using ICSharpCode.SharpZipLib.Zip;
@@ -95,6 +97,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
         public Extractor()
         {
+            SetupHelper.SetupComplete();
             MaxExtractedBytesRatio = DEFAULT_MAX_EXTRACTED_BYTES_RATIO;
             GovernorStopwatch = new Stopwatch();
         }
@@ -253,6 +256,9 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     case ArchiveFileType.GNU_AR:
                         result = ExtractGnuArFile(fileEntry, parallel);
                         break;
+                    case ArchiveFileType.ISO_9660:
+                        result = ExtractIsoFile(fileEntry, parallel);
+                        break;
                     default:
                         useRaw = true;
                         result = new[] { fileEntry };
@@ -274,6 +280,29 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
             return result;
         }
+
+        /// <summary>
+        /// Extracts an an ISO file
+        /// </summary>
+        /// <param name="fileEntry"></param>
+        /// <returns></returns>
+        private IEnumerable<FileEntry> ExtractIsoFile(FileEntry fileEntry, bool parallel)
+        {
+            CDReader cd = new CDReader(fileEntry.Content, true);
+            
+            foreach(var file in cd.GetFiles(".", "*", SearchOption.AllDirectories))
+            {
+                var fileInfo = cd.GetFileInfo(file);
+                CheckResourceGovernor(fileInfo.Length);
+                var newFileEntry = new FileEntry(fileInfo.Name, fileEntry.FullPath, fileInfo.OpenRead());
+                var entries = ExtractFile(newFileEntry, parallel);
+                foreach(var entry in entries)
+                {
+                    yield return entry;
+                }
+            }
+        }
+
 
         /// <summary>
         /// Extracts an archive file created with GNU ar

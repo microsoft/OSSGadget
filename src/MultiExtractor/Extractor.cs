@@ -286,6 +286,14 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns></returns>
         private IEnumerable<FileEntry> ExtractIsoFile(FileEntry fileEntry, bool parallel)
         {
+            if (parallel)
+            {
+                foreach (var entry in ParallelExtractIsoFile(fileEntry))
+                {
+                    yield return entry;
+                }
+                yield break;
+            }
             CDReader cd = new CDReader(fileEntry.Content, true);
             
             foreach(var file in cd.GetFiles(cd.Root.FullName,"*.*", SearchOption.AllDirectories))
@@ -1024,6 +1032,40 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             else
             {
                 yield return fileEntry;
+            }
+        }
+
+        /// <summary>
+        /// Extracts an iso file contained in fileEntry.
+        /// </summary>
+        /// <param name="fileEntry">FileEntry to extract</param>
+        /// <returns>Extracted files</returns>
+        private IEnumerable<FileEntry> ParallelExtractIsoFile(FileEntry fileEntry)
+        {
+            List<FileEntry> files = new List<FileEntry>();
+
+            CDReader cd = new CDReader(fileEntry.Content, true);
+            var cdFiles = cd.GetFiles(cd.Root.FullName, "*.*", SearchOption.AllDirectories).ToList();
+            while (cdFiles.Count > 0)
+            {
+                int batchSize = Math.Min(MAX_BATCH_SIZE, cdFiles.Count);
+                cdFiles.GetRange(0, batchSize).AsParallel().ForAll(cdFile =>
+                {
+                    CheckResourceGovernor(cdFile.Length);
+
+                    var fileInfo = cd.GetFileInfo(cdFile);
+                    CheckResourceGovernor(fileInfo.Length);
+                    var newFileEntry = new FileEntry(fileInfo.Name, fileEntry.FullPath, fileInfo.OpenRead());
+                    var entries = ExtractFile(newFileEntry, true);
+                    files.AddRange(entries);
+                });
+                cdFiles.RemoveRange(0, batchSize);
+
+                while (files.Count > 0)
+                {
+                    yield return files[0];
+                    files.RemoveAt(0);
+                }
             }
         }
 

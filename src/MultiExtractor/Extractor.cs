@@ -6,9 +6,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.ExceptionServices;
-using DiscUtils.Complete;
 using DiscUtils.Iso9660;
+using DiscUtils.Setup;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Tar;
 using ICSharpCode.SharpZipLib.Zip;
@@ -96,8 +95,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         private long CurrentOperationProcessedBytesLeft = -1;
 
         public Extractor()
-        {
-            SetupHelper.SetupComplete();
+        {   
             MaxExtractedBytesRatio = DEFAULT_MAX_EXTRACTED_BYTES_RATIO;
             GovernorStopwatch = new Stopwatch();
         }
@@ -290,7 +288,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         {
             CDReader cd = new CDReader(fileEntry.Content, true);
             
-            foreach(var file in cd.GetFiles(".", "*", SearchOption.AllDirectories))
+            foreach(var file in cd.GetFiles(cd.Root.FullName,"*.*", SearchOption.AllDirectories))
             {
                 var fileInfo = cd.GetFileInfo(file);
                 CheckResourceGovernor(fileInfo.Length);

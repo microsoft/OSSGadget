@@ -37,6 +37,8 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("Shared.deb", true)]
         [DataRow("Shared.ar", false)]
         [DataRow("Shared.ar", true)]
+        [DataRow("Shared.iso", false)]
+        [DataRow("Shared.iso", true)]
         public void ExtractArchive(string fileName, bool parallel, int expectedNumFiles = 26)
         {
             var extractor = new Extractor();

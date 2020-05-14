@@ -164,10 +164,11 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             // Reserved space + 1 header
             if (fileEntry.Content.Length > 32768 + 2048)
             {
-                fileEntry.Content.Position = 32768;
-                fileEntry.Content.Read(buffer, 0, 5);
+                fileEntry.Content.Position = 32769;
+                var magic = new byte[5];
+                fileEntry.Content.Read(magic, 0, 5);
                 fileEntry.Content.Position = 0;
-                if (buffer[0] == 'C' && buffer[1] == 'D' && buffer[2] == '0' && buffer[3] == '0' && buffer[4] == '1')
+                if (magic[0] == 'C' && magic[1] == 'D' && magic[2] == '0' && magic[3] == '0' && magic[4] == '1')
                 {
                     return ArchiveFileType.ISO_9660;
                 }

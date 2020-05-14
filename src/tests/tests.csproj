@@ -64,6 +64,9 @@
     <None Update="TestData\Shared.deb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="TestData\Shared.iso">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="TestData\Shared.rar">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

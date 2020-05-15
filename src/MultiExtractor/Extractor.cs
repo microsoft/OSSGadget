@@ -309,7 +309,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 yield break;
             }
             using DiscUtils.Vhdx.DiskImageFile baseFile = new DiscUtils.Vhdx.DiskImageFile(fileEntry.Content);
-            var disk = new DiscUtils.Vhdx.Disk(new List<DiscUtils.Vhdx.DiskImageFile> { baseFile }, Ownership.Dispose);
+            using var disk = new DiscUtils.Vhdx.Disk(new List<DiscUtils.Vhdx.DiskImageFile> { baseFile }, Ownership.Dispose);
             var manager = new VolumeManager(disk);
             var logicalVolumes = manager.GetLogicalVolumes();
             foreach (var volume in logicalVolumes)
@@ -360,7 +360,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 yield break;
             }
             using DiscUtils.Vhd.DiskImageFile baseFile = new DiscUtils.Vhd.DiskImageFile(fileEntry.Content);
-            var disk = new DiscUtils.Vhd.Disk(new List<DiscUtils.Vhd.DiskImageFile> { baseFile }, Ownership.Dispose);
+            using var disk = new DiscUtils.Vhd.Disk(new List<DiscUtils.Vhd.DiskImageFile> { baseFile }, Ownership.Dispose);
             var manager = new VolumeManager(disk);
             var logicalVolumes = manager.GetLogicalVolumes();
             foreach (var volume in logicalVolumes)
@@ -410,7 +410,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 }
                 yield break;
             }
-            CDReader cd = new CDReader(fileEntry.Content, true);
+            using CDReader cd = new CDReader(fileEntry.Content, true);
             
             foreach(var file in cd.GetFiles(cd.Root.FullName,"*.*", SearchOption.AllDirectories))
             {
@@ -1195,7 +1195,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             List<FileEntry> files = new List<FileEntry>();
 
             using DiscUtils.Vhd.DiskImageFile baseFile = new DiscUtils.Vhd.DiskImageFile(fileEntry.Content);
-            var disk = new DiscUtils.Vhd.Disk(new List<DiscUtils.Vhd.DiskImageFile> { baseFile }, Ownership.Dispose);
+            using var disk = new DiscUtils.Vhd.Disk(new List<DiscUtils.Vhd.DiskImageFile> { baseFile }, Ownership.Dispose);
             var manager = new VolumeManager(disk);
             var logicalVolumes = manager.GetLogicalVolumes();
             foreach (var volume in logicalVolumes)
@@ -1225,10 +1225,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             {
                                 var newFileEntry = new FileEntry($"{volume.Identity}\\{file}", fileEntry.FullPath, fileStream);
                                 var entries = ExtractFile(newFileEntry, true);
-                                foreach (var entry in entries)
-                                {
-                                    files.AddRange(entries);
-                                }
+                                files.AddRange(entries);
                             }
                         });
                         diskFiles.RemoveRange(0, batchSize);
@@ -1253,7 +1250,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             List<FileEntry> files = new List<FileEntry>();
 
             using DiscUtils.Vhdx.DiskImageFile baseFile = new DiscUtils.Vhdx.DiskImageFile(fileEntry.Content);
-            var disk = new DiscUtils.Vhdx.Disk(new List<DiscUtils.Vhdx.DiskImageFile> { baseFile }, Ownership.Dispose);
+            using var disk = new DiscUtils.Vhdx.Disk(new List<DiscUtils.Vhdx.DiskImageFile> { baseFile }, Ownership.Dispose);
             var manager = new VolumeManager(disk);
             var logicalVolumes = manager.GetLogicalVolumes();
             foreach (var volume in logicalVolumes)
@@ -1283,10 +1280,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             {
                                 var newFileEntry = new FileEntry($"{volume.Identity}\\{file}", fileEntry.FullPath, fileStream);
                                 var entries = ExtractFile(newFileEntry, true);
-                                foreach (var entry in entries)
-                                {
-                                    files.AddRange(entries);
-                                }
+                                files.AddRange(entries);
                             }
                         });
                         diskFiles.RemoveRange(0, batchSize);

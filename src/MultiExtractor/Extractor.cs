@@ -6,8 +6,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using DiscUtils;
+using DiscUtils.Ext;
+using DiscUtils.Fat;
 using DiscUtils.Iso9660;
+using DiscUtils.Ntfs;
 using DiscUtils.Setup;
+using DiscUtils.Streams;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Tar;
 using ICSharpCode.SharpZipLib.Zip;
@@ -98,6 +103,9 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         {   
             MaxExtractedBytesRatio = DEFAULT_MAX_EXTRACTED_BYTES_RATIO;
             GovernorStopwatch = new Stopwatch();
+            SetupHelper.RegisterAssembly(typeof(FatFileSystem).Assembly);
+            SetupHelper.RegisterAssembly(typeof(ExtFileSystem).Assembly);
+            SetupHelper.RegisterAssembly(typeof(NtfsFileSystem).Assembly);
         }
 
         private void ResetResourceGovernor()
@@ -257,6 +265,12 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     case ArchiveFileType.ISO_9660:
                         result = ExtractIsoFile(fileEntry, parallel);
                         break;
+                    case ArchiveFileType.VHDX:
+                        result = ExtractVHDXFile(fileEntry, parallel);
+                        break;
+                    case ArchiveFileType.VHD:
+                        result = ExtractVHDFile(fileEntry, parallel);
+                        break;
                     default:
                         useRaw = true;
                         result = new[] { fileEntry };
@@ -277,6 +291,92 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Extracts an a VHDX file
+        /// </summary>
+        /// <param name="fileEntry"></param>
+        /// <returns></returns>
+        private IEnumerable<FileEntry> ExtractVHDXFile(FileEntry fileEntry, bool parallel)
+        {
+            using DiscUtils.Vhdx.DiskImageFile baseFile = new DiscUtils.Vhdx.DiskImageFile(fileEntry.Content);
+            var disk = new DiscUtils.Vhdx.Disk(new List<DiscUtils.Vhdx.DiskImageFile> { baseFile }, Ownership.Dispose);
+            var manager = new VolumeManager(disk);
+            var logicalVolumes = manager.GetLogicalVolumes();
+            foreach (var volume in logicalVolumes)
+            {
+                var fsInfos = FileSystemManager.DetectFileSystems(volume);
+                foreach (var fsInfo in fsInfos)
+                {
+                    using var fs = fsInfo.Open(volume);
+                    foreach (var file in fs.GetFiles(fs.Root.FullName, "*.*", SearchOption.AllDirectories))
+                    {
+                        CheckResourceGovernor(file.Length);
+                        SparseStream? fileStream = null;
+                        try
+                        {
+                            fileStream = fs.OpenFile(file, FileMode.Open);
+                        }
+                        catch (Exception e)
+                        {
+                            Logger.Debug(e, "Failed to open {0} in volume {1}", file, volume.Identity);
+                        }
+                        if (fileStream != null)
+                        {
+                            var newFileEntry = new FileEntry($"{volume.Identity}\\{file}", fileEntry.FullPath, fileStream);
+                            var entries = ExtractFile(newFileEntry, parallel);
+                            foreach (var entry in entries)
+                            {
+                                yield return entry;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Extracts an a VHD file
+        /// </summary>
+        /// <param name="fileEntry"></param>
+        /// <returns></returns>
+        private IEnumerable<FileEntry> ExtractVHDFile(FileEntry fileEntry, bool parallel)
+        {
+            using DiscUtils.Vhd.DiskImageFile baseFile = new DiscUtils.Vhd.DiskImageFile(fileEntry.Content);
+            var disk = new DiscUtils.Vhd.Disk(new List<DiscUtils.Vhd.DiskImageFile> { baseFile }, Ownership.Dispose);
+            var manager = new VolumeManager(disk);
+            var logicalVolumes = manager.GetLogicalVolumes();
+            foreach (var volume in logicalVolumes)
+            {
+                var fsInfos = FileSystemManager.DetectFileSystems(volume);
+                foreach (var fsInfo in fsInfos)
+                {
+                    using var fs = fsInfo.Open(volume);
+                    foreach (var file in fs.GetFiles(fs.Root.FullName, "*.*", SearchOption.AllDirectories))
+                    {
+                        CheckResourceGovernor(file.Length);
+                        SparseStream? fileStream = null;
+                        try
+                        {
+                            fileStream = fs.OpenFile(file, FileMode.Open);
+                        }
+                        catch(Exception e)
+                        {
+                            Logger.Debug(e, "Failed to open {0} in volume {1}", file, volume.Identity);
+                        }
+                        if (fileStream != null)
+                        {
+                            var newFileEntry = new FileEntry($"{volume.Identity}\\{file}", fileEntry.FullPath, fileStream);
+                            var entries = ExtractFile(newFileEntry, parallel);
+                            foreach (var entry in entries)
+                            {
+                                yield return entry;
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>

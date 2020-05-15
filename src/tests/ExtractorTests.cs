@@ -39,6 +39,10 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("Shared.ar", true)]
         [DataRow("Shared.iso", false)]
         [DataRow("Shared.iso", true)]
+        [DataRow("Shared.vhd", false, 29)] // 26 + Some invisible system files
+        [DataRow("Shared.vhd", true, 29)]
+        [DataRow("Shared.vhdx", false)]
+        [DataRow("Shared.vhdx", true)]
         public void ExtractArchive(string fileName, bool parallel, int expectedNumFiles = 26)
         {
             var extractor = new Extractor();

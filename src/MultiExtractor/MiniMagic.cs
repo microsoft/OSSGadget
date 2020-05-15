@@ -23,7 +23,9 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         P7ZIP,
         DEB,
         GNU_AR,
-        ISO_9660
+        ISO_9660,
+        VHDX,
+        VHD
     }
 
     /// <summary>
@@ -59,7 +61,11 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
             {".deb", ArchiveFileType.DEB },
 
-            {".iso", ArchiveFileType.ISO_9660 }
+            {".iso", ArchiveFileType.ISO_9660 },
+
+            {".vhdx", ArchiveFileType.VHDX },
+
+            {".vhd", ArchiveFileType.VHD }
         };
 
         public static ArchiveFileType DetectFileType(string filename)
@@ -83,11 +89,11 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 return ArchiveFileType.UNKNOWN;
             }
 
-            var buffer = new byte[8];
-            if (fileEntry.Content.Length >= 8)
+            Span<byte> buffer = stackalloc byte[9];
+            if (fileEntry.Content.Length >= 9)
             {
                 fileEntry.Content.Position = 0;
-                fileEntry.Content.Read(buffer, 0, 8);
+                fileEntry.Content.Read(buffer);
                 fileEntry.Content.Position = 0;
                 if (buffer[0] == 0x50 && buffer[1] == 0x4B && buffer[2] == 0x03 && buffer[3] == 0x04)
                 {
@@ -121,20 +127,20 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 {
                     // .deb https://manpages.debian.org/unstable/dpkg-dev/deb.5.en.html
                     fileEntry.Content.Position = 68;
-                    fileEntry.Content.Read(buffer, 0, 4);
+                    fileEntry.Content.Read(buffer.Slice(0, 4));
                     fileEntry.Content.Position = 0;
                     var encoding = new ASCIIEncoding();
-                    if (encoding.GetString(buffer,0,4) == "2.0\n")
+                    if (encoding.GetString(buffer.Slice(0,4)) == "2.0\n")
                     {
                         return ArchiveFileType.DEB;
                     }
                     // Created by GNU ar https://en.wikipedia.org/wiki/Ar_(Unix)#System_V_(or_GNU)_variant
                     else
                     {
-                        byte[] headerBuffer = new byte[60];
+                        Span<byte> headerBuffer = stackalloc byte[60];
                         fileEntry.Content.Position = 8;
-                        fileEntry.Content.Read(headerBuffer, 0, 60);
-                        var size = int.Parse(Encoding.ASCII.GetString(headerBuffer.AsSpan().Slice(48, 10))); // header size in bytes
+                        fileEntry.Content.Read(headerBuffer);
+                        var size = int.Parse(Encoding.ASCII.GetString(headerBuffer.Slice(48, 10))); // header size in bytes
 
                         if (size > 0)
                         {
@@ -147,12 +153,17 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         fileEntry.Content.Position = 0;
                     }
                 }
+                // https://winprotocoldoc.blob.core.windows.net/productionwindowsarchives/MS-VHDX/%5bMS-VHDX%5d.pdf
+                if (Encoding.UTF8.GetString(buffer.Slice(0,8)).Equals("vhdxfile"))
+                {
+                    return ArchiveFileType.VHDX;
+                }
             }
 
             if (fileEntry.Content.Length >= 262)
             {
                 fileEntry.Content.Position = 257;
-                fileEntry.Content.Read(buffer, 0, 5);
+                fileEntry.Content.Read(buffer.Slice(0,5));
                 fileEntry.Content.Position = 0;
                 if (buffer[0] == 0x75 && buffer[1] == 0x73 && buffer[2] == 0x74 && buffer[3] == 0x61 && buffer[4] == 0x72)
                 {
@@ -165,12 +176,29 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             if (fileEntry.Content.Length > 32768 + 2048)
             {
                 fileEntry.Content.Position = 32769;
-                var magic = new byte[5];
-                fileEntry.Content.Read(magic, 0, 5);
+                fileEntry.Content.Read(buffer.Slice(0, 5));
                 fileEntry.Content.Position = 0;
-                if (magic[0] == 'C' && magic[1] == 'D' && magic[2] == '0' && magic[3] == '0' && magic[4] == '1')
+                if (buffer[0] == 'C' && buffer[1] == 'D' && buffer[2] == '0' && buffer[3] == '0' && buffer[4] == '1')
                 {
                     return ArchiveFileType.ISO_9660;
+                }
+            }
+
+            //https://www.microsoft.com/en-us/download/details.aspx?id=23850 - 'Hard Disk Footer Format'
+            // Unlike other formats the magic string is stored in the footer, which is either the last 511 or 512 bytes
+            // The magic string is Magic string "conectix" (63 6F 6E 65 63 74 69 78)
+            if (fileEntry.Content.Length > 510)
+            {
+                Span<byte> vhdFooterCookie = stackalloc byte[] { 0x63, 0x6F, 0x6E, 0x65, 0x63, 0x74, 0x69, 0x78 };
+
+                fileEntry.Content.Position = fileEntry.Content.Length - 0x200; //Where the footer starts from
+                fileEntry.Content.Read(buffer);
+
+                //SequenceEqual returns false if length is not equal, therefore we slice it to match
+                if (vhdFooterCookie.SequenceEqual(buffer.Slice(0, 8))
+                       || vhdFooterCookie.SequenceEqual(buffer.Slice(1)))//If created on legacy platform
+                {
+                    return ArchiveFileType.VHD;
                 }
             }
 

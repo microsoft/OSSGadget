@@ -239,8 +239,8 @@ namespace Microsoft.CST.OpenSource
 
             var analysisResults = new List<IssueRecord>();
 
-            var downloadTool = new DownloadTool();
-            var directoryNames = await downloadTool.EnsureDownloadExists(purl, targetDirectoryName);
+            var packageDownloader = new PackageDownloader(purl, (string)(this.Options["cache-directory"]));
+            var directoryNames = await packageDownloader.DownloadPackageLocalCopy(purl, false, true);
             directoryNames = directoryNames.Distinct().ToList<string>();
 
             if (directoryNames.Count > 0)
@@ -269,10 +269,11 @@ namespace Microsoft.CST.OpenSource
             {
                 Logger.Warn("Error downloading {0}.", purl.ToString());
             }
-            
+
 
             return analysisResults.ToList();
         }
+
         private string NormalizeFileContent(string filename, byte[] buffer)
         {
             Logger.Trace("NormalizeFileContent({0}, {1}", filename, buffer?.Length);

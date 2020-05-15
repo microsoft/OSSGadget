@@ -122,8 +122,7 @@ namespace Microsoft.CST.OpenSource.Tests
             {
                 tempDirectoryName = Path.GetRandomFileName();
             }
-            
-            var downloadTool = new DownloadTool();
+
             var packageUrl = new PackageURL(purl);
             Assert.IsNotNull(packageUrl);
 
@@ -134,7 +133,8 @@ namespace Microsoft.CST.OpenSource.Tests
             {
                 try
                 {
-                    downloadTool.EnsureDownloadExists(packageUrl, tempDirectoryName).Wait();
+                    var packageDownloader = new PackageDownloader(packageUrl, tempDirectoryName);
+                    packageDownloader.DownloadPackageLocalCopy(packageUrl, false, true).Wait();
                     break;
                 }
                 catch (Exception)

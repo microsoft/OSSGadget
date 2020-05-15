@@ -160,8 +160,8 @@ namespace Microsoft.CST.OpenSource
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
 
-            var downloadTool = new DownloadTool();
-            foreach (var directory in await downloadTool.EnsureDownloadExists(purl, (string)(this.Options["cache-directory"])))
+            var packageDownloader = new PackageDownloader(purl, (string)(this.Options["cache-directory"]));
+            foreach (var directory in await packageDownloader.DownloadPackageLocalCopy(purl, false, true))
             {
                 AnalyzeDirectory(directory);
             }

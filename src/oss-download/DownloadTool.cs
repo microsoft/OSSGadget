@@ -5,9 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.CST.OpenSource.Shared;
+using NLog.LayoutRenderers.Wrappers;
 using NLog.Targets;
 
 namespace Microsoft.CST.OpenSource
@@ -34,7 +36,7 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         private readonly Dictionary<string, object> Options = new Dictionary<string, object>()
         {
-            { "download-directory", "." },
+            { "download-directory", null },
             { "target", new List<string>() },
             { "extract", "true" },
             { "download-metadata-only", false}
@@ -57,8 +59,14 @@ namespace Microsoft.CST.OpenSource
                 {
                     try
                     {
+                        bool.TryParse(downloadTool.Options["extract"]?.ToString(), out bool doExtract);
+                        bool.TryParse(downloadTool.Options["download-metadata-only"]?.ToString(), out bool metadataOnly);
+                        string targetDirectory = (string)downloadTool.Options["download-directory"];
+
                         var purl = new PackageURL(target);
-                        foreach (var downloadPath in await downloadTool.EnsureDownloadExists(purl, (string)downloadTool.Options["download-directory"]))
+                        var packageDownloader = new PackageDownloader(purl, targetDirectory);
+                        foreach (var downloadPath in await packageDownloader.
+                            DownloadPackageLocalCopy(purl, metadataOnly, doExtract))
                         {
                             if (string.IsNullOrEmpty(downloadPath))
                             {
@@ -69,6 +77,7 @@ namespace Microsoft.CST.OpenSource
                                 Logger.Info("Downloaded {0} to {1}", purl.ToString(), downloadPath);
                             }
                         }
+                        // TODO: Should we delete the local copy?
                     }
                     catch (Exception ex)
                     {
@@ -89,93 +98,6 @@ namespace Microsoft.CST.OpenSource
         {
             CommonInitialization.Initialize();
             Logger = CommonInitialization.Logger;
-        }
-
-        /// <summary>
-        /// Check if the target folder has a directory in the name of the package. If it does not,
-        /// download the package
-        /// </summary>
-        /// <param name="purl"></param>
-        /// <param name="destinationDirectory"></param>
-        /// <returns></returns>
-        public async Task<List<string>> EnsureDownloadExists(PackageURL purl, string destinationDirectory = null)
-        {
-            if (purl == default)
-            {
-                Logger.Warn("Invalid PackageURL (null)");
-                return new List<string>();
-            }
-
-            List<string> downloadDirectories = new List<string>();
-            bool cached = !string.IsNullOrEmpty(destinationDirectory);
-            destinationDirectory ??= ".";
-
-            // Use reflection to find the correct package management class
-            var downloaderClass = typeof(BaseProjectManager).Assembly.GetTypes()
-               .Where(type => type.IsSubclassOf(typeof(BaseProjectManager)))
-               .Where(type => type.Name.Equals($"{purl.Type}ProjectManager",
-                                               StringComparison.InvariantCultureIgnoreCase))
-               .FirstOrDefault();
-
-            if (downloaderClass != null)
-            {
-                var ctor = downloaderClass.GetConstructor(Array.Empty<Type>());
-                var _downloader = (BaseProjectManager)(ctor.Invoke(Array.Empty<object>()));
-                _downloader.TopLevelExtractionDirectory = destinationDirectory;
-                var targetDirectory = _downloader.GetFullExtractionPath(purl);
-
-                if (Directory.Exists(targetDirectory))
-                {
-                    // if the package directory exists in the target directory, 
-                    // assume that the cache exists
-                    downloadDirectories.Add(targetDirectory);
-                    return downloadDirectories;
-                }
-                else
-                {
-                    Logger.Trace("Download({0})", purl?.ToString());
-                    var directoryNames = await Download(_downloader, purl, cached);
-                    downloadDirectories.AddRange(directoryNames);
-                    return downloadDirectories;
-                }
-            }
-            else
-            {
-                throw new ArgumentException(string.Format("Invalid Package URL type: {0}", purl?.Type));
-            }
-        }
-
-        public async Task<List<string>> Download(BaseProjectManager _downloader, PackageURL purl, bool cached = false)
-        {
-            List<string> downloadPaths = new List<string>();
-                if ((bool)Options["download-metadata-only"])
-                {
-                    var metadata = await _downloader.GetMetadata(purl);
-                    if (metadata != default)
-                    {
-                        var outputFilename = Path.Combine(_downloader.TopLevelExtractionDirectory, $"metadata-{purl.ToStringFilename()}");
-
-                    if (!cached)
-                    {
-                        while (File.Exists(outputFilename))
-                        {
-                            outputFilename = Path.Combine(_downloader.TopLevelExtractionDirectory, $"metadata-{purl.ToStringFilename()}-{DateTime.Now.Ticks}");
-                        }
-                    }
-                        File.WriteAllText(outputFilename, metadata);
-                        downloadPaths.Add(outputFilename);
-                    }
-                }
-                else
-                {
-                    if (!bool.TryParse(Options["extract"]?.ToString(), out bool doExtract))
-                    {
-                        doExtract = true;
-                    }
-                    downloadPaths = await _downloader.Download(purl, doExtract, cached);
-                }
-            
-            return downloadPaths;
         }
 
         /// <summary>

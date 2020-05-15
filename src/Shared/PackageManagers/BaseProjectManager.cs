@@ -60,7 +60,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">PackageURL to download</param>
         /// <returns>Paths (either files or directory names) pertaining to the downloaded files.</returns>
-        public virtual Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract=true, bool cached = false)
+        public virtual Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             throw new NotImplementedException("BaseProjectManager does not implement DownloadVersion.");
         }
@@ -248,6 +248,21 @@ namespace Microsoft.CST.OpenSource.Shared
             fullExtractionPath = Path.GetFullPath(fullExtractionPath);
             return fullExtractionPath;
         }
+
+
+        /// <summary>
+        /// wrap GetFullExtractionPath in a list for convenience
+        /// </summary>
+        /// <param name="directoryName"></param>
+        /// <returns></returns>
+        public List<string> GetFullExtractionPathList(PackageURL purl)
+        {
+            List<string> fullExtractionPathList = new List<string>();
+
+            fullExtractionPathList.Add(GetFullExtractionPath(purl));
+            return fullExtractionPathList;
+        }
+
         /// <summary>
         /// Extracts an archive (given by 'bytes') into a directory named
         /// 'directoryName', recursively, using MultiExtractor.
@@ -292,52 +307,6 @@ namespace Microsoft.CST.OpenSource.Shared
             Logger.Debug("Archive extracted to {0}", fullExtractionPath);
 
             return fullExtractionPath;
-        }
-
-        /// <summary>
-        /// Downloads a given package, identified by 'purl', using
-        /// the appropriate package manager.
-        /// </summary>
-        /// <param name="purl">package-url to download</param>
-        /// <returns></returns>
-        public async Task<List<string>> Download(PackageURL purl, bool doExtract = true, bool cached = false)
-        {
-            Logger.Trace("(Base) Download({0})", purl?.ToString());
-            var downloadPaths = new List<string>();
-
-            if (purl == null)
-            {
-                return null;
-            }
-            else if (purl.Version == null)
-            {
-                var versions = await EnumerateVersions(purl);
-                if (versions.Count() > 0)
-                {
-                    Logger.Trace(string.Join(",", versions));
-                    var vpurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, versions.Last(), purl.Qualifiers, purl.Subpath);
-                    downloadPaths.AddRange(await DownloadVersion(vpurl, doExtract, cached));
-                }
-                else
-                {
-                    Logger.Warn("Unable to enumerate versions, so cannot identify the latest.");
-                }
-            }
-            else if (purl.Version.Equals("*"))
-            {
-                foreach (var version in await EnumerateVersions(purl))
-                {
-                    var vpurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, version, purl.Qualifiers, purl.Subpath);
-                    downloadPaths.AddRange(await DownloadVersion(vpurl, doExtract, cached));
-                }
-            }
-            else
-            {
-                downloadPaths.AddRange(await DownloadVersion(purl, doExtract, cached));
-            }
-
-            Logger.Debug("Downloaded to {0} paths", downloadPaths.Count);
-            return downloadPaths;
         }
 
         /// <summary>

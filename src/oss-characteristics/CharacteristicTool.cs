@@ -56,7 +56,7 @@ namespace Microsoft.CST.OpenSource
                 {
                     try
                     {
-                        string destinationDirectory = (string)characteristicTool.Options["cache-directory"] ?? ".";
+                        string destinationDirectory = (string)characteristicTool.Options["cache-directory"];
                         var purl = new PackageURL(target);
                         var analysisResult = characteristicTool.AnalyzePackage(purl, destinationDirectory).Result;
 
@@ -106,41 +106,28 @@ namespace Microsoft.CST.OpenSource
         public async Task<Dictionary<string, AnalyzeResult>> AnalyzePackage(PackageURL purl, string targetDirectoryName)
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
-            
+
             var analysisResults = new Dictionary<string, AnalyzeResult>();
             List<string> directoryNames = new List<string>();
 
-            var downloadTool = new DownloadTool();
+            var packageDownloader = new PackageDownloader(purl, targetDirectoryName);
             // ensure that the cache directory has the required package, download it otherwise
-            bool cached = !string.IsNullOrEmpty(targetDirectoryName);
-            if (cached)
-            {
-                directoryNames.AddRange(await downloadTool.EnsureDownloadExists(purl, targetDirectoryName));
-            }
+            directoryNames.AddRange(await packageDownloader.DownloadPackageLocalCopy(purl, 
+                false, 
+                true));
             if (directoryNames.Count > 0)
-            { 
+            {
                 foreach (var directoryName in directoryNames)
                 {
                     var singleResult = await AnalyzeDirectory(directoryName);
                     analysisResults[directoryName] = singleResult;
-                    Logger.Trace("Removing directory {0}", directoryName);
-                    try
-                    {
-                        if (!cached)
-                        {
-                            Directory.Delete(directoryName, true);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Warn("Error removing {0}: {1}", directoryName, ex.Message);
-                    }
                 }
             }
             else
             {
                 Logger.Warn("Error downloading {0}.", purl.ToString());
             }
+            packageDownloader.ClearPackageLocalCopy();
 
             return analysisResults;
         }

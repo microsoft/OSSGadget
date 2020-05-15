@@ -929,7 +929,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             {
                 int batchSize = Math.Min(MAX_BATCH_SIZE, entries.Count());
 
-                var streams = entries.Take(batchSize).Select(entry => (entry, entry.OpenEntryStream()));
+                var streams = entries.Take(batchSize).Select(entry => (entry, entry.OpenEntryStream())).ToList();
 
                 CheckResourceGovernor(streams.Sum(x => x.Item2.Length));
 

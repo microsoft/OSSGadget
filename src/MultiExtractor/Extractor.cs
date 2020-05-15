@@ -492,6 +492,8 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         continue;
                     }
 
+                    CheckResourceGovernor(zipEntry.Size);
+
                     using var fs = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
                     try
                     {
@@ -1001,9 +1003,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 while (zipEntries.Count > 0)
                 {
                     int batchSize = Math.Min(MAX_BATCH_SIZE, zipEntries.Count);
-                    zipEntries.GetRange(0,batchSize).AsParallel().ForAll(zipEntry =>
+                    var selectedEntries = zipEntries.GetRange(0, batchSize);
+                    CheckResourceGovernor(selectedEntries.Sum(x => x.Size));
+                    selectedEntries.AsParallel().ForAll(zipEntry =>
                     {
-                        CheckResourceGovernor(zipEntry.Size);
                         try
                         {
                             using var fs = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
@@ -1065,11 +1068,12 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 while (entries.Count() > 0)
                 {
                     int batchSize = Math.Min(MAX_BATCH_SIZE, entries.Count());
-                    entries.GetRange(0, batchSize).AsParallel().ForAll(entry =>
+                    var selectedEntries = entries.GetRange(0, batchSize);
+                    CheckResourceGovernor(selectedEntries.Sum(x => x.Size));
+                    selectedEntries.AsParallel().ForAll(entry =>
                     {
                         if (!entry.IsDirectory && !entry.IsEncrypted)
                         {
-                            CheckResourceGovernor(entry.Size);
                             try
                             {
                                 var stream = entry.OpenEntryStream();
@@ -1125,20 +1129,21 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             if (fileEntries != null)
             {
-                var entries = fileEntries.ToList();
+                // This is control information for Debian's installer wizardy and not part of the actual files
+                var entries = fileEntries.Where(x => x.Name != "control.tar.xz");
                 while (entries.Any())
                 {
                     int batchSize = Math.Min(MAX_BATCH_SIZE, entries.Count());
-                    entries.GetRange(0, batchSize).AsParallel().ForAll(entry =>
+                    var selectedEntries = entries.Take(batchSize);
+                    
+                    CheckResourceGovernor(selectedEntries.Sum(x => x.Content.Length));
+
+                    selectedEntries.AsParallel().ForAll(entry =>
                     {
-                        // This is control information for Debian's installer wizardy and not part of the actual files
-                        if (entry.Name != "control.tar.xz")
-                        {
-                            CheckResourceGovernor(entry.Content.Length);
-                            files.AddRange(ExtractFile(entry, true));
-                        }
+                        files.AddRange(ExtractFile(entry, true));
                     });
-                    entries.RemoveRange(0, batchSize);
+
+                    entries = entries.Skip(batchSize);
 
                     while (files.Count > 0)
                     {

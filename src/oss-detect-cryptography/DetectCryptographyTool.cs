@@ -293,7 +293,7 @@ namespace Microsoft.CST.OpenSource
             // Check if we have a binary file - meaning more than 10% control characters
             // TODO: Is this the right metric?
             var bufferString = Encoding.ASCII.GetString(buffer);
-            var countControlChars = bufferString.Count(ch => char.IsControl(ch) && ch != '\r' && ch != '\n');
+            var countControlChars = bufferString.Count(ch => char.IsControl(ch) && ch != '\r' && ch != '\n' && ch != '\t');
             var isBinaryFile = (((double)countControlChars / (double)bufferString.Length) > 0.10);
 
             if (isBinaryFile)
@@ -324,7 +324,6 @@ namespace Microsoft.CST.OpenSource
                     foreach (var instruction in disassembler.Disassemble())
                     {
                         resultStrings.Add(instruction.ToString());
-                        
                     }
                     
                 }

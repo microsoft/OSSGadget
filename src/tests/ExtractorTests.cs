@@ -121,21 +121,22 @@ namespace Microsoft.CST.OpenSource.Tests
             try
             {
                 var results = extractor.ExtractFile(path, parallel).ToList();
+                // Getting here means we didnt catch the bomb
                 Assert.Fail();
                 return;
             }
-            // We should throw an overflow exception
+            // We should throw an overflow exception when we detect a quine or bomb
             catch (Exception e) when (
                     e is OverflowException)
             {
                 return;
             }
-            // Getting here means we didnt catch the bomb
-            catch (Exception e)
+            catch (Exception)
             {
                 // Other exceptions shoudn't happen in these tests.
                 Assert.Fail();
             }
+            // Getting here means we didnt catch the bomb
             Assert.Fail();
         }
     }

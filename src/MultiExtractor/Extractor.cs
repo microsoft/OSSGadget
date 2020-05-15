@@ -1160,7 +1160,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         {
             List<FileEntry> files = new List<FileEntry>();
 
-            CDReader cd = new CDReader(fileEntry.Content, true);
+            using CDReader cd = new CDReader(fileEntry.Content, true);
             var cdFiles = cd.GetFiles(cd.Root.FullName, "*.*", SearchOption.AllDirectories).ToList();
             while (cdFiles.Count > 0)
             {

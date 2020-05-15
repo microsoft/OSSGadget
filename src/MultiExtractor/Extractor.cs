@@ -736,14 +736,14 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         private IEnumerable<FileEntry> ExtractRarFile(FileEntry fileEntry, bool parallel)
         {
             // TODO: This produces unpredictable results when run on Azure Pipelines, but cannot reproduce locally
-            //if (parallel)
-            //{
-            //    foreach (var entry in ParallelExtractRarFile(fileEntry))
-            //    {
-            //        yield return entry;
-            //    }
-            //    yield break;
-            //}
+            if (parallel)
+            {
+                foreach (var entry in ParallelExtractRarFile(fileEntry))
+                {
+                    yield return entry;
+                }
+                yield break;
+            }
             RarArchive? rarArchive = null;
             try
             {

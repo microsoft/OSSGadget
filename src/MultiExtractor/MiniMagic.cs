@@ -193,6 +193,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
                 fileEntry.Content.Position = fileEntry.Content.Length - 0x200; //Where the footer starts from
                 fileEntry.Content.Read(buffer);
+                fileEntry.Content.Position = 0;
 
                 //SequenceEqual returns false if length is not equal, therefore we slice it to match
                 if (vhdFooterCookie.SequenceEqual(buffer.Slice(0, 8))

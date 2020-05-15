@@ -59,13 +59,13 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
             {"7z", ArchiveFileType.P7ZIP },
 
-            {".deb", ArchiveFileType.DEB },
+            {"deb", ArchiveFileType.DEB },
 
-            {".iso", ArchiveFileType.ISO_9660 },
+            {"iso", ArchiveFileType.ISO_9660 },
 
-            {".vhdx", ArchiveFileType.VHDX },
+            {"vhdx", ArchiveFileType.VHDX },
 
-            {".vhd", ArchiveFileType.VHD }
+            {"vhd", ArchiveFileType.VHD }
         };
 
         public static ArchiveFileType DetectFileType(string filename)
@@ -192,10 +192,9 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             {
                 Span<byte> vhdFooterCookie = stackalloc byte[] { 0x63, 0x6F, 0x6E, 0x65, 0x63, 0x74, 0x69, 0x78 };
 
-                fileEntry.Content.Position = fileEntry.Content.Length - 0x200; //Where the footer starts from
+                fileEntry.Content.Position = fileEntry.Content.Length - 0x200; // Footer position
                 fileEntry.Content.Read(buffer);
                 fileEntry.Content.Position = initialPosition;
-                //SequenceEqual returns false if length is not equal, therefore we slice it to match
                 if (vhdFooterCookie.SequenceEqual(buffer.Slice(0, 8))
                        || vhdFooterCookie.SequenceEqual(buffer.Slice(1)))//If created on legacy platform
                 {

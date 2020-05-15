@@ -140,6 +140,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         Span<byte> headerBuffer = stackalloc byte[60];
                         fileEntry.Content.Position = 8;
                         fileEntry.Content.Read(headerBuffer);
+                        fileEntry.Content.Position = 0;
                         var size = int.Parse(Encoding.ASCII.GetString(headerBuffer.Slice(48, 10))); // header size in bytes
 
                         if (size > 0)
@@ -194,7 +195,6 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 fileEntry.Content.Position = fileEntry.Content.Length - 0x200; //Where the footer starts from
                 fileEntry.Content.Read(buffer);
                 fileEntry.Content.Position = 0;
-
                 //SequenceEqual returns false if length is not equal, therefore we slice it to match
                 if (vhdFooterCookie.SequenceEqual(buffer.Slice(0, 8))
                        || vhdFooterCookie.SequenceEqual(buffer.Slice(1)))//If created on legacy platform

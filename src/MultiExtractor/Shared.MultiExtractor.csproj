@@ -18,6 +18,7 @@
     <PackageReference Include="DiscUtils.Ext" Version="0.15.1-ci0002" />
     <PackageReference Include="DiscUtils.Fat" Version="0.15.1-ci0002" />
     <PackageReference Include="DiscUtils.Iso9660" Version="0.15.1-ci0002" />
+    <PackageReference Include="DiscUtils.Lvm" Version="0.15.1-ci0002" />
     <PackageReference Include="DiscUtils.Ntfs" Version="0.15.1-ci0002" />
     <PackageReference Include="DiscUtils.Vhd" Version="0.15.1-ci0002" />
     <PackageReference Include="DiscUtils.Vhdx" Version="0.15.1-ci0002" />

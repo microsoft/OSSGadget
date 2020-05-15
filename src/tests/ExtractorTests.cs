@@ -84,8 +84,14 @@ namespace Microsoft.CST.OpenSource.Tests
             var path = Path.Combine(Directory.GetCurrentDirectory(), "TestData", fileName);
             using FileStream fs = new FileStream(path, FileMode.Open);
             var fileEntry = new FileEntry(path, "", fs);
+
             Assert.IsTrue(MiniMagic.DetectFileType(fileEntry) == expectedArchiveFileType);
             Assert.IsTrue(fileEntry.Content.Position == 0);
+
+            // Should also work if the stream doesn't start at 0
+            fileEntry.Content.Position = 10;
+            Assert.IsTrue(MiniMagic.DetectFileType(fileEntry) == expectedArchiveFileType);
+            Assert.IsTrue(fileEntry.Content.Position == 10);
         }
 
         [DataTestMethod]

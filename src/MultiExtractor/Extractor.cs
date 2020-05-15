@@ -1179,12 +1179,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 int batchSize = Math.Min(MAX_BATCH_SIZE, cdFiles.Count);
                 cdFiles.GetRange(0, batchSize).AsParallel().ForAll(cdFile =>
                 {
-                    CheckResourceGovernor(cdFile.Length);
-
                     var fileInfo = cd.GetFileInfo(cdFile);
-                    CheckResourceGovernor(fileInfo.Length);
                     try
                     {
+                        CheckResourceGovernor(fileInfo.Length);
                         var newFileEntry = new FileEntry(fileInfo.Name, fileEntry.FullPath, fileInfo.OpenRead());
                         var entries = ExtractFile(newFileEntry, true);
                         files.AddRange(entries);

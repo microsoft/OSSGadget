@@ -1184,7 +1184,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             while (cdFiles.Count > 0)
             {
                 int batchSize = Math.Min(MAX_BATCH_SIZE, cdFiles.Count);
-                var selectedFileInfos = cdFiles.GetRange(0,batchSize).Select(x => cd.GetFileInfo(x)).Select(fileInfo => (fileInfo,fileInfo.OpenRead());
+                var selectedFileInfos = cdFiles.GetRange(0,batchSize).Select(x => cd.GetFileInfo(x)).Select(fileInfo => (fileInfo,fileInfo.OpenRead()));
                 CheckResourceGovernor(selectedFileInfos.Sum(x => x.fileInfo.Length));
                 selectedFileInfos.AsParallel().ForAll(cdFile =>
                 {

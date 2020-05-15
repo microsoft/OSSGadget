@@ -299,7 +299,9 @@ namespace Microsoft.CST.OpenSource.Shared
                 filePathToWrite = filePathToWrite.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
 
                 Directory.CreateDirectory(Path.GetDirectoryName(filePathToWrite));
-                await File.WriteAllBytesAsync(filePathToWrite, fileEntry.Content.ToArray());
+
+                using var fs = File.Open(filePathToWrite, FileMode.Append);
+                await fileEntry.Content.CopyToAsync(fs);
             }
 
             var fullExtractionPath = Path.Combine(TopLevelExtractionDirectory, directoryName);

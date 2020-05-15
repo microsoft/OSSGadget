@@ -88,13 +88,13 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             {
                 return ArchiveFileType.UNKNOWN;
             }
-
+            var initialPosition = fileEntry.Content.Position;
             Span<byte> buffer = stackalloc byte[9];
             if (fileEntry.Content.Length >= 9)
             {
                 fileEntry.Content.Position = 0;
                 fileEntry.Content.Read(buffer);
-                fileEntry.Content.Position = 0;
+                fileEntry.Content.Position = initialPosition;
                 if (buffer[0] == 0x50 && buffer[1] == 0x4B && buffer[2] == 0x03 && buffer[3] == 0x04)
                 {
                     return ArchiveFileType.ZIP;
@@ -128,7 +128,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     // .deb https://manpages.debian.org/unstable/dpkg-dev/deb.5.en.html
                     fileEntry.Content.Position = 68;
                     fileEntry.Content.Read(buffer.Slice(0, 4));
-                    fileEntry.Content.Position = 0;
+                    fileEntry.Content.Position = initialPosition;
                     var encoding = new ASCIIEncoding();
                     if (encoding.GetString(buffer.Slice(0,4)) == "2.0\n")
                     {
@@ -140,7 +140,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         Span<byte> headerBuffer = stackalloc byte[60];
                         fileEntry.Content.Position = 8;
                         fileEntry.Content.Read(headerBuffer);
-                        fileEntry.Content.Position = 0;
+                        fileEntry.Content.Position = initialPosition;
                         var size = int.Parse(Encoding.ASCII.GetString(headerBuffer.Slice(48, 10))); // header size in bytes
 
                         if (size > 0)
@@ -151,7 +151,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                                 return ArchiveFileType.GNU_AR;
                             }
                         }
-                        fileEntry.Content.Position = 0;
+                        fileEntry.Content.Position = initialPosition;
                     }
                 }
                 // https://winprotocoldoc.blob.core.windows.net/productionwindowsarchives/MS-VHDX/%5bMS-VHDX%5d.pdf
@@ -165,7 +165,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             {
                 fileEntry.Content.Position = 257;
                 fileEntry.Content.Read(buffer.Slice(0,5));
-                fileEntry.Content.Position = 0;
+                fileEntry.Content.Position = initialPosition;
                 if (buffer[0] == 0x75 && buffer[1] == 0x73 && buffer[2] == 0x74 && buffer[3] == 0x61 && buffer[4] == 0x72)
                 {
                     return ArchiveFileType.TAR;
@@ -178,7 +178,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             {
                 fileEntry.Content.Position = 32769;
                 fileEntry.Content.Read(buffer.Slice(0, 5));
-                fileEntry.Content.Position = 0;
+                fileEntry.Content.Position = initialPosition;
                 if (buffer[0] == 'C' && buffer[1] == 'D' && buffer[2] == '0' && buffer[3] == '0' && buffer[4] == '1')
                 {
                     return ArchiveFileType.ISO_9660;
@@ -194,7 +194,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
                 fileEntry.Content.Position = fileEntry.Content.Length - 0x200; //Where the footer starts from
                 fileEntry.Content.Read(buffer);
-                fileEntry.Content.Position = 0;
+                fileEntry.Content.Position = initialPosition;
                 //SequenceEqual returns false if length is not equal, therefore we slice it to match
                 if (vhdFooterCookie.SequenceEqual(buffer.Slice(0, 8))
                        || vhdFooterCookie.SequenceEqual(buffer.Slice(1)))//If created on legacy platform

@@ -423,7 +423,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 }
                 catch (Exception e)
                 {
-                    Logger.Debug("Failed to extract {0} from ISO {1}. ({2})", fileInfo.Name, fileEntry.FullPath, e.GetType());
+                    Logger.Debug("Failed to extract {0} from ISO {1}. ({2}:{3})", fileInfo.Name, fileEntry.FullPath, e.GetType(), e.Message);
                 }
                 if (stream != null)
                 {

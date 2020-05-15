@@ -926,7 +926,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             try
             {
                 rarArchive = RarArchive.Open(fileEntry.Content);
-                entries.AddRange(rarArchive.Entries);
+                entries.AddRange(rarArchive.Entries.Where(entry => !entry.IsDirectory && !entry.IsEncrypted && entry.IsComplete));
             }
             catch (Exception e)
             {
@@ -941,7 +941,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             {
                 int batchSize = Math.Min(MAX_BATCH_SIZE, entries.Count());
 
-                var streams = entries.Where(entry => !entry.IsDirectory && !entry.IsEncrypted && entry.IsComplete)
+                var streams = entries
                     .Select(entry => (entry, entry.OpenEntryStream()))
                     .Take(batchSize);
 

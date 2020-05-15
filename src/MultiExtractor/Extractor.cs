@@ -416,11 +416,23 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             {
                 var fileInfo = cd.GetFileInfo(file);
                 CheckResourceGovernor(fileInfo.Length);
-                var newFileEntry = new FileEntry(fileInfo.Name, fileEntry.FullPath, fileInfo.OpenRead());
-                var entries = ExtractFile(newFileEntry, parallel);
-                foreach(var entry in entries)
+                Stream? stream = null;
+                try
                 {
-                    yield return entry;
+                    stream = fileInfo.OpenRead();
+                }
+                catch (Exception e)
+                {
+                    Logger.Debug("Failed to extract {0} from ISO {1}. ({2})", fileInfo.Name, fileEntry.FullPath, e.GetType());
+                }
+                if (stream != null)
+                {
+                    var newFileEntry = new FileEntry(fileInfo.Name, fileEntry.FullPath, stream);
+                    var entries = ExtractFile(newFileEntry, parallel);
+                    foreach (var entry in entries)
+                    {
+                        yield return entry;
+                    }
                 }
             }
         }
@@ -1171,9 +1183,16 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
                     var fileInfo = cd.GetFileInfo(cdFile);
                     CheckResourceGovernor(fileInfo.Length);
-                    var newFileEntry = new FileEntry(fileInfo.Name, fileEntry.FullPath, fileInfo.OpenRead());
-                    var entries = ExtractFile(newFileEntry, true);
-                    files.AddRange(entries);
+                    try
+                    {
+                        var newFileEntry = new FileEntry(fileInfo.Name, fileEntry.FullPath, fileInfo.OpenRead());
+                        var entries = ExtractFile(newFileEntry, true);
+                        files.AddRange(entries);
+                    }
+                    catch(Exception e)
+                    {
+                        Logger.Debug("Failed to extract {0} from ISO {1}. ({2})", fileInfo.Name, fileEntry.FullPath, e.GetType());
+                    }
                 });
                 cdFiles.RemoveRange(0, batchSize);
 

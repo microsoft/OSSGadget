@@ -19,6 +19,7 @@ using ICSharpCode.SharpZipLib.Zip;
 using SharpCompress.Archives.GZip;
 using SharpCompress.Archives.Rar;
 using SharpCompress.Archives.SevenZip;
+using SharpCompress.Common;
 using SharpCompress.Compressors.BZip2;
 using SharpCompress.Compressors.Xz;
 
@@ -491,6 +492,8 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         continue;
                     }
 
+                    CheckResourceGovernor(zipEntry.Size);
+
                     using var fs = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
                     try
                     {
@@ -736,14 +739,14 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         private IEnumerable<FileEntry> ExtractRarFile(FileEntry fileEntry, bool parallel)
         {
             // TODO: This produces unpredictable results when run on Azure Pipelines, but cannot reproduce locally
-            //if (parallel)
-            //{
-            //    foreach (var entry in ParallelExtractRarFile(fileEntry))
-            //    {
-            //        yield return entry;
-            //    }
-            //    yield break;
-            //}
+            if (parallel)
+            {
+                foreach (var entry in ParallelExtractRarFile(fileEntry))
+                {
+                    yield return entry;
+                }
+                yield break;
+            }
             RarArchive? rarArchive = null;
             try
             {
@@ -913,7 +916,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             try
             {
                 rarArchive = RarArchive.Open(fileEntry.Content);
-                entries.AddRange(rarArchive.Entries);
+                entries.AddRange(rarArchive.Entries.Where(entry => !entry.IsDirectory && !entry.IsEncrypted && entry.IsComplete));
             }
             catch (Exception e)
             {
@@ -927,32 +930,33 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             while (entries.Any())
             {
                 int batchSize = Math.Min(MAX_BATCH_SIZE, entries.Count());
-                entries.GetRange(0, batchSize).AsParallel().ForAll(entry =>
+
+                var streams = entries.Take(batchSize).Select(entry => (entry, entry.OpenEntryStream())).ToList();
+
+                CheckResourceGovernor(streams.Sum(x => x.Item2.Length));
+
+                streams.AsParallel().ForAll(streampair =>
                 {
-                    if (!entry.IsDirectory && !entry.IsEncrypted && entry.IsComplete)
+                    try
                     {
-                        CheckResourceGovernor(entry.Size);
-                        try
+                        var newFileEntry = new FileEntry(streampair.entry.Key, fileEntry.FullPath, streampair.Item2);
+                        if (AreIdentical(fileEntry, newFileEntry))
                         {
-                            var stream = entry.OpenEntryStream();
-                            var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, stream);
-                            if (AreIdentical(fileEntry, newFileEntry))
-                            {
-                                Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
-                                CurrentOperationProcessedBytesLeft = -1;
-                            }
-                            else
-                            {
-                                files.AddRange(ExtractFile(newFileEntry, true));
-                            }
+                            Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
+                            CurrentOperationProcessedBytesLeft = -1;
                         }
-                        catch (Exception e)
+                        else
                         {
-                            Logger.Debug(DEBUG_STRING, ArchiveFileType.RAR, fileEntry.FullPath, entry.Key, e.GetType());
+                            files.AddRange(ExtractFile(newFileEntry, true));
                         }
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Debug(DEBUG_STRING, ArchiveFileType.RAR, fileEntry.FullPath, streampair.entry.Key, e.GetType());
                     }
                 });
                 CheckResourceGovernor(0);
+
                 entries.RemoveRange(0, batchSize);
 
                 while (files.Count > 0)
@@ -999,9 +1003,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 while (zipEntries.Count > 0)
                 {
                     int batchSize = Math.Min(MAX_BATCH_SIZE, zipEntries.Count);
-                    zipEntries.GetRange(0,batchSize).AsParallel().ForAll(zipEntry =>
+                    var selectedEntries = zipEntries.GetRange(0, batchSize);
+                    CheckResourceGovernor(selectedEntries.Sum(x => x.Size));
+                    selectedEntries.AsParallel().ForAll(zipEntry =>
                     {
-                        CheckResourceGovernor(zipEntry.Size);
                         try
                         {
                             using var fs = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
@@ -1063,11 +1068,12 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 while (entries.Count() > 0)
                 {
                     int batchSize = Math.Min(MAX_BATCH_SIZE, entries.Count());
-                    entries.GetRange(0, batchSize).AsParallel().ForAll(entry =>
+                    var selectedEntries = entries.GetRange(0, batchSize);
+                    CheckResourceGovernor(selectedEntries.Sum(x => x.Size));
+                    selectedEntries.AsParallel().ForAll(entry =>
                     {
                         if (!entry.IsDirectory && !entry.IsEncrypted)
                         {
-                            CheckResourceGovernor(entry.Size);
                             try
                             {
                                 var stream = entry.OpenEntryStream();
@@ -1123,20 +1129,21 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             if (fileEntries != null)
             {
-                var entries = fileEntries.ToList();
+                // This is control information for Debian's installer wizardy and not part of the actual files
+                var entries = fileEntries.Where(x => x.Name != "control.tar.xz");
                 while (entries.Any())
                 {
                     int batchSize = Math.Min(MAX_BATCH_SIZE, entries.Count());
-                    entries.GetRange(0, batchSize).AsParallel().ForAll(entry =>
+                    var selectedEntries = entries.Take(batchSize);
+                    
+                    CheckResourceGovernor(selectedEntries.Sum(x => x.Content.Length));
+
+                    selectedEntries.AsParallel().ForAll(entry =>
                     {
-                        // This is control information for Debian's installer wizardy and not part of the actual files
-                        if (entry.Name != "control.tar.xz")
-                        {
-                            CheckResourceGovernor(entry.Content.Length);
-                            files.AddRange(ExtractFile(entry, true));
-                        }
+                        files.AddRange(ExtractFile(entry, true));
                     });
-                    entries.RemoveRange(0, batchSize);
+
+                    entries = entries.Skip(batchSize);
 
                     while (files.Count > 0)
                     {
@@ -1165,13 +1172,11 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             while (cdFiles.Count > 0)
             {
                 int batchSize = Math.Min(MAX_BATCH_SIZE, cdFiles.Count);
-                cdFiles.GetRange(0, batchSize).AsParallel().ForAll(cdFile =>
+                var selectedFileInfos = cdFiles.GetRange(0,batchSize).Select(x => cd.GetFileInfo(x));
+                CheckResourceGovernor(selectedFileInfos.Sum(x => x.Length));
+                selectedFileInfos.AsParallel().ForAll(cdFile =>
                 {
-                    CheckResourceGovernor(cdFile.Length);
-
-                    var fileInfo = cd.GetFileInfo(cdFile);
-                    CheckResourceGovernor(fileInfo.Length);
-                    var newFileEntry = new FileEntry(fileInfo.Name, fileEntry.FullPath, fileInfo.OpenRead());
+                    var newFileEntry = new FileEntry(cdFile.Name, fileEntry.FullPath, cdFile.OpenRead());
                     var entries = ExtractFile(newFileEntry, true);
                     files.AddRange(entries);
                 });

@@ -943,9 +943,8 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             {
                 int batchSize = Math.Min(MAX_BATCH_SIZE, entries.Count());
 
-                var streams = entries
-                    .Select(entry => (entry, entry.OpenEntryStream()))
-                    .Take(batchSize);
+                var streams = entries.Take(batchSize)
+                    .Select(entry => (entry, entry.OpenEntryStream()));
 
                 CheckResourceGovernor(streams.Sum(x => x.Item2.Length));
 
@@ -1186,20 +1185,19 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             while (cdFiles.Count > 0)
             {
                 int batchSize = Math.Min(MAX_BATCH_SIZE, cdFiles.Count);
-                var selectedFileInfos = cdFiles.GetRange(0,batchSize).Select(x => cd.GetFileInfo(x));
-                CheckResourceGovernor(selectedFileInfos.Sum(x => x.Length));
+                var selectedFileInfos = cdFiles.GetRange(0,batchSize).Select(x => cd.GetFileInfo(x)).Select(fileInfo => (fileInfo,fileInfo.OpenRead());
+                CheckResourceGovernor(selectedFileInfos.Sum(x => x.fileInfo.Length));
                 selectedFileInfos.AsParallel().ForAll(cdFile =>
                 {
                     try
                     {
-                        CheckResourceGovernor(cdFile.Length);
-                        var newFileEntry = new FileEntry(cdFile.Name, fileEntry.FullPath, cdFile.OpenRead());
+                        var newFileEntry = new FileEntry(cdFile.fileInfo.Name, fileEntry.FullPath, cdFile.Item2);
                         var entries = ExtractFile(newFileEntry, true);
                         files.AddRange(entries);
                     }
                     catch(Exception e)
                     {
-                        Logger.Debug("Failed to extract {0} from ISO {1}. ({2})", cdFile.Name, fileEntry.FullPath, e.GetType());
+                        Logger.Debug("Failed to extract {0} from ISO {1}. ({2})", cdFile.fileInfo.Name, fileEntry.FullPath, e.GetType());
                     }
                 });
                 cdFiles.RemoveRange(0, batchSize);

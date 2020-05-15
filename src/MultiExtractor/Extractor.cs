@@ -19,6 +19,7 @@ using ICSharpCode.SharpZipLib.Zip;
 using SharpCompress.Archives.GZip;
 using SharpCompress.Archives.Rar;
 using SharpCompress.Archives.SevenZip;
+using SharpCompress.Common;
 using SharpCompress.Compressors.BZip2;
 using SharpCompress.Compressors.Xz;
 
@@ -748,14 +749,14 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         private IEnumerable<FileEntry> ExtractRarFile(FileEntry fileEntry, bool parallel)
         {
             // TODO: This produces unpredictable results when run on Azure Pipelines, but cannot reproduce locally
-            //if (parallel)
-            //{
-            //    foreach (var entry in ParallelExtractRarFile(fileEntry))
-            //    {
-            //        yield return entry;
-            //    }
-            //    yield break;
-            //}
+            if (parallel)
+            {
+                foreach (var entry in ParallelExtractRarFile(fileEntry))
+                {
+                    yield return entry;
+                }
+                yield break;
+            }
             RarArchive? rarArchive = null;
             try
             {
@@ -939,32 +940,35 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             while (entries.Any())
             {
                 int batchSize = Math.Min(MAX_BATCH_SIZE, entries.Count());
-                entries.GetRange(0, batchSize).AsParallel().ForAll(entry =>
+
+                var streams = entries.Where(entry => !entry.IsDirectory && !entry.IsEncrypted && entry.IsComplete)
+                    .Select(entry => (entry, entry.OpenEntryStream()))
+                    .Take(batchSize);
+
+                CheckResourceGovernor(streams.Sum(x => x.Item2.Length));
+
+                streams.AsParallel().ForAll(streampair =>
                 {
-                    if (!entry.IsDirectory && !entry.IsEncrypted && entry.IsComplete)
+                    try
                     {
-                        CheckResourceGovernor(entry.Size);
-                        try
+                        var newFileEntry = new FileEntry(streampair.entry.Key, fileEntry.FullPath, streampair.Item2);
+                        if (AreIdentical(fileEntry, newFileEntry))
                         {
-                            var stream = entry.OpenEntryStream();
-                            var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, stream);
-                            if (AreIdentical(fileEntry, newFileEntry))
-                            {
-                                Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
-                                CurrentOperationProcessedBytesLeft = -1;
-                            }
-                            else
-                            {
-                                files.AddRange(ExtractFile(newFileEntry, true));
-                            }
+                            Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
+                            CurrentOperationProcessedBytesLeft = -1;
                         }
-                        catch (Exception e)
+                        else
                         {
-                            Logger.Debug(DEBUG_STRING, ArchiveFileType.RAR, fileEntry.FullPath, entry.Key, e.GetType());
+                            files.AddRange(ExtractFile(newFileEntry, true));
                         }
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Debug(DEBUG_STRING, ArchiveFileType.RAR, fileEntry.FullPath, streampair.entry.Key, e.GetType());
                     }
                 });
                 CheckResourceGovernor(0);
+
                 entries.RemoveRange(0, batchSize);
 
                 while (files.Count > 0)
@@ -1177,19 +1181,20 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             while (cdFiles.Count > 0)
             {
                 int batchSize = Math.Min(MAX_BATCH_SIZE, cdFiles.Count);
-                cdFiles.GetRange(0, batchSize).AsParallel().ForAll(cdFile =>
+                var selectedFileInfos = cdFiles.GetRange(0,batchSize).Select(x => cd.GetFileInfo(x));
+                CheckResourceGovernor(selectedFileInfos.Sum(x => x.Length));
+                selectedFileInfos.AsParallel().ForAll(cdFile =>
                 {
-                    var fileInfo = cd.GetFileInfo(cdFile);
                     try
                     {
-                        CheckResourceGovernor(fileInfo.Length);
-                        var newFileEntry = new FileEntry(fileInfo.Name, fileEntry.FullPath, fileInfo.OpenRead());
+                        CheckResourceGovernor(cdFile.Length);
+                        var newFileEntry = new FileEntry(cdFile.Name, fileEntry.FullPath, cdFile.OpenRead());
                         var entries = ExtractFile(newFileEntry, true);
                         files.AddRange(entries);
                     }
                     catch(Exception e)
                     {
-                        Logger.Debug("Failed to extract {0} from ISO {1}. ({2})", fileInfo.Name, fileEntry.FullPath, e.GetType());
+                        Logger.Debug("Failed to extract {0} from ISO {1}. ({2})", cdFile.Name, fileEntry.FullPath, e.GetType());
                     }
                 });
                 cdFiles.RemoveRange(0, batchSize);

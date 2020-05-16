@@ -1300,12 +1300,26 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             while (cdFiles.Count > 0)
             {
                 int batchSize = Math.Min(MAX_BATCH_SIZE, cdFiles.Count);
-                var selectedFileInfos = cdFiles.GetRange(0,batchSize).Select(x => cd.GetFileInfo(x)).Select(fileInfo => (fileInfo, fileInfo.OpenRead()));
-                CheckResourceGovernor(selectedFileInfos.Sum(x => x.fileInfo.Length));
+                var selectedFileNames = cdFiles.GetRange(0, batchSize);
+                var fileInfoTuples = new List<(DiscFileInfo, Stream)>();
 
-                selectedFileInfos.AsParallel().ForAll(cdFile =>
+                foreach (var selectedFileName in selectedFileNames) {
+                    try
+                    {
+                        var fileInfo = cd.GetFileInfo(selectedFileName);
+                        var stream = fileInfo.OpenRead();
+                        fileInfoTuples.Add((fileInfo, stream));
+                    }
+                    catch(Exception e)
+                    {
+                        Logger.Debug("Failed to get FileInfo or OpenStream from {0} in ISO {1} ({2}:{3})", selectedFileName, fileEntry.FullPath, e.GetType(), e.Message);
+                    }
+                }
+                CheckResourceGovernor(fileInfoTuples.Sum(x => x.Item1.Length));
+
+                fileInfoTuples.AsParallel().ForAll(cdFile =>
                 {
-                    var newFileEntry = new FileEntry(cdFile.fileInfo.Name, fileEntry.FullPath, cdFile.Item2);
+                    var newFileEntry = new FileEntry(cdFile.Item1.Name, fileEntry.FullPath, cdFile.Item2);
                     var entries = ExtractFile(newFileEntry, true);
                     files.AddRange(entries);
                 });

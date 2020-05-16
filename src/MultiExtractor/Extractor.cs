@@ -7,19 +7,21 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using DiscUtils;
+using DiscUtils.Btrfs;
 using DiscUtils.Ext;
+using DiscUtils.HfsPlus;
 using DiscUtils.Fat;
 using DiscUtils.Iso9660;
 using DiscUtils.Ntfs;
 using DiscUtils.Setup;
 using DiscUtils.Streams;
+using DiscUtils.Xfs;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Tar;
 using ICSharpCode.SharpZipLib.Zip;
 using SharpCompress.Archives.GZip;
 using SharpCompress.Archives.Rar;
 using SharpCompress.Archives.SevenZip;
-using SharpCompress.Common;
 using SharpCompress.Compressors.BZip2;
 using SharpCompress.Compressors.Xz;
 
@@ -104,9 +106,12 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         {   
             MaxExtractedBytesRatio = DEFAULT_MAX_EXTRACTED_BYTES_RATIO;
             GovernorStopwatch = new Stopwatch();
-            SetupHelper.RegisterAssembly(typeof(FatFileSystem).Assembly);
+            SetupHelper.RegisterAssembly(typeof(BtrfsFileSystem).Assembly);
             SetupHelper.RegisterAssembly(typeof(ExtFileSystem).Assembly);
+            SetupHelper.RegisterAssembly(typeof(FatFileSystem).Assembly);
+            SetupHelper.RegisterAssembly(typeof(HfsPlusFileSystem).Assembly);
             SetupHelper.RegisterAssembly(typeof(NtfsFileSystem).Assembly);
+            SetupHelper.RegisterAssembly(typeof(XfsFileSystem).Assembly);
         }
 
         private void ResetResourceGovernor()

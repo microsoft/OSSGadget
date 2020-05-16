@@ -127,7 +127,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 {
                     return ArchiveFileType.P7ZIP;
                 }
-                if (Encoding.ASCII.GetString(buffer.Slice(0,8)) == "MSWIM\0\0\0" || Encoding.ASCII.GetString(buffer.Slice(0, 7)) == "WLPWM\0\0\0")
+                if (Encoding.ASCII.GetString(buffer.Slice(0,8)) == "MSWIM\0\0\0" || Encoding.ASCII.GetString(buffer.Slice(0, 8)) == "WLPWM\0\0\0")
                 {
                     return ArchiveFileType.WIM;
                 }

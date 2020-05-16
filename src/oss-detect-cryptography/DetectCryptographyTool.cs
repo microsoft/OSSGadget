@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-using ELFSharp.ELF;
-using ELFSharp;
-using ELFSharp.MachO;
 using PeNet;
 using System;
 using System.Collections.Generic;
@@ -20,7 +17,6 @@ using System.Reflection;
 using SharpDisasm;
 using WebAssembly; // Acquire from https://www.nuget.org/packages/WebAssembly
 using WebAssembly.Instructions;
-using WebAssembly.Runtime;
 
 namespace Microsoft.CST.OpenSource
 {

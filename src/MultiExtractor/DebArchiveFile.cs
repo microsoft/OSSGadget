@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using SharpCompress.Common;
 
 namespace Microsoft.CST.OpenSource.MultiExtractor
 {

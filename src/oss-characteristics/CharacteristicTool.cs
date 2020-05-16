@@ -3,12 +3,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.ApplicationInspector.Commands;
 using Microsoft.CST.OpenSource.Shared;
-using NLog.Targets;
 
 namespace Microsoft.CST.OpenSource
 {
@@ -108,13 +106,12 @@ namespace Microsoft.CST.OpenSource
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
 
             var analysisResults = new Dictionary<string, AnalyzeResult>();
-            List<string> directoryNames = new List<string>();
 
             var packageDownloader = new PackageDownloader(purl, targetDirectoryName);
             // ensure that the cache directory has the required package, download it otherwise
-            directoryNames.AddRange(await packageDownloader.DownloadPackageLocalCopy(purl, 
+            var directoryNames = await packageDownloader.DownloadPackageLocalCopy(purl, 
                 false, 
-                true));
+                true);
             if (directoryNames.Count > 0)
             {
                 foreach (var directoryName in directoryNames)
@@ -150,7 +147,7 @@ namespace Microsoft.CST.OpenSource
                 LogFileLevel = "Off",
                 SourcePath = directory,
                 IgnoreDefaultRules = (bool)Options["disable-default-rules"],
-                CustomRulesPath = (string)Options["custom-rule-directory"]
+                CustomRulesPath = (string)Options["custom-rule-directory"],
             };
             
             try

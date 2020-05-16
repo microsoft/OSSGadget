@@ -237,33 +237,6 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// Get the full path where the package is to be extracted
-        /// </summary>
-        /// <param name="directoryName"></param>
-        /// <returns></returns>
-        public string GetFullExtractionPath(PackageURL purl)
-        {
-            string directoryName = purl.ToStringFilename();
-            var fullExtractionPath = Path.Combine(TopLevelExtractionDirectory, directoryName);
-            fullExtractionPath = Path.GetFullPath(fullExtractionPath);
-            return fullExtractionPath;
-        }
-
-
-        /// <summary>
-        /// wrap GetFullExtractionPath in a list for convenience
-        /// </summary>
-        /// <param name="directoryName"></param>
-        /// <returns></returns>
-        public List<string> GetFullExtractionPathList(PackageURL purl)
-        {
-            List<string> fullExtractionPathList = new List<string>();
-
-            fullExtractionPathList.Add(GetFullExtractionPath(purl));
-            return fullExtractionPathList;
-        }
-
-        /// <summary>
         /// Extracts an archive (given by 'bytes') into a directory named
         /// 'directoryName', recursively, using MultiExtractor.
         /// </summary>
@@ -278,9 +251,11 @@ namespace Microsoft.CST.OpenSource.Shared
 
             if (!cached)
             {
-                while (Directory.Exists(directoryName) || File.Exists(directoryName))
+                string fullTargetPath = Path.Combine(TopLevelExtractionDirectory, directoryName);
+                while (Directory.Exists(fullTargetPath) || File.Exists(fullTargetPath))
                 {
                     directoryName += "-" + DateTime.Now.Ticks;
+                    fullTargetPath = Path.Combine(TopLevelExtractionDirectory, directoryName);
                 }
             }
             var extractor = new Extractor();

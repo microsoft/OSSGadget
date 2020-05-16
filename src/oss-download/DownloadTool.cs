@@ -3,14 +3,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.CST.OpenSource.Shared;
-using NLog.LayoutRenderers.Wrappers;
-using NLog.Targets;
 
 namespace Microsoft.CST.OpenSource
 {

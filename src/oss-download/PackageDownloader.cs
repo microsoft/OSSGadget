@@ -3,15 +3,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.CST.OpenSource.Shared;
-using NLog.LayoutRenderers.Wrappers;
-using NLog.Targets;
 
 namespace Microsoft.CST.OpenSource
 {
@@ -32,40 +27,46 @@ namespace Microsoft.CST.OpenSource
 
         string destinationDirectory { get; set; }
 
+        // should we cache/check for the cache?
         bool doCache { get; set; }
+
+        // folders created
+        List<string> downloadPaths { get; set; }
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="args">parameters passed in from the user</param>
-        public PackageDownloader(PackageURL purl, string destinationDirectory)
+        public PackageDownloader(PackageURL purl, string destinationDir)
         {
             if (purl == null)
             {
                 throw new ArgumentNullException("purl cannot be null");
             }
 
-            this.destinationDirectory = destinationDirectory;
+            this.destinationDirectory = destinationDir;
             // if we are told to use a cache dir, and it exists, believe that caching is still doable
-            if (string.IsNullOrEmpty(destinationDirectory))
+            if (string.IsNullOrEmpty(destinationDir))
             {
                 this.doCache = false;
                 this.destinationDirectory = Directory.GetCurrentDirectory();
             }
             else
             {
-                if (Directory.Exists(destinationDirectory))
+                if (Directory.Exists(destinationDir))
                 {
                     doCache = true;
                 }
                 else
                 {
                     this.doCache = false;
-                    Directory.CreateDirectory(destinationDirectory);
                 }
             }
 
             this.packageManager = this.GetPackageManager(purl);
+
+            // TODO: Find a better way of doing this
+            this.packageManager.TopLevelExtractionDirectory = this.destinationDirectory;
 
             this.PackageVersions = new List<PackageURL>();
             if (purl.Version == null || purl.Version.Equals("*"))
@@ -77,7 +78,6 @@ namespace Microsoft.CST.OpenSource
             {
                 this.PackageVersions.Add(purl);
             }
-
         }
 
         /// <summary>
@@ -170,36 +170,10 @@ namespace Microsoft.CST.OpenSource
             List<string> downloadDirectories = new List<string>();
             foreach (var version in this.PackageVersions)
             {
-                downloadDirectories.AddRange(await this.DownloadPackage(version, metadataOnly, doExtract, this.doCache));
+                downloadDirectories.AddRange(await this.Download(version, metadataOnly, doExtract, this.doCache));
             }
 
             return downloadDirectories;
-        }
-
-        /// <summary>
-        /// downloads (or returns existing path of) a package based on the cache flag.
-        /// </summary>
-        /// <returns></returns>
-        public async Task<List<string>> DownloadPackage(
-            PackageURL purl,
-            bool metadataOnly,
-            bool doExtract,
-            bool doCache)
-        {
-            List<string> fullExtractionPathList = new List<string>();
-
-            string targetDirectory = this.packageManager.GetFullExtractionPath(purl);
-            if (doCache && Directory.Exists(targetDirectory))
-            {
-                fullExtractionPathList.Add(targetDirectory);
-            }
-            else
-            {
-                fullExtractionPathList.AddRange(
-                    await Download(purl, metadataOnly, doExtract, doCache));
-            }
-
-            return fullExtractionPathList;
         }
 
         /// <summary>
@@ -215,11 +189,10 @@ namespace Microsoft.CST.OpenSource
         {
             try
             {
-                if (!this.doCache)
+                if (!this.doCache && this.downloadPaths != null)
                 {
-                    foreach (PackageURL version in this.PackageVersions)
+                    foreach (string packageDirectory in this.downloadPaths)
                     {
-                        var packageDirectory = this.packageManager.GetFullExtractionPath(version);
                         if (Directory.Exists(packageDirectory))
                         {
                             Logger.Trace("Removing directory {0}", packageDirectory);
@@ -276,6 +249,7 @@ namespace Microsoft.CST.OpenSource
             {
                 // only version download requests reach here
                 downloadPaths.AddRange(await this.packageManager.DownloadVersion(purl, doExtract, cached));
+                this.downloadPaths = downloadPaths;
             }
 
             return downloadPaths;

@@ -115,6 +115,20 @@ namespace Microsoft.CST.OpenSource.Tests
             await TestDownload(purl, targetFilename, 1);            
         }
 
+        [DataTestMethod]
+        [DataRow(null, null)]
+        public async Task Null_Test_Download(string purl, string targetFilename)
+        {
+            try
+            {
+                await TestDownload(purl, targetFilename, 1);
+            }
+            catch(FormatException)
+            {
+                return;
+            }
+            Assert.Fail("The right exception did not fire");
+        }
         private async Task TestDownload(string purl, string targetFilename, int expectedCount)
         {
             string tempDirectoryName = default;

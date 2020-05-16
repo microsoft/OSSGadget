@@ -26,12 +26,19 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             // Back with a temporary filestream, this is optimized to be cached in memory when possible automatically
             Content = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
+            long initialPosition = Content.Position;
+
             if (content.CanSeek)
             {
                 content.Position = 0;
             }
+
             content.CopyTo(Content);
-            Content.Position = 0;
+
+            if (content.CanSeek)
+            {
+                Content.Position = initialPosition;
+            }
         }
         public string ParentPath { get; set; }
         public string FullPath { get; set; }

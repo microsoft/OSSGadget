@@ -68,6 +68,37 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         [DataTestMethod]
+        [DataRow("Shared.zip", ArchiveFileType.ZIP)]
+        [DataRow("Shared.7z", ArchiveFileType.P7ZIP)]
+        [DataRow("Shared.Tar", ArchiveFileType.TAR)]
+        [DataRow("Shared.rar", ArchiveFileType.RAR)]
+        [DataRow("Shared.rar4", ArchiveFileType.RAR)]
+        [DataRow("Shared.tar.bz2", ArchiveFileType.BZIP2)]
+        [DataRow("Shared.tar.gz", ArchiveFileType.GZIP)]
+        [DataRow("Shared.tar.xz", ArchiveFileType.XZ)]
+        [DataRow("sysvbanner_1.0-17fakesync1_amd64.deb", ArchiveFileType.DEB)]
+        [DataRow("Shared.a", ArchiveFileType.UNKNOWN)]
+        [DataRow("Shared.deb", ArchiveFileType.DEB)]
+        [DataRow("Shared.ar", ArchiveFileType.GNU_AR)]
+        [DataRow("Shared.iso", ArchiveFileType.ISO_9660)]
+        [DataRow("Shared.vhd", ArchiveFileType.VHD)] // 26 + Some invisible system files
+        [DataRow("Shared.vhdx", ArchiveFileType.VHDX)]
+        public void TestMiniMagic(string fileName, ArchiveFileType expectedArchiveFileType)
+        {
+            var path = Path.Combine(Directory.GetCurrentDirectory(), "TestData", fileName);
+            using FileStream fs = new FileStream(path, FileMode.Open);
+            var fileEntry = new FileEntry(path, "", fs);
+
+            Assert.IsTrue(MiniMagic.DetectFileType(fileEntry) == expectedArchiveFileType);
+            Assert.IsTrue(fileEntry.Content.Position == 0);
+
+            // Should also work if the stream doesn't start at 0
+            fileEntry.Content.Position = 10;
+            Assert.IsTrue(MiniMagic.DetectFileType(fileEntry) == expectedArchiveFileType);
+            Assert.IsTrue(fileEntry.Content.Position == 10);
+        }
+
+        [DataTestMethod]
         [DataRow("droste.zip", false)]
         [DataRow("droste.zip", true)]
         [DataRow("10GB.7z.bz2", false)]
@@ -93,21 +124,22 @@ namespace Microsoft.CST.OpenSource.Tests
             try
             {
                 var results = extractor.ExtractFile(path, parallel).ToList();
+                // Getting here means we didnt catch the bomb
                 Assert.Fail();
                 return;
             }
-            // We should throw an overflow exception
+            // We should throw an overflow exception when we detect a quine or bomb
             catch (Exception e) when (
                     e is OverflowException)
             {
                 return;
             }
-            // Getting here means we didnt catch the bomb
-            catch (Exception e)
+            catch (Exception)
             {
                 // Other exceptions shoudn't happen in these tests.
                 Assert.Fail();
             }
+            // Getting here means we didnt catch the bomb
             Assert.Fail();
         }
     }

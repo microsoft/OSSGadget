@@ -20,7 +20,7 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("Shared.Tar", false)]
         [DataRow("Shared.Tar", true)]
         [DataRow("Shared.rar", false)]
-        [DataRow("Shared.rar", true)] // This test case likes to fail on the pipeline
+        [DataRow("Shared.rar", true)]
         [DataRow("Shared.rar4", false)]
         [DataRow("Shared.rar4", true)]
         [DataRow("Shared.tar.bz2", false)]
@@ -81,13 +81,16 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("Shared.deb", ArchiveFileType.DEB)]
         [DataRow("Shared.ar", ArchiveFileType.GNU_AR)]
         [DataRow("Shared.iso", ArchiveFileType.ISO_9660)]
-        [DataRow("Shared.vhd", ArchiveFileType.VHD)] // 26 + Some invisible system files
+        [DataRow("Shared.vhd", ArchiveFileType.VHD)]
         [DataRow("Shared.vhdx", ArchiveFileType.VHDX)]
+        [DataRow("Shared.wim", ArchiveFileType.WIM)]
+        [DataRow("Empty.vmdk", ArchiveFileType.VMDK)]
         public void TestMiniMagic(string fileName, ArchiveFileType expectedArchiveFileType)
         {
             var path = Path.Combine(Directory.GetCurrentDirectory(), "TestData", fileName);
             using FileStream fs = new FileStream(path, FileMode.Open);
-            var fileEntry = new FileEntry(path, "", fs);
+            // Test just based on the content
+            var fileEntry = new FileEntry("NoName", "", fs);
 
             Assert.IsTrue(MiniMagic.DetectFileType(fileEntry) == expectedArchiveFileType);
             Assert.IsTrue(fileEntry.Content.Position == 0);
@@ -96,6 +99,10 @@ namespace Microsoft.CST.OpenSource.Tests
             fileEntry.Content.Position = 10;
             Assert.IsTrue(MiniMagic.DetectFileType(fileEntry) == expectedArchiveFileType);
             Assert.IsTrue(fileEntry.Content.Position == 10);
+
+            // We should also detect just on file names if the content doesn't match
+            var nameOnlyEntry = new FileEntry(fileName, "", new MemoryStream());
+            Assert.IsTrue(MiniMagic.DetectFileType(nameOnlyEntry) == expectedArchiveFileType);
         }
 
         [DataTestMethod]

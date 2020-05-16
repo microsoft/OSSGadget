@@ -58,10 +58,13 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             {"BZ2", ArchiveFileType.BZIP2 },
 
             {"RAR", ArchiveFileType.RAR },
+            {"RAR4", ArchiveFileType.RAR },
 
             {"7Z", ArchiveFileType.P7ZIP },
 
             {"DEB", ArchiveFileType.DEB },
+
+            {"AR", ArchiveFileType.GNU_AR },
 
             {"ISO", ArchiveFileType.ISO_9660 },
 
@@ -69,7 +72,9 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
             {"VHD", ArchiveFileType.VHD },
 
-            {"WIM", ArchiveFileType.VHD }
+            {"WIM", ArchiveFileType.WIM },
+
+            {"VMDK", ArchiveFileType.VMDK }
         };
 
         public static ArchiveFileType DetectFileType(string filename)
@@ -136,7 +141,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     fileEntry.Content.Position = 512;
                     Span<byte> secondToken = stackalloc byte[21];
                     fileEntry.Content.Read(secondToken);
-                    fileEntry.Content.Position = 0;
+                    fileEntry.Content.Position = initialPosition;
 
                     if (Encoding.ASCII.GetString(secondToken) == "# Disk DescriptorFile")
                     {

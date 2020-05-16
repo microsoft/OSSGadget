@@ -24,8 +24,15 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             {
                 throw new ArgumentNullException(nameof(inputStream));
             }
+            
+            if (passthroughStream)
+            {
+                Content = inputStream;
+            }
+
             // Back with a temporary filestream, this is optimized to be cached in memory when possible automatically
-            Content = passthroughStream ? inputStream : new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
+            Content = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
+
             if (inputStream.CanSeek)
             {
                 inputStream.Position = 0;

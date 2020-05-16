@@ -370,45 +370,14 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns></returns>
         private IEnumerable<FileEntry> ExtractVMDKFile(FileEntry fileEntry, bool parallel)
         {
-            if (parallel)
-            {
-                foreach (var entry in ParallelExtractVMDKFile(fileEntry))
-                {
-                    yield return entry;
-                }
-                yield break;
-            }
             using var disk = new DiscUtils.Vmdk.Disk(fileEntry.Content, Ownership.None);
             var manager = new VolumeManager(disk);
             var logicalVolumes = manager.GetLogicalVolumes();
             foreach (var volume in logicalVolumes)
             {
-                var fsInfos = FileSystemManager.DetectFileSystems(volume);
-                foreach (var fsInfo in fsInfos)
+                foreach (var entry in DumpLogicalVolume(volume, fileEntry.FullPath, parallel))
                 {
-                    using var fs = fsInfo.Open(volume);
-                    foreach (var file in fs.GetFiles(fs.Root.FullName, "*.*", SearchOption.AllDirectories))
-                    {
-                        CheckResourceGovernor(file.Length);
-                        SparseStream? fileStream = null;
-                        try
-                        {
-                            fileStream = fs.OpenFile(file, FileMode.Open);
-                        }
-                        catch (Exception e)
-                        {
-                            Logger.Debug(e, "Failed to open {0} in volume {1}", file, volume.Identity);
-                        }
-                        if (fileStream != null)
-                        {
-                            var newFileEntry = new FileEntry($"{volume.Identity}\\{file}", fileEntry.FullPath, fileStream);
-                            var entries = ExtractFile(newFileEntry, parallel);
-                            foreach (var entry in entries)
-                            {
-                                yield return entry;
-                            }
-                        }
-                    }
+                    yield return entry;
                 }
             }
         }
@@ -420,46 +389,15 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns></returns>
         private IEnumerable<FileEntry> ExtractVHDXFile(FileEntry fileEntry, bool parallel)
         {
-            if (parallel)
-            {
-                foreach (var entry in ParallelExtractVHDXFile(fileEntry))
-                {
-                    yield return entry;
-                }
-                yield break;
-            }
             using DiscUtils.Vhdx.DiskImageFile baseFile = new DiscUtils.Vhdx.DiskImageFile(fileEntry.Content);
             using var disk = new DiscUtils.Vhdx.Disk(new List<DiscUtils.Vhdx.DiskImageFile> { baseFile }, Ownership.Dispose);
             var manager = new VolumeManager(disk);
             var logicalVolumes = manager.GetLogicalVolumes();
-            foreach (var volume in logicalVolumes)
+            foreach(var volume in logicalVolumes)
             {
-                var fsInfos = FileSystemManager.DetectFileSystems(volume);
-                foreach (var fsInfo in fsInfos)
+                foreach(var entry in DumpLogicalVolume(volume, fileEntry.FullPath, parallel))
                 {
-                    using var fs = fsInfo.Open(volume);
-                    foreach (var file in fs.GetFiles(fs.Root.FullName, "*.*", SearchOption.AllDirectories))
-                    {
-                        CheckResourceGovernor(file.Length);
-                        SparseStream? fileStream = null;
-                        try
-                        {
-                            fileStream = fs.OpenFile(file, FileMode.Open);
-                        }
-                        catch (Exception e)
-                        {
-                            Logger.Debug(e, "Failed to open {0} in volume {1}", file, volume.Identity);
-                        }
-                        if (fileStream != null)
-                        {
-                            var newFileEntry = new FileEntry($"{volume.Identity}\\{file}", fileEntry.FullPath, fileStream);
-                            var entries = ExtractFile(newFileEntry, parallel);
-                            foreach (var entry in entries)
-                            {
-                                yield return entry;
-                            }
-                        }
-                    }
+                    yield return entry;
                 }
             }
         }
@@ -471,46 +409,15 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns></returns>
         private IEnumerable<FileEntry> ExtractVHDFile(FileEntry fileEntry, bool parallel)
         {
-            if (parallel)
-            {
-                foreach (var entry in ParallelExtractVHDFile(fileEntry))
-                {
-                    yield return entry;
-                }
-                yield break;
-            }
             using DiscUtils.Vhd.DiskImageFile baseFile = new DiscUtils.Vhd.DiskImageFile(fileEntry.Content);
             using var disk = new DiscUtils.Vhd.Disk(new List<DiscUtils.Vhd.DiskImageFile> { baseFile }, Ownership.Dispose);
             var manager = new VolumeManager(disk);
             var logicalVolumes = manager.GetLogicalVolumes();
             foreach (var volume in logicalVolumes)
             {
-                var fsInfos = FileSystemManager.DetectFileSystems(volume);
-                foreach (var fsInfo in fsInfos)
+                foreach (var entry in DumpLogicalVolume(volume, fileEntry.FullPath, parallel))
                 {
-                    using var fs = fsInfo.Open(volume);
-                    foreach (var file in fs.GetFiles(fs.Root.FullName, "*.*", SearchOption.AllDirectories))
-                    {
-                        CheckResourceGovernor(file.Length);
-                        SparseStream? fileStream = null;
-                        try
-                        {
-                            fileStream = fs.OpenFile(file, FileMode.Open);
-                        }
-                        catch(Exception e)
-                        {
-                            Logger.Debug(e, "Failed to open {0} in volume {1}", file, volume.Identity);
-                        }
-                        if (fileStream != null)
-                        {
-                            var newFileEntry = new FileEntry($"{volume.Identity}\\{file}", fileEntry.FullPath, fileStream);
-                            var entries = ExtractFile(newFileEntry, parallel);
-                            foreach (var entry in entries)
-                            {
-                                yield return entry;
-                            }
-                        }
-                    }
+                    yield return entry;
                 }
             }
         }
@@ -1335,44 +1242,57 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         }
 
         /// <summary>
-        /// Extracts an a VHD file
+        /// 
         /// </summary>
-        /// <param name="fileEntry"></param>
+        /// <param name="lvi"></param>
         /// <returns></returns>
-        private IEnumerable<FileEntry> ParallelExtractVHDFile(FileEntry fileEntry)
+        private IEnumerable<FileEntry> DumpLogicalVolume(LogicalVolumeInfo volume, string parentPath, bool parallel)
         {
-            List<FileEntry> files = new List<FileEntry>();
-
-            using DiscUtils.Vhd.DiskImageFile baseFile = new DiscUtils.Vhd.DiskImageFile(fileEntry.Content);
-            using var disk = new DiscUtils.Vhd.Disk(new List<DiscUtils.Vhd.DiskImageFile> { baseFile }, Ownership.Dispose);
-            var manager = new VolumeManager(disk);
-            var logicalVolumes = manager.GetLogicalVolumes();
-            foreach (var volume in logicalVolumes)
+            var fsInfos = FileSystemManager.DetectFileSystems(volume);
+            foreach (var fsInfo in fsInfos)
             {
-                var fsInfos = FileSystemManager.DetectFileSystems(volume);
-                foreach (var fsInfo in fsInfos)
+                using var fs = fsInfo.Open(volume);
+                var diskFiles = fs.GetFiles(fs.Root.FullName, "*.*", SearchOption.AllDirectories).ToList();
+                if (parallel)
                 {
-                    using var fs = fsInfo.Open(volume);
-                    var diskFiles = fs.GetFiles(fs.Root.FullName, "*.*", SearchOption.AllDirectories).ToList();
+                    List<FileEntry> files = new List<FileEntry>();
 
                     while (diskFiles.Count > 0)
                     {
                         int batchSize = Math.Min(MAX_BATCH_SIZE, diskFiles.Count);
-                        diskFiles.GetRange(0, batchSize).AsParallel().ForAll(file =>
+                        var range = diskFiles.GetRange(0, batchSize);
+                        var fileinfos = new List<DiscFileInfo>();
+                        long totalLength = 0;
+                        foreach (var r in range)
                         {
-                            CheckResourceGovernor(file.Length);
-                            SparseStream? fileStream = null;
                             try
                             {
-                                fileStream = fs.OpenFile(file, FileMode.Open);
+                                var fi = fs.GetFileInfo(r);
+                                totalLength += fi.Length;
+                                fileinfos.Add(fi);
+                            }
+                            catch (Exception e)
+                            {
+                                Logger.Debug("Failed to get FileInfo from {0} in Volume {1} @ {2} ({3}:{4})", r, volume.Identity, parentPath, e.GetType(), e.Message);
+                            }
+                        }
+
+                        CheckResourceGovernor(totalLength);
+
+                        fileinfos.AsParallel().ForAll(file =>
+                        {
+                            Stream? stream = null;
+                            try
+                            {
+                                stream = file.OpenRead();
                             }
                             catch (Exception e)
                             {
                                 Logger.Debug(e, "Failed to open {0} in volume {1}", file, volume.Identity);
                             }
-                            if (fileStream != null)
+                            if (stream != null)
                             {
-                                var newFileEntry = new FileEntry($"{volume.Identity}\\{file}", fileEntry.FullPath, fileStream);
+                                var newFileEntry = new FileEntry($"{volume.Identity}\\{file}", parentPath, stream);
                                 var entries = ExtractFile(newFileEntry, true);
                                 files.AddRange(entries);
                             }
@@ -1386,114 +1306,29 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         }
                     }
                 }
-            }
-        }
-
-        /// <summary>
-        /// Extracts an a VHDX file
-        /// </summary>
-        /// <param name="fileEntry"></param>
-        /// <returns></returns>
-        private IEnumerable<FileEntry> ParallelExtractVHDXFile(FileEntry fileEntry)
-        {
-            List<FileEntry> files = new List<FileEntry>();
-
-            using DiscUtils.Vhdx.DiskImageFile baseFile = new DiscUtils.Vhdx.DiskImageFile(fileEntry.Content);
-            using var disk = new DiscUtils.Vhdx.Disk(new List<DiscUtils.Vhdx.DiskImageFile> { baseFile }, Ownership.Dispose);
-            var manager = new VolumeManager(disk);
-            var logicalVolumes = manager.GetLogicalVolumes();
-            foreach (var volume in logicalVolumes)
-            {
-                var fsInfos = FileSystemManager.DetectFileSystems(volume);
-                foreach (var fsInfo in fsInfos)
+                else
                 {
-                    using var fs = fsInfo.Open(volume);
-                    var diskFiles = fs.GetFiles(fs.Root.FullName, "*.*", SearchOption.AllDirectories).ToList();
-
-                    while (diskFiles.Count > 0)
+                    foreach (var file in diskFiles)
                     {
-                        int batchSize = Math.Min(MAX_BATCH_SIZE, diskFiles.Count);
-                        var range = diskFiles.GetRange(0, batchSize);
-                        CheckResourceGovernor(range.Sum(x => fs.GetFileInfo(x).Length));
-                        range.AsParallel().ForAll(file =>
+                        Stream? fileStream = null;
+                        try
                         {
-                            SparseStream? fileStream = null;
-                            try
-                            {
-                                fileStream = fs.OpenFile(file, FileMode.Open);
-                            }
-                            catch (Exception e)
-                            {
-                                Logger.Debug(e, "Failed to open {0} in volume {1}", file, volume.Identity);
-                            }
-                            if (fileStream != null)
-                            {
-                                var newFileEntry = new FileEntry($"{volume.Identity}\\{file}", fileEntry.FullPath, fileStream);
-                                var entries = ExtractFile(newFileEntry, true);
-                                files.AddRange(entries);
-                            }
-                        });
-                        diskFiles.RemoveRange(0, batchSize);
-
-                        while (files.Count > 0)
-                        {
-                            yield return files[0];
-                            files.RemoveAt(0);
+                            var fi = fs.GetFileInfo(file);
+                            CheckResourceGovernor(fi.Length);
+                            fileStream = fi.OpenRead();
                         }
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Extracts an a VMDK file
-        /// </summary>
-        /// <param name="fileEntry"></param>
-        /// <returns></returns>
-        private IEnumerable<FileEntry> ParallelExtractVMDKFile(FileEntry fileEntry)
-        {
-            List<FileEntry> files = new List<FileEntry>();
-
-            using var disk = new DiscUtils.Vmdk.Disk(fileEntry.Content, Ownership.Dispose);
-            var manager = new VolumeManager(disk);
-            var logicalVolumes = manager.GetLogicalVolumes();
-            foreach (var volume in logicalVolumes)
-            {
-                var fsInfos = FileSystemManager.DetectFileSystems(volume);
-                foreach (var fsInfo in fsInfos)
-                {
-                    using var fs = fsInfo.Open(volume);
-                    var diskFiles = fs.GetFiles(fs.Root.FullName, "*.*", SearchOption.AllDirectories).ToList();
-
-                    while (diskFiles.Count > 0)
-                    {
-                        int batchSize = Math.Min(MAX_BATCH_SIZE, diskFiles.Count);
-                        var range = diskFiles.GetRange(0, batchSize);
-                        CheckResourceGovernor(range.Sum(x => fs.GetFileInfo(x).Length));
-                        range.AsParallel().ForAll(file =>
+                        catch (Exception e)
                         {
-                            SparseStream? fileStream = null;
-                            try
-                            {
-                                fileStream = fs.OpenFile(file, FileMode.Open);
-                            }
-                            catch (Exception e)
-                            {
-                                Logger.Debug(e, "Failed to open {0} in volume {1}", file, volume.Identity);
-                            }
-                            if (fileStream != null)
-                            {
-                                var newFileEntry = new FileEntry($"{volume.Identity}\\{file}", fileEntry.FullPath, fileStream);
-                                var entries = ExtractFile(newFileEntry, true);
-                                files.AddRange(entries);
-                            }
-                        });
-                        diskFiles.RemoveRange(0, batchSize);
-
-                        while (files.Count > 0)
+                            Logger.Debug(e, "Failed to open {0} in volume {1}", file, volume.Identity);
+                        }
+                        if (fileStream != null)
                         {
-                            yield return files[0];
-                            files.RemoveAt(0);
+                            var newFileEntry = new FileEntry($"{volume.Identity}\\{file}", parentPath, fileStream);
+                            var entries = ExtractFile(newFileEntry, parallel);
+                            foreach (var entry in entries)
+                            {
+                                yield return entry;
+                            }
                         }
                     }
                 }

@@ -1130,34 +1130,31 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             if (sevenZipArchive != null)
             {
-                var entries = sevenZipArchive.Entries.ToList();
+                var entries = sevenZipArchive.Entries.Where(x => !x.IsDirectory && !x.IsEncrypted && x.IsComplete).ToList();
                 while (entries.Count() > 0)
                 {
                     int batchSize = Math.Min(MAX_BATCH_SIZE, entries.Count());
-                    var selectedEntries = entries.GetRange(0, batchSize);
-                    CheckResourceGovernor(selectedEntries.Sum(x => x.Size));
+                    var selectedEntries = entries.GetRange(0, batchSize).Select(entry => (entry, entry.OpenEntryStream()));
+                    CheckResourceGovernor(selectedEntries.Sum(x => x.entry.Size));
+
                     selectedEntries.AsParallel().ForAll(entry =>
                     {
-                        if (!entry.IsDirectory && !entry.IsEncrypted)
+                        try
                         {
-                            try
+                            var newFileEntry = new FileEntry(entry.entry.Key, fileEntry.FullPath, entry.Item2);
+                            if (AreIdentical(fileEntry, newFileEntry))
                             {
-                                var stream = entry.OpenEntryStream();
-                                var newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, stream);
-                                if (AreIdentical(fileEntry, newFileEntry))
-                                {
-                                    Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
-                                    CurrentOperationProcessedBytesLeft = -1;
-                                }
-                                else
-                                {
-                                    files.AddRange(ExtractFile(newFileEntry, true));
-                                }
+                                Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
+                                CurrentOperationProcessedBytesLeft = -1;
                             }
-                            catch (Exception e)
+                            else
                             {
-                                Logger.Debug(DEBUG_STRING, ArchiveFileType.P7ZIP, fileEntry.FullPath, entry.Key, e.GetType());
+                                files.AddRange(ExtractFile(newFileEntry, true));
                             }
+                        }
+                        catch (Exception e)
+                        {
+                            Logger.Debug(DEBUG_STRING, ArchiveFileType.P7ZIP, fileEntry.FullPath, entry.entry.Key, e.GetType());
                         }
                     });
                     CheckResourceGovernor(0);
@@ -1238,14 +1235,16 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             while (cdFiles.Count > 0)
             {
                 int batchSize = Math.Min(MAX_BATCH_SIZE, cdFiles.Count);
-                var selectedFileInfos = cdFiles.GetRange(0,batchSize).Select(x => cd.GetFileInfo(x));
-                CheckResourceGovernor(selectedFileInfos.Sum(x => x.Length));
+                var selectedFileInfos = cdFiles.GetRange(0,batchSize).Select(x => cd.GetFileInfo(x)).Select(fileInfo => (fileInfo, fileInfo.OpenRead()));
+                CheckResourceGovernor(selectedFileInfos.Sum(x => x.fileInfo.Length));
+
                 selectedFileInfos.AsParallel().ForAll(cdFile =>
                 {
-                    var newFileEntry = new FileEntry(cdFile.Name, fileEntry.FullPath, cdFile.OpenRead());
+                    var newFileEntry = new FileEntry(cdFile.fileInfo.Name, fileEntry.FullPath, cdFile.Item2);
                     var entries = ExtractFile(newFileEntry, true);
                     files.AddRange(entries);
                 });
+
                 cdFiles.RemoveRange(0, batchSize);
 
                 while (files.Count > 0)

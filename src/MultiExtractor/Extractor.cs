@@ -417,11 +417,23 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             {
                 var fileInfo = cd.GetFileInfo(file);
                 CheckResourceGovernor(fileInfo.Length);
-                var newFileEntry = new FileEntry(fileInfo.Name, fileEntry.FullPath, fileInfo.OpenRead());
-                var entries = ExtractFile(newFileEntry, parallel);
-                foreach(var entry in entries)
+                Stream? stream = null;
+                try
                 {
-                    yield return entry;
+                    stream = fileInfo.OpenRead();
+                }
+                catch (Exception e)
+                {
+                    Logger.Debug("Failed to extract {0} from ISO {1}. ({2}:{3})", fileInfo.Name, fileEntry.FullPath, e.GetType(), e.Message);
+                }
+                if (stream != null)
+                {
+                    var newFileEntry = new FileEntry(fileInfo.Name, fileEntry.FullPath, stream);
+                    var entries = ExtractFile(newFileEntry, parallel);
+                    foreach (var entry in entries)
+                    {
+                        yield return entry;
+                    }
                 }
             }
         }
@@ -1172,13 +1184,20 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             while (cdFiles.Count > 0)
             {
                 int batchSize = Math.Min(MAX_BATCH_SIZE, cdFiles.Count);
-                var selectedFileInfos = cdFiles.GetRange(0,batchSize).Select(x => cd.GetFileInfo(x));
-                CheckResourceGovernor(selectedFileInfos.Sum(x => x.Length));
+                var selectedFileInfos = cdFiles.GetRange(0,batchSize).Select(x => cd.GetFileInfo(x)).Select(fileInfo => (fileInfo,fileInfo.OpenRead()));
+                CheckResourceGovernor(selectedFileInfos.Sum(x => x.fileInfo.Length));
                 selectedFileInfos.AsParallel().ForAll(cdFile =>
                 {
-                    var newFileEntry = new FileEntry(cdFile.Name, fileEntry.FullPath, cdFile.OpenRead());
-                    var entries = ExtractFile(newFileEntry, true);
-                    files.AddRange(entries);
+                    try
+                    {
+                        var newFileEntry = new FileEntry(cdFile.fileInfo.Name, fileEntry.FullPath, cdFile.Item2);
+                        var entries = ExtractFile(newFileEntry, true);
+                        files.AddRange(entries);
+                    }
+                    catch(Exception e)
+                    {
+                        Logger.Debug("Failed to extract {0} from ISO {1}. ({2})", cdFile.fileInfo.Name, fileEntry.FullPath, e.GetType());
+                    }
                 });
                 cdFiles.RemoveRange(0, batchSize);
 

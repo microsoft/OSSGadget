@@ -25,7 +25,8 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         GNU_AR,
         ISO_9660,
         VHDX,
-        VHD
+        VHD,
+        WIM
     }
 
     /// <summary>
@@ -38,34 +39,36 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// </summary>
         private static readonly Dictionary<string, ArchiveFileType> FileExtensionMap = new Dictionary<string, ArchiveFileType>()
         {
-            {"zip", ArchiveFileType.ZIP },
-            {"apk", ArchiveFileType.ZIP },
-            {"ipa", ArchiveFileType.ZIP },
-            {"jar", ArchiveFileType.ZIP },
-            {"ear", ArchiveFileType.ZIP },
-            {"war", ArchiveFileType.ZIP },
+            {"ZIP", ArchiveFileType.ZIP },
+            {"APK", ArchiveFileType.ZIP },
+            {"IPA", ArchiveFileType.ZIP },
+            {"JAR", ArchiveFileType.ZIP },
+            {"EAR", ArchiveFileType.ZIP },
+            {"WAR", ArchiveFileType.ZIP },
 
-            {"gz", ArchiveFileType.GZIP },
-            {"tgz", ArchiveFileType.GZIP },
+            {"GZ", ArchiveFileType.GZIP },
+            {"TGZ", ArchiveFileType.GZIP },
 
-            {"tar", ArchiveFileType.TAR },
-            {"gem", ArchiveFileType.TAR },
+            {"TAR", ArchiveFileType.TAR },
+            {"GEM", ArchiveFileType.TAR },
 
-            {"xz", ArchiveFileType.XZ },
+            {"XZ", ArchiveFileType.XZ },
 
-            {"bz2", ArchiveFileType.BZIP2 },
+            {"BZ2", ArchiveFileType.BZIP2 },
 
-            {"rar", ArchiveFileType.RAR },
+            {"RAR", ArchiveFileType.RAR },
 
-            {"7z", ArchiveFileType.P7ZIP },
+            {"7Z", ArchiveFileType.P7ZIP },
 
-            {".deb", ArchiveFileType.DEB },
+            {"DEB", ArchiveFileType.DEB },
 
-            {".iso", ArchiveFileType.ISO_9660 },
+            {"ISO", ArchiveFileType.ISO_9660 },
 
-            {".vhdx", ArchiveFileType.VHDX },
+            {"VHDX", ArchiveFileType.VHDX },
 
-            {".vhd", ArchiveFileType.VHD }
+            {"VHD", ArchiveFileType.VHD },
+
+            {"WIM", ArchiveFileType.VHD }
         };
 
         public static ArchiveFileType DetectFileType(string filename)
@@ -121,6 +124,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 if (buffer[0] == 0x37 && buffer[1] == 0x7A && buffer[2] == 0xBC && buffer[3] == 0xAF && buffer[4] == 0x27 && buffer[5] == 0x1C)
                 {
                     return ArchiveFileType.P7ZIP;
+                }
+                if (Encoding.ASCII.GetString(buffer.Slice(0,8)) == "MSWIM\0\0\0" || Encoding.ASCII.GetString(buffer.Slice(0, 7)) == "WLPWM\0\0\0")
+                {
+                    return ArchiveFileType.WIM;
                 }
                 // some kind of unix Archive https://en.wikipedia.org/wiki/Ar_(Unix)
                 if (buffer[0] == 0x21 && buffer[1] == 0x3c && buffer[2] == 0x61 && buffer[3] == 0x72 && buffer[4] == 0x63 && buffer[5] == 0x68 && buffer[6] == 0x3e)
@@ -204,9 +211,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
 
             // Fall back to file extensions
-#pragma warning disable CA1308 // Normalize strings to uppercase
-            string fileExtension = Path.GetExtension(fileEntry.Name.ToLowerInvariant());
-            #pragma warning restore CA1308 // Normalize strings to uppercase
+            string fileExtension = Path.GetExtension(fileEntry.Name.ToUpperInvariant());
 
             if (fileExtension.StartsWith('.'))
             {

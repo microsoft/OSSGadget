@@ -43,6 +43,8 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("Shared.vhd", true, 29)]
         [DataRow("Shared.vhdx", false)]
         [DataRow("Shared.vhdx", true)]
+        [DataRow("Shared.wim", false)]
+        [DataRow("Shared.wim", true)]
         public void ExtractArchive(string fileName, bool parallel, int expectedNumFiles = 26)
         {
             var extractor = new Extractor();
@@ -82,7 +84,6 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("zbsm.zip", true)]
         [DataRow("zbxl.zip", false)]
         [DataRow("zbxl.zip", true)]
-
         public void TestQuineBombs(string fileName, bool parallel)
         {
             var extractor = new Extractor();

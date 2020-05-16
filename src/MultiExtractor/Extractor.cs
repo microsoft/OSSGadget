@@ -277,6 +277,9 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     case ArchiveFileType.VHD:
                         result = ExtractVHDFile(fileEntry, parallel);
                         break;
+                    case ArchiveFileType.WIM:
+                        result = ExtractWimFile(fileEntry, parallel);
+                        break;
                     default:
                         useRaw = true;
                         result = new[] { fileEntry };
@@ -297,6 +300,64 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Extracts an a Wim file
+        /// </summary>
+        /// <param name="fileEntry"></param>
+        /// <returns></returns>
+        private IEnumerable<FileEntry> ExtractWimFile(FileEntry fileEntry, bool parallel)
+        {
+            if (parallel)
+            {
+                foreach (var entry in ParallelExtractWimFile(fileEntry))
+                {
+                    yield return entry;
+                }
+                yield break;
+            }
+            DiscUtils.Wim.WimFile? baseFile = null;
+            try
+            {
+                baseFile = new DiscUtils.Wim.WimFile(fileEntry.Content);
+            }
+            catch(Exception e)
+            {
+                Logger.Debug(e, "Failed to init WIM image.");
+            }
+            if (baseFile != null)
+            {
+                for (int i = 0; i < baseFile.ImageCount; i++)
+                {
+                    var image = baseFile.GetImage(i);
+                    var files = image.GetFiles(image.Root.FullName, "*.*", SearchOption.AllDirectories);
+                    foreach (var file in files)
+                    {
+                        Stream? stream = null;
+                        try
+                        {
+                            var info = image.GetFileInfo(file);
+                            CheckResourceGovernor(info.Length);
+                            stream = info.OpenRead();
+                        }
+                        catch (Exception e)
+                        {
+                            Logger.Debug("Error reading {0} from WIM {1} ({2}:{3})", file, image.FriendlyName, e.GetType(), e.Message);
+                        }
+                        if (stream != null)
+                        {
+                            var newFileEntry = new FileEntry($"{image.FriendlyName}\\{file}", fileEntry.FullPath, stream);
+                            var entries = ExtractFile(newFileEntry, parallel);
+                            foreach (var entry in entries)
+                            {
+                                yield return entry;
+                            }
+                            stream.Dispose();
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -1274,9 +1335,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     while (diskFiles.Count > 0)
                     {
                         int batchSize = Math.Min(MAX_BATCH_SIZE, diskFiles.Count);
-                        diskFiles.GetRange(0, batchSize).AsParallel().ForAll(file =>
+                        var range = diskFiles.GetRange(0, batchSize);
+                        CheckResourceGovernor(range.Sum(x => fs.GetFileInfo(x).Length));
+                        range.AsParallel().ForAll(file =>
                         {
-                            CheckResourceGovernor(file.Length);
                             SparseStream? fileStream = null;
                             try
                             {
@@ -1300,6 +1362,56 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             yield return files[0];
                             files.RemoveAt(0);
                         }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Extracts an a Wim file
+        /// </summary>
+        /// <param name="fileEntry"></param>
+        /// <returns></returns>
+        private IEnumerable<FileEntry> ParallelExtractWimFile(FileEntry fileEntry)
+        {
+            List<FileEntry> files = new List<FileEntry>();
+
+            DiscUtils.Wim.WimFile baseFile = new DiscUtils.Wim.WimFile(fileEntry.Content);
+            for (int i = 0; i < baseFile.ImageCount; i++)
+            {
+                var image = baseFile.GetImage(i);
+                var fileList = image.GetFiles(image.Root.FullName, "*.*", SearchOption.AllDirectories).ToList();
+                while (fileList.Any())
+                {
+                    int batchSize = Math.Min(MAX_BATCH_SIZE, fileList.Count);
+                    var range = fileList.Take(batchSize);
+                    CheckResourceGovernor(range.Sum(x => image.GetFileInfo(x).Length));
+                    range.AsParallel().ForAll(file => 
+                    { 
+                        Stream ? stream = null;
+                        try
+                        {
+                            var info = image.GetFileInfo(file);
+                            stream = info.OpenRead();
+                        }
+                        catch (Exception e)
+                        {
+                            Logger.Debug("Error reading {0} from WIM {1} ({2}:{3})", file, image.FriendlyName, e.GetType(), e.Message);
+                        }
+                        if (stream != null)
+                        {
+                            var newFileEntry = new FileEntry($"{image.FriendlyName}\\{file}", fileEntry.FullPath, stream);
+                            var entries = ExtractFile(newFileEntry, true);
+                            files.AddRange(entries);
+                            stream.Dispose();
+                        }
+                    });
+                    fileList.RemoveRange(0, batchSize);
+
+                    while (files.Count > 0)
+                    {
+                        yield return files[0];
+                        files.RemoveAt(0);
                     }
                 }
             }

@@ -107,12 +107,12 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("10GB.xz.bz2", true)]
         [DataRow("10GB.zip.bz2", false)]
         [DataRow("10GB.zip.bz2", true)]
-        [DataRow("zblg.zip", false)]
-        [DataRow("zblg.zip", true)]
-        [DataRow("zbsm.zip", false)]
-        [DataRow("zbsm.zip", true)]
-        [DataRow("zbxl.zip", false)]
-        [DataRow("zbxl.zip", true)]
+        //[DataRow("zblg.zip", false)]
+        //[DataRow("zblg.zip", true)]
+        //[DataRow("zbsm.zip", false)]
+        //[DataRow("zbsm.zip", true)]
+        //[DataRow("zbxl.zip", false)]
+        //[DataRow("zbxl.zip", true)]
 
         public void TestQuineBombs(string fileName, bool parallel)
         {

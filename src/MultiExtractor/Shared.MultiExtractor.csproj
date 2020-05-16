@@ -23,6 +23,7 @@
     <PackageReference Include="DiscUtils.Ntfs" Version="0.15.1-ci0002" />
     <PackageReference Include="DiscUtils.Vhd" Version="0.15.1-ci0002" />
     <PackageReference Include="DiscUtils.Vhdx" Version="0.15.1-ci0002" />
+    <PackageReference Include="DiscUtils.Vmdk" Version="0.15.1-ci0002" />
     <PackageReference Include="DiscUtils.Wim" Version="0.15.1-ci0002" />
     <PackageReference Include="DiscUtils.Xfs" Version="0.15.1-ci0002" />
     <PackageReference Include="NLog" Version="4.7.0" />

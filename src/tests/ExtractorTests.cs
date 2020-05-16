@@ -45,6 +45,8 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("Shared.vhdx", true)]
         [DataRow("Shared.wim", false)]
         [DataRow("Shared.wim", true)]
+        [DataRow("Empty.vmdk", false, 0)]
+        [DataRow("Empty.vmdk", true, 0)]
         public void ExtractArchive(string fileName, bool parallel, int expectedNumFiles = 26)
         {
             var extractor = new Extractor();

@@ -26,7 +26,8 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         ISO_9660,
         VHDX,
         VHD,
-        WIM
+        WIM,
+        VMDK
     }
 
     /// <summary>
@@ -128,6 +129,18 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 if (Encoding.ASCII.GetString(buffer.Slice(0,8)) == "MSWIM\0\0\0" || Encoding.ASCII.GetString(buffer.Slice(0, 7)) == "WLPWM\0\0\0")
                 {
                     return ArchiveFileType.WIM;
+                }
+                if (Encoding.ASCII.GetString(buffer.Slice(0,4)) == "KDMV")
+                {
+                    fileEntry.Content.Position = 512;
+                    Span<byte> secondToken = stackalloc byte[21];
+                    fileEntry.Content.Read(secondToken);
+                    fileEntry.Content.Position = 0;
+
+                    if (Encoding.ASCII.GetString(secondToken) == "# Disk DescriptorFile")
+                    {
+                        return ArchiveFileType.VMDK;
+                    }
                 }
                 // some kind of unix Archive https://en.wikipedia.org/wiki/Ar_(Unix)
                 if (buffer[0] == 0x21 && buffer[1] == 0x3c && buffer[2] == 0x61 && buffer[3] == 0x72 && buffer[4] == 0x63 && buffer[5] == 0x68 && buffer[6] == 0x3e)

@@ -389,8 +389,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns></returns>
         private IEnumerable<FileEntry> ExtractVHDXFile(FileEntry fileEntry, bool parallel)
         {
-            using DiscUtils.Vhdx.DiskImageFile baseFile = new DiscUtils.Vhdx.DiskImageFile(fileEntry.Content);
-            using var disk = new DiscUtils.Vhdx.Disk(new List<DiscUtils.Vhdx.DiskImageFile> { baseFile }, Ownership.Dispose);
+            using var disk = new DiscUtils.Vhdx.Disk(fileEntry.Content, Ownership.None);
             var manager = new VolumeManager(disk);
             var logicalVolumes = manager.GetLogicalVolumes();
             foreach(var volume in logicalVolumes)
@@ -409,8 +408,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns></returns>
         private IEnumerable<FileEntry> ExtractVHDFile(FileEntry fileEntry, bool parallel)
         {
-            using DiscUtils.Vhd.DiskImageFile baseFile = new DiscUtils.Vhd.DiskImageFile(fileEntry.Content);
-            using var disk = new DiscUtils.Vhd.Disk(new List<DiscUtils.Vhd.DiskImageFile> { baseFile }, Ownership.Dispose);
+            using var disk = new DiscUtils.Vhd.Disk(fileEntry.Content, Ownership.None);
             var manager = new VolumeManager(disk);
             var logicalVolumes = manager.GetLogicalVolumes();
             foreach (var volume in logicalVolumes)
@@ -463,7 +461,6 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 }
             }
         }
-
 
         /// <summary>
         /// Extracts an archive file created with GNU ar
@@ -1257,11 +1254,11 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 {
                     List<FileEntry> files = new List<FileEntry>();
 
-                    while (diskFiles.Count > 0)
+                    while (diskFiles.Any())
                     {
                         int batchSize = Math.Min(MAX_BATCH_SIZE, diskFiles.Count);
                         var range = diskFiles.GetRange(0, batchSize);
-                        var fileinfos = new List<DiscFileInfo>();
+                        var fileinfos = new List<(DiscFileInfo,Stream)>();
                         long totalLength = 0;
                         foreach (var r in range)
                         {
@@ -1269,7 +1266,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             {
                                 var fi = fs.GetFileInfo(r);
                                 totalLength += fi.Length;
-                                fileinfos.Add(fi);
+                                fileinfos.Add((fi,fi.OpenRead()));
                             }
                             catch (Exception e)
                             {
@@ -1281,18 +1278,9 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
                         fileinfos.AsParallel().ForAll(file =>
                         {
-                            Stream? stream = null;
-                            try
+                            if (file.Item2 != null)
                             {
-                                stream = file.OpenRead();
-                            }
-                            catch (Exception e)
-                            {
-                                Logger.Debug(e, "Failed to open {0} in volume {1}", file, volume.Identity);
-                            }
-                            if (stream != null)
-                            {
-                                var newFileEntry = new FileEntry($"{volume.Identity}\\{file}", parentPath, stream);
+                                var newFileEntry = new FileEntry($"{volume.Identity}\\{file.Item1.FullName}", parentPath, file.Item2);
                                 var entries = ExtractFile(newFileEntry, true);
                                 files.AddRange(entries);
                             }

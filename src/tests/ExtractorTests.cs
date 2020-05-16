@@ -51,7 +51,7 @@ namespace Microsoft.CST.OpenSource.Tests
         {
             var extractor = new Extractor();
             var path = Path.Combine(Directory.GetCurrentDirectory(), "TestData", fileName);
-            var results = extractor.ExtractFile(path, parallel);
+            var results = extractor.ExtractFile(path, parallel).ToList();
             Assert.IsTrue(results.Count() == expectedNumFiles);
         }
 

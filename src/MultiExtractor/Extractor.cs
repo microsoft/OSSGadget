@@ -782,19 +782,20 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 }
                 yield break;
             }
-            RarArchive? rarArchive = null;
+            ICollection<RarArchiveEntry>? entries = null;
             try
             {
-                rarArchive = RarArchive.Open(fileEntry.Content);
+                RarArchive rarArchive = RarArchive.Open(fileEntry.Content);
+                entries = rarArchive.Entries;
             }
             catch (Exception e)
             {
                 Logger.Debug(DEBUG_STRING, ArchiveFileType.RAR, fileEntry.FullPath, string.Empty, e.GetType());
             }
 
-            if (rarArchive != null)
+            if (entries != null)
             {
-                foreach (var entry in rarArchive.Entries)
+                foreach (var entry in entries)
                 {
                     if (entry.IsDirectory)
                     {

@@ -149,10 +149,13 @@ namespace Microsoft.CST.OpenSource.Tests
             bool fileMatchPresent = Directory.EnumerateFiles(tempDirectoryName, targetFilename, SearchOption.AllDirectories).Any();
             Assert.IsTrue(fileMatchPresent);
 
+            Assert.AreEqual(expectedCount, Directory.GetDirectories(tempDirectoryName).Count());
+
             // do that again with caching, this should not do anything since the cache already has the package
             await DownloadPackage(packageUrl, tempDirectoryName, true);
 
             Assert.AreEqual(expectedCount, Directory.GetDirectories(tempDirectoryName).Count());
+
             // one delete is enough, since its only a single cached copy
             deleteTempDirs(packageDownloader1, tempDirectoryName);
         }

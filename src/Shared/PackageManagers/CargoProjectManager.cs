@@ -43,7 +43,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 string targetName = $"cargo-{purl.ToStringFilename()}";
                 string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                 // if the cache is already present, no need to extract
-                if (doExtract && Directory.Exists(extractionPath) && cached == true)
+                if (doExtract && cached && Directory.Exists(extractionPath))
                 {
                     downloadedPaths.Add(extractionPath);
                     return downloadedPaths;

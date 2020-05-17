@@ -30,7 +30,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             // First, cut out the file signature (8 bytes)
             fileEntry.Content.Position = 8;
             var filenameLookup = new Dictionary<int, string>();
-            Span<byte> headerBuffer = stackalloc byte[60];
+            byte[] headerBuffer = new byte[60];
             while (true)
             {
                 if (fileEntry.Content.Length - fileEntry.Content.Position < 60)  // The header for each file is 60 bytes
@@ -38,11 +38,11 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     break;
                 }
 
-                fileEntry.Content.Read(headerBuffer);
+                fileEntry.Content.Read(headerBuffer, 0, 60);
 
-                if (long.TryParse(Encoding.ASCII.GetString(headerBuffer.Slice(48,10)), out long size))// header size in bytes
+                if (long.TryParse(Encoding.ASCII.GetString(headerBuffer[48..58]), out long size))// header size in bytes
                 {
-                    var filename = Encoding.ASCII.GetString(headerBuffer.Slice(0,16)).Trim();
+                    var filename = Encoding.ASCII.GetString(headerBuffer[0..16]).Trim();
 
                     // Header with list of file names
                     if (filename.StartsWith("//"))
@@ -81,9 +81,11 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             fileEntry.Content.Read(nameSpan);
 
                             var entryStream = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
-                            CopyStreamBytes(fileEntry.Content, entryStream, size);
+                            
+                            // The name length is included in the total size reported in the header
+                            CopyStreamBytes(fileEntry.Content, entryStream, size - nameLength);
 
-                            yield return new FileEntry(filename, fileEntry.FullPath, entryStream, true);
+                            yield return new FileEntry(Encoding.ASCII.GetString(nameSpan), fileEntry.FullPath, entryStream, true);
                         }
                     }
                     else if (filename.Equals('/'))
@@ -123,7 +125,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         foreach (var entry in fileEntries)
                         {
                             fileEntry.Content.Position = entry.Item1;
-                            fileEntry.Content.Read(headerBuffer);
+                            fileEntry.Content.Read(headerBuffer, 0, 60);
 
                             if (long.TryParse(Encoding.ASCII.GetString(headerBuffer[48..58]), out long innerSize))// header size in bytes
                             {
@@ -195,7 +197,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         {
                             fileEntry.Content.Position = innerEntry.Item1;
 
-                            fileEntry.Content.Read(headerBuffer);
+                            fileEntry.Content.Read(headerBuffer, 0, 60);
 
                             if (long.TryParse(Encoding.ASCII.GetString(headerBuffer[48..58]), out long innerSize))// header size in bytes
                             {
@@ -251,13 +253,14 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         yield return new FileEntry(filename, fileEntry.FullPath, entryStream, true);
                     }
                 }
-                // Entries are padded on even byte boundaries
-                // https://docs.oracle.com/cd/E36784_01/html/E36873/ar.h-3head.html                
                 else
                 {
                     // Not a valid header, we couldn't parse the file size.
                     yield break;
                 }
+
+                // Entries are padded on even byte boundaries
+                // https://docs.oracle.com/cd/E36784_01/html/E36873/ar.h-3head.html  
                 fileEntry.Content.Position = fileEntry.Content.Position % 2 == 1 ? fileEntry.Content.Position + 1 : fileEntry.Content.Position;
             }
         }

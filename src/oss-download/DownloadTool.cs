@@ -31,8 +31,9 @@ namespace Microsoft.CST.OpenSource
         private readonly Dictionary<string, object> Options = new Dictionary<string, object>()
         {
             { "download-directory", null },
+            { "use-cache", false },
             { "target", new List<string>() },
-            { "extract", "true" },
+            { "extract", true },
             { "download-metadata-only", false}
         };
 
@@ -53,16 +54,14 @@ namespace Microsoft.CST.OpenSource
                 {
                     try
                     {
-                        bool.TryParse(downloadTool.Options["extract"]?.ToString(), out bool doExtract);
-                        bool.TryParse(downloadTool.Options["download-metadata-only"]?.ToString(), out bool metadataOnly);
-                        string targetDirectory = (string)downloadTool.Options["download-directory"];
-                        // are we caching? 
-                        bool.TryParse(downloadTool.Options["use-cache"]?.ToString(), out bool doCaching);
-
                         var purl = new PackageURL(target);
-                        var packageDownloader = new PackageDownloader(purl, targetDirectory, doCaching);
+                        var packageDownloader = new PackageDownloader(purl, 
+                            (string)downloadTool.Options["download-directory"], 
+                            (bool)downloadTool.Options["use-cache"]);
                         foreach (var downloadPath in await packageDownloader.
-                            DownloadPackageLocalCopy(purl, metadataOnly, doExtract))
+                            DownloadPackageLocalCopy(purl, 
+                            (bool)downloadTool.Options["download-metadata-only"], 
+                            (bool)downloadTool.Options["extract"]))
                         {
                             if (string.IsNullOrEmpty(downloadPath))
                             {
@@ -73,10 +72,7 @@ namespace Microsoft.CST.OpenSource
                                 Logger.Info("Downloaded {0} to {1}", purl.ToString(), downloadPath);
                             }
                         }
-                        if (!doCaching)
-                        {
-                            packageDownloader.ClearPackageLocalCopy();
-                        }
+                            packageDownloader.ClearPackageLocalCopyIfNoCaching();
                     }
                     catch (Exception ex)
                     {
@@ -136,11 +132,11 @@ namespace Microsoft.CST.OpenSource
                         break;
                     
                     case "--no-extract":
-                        Options["extract"] = "false";
+                        Options["extract"] = false;
                         break;
 
                     case "--use-cache":
-                        Options["use-cache"] = "true";
+                        Options["use-cache"] = true;
                         break;
 
                     default:
@@ -168,6 +164,8 @@ positional arguments:
 optional arguments:
   --no-extract                  do not extract package contents 
   --metadata                    only download metadata, not package content
+  --download-directory          the directory to download the package to
+  --use-cache                   do not download the package if it is already present in the destination directory
   --help                        show this help message and exit
   --version                     show version of this tool
 ");

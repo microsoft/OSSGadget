@@ -196,7 +196,7 @@ namespace Microsoft.CST.OpenSource.Tests
         {
             try
             {
-                packageDownloader.ClearPackageLocalCopy();
+                packageDownloader.ClearPackageLocalCopyIfNoCaching();
                 Directory.Delete(tempDirectoryName, true);
             }
             catch (Exception)
@@ -208,7 +208,7 @@ namespace Microsoft.CST.OpenSource.Tests
                         Attributes = FileAttributes.Normal
                     };
                 }
-                packageDownloader.ClearPackageLocalCopy();
+                packageDownloader.ClearPackageLocalCopyIfNoCaching();
                 Directory.Delete(tempDirectoryName, true);
             }
         }

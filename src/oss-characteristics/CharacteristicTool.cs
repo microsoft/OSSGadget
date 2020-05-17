@@ -35,7 +35,8 @@ namespace Microsoft.CST.OpenSource
             { "target", new List<string>() },
             { "disable-default-rules", false },
             { "custom-rule-directory", null },
-            { "cache-directory", null },
+            { "download-directory", null },
+            { "use-cache", false }
         };
 
         /// <summary>
@@ -50,14 +51,14 @@ namespace Microsoft.CST.OpenSource
 
             if (((IList<string>)characteristicTool.Options["target"]).Count > 0)
             {
-                bool doCaching = !string.IsNullOrEmpty((string)characteristicTool.Options["cache-directory"]);
                 foreach (var target in (IList<string>)characteristicTool.Options["target"])
                 {
                     try
                     {
-                        string destinationDirectory = (string)characteristicTool.Options["cache-directory"];
                         var purl = new PackageURL(target);
-                        var analysisResult = characteristicTool.AnalyzePackage(purl, destinationDirectory, doCaching).Result;
+                        var analysisResult = characteristicTool.AnalyzePackage(purl, 
+                            (string)characteristicTool.Options["download-directory"], 
+                            (bool)characteristicTool.Options["use-cache"]).Result;
 
                         var sb = new StringBuilder();
                         sb.AppendLine(target);
@@ -127,11 +128,7 @@ namespace Microsoft.CST.OpenSource
             {
                 Logger.Warn("Error downloading {0}.", purl.ToString());
             }
-            if (!doCaching)
-            {
-                packageDownloader.ClearPackageLocalCopy();
-            }
-
+            packageDownloader.ClearPackageLocalCopyIfNoCaching();
             return analysisResults;
         }
 
@@ -202,8 +199,12 @@ namespace Microsoft.CST.OpenSource
                         Options["custom-rule-directory"] = args[++i];
                         break;
 
-                    case "--cache-directory":
-                        Options["cache-directory"] = args[++i];
+                    case "--download-directory":
+                        Options["download-directory"] = args[++i];
+                        break;
+
+                    case "--use-cache":
+                        Options["use-cache"] = true;
                         break;
 
                     case "--disable-default-rules":
@@ -235,6 +236,8 @@ positional arguments:
 optional arguments:
   --custom-rule-directory DIR   load rules from directory DIR
   --disable-default-rules       do not load default, built-in rules.
+  --download-directory          the directory to download the package to
+  --use-cache                   do not download the package if it is already present in the destination directory
   --help                        show this help message and exit
   --version                     show version of this tool
 ");

@@ -17,7 +17,6 @@ using System.Reflection;
 using SharpDisasm;
 using WebAssembly; // Acquire from https://www.nuget.org/packages/WebAssembly
 using WebAssembly.Instructions;
-using NLog.Targets;
 
 namespace Microsoft.CST.OpenSource
 {
@@ -46,7 +45,8 @@ namespace Microsoft.CST.OpenSource
             { "target", new List<string>() },
             { "disable-default-rules", false },
             { "custom-rule-directory", null },
-            { "cache-directory", null },
+            { "download-directory", null },
+            { "use-cache", false },
             { "verbose", false }
         };
 
@@ -78,7 +78,9 @@ namespace Microsoft.CST.OpenSource
                         if (target.StartsWith("pkg:", StringComparison.InvariantCulture))
                         {
                             var purl = new PackageURL(target);
-                            results = await detectCryptographyTool.AnalyzePackage(purl, (string)detectCryptographyTool.Options["cache-directory"], !string.IsNullOrEmpty((string)detectCryptographyTool.Options["cache-directory"]));
+                            results = await detectCryptographyTool.AnalyzePackage(purl, 
+                                (string)detectCryptographyTool.Options["download-directory"], 
+                                (bool)detectCryptographyTool.Options["use-cache"]);
                         }
                         else if (Directory.Exists(target))
                         {
@@ -265,10 +267,7 @@ namespace Microsoft.CST.OpenSource
             {
                 Logger.Warn("Error downloading {0}.", purl.ToString());
             }
-            if(!doCaching)
-            {
-                packageDownloader.ClearPackageLocalCopy();
-            }
+            packageDownloader.ClearPackageLocalCopyIfNoCaching();
 
             return analysisResults.ToList();
         }
@@ -627,8 +626,12 @@ namespace Microsoft.CST.OpenSource
                         Options["disable-default-rules"] = true;
                         break;
 
-                    case "--cache-directory":
-                        Options["cache-directory"] = args[++i];
+                    case "--download-directory":
+                        Options["download-directory"] = args[++i];
+                        break;
+
+                    case "--use-cache":
+                        Options["use-cache"] = true;
                         break;
 
                     default:
@@ -657,6 +660,8 @@ optional arguments:
   --verbose                     increase output verbosity
   --custom-rule-directory DIR   load rules from directory DIR
   --disable-default-rules       do not load default, built-in rules.
+  --download-directory          the directory to download the package to
+  --use-cache                   do not download the package if it is already present in the destination directory
   --help                        show this help message and exit
   --version                     show version of this tool
 ");

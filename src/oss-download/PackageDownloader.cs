@@ -28,7 +28,10 @@ namespace Microsoft.CST.OpenSource
         string destinationDirectory { get; set; }
 
         // should we cache/check for the cache?
-        bool doCache { get; set; }
+        bool doCache = false;
+
+        // do we actually have a cache copy? or do we have to download?
+        private bool actualCaching = false;
 
         // folders created
         List<string> downloadPaths { get; set; }
@@ -46,9 +49,9 @@ namespace Microsoft.CST.OpenSource
                 throw new ArgumentNullException("purl cannot be null");
             }
 
+            this.doCache = doCaching;
             // if we are told to use caching, and it exists, believe that caching is still doable
-            this.doCache = (doCaching && !string.IsNullOrEmpty(destinationDir) && Directory.Exists(destinationDir)) ?
-                true : false;
+            this.actualCaching = (doCaching && !string.IsNullOrEmpty(destinationDir) && Directory.Exists(destinationDir));
 
             // if no destination specified, dump the package in the temp directory
             this.destinationDirectory = string.IsNullOrEmpty(destinationDir) ? 
@@ -161,14 +164,34 @@ namespace Microsoft.CST.OpenSource
             List<string> downloadDirectories = new List<string>();
             foreach (var version in this.PackageVersions)
             {
-                downloadDirectories.AddRange(await this.Download(version, metadataOnly, doExtract, this.doCache));
+                downloadDirectories.AddRange(await this.Download(version, metadataOnly, doExtract));
             }
 
             return downloadDirectories;
         }
 
         /// <summary>
-        /// Clears the cache directory, if the cache argument was passed
+        /// Clears the cache directory, if the cache argument was false, 
+        /// keep it for future processing otherwise
+        /// </summary>
+        public async void ClearPackageLocalCopyIfNoCaching()
+        {
+            try
+            {
+                // if we were told to cache the copy by the caller, do not delete
+                if (!this.doCache)
+                {
+                    ClearPackageLocalCopy();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn("Error removing {0}: {1}", destinationDirectory, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Clears the cache directory
         /// </summary>
         public async void ClearPackageLocalCopy()
         {
@@ -192,6 +215,7 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
+
         /// <summary>
         /// Downloads metadata if only metadata is requested; 
         /// downloads and extracts the package if doExtract is requested
@@ -208,8 +232,7 @@ namespace Microsoft.CST.OpenSource
         public async Task<List<string>> Download(
             PackageURL purl,
             bool metadataOnly,
-            bool doExtract,
-            bool doCaching = false)
+            bool doExtract)
         {
             List<string> downloadPaths = new List<string>();
             if (metadataOnly)
@@ -219,7 +242,8 @@ namespace Microsoft.CST.OpenSource
                 {
                     var outputFilename = Path.Combine(this.packageManager.TopLevelExtractionDirectory, $"metadata-{purl.ToStringFilename()}");
 
-                    if (!doCaching)
+                    // this will be effectively the same as above, if the cache doesnt exist
+                    if (!this.actualCaching)
                     {
                         while (File.Exists(outputFilename))
                         {
@@ -233,7 +257,7 @@ namespace Microsoft.CST.OpenSource
             else
             {
                 // only version download requests reach here
-                downloadPaths.AddRange(await this.packageManager.DownloadVersion(purl, doExtract, doCaching));
+                downloadPaths.AddRange(await this.packageManager.DownloadVersion(purl, doExtract, this.actualCaching));
                 this.downloadPaths = downloadPaths;
             }
 

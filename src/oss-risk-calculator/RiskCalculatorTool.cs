@@ -34,7 +34,8 @@ namespace Microsoft.CST.OpenSource
         {
             { "target", new List<string>() },
             { "external-risk", 0 },
-            { "cache-directory", null }
+            { "download-directory", null },
+            { "use-cache", false }
         };
 
         /// <summary>
@@ -51,15 +52,14 @@ namespace Microsoft.CST.OpenSource
 
             if (((IList<string>)riskCalculator.Options["target"]).Count > 0)
             {
-                string destinationDirectory = (string)riskCalculator.Options["cache-directory"];
-                bool doCaching = !string.IsNullOrEmpty(destinationDirectory);
-
                 foreach (var target in (IList<string>)riskCalculator.Options["target"])
                 {
                     try
                     {
                         var purl = new PackageURL(target);
-                        var riskLevel = riskCalculator.CalculateRisk(purl, destinationDirectory, doCaching).Result;
+                        var riskLevel = riskCalculator.CalculateRisk(purl, 
+                            (string)riskCalculator.Options["download-directory"], 
+                            (bool)riskCalculator.Options["use-cache"]).Result;
                         Logger.Info($"Risk Level: {riskLevel}");
                     }
                     catch (Exception ex)
@@ -170,8 +170,12 @@ namespace Microsoft.CST.OpenSource
                         }
                         break;
 
-                    case "--cache-directory":
-                        Options["cache-directory"] = args[++i];
+                    case "--download-directory":
+                        Options["download-directory"] = args[++i];
+                        break;
+
+                    case "--use-cache":
+                        Options["use-cache"] = true;
                         break;
 
                     default:
@@ -198,6 +202,8 @@ positional arguments:
 
 optional arguments:
   --external-risk NUMBER        include additional risk in final calculation
+  --download-directory          the directory to download the package to
+  --use-cache                   do not download the package if it is already present in the destination directory
   --help                        show this help message and exit
   --version                     show version of this tool
 ");

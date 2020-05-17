@@ -66,7 +66,8 @@ namespace Microsoft.CST.OpenSource
         private readonly IDictionary<string, object> Options = new Dictionary<string, object>()
         {
             { "target", new List<string>() },
-            { "cache-directory", null }
+            { "download-directory", null },
+            { "use-cache", false }
         };
 
         /// <summary>
@@ -113,7 +114,9 @@ namespace Microsoft.CST.OpenSource
                         if (target.StartsWith("pkg:"))
                         {
                             var purl = new PackageURL(target);
-                            defoggerTool.AnalyzePackage(purl, (string)defoggerTool.Options["cache-directory"], !string.IsNullOrEmpty((string)defoggerTool.Options["cache-directory"])).Wait();
+                            defoggerTool.AnalyzePackage(purl, 
+                                (string)defoggerTool.Options["download-directory"], 
+                                (bool)defoggerTool.Options["use-cache"]).Wait();
                         }
                         else if (Directory.Exists(target))
                         {
@@ -166,10 +169,7 @@ namespace Microsoft.CST.OpenSource
                 AnalyzeDirectory(directory);
             }
 
-            if(!doCaching)
-            {
-                packageDownloader.ClearPackageLocalCopy();
-            }
+            packageDownloader.ClearPackageLocalCopyIfNoCaching();
         }
 
         /// <summary>
@@ -381,8 +381,12 @@ namespace Microsoft.CST.OpenSource
                         Environment.Exit(1);
                         break;
 
-                    case "--cache-directory":
-                        Options["cache-directory"] = args[++i];
+                    case "--download-directory":
+                        Options["download-directory"] = args[++i];
+                        break;
+
+                    case "--use-cache":
+                        Options["use-cache"] = true;
                         break;
 
                     default:
@@ -408,6 +412,8 @@ positional arguments:
 {BaseProjectManager.GetCommonSupportedHelpText()}
 
 optional arguments:
+  --download-directory          the directory to download the package to
+  --use-cache                   do not download the package if it is already present in the destination directory
   --help                        show this help message and exit
   --version                     show version number
 ");

@@ -113,7 +113,7 @@ namespace Microsoft.CST.OpenSource
                         if (target.StartsWith("pkg:"))
                         {
                             var purl = new PackageURL(target);
-                            defoggerTool.AnalyzePackage(purl).Wait();
+                            defoggerTool.AnalyzePackage(purl, (string)defoggerTool.Options["cache-directory"], !string.IsNullOrEmpty((string)defoggerTool.Options["cache-directory"])).Wait();
                         }
                         else if (Directory.Exists(target))
                         {
@@ -156,12 +156,9 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         /// <param name="purl">The package-url of the package to analyze.</param>
         /// <returns>n/a</returns>
-        public async Task AnalyzePackage(PackageURL purl)
+        public async Task AnalyzePackage(PackageURL purl, string destinationDirectory, bool doCaching)
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
-
-            string destinationDirectory = (string)this.Options["cache-directory"];
-            bool doCaching = string.IsNullOrEmpty(destinationDirectory);
 
             var packageDownloader = new PackageDownloader(purl, destinationDirectory, doCaching);
             foreach (var directory in await packageDownloader.DownloadPackageLocalCopy(purl, false, true))

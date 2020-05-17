@@ -17,6 +17,7 @@ using System.Reflection;
 using SharpDisasm;
 using WebAssembly; // Acquire from https://www.nuget.org/packages/WebAssembly
 using WebAssembly.Instructions;
+using NLog.Targets;
 
 namespace Microsoft.CST.OpenSource
 {
@@ -77,7 +78,7 @@ namespace Microsoft.CST.OpenSource
                         if (target.StartsWith("pkg:", StringComparison.InvariantCulture))
                         {
                             var purl = new PackageURL(target);
-                            results = await detectCryptographyTool.AnalyzePackage(purl, (string)detectCryptographyTool.Options["cache-directory"]);
+                            results = await detectCryptographyTool.AnalyzePackage(purl, (string)detectCryptographyTool.Options["cache-directory"], !string.IsNullOrEmpty((string)detectCryptographyTool.Options["cache-directory"]));
                         }
                         else if (Directory.Exists(target))
                         {
@@ -229,14 +230,11 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         /// <param name="purl">The package-url of the package to analyze.</param>
         /// <returns>List of tags identified</returns>
-        public async Task<List<IssueRecord>> AnalyzePackage(PackageURL purl, string targetDirectoryName)
+        public async Task<List<IssueRecord>> AnalyzePackage(PackageURL purl, string targetDirectoryName, bool doCaching)
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
 
-            string destinationDirectory = (string)this.Options["cache-directory"];
-            bool doCaching = string.IsNullOrEmpty(destinationDirectory);
-
-            var packageDownloader = new PackageDownloader(purl, destinationDirectory, doCaching);
+            var packageDownloader = new PackageDownloader(purl, targetDirectoryName, doCaching);
             var directoryNames = await packageDownloader.DownloadPackageLocalCopy(purl, false, true);
             directoryNames = directoryNames.Distinct().ToList<string>();
 
@@ -627,6 +625,10 @@ namespace Microsoft.CST.OpenSource
 
                     case "--disable-default-rules":
                         Options["disable-default-rules"] = true;
+                        break;
+
+                    case "--cache-directory":
+                        Options["cache-directory"] = args[++i];
                         break;
 
                     default:

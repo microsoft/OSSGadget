@@ -57,7 +57,7 @@ namespace Microsoft.CST.OpenSource
                         bool.TryParse(downloadTool.Options["download-metadata-only"]?.ToString(), out bool metadataOnly);
                         string targetDirectory = (string)downloadTool.Options["download-directory"];
                         // are we caching? 
-                        bool doCaching = !string.IsNullOrEmpty(targetDirectory);
+                        bool.TryParse(downloadTool.Options["use-cache"]?.ToString(), out bool doCaching);
 
                         var purl = new PackageURL(target);
                         var packageDownloader = new PackageDownloader(purl, targetDirectory, doCaching);
@@ -137,6 +137,10 @@ namespace Microsoft.CST.OpenSource
                     
                     case "--no-extract":
                         Options["extract"] = "false";
+                        break;
+
+                    case "--use-cache":
+                        Options["use-cache"] = "true";
                         break;
 
                     default:

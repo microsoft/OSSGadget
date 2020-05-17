@@ -31,7 +31,7 @@ namespace Microsoft.CST.OpenSource.Tests
         {
             var detectCryptographyTool = new DetectCryptographyTool();
             string targetDirectoryName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            var results = await detectCryptographyTool.AnalyzePackage(new PackageURL(purl), targetDirectoryName);
+            var results = await detectCryptographyTool.AnalyzePackage(new PackageURL(purl), targetDirectoryName, false);
 
             var distinctTargets = expectedTags.Distinct();
             var distinctFindings = results.SelectMany(s => s.Issue.Rule.Tags)

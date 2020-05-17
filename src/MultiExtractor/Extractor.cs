@@ -1341,26 +1341,25 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 {
                     int batchSize = Math.Min(MAX_BATCH_SIZE, fileList.Count);
                     var range = fileList.Take(batchSize);
-                    CheckResourceGovernor(range.Sum(x => image.GetFileInfo(x).Length));
-                    range.AsParallel().ForAll(file => 
-                    { 
-                        Stream ? stream = null;
+                    var streamsAndNames = new List<(DiscFileInfo, Stream)>();
+                    foreach(var file in range)
+                    {
                         try
                         {
                             var info = image.GetFileInfo(file);
-                            stream = info.OpenRead();
+                            streamsAndNames.Add((info, info.OpenRead()));
                         }
                         catch (Exception e)
                         {
                             Logger.Debug("Error reading {0} from WIM {1} ({2}:{3})", file, image.FriendlyName, e.GetType(), e.Message);
                         }
-                        if (stream != null)
-                        {
-                            var newFileEntry = new FileEntry($"{image.FriendlyName}\\{file}", fileEntry.FullPath, stream);
-                            var entries = ExtractFile(newFileEntry, true);
-                            files.AddRange(entries);
-                            stream.Dispose();
-                        }
+                    }
+                    CheckResourceGovernor(streamsAndNames.Sum(x => x.Item1.Length));
+                    streamsAndNames.AsParallel().ForAll(file => 
+                    {
+                        var newFileEntry = new FileEntry($"{image.FriendlyName}\\{file.Item1.FullName}", fileEntry.FullPath, file.Item2);
+                        var entries = ExtractFile(newFileEntry, true);
+                        files.AddRange(entries);
                     });
                     fileList.RemoveRange(0, batchSize);
 

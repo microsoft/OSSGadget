@@ -79,7 +79,7 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("sysvbanner_1.0-17fakesync1_amd64.deb", ArchiveFileType.DEB)]
         [DataRow("Shared.a", ArchiveFileType.UNKNOWN)]
         [DataRow("Shared.deb", ArchiveFileType.DEB)]
-        [DataRow("Shared.ar", ArchiveFileType.GNU_AR)]
+        [DataRow("Shared.ar", ArchiveFileType.AR)]
         [DataRow("Shared.iso", ArchiveFileType.ISO_9660)]
         [DataRow("Shared.vhd", ArchiveFileType.VHD)]
         [DataRow("Shared.vhdx", ArchiveFileType.VHDX)]

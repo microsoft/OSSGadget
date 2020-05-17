@@ -22,7 +22,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         RAR,
         P7ZIP,
         DEB,
-        GNU_AR,
+        AR,
         ISO_9660,
         VHDX,
         VHD,
@@ -64,7 +64,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
             {"DEB", ArchiveFileType.DEB },
 
-            {"AR", ArchiveFileType.GNU_AR },
+            {"AR", ArchiveFileType.AR },
 
             {"ISO", ArchiveFileType.ISO_9660 },
 
@@ -177,7 +177,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             // Defined ending characters for a header
                             if (headerBuffer[58]=='`' && headerBuffer[59] == '\n')
                             {
-                                return ArchiveFileType.GNU_AR;
+                                return ArchiveFileType.AR;
                             }
                         }
                     }

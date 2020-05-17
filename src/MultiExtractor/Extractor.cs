@@ -265,7 +265,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     case ArchiveFileType.BZIP2:
                         result = ExtractBZip2File(fileEntry, parallel);
                         break;
-                    case ArchiveFileType.GNU_AR:
+                    case ArchiveFileType.AR:
                         result = ExtractGnuArFile(fileEntry, parallel);
                         break;
                     case ArchiveFileType.ISO_9660:
@@ -472,11 +472,11 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             IEnumerable<FileEntry>? fileEntries = null;
             try
             {
-                fileEntries = GnuArFile.GetFileEntries(fileEntry);
+                fileEntries = ArFile.GetFileEntries(fileEntry);
             }
             catch (Exception e)
             {
-                Logger.Debug(DEBUG_STRING, ArchiveFileType.GNU_AR, fileEntry.FullPath, string.Empty, e.GetType());
+                Logger.Debug(DEBUG_STRING, ArchiveFileType.AR, fileEntry.FullPath, string.Empty, e.GetType());
             }
             if (fileEntries != null)
             {

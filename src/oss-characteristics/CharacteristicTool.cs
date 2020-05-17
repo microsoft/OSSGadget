@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.ApplicationInspector.Commands;
@@ -35,7 +34,9 @@ namespace Microsoft.CST.OpenSource
         {
             { "target", new List<string>() },
             { "disable-default-rules", false },
-            { "custom-rule-directory", null }
+            { "custom-rule-directory", null },
+            { "download-directory", null },
+            { "use-cache", false }
         };
 
         /// <summary>
@@ -55,7 +56,9 @@ namespace Microsoft.CST.OpenSource
                     try
                     {
                         var purl = new PackageURL(target);
-                        var analysisResult = characteristicTool.AnalyzePackage(purl).Result;
+                        var analysisResult = characteristicTool.AnalyzePackage(purl, 
+                            (string)characteristicTool.Options["download-directory"], 
+                            (bool)characteristicTool.Options["use-cache"]).Result;
 
                         var sb = new StringBuilder();
                         sb.AppendLine(target);
@@ -100,45 +103,32 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         /// <param name="purl">The package-url of the package to analyze.</param>
         /// <returns>List of tags identified</returns>
-        public async Task<Dictionary<string, AnalyzeResult>> AnalyzePackage(PackageURL purl)
+        public async Task<Dictionary<string, AnalyzeResult>> AnalyzePackage(PackageURL purl, 
+            string targetDirectoryName, 
+            bool doCaching)
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
-            
+
             var analysisResults = new Dictionary<string, AnalyzeResult>();
 
-            string targetDirectoryName = null;
-            while (targetDirectoryName == null || Directory.Exists(targetDirectoryName))
-            {
-                targetDirectoryName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            }
-
-            Logger.Trace("Creating directory [{0}]", targetDirectoryName);
-            Directory.CreateDirectory(targetDirectoryName);
-
-            var downloadTool = new DownloadTool();
-            var directoryNames = await downloadTool.Download(purl, targetDirectoryName);
+            var packageDownloader = new PackageDownloader(purl, targetDirectoryName, doCaching);
+            // ensure that the cache directory has the required package, download it otherwise
+            var directoryNames = await packageDownloader.DownloadPackageLocalCopy(purl, 
+                false, 
+                true);
             if (directoryNames.Count > 0)
             {
                 foreach (var directoryName in directoryNames)
                 {
                     var singleResult = await AnalyzeDirectory(directoryName);
                     analysisResults[directoryName] = singleResult;
-                    Logger.Trace("Removing directory {0}", directoryName);
-                    try
-                    {
-                        Directory.Delete(directoryName, true);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Warn("Error removing {0}: {1}", directoryName, ex.Message);
-                    }
                 }
             }
             else
             {
                 Logger.Warn("Error downloading {0}.", purl.ToString());
             }
-
+            packageDownloader.ClearPackageLocalCopyIfNoCaching();
             return analysisResults;
         }
 
@@ -160,7 +150,7 @@ namespace Microsoft.CST.OpenSource
                 LogFileLevel = "Off",
                 SourcePath = directory,
                 IgnoreDefaultRules = (bool)Options["disable-default-rules"],
-                CustomRulesPath = (string)Options["custom-rule-directory"]
+                CustomRulesPath = (string)Options["custom-rule-directory"],
             };
             
             try
@@ -204,11 +194,19 @@ namespace Microsoft.CST.OpenSource
                         Console.Error.WriteLine($"{TOOL_NAME} {VERSION}");
                         Environment.Exit(1);
                         break;
-                    
+
                     case "--custom-rule-directory":
                         Options["custom-rule-directory"] = args[++i];
                         break;
-                    
+
+                    case "--download-directory":
+                        Options["download-directory"] = args[++i];
+                        break;
+
+                    case "--use-cache":
+                        Options["use-cache"] = true;
+                        break;
+
                     case "--disable-default-rules":
                         Options["disable-default-rules"] = true;
                         break;
@@ -238,6 +236,8 @@ positional arguments:
 optional arguments:
   --custom-rule-directory DIR   load rules from directory DIR
   --disable-default-rules       do not load default, built-in rules.
+  --download-directory          the directory to download the package to
+  --use-cache                   do not download the package if it is already present in the destination directory
   --help                        show this help message and exit
   --version                     show version of this tool
 ");

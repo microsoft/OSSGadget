@@ -60,7 +60,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">PackageURL to download</param>
         /// <returns>Paths (either files or directory names) pertaining to the downloaded files.</returns>
-        public virtual Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract=true)
+        public virtual Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             throw new NotImplementedException("BaseProjectManager does not implement DownloadVersion.");
         }
@@ -243,20 +243,20 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <param name="directoryName"> directory to extract content into (within TopLevelExtractionDirectory)</param>
         /// <param name="bytes">bytes to extract (should be an archive file)</param>
         /// <returns></returns>
-        public async Task<string> ExtractArchive(string directoryName, byte[] bytes)
+        public async Task<string> ExtractArchive(string directoryName, byte[] bytes, bool cached = false)
         {
             Logger.Trace("ExtractArchive({0}, <bytes> len={1})", directoryName, bytes?.Length);
 
             Directory.CreateDirectory(TopLevelExtractionDirectory);
 
-            // This will result in "npm-@types-foo@1.2.3" instead of "npm-%40types%2Ffoo@1.2.3"
-            //directoryName = directoryName.Replace("%40", "@");
-            //directoryName = directoryName.Replace("%2F", "-", StringComparison.InvariantCultureIgnoreCase);
-            directoryName = directoryName.Replace(Path.DirectorySeparatorChar, '-');
-            directoryName = directoryName.Replace(Path.AltDirectorySeparatorChar, '-');
-            while (Directory.Exists(directoryName) || File.Exists(directoryName))
+            if (!cached)
             {
-                directoryName += "-" + DateTime.Now.Ticks;
+                string fullTargetPath = Path.Combine(TopLevelExtractionDirectory, directoryName);
+                while (Directory.Exists(fullTargetPath) || File.Exists(fullTargetPath))
+                {
+                    directoryName += "-" + DateTime.Now.Ticks;
+                    fullTargetPath = Path.Combine(TopLevelExtractionDirectory, directoryName);
+                }
             }
             var extractor = new Extractor();
             //extractor.MaxExtractedBytes = 1000 * 1000 * 10;  // 10 MB maximum package size
@@ -284,52 +284,6 @@ namespace Microsoft.CST.OpenSource.Shared
             Logger.Debug("Archive extracted to {0}", fullExtractionPath);
 
             return fullExtractionPath;
-        }
-
-        /// <summary>
-        /// Downloads a given package, identified by 'purl', using
-        /// the appropriate package manager.
-        /// </summary>
-        /// <param name="purl">package-url to download</param>
-        /// <returns></returns>
-        public async Task<List<string>> Download(PackageURL purl, bool doExtract = true)
-        {
-            Logger.Trace("(Base) Download({0})", purl?.ToString());
-            var downloadPaths = new List<string>();
-
-            if (purl == null)
-            {
-                return null;
-            }
-            else if (purl.Version == null)
-            {
-                var versions = await EnumerateVersions(purl);
-                if (versions.Count() > 0)
-                {
-                    Logger.Trace(string.Join(",", versions));
-                    var vpurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, versions.Last(), purl.Qualifiers, purl.Subpath);
-                    downloadPaths.AddRange(await DownloadVersion(vpurl, doExtract));
-                }
-                else
-                {
-                    Logger.Warn("Unable to enumerate versions, so cannot identify the latest.");
-                }
-            }
-            else if (purl.Version.Equals("*"))
-            {
-                foreach (var version in await EnumerateVersions(purl))
-                {
-                    var vpurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, version, purl.Qualifiers, purl.Subpath);
-                    downloadPaths.AddRange(await DownloadVersion(vpurl, doExtract));
-                }
-            }
-            else
-            {
-                downloadPaths.AddRange(await DownloadVersion(purl, doExtract));
-            }
-
-            Logger.Debug("Downloaded to {0} paths", downloadPaths.Count);
-            return downloadPaths;
         }
 
         /// <summary>

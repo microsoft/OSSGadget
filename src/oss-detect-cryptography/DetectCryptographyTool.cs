@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-using ELFSharp.ELF;
-using ELFSharp;
-using ELFSharp.MachO;
 using PeNet;
 using System;
 using System.Collections.Generic;
@@ -20,7 +17,6 @@ using System.Reflection;
 using SharpDisasm;
 using WebAssembly; // Acquire from https://www.nuget.org/packages/WebAssembly
 using WebAssembly.Instructions;
-using WebAssembly.Runtime;
 
 namespace Microsoft.CST.OpenSource
 {
@@ -49,6 +45,8 @@ namespace Microsoft.CST.OpenSource
             { "target", new List<string>() },
             { "disable-default-rules", false },
             { "custom-rule-directory", null },
+            { "download-directory", null },
+            { "use-cache", false },
             { "verbose", false }
         };
 
@@ -80,7 +78,9 @@ namespace Microsoft.CST.OpenSource
                         if (target.StartsWith("pkg:", StringComparison.InvariantCulture))
                         {
                             var purl = new PackageURL(target);
-                            results = await detectCryptographyTool.AnalyzePackage(purl);
+                            results = await detectCryptographyTool.AnalyzePackage(purl, 
+                                (string)detectCryptographyTool.Options["download-directory"], 
+                                (bool)detectCryptographyTool.Options["use-cache"]);
                         }
                         else if (Directory.Exists(target))
                         {
@@ -232,25 +232,15 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         /// <param name="purl">The package-url of the package to analyze.</param>
         /// <returns>List of tags identified</returns>
-        public async Task<List<IssueRecord>> AnalyzePackage(PackageURL purl)
+        public async Task<List<IssueRecord>> AnalyzePackage(PackageURL purl, string targetDirectoryName, bool doCaching)
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
 
-            var analysisResults = new List<IssueRecord>();
-
-            string targetDirectoryName = null;
-            while (targetDirectoryName == null || Directory.Exists(targetDirectoryName))
-            {
-                targetDirectoryName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            }
-
-            Logger.Trace("Creating directory [{0}]", targetDirectoryName);
-            Directory.CreateDirectory(targetDirectoryName);
-
-            var downloadTool = new DownloadTool();
-            var directoryNames = await downloadTool.Download(purl, targetDirectoryName);
+            var packageDownloader = new PackageDownloader(purl, targetDirectoryName, doCaching);
+            var directoryNames = await packageDownloader.DownloadPackageLocalCopy(purl, false, true);
             directoryNames = directoryNames.Distinct().ToList<string>();
 
+            var analysisResults = new List<IssueRecord>();
             if (directoryNames.Count > 0)
             {
                 foreach (var directoryName in directoryNames)
@@ -277,10 +267,11 @@ namespace Microsoft.CST.OpenSource
             {
                 Logger.Warn("Error downloading {0}.", purl.ToString());
             }
-            
+            packageDownloader.ClearPackageLocalCopyIfNoCaching();
 
             return analysisResults.ToList();
         }
+
         private string NormalizeFileContent(string filename, byte[] buffer)
         {
             Logger.Trace("NormalizeFileContent({0}, {1}", filename, buffer?.Length);
@@ -635,6 +626,14 @@ namespace Microsoft.CST.OpenSource
                         Options["disable-default-rules"] = true;
                         break;
 
+                    case "--download-directory":
+                        Options["download-directory"] = args[++i];
+                        break;
+
+                    case "--use-cache":
+                        Options["use-cache"] = true;
+                        break;
+
                     default:
                         ((IList<string>)Options["target"]).Add(args[i]);
                         break;
@@ -661,6 +660,8 @@ optional arguments:
   --verbose                     increase output verbosity
   --custom-rule-directory DIR   load rules from directory DIR
   --disable-default-rules       do not load default, built-in rules.
+  --download-directory          the directory to download the package to
+  --use-cache                   do not download the package if it is already present in the destination directory
   --help                        show this help message and exit
   --version                     show version of this tool
 ");

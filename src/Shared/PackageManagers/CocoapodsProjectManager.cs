@@ -29,7 +29,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">Package URL of the package to download.</param>
         /// <returns>n/a</returns>
-        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract = true)
+        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
@@ -72,10 +72,16 @@ namespace Microsoft.CST.OpenSource.Shared
                     var result = await WebClient.GetAsync(url);
                     result.EnsureSuccessStatusCode();
                     
-                    var targetName = $"cocoapods-{packageName}@{packageVersion}";
+                    var targetName = $"cocoapods-{purl.ToStringFilename()}";
+                    string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
+                    if (doExtract && Directory.Exists(extractionPath) && cached == true)
+                    {
+                        downloadedPaths.Add(extractionPath);
+                        return downloadedPaths;
+                    }
                     if (doExtract)
                     {
-                        downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync()));
+                        downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync(), cached));
                     }
                     else
                     {

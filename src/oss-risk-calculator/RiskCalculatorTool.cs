@@ -3,10 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.CST.OpenSource.Health;
 using Microsoft.CST.OpenSource.Shared;
@@ -36,7 +33,9 @@ namespace Microsoft.CST.OpenSource
         public Dictionary<string, object> Options = new Dictionary<string, object>()
         {
             { "target", new List<string>() },
-            { "external-risk", 0 }
+            { "external-risk", 0 },
+            { "download-directory", null },
+            { "use-cache", false }
         };
 
         /// <summary>
@@ -53,14 +52,14 @@ namespace Microsoft.CST.OpenSource
 
             if (((IList<string>)riskCalculator.Options["target"]).Count > 0)
             {
-                Dictionary<string, int> freq = new Dictionary<string, int>();
-
                 foreach (var target in (IList<string>)riskCalculator.Options["target"])
                 {
                     try
                     {
                         var purl = new PackageURL(target);
-                        var riskLevel = riskCalculator.CalculateRisk(purl).Result;
+                        var riskLevel = riskCalculator.CalculateRisk(purl, 
+                            (string)riskCalculator.Options["download-directory"], 
+                            (bool)riskCalculator.Options["use-cache"]).Result;
                         Logger.Info($"Risk Level: {riskLevel}");
                     }
                     catch (Exception ex)
@@ -83,12 +82,12 @@ namespace Microsoft.CST.OpenSource
             Logger = CommonInitialization.Logger;
         }
 
-        public async Task<double> CalculateRisk(PackageURL purl)
+        public async Task<double> CalculateRisk(PackageURL purl, string targetDirectory, bool doCaching)
         {
             Logger.Trace("CalculateRisk({0})", purl?.ToString());
 
             var characteristicTool = new CharacteristicTool();
-            var characteristics = characteristicTool.AnalyzePackage(purl).Result;
+            var characteristics = characteristicTool.AnalyzePackage(purl, targetDirectory, doCaching).Result;
 
             var healthTool = new HealthTool();
             var healthMetrics = healthTool.CheckHealth(purl).Result;
@@ -170,6 +169,15 @@ namespace Microsoft.CST.OpenSource
                             Environment.Exit(1);
                         }
                         break;
+
+                    case "--download-directory":
+                        Options["download-directory"] = args[++i];
+                        break;
+
+                    case "--use-cache":
+                        Options["use-cache"] = true;
+                        break;
+
                     default:
                         ((IList<string>)Options["target"]).Add(args[i]);
                         break;
@@ -194,6 +202,8 @@ positional arguments:
 
 optional arguments:
   --external-risk NUMBER        include additional risk in final calculation
+  --download-directory          the directory to download the package to
+  --use-cache                   do not download the package if it is already present in the destination directory
   --help                        show this help message and exit
   --version                     show version of this tool
 ");

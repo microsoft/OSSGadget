@@ -36,7 +36,8 @@ namespace Microsoft.CST.OpenSource
         private readonly Dictionary<string, object> Options = new Dictionary<string, object>()
         {
             { "target", new List<string>() },
-
+            { "download-directory", null },
+            { "use-cache", false }
         };
 
         /// <summary>
@@ -55,13 +56,17 @@ namespace Microsoft.CST.OpenSource
                 characteristicTool.Options["target"] = detectBackdoorTool.Options["target"];
                 characteristicTool.Options["disable-default-rules"] = true;
                 characteristicTool.Options["custom-rule-directory"] = RULE_DIRECTORY;
-                
+                characteristicTool.Options["download-directory"] = detectBackdoorTool.Options["download-directory"];
+                characteristicTool.Options["use-cache"] = detectBackdoorTool.Options["use-cache"];
+
                 foreach (var target in (IList<string>)detectBackdoorTool.Options["target"])
                 {
                     try
                     {
                         var purl = new PackageURL(target);
-                        characteristicTool.AnalyzePackage(purl).Wait();
+                        characteristicTool.AnalyzePackage(purl, 
+                            (string)detectBackdoorTool.Options["download-directory"], 
+                            (bool)detectBackdoorTool.Options["use-cache"]).Wait();
                     }
                     catch (Exception ex)
                     {
@@ -111,8 +116,12 @@ namespace Microsoft.CST.OpenSource
                         Environment.Exit(1);
                         break;
 
-                    case "--directory":
+                    case "--download-directory":
                         Options["download-directory"] = args[++i];
+                        break;
+
+                    case "--use-cache":
+                        Options["use-cache"] = true;
                         break;
 
                     default:
@@ -138,6 +147,8 @@ positional arguments:
 {BaseProjectManager.GetCommonSupportedHelpText()}
 
 optional arguments:
+  --download-directory          the directory to download the package to
+  --use-cache                   do not download the package if it is already present in the destination directory
   --help                        show this help message and exit
   --version                     show version of this tool
 ");

@@ -3,7 +3,6 @@
 
 using System;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.CST.OpenSource.Shared;
 using Octokit;

@@ -3,8 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CST.OpenSource.Shared;
 
@@ -32,9 +30,10 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         private readonly Dictionary<string, object> Options = new Dictionary<string, object>()
         {
-            { "download-directory", "." },
+            { "download-directory", null },
+            { "use-cache", false },
             { "target", new List<string>() },
-            { "extract", "true" },
+            { "extract", true },
             { "download-metadata-only", false}
         };
 
@@ -56,7 +55,13 @@ namespace Microsoft.CST.OpenSource
                     try
                     {
                         var purl = new PackageURL(target);
-                        foreach (var downloadPath in await downloadTool.Download(purl))
+                        var packageDownloader = new PackageDownloader(purl, 
+                            (string)downloadTool.Options["download-directory"], 
+                            (bool)downloadTool.Options["use-cache"]);
+                        foreach (var downloadPath in await packageDownloader.
+                            DownloadPackageLocalCopy(purl, 
+                            (bool)downloadTool.Options["download-metadata-only"], 
+                            (bool)downloadTool.Options["extract"]))
                         {
                             if (string.IsNullOrEmpty(downloadPath))
                             {
@@ -67,6 +72,7 @@ namespace Microsoft.CST.OpenSource
                                 Logger.Info("Downloaded {0} to {1}", purl.ToString(), downloadPath);
                             }
                         }
+                            packageDownloader.ClearPackageLocalCopyIfNoCaching();
                     }
                     catch (Exception ex)
                     {
@@ -87,67 +93,6 @@ namespace Microsoft.CST.OpenSource
         {
             CommonInitialization.Initialize();
             Logger = CommonInitialization.Logger;
-        }
-
-        public async Task<List<string>> Download(PackageURL purl, string destinationDirectory = null)
-        {
-            Logger.Trace("Download({0})", purl?.ToString());
-            if (purl == default)
-            {
-                Logger.Warn("Invalid PackageURL (null)");
-                return new List<string>();
-            }
-
-            var downloadPaths = new List<string>();
-            
-            destinationDirectory ??= (string)Options["download-directory"] ?? ".";
-            if (!Directory.Exists(destinationDirectory))
-            {
-                Logger.Warn("Invalid directory, {0} does not exist.", destinationDirectory);
-                return new List<string>();
-            }
-
-            // Use reflection to find the correct package management class
-            var downloaderClass = typeof(BaseProjectManager).Assembly.GetTypes()
-               .Where(type => type.IsSubclassOf(typeof(BaseProjectManager)))
-               .Where(type => type.Name.Equals($"{purl.Type}ProjectManager",
-                                               StringComparison.InvariantCultureIgnoreCase))
-               .FirstOrDefault();
-
-            if (downloaderClass != null)
-            {
-                var ctor = downloaderClass.GetConstructor(Array.Empty<Type>());
-                var _downloader = (BaseProjectManager)(ctor.Invoke(Array.Empty<object>()));
-                _downloader.TopLevelExtractionDirectory = destinationDirectory;
-                if ((bool)Options["download-metadata-only"])
-                {
-                    var metadata = await _downloader.GetMetadata(purl);
-                    if (metadata != default)
-                    {
-                        var outputFilename = Path.Combine(destinationDirectory, $"metadata-{purl.ToStringFilename()}");
-                        while (File.Exists(outputFilename))
-                        {
-                            outputFilename = Path.Combine(destinationDirectory, $"metadata-{purl.ToStringFilename()}-{DateTime.Now.Ticks}");
-                        }
-                        File.WriteAllText(outputFilename, metadata);
-                        downloadPaths.Add(outputFilename);
-                    }
-                }
-                else
-                {
-                    if (!bool.TryParse(Options["extract"]?.ToString(), out bool doExtract))
-                    {
-                        doExtract = true;
-                    }
-                    downloadPaths = await _downloader.Download(purl, doExtract);
-                }
-            }
-            else
-            {
-                throw new ArgumentException(string.Format("Invalid Package URL type: {0}", purl?.Type));
-            }
-
-            return downloadPaths;
         }
 
         /// <summary>
@@ -187,7 +132,11 @@ namespace Microsoft.CST.OpenSource
                         break;
                     
                     case "--no-extract":
-                        Options["extract"] = "false";
+                        Options["extract"] = false;
+                        break;
+
+                    case "--use-cache":
+                        Options["use-cache"] = true;
                         break;
 
                     default:
@@ -215,6 +164,8 @@ positional arguments:
 optional arguments:
   --no-extract                  do not extract package contents 
   --metadata                    only download metadata, not package content
+  --download-directory          the directory to download the package to
+  --use-cache                   do not download the package if it is already present in the destination directory
   --help                        show this help message and exit
   --version                     show version of this tool
 ");

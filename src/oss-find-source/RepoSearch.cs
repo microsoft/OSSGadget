@@ -1,10 +1,8 @@
-﻿using AngleSharp.Common;
-using Microsoft.CST.OpenSource.Shared;
+﻿using Microsoft.CST.OpenSource.Shared;
 using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource

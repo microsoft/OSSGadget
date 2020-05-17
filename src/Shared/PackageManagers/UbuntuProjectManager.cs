@@ -5,11 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Caching.Memory;
 using AngleSharp.Html.Parser;
 using System.Text.RegularExpressions;
 
@@ -29,7 +26,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">Package URL of the package to download.</param>
         /// <returns>the path or file written.</returns>
-        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract = true)
+        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
             
@@ -84,10 +81,16 @@ namespace Microsoft.CST.OpenSource.Shared
 
                             // TODO: Add distro version id
                             var targetName = $"ubuntu-{purl.Name}@{packageVersion}-{anchorHref}";
+                            string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
+                            if (doExtract && Directory.Exists(extractionPath) && cached == true)
+                            {
+                                downloadedPaths.Add(extractionPath);
+                                return downloadedPaths;
+                            }
 
                             if (doExtract)
                             {
-                                downloadedPaths.Add(await ExtractArchive(targetName, await downloadResult.Content.ReadAsByteArrayAsync()));
+                                downloadedPaths.Add(await ExtractArchive(targetName, await downloadResult.Content.ReadAsByteArrayAsync(), cached));
                             }
                             else
                             {
@@ -139,7 +142,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
                                     if (doExtract)
                                     {
-                                        downloadedPaths.Add(await ExtractArchive(targetName, await downloadResult.Content.ReadAsByteArrayAsync()));
+                                        downloadedPaths.Add(await ExtractArchive(targetName, await downloadResult.Content.ReadAsByteArrayAsync(), cached));
                                     }
                                     else
                                     {

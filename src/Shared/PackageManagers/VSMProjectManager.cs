@@ -23,7 +23,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">Package URL of the package to download.</param>
         /// <returns>the path or file written.</returns>
-        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract = true)
+        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
@@ -118,9 +118,15 @@ namespace Microsoft.CST.OpenSource.Shared
                                     var downloadResult = await WebClient.GetAsync(source.GetString());
                                     downloadResult.EnsureSuccessStatusCode();
                                     var targetName = $"vsm-{packageName}@{packageVersion}-{assetType}";
+                                    string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
+                                    if (doExtract && Directory.Exists(extractionPath) && cached == true)
+                                    {
+                                        downloadedPaths.Add(extractionPath);
+                                        return downloadedPaths;
+                                    }
                                     if (doExtract)
                                     {
-                                        downloadedPaths.Add(await ExtractArchive(targetName, await downloadResult.Content.ReadAsByteArrayAsync()));
+                                        downloadedPaths.Add(await ExtractArchive(targetName, await downloadResult.Content.ReadAsByteArrayAsync(), cached));
                                     }
                                     else
                                     {

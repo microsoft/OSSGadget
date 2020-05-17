@@ -62,7 +62,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">Package URL of the package to download.</param>
         /// <returns>n/a</returns>
-        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract = true)
+        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
@@ -70,6 +70,7 @@ namespace Microsoft.CST.OpenSource.Shared
             var packageVersion = purl?.Version;
             var downloadedPaths = new List<string>();
 
+            // shouldn't happen here, but check
             if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
             {
                 Logger.Error("Unable to download [{0} {1}]. Both must be defined.", packageName, packageVersion);
@@ -84,9 +85,15 @@ namespace Microsoft.CST.OpenSource.Shared
                 result.EnsureSuccessStatusCode();
                 Logger.Debug("Downloading {0}...", purl.ToString());
                 var targetName = $"npm-{packageName}@{packageVersion}";
+                string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
+                if (doExtract && Directory.Exists(extractionPath) && cached == true)
+                {
+                    downloadedPaths.Add(extractionPath);
+                    return downloadedPaths;
+                }
                 if (doExtract)
                 {
-                    downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync()));
+                    downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync(), cached));
                 }
                 else
                 {

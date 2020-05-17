@@ -160,10 +160,18 @@ namespace Microsoft.CST.OpenSource
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
 
-            var packageDownloader = new PackageDownloader(purl, (string)(this.Options["cache-directory"]));
+            string destinationDirectory = (string)this.Options["cache-directory"];
+            bool doCaching = string.IsNullOrEmpty(destinationDirectory);
+
+            var packageDownloader = new PackageDownloader(purl, destinationDirectory, doCaching);
             foreach (var directory in await packageDownloader.DownloadPackageLocalCopy(purl, false, true))
             {
                 AnalyzeDirectory(directory);
+            }
+
+            if(!doCaching)
+            {
+                packageDownloader.ClearPackageLocalCopy();
             }
         }
 

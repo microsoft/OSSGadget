@@ -56,13 +56,17 @@ namespace Microsoft.CST.OpenSource
                 characteristicTool.Options["target"] = detectBackdoorTool.Options["target"];
                 characteristicTool.Options["disable-default-rules"] = true;
                 characteristicTool.Options["custom-rule-directory"] = RULE_DIRECTORY;
-                
+                string destinationDirectory = (string)detectBackdoorTool.Options["cache-directory"];
+                bool doCaching = string.IsNullOrEmpty(destinationDirectory);
+                characteristicTool.Options["cache-directory"] = destinationDirectory;
+
+
                 foreach (var target in (IList<string>)detectBackdoorTool.Options["target"])
                 {
                     try
                     {
                         var purl = new PackageURL(target);
-                        characteristicTool.AnalyzePackage(purl, (string)(detectBackdoorTool.Options["cache-directory"])).Wait();
+                        characteristicTool.AnalyzePackage(purl, destinationDirectory, doCaching).Wait();
                     }
                     catch (Exception ex)
                     {

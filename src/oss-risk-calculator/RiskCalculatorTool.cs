@@ -51,14 +51,15 @@ namespace Microsoft.CST.OpenSource
 
             if (((IList<string>)riskCalculator.Options["target"]).Count > 0)
             {
-                Dictionary<string, int> freq = new Dictionary<string, int>();
+                string destinationDirectory = (string)riskCalculator.Options["cache-directory"];
+                bool doCaching = string.IsNullOrEmpty(destinationDirectory);
 
                 foreach (var target in (IList<string>)riskCalculator.Options["target"])
                 {
                     try
                     {
                         var purl = new PackageURL(target);
-                        var riskLevel = riskCalculator.CalculateRisk(purl, (string)riskCalculator.Options["cache-directory"]).Result;
+                        var riskLevel = riskCalculator.CalculateRisk(purl, destinationDirectory, doCaching).Result;
                         Logger.Info($"Risk Level: {riskLevel}");
                     }
                     catch (Exception ex)
@@ -81,12 +82,12 @@ namespace Microsoft.CST.OpenSource
             Logger = CommonInitialization.Logger;
         }
 
-        public async Task<double> CalculateRisk(PackageURL purl, string targetDirectory)
+        public async Task<double> CalculateRisk(PackageURL purl, string targetDirectory, bool doCaching)
         {
             Logger.Trace("CalculateRisk({0})", purl?.ToString());
 
             var characteristicTool = new CharacteristicTool();
-            var characteristics = characteristicTool.AnalyzePackage(purl, targetDirectory).Result;
+            var characteristics = characteristicTool.AnalyzePackage(purl, targetDirectory, doCaching).Result;
 
             var healthTool = new HealthTool();
             var healthMetrics = healthTool.CheckHealth(purl).Result;
@@ -172,7 +173,6 @@ namespace Microsoft.CST.OpenSource
                     case "--cache-directory":
                         Options["cache-directory"] = args[++i];
                         break;
-
 
                     default:
                         ((IList<string>)Options["target"]).Add(args[i]);

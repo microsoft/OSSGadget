@@ -50,13 +50,14 @@ namespace Microsoft.CST.OpenSource
 
             if (((IList<string>)characteristicTool.Options["target"]).Count > 0)
             {
+                bool doCaching = !string.IsNullOrEmpty((string)characteristicTool.Options["cache-directory"]);
                 foreach (var target in (IList<string>)characteristicTool.Options["target"])
                 {
                     try
                     {
                         string destinationDirectory = (string)characteristicTool.Options["cache-directory"];
                         var purl = new PackageURL(target);
-                        var analysisResult = characteristicTool.AnalyzePackage(purl, destinationDirectory).Result;
+                        var analysisResult = characteristicTool.AnalyzePackage(purl, destinationDirectory, doCaching).Result;
 
                         var sb = new StringBuilder();
                         sb.AppendLine(target);
@@ -101,13 +102,15 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         /// <param name="purl">The package-url of the package to analyze.</param>
         /// <returns>List of tags identified</returns>
-        public async Task<Dictionary<string, AnalyzeResult>> AnalyzePackage(PackageURL purl, string targetDirectoryName)
+        public async Task<Dictionary<string, AnalyzeResult>> AnalyzePackage(PackageURL purl, 
+            string targetDirectoryName, 
+            bool doCaching)
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
 
             var analysisResults = new Dictionary<string, AnalyzeResult>();
 
-            var packageDownloader = new PackageDownloader(purl, targetDirectoryName);
+            var packageDownloader = new PackageDownloader(purl, targetDirectoryName, doCaching);
             // ensure that the cache directory has the required package, download it otherwise
             var directoryNames = await packageDownloader.DownloadPackageLocalCopy(purl, 
                 false, 
@@ -124,7 +127,10 @@ namespace Microsoft.CST.OpenSource
             {
                 Logger.Warn("Error downloading {0}.", purl.ToString());
             }
-            packageDownloader.ClearPackageLocalCopy();
+            if (!doCaching)
+            {
+                packageDownloader.ClearPackageLocalCopy();
+            }
 
             return analysisResults;
         }

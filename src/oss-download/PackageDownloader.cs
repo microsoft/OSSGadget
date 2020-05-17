@@ -34,39 +34,27 @@ namespace Microsoft.CST.OpenSource
         List<string> downloadPaths { get; set; }
 
         /// <summary>
-        /// Constructor.
+        /// Constuctor - creates a class object for downloading packages
         /// </summary>
-        /// <param name="args">parameters passed in from the user</param>
-        public PackageDownloader(PackageURL purl, string destinationDir)
+        /// <param name="purl">package to download</param>
+        /// <param name="destinationDir">the directory where the package needs to be placed</param>
+        /// <param name="doCaching">check and use the cache if it exists - create if not</param>
+        public PackageDownloader(PackageURL purl, string destinationDir = null, bool doCaching = false)
         {
             if (purl == null)
             {
                 throw new ArgumentNullException("purl cannot be null");
             }
 
-            this.destinationDirectory = destinationDir;
-            // if we are told to use a cache dir, and it exists, believe that caching is still doable
-            if (string.IsNullOrEmpty(destinationDir))
-            {
-                this.doCache = false;
-                this.destinationDirectory = Directory.GetCurrentDirectory();
-            }
-            else
-            {
-                if (Directory.Exists(destinationDir))
-                {
-                    doCache = true;
-                }
-                else
-                {
-                    this.doCache = false;
-                }
-            }
+            // if we are told to use caching, and it exists, believe that caching is still doable
+            this.doCache = (doCaching && !string.IsNullOrEmpty(destinationDir) && Directory.Exists(destinationDir)) ?
+                true : false;
 
-            this.packageManager = this.GetPackageManager(purl);
+            // if no destination specified, dump the package in the temp directory
+            this.destinationDirectory = string.IsNullOrEmpty(destinationDir) ? 
+                Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()) : destinationDir;
 
-            // TODO: Find a better way of doing this
-            this.packageManager.TopLevelExtractionDirectory = this.destinationDirectory;
+            this.packageManager = this.GetPackageManager(purl, this.destinationDirectory);
 
             this.PackageVersions = new List<PackageURL>();
             if (purl.Version == null || purl.Version.Equals("*"))
@@ -85,7 +73,7 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         /// <param name="purl"></param>
         /// <returns>BaseProjectManager object</returns>
-        public BaseProjectManager GetPackageManager(PackageURL purl)
+        public BaseProjectManager GetPackageManager(PackageURL purl, string destinationDirectory)
         {
             // Use reflection to find the correct package management class
             var downloaderClass = typeof(BaseProjectManager).Assembly.GetTypes()
@@ -97,11 +85,14 @@ namespace Microsoft.CST.OpenSource
             {
                 var ctor = downloaderClass.GetConstructor(Array.Empty<Type>());
                 var _downloader = (BaseProjectManager)(ctor.Invoke(Array.Empty<object>()));
+
+                // TODO: find a better way to do this, preferably as constructor argument
+                _downloader.TopLevelExtractionDirectory = destinationDirectory;
                 return _downloader;
             }
             else { 
                 throw new ArgumentException(string.Format("Invalid Package URL type: {0}", purl?.Type));
-            }
+            }            
         }
 
         /// <summary>
@@ -178,18 +169,12 @@ namespace Microsoft.CST.OpenSource
 
         /// <summary>
         /// Clears the cache directory, if the cache argument was passed
-        /// purl - the package for which the cache needs to be deleted
-        /// destinationDirectory - the argument passed in by the user as the cache directory.
-        /// If the destinationDirectory is not empty, it means the user passed in a cache option,
-        /// and the directory wont be deleted.
         /// </summary>
-        /// <param name="purl"></param>
-        /// <param name="destinationDirectory"></param>
         public async void ClearPackageLocalCopy()
         {
             try
             {
-                if (!this.doCache && this.downloadPaths != null)
+                if (this.downloadPaths != null)
                 {
                     foreach (string packageDirectory in this.downloadPaths)
                     {
@@ -224,7 +209,7 @@ namespace Microsoft.CST.OpenSource
             PackageURL purl,
             bool metadataOnly,
             bool doExtract,
-            bool cached = false)
+            bool doCaching = false)
         {
             List<string> downloadPaths = new List<string>();
             if (metadataOnly)
@@ -234,7 +219,7 @@ namespace Microsoft.CST.OpenSource
                 {
                     var outputFilename = Path.Combine(this.packageManager.TopLevelExtractionDirectory, $"metadata-{purl.ToStringFilename()}");
 
-                    if (!cached)
+                    if (!doCaching)
                     {
                         while (File.Exists(outputFilename))
                         {
@@ -248,7 +233,7 @@ namespace Microsoft.CST.OpenSource
             else
             {
                 // only version download requests reach here
-                downloadPaths.AddRange(await this.packageManager.DownloadVersion(purl, doExtract, cached));
+                downloadPaths.AddRange(await this.packageManager.DownloadVersion(purl, doExtract, doCaching));
                 this.downloadPaths = downloadPaths;
             }
 

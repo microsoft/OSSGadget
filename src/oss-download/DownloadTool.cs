@@ -56,9 +56,11 @@ namespace Microsoft.CST.OpenSource
                         bool.TryParse(downloadTool.Options["extract"]?.ToString(), out bool doExtract);
                         bool.TryParse(downloadTool.Options["download-metadata-only"]?.ToString(), out bool metadataOnly);
                         string targetDirectory = (string)downloadTool.Options["download-directory"];
+                        // are we caching? 
+                        bool doCaching = !string.IsNullOrEmpty(targetDirectory);
 
                         var purl = new PackageURL(target);
-                        var packageDownloader = new PackageDownloader(purl, targetDirectory);
+                        var packageDownloader = new PackageDownloader(purl, targetDirectory, doCaching);
                         foreach (var downloadPath in await packageDownloader.
                             DownloadPackageLocalCopy(purl, metadataOnly, doExtract))
                         {
@@ -71,7 +73,10 @@ namespace Microsoft.CST.OpenSource
                                 Logger.Info("Downloaded {0} to {1}", purl.ToString(), downloadPath);
                             }
                         }
-                        // TODO: Should we delete the local copy?
+                        if (!doCaching)
+                        {
+                            packageDownloader.ClearPackageLocalCopy();
+                        }
                     }
                     catch (Exception ex)
                     {

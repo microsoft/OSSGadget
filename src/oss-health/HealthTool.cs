@@ -76,18 +76,12 @@ namespace Microsoft.CST.OpenSource
         
         public async Task<HealthMetrics> CheckHealth(PackageURL purl)
         {
-            // Use reflection to find the correct package management class
-            var projectManagerClass = typeof(BaseProjectManager).Assembly.GetTypes()
-               .Where(type => type.IsSubclassOf(typeof(BaseProjectManager)))
-               .Where(type => type.Name.Equals($"{purl.Type}ProjectManager",
-                                               StringComparison.InvariantCultureIgnoreCase))
-               .FirstOrDefault();
+            var packageDownloader = new PackageDownloader(purl);
+            var packageManager = packageDownloader.GetPackageManager(purl, null);
 
-            if (projectManagerClass != default)
+            if (packageManager != default)
             {
-                var ctor = projectManagerClass.GetConstructor(Array.Empty<Type>());
-                var projectManager = (BaseProjectManager)(ctor.Invoke(Array.Empty<object>()));
-                var content = await projectManager.GetMetadata(purl);
+                var content = await packageManager.GetMetadata(purl);
                 if (!string.IsNullOrWhiteSpace(content))
                 {
                     // TODO: Move to the new oss-find-source algorithm

@@ -131,7 +131,6 @@ namespace Microsoft.CST.OpenSource.Tests
             {
                 return;
             }
-            // Getting here means we didnt catch the bomb
             catch (Exception)
             {
                 // Other exceptions shoudn't happen in these tests.

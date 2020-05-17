@@ -233,12 +233,14 @@ namespace Microsoft.CST.OpenSource
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
 
-            var analysisResults = new List<IssueRecord>();
+            string destinationDirectory = (string)this.Options["cache-directory"];
+            bool doCaching = string.IsNullOrEmpty(destinationDirectory);
 
-            var packageDownloader = new PackageDownloader(purl, (string)(this.Options["cache-directory"]));
+            var packageDownloader = new PackageDownloader(purl, destinationDirectory, doCaching);
             var directoryNames = await packageDownloader.DownloadPackageLocalCopy(purl, false, true);
             directoryNames = directoryNames.Distinct().ToList<string>();
 
+            var analysisResults = new List<IssueRecord>();
             if (directoryNames.Count > 0)
             {
                 foreach (var directoryName in directoryNames)
@@ -265,7 +267,10 @@ namespace Microsoft.CST.OpenSource
             {
                 Logger.Warn("Error downloading {0}.", purl.ToString());
             }
-
+            if(!doCaching)
+            {
+                packageDownloader.ClearPackageLocalCopy();
+            }
 
             return analysisResults.ToList();
         }

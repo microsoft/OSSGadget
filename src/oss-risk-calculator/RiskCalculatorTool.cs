@@ -52,7 +52,7 @@ namespace Microsoft.CST.OpenSource
             if (((IList<string>)riskCalculator.Options["target"]).Count > 0)
             {
                 string destinationDirectory = (string)riskCalculator.Options["cache-directory"];
-                bool doCaching = string.IsNullOrEmpty(destinationDirectory);
+                bool doCaching = !string.IsNullOrEmpty(destinationDirectory);
 
                 foreach (var target in (IList<string>)riskCalculator.Options["target"])
                 {

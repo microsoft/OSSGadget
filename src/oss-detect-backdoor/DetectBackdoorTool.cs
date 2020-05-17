@@ -60,7 +60,6 @@ namespace Microsoft.CST.OpenSource
                 bool doCaching = string.IsNullOrEmpty(destinationDirectory);
                 characteristicTool.Options["cache-directory"] = destinationDirectory;
 
-
                 foreach (var target in (IList<string>)detectBackdoorTool.Options["target"])
                 {
                     try

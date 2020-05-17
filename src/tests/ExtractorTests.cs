@@ -37,6 +37,8 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("Shared.deb", true)]
         [DataRow("Shared.ar", false)]
         [DataRow("Shared.ar", true)]
+        [DataRow("Shared.bsd.ar", false)]
+        [DataRow("Shared.bsd.ar", true)]
         [DataRow("Shared.iso", false)]
         [DataRow("Shared.iso", true)]
         [DataRow("Shared.vhd", false, 29)] // 26 + Some invisible system files

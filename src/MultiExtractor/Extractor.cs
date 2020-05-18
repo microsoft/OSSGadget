@@ -543,7 +543,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
                     var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, fs, fileEntry);
 
-                    if (AreIdentical(fileEntry, newFileEntry))
+                    if (IsQuine(newFileEntry))
                     {
                         Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
                         throw new OverflowException();
@@ -649,7 +649,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
                     var newFileEntry = new FileEntry(tarEntry.Name, fileEntry.FullPath, fs, fileEntry, true);
                     
-                    if (AreIdentical(fileEntry, newFileEntry))
+                    if (IsQuine(newFileEntry))
                     {
                         Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
                         throw new OverflowException();
@@ -706,7 +706,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
                 var newFileEntry = new FileEntry(newFilename, fileEntry.FullPath, fs, fileEntry, true);
 
-                if (AreIdentical(fileEntry, newFileEntry))
+                if (IsQuine(newFileEntry))
                 {
                     Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
                     throw new OverflowException();
@@ -748,7 +748,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
                 var newFileEntry = new FileEntry(newFilename, fileEntry.FullPath, fs, fileEntry, true);
 
-                if (AreIdentical(fileEntry, newFileEntry))
+                if (IsQuine(newFileEntry))
                 {
                     Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
                     throw new OverflowException();
@@ -812,7 +812,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
                     if (newFileEntry != null)
                     {
-                        if (AreIdentical(fileEntry, newFileEntry))
+                        if (IsQuine(newFileEntry))
                         {
                             Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
                             throw new OverflowException();
@@ -874,7 +874,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
                     if (newFileEntry != null)
                     {
-                        if (AreIdentical(fileEntry, newFileEntry))
+                        if (IsQuine(newFileEntry))
                         {
                             Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
                             throw new OverflowException();
@@ -975,7 +975,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     try
                     {
                         var newFileEntry = new FileEntry(streampair.entry.Key, fileEntry.FullPath, streampair.Item2, fileEntry);
-                        if (AreIdentical(fileEntry, newFileEntry))
+                        if (IsQuine(newFileEntry))
                         {
                             Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
                             CurrentOperationProcessedBytesLeft = -1;
@@ -1049,7 +1049,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             var zipStream = zipFile.GetInputStream(zipEntry);
                             StreamUtils.Copy(zipStream, fs, buffer);
                             var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, fs, fileEntry, true);
-                            if (AreIdentical(fileEntry, newFileEntry))
+                            if (IsQuine(newFileEntry))
                             {
                                 Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
                                 CurrentOperationProcessedBytesLeft = -1;
@@ -1111,7 +1111,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         try
                         {
                             var newFileEntry = new FileEntry(entry.entry.Key, fileEntry.FullPath, entry.Item2, fileEntry);
-                            if (AreIdentical(fileEntry, newFileEntry))
+                            if (IsQuine(newFileEntry))
                             {
                                 Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
                                 CurrentOperationProcessedBytesLeft = -1;
@@ -1370,6 +1370,29 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Check if the fileEntry is a quine
+        /// </summary>
+        /// <param name="fileEntry"></param>
+        /// <returns></returns>
+        public static bool IsQuine(FileEntry fileEntry)
+        {
+            var next = fileEntry.Parent;
+            var current = fileEntry;
+
+            while(next != null)
+            {
+                if (AreIdentical(current, next))
+                {
+                    return true;
+                }
+                current = next;
+                next = next.Parent;
+            }
+            
+            return false;
         }
 
         /// <summary>

@@ -202,7 +202,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
             if (fs != null)
             {
-                foreach (var result in ExtractFile(new FileEntry(Path.GetFileName(filename), fs, new FileEntry(filename,new MemoryStream())), parallel))
+                foreach (var result in ExtractFile(new FileEntry(Path.GetFileName(filename), fs, new FileEntry(filename,new MemoryStream()), passthroughStream: true), parallel))
                 {
                     yield return result;
                 }
@@ -752,6 +752,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 if (IsQuine(newFileEntry))
                 {
                     Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
+                    bzip2Stream.Dispose();
                     throw new OverflowException();
                 }
 

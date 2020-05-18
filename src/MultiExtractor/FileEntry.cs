@@ -24,6 +24,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         {
             Parent = parent;
             Name = name;
+            Passthrough = passthroughStream;
 
             if (parent == null)
             {
@@ -73,10 +74,13 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         public FileEntry? Parent { get; set; }
         public string Name { get; set; }
         public Stream Content { get; set; }
-
+        private bool Passthrough { get; }
         ~FileEntry()
         {
-            Content?.Dispose();
+            if (!Passthrough)
+            {
+                Content?.Dispose();
+            }
         }
     }
 }

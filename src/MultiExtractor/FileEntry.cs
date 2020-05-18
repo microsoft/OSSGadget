@@ -8,8 +8,9 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 {
     public class FileEntry
     {
-        public FileEntry(string name, string parentPath, Stream inputStream, bool passthroughStream = false)
+        public FileEntry(string name, string parentPath, Stream inputStream, FileEntry? parent = null, bool passthroughStream = false)
         {
+            Parent = parent;
             Name = name;
             if (string.IsNullOrEmpty(parentPath))
             {
@@ -47,6 +48,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         }
         public string ParentPath { get; set; }
         public string FullPath { get; set; }
+        public FileEntry? Parent { get; }
         public string Name { get; set; }
         public Stream Content { get; set; }
 

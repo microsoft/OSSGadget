@@ -82,7 +82,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             #pragma warning disable SEC0116 // Path Tampering Unvalidated File Path
             using var fs = new FileStream(filename,FileMode.Open);
             #pragma warning restore SEC0116 // Path Tampering Unvalidated File Path
-            var fileEntry = new FileEntry(filename, "", fs, true);
+
+            // If you don't pass passthroughStream: true here it will read the entire file into the stream in FileEntry
+            // This way it will only read the bytes minimagic uses
+            var fileEntry = new FileEntry(filename, "", fs, null, passthroughStream: true);
             return DetectFileType(fileEntry);
         }
 

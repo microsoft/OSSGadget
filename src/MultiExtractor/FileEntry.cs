@@ -48,7 +48,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         }
         public string ParentPath { get; set; }
         public string FullPath { get; set; }
-        public FileEntry? Parent { get; }
+        public FileEntry? Parent { get; set; }
         public string Name { get; set; }
         public Stream Content { get; set; }
 

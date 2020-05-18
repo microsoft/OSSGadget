@@ -41,7 +41,7 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 Stream resultStream = null;
                 var cacheResult = GetCache(packageName);
-                if (cacheResult != default)
+                if (cacheResult != null)
                 {
                     Logger.Debug("Located result for {0} in cache.", packageName);
                     resultStream = new MemoryStream(Encoding.UTF8.GetBytes(cacheResult));
@@ -174,7 +174,7 @@ namespace Microsoft.CST.OpenSource.Shared
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
             
             var versionList = new List<string>(); 
-            if (purl == default || purl.Namespace == default || purl.Name == default)
+            if (purl == null || purl.Namespace == null || purl.Name == null)
             {
                 return versionList;
             }
@@ -188,7 +188,7 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 Stream resultStream = null;
                 var cacheResult = GetCache(packageName);
-                if (cacheResult != default)
+                if (cacheResult != null)
                 {
                     Logger.Debug("Located result for {0} in cache.", packageName);
                     resultStream = new MemoryStream(Encoding.UTF8.GetBytes(cacheResult));

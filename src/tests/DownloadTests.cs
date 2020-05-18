@@ -133,8 +133,8 @@ namespace Microsoft.CST.OpenSource.Tests
 
         private async Task TestDownload(string purl, string targetFilename, int expectedCount)
         {
-            string tempDirectoryName = default;
-            while (tempDirectoryName == default || File.Exists(tempDirectoryName))
+            string tempDirectoryName = null;
+            while (tempDirectoryName == null || File.Exists(tempDirectoryName))
             {
                 tempDirectoryName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             }

@@ -118,7 +118,7 @@ namespace Microsoft.CST.OpenSource
                             }
                         }
                         
-                        if (results == default)
+                        if (results == null)
                         {
                             Logger.Warn("Error generating results, was null.");
                         }
@@ -247,7 +247,7 @@ namespace Microsoft.CST.OpenSource
                 {
                     Logger.Trace("Analyzing directory {0}", directoryName);
                     var singleResult = await AnalyzeDirectory(directoryName);
-                    if (singleResult != default)
+                    if (singleResult != null)
                     {
                         analysisResults.AddRange(singleResult);
                     }

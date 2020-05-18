@@ -48,7 +48,7 @@ namespace Microsoft.CST.OpenSource
             Logger.Trace("ResolvePackageLibraryAsync({0})", purl);
 
             var repoMappings = new Dictionary<PackageURL, double>();
-            if (purl == default)
+            if (purl == null)
             {
                 return repoMappings;
             }
@@ -64,14 +64,14 @@ namespace Microsoft.CST.OpenSource
                                                StringComparison.InvariantCultureIgnoreCase))
                .FirstOrDefault();
 
-            if (projectManagerClass != default)
+            if (projectManagerClass != null)
             {
                 var ctor = projectManagerClass.GetConstructor(Array.Empty<Type>());
                 var projectManager = (BaseProjectManager)(ctor.Invoke(Array.Empty<object>()));
 
                 repoMappings = await projectManager.IdentifySourceRepository(purl);
 
-                if (repoMappings == default || !repoMappings.Any())
+                if (repoMappings == null || !repoMappings.Any())
                 {
                     Logger.Info("No repositories were found after searching metadata.");
                 }

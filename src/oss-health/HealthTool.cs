@@ -79,7 +79,7 @@ namespace Microsoft.CST.OpenSource
             var packageDownloader = new PackageDownloader(purl);
             var packageManager = packageDownloader.GetPackageManager(purl, null);
 
-            if (packageManager != default)
+            if (packageManager != null)
             {
                 var content = await packageManager.GetMetadata(purl);
                 if (!string.IsNullOrWhiteSpace(content))
@@ -108,7 +108,7 @@ namespace Microsoft.CST.OpenSource
             {
                 throw new ArgumentException("Invalid Package URL type: {0}", purl.Type);
             }
-            return default;
+            return null;
         }
 
         /// <summary>

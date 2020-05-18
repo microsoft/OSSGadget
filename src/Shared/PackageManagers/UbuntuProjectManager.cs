@@ -34,7 +34,7 @@ namespace Microsoft.CST.OpenSource.Shared
             var downloadedPaths = new List<string>();
             var downloadedUrls = new HashSet<string>();
 
-            if (purl == default || purl.Name == default)
+            if (purl == null || purl.Name == null)
             {
                 return downloadedPaths;
             }
@@ -43,7 +43,7 @@ namespace Microsoft.CST.OpenSource.Shared
             foreach (var pool in availablePools)
             {
                 var archiveBaseUrl = await GetArchiveBaseUrlForProject(purl, pool);
-                if (archiveBaseUrl == default)
+                if (archiveBaseUrl == null)
                 {
                     Logger.Debug("Unable to find archive base URL for {0}, pool {1}", purl.ToString(), pool);
                     continue;
@@ -52,7 +52,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 try
                 {
                     var html = await GetHttpStringCache(archiveBaseUrl, neverThrow: true);
-                    if (html == default)
+                    if (html == null)
                     {
                         Logger.Debug("Error reading {0}", archiveBaseUrl);
                         continue;
@@ -105,7 +105,7 @@ namespace Microsoft.CST.OpenSource.Shared
                         else if (anchorHref.Contains(packageVersion) && anchorHref.EndsWith(".dsc"))
                         {
                             var dscContent = await GetHttpStringCache(archiveBaseUrl + "/" + anchorHref);
-                            if (dscContent == default)
+                            if (dscContent == null)
                             {
                                 continue;
                             }
@@ -173,7 +173,7 @@ namespace Microsoft.CST.OpenSource.Shared
             var distroName = "ubuntu";  // default
             purl.Qualifiers?.TryGetValue("distro", out distroName);
             
-            if (purl.Qualifiers != default && purl.Qualifiers.TryGetValue("pool", out string selectedPool))
+            if (purl.Qualifiers != null && purl.Qualifiers.TryGetValue("pool", out string selectedPool))
             {
                 results.Add($"{ENV_UBUNTU_ARCHIVE_MIRROR}/{distroName}/pool/{selectedPool}/{dirName}/{purl.Name}/");
             }
@@ -194,7 +194,7 @@ namespace Microsoft.CST.OpenSource.Shared
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
 
             var versionList = new List<string>(); 
-            if (purl == default || purl.Name == default)
+            if (purl == null || purl.Name == null)
             {
                 return versionList;
             }
@@ -202,7 +202,7 @@ namespace Microsoft.CST.OpenSource.Shared
             foreach (var pool in availablePools)
             {
                 var archiveBaseUrl = await GetArchiveBaseUrlForProject(purl, pool);
-                if (archiveBaseUrl == default)
+                if (archiveBaseUrl == null)
                 {
                     Logger.Debug("Unable to find archive base URL.");
                     continue;
@@ -215,7 +215,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 try
                 {
                     var html = await GetHttpStringCache(archiveBaseUrl, neverThrow: true);
-                    if (html == default)
+                    if (html == null)
                     {
                         continue;
                     }
@@ -259,7 +259,7 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             Logger.Trace("GetMetadata {0}", purl?.ToString());
             
-            if (purl == default || purl.Name == default)
+            if (purl == null || purl.Name == null)
             {
                 return string.Empty;
             }
@@ -271,7 +271,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 try
                 {
                     var html = await GetHttpStringCache(distroUrlPrefix, neverThrow: true);
-                    if (html != default)
+                    if (html != null)
                     {
                         var document = await new HtmlParser().ParseDocumentAsync(html);
                         foreach (var anchor in document.QuerySelectorAll("a"))
@@ -281,7 +281,7 @@ namespace Microsoft.CST.OpenSource.Shared
                             {
                                 Logger.Debug("Found a .dsc file: {0}", anchorHref);
                                 var dscContent = await GetHttpStringCache(distroUrlPrefix + anchorHref, neverThrow: true);
-                                if (dscContent == default)
+                                if (dscContent == null)
                                 {
                                     continue;
                                 }
@@ -332,15 +332,15 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 var html = await GetHttpStringCache($"{ENV_UBUNTU_ENDPOINT}/{pool}/{purl.Name}", neverThrow: true);
-                if (html == default)
+                if (html == null)
                 {
-                    return default;
+                    return null;
                 }
                 var document = await new HtmlParser().ParseDocumentAsync(html);
                 foreach (var anchor in document.QuerySelectorAll("a"))
                 {
                     var href = anchor.GetAttribute("href");
-                    if (href != default && href.EndsWith(".dsc"))
+                    if (href != null && href.EndsWith(".dsc"))
                     {
                         var match = Regex.Match(href, "(.+)/[^/]+\\.dsc");
                         if (match.Success)
@@ -354,7 +354,7 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 Logger.Warn(ex, "Error fetching Ubuntu archive base URL for {0}: {1}", purl.ToString(), ex.Message);
             }
-            return default;
+            return null;
         }
 
         /// <summary>
@@ -373,7 +373,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 foreach (var anchor in document.QuerySelectorAll("a.resultlink"))
                 {
                     var href = anchor.GetAttribute("href");
-                    if (href != default)
+                    if (href != null)
                     {
                         var match = Regex.Match(href, "^/([^/]+)/.+");
                         if (match.Success)

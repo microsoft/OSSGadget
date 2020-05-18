@@ -35,7 +35,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     var entryContent = new byte[fileSize];
                     fileEntry.Content.Read(entryContent, 0, fileSize);
                     using var stream = new MemoryStream(entryContent);
-                    yield return new FileEntry(filename, fileEntry.FullPath, stream, fileEntry);
+                    yield return new FileEntry(filename, stream, fileEntry);
                 }
                 else
                 {

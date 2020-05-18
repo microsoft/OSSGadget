@@ -90,7 +90,7 @@ namespace Microsoft.CST.OpenSource.Tests
             var path = Path.Combine(Directory.GetCurrentDirectory(), "TestData", fileName);
             using FileStream fs = new FileStream(path, FileMode.Open);
             // Test just based on the content
-            var fileEntry = new FileEntry("NoName", "", fs);
+            var fileEntry = new FileEntry("NoName", fs);
 
             Assert.IsTrue(MiniMagic.DetectFileType(fileEntry) == expectedArchiveFileType);
             Assert.IsTrue(fileEntry.Content.Position == 0);
@@ -101,7 +101,7 @@ namespace Microsoft.CST.OpenSource.Tests
             Assert.IsTrue(fileEntry.Content.Position == 10);
 
             // We should also detect just on file names if the content doesn't match
-            var nameOnlyEntry = new FileEntry(fileName, "", new MemoryStream());
+            var nameOnlyEntry = new FileEntry(fileName, new MemoryStream());
             Assert.IsTrue(MiniMagic.DetectFileType(nameOnlyEntry) == expectedArchiveFileType);
         }
 

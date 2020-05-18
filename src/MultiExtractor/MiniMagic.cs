@@ -85,7 +85,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
             // If you don't pass passthroughStream: true here it will read the entire file into the stream in FileEntry
             // This way it will only read the bytes minimagic uses
-            var fileEntry = new FileEntry(filename, "", fs, null, passthroughStream: true);
+            var fileEntry = new FileEntry(filename, fs, null, passthroughStream: true);
             return DetectFileType(fileEntry);
         }
 

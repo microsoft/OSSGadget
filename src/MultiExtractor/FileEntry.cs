@@ -20,18 +20,19 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <param name="inputStream"></param>
         /// <param name="parent"></param>
         /// <param name="passthroughStream"></param>
-        public FileEntry(string name, string parentPath, Stream inputStream, FileEntry? parent = null, bool passthroughStream = false)
+        public FileEntry(string name, Stream inputStream, FileEntry? parent = null, bool passthroughStream = false)
         {
             Parent = parent;
             Name = name;
-            ParentPath = parentPath;
 
-            if (string.IsNullOrEmpty(ParentPath))
+            if (parent == null)
             {
+                ParentPath = null;
                 FullPath = Name;
             }
             else
             {
+                ParentPath = parent.FullPath;
                 FullPath = $"{ParentPath}:{Name}";
             }
 
@@ -39,7 +40,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             {
                 throw new ArgumentNullException(nameof(inputStream));
             }
-            
+
             if (passthroughStream && inputStream.CanSeek)
             {
                 Content = inputStream;
@@ -66,7 +67,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
         }
 
-        public string ParentPath { get; set; }
+        public string? ParentPath { get; set; }
         public string FullPath { get; set; }
         public FileEntry? Parent { get; set; }
         public string Name { get; set; }

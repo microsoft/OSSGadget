@@ -195,7 +195,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             {
                 fs = new FileStream(filename,FileMode.Open);
                 ResetResourceGovernor(fs);
-                result = ExtractFile(new FileEntry(filename, "", fs),parallel);
+                result = ExtractFile(new FileEntry(filename, fs),parallel);
             }
             catch(Exception ex)
             {
@@ -215,10 +215,9 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns>Extracted files</returns>
         public IEnumerable<FileEntry> ExtractFile(string filename, byte[] archiveBytes, bool parallel = false)
         {
-            using var fs = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
-            fs.Write(archiveBytes, 0, archiveBytes.Length);
-            ResetResourceGovernor(fs);
-            var result = ExtractFile(new FileEntry(filename, "", fs, null, true),parallel);
+            using var ms = new MemoryStream(archiveBytes);
+            ResetResourceGovernor(ms);
+            var result = ExtractFile(new FileEntry(filename, ms, null),parallel);
             return result;
         }
 
@@ -350,7 +349,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         }
                         if (stream != null)
                         {
-                            var newFileEntry = new FileEntry($"{image.FriendlyName}\\{file}", fileEntry.FullPath, stream, fileEntry);
+                            var newFileEntry = new FileEntry($"{image.FriendlyName}\\{file}", stream, fileEntry);
                             var entries = ExtractFile(newFileEntry, parallel);
                             foreach (var entry in entries)
                             {
@@ -452,7 +451,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 }
                 if (stream != null)
                 {
-                    var newFileEntry = new FileEntry(fileInfo.Name, fileEntry.FullPath, stream, fileEntry);
+                    var newFileEntry = new FileEntry(fileInfo.Name, stream, fileEntry);
                     var entries = ExtractFile(newFileEntry, parallel);
                     foreach (var entry in entries)
                     {
@@ -541,7 +540,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         Logger.Debug(DEBUG_STRING, ArchiveFileType.ZIP, fileEntry.FullPath, zipEntry.Name, e.GetType());
                     }
 
-                    var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, fs, fileEntry);
+                    var newFileEntry = new FileEntry(zipEntry.Name, fs, fileEntry);
 
                     if (IsQuine(newFileEntry))
                     {
@@ -594,7 +593,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     FileEntry? newFileEntry = null;
                     try
                     {
-                        newFileEntry = new FileEntry(newFilename, fileEntry.FullPath, entry.OpenEntryStream(), fileEntry);
+                        newFileEntry = new FileEntry(newFilename, entry.OpenEntryStream(), fileEntry);
                     }
                     catch (Exception e)
                     {
@@ -636,7 +635,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     {
                         continue;
                     }
-                    using var fs = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
+                    var fs = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
                     CheckResourceGovernor(tarStream.Length);
                     try
                     {
@@ -647,7 +646,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         Logger.Debug(DEBUG_STRING, ArchiveFileType.TAR, fileEntry.FullPath, tarEntry.Name, e.GetType());
                     }
 
-                    var newFileEntry = new FileEntry(tarEntry.Name, fileEntry.FullPath, fs, fileEntry, true);
+                    var newFileEntry = new FileEntry(tarEntry.Name, fs, fileEntry, true);
                     
                     if (IsQuine(newFileEntry))
                     {
@@ -704,7 +703,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             if (xzStream != null)
             {
                 var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
-                var newFileEntry = new FileEntry(newFilename, fileEntry.FullPath, fs, fileEntry, true);
+                var newFileEntry = new FileEntry(newFilename, fs, fileEntry, true);
 
                 if (IsQuine(newFileEntry))
                 {
@@ -731,23 +730,20 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns>Extracted files</returns>
         private IEnumerable<FileEntry> ExtractBZip2File(FileEntry fileEntry, bool parallel)
         {
-            using var fs = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
-            BZip2Stream? bzip2Stream = null;
+            var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
+            FileEntry? newFileEntry = null;
             try
             {
-                bzip2Stream = new BZip2Stream(fileEntry.Content, SharpCompress.Compressors.CompressionMode.Decompress, false);
+                BZip2Stream bzip2Stream = new BZip2Stream(fileEntry.Content, SharpCompress.Compressors.CompressionMode.Decompress, false);
                 CheckResourceGovernor(bzip2Stream.Length);
-                bzip2Stream.CopyTo(fs);
+                newFileEntry = new FileEntry(newFilename, bzip2Stream, fileEntry, true);
             }
             catch(Exception e)
             {
                 Logger.Debug(DEBUG_STRING, ArchiveFileType.BZIP2, fileEntry.FullPath, string.Empty, e.GetType());
             }
-            if (bzip2Stream != null)
+            if (newFileEntry != null)
             {
-                var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
-                var newFileEntry = new FileEntry(newFilename, fileEntry.FullPath, fs, fileEntry, true);
-
                 if (IsQuine(newFileEntry))
                 {
                     Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
@@ -758,7 +754,6 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 {
                     yield return extractedFile;
                 }
-                bzip2Stream.Dispose();
             }
             else
             {
@@ -804,7 +799,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     FileEntry? newFileEntry = null;
                     try
                     {
-                        newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream(), fileEntry);
+                        newFileEntry = new FileEntry(entry.Key, entry.OpenEntryStream(), fileEntry);
                     }
                     catch (Exception e)
                     {
@@ -866,7 +861,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     FileEntry? newFileEntry = null;
                     try
                     {
-                         newFileEntry = new FileEntry(entry.Key, fileEntry.FullPath, entry.OpenEntryStream(), fileEntry);
+                         newFileEntry = new FileEntry(entry.Key, entry.OpenEntryStream(), fileEntry);
                     }
                     catch (Exception e)
                     {
@@ -974,7 +969,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 {
                     try
                     {
-                        var newFileEntry = new FileEntry(streampair.entry.Key, fileEntry.FullPath, streampair.Item2, fileEntry);
+                        var newFileEntry = new FileEntry(streampair.entry.Key, streampair.Item2, fileEntry);
                         if (IsQuine(newFileEntry))
                         {
                             Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
@@ -1044,11 +1039,8 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     {
                         try
                         {
-                            using var fs = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
-                            byte[] buffer = new byte[BUFFER_SIZE];
                             var zipStream = zipFile.GetInputStream(zipEntry);
-                            StreamUtils.Copy(zipStream, fs, buffer);
-                            var newFileEntry = new FileEntry(zipEntry.Name, fileEntry.FullPath, fs, fileEntry, true);
+                            var newFileEntry = new FileEntry(zipEntry.Name, zipStream, fileEntry);
                             if (IsQuine(newFileEntry))
                             {
                                 Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
@@ -1110,7 +1102,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     {
                         try
                         {
-                            var newFileEntry = new FileEntry(entry.entry.Key, fileEntry.FullPath, entry.Item2, fileEntry);
+                            var newFileEntry = new FileEntry(entry.entry.Key, entry.Item2, fileEntry);
                             if (IsQuine(newFileEntry))
                             {
                                 Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
@@ -1223,7 +1215,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
                 fileInfoTuples.AsParallel().ForAll(cdFile =>
                 {
-                    var newFileEntry = new FileEntry(cdFile.Item1.Name, fileEntry.FullPath, cdFile.Item2, fileEntry);
+                    var newFileEntry = new FileEntry(cdFile.Item1.Name, cdFile.Item2, fileEntry);
                     var entries = ExtractFile(newFileEntry, true);
                     files.AddRange(entries);
                 });
@@ -1280,7 +1272,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         {
                             if (file.Item2 != null)
                             {
-                                var newFileEntry = new FileEntry($"{volume.Identity}\\{file.Item1.FullName}", parentPath, file.Item2, parent);
+                                var newFileEntry = new FileEntry($"{volume.Identity}\\{file.Item1.FullName}", file.Item2, parent);
                                 var entries = ExtractFile(newFileEntry, true);
                                 files.AddRange(entries);
                             }
@@ -1311,7 +1303,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         }
                         if (fileStream != null)
                         {
-                            var newFileEntry = new FileEntry($"{volume.Identity}\\{file}", parentPath, fileStream, parent);
+                            var newFileEntry = new FileEntry($"{volume.Identity}\\{file}", fileStream, parent);
                             var entries = ExtractFile(newFileEntry, parallel);
                             foreach (var entry in entries)
                             {
@@ -1357,7 +1349,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     CheckResourceGovernor(streamsAndNames.Sum(x => x.Item1.Length));
                     streamsAndNames.AsParallel().ForAll(file => 
                     {
-                        var newFileEntry = new FileEntry($"{image.FriendlyName}\\{file.Item1.FullName}", fileEntry.FullPath, file.Item2, fileEntry);
+                        var newFileEntry = new FileEntry($"{image.FriendlyName}\\{file.Item1.FullName}", file.Item2, fileEntry);
                         var entries = ExtractFile(newFileEntry, true);
                         files.AddRange(entries);
                     });

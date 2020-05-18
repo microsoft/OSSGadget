@@ -22,10 +22,12 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         RAR,
         P7ZIP,
         DEB,
-        GNU_AR,
+        AR,
         ISO_9660,
         VHDX,
-        VHD
+        VHD,
+        WIM,
+        VMDK
     }
 
     /// <summary>
@@ -56,16 +58,23 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             {"BZ2", ArchiveFileType.BZIP2 },
 
             {"RAR", ArchiveFileType.RAR },
+            {"RAR4", ArchiveFileType.RAR },
 
             {"7Z", ArchiveFileType.P7ZIP },
 
             {"DEB", ArchiveFileType.DEB },
 
+            {"AR", ArchiveFileType.AR },
+
             {"ISO", ArchiveFileType.ISO_9660 },
 
             {"VHDX", ArchiveFileType.VHDX },
 
-            {"VHD", ArchiveFileType.VHD }
+            {"VHD", ArchiveFileType.VHD },
+
+            {"WIM", ArchiveFileType.WIM },
+
+            {"VMDK", ArchiveFileType.VMDK }
         };
 
         public static ArchiveFileType DetectFileType(string filename)
@@ -123,6 +132,22 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 {
                     return ArchiveFileType.P7ZIP;
                 }
+                if (Encoding.ASCII.GetString(buffer.Slice(0,8)) == "MSWIM\0\0\0" || Encoding.ASCII.GetString(buffer.Slice(0, 8)) == "WLPWM\0\0\0")
+                {
+                    return ArchiveFileType.WIM;
+                }
+                if (Encoding.ASCII.GetString(buffer.Slice(0,4)) == "KDMV")
+                {
+                    fileEntry.Content.Position = 512;
+                    Span<byte> secondToken = stackalloc byte[21];
+                    fileEntry.Content.Read(secondToken);
+                    fileEntry.Content.Position = initialPosition;
+
+                    if (Encoding.ASCII.GetString(secondToken) == "# Disk DescriptorFile")
+                    {
+                        return ArchiveFileType.VMDK;
+                    }
+                }
                 // some kind of unix Archive https://en.wikipedia.org/wiki/Ar_(Unix)
                 if (buffer[0] == 0x21 && buffer[1] == 0x3c && buffer[2] == 0x61 && buffer[3] == 0x72 && buffer[4] == 0x63 && buffer[5] == 0x68 && buffer[6] == 0x3e)
                 {   
@@ -152,7 +177,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             // Defined ending characters for a header
                             if (headerBuffer[58]=='`' && headerBuffer[59] == '\n')
                             {
-                                return ArchiveFileType.GNU_AR;
+                                return ArchiveFileType.AR;
                             }
                         }
                     }

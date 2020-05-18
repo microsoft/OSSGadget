@@ -20,7 +20,7 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("Shared.Tar", false)]
         [DataRow("Shared.Tar", true)]
         [DataRow("Shared.rar", false)]
-        [DataRow("Shared.rar", true)] // This test case likes to fail on the pipeline
+        [DataRow("Shared.rar", true)]
         [DataRow("Shared.rar4", false)]
         [DataRow("Shared.rar4", true)]
         [DataRow("Shared.tar.bz2", false)]
@@ -43,11 +43,15 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("Shared.vhd", true, 29)]
         [DataRow("Shared.vhdx", false)]
         [DataRow("Shared.vhdx", true)]
+        [DataRow("Shared.wim", false)]
+        [DataRow("Shared.wim", true)]
+        [DataRow("Empty.vmdk", false, 0)]
+        [DataRow("Empty.vmdk", true, 0)]
         public void ExtractArchive(string fileName, bool parallel, int expectedNumFiles = 26)
         {
             var extractor = new Extractor();
             var path = Path.Combine(Directory.GetCurrentDirectory(), "TestData", fileName);
-            var results = extractor.ExtractFile(path, parallel);
+            var results = extractor.ExtractFile(path, parallel).ToList();
             Assert.IsTrue(results.Count() == expectedNumFiles);
         }
 
@@ -75,15 +79,18 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("sysvbanner_1.0-17fakesync1_amd64.deb", ArchiveFileType.DEB)]
         [DataRow("Shared.a", ArchiveFileType.UNKNOWN)]
         [DataRow("Shared.deb", ArchiveFileType.DEB)]
-        [DataRow("Shared.ar", ArchiveFileType.GNU_AR)]
+        [DataRow("Shared.ar", ArchiveFileType.AR)]
         [DataRow("Shared.iso", ArchiveFileType.ISO_9660)]
-        [DataRow("Shared.vhd", ArchiveFileType.VHD)] // 26 + Some invisible system files
+        [DataRow("Shared.vhd", ArchiveFileType.VHD)]
         [DataRow("Shared.vhdx", ArchiveFileType.VHDX)]
+        [DataRow("Shared.wim", ArchiveFileType.WIM)]
+        [DataRow("Empty.vmdk", ArchiveFileType.VMDK)]
         public void TestMiniMagic(string fileName, ArchiveFileType expectedArchiveFileType)
         {
             var path = Path.Combine(Directory.GetCurrentDirectory(), "TestData", fileName);
             using FileStream fs = new FileStream(path, FileMode.Open);
-            var fileEntry = new FileEntry(path, "", fs);
+            // Test just based on the content
+            var fileEntry = new FileEntry("NoName", "", fs);
 
             Assert.IsTrue(MiniMagic.DetectFileType(fileEntry) == expectedArchiveFileType);
             Assert.IsTrue(fileEntry.Content.Position == 0);
@@ -92,6 +99,10 @@ namespace Microsoft.CST.OpenSource.Tests
             fileEntry.Content.Position = 10;
             Assert.IsTrue(MiniMagic.DetectFileType(fileEntry) == expectedArchiveFileType);
             Assert.IsTrue(fileEntry.Content.Position == 10);
+
+            // We should also detect just on file names if the content doesn't match
+            var nameOnlyEntry = new FileEntry(fileName, "", new MemoryStream());
+            Assert.IsTrue(MiniMagic.DetectFileType(nameOnlyEntry) == expectedArchiveFileType);
         }
 
         [DataTestMethod]
@@ -111,9 +122,8 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("zblg.zip", true)]
         [DataRow("zbsm.zip", false)]
         [DataRow("zbsm.zip", true)]
-        //[DataRow("zbxl.zip", false)]
+        //[DataRow("zbxl.zip", false)] //These work but have stalled the anti-malware scanner on the pipeline
         //[DataRow("zbxl.zip", true)]
-
         public void TestQuineBombs(string fileName, bool parallel)
         {
             var extractor = new Extractor();

@@ -184,7 +184,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns>Extracted files</returns>
         public IEnumerable<FileEntry> ExtractFile(string filename, bool parallel = false)
         {
-           if (!File.Exists(filename))
+            if (!File.Exists(filename))
             {
                 Logger.Warn("ExtractFile called, but {0} does not exist.", filename);
                 yield break;
@@ -1041,27 +1041,44 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     int batchSize = Math.Min(MAX_BATCH_SIZE, zipEntries.Count);
                     var selectedEntries = zipEntries.GetRange(0, batchSize);
                     CheckResourceGovernor(selectedEntries.Sum(x => x.Size));
-                    selectedEntries.AsParallel().ForAll(zipEntry =>
+                    try
                     {
-                        try
+                        selectedEntries.AsParallel().ForAll(zipEntry =>
                         {
-                            var zipStream = zipFile.GetInputStream(zipEntry);
-                            var newFileEntry = new FileEntry(zipEntry.Name, zipStream, fileEntry);
-                            if (IsQuine(newFileEntry))
+                            try
                             {
-                                Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
-                                CurrentOperationProcessedBytesLeft = -1;
+                                var zipStream = zipFile.GetInputStream(zipEntry);
+                                var newFileEntry = new FileEntry(zipEntry.Name, zipStream, fileEntry);
+                                if (IsQuine(newFileEntry))
+                                {
+                                    Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
+                                    CurrentOperationProcessedBytesLeft = -1;
+                                }
+                                else
+                                {
+                                    files.AddRange(ExtractFile(newFileEntry, true));
+                                }
                             }
-                            else
+                            catch (Exception e) when (e is OverflowException)
                             {
-                                files.AddRange(ExtractFile(newFileEntry, true));
+                                Logger.Debug(DEBUG_STRING, ArchiveFileType.ZIP, fileEntry.FullPath, zipEntry.Name, e.GetType());
+                                throw;
                             }
-                        }
-                        catch(Exception e)
+                            catch (Exception e)
+                            {
+                                Logger.Debug(DEBUG_STRING, ArchiveFileType.ZIP, fileEntry.FullPath, zipEntry.Name, e.GetType());
+                            }
+                        });
+                    }
+                    catch (Exception e) when (e is AggregateException)
+                    {
+                        if (e.InnerException?.GetType() == typeof(OverflowException))
                         {
-                            Logger.Debug(DEBUG_STRING, ArchiveFileType.ZIP, fileEntry.FullPath, zipEntry.Name, e.GetType());
+                            throw e.InnerException;
                         }
-                    });
+                        throw;
+                    }
+
                     CheckResourceGovernor(0);
                     zipEntries.RemoveRange(0, batchSize);
                     
@@ -1104,26 +1121,43 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     var selectedEntries = entries.GetRange(0, batchSize).Select(entry => (entry, entry.OpenEntryStream()));
                     CheckResourceGovernor(selectedEntries.Sum(x => x.entry.Size));
 
-                    selectedEntries.AsParallel().ForAll(entry =>
+                    try
                     {
-                        try
+                        selectedEntries.AsParallel().ForAll(entry =>
                         {
-                            var newFileEntry = new FileEntry(entry.entry.Key, entry.Item2, fileEntry);
-                            if (IsQuine(newFileEntry))
+                            try
                             {
-                                Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
-                                CurrentOperationProcessedBytesLeft = -1;
+                                var newFileEntry = new FileEntry(entry.entry.Key, entry.Item2, fileEntry);
+                                if (IsQuine(newFileEntry))
+                                {
+                                    Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
+                                    CurrentOperationProcessedBytesLeft = -1;
+                                }
+                                else
+                                {
+                                    files.AddRange(ExtractFile(newFileEntry, true));
+                                }
                             }
-                            else
+                            catch (Exception e) when (e is OverflowException)
                             {
-                                files.AddRange(ExtractFile(newFileEntry, true));
+                                Logger.Debug(DEBUG_STRING, ArchiveFileType.P7ZIP, fileEntry.FullPath, entry.entry.Key, e.GetType());
+                                throw;
                             }
-                        }
-                        catch (Exception e)
+                            catch (Exception e)
+                            {
+                                Logger.Debug(DEBUG_STRING, ArchiveFileType.P7ZIP, fileEntry.FullPath, entry.entry.Key, e.GetType());
+                            }
+                        });
+                    }
+                    catch(Exception e) when (e is AggregateException)
+                    {
+                        if (e.InnerException?.GetType() == typeof(OverflowException))
                         {
-                            Logger.Debug(DEBUG_STRING, ArchiveFileType.P7ZIP, fileEntry.FullPath, entry.entry.Key, e.GetType());
+                            throw e.InnerException;
                         }
-                    });
+                        throw;
+                    }
+                    
                     CheckResourceGovernor(0);
                     entries.RemoveRange(0, batchSize);
 

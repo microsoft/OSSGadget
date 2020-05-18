@@ -6,6 +6,10 @@ using Microsoft.CST.OpenSource.MultiExtractor;
 using System.IO;
 using System.Linq;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using NLog.Fluent;
+using NLog;
 
 namespace Microsoft.CST.OpenSource.Tests
 {
@@ -120,20 +124,19 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("10GB.zip.bz2", true)]
         [DataRow("zblg.zip", false)]
         [DataRow("zblg.zip", true)]
-        [DataRow("zbsm.zip", false)]
-        [DataRow("zbsm.zip", true)]
-        [DataRow("zbxl.zip", false)] //These work but have stalled the anti-malware scanner on the pipeline
-        [DataRow("zbxl.zip", true)]
+        //[DataRow("zbsm.zip", false)]
+        //[DataRow("zbsm.zip", true)]
+        //[DataRow("zbxl.zip", false)] // TODO: These work but are commented out until work to speed up pipeline scanning is done
+        //[DataRow("zbxl.zip", true)]
         public void TestQuineBombs(string fileName, bool parallel)
         {
             var extractor = new Extractor();
             var path = Path.Combine(Directory.GetCurrentDirectory(), "TestData", fileName);
+            IEnumerable<FileEntry> results;
             try
             {
-                var results = extractor.ExtractFile(path, parallel).ToList();
+                results = extractor.ExtractFile(path, parallel).ToList();
                 // Getting here means we didnt catch the bomb
-                Assert.Fail();
-                return;
             }
             // We should throw an overflow exception when we detect a quine or bomb
             catch (Exception e) when (
@@ -141,13 +144,14 @@ namespace Microsoft.CST.OpenSource.Tests
             {
                 return;
             }
-            catch (Exception e)
+            catch(Exception e)
             {
-                // Other exceptions shoudn't happen in these tests.
-                Assert.Fail();
+                Logger.Debug(e,"Shouldn't hit other exceptions in this test.");
             }
             // Getting here means we didnt catch the bomb
             Assert.Fail();
         }
+
+        protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
     }
 }

@@ -8,6 +8,17 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 {
     public class FileEntry
     {
+        /// <summary>
+        /// Constructs a FileEntry object from a Stream.  If passthroughStream is set to true it will directly use inputStream.
+        /// If passthroughStream is false it will copy the full contents of passthroughStream to our internal stream and 
+        ///   attempt to reset the position of inputstream.
+        /// The finalizer for this class Disposes inputStream.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="parentPath"></param>
+        /// <param name="inputStream"></param>
+        /// <param name="parent"></param>
+        /// <param name="passthroughStream"></param>
         public FileEntry(string name, string parentPath, Stream inputStream, FileEntry? parent = null, bool passthroughStream = false)
         {
             Parent = parent;
@@ -52,5 +63,9 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         public string Name { get; set; }
         public Stream Content { get; set; }
 
+        ~FileEntry()
+        {
+            Content?.Dispose();
+        }
     }
 }

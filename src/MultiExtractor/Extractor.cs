@@ -734,9 +734,9 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             FileEntry? newFileEntry = null;
             try
             {
-                BZip2Stream bzip2Stream = new BZip2Stream(fileEntry.Content, SharpCompress.Compressors.CompressionMode.Decompress, false);
+                using BZip2Stream bzip2Stream = new BZip2Stream(fileEntry.Content, SharpCompress.Compressors.CompressionMode.Decompress, false);
                 CheckResourceGovernor(bzip2Stream.Length);
-                newFileEntry = new FileEntry(newFilename, bzip2Stream, fileEntry, true);
+                newFileEntry = new FileEntry(newFilename, bzip2Stream, fileEntry);
             }
             catch(Exception e)
             {

@@ -189,10 +189,12 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 Logger.Warn("ExtractFile called, but {0} does not exist.", filename);
                 yield break;
             }
-            FileStream? fs = null;
+            FileEntry? fileEntry = null;
             try
             {
-                fs = new FileStream(filename,FileMode.Open);
+                using var fs = new FileStream(filename,FileMode.Open);
+                // We give it a parent so we can give it a shortname. This is useful for Quine detection later.
+                fileEntry = new FileEntry(Path.GetFileName(filename), fs, new FileEntry(filename, new MemoryStream()));
                 ResetResourceGovernor(fs);
             }
             catch (Exception ex)
@@ -200,14 +202,13 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 Logger.Debug(ex, "Failed to extract file {0}", filename);
             }
 
-            if (fs != null)
+            if (fileEntry != null)
             {
-                foreach (var result in ExtractFile(new FileEntry(Path.GetFileName(filename), fs, new FileEntry(filename,new MemoryStream()), passthroughStream: true), parallel))
+                foreach (var result in ExtractFile(fileEntry, parallel))
                 {
                     yield return result;
                 }
             }
-            fs?.Dispose();
         }
 
         /// <summary>

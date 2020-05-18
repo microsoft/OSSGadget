@@ -187,23 +187,26 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
            if (!File.Exists(filename))
             {
                 Logger.Warn("ExtractFile called, but {0} does not exist.", filename);
-                return Array.Empty<FileEntry>();
+                yield break;
             }
-            IEnumerable<FileEntry> result = Array.Empty<FileEntry>();
             FileStream? fs = null;
             try
             {
                 fs = new FileStream(filename,FileMode.Open);
                 ResetResourceGovernor(fs);
-                result = ExtractFile(new FileEntry(filename, fs),parallel);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Logger.Debug(ex, "Failed to extract file {0}", filename);
             }
-            fs?.Close();
-            fs?.Dispose();
-            return result;
+
+            if (fs != null)
+            {
+                foreach (var result in ExtractFile(new FileEntry(filename, fs, null, true), parallel))
+                {
+                    yield return result;
+                }
+            }
         }
 
         /// <summary>
@@ -730,20 +733,36 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns>Extracted files</returns>
         private IEnumerable<FileEntry> ExtractBZip2File(FileEntry fileEntry, bool parallel)
         {
-            var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
-            FileEntry? newFileEntry = null;
+            using var fs = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
+            BZip2Stream? bzip2Stream = null;
             try
             {
-                using BZip2Stream bzip2Stream = new BZip2Stream(fileEntry.Content, SharpCompress.Compressors.CompressionMode.Decompress, false);
+                bzip2Stream = new BZip2Stream(fileEntry.Content, SharpCompress.Compressors.CompressionMode.Decompress, false);
                 CheckResourceGovernor(bzip2Stream.Length);
-                newFileEntry = new FileEntry(newFilename, bzip2Stream, fileEntry);
+                bzip2Stream.CopyTo(fs);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Logger.Debug(DEBUG_STRING, ArchiveFileType.BZIP2, fileEntry.FullPath, string.Empty, e.GetType());
             }
-            if (newFileEntry != null)
+
+            //var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
+            //FileEntry? newFileEntry = null;
+            //try
+            //{
+            //    BZip2Stream bzip2Stream = new BZip2Stream(fileEntry.Content, SharpCompress.Compressors.CompressionMode.Decompress, false);
+            //    CheckResourceGovernor(bzip2Stream.Length);
+            //    var fs = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
+            //    bzip2Stream.CopyTo(fs);
+
+            //    newFileEntry = new FileEntry(newFilename, fs, fileEntry, true);
+            //}
+            
+            if (bzip2Stream != null)
             {
+                var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
+                var newFileEntry = new FileEntry(newFilename, fs, fileEntry, true);
+
                 if (IsQuine(newFileEntry))
                 {
                     Logger.Info(IS_QUINE_STRING, fileEntry.Name, fileEntry.FullPath);
@@ -754,6 +773,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 {
                     yield return extractedFile;
                 }
+                bzip2Stream.Dispose();
             }
             else
             {

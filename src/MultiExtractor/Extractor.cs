@@ -1395,7 +1395,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns></returns>
         public static bool AreIdentical(FileEntry fileEntry1, FileEntry fileEntry2)
         {
-            if (fileEntry1.Name == fileEntry2.Name && fileEntry1.Content.Length == fileEntry2.Content.Length)
+            if (fileEntry1.Content.Length == fileEntry2.Content.Length && fileEntry1.Name == fileEntry2.Name)
             {
                 var buffer1 = new Span<byte>(new byte[1024]);
                 var buffer2 = new Span<byte>(new byte[1024]);

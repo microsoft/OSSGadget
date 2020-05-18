@@ -41,6 +41,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 throw new ArgumentNullException(nameof(inputStream));
             }
 
+            // We want to be able to seek, so ensure any passthrough stream is Seekable
             if (passthroughStream && inputStream.CanSeek)
             {
                 Content = inputStream;

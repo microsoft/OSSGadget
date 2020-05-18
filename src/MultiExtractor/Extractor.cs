@@ -97,15 +97,18 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// </summary>
         private Stopwatch GovernorStopwatch;
 
+        public bool EnableTiming { get; }
+
         /// <summary>
         /// Stores the number of bytes left before we abort (denial of service).
         /// </summary>
         private long CurrentOperationProcessedBytesLeft = -1;
 
-        public Extractor()
+        public Extractor(bool enableTiming = false)
         {   
             MaxExtractedBytesRatio = DEFAULT_MAX_EXTRACTED_BYTES_RATIO;
             GovernorStopwatch = new Stopwatch();
+            EnableTiming = enableTiming;
             SetupHelper.RegisterAssembly(typeof(BtrfsFileSystem).Assembly);
             SetupHelper.RegisterAssembly(typeof(ExtFileSystem).Assembly);
             SetupHelper.RegisterAssembly(typeof(FatFileSystem).Assembly);

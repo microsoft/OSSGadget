@@ -202,7 +202,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
             if (fs != null)
             {
-                foreach (var result in ExtractFile(new FileEntry(filename, fs), parallel))
+                foreach (var result in ExtractFile(new FileEntry(Path.GetFileName(filename), fs, new FileEntry(filename,new MemoryStream())), parallel))
                 {
                     yield return result;
                 }
@@ -1409,8 +1409,8 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 {
                     if (stream1.CanRead && stream2.CanRead && stream1.Length == stream2.Length && fileEntry1.Name == fileEntry2.Name)
                     {
-                        var buffer1 = new Span<byte>(new byte[1024]);
-                        var buffer2 = new Span<byte>(new byte[1024]);
+                        Span<byte> buffer1 = stackalloc byte[1024];
+                        Span<byte> buffer2 = stackalloc byte[1024];
                 
                         var position1 = fileEntry1.Content.Position;
                         var position2 = fileEntry2.Content.Position;

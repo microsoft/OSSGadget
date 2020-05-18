@@ -122,10 +122,10 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("10GB.zip.bz2", true)]
         [DataRow("zblg.zip", false)]
         [DataRow("zblg.zip", true)]
-        //[DataRow("zbsm.zip", false)]
-        //[DataRow("zbsm.zip", true)]
-        //[DataRow("zbxl.zip", false)] // TODO: These work but are commented out until work to speed up pipeline scanning is done
-        //[DataRow("zbxl.zip", true)]
+        [DataRow("zbsm.zip", false)]
+        [DataRow("zbsm.zip", true)]
+        [DataRow("zbxl.zip", false)] //These work but have stalled the anti-malware scanner on the pipeline
+        [DataRow("zbxl.zip", true)]
         public void TestQuineBombs(string fileName, bool parallel)
         {
             var extractor = new Extractor();

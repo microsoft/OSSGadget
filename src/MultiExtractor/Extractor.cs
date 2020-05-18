@@ -202,11 +202,12 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
             if (fs != null)
             {
-                foreach (var result in ExtractFile(new FileEntry(filename, fs, null, true), parallel))
+                foreach (var result in ExtractFile(new FileEntry(filename, fs), parallel))
                 {
                     yield return result;
                 }
             }
+            fs?.Dispose();
         }
 
         /// <summary>
@@ -220,7 +221,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         {
             using var ms = new MemoryStream(archiveBytes);
             ResetResourceGovernor(ms);
-            var result = ExtractFile(new FileEntry(filename, ms, null),parallel);
+            var result = ExtractFile(new FileEntry(filename, ms),parallel);
             return result;
         }
 
@@ -596,7 +597,8 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     FileEntry? newFileEntry = null;
                     try
                     {
-                        newFileEntry = new FileEntry(newFilename, entry.OpenEntryStream(), fileEntry);
+                        using var stream = entry.OpenEntryStream();
+                        newFileEntry = new FileEntry(newFilename, stream, fileEntry);
                     }
                     catch (Exception e)
                     {
@@ -611,6 +613,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
                 }
             }
+            gzipArchive?.Dispose();
         }
 
         /// <summary>
@@ -678,16 +681,23 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns>Extracted files</returns>
         private IEnumerable<FileEntry> ExtractXZFile(FileEntry fileEntry, bool parallel)
         {
-            using var fs = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
             XZStream? xzStream = null;
             try
             {
                 xzStream = new XZStream(fileEntry.Content);
+            }
+            catch(Exception e)
+            {
+                Logger.Debug(DEBUG_STRING, ArchiveFileType.XZ, fileEntry.FullPath, string.Empty, e.GetType());
+            }
+            if (xzStream != null)
+            {
+                var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
+                var newFileEntry = new FileEntry(newFilename, xzStream, fileEntry);
 
                 // SharpCompress does not expose metadata without a full read,
                 // so we need to decompress first, and then abort if the bytes
                 // exceeded the governor's capacity.
-                xzStream.CopyTo(fs);
 
                 var streamLength = xzStream.Index.Records?.Select(r => r.UncompressedSize)
                                           .Aggregate((ulong?)0, (a, b) => a + b);
@@ -698,15 +708,6 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 {
                     CheckResourceGovernor((long)streamLength.Value);
                 }
-            }
-            catch(Exception e)
-            {
-                Logger.Debug(DEBUG_STRING, ArchiveFileType.XZ, fileEntry.FullPath, string.Empty, e.GetType());
-            }
-            if (xzStream != null)
-            {
-                var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
-                var newFileEntry = new FileEntry(newFilename, fs, fileEntry, true);
 
                 if (IsQuine(newFileEntry))
                 {
@@ -718,12 +719,12 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 {
                     yield return extractedFile;
                 }
-                xzStream.Dispose();
             }
             else
             {
                 yield return fileEntry;
             }
+            xzStream?.Dispose();
         }
 
         /// <summary>
@@ -733,35 +734,20 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns>Extracted files</returns>
         private IEnumerable<FileEntry> ExtractBZip2File(FileEntry fileEntry, bool parallel)
         {
-            using var fs = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
             BZip2Stream? bzip2Stream = null;
             try
             {
                 bzip2Stream = new BZip2Stream(fileEntry.Content, SharpCompress.Compressors.CompressionMode.Decompress, false);
                 CheckResourceGovernor(bzip2Stream.Length);
-                bzip2Stream.CopyTo(fs);
             }
             catch (Exception e)
             {
                 Logger.Debug(DEBUG_STRING, ArchiveFileType.BZIP2, fileEntry.FullPath, string.Empty, e.GetType());
             }
-
-            //var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
-            //FileEntry? newFileEntry = null;
-            //try
-            //{
-            //    BZip2Stream bzip2Stream = new BZip2Stream(fileEntry.Content, SharpCompress.Compressors.CompressionMode.Decompress, false);
-            //    CheckResourceGovernor(bzip2Stream.Length);
-            //    var fs = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
-            //    bzip2Stream.CopyTo(fs);
-
-            //    newFileEntry = new FileEntry(newFilename, fs, fileEntry, true);
-            //}
-            
             if (bzip2Stream != null)
             {
                 var newFilename = Path.GetFileNameWithoutExtension(fileEntry.Name);
-                var newFileEntry = new FileEntry(newFilename, fs, fileEntry, true);
+                var newFileEntry = new FileEntry(newFilename, bzip2Stream, fileEntry);
 
                 if (IsQuine(newFileEntry))
                 {
@@ -1415,16 +1401,17 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns></returns>
         public static bool AreIdentical(FileEntry fileEntry1, FileEntry fileEntry2)
         {
-            if (fileEntry1.Content.Length == fileEntry2.Content.Length && fileEntry1.Name == fileEntry2.Name)
+            var stream1 = fileEntry1.Content;
+            var stream2 = fileEntry2.Content;
+            lock (stream1)
             {
-                var buffer1 = new Span<byte>(new byte[1024]);
-                var buffer2 = new Span<byte>(new byte[1024]);
-                var stream1 = fileEntry1.Content;
-                var stream2 = fileEntry2.Content;
-                lock (stream1)
+                lock (stream2)
                 {
-                    lock (stream2)
+                    if (stream1.CanRead && stream2.CanRead && stream1.Length == stream2.Length && fileEntry1.Name == fileEntry2.Name)
                     {
+                        var buffer1 = new Span<byte>(new byte[1024]);
+                        var buffer2 = new Span<byte>(new byte[1024]);
+                
                         var position1 = fileEntry1.Content.Position;
                         var position2 = fileEntry2.Content.Position;
                         stream1.Position = 0;
@@ -1446,9 +1433,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         stream2.Position = position2;
                         return true;
                     }
+                
+                    return false;
                 }
             }
-            return false;
         }
     }
 }

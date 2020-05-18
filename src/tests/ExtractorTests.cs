@@ -106,24 +106,24 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         [DataTestMethod]
-        //[DataRow("droste.zip", false)]
+        [DataRow("droste.zip", false)]
         [DataRow("droste.zip", true)]
-        //[DataRow("10GB.7z.bz2", false)]
-        //[DataRow("10GB.7z.bz2", true)]
-        //[DataRow("10GB.gz.bz2", false)]
-        //[DataRow("10GB.gz.bz2", true)]
-        //[DataRow("10GB.rar.bz2", false)]
-        //[DataRow("10GB.rar.bz2", true)]
-        //[DataRow("10GB.xz.bz2", false)]
-        //[DataRow("10GB.xz.bz2", true)]
-        //[DataRow("10GB.zip.bz2", false)]
-        //[DataRow("10GB.zip.bz2", true)]
-        //[DataRow("zblg.zip", false)]
-        //[DataRow("zblg.zip", true)]
-        //[DataRow("zbsm.zip", false)]
-        //[DataRow("zbsm.zip", true)]
-        //[DataRow("zbxl.zip", false)] //These work but have stalled the anti-malware scanner on the pipeline
-        //[DataRow("zbxl.zip", true)]
+        [DataRow("10GB.7z.bz2", false)]
+        [DataRow("10GB.7z.bz2", true)]
+        [DataRow("10GB.gz.bz2", false)]
+        [DataRow("10GB.gz.bz2", true)]
+        [DataRow("10GB.rar.bz2", false)]
+        [DataRow("10GB.rar.bz2", true)]
+        [DataRow("10GB.xz.bz2", false)]
+        [DataRow("10GB.xz.bz2", true)]
+        [DataRow("10GB.zip.bz2", false)]
+        [DataRow("10GB.zip.bz2", true)]
+        [DataRow("zblg.zip", false)]
+        [DataRow("zblg.zip", true)]
+        [DataRow("zbsm.zip", false)]
+        [DataRow("zbsm.zip", true)]
+        [DataRow("zbxl.zip", false)] //These work but have stalled the anti-malware scanner on the pipeline
+        [DataRow("zbxl.zip", true)]
         public void TestQuineBombs(string fileName, bool parallel)
         {
             var extractor = new Extractor();

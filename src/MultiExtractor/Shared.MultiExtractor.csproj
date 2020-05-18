@@ -26,7 +26,7 @@
     <PackageReference Include="DiscUtils.Vmdk" Version="0.15.1-ci0002" />
     <PackageReference Include="DiscUtils.Wim" Version="0.15.1-ci0002" />
     <PackageReference Include="DiscUtils.Xfs" Version="0.15.1-ci0002" />
-    <PackageReference Include="NLog" Version="4.7.0" />
+    <PackageReference Include="NLog" Version="4.7.1" />
     <PackageReference Include="SharpCompress" Version="0.25.0" />
     <PackageReference Include="SharpZipLib" Version="1.2.0" />
   </ItemGroup>

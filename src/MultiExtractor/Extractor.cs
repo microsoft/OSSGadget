@@ -168,7 +168,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         {
             Logger.ConditionalTrace("CheckResourceGovernor(duration={0}, bytes={1})", GovernorStopwatch.Elapsed.TotalMilliseconds, CurrentOperationProcessedBytesLeft);
 
-            if (GovernorStopwatch.Elapsed > Timeout)
+            if (EnableTiming && GovernorStopwatch.Elapsed > Timeout)
             {
                 throw new TimeoutException(string.Format($"Processing timeout exceeded: {GovernorStopwatch.Elapsed.TotalMilliseconds} ms."));
             }

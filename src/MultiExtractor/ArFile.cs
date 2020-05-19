@@ -81,7 +81,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             // The name length is included in the total size reported in the header
                             CopyStreamBytes(fileEntry.Content, entryStream, size - nameLength);
 
-                            yield return new FileEntry(Encoding.ASCII.GetString(nameSpan), fileEntry.FullPath, entryStream, true);
+                            yield return new FileEntry(Encoding.ASCII.GetString(nameSpan), entryStream, fileEntry, true);
                         }
                     }
                     else if (filename.Equals('/'))
@@ -146,7 +146,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
                                 var entryStream = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
                                 CopyStreamBytes(fileEntry.Content, entryStream, innerSize);
-                                yield return new FileEntry(filename, fileEntry.FullPath, entryStream);
+                                yield return new FileEntry(filename, entryStream, fileEntry);
                             }
                         }
                         fileEntry.Content.Position = fileEntry.Content.Length - 1;
@@ -217,7 +217,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                                 }
                                 var entryStream = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
                                 CopyStreamBytes(fileEntry.Content, entryStream, innerSize);
-                                yield return new FileEntry(filename, fileEntry.FullPath, entryStream);
+                                yield return new FileEntry(filename, entryStream, fileEntry);
                             }
                         }
                         fileEntry.Content.Position = fileEntry.Content.Length - 1;
@@ -239,14 +239,14 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         var entryStream = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
                         CopyStreamBytes(fileEntry.Content, entryStream, size);
 
-                        yield return new FileEntry(filename, fileEntry.FullPath, entryStream, true);
+                        yield return new FileEntry(filename, entryStream, fileEntry, true);
                     }
                     else
                     {
                         var entryStream = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
                         CopyStreamBytes(fileEntry.Content, entryStream, size);
 
-                        yield return new FileEntry(filename, fileEntry.FullPath, entryStream, true);
+                        yield return new FileEntry(filename, entryStream, fileEntry, true);
                     }
                 }
                 else

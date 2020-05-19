@@ -183,30 +183,33 @@ namespace Microsoft.CST.OpenSource.Shared
             // which is more likely best maintained
             // TODO: If the latest version JSONElement doesnt have the repo infor, should we search all elements 
             // on that chance that one of them might have it?
-            JsonElement versionJSON = string.IsNullOrEmpty(purl.Version) ? GetLatestVersionElement(contentJSON) : 
+            JsonElement? versionJSON = string.IsNullOrEmpty(purl.Version) ? GetLatestVersionElement(contentJSON) : 
                 GetVersionElement(contentJSON, new Version(purl.Version));
 
-            try
+            if (versionJSON is JsonElement notNullVersionJSON)
             {
-                JsonElement repositoryJSON = versionJSON.GetProperty("repository");
-                string repoType = repositoryJSON.GetProperty("type").ToString().ToLower();
-                string repoURL = repositoryJSON.GetProperty("url").ToString();
-
-                // right now we deal with only github repos
-                if (repoType == "git")
+                try
                 {
-                    PackageURL gitPURL = GitHubProjectManager.ParseUri(new Uri(repoURL));
-                    // we got a repository value the author specified in the metadata - 
-                    // so no further processing needed
-                    if (gitPURL != null)
+                    JsonElement repositoryJSON = notNullVersionJSON.GetProperty("repository");
+                    string repoType = repositoryJSON.GetProperty("type").ToString().ToLower();
+                    string repoURL = repositoryJSON.GetProperty("url").ToString();
+
+                    // right now we deal with only github repos
+                    if (repoType == "git")
                     {
-                        mapping.Add(gitPURL, 1.0F);
-                        return mapping;
+                        PackageURL gitPURL = GitHubProjectManager.ParseUri(new Uri(repoURL));
+                        // we got a repository value the author specified in the metadata - 
+                        // so no further processing needed
+                        if (gitPURL != null)
+                        {
+                            mapping.Add(gitPURL, 1.0F);
+                            return mapping;
+                        }
                     }
                 }
+                catch (KeyNotFoundException) { /* continue onwards */ }
+                catch (UriFormatException) {  /* the uri specified in the metadata invalid */ }
             }
-            catch (KeyNotFoundException) { /* continue onwards */ }
-            catch (UriFormatException) {  /* the uri specified in the metadata invalid */ }
 
             return mapping;
         }
@@ -223,8 +226,8 @@ namespace Microsoft.CST.OpenSource.Shared
                     allVersions.Add(new Version(version.Name));
                 }
             }
-            catch (KeyNotFoundException) { return default; }
-            catch (InvalidOperationException) { return default; }
+            catch (KeyNotFoundException) { return null; }
+            catch (InvalidOperationException) { return null; }
 
             return allVersions;
         }
@@ -234,14 +237,14 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="contentJSON"></param>
         /// <returns></returns>
-        public JsonElement GetLatestVersionElement(JsonDocument contentJSON)
+        public JsonElement? GetLatestVersionElement(JsonDocument contentJSON)
         {
             List<Version> versions = GetVersions(contentJSON);
             Version maxVersion = versions.Max();
             return GetVersionElement(contentJSON, maxVersion);
         }
 
-        public JsonElement GetVersionElement(JsonDocument contentJSON, Version version)
+        public JsonElement? GetVersionElement(JsonDocument contentJSON, Version version)
         {
             JsonElement root = contentJSON.RootElement;
 
@@ -256,10 +259,10 @@ namespace Microsoft.CST.OpenSource.Shared
                     }
                 }
             }
-            catch (KeyNotFoundException) { return default; }
-            catch (InvalidOperationException) { return default; }
+            catch (KeyNotFoundException) { return null; }
+            catch (InvalidOperationException) { return null; }
 
-            return default;
+            return null;
         }
     }
 }

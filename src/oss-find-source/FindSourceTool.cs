@@ -85,7 +85,7 @@ namespace Microsoft.CST.OpenSource
 
             var repositoryMap = new Dictionary<PackageURL, double>();
             
-            if (purl == default)
+            if (purl == null)
             {
                 Logger.Warn("FindSource was passed an invalid purl.");
                 return repositoryMap;

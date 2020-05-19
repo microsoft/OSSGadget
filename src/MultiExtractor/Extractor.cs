@@ -209,9 +209,12 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             {
                 foreach (var result in ExtractFile(fileEntry, parallel))
                 {
+                    GovernorStopwatch.Stop();
                     yield return result;
+                    GovernorStopwatch.Start();
                 }
             }
+            GovernorStopwatch.Stop();
         }
 
         /// <summary>

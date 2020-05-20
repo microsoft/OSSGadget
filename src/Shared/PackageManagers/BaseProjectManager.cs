@@ -176,7 +176,7 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 if (neverThrow)
                 {
-                    return default;
+                    return null;
                 }
                 else
                 {
@@ -325,7 +325,7 @@ namespace Microsoft.CST.OpenSource.Shared
                         var verResult = method(version);
                         // Make sure the method doesn't mangle the version
                         // This is due to System.Version normalizalizing "0.01" to "0.1".
-                        if (verResult != default && verResult.ToString().Equals(version))
+                        if (verResult != null && verResult.ToString().Equals(version))
                         {
                             objList.Add(verResult);
                         }
@@ -412,7 +412,7 @@ namespace Microsoft.CST.OpenSource.Shared
             Logger.Trace("ExtractRankedSourceRepositories({0})", purl);
             var sourceRepositoryMap = new Dictionary<PackageURL, double>();
 
-            if (purl == default || string.IsNullOrWhiteSpace(rawMetadataString))
+            if (purl == null || string.IsNullOrWhiteSpace(rawMetadataString))
             {
                 return sourceRepositoryMap;   // Empty
             }
@@ -420,7 +420,7 @@ namespace Microsoft.CST.OpenSource.Shared
             // Simple regular expression, looking for GitHub URLs
             // TODO: Expand this to Bitbucket, GitLab, etc.
             var sourceUrls = GitHubProjectManager.ExtractGitHubUris(purl, rawMetadataString);
-            if (sourceUrls != default && sourceUrls.Any())
+            if (sourceUrls != null && sourceUrls.Any())
             {
                 var baseScore = 0.8;     // Max confidence: 0.80
                 var levenshtein = new NormalizedLevenshtein();

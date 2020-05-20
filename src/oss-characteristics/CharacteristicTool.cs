@@ -141,7 +141,7 @@ namespace Microsoft.CST.OpenSource
         {
             Logger.Trace("AnalyzeDirectory({0})", directory);
 
-            AnalyzeResult analysisResult = default;
+            AnalyzeResult analysisResult = null;
 
             // Call Application Inspector using the NuGet package
             var options = new AnalyzeOptions()

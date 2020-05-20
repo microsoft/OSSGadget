@@ -111,7 +111,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="TestData\zbsm.zip">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
     <None Update="TestData\zbxl.zip">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>

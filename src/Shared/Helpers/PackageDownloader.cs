@@ -83,7 +83,7 @@ namespace Microsoft.CST.OpenSource
             if (this.packageManager != null)
             {
                 // figure out which version we want to download
-                PackageURL vPurl = default;
+                PackageURL vPurl = null;
                 if (purl.Version == null)
                 {
                     var versions = await packageManager.EnumerateVersions(purl);
@@ -128,7 +128,7 @@ namespace Microsoft.CST.OpenSource
             bool metadataOnly,
             bool doExtract)
         {
-            if (purl == default)
+            if (purl == null)
             {
                 Logger.Warn("Invalid PackageURL (null)");
                 return new List<string>();
@@ -211,7 +211,7 @@ namespace Microsoft.CST.OpenSource
             if (metadataOnly)
             {
                 var metadata = await this.packageManager.GetMetadata(purl);
-                if (metadata != default)
+                if (metadata != null)
                 {
                     var outputFilename = Path.Combine(this.packageManager.TopLevelExtractionDirectory, $"metadata-{purl.ToStringFilename()}");
 

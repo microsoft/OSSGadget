@@ -51,10 +51,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ELFSharp" Version="2.9.0" />
+    <PackageReference Include="ELFSharp" Version="2.10.0" />
     <PackageReference Include="ICSharpCode.Decompiler" Version="6.0.0.5671-preview3" />
-    <PackageReference Include="Microsoft.CST.DevSkim" Version="0.4.132" />
-    <PackageReference Include="PeNet" Version="2.2.3" />
+    <PackageReference Include="Microsoft.CST.DevSkim" Version="0.4.136" />
+    <PackageReference Include="PeNet" Version="2.2.7" />
     <PackageReference Include="SharpDisasm" Version="1.1.11" />
     <PackageReference Include="WebAssembly" Version="0.8.0-preview" />
   </ItemGroup>

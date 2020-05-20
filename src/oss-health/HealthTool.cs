@@ -76,7 +76,6 @@ namespace Microsoft.CST.OpenSource
         
         public async Task<HealthMetrics> CheckHealth(PackageURL purl)
         {
-            var packageDownloader = new PackageDownloader(purl);
             var packageManager = ProjectManagerFactory.CreateProjectManager(purl, null);
 
             if (packageManager != null)

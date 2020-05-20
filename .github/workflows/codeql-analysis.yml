@@ -2,6 +2,8 @@ name: "Code Scanning - OSS Gadget"
 
 on:
   push:
+    paths:
+    - src/*
   schedule:
     - cron: '0 5 * * 2'
 

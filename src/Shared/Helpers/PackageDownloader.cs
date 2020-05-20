@@ -57,7 +57,7 @@ namespace Microsoft.CST.OpenSource
             this.destinationDirectory = string.IsNullOrEmpty(destinationDir) ? 
                 Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()) : destinationDir;
 
-            this.packageManager = this.GetPackageManager(purl, this.destinationDirectory);
+            this.packageManager = ProjectManagerFactory.CreateProjectManager(purl, this.destinationDirectory);
 
             this.PackageVersions = new List<PackageURL>();
             if (purl.Version == null || purl.Version.Equals("*"))
@@ -69,33 +69,6 @@ namespace Microsoft.CST.OpenSource
             {
                 this.PackageVersions.Add(purl);
             }
-        }
-
-        /// <summary>
-        /// Get the project manager for the package type
-        /// </summary>
-        /// <param name="purl"></param>
-        /// <returns>BaseProjectManager object</returns>
-        public BaseProjectManager GetPackageManager(PackageURL purl, string destinationDirectory)
-        {
-            // Use reflection to find the correct package management class
-            var downloaderClass = typeof(BaseProjectManager).Assembly.GetTypes()
-               .Where(type => type.IsSubclassOf(typeof(BaseProjectManager)))
-               .Where(type => type.Name.Equals($"{purl.Type}ProjectManager",
-                                               StringComparison.InvariantCultureIgnoreCase))
-               .FirstOrDefault();
-            if (downloaderClass != null)
-            {
-                var ctor = downloaderClass.GetConstructor(Array.Empty<Type>());
-                var _downloader = (BaseProjectManager)(ctor.Invoke(Array.Empty<object>()));
-
-                // TODO: find a better way to do this, preferably as constructor argument
-                _downloader.TopLevelExtractionDirectory = destinationDirectory;
-                return _downloader;
-            }
-            else { 
-                throw new ArgumentException(string.Format("Invalid Package URL type: {0}", purl?.Type));
-            }            
         }
 
         /// <summary>

@@ -24,6 +24,7 @@ using SharpCompress.Archives.Rar;
 using SharpCompress.Archives.SevenZip;
 using SharpCompress.Compressors.BZip2;
 using SharpCompress.Compressors.Xz;
+using System.Collections.Concurrent;
 
 namespace Microsoft.CST.OpenSource.MultiExtractor
 {
@@ -954,7 +955,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns>Extracted files</returns>
         private IEnumerable<FileEntry> ParallelExtractRarFile(FileEntry fileEntry)
         {
-            List<FileEntry> files = new List<FileEntry>();
+            ConcurrentStack<FileEntry> files = new ConcurrentStack<FileEntry>();
             RarArchive? rarArchive = null;
             List<RarArchiveEntry> entries = new List<RarArchiveEntry>();
             try
@@ -991,7 +992,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         }
                         else
                         {
-                            files.AddRange(ExtractFile(newFileEntry, true));
+                            files.PushRange(ExtractFile(newFileEntry, true).ToArray());
                         }
                     }
                     catch (Exception e)
@@ -1003,10 +1004,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
                 entries.RemoveRange(0, batchSize);
 
-                while (files.Count > 0)
+                while (files.TryPop(out FileEntry? result))
                 {
-                    yield return files[0];
-                    files.RemoveAt(0);
+                    if (result != null)
+                        yield return result;
                 }
             }
         }
@@ -1018,7 +1019,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns>Extracted files</returns>
         private IEnumerable<FileEntry> ParallelExtractZipFile(FileEntry fileEntry)
         {
-            List<FileEntry> files = new List<FileEntry>();
+            ConcurrentStack<FileEntry> files = new ConcurrentStack<FileEntry>();
 
             ZipFile? zipFile = null;
             try
@@ -1064,7 +1065,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                                 }
                                 else
                                 {
-                                    files.AddRange(ExtractFile(newFileEntry, true));
+                                    files.PushRange(ExtractFile(newFileEntry, true).ToArray());
                                 }
                             }
                             catch (Exception e) when (e is OverflowException)
@@ -1089,11 +1090,11 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
                     CheckResourceGovernor(0);
                     zipEntries.RemoveRange(0, batchSize);
-                    
-                    while (files.Count > 0)
+
+                    while (files.TryPop(out FileEntry? result))
                     {
-                        yield return files[0];
-                        files.RemoveAt(0);
+                        if (result != null)
+                            yield return result;
                     }
                 }
             }
@@ -1111,7 +1112,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         private IEnumerable<FileEntry> ParallelExtract7ZipFile(FileEntry fileEntry)
         {
             SevenZipArchive? sevenZipArchive = null;
-            List<FileEntry> files = new List<FileEntry>();
+            ConcurrentStack<FileEntry> files = new ConcurrentStack<FileEntry>();
             try
             {
                 sevenZipArchive = SevenZipArchive.Open(fileEntry.Content);
@@ -1143,7 +1144,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                                 }
                                 else
                                 {
-                                    files.AddRange(ExtractFile(newFileEntry, true));
+                                    files.PushRange(ExtractFile(newFileEntry, true).ToArray());
                                 }
                             }
                             catch (Exception e) when (e is OverflowException)
@@ -1169,10 +1170,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     CheckResourceGovernor(0);
                     entries.RemoveRange(0, batchSize);
 
-                    while (files.Count > 0)
+                    while (files.TryPop(out FileEntry? result))
                     {
-                        yield return files[0];
-                        files.RemoveAt(0);
+                        if (result != null)
+                            yield return result;
                     }
                 }
             }
@@ -1189,7 +1190,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns>Extracted files</returns>
         private IEnumerable<FileEntry> ParallelExtractDebFile(FileEntry fileEntry)
         {
-            List<FileEntry> files = new List<FileEntry>();
+            ConcurrentStack<FileEntry> files = new ConcurrentStack<FileEntry>();
             IEnumerable<FileEntry>? fileEntries = null;
             try
             {
@@ -1212,15 +1213,15 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
                     selectedEntries.AsParallel().ForAll(entry =>
                     {
-                        files.AddRange(ExtractFile(entry, true));
+                        files.PushRange(ExtractFile(entry, true).ToArray());
                     });
 
                     entries = entries.Skip(batchSize);
 
-                    while (files.Count > 0)
+                    while (files.TryPop(out FileEntry? result))
                     {
-                        yield return files[0];
-                        files.RemoveAt(0);
+                        if (result != null)
+                            yield return result;
                     }
                 }
             }
@@ -1237,7 +1238,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns>Extracted files</returns>
         private IEnumerable<FileEntry> ParallelExtractIsoFile(FileEntry fileEntry)
         {
-            List<FileEntry> files = new List<FileEntry>();
+            ConcurrentStack<FileEntry> files = new ConcurrentStack<FileEntry>();
 
             using CDReader cd = new CDReader(fileEntry.Content, true);
             var cdFiles = cd.GetFiles(cd.Root.FullName, "*.*", SearchOption.AllDirectories).ToList();
@@ -1265,15 +1266,15 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 {
                     var newFileEntry = new FileEntry(cdFile.Item1.Name, cdFile.Item2, fileEntry);
                     var entries = ExtractFile(newFileEntry, true);
-                    files.AddRange(entries);
+                    files.PushRange(entries.ToArray());
                 });
 
                 cdFiles.RemoveRange(0, batchSize);
 
-                while (files.Count > 0)
+                while (files.TryPop(out FileEntry? result))
                 {
-                    yield return files[0];
-                    files.RemoveAt(0);
+                    if (result != null)
+                        yield return result;
                 }
             }
         }
@@ -1292,7 +1293,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 var diskFiles = fs.GetFiles(fs.Root.FullName, "*.*", SearchOption.AllDirectories).ToList();
                 if (parallel)
                 {
-                    List<FileEntry> files = new List<FileEntry>();
+                    ConcurrentStack<FileEntry> files = new ConcurrentStack<FileEntry>();
 
                     while (diskFiles.Any())
                     {
@@ -1322,15 +1323,15 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             {
                                 var newFileEntry = new FileEntry($"{volume.Identity}\\{file.Item1.FullName}", file.Item2, parent);
                                 var entries = ExtractFile(newFileEntry, true);
-                                files.AddRange(entries);
+                                files.PushRange(entries.ToArray());
                             }
                         });
                         diskFiles.RemoveRange(0, batchSize);
 
-                        while (files.Count > 0)
+                        while (files.TryPop(out FileEntry? result))
                         {
-                            yield return files[0];
-                            files.RemoveAt(0);
+                            if (result != null)
+                                yield return result;
                         }
                     }
                 }
@@ -1370,7 +1371,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// <returns></returns>
         private IEnumerable<FileEntry> ParallelExtractWimFile(FileEntry fileEntry)
         {
-            List<FileEntry> files = new List<FileEntry>();
+            ConcurrentStack<FileEntry> files = new ConcurrentStack<FileEntry>();
 
             DiscUtils.Wim.WimFile baseFile = new DiscUtils.Wim.WimFile(fileEntry.Content);
             for (int i = 0; i < baseFile.ImageCount; i++)
@@ -1399,14 +1400,14 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     {
                         var newFileEntry = new FileEntry($"{image.FriendlyName}\\{file.Item1.FullName}", file.Item2, fileEntry);
                         var entries = ExtractFile(newFileEntry, true);
-                        files.AddRange(entries);
+                        files.PushRange(entries.ToArray());
                     });
                     fileList.RemoveRange(0, batchSize);
 
-                    while (files.Count > 0)
+                    while (files.TryPop(out FileEntry? result))
                     {
-                        yield return files[0];
-                        files.RemoveAt(0);
+                        if (result != null)
+                            yield return result;
                     }
                 }
             }

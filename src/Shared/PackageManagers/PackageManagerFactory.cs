@@ -35,10 +35,8 @@ namespace Microsoft.CST.OpenSource.Shared
                 _downloader.TopLevelExtractionDirectory = destinationDirectory;
                 return _downloader;
             }
-            else
-            {
-                throw new ArgumentException(string.Format("Invalid Package URL type: {0}", purl?.Type));
-            }
+
+            return null;
         }
     }
 }

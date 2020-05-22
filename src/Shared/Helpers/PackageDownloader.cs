@@ -58,7 +58,11 @@ namespace Microsoft.CST.OpenSource
                 Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()) : destinationDir;
 
             this.packageManager = ProjectManagerFactory.CreateProjectManager(purl, this.destinationDirectory);
-
+            if(this.packageManager == null)
+            {
+                // Cannot continue without package manager
+                throw new ArgumentException("Invalid Package URL type: {0}", purl.Type);
+            }
             this.PackageVersions = new List<PackageURL>();
             if (purl.Version == null || purl.Version.Equals("*"))
             {

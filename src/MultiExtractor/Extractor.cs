@@ -411,7 +411,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             else
             {
-                return fileEntry;
+                yield return fileEntry;
             }
         }
 

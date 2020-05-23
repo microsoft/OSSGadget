@@ -60,7 +60,7 @@ namespace Microsoft.CST.OpenSource
             // Use reflection to find the correct downloader class
             var projectManager = ProjectManagerFactory.CreateProjectManager(purl, null);
 
-            if (projectManager != default)
+            if (projectManager != null)
             {
 
                 repoMappings = await projectManager.IdentifySourceRepository(purl);

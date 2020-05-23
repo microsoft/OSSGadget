@@ -381,14 +381,34 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         private IEnumerable<FileEntry> ExtractVMDKFile(FileEntry fileEntry, bool parallel)
         {
             using var disk = new DiscUtils.Vmdk.Disk(fileEntry.Content, Ownership.None);
+            return DumpDisk(disk, fileEntry, parallel);
+        }
+
+        private IEnumerable<FileEntry> DumpDisk(VirtualDisk disk, FileEntry fileEntry, bool parallel)
+        {
             var manager = new VolumeManager(disk);
-            var logicalVolumes = manager.GetLogicalVolumes();
-            foreach (var volume in logicalVolumes)
+            LogicalVolumeInfo[]? logicalVolumes = null;
+            try
             {
-                foreach (var entry in DumpLogicalVolume(volume, fileEntry.FullPath, parallel, fileEntry))
+                logicalVolumes = manager.GetLogicalVolumes();
+            }
+            catch (Exception e)
+            {
+                Logger.Debug("Error reading {0} disk at {1} ({2}:{3})", disk.GetType(), fileEntry.FullPath, e.GetType(), e.Message);
+            }
+            if (logicalVolumes != null)
+            {
+                foreach (var volume in logicalVolumes)
                 {
-                    yield return entry;
+                    foreach (var entry in DumpLogicalVolume(volume, fileEntry.FullPath, parallel, fileEntry))
+                    {
+                        yield return entry;
+                    }
                 }
+            }
+            else
+            {
+                yield return fileEntry;
             }
         }
 
@@ -400,15 +420,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         private IEnumerable<FileEntry> ExtractVHDXFile(FileEntry fileEntry, bool parallel)
         {
             using var disk = new DiscUtils.Vhdx.Disk(fileEntry.Content, Ownership.None);
-            var manager = new VolumeManager(disk);
-            var logicalVolumes = manager.GetLogicalVolumes();
-            foreach(var volume in logicalVolumes)
-            {
-                foreach(var entry in DumpLogicalVolume(volume, fileEntry.FullPath, parallel, fileEntry))
-                {
-                    yield return entry;
-                }
-            }
+            return DumpDisk(disk, fileEntry, parallel);
         }
 
         /// <summary>
@@ -419,15 +431,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         private IEnumerable<FileEntry> ExtractVHDFile(FileEntry fileEntry, bool parallel)
         {
             using var disk = new DiscUtils.Vhd.Disk(fileEntry.Content, Ownership.None);
-            var manager = new VolumeManager(disk);
-            var logicalVolumes = manager.GetLogicalVolumes();
-            foreach (var volume in logicalVolumes)
-            {
-                foreach (var entry in DumpLogicalVolume(volume, fileEntry.FullPath, parallel, fileEntry))
-                {
-                    yield return entry;
-                }
-            }
+            return DumpDisk(disk, fileEntry, parallel);
         }
 
         /// <summary>
@@ -1279,14 +1283,26 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         }
 
         /// <summary>
-        /// 
+        /// Enumerates over the FileEntries in the provided volume.
         /// </summary>
-        /// <param name="lvi"></param>
+        /// <param name="volume"></param>
+        /// <param name="parentPath"></param>
+        /// <param name="parallel"></param>
+        /// <param name="parent"></param>
         /// <returns></returns>
         private IEnumerable<FileEntry> DumpLogicalVolume(LogicalVolumeInfo volume, string parentPath, bool parallel, FileEntry? parent = null)
         {
-            var fsInfos = FileSystemManager.DetectFileSystems(volume);
-            foreach (var fsInfo in fsInfos)
+            DiscUtils.FileSystemInfo[]? fsInfos = null;
+            try
+            {
+                fsInfos = FileSystemManager.DetectFileSystems(volume);
+            }
+            catch(Exception e)
+            {
+                Logger.Debug("Failed to get file systems from logical volume {0} Image {1} ({2}:{3})", volume.Identity, parentPath, e.GetType(), e.Message);
+            }
+
+            foreach (var fsInfo in fsInfos ?? Array.Empty<DiscUtils.FileSystemInfo>())
             {
                 using var fs = fsInfo.Open(volume);
                 var diskFiles = fs.GetFiles(fs.Root.FullName, "*.*", SearchOption.AllDirectories).ToList();

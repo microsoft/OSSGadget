@@ -428,10 +428,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
         private IEnumerable<FileEntry> DumpDisk(VirtualDisk disk, FileEntry fileEntry, bool parallel)
         {
-            var manager = new VolumeManager(disk);
             LogicalVolumeInfo[]? logicalVolumes = null;
             try
             {
+                var manager = new VolumeManager(disk);
                 logicalVolumes = manager.GetLogicalVolumes();
             }
             catch (Exception e)

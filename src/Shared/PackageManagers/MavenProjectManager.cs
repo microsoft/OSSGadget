@@ -15,6 +15,10 @@ namespace Microsoft.CST.OpenSource.Shared
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_MAVEN_ENDPOINT = "https://repo1.maven.org/maven2";
 
+        public MavenProjectManager(string destinationDirectory) : base(destinationDirectory)
+        {
+        }
+
         /// <summary>
         /// Download one Maven package and extract it to the target directory.
         /// </summary>

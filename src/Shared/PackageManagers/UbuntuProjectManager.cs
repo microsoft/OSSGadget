@@ -21,6 +21,10 @@ namespace Microsoft.CST.OpenSource.Shared
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_UBUNTU_POOL_NAMES = "main,universe,multiverse,restricted";
 
+        public UbuntuProjectManager(string destinationDirectory) : base(destinationDirectory)
+        {
+        }
+
         /// <summary>
         /// Download one VS Marketplace package and extract it to the target directory.
         /// </summary>

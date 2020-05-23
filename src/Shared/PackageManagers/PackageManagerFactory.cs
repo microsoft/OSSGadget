@@ -28,15 +28,17 @@ namespace Microsoft.CST.OpenSource.Shared
                .FirstOrDefault();
             if (downloaderClass != null)
             {
-                var ctor = downloaderClass.GetConstructor(Array.Empty<Type>());
-                var _downloader = (BaseProjectManager)(ctor.Invoke(Array.Empty<object>()));
-
-                // TODO: find a better way to do this, preferably as constructor argument
-                _downloader.TopLevelExtractionDirectory = destinationDirectory;
+                var ctor = downloaderClass.GetConstructor(new Type[] { typeof(string) });
+                var _downloader = (BaseProjectManager)(ctor.Invoke(new object[] { destinationDirectory }));
                 return _downloader;
             }
 
             return null;
+        }
+
+        public static BaseProjectManager CreateBaseProjectManager(string destinationDirectory)
+        {
+            return new BaseProjectManager(destinationDirectory);
         }
     }
 }

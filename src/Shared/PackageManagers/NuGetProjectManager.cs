@@ -17,6 +17,10 @@ namespace Microsoft.CST.OpenSource.Shared
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         static string ENV_NUGET_HOMEPAGE = "https://www.nuget.org/packages";
 
+        public NuGetProjectManager(string destinationDirectory) : base(destinationDirectory)
+        {
+        }
+
         /// <summary>
         /// Download one NuGet package and extract it to the target directory.
         /// </summary>

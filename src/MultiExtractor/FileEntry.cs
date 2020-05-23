@@ -46,7 +46,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             if (passthroughStream && inputStream.CanSeek)
             {
                 Content = inputStream;
-                Content.Position = 0;
+                if (Content.Position != 0)
+                {
+                    Content.Position = 0;
+                }
             }
             else
             {
@@ -57,10 +60,13 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 if (inputStream.CanSeek)
                 {
                     initialPosition = inputStream.Position;
-                    inputStream.Position = 0;
+                    if (inputStream.Position != 0)
+                    {
+                        inputStream.Position = 0;
+                    }
                 }
                 inputStream.CopyTo(Content);
-                if (inputStream.CanSeek)
+                if (inputStream.CanSeek && inputStream.Position != 0)
                 {
                     inputStream.Position = initialPosition ?? 0;
                 }

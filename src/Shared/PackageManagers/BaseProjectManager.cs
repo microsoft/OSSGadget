@@ -91,10 +91,11 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <summary>
         /// Initializes a new project management object.
         /// </summary>
-        public BaseProjectManager()
+        public BaseProjectManager(string destinationDirectory)
         {
             this.Options = new Dictionary<string, object>();
             CommonInitialization.OverrideEnvironmentVariables(this);
+            this.TopLevelExtractionDirectory = destinationDirectory;
             WebClient = CommonInitialization.WebClient;
         }
 

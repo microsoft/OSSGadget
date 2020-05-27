@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using NLog.Fluent;
 using System;
 using System.IO;
 
@@ -8,6 +9,8 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 {
     public class FileEntry
     {
+        private readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
         /// <summary>
         /// Constructs a FileEntry object from a Stream.  
         /// If passthroughStream is set to true, and the stream is seekable, it will directly use inputStream.
@@ -42,6 +45,11 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 throw new ArgumentNullException(nameof(inputStream));
             }
 
+            if (!inputStream.CanRead)
+            {
+                Content = new MemoryStream();
+            }
+
             // We want to be able to seek, so ensure any passthrough stream is Seekable
             if (passthroughStream && inputStream.CanSeek)
             {
@@ -65,7 +73,16 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         inputStream.Position = 0;
                     }
                 }
-                inputStream.CopyTo(Content);
+
+                try
+                {
+                    inputStream.CopyTo(Content);
+                }
+                catch(Exception e)
+                {
+                    Logger.Debug("Failed to copy stream from {0} ({1}:{2})", FullPath, e.GetType(), e.Message);
+                }
+
                 if (inputStream.CanSeek && inputStream.Position != 0)
                 {
                     inputStream.Position = initialPosition ?? 0;

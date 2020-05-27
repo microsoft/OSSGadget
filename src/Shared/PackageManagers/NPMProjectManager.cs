@@ -57,6 +57,10 @@ namespace Microsoft.CST.OpenSource.Shared
 
         public static string ENV_NPM_ENDPOINT = "https://registry.npmjs.org";
 
+        public NPMProjectManager(string destinationDirectory) : base(destinationDirectory)
+        {
+        }
+
         /// <summary>
         /// Download one NPM package and extract it to the target directory.
         /// </summary>

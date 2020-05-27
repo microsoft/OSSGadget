@@ -127,7 +127,7 @@ namespace Microsoft.CST.OpenSource
                         Options["download-metadata-only"] = true;
                         break;
                     
-                    case "--directory":
+                    case "--download-directory":
                         Options["download-directory"] = args[++i];
                         break;
                     

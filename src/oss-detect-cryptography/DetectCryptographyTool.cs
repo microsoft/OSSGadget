@@ -93,10 +93,7 @@ namespace Microsoft.CST.OpenSource
                             {
                                 targetDirectoryName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                             }
-                            var projectManager = new BaseProjectManager()
-                            {
-                                TopLevelExtractionDirectory = targetDirectoryName
-                            };
+                            var projectManager = ProjectManagerFactory.CreateBaseProjectManager(targetDirectoryName);
                             
                             #pragma warning disable SCS0018 // Path traversal: injection possible in {1} argument passed to '{0}'
                             var path = await projectManager.ExtractArchive("temp", File.ReadAllBytes(target));

@@ -76,16 +76,15 @@ namespace Microsoft.CST.OpenSource
         
         public async Task<HealthMetrics> CheckHealth(PackageURL purl)
         {
-            var packageDownloader = new PackageDownloader(purl);
-            var packageManager = packageDownloader.GetPackageManager(purl, null);
+            var packageManager = ProjectManagerFactory.CreateProjectManager(purl, null);
 
             if (packageManager != null)
             {
                 var content = await packageManager.GetMetadata(purl);
                 if (!string.IsNullOrWhiteSpace(content))
                 {
-                    // TODO: Move to the new oss-find-source algorithm
-                    foreach (var githubPurl in BaseProjectManager.ExtractGitHubPackageURLs(content))
+                    RepoSearch repoSearcher = new RepoSearch();
+                    foreach (var (githubPurl, _) in await repoSearcher.ResolvePackageLibraryAsync(purl))
                     {
                         try
                         {

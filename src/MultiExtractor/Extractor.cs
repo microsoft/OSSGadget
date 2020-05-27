@@ -1242,7 +1242,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     {
                         int batchSize = Math.Min(MAX_BATCH_SIZE, diskFiles.Count);
                         var range = diskFiles.GetRange(0, batchSize);
-                        var fileinfos = new List<(DiscFileInfo,Stream)>();
+                        var fileinfos = new List<(DiscFileInfo, Stream)>();
                         long totalLength = 0;
                         foreach (var r in range)
                         {
@@ -1250,7 +1250,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                             {
                                 var fi = fs.GetFileInfo(r);
                                 totalLength += fi.Length;
-                                fileinfos.Add((fi,fi.OpenRead()));
+                                fileinfos.Add((fi, fi.OpenRead()));
                             }
                             catch (Exception e)
                             {
@@ -1305,6 +1305,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
                 }
             }
+            
         }
 
         /// <summary>

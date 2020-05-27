@@ -70,7 +70,7 @@ stages:
       displayName: Dotnet Publish Linux x64
       inputs:
         command: 'publish'
-        arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)/linux/OSSGadget_$(ReleaseVersion) -r linux-x64 /p:DebugType=None'
+        arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)/linux/OSSGadget_$(ReleaseVersion) -r linux-x64'
         publishWebProjects: false
         zipAfterPublish: false
         workingDirectory: $(SolutionDirectory)
@@ -78,7 +78,7 @@ stages:
       displayName: Dotnet Publish MacOS x64
       inputs:
         command: 'publish'
-        arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)/macos/OSSGadget_$(ReleaseVersion) -r osx-x64 /p:DebugType=None'
+        arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)/macos/OSSGadget_$(ReleaseVersion) -r osx-x64'
         publishWebProjects: false
         zipAfterPublish: false
         workingDirectory: $(SolutionDirectory)
@@ -128,7 +128,7 @@ stages:
       displayName: Dotnet Publish Windows x64
       inputs:
         command: 'publish'
-        arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)\win-x64\OSSGadget_$(ReleaseVersion) -r win-x64 /p:DebugType=None'
+        arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)\win-x64\OSSGadget_$(ReleaseVersion) -r win-x64'
         publishWebProjects: false
         zipAfterPublish: false
         workingDirectory: $(SolutionDirectory)
@@ -136,7 +136,7 @@ stages:
       displayName: Dotnet Build .NET Core App
       inputs:
         command: 'build'
-        arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)\netcoreapp\OSSGadget_$(ReleaseVersion) /p:DebugType=None'
+        arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)\netcoreapp\OSSGadget_$(ReleaseVersion)'
         publishWebProjects: false
         zipAfterPublish: false
         workingDirectory: $(SolutionDirectory)
@@ -466,6 +466,7 @@ stages:
         targetPath: '$(Build.StagingDirectory)'
         artifact: 'Signed_Binaries'
     - task: GitHubRelease@1
+      displayName: Release to GitHub
       inputs:
         gitHubConnection: 'OSSGadget'
         repositoryName: 'microsoft/OSSGadget'
@@ -480,10 +481,18 @@ stages:
         changeLogCompareToRelease: 'lastNonDraftRelease'
         changeLogType: 'commitBased'
     - task: NuGetCommand@2
-      enabled: false
+      displayName: Publish NuGet Packages
       inputs:
         command: 'push'
-        packagesToPush: '$(Build.StagingDirectory)/*.nupkg, $(Build.StagingDirectory)/*.snupkg'
+        packagesToPush: '$(Build.StagingDirectory)/*.nupkg'
+        nuGetFeedType: 'external'
+        publishFeedCredentials: 'CST-E Nuget CI'
+        verbosityPush: 'Normal'
+    - task: NuGetCommand@2
+      displayName: Publish NuGet Symbols
+      inputs:
+        command: 'push'
+        packagesToPush: '$(Build.StagingDirectory)/*.snupkg'
         nuGetFeedType: 'external'
         publishFeedCredentials: 'CST-E Nuget CI'
         verbosityPush: 'Normal'

@@ -141,21 +141,12 @@ stages:
         zipAfterPublish: false
         workingDirectory: $(SolutionDirectory)
     - task: DotNetCoreCLI@2
-      displayName: Pack Nupkg (Lib)
-      enabled: false
+      displayName: Pack MultiExtractor Nupkg (Lib)
       inputs:
         command: 'custom'
         custom: 'pack'
-        arguments: ''
-        workingDirectory: $(SolutionDirectory)
-    - task: DotNetCoreCLI@2
-      displayName: Pack Nupkg (Dotnet Tool)
-      enabled: false
-      inputs:
-        command: 'custom'
-        custom: 'pack'
-        arguments: ''
-        workingDirectory: $(SolutionDirectory)
+        arguments: '-c Release -o $(Build.BinariesDirectory)\nuget\MultiExtractor_$(ReleaseVersion)'
+        workingDirectory: '$(SolutionDirectory)\MultiExtractor'
     - task: AntiMalware@3
       displayName: Anti-Malware Scan
       inputs:
@@ -185,7 +176,6 @@ stages:
         replaceExistingArchive: true
     - task: ArchiveFiles@2
       displayName: Archive Artifact - Nupkg
-      enabled: false
       inputs:
         rootFolderOrFile: '$(Build.BinariesDirectory)\nuget'
         includeRootFolder: true
@@ -391,11 +381,10 @@ stages:
         MaxRetryAttempts: '5'
     - task: EsrpCodeSigning@1
       displayName: Code Sign Nuget Packages
-      enabled: false
       inputs:
         ConnectedServiceName: 'OSSGadget_CodeSign'
-        FolderPath: '$(Build.BinariesDirectory)/nuget/OSSGadget_$(ReleaseVersion)'
-        Pattern: '*.nupkg'
+        FolderPath: '$(Build.BinariesDirectory)/nuget/MultiExtractor_$(ReleaseVersion)'
+        Pattern: '*.nupkg, *.snupkg'
         signConfigType: 'inlineSignParams'
         inlineOperation: |
           [
@@ -463,10 +452,14 @@ stages:
           }
     - task: PowerShell@2
       displayName: Move Nuget Packages
-      enabled: false
       inputs:
         targetType: 'inline'
-        script: 'mv $env:BUILD_BINARIESDIRECTORY/nuget/OSSGadget_$(ReleaseVersion)/*.nupkg $env:BUILD_STAGINGDIRECTORY/'
+        script: 'mv $env:BUILD_BINARIESDIRECTORY/nuget/MultiExtractor_$(ReleaseVersion)/*.nupkg $env:BUILD_STAGINGDIRECTORY/'
+    - task: PowerShell@2
+      displayName: Move Nuget Symbols
+      inputs:
+        targetType: 'inline'
+        script: 'mv $env:BUILD_BINARIESDIRECTORY/nuget/MultiExtractor_$(ReleaseVersion)/*.snupkg $env:BUILD_STAGINGDIRECTORY/'
     - task: PublishPipelineArtifact@1
       displayName: Publish Signed Artifacts to Pipeline
       inputs:
@@ -490,7 +483,7 @@ stages:
       enabled: false
       inputs:
         command: 'push'
-        packagesToPush: '$(Build.StagingDirectory)/*.nupkg'
+        packagesToPush: '$(Build.StagingDirectory)/*.nupkg, $(Build.StagingDirectory)/*.snupkg'
         nuGetFeedType: 'external'
         publishFeedCredentials: 'CST-E Nuget CI'
         verbosityPush: 'Normal'

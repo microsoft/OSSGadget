@@ -45,8 +45,8 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("Shared.iso", true)]
         [DataRow("Shared.vhd", false, 29)] // 26 + Some invisible system files
         [DataRow("Shared.vhd", true, 29)]
-        [DataRow("Shared.vhdx", false)]
-        [DataRow("Shared.vhdx", true)]
+        //[DataRow("Shared.vhdx", false)]
+        //[DataRow("Shared.vhdx", true)]
         [DataRow("Shared.wim", false)]
         [DataRow("Shared.wim", true)]
         [DataRow("Empty.vmdk", false, 0)]

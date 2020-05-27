@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "oss-health", "oss-health\os
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "oss-characteristic", "oss-characteristics\oss-characteristic.csproj", "{5031D8F3-6D61-4939-BE91-A85C716D55E5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "oss-find-source", "oss-find-source\oss-find-source.csproj", "{C88C1268-872C-4E84-99C9-861B3B13CEA6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "oss-find-source", "oss-find-source\oss-find-source.csproj", "{C88C1268-872C-4E84-99C9-861B3B13CEA6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{057F3869-D776-4404-BB77-444ADF4CFDD6}"
 	ProjectSection(SolutionItems) = preProject
@@ -28,7 +28,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "oss-detect-cryptography", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "oss-risk-calculator", "oss-risk-calculator\oss-risk-calculator.csproj", "{84189BD7-D6F4-4E84-83A8-4FA1B811CDDD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared.MultiExtractor", "MultiExtractor\Shared.MultiExtractor.csproj", "{AB7A75CB-6FD8-4854-A6EE-0470867CACBB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared.MultiExtractor", "MultiExtractor\Shared.MultiExtractor.csproj", "{AB7A75CB-6FD8-4854-A6EE-0470867CACBB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -67,7 +67,6 @@ Global
 		{501992E3-6026-40C3-9E36-139C8130FF41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{501992E3-6026-40C3-9E36-139C8130FF41}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{501992E3-6026-40C3-9E36-139C8130FF41}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{501992E3-6026-40C3-9E36-139C8130FF41}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CD18B51D-21B0-4E1F-B0A2-F41E80D3BBDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CD18B51D-21B0-4E1F-B0A2-F41E80D3BBDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CD18B51D-21B0-4E1F-B0A2-F41E80D3BBDD}.Release|Any CPU.ActiveCfg = Release|Any CPU

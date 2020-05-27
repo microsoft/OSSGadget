@@ -20,6 +20,8 @@
     <PackageProjectUrl>https://github.com/microsoft/OSSGadget</PackageProjectUrl>
     <PackageIcon>icon-128.png</PackageIcon>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>

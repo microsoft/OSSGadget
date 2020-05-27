@@ -423,11 +423,6 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         private IEnumerable<FileEntry> ExtractVMDKFile(FileEntry fileEntry, bool parallel)
         {
             using var disk = new DiscUtils.Vmdk.Disk(fileEntry.Content, Ownership.None);
-            return DumpDisk(disk, fileEntry, parallel);
-        }
-
-        private IEnumerable<FileEntry> DumpDisk(VirtualDisk disk, FileEntry fileEntry, bool parallel)
-        {
             LogicalVolumeInfo[]? logicalVolumes = null;
             try
             {
@@ -462,7 +457,30 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         private IEnumerable<FileEntry> ExtractVHDXFile(FileEntry fileEntry, bool parallel)
         {
             using var disk = new DiscUtils.Vhdx.Disk(fileEntry.Content, Ownership.None);
-            return DumpDisk(disk, fileEntry, parallel);
+            LogicalVolumeInfo[]? logicalVolumes = null;
+            try
+            {
+                var manager = new VolumeManager(disk);
+                logicalVolumes = manager.GetLogicalVolumes();
+            }
+            catch (Exception e)
+            {
+                Logger.Debug("Error reading {0} disk at {1} ({2}:{3})", disk.GetType(), fileEntry.FullPath, e.GetType(), e.Message);
+            }
+            if (logicalVolumes != null)
+            {
+                foreach (var volume in logicalVolumes)
+                {
+                    foreach (var entry in DumpLogicalVolume(volume, fileEntry.FullPath, parallel, fileEntry))
+                    {
+                        yield return entry;
+                    }
+                }
+            }
+            else
+            {
+                yield return fileEntry;
+            }
         }
 
         /// <summary>
@@ -473,7 +491,30 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         private IEnumerable<FileEntry> ExtractVHDFile(FileEntry fileEntry, bool parallel)
         {
             using var disk = new DiscUtils.Vhd.Disk(fileEntry.Content, Ownership.None);
-            return DumpDisk(disk, fileEntry, parallel);
+            LogicalVolumeInfo[]? logicalVolumes = null;
+            try
+            {
+                var manager = new VolumeManager(disk);
+                logicalVolumes = manager.GetLogicalVolumes();
+            }
+            catch (Exception e)
+            {
+                Logger.Debug("Error reading {0} disk at {1} ({2}:{3})", disk.GetType(), fileEntry.FullPath, e.GetType(), e.Message);
+            }
+            if (logicalVolumes != null)
+            {
+                foreach (var volume in logicalVolumes)
+                {
+                    foreach (var entry in DumpLogicalVolume(volume, fileEntry.FullPath, parallel, fileEntry))
+                    {
+                        yield return entry;
+                    }
+                }
+            }
+            else
+            {
+                yield return fileEntry;
+            }
         }
 
         /// <summary>

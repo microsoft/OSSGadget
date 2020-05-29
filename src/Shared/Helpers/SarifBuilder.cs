@@ -43,13 +43,10 @@ namespace Microsoft.CST.OpenSource.Shared
             return sarifLog;
         }
 
-        public void PrintSarifLog(List<Result> results)
+        public void PrintSarifLog(List<Result> results, StreamWriter writeStream)
         {
             SarifLog completedSarif = BuildSingleRunSarifLog(results);
-
-            var standardOutput = new StreamWriter(Console.OpenStandardOutput());
-            standardOutput.AutoFlush = true;
-            completedSarif.Save(standardOutput);
+            completedSarif.Save(writeStream);
 
         }
     }

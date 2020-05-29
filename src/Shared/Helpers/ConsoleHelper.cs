@@ -20,12 +20,22 @@ namespace Microsoft.CST.OpenSource.Shared
                 Console.SetOut(streamWriter);
             }
         }
+        public static StreamWriter GetCurrentWriteStream()
+        {
+            if(streamWriter != null)
+            {
+                return streamWriter;
+            }
+            else
+            {
+                return new StreamWriter(Console.OpenStandardOutput());
+            }
+        }
 
         public static void RestoreConsole()
         {
             if(streamWriter != null)
             {
-                streamWriter.Flush();
                 streamWriter.Close();
                 fileStream.Close();
 

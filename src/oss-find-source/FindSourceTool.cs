@@ -61,12 +61,17 @@ namespace Microsoft.CST.OpenSource
                         results.Sort((a, b) => (a.Value.CompareTo(b.Value)));
                         results.Reverse();
 
-                        if((string)findSourceTool.Options["format"] == "text") {
+                        string format = ((string)findSourceTool.Options["format"]).ToLower();
+                        if (format == "text") {
                             PrintText(results);
+                        }
+                        else if(format == "sarif")
+                        {
+                            PrintSarif(results);
                         }
                         else
                         {
-                            PrintSarif(results);
+                            Console.Error.WriteLine("Invalid format type");
                         }
                     }
                     catch (Exception ex)
@@ -123,7 +128,7 @@ namespace Microsoft.CST.OpenSource
             }
 
             SarifBuilder sarifBuilder = new SarifBuilder();
-            sarifBuilder.PrintSarifLog(sarifResults);
+            sarifBuilder.PrintSarifLog(sarifResults, ConsoleHelper.GetCurrentWriteStream());
         }
 
         public async Task<Dictionary<PackageURL, double>> FindSource(PackageURL purl)

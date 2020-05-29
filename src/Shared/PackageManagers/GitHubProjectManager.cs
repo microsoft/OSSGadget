@@ -38,10 +38,12 @@ namespace Microsoft.CST.OpenSource.Shared
             @"\/(?<repo>[\w-]+)\/?",
                 RegexOptions.Compiled);
 
-        private const string GITHUB_URL_FORMAT = "https://github.com/{0}/{1}";
-
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_GITHUB_ENDPOINT = "https://github.com";
+
+        public GitHubProjectManager(string destinationDirectory) : base(destinationDirectory)
+        {
+        }
 
         /// <summary>
         /// Download one GitHub package and extract it to the target directory.

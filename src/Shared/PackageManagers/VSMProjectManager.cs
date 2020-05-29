@@ -18,6 +18,10 @@ namespace Microsoft.CST.OpenSource.Shared
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_VS_MARKETPLACE_ENDPOINT = "https://marketplace.visualstudio.com";
 
+        public VSMProjectManager(string destinationDirectory) : base(destinationDirectory)
+        {
+        }
+
         /// <summary>
         /// Download one VS Marketplace package and extract it to the target directory.
         /// </summary>

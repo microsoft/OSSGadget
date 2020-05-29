@@ -14,6 +14,10 @@ namespace Microsoft.CST.OpenSource.Shared
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_COMPOSER_ENDPOINT = "https://repo.packagist.org";
 
+        public ComposerProjectManager(string destinationDirectory) : base(destinationDirectory)
+        {
+        }
+
         /// <summary>
         /// Download one Composer (PHP) package and extract it to the target directory.
         /// </summary>

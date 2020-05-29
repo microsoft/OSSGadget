@@ -126,6 +126,37 @@ namespace Microsoft.CST.OpenSource.Tests
             }, "Expected a FormatException but no exception was thrown.");
         }
 
+        [DataTestMethod]
+        [DataRow("pkg:blah/blah", null, 1)]
+        public async Task Invalid_Package_Test_Download(string purl, string targetFilename, int expectedCount)
+        {
+            try
+            {
+                await TestDownload(purl, targetFilename, expectedCount);
+            }
+            catch (ArgumentException)
+            {
+                return;
+            }
+            Assert.Fail("The right exception did not fire");
+        }
+
+        [DataTestMethod]
+        [DataRow("ckg:blah/blah", null, 1)]
+        public async Task Invalid_Purl_Test_Download(string purl, string targetFilename, int expectedCount)
+        {
+            try
+            {
+                await TestDownload(purl, targetFilename, expectedCount);
+            }
+            catch (FormatException)
+            {
+                return;
+            }
+            Assert.Fail("The right exception did not fire");
+        }
+
+
         private async Task TestDownload(string purl, string targetFilename, int expectedCount)
         {
             string tempDirectoryName = null;

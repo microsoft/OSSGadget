@@ -13,7 +13,7 @@
     <LangVersion>8.0</LangVersion>
     <Nullable>Enable</Nullable>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <Description>A recursive multi-format extractor.</Description>
+    <Description>MultiExtractor is a recursive extractor, able to process the following formats: ar, bzip2, deb, gzip, iso, tar, vhd, vhdx, vmdk, wim, xzip, and zip. MultiExtractor automatically detects the archive type and fails gracefully when attempting to process malformed content.</Description>
     <PackageId>Microsoft.CST.MultiExtractor</PackageId>
     <PackageTags>unzip extract extractor</PackageTags>
     <PackageVersion>0.0.0-placeholder</PackageVersion>

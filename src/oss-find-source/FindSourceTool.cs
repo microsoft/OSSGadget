@@ -107,16 +107,18 @@ namespace Microsoft.CST.OpenSource
             List<Result> sarifResults = new List<Result>();
             foreach (var result in results)
             {
+                var confidence = result.Value * 100.0;
                 Result sarifResult = new Result()
                 {
                     Message = new Message()
                     {
                         Text = $"https://github.com/{result.Key.Namespace}/{result.Key.Name}"
-                    }
+                    },
+                    Kind = ResultKind.Informational,
+                    Level = FailureLevel.None,
+                    Rank = confidence
                 };
 
-                var confidence = result.Value * 100.0;
-                sarifResult.SetProperty("confidence", confidence);
                 sarifResults.Add(sarifResult);
             }
 

@@ -7,13 +7,16 @@ namespace Microsoft.CST.OpenSource.Shared
 {
     public class ConsoleHelper
     {
-        private static StreamWriter streamWriter;
+        static StreamWriter streamWriter;
+        static FileStream fileStream;
 
         public static void RedirectConsole(string outFile)
         {
+            // switch Console Out to file
             if (!string.IsNullOrEmpty(outFile) && streamWriter == null)
             {
-                streamWriter = new StreamWriter(outFile);
+                fileStream = new FileStream(outFile, FileMode.OpenOrCreate, FileAccess.Write);
+                streamWriter = new StreamWriter(fileStream);
                 Console.SetOut(streamWriter);
             }
         }
@@ -24,7 +27,12 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 streamWriter.Flush();
                 streamWriter.Close();
+                fileStream.Close();
+
                 streamWriter.Dispose();
+                fileStream.Dispose();
+
+                // switch back to Console
                 var standardOutput = new StreamWriter(Console.OpenStandardOutput());
                 standardOutput.AutoFlush = true;
                 Console.SetOut(standardOutput);

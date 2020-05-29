@@ -42,7 +42,6 @@ namespace Microsoft.CST.OpenSource
         static void Main(string[] args)
         {
             var findSourceTool = new FindSourceTool();
-            Console.WriteLine((string)(findSourceTool.Options["sarif-file"]));
             Logger.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
             findSourceTool.ParseOptions(args);
 
@@ -53,8 +52,7 @@ namespace Microsoft.CST.OpenSource
                     try
                     {
                         var purl = new PackageURL(target);
-                        var results = findSourceTool.FindSource(purl)
-                            .Result.ToList();
+                        var results = findSourceTool.FindSource(purl).Result.ToList();
                         results.Sort((a, b) => (a.Value.CompareTo(b.Value)));
                         results.Reverse();
 

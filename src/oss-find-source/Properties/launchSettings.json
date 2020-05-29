@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "oss-find-source": {
-      "commandName": "Project",
-      "commandLineArgs": "--output-sarif-file e:\\temp\\sarif_results.txt pkg:cargo/rand"
-    }
-  }
-}

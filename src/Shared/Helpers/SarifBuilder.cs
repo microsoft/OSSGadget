@@ -16,8 +16,6 @@ namespace Microsoft.CST.OpenSource
 
         public SarifLog BuildSingleRunSarifLog(List<Result> results)
         {
-            Result result = new Result();
-
             Tool thisTool = new Tool
             {
                 Driver = new ToolComponent
@@ -30,15 +28,15 @@ namespace Microsoft.CST.OpenSource
                 }
             };
 
-            Run thisRun = new Run()
-            {
-                Tool = thisTool,
-                Results = results
-            };
-
             SarifLog sarifLog = new SarifLog()
             {
-                Runs = new List<Run>() { thisRun }
+                Runs = new List<Run>() {
+                    new Run()
+                        {
+                            Tool = thisTool,
+                            Results = results
+                        }
+                }
             };
 
             return sarifLog;

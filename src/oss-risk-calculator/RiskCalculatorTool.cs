@@ -119,7 +119,7 @@ namespace Microsoft.CST.OpenSource
             {
                 foreach (var tag in characteristics[charKey].Metadata.UniqueTags)
                 {
-                    isHighRisk |= highRiskTags.Any(t => tag.StartsWith(t));
+                    isHighRisk |= highRiskTags.Any(t => tag.Key.StartsWith(t));
                 }
             }
             if (isHighRisk)

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Microsoft.CST.OpenSource
+namespace Microsoft.CST.OpenSource.Shared
 {
     /// <summary>
     /// Find out the source code repository for a given package, by applying various algorithms.

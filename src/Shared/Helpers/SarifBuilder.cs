@@ -2,10 +2,11 @@
 using NLog;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Text;
 
-namespace Microsoft.CST.OpenSource
+namespace Microsoft.CST.OpenSource.Shared
 {
     public class SarifBuilder
     {
@@ -42,18 +43,14 @@ namespace Microsoft.CST.OpenSource
             return sarifLog;
         }
 
-        public void WriteSarifLog(List<Result> results, string filePath)
+        public void PrintSarifLog(List<Result> results)
         {
             SarifLog completedSarif = BuildSingleRunSarifLog(results);
-            Logger.Debug($"Writing sarif to file {filePath}");
-            try
-            {
-                completedSarif.Save(filePath);
-            }
-            catch(Exception ex)
-            {
-                Logger.Error($"Exception while saving sarif file {filePath}: {ex.ToString()}    ");
-            }
+
+            var standardOutput = new StreamWriter(Console.OpenStandardOutput());
+            standardOutput.AutoFlush = true;
+            completedSarif.Save(standardOutput);
+
         }
     }
 }

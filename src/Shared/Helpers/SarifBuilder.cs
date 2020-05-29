@@ -14,6 +14,12 @@ namespace Microsoft.CST.OpenSource.Shared
         /// Class logger
         /// </summary>
         protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+        string sarifVersion = "sarifv2";
+
+        public SarifBuilder(string sarifVersion)
+        {
+            this.sarifVersion = sarifVersion;
+        }
 
         public SarifLog BuildSingleRunSarifLog(List<Result> results)
         {
@@ -29,6 +35,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
             };
 
+            SarifVersion version = this.sarifVersion == "sarifv1" ? SarifVersion.OneZeroZero : SarifVersion.Current;
             SarifLog sarifLog = new SarifLog()
             {
                 Runs = new List<Run>() {
@@ -37,7 +44,8 @@ namespace Microsoft.CST.OpenSource.Shared
                             Tool = thisTool,
                             Results = results
                         }
-                }
+                },
+                Version = version
             };
 
             return sarifLog;

@@ -67,7 +67,7 @@ namespace Microsoft.CST.OpenSource.Tests
                 sarifResults.Add(sarifResult);
             }
 
-            SarifBuilder sarifBuilder = new SarifBuilder();
+            SarifBuilder sarifBuilder = new SarifBuilder("sarifv2");
             SarifLog sarif = sarifBuilder.BuildSingleRunSarifLog(sarifResults);
             Assert.IsNotNull(sarif);
             Assert.IsNotNull(sarif.Runs.FirstOrDefault().Tool.Driver.Name);

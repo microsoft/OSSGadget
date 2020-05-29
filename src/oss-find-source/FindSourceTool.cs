@@ -65,9 +65,9 @@ namespace Microsoft.CST.OpenSource
                         if (format == "text") {
                             PrintText(results);
                         }
-                        else if(format == "sarif")
+                        else if(format == "sarifv1" || format == "sarifv2")
                         {
-                            PrintSarif(results);
+                            PrintSarif(results, format);
                         }
                         else
                         {
@@ -107,7 +107,7 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        static void PrintSarif(List<KeyValuePair<PackageURL, double>> results)
+        static void PrintSarif(List<KeyValuePair<PackageURL, double>> results, string format)
         {
             List<Result> sarifResults = new List<Result>();
             foreach (var result in results)
@@ -127,7 +127,7 @@ namespace Microsoft.CST.OpenSource
                 sarifResults.Add(sarifResult);
             }
 
-            SarifBuilder sarifBuilder = new SarifBuilder();
+            SarifBuilder sarifBuilder = new SarifBuilder(format);
             sarifBuilder.PrintSarifLog(sarifResults, ConsoleHelper.GetCurrentWriteStream());
         }
 
@@ -244,7 +244,7 @@ positional arguments:
 optional arguments:
   --show-all                    show all possibilities of the package source repositories
                                  (default: show only the top result)
-  --format                      selct the output format (text|sarif). (default is text)
+  --format                      selct the output format (text|sarifv1|sarifv2). (default is text)
   --output-file                 send the command output to a file instead of stdout
   --help                        show this help message and exit
   --version                     show version of this tool

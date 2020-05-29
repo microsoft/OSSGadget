@@ -130,30 +130,20 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("pkg:blah/blah", null, 1)]
         public async Task Invalid_Package_Test_Download(string purl, string targetFilename, int expectedCount)
         {
-            try
+            await Assert.ThrowsExceptionAsync<ArgumentException>(async () =>
             {
                 await TestDownload(purl, targetFilename, expectedCount);
-            }
-            catch (ArgumentException)
-            {
-                return;
-            }
-            Assert.Fail("The right exception did not fire");
+            }, "Expected a ArgumentException but no exception was thrown.");
         }
 
         [DataTestMethod]
         [DataRow("ckg:blah/blah", null, 1)]
         public async Task Invalid_Purl_Test_Download(string purl, string targetFilename, int expectedCount)
         {
-            try
+            await Assert.ThrowsExceptionAsync<FormatException>(async () =>
             {
                 await TestDownload(purl, targetFilename, expectedCount);
-            }
-            catch (FormatException)
-            {
-                return;
-            }
-            Assert.Fail("The right exception did not fire");
+            }, "Expected a FormatException but no exception was thrown.");
         }
 
 

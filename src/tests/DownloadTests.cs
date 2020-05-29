@@ -109,7 +109,7 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         [DataTestMethod]
-        [DataRow("pkg:vsm/ms-vscode/PowerShell", "extension.vsixmanifest", 1)]
+        [DataRow("pkg:vsm/ms-vscode/PowerShell", "extension.vsixmanifest", 8)]
         public async Task VSM_Download_Version_Succeeds(string purl, string targetFilename, int expectedCount)
         {
             await TestDownload(purl, targetFilename, expectedCount);
@@ -120,45 +120,30 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow(null, null, 1)]
         public async Task Null_Test_Download(string purl, string targetFilename, int expectedCount)
         {
-            try
+            await Assert.ThrowsExceptionAsync<FormatException>(async () =>
             {
                 await TestDownload(purl, targetFilename, expectedCount);
-            }
-            catch(FormatException)
-            {
-                return;
-            }
-            Assert.Fail("The right exception did not fire");
+            }, "Expected a FormatException but no exception was thrown.");
         }
 
         [DataTestMethod]
         [DataRow("pkg:blah/blah", null, 1)]
         public async Task Invalid_Package_Test_Download(string purl, string targetFilename, int expectedCount)
         {
-            try
+            await Assert.ThrowsExceptionAsync<ArgumentException>(async () =>
             {
                 await TestDownload(purl, targetFilename, expectedCount);
-            }
-            catch (ArgumentException)
-            {
-                return;
-            }
-            Assert.Fail("The right exception did not fire");
+            }, "Expected a ArgumentException but no exception was thrown.");
         }
 
         [DataTestMethod]
         [DataRow("ckg:blah/blah", null, 1)]
         public async Task Invalid_Purl_Test_Download(string purl, string targetFilename, int expectedCount)
         {
-            try
+            await Assert.ThrowsExceptionAsync<FormatException>(async () =>
             {
                 await TestDownload(purl, targetFilename, expectedCount);
-            }
-            catch (FormatException)
-            {
-                return;
-            }
-            Assert.Fail("The right exception did not fire");
+            }, "Expected a FormatException but no exception was thrown.");
         }
 
 

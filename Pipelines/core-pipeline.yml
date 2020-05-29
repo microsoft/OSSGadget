@@ -70,7 +70,7 @@ stages:
       displayName: Dotnet Publish Linux x64
       inputs:
         command: 'publish'
-        arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)/linux/OSSGadget_$(ReleaseVersion) -r linux-x64 /p:DebugType=None'
+        arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)/linux/OSSGadget_$(ReleaseVersion) -r linux-x64'
         publishWebProjects: false
         zipAfterPublish: false
         workingDirectory: $(SolutionDirectory)
@@ -78,7 +78,7 @@ stages:
       displayName: Dotnet Publish MacOS x64
       inputs:
         command: 'publish'
-        arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)/macos/OSSGadget_$(ReleaseVersion) -r osx-x64 /p:DebugType=None'
+        arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)/macos/OSSGadget_$(ReleaseVersion) -r osx-x64'
         publishWebProjects: false
         zipAfterPublish: false
         workingDirectory: $(SolutionDirectory)
@@ -128,7 +128,7 @@ stages:
       displayName: Dotnet Publish Windows x64
       inputs:
         command: 'publish'
-        arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)\win-x64\OSSGadget_$(ReleaseVersion) -r win-x64 /p:DebugType=None'
+        arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)\win-x64\OSSGadget_$(ReleaseVersion) -r win-x64'
         publishWebProjects: false
         zipAfterPublish: false
         workingDirectory: $(SolutionDirectory)
@@ -136,26 +136,17 @@ stages:
       displayName: Dotnet Build .NET Core App
       inputs:
         command: 'build'
-        arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)\netcoreapp\OSSGadget_$(ReleaseVersion) /p:DebugType=None'
+        arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)\netcoreapp\OSSGadget_$(ReleaseVersion)'
         publishWebProjects: false
         zipAfterPublish: false
         workingDirectory: $(SolutionDirectory)
     - task: DotNetCoreCLI@2
-      displayName: Pack Nupkg (Lib)
-      enabled: false
+      displayName: Pack MultiExtractor Nupkg (Lib)
       inputs:
         command: 'custom'
         custom: 'pack'
-        arguments: ''
-        workingDirectory: $(SolutionDirectory)
-    - task: DotNetCoreCLI@2
-      displayName: Pack Nupkg (Dotnet Tool)
-      enabled: false
-      inputs:
-        command: 'custom'
-        custom: 'pack'
-        arguments: ''
-        workingDirectory: $(SolutionDirectory)
+        arguments: '-c Release -o $(Build.BinariesDirectory)\nuget\MultiExtractor_$(ReleaseVersion)'
+        workingDirectory: '$(SolutionDirectory)\MultiExtractor'
     - task: AntiMalware@3
       displayName: Anti-Malware Scan
       inputs:
@@ -185,7 +176,6 @@ stages:
         replaceExistingArchive: true
     - task: ArchiveFiles@2
       displayName: Archive Artifact - Nupkg
-      enabled: false
       inputs:
         rootFolderOrFile: '$(Build.BinariesDirectory)\nuget'
         includeRootFolder: true
@@ -391,11 +381,10 @@ stages:
         MaxRetryAttempts: '5'
     - task: EsrpCodeSigning@1
       displayName: Code Sign Nuget Packages
-      enabled: false
       inputs:
         ConnectedServiceName: 'OSSGadget_CodeSign'
-        FolderPath: '$(Build.BinariesDirectory)/nuget/OSSGadget_$(ReleaseVersion)'
-        Pattern: '*.nupkg'
+        FolderPath: '$(Build.BinariesDirectory)/nuget/MultiExtractor_$(ReleaseVersion)'
+        Pattern: '*.nupkg, *.snupkg'
         signConfigType: 'inlineSignParams'
         inlineOperation: |
           [
@@ -463,16 +452,21 @@ stages:
           }
     - task: PowerShell@2
       displayName: Move Nuget Packages
-      enabled: false
       inputs:
         targetType: 'inline'
-        script: 'mv $env:BUILD_BINARIESDIRECTORY/nuget/OSSGadget_$(ReleaseVersion)/*.nupkg $env:BUILD_STAGINGDIRECTORY/'
+        script: 'mv $env:BUILD_BINARIESDIRECTORY/nuget/MultiExtractor_$(ReleaseVersion)/*.nupkg $env:BUILD_STAGINGDIRECTORY/'
+    - task: PowerShell@2
+      displayName: Move Nuget Symbols
+      inputs:
+        targetType: 'inline'
+        script: 'mv $env:BUILD_BINARIESDIRECTORY/nuget/MultiExtractor_$(ReleaseVersion)/*.snupkg $env:BUILD_STAGINGDIRECTORY/'
     - task: PublishPipelineArtifact@1
       displayName: Publish Signed Artifacts to Pipeline
       inputs:
         targetPath: '$(Build.StagingDirectory)'
         artifact: 'Signed_Binaries'
     - task: GitHubRelease@1
+      displayName: Release to GitHub
       inputs:
         gitHubConnection: 'OSSGadget'
         repositoryName: 'microsoft/OSSGadget'
@@ -487,10 +481,19 @@ stages:
         changeLogCompareToRelease: 'lastNonDraftRelease'
         changeLogType: 'commitBased'
     - task: NuGetCommand@2
-      enabled: false
+      displayName: Publish NuGet Packages
       inputs:
         command: 'push'
         packagesToPush: '$(Build.StagingDirectory)/*.nupkg'
         nuGetFeedType: 'external'
         publishFeedCredentials: 'CST-E Nuget CI'
         verbosityPush: 'Normal'
+    - task: NuGetCommand@2
+      displayName: Publish NuGet Symbols
+      inputs:
+        command: 'push'
+        packagesToPush: '$(Build.StagingDirectory)/*.snupkg'
+        nuGetFeedType: 'external'
+        publishFeedCredentials: 'CST-E Nuget CI'
+        verbosityPush: 'Normal'
+        arguments: '-SkipDuplicate'

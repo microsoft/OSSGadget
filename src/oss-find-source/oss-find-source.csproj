@@ -29,4 +29,8 @@
     <Folder Include="Properties\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Sarif.Sdk" Version="2.2.5" />
+  </ItemGroup>
+
 </Project>

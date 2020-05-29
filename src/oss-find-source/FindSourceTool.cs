@@ -4,8 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Sarif;
 using Microsoft.CST.OpenSource.Shared;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.CST.OpenSource
 {
@@ -33,11 +36,13 @@ namespace Microsoft.CST.OpenSource
         {
             { "target", new List<string>() },
             { "show-all", false },
+            { "sarif-file", null }
         };
 
         static void Main(string[] args)
         {
             var findSourceTool = new FindSourceTool();
+            Console.WriteLine((string)(findSourceTool.Options["sarif-file"]));
             Logger.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
             findSourceTool.ParseOptions(args);
 
@@ -48,7 +53,8 @@ namespace Microsoft.CST.OpenSource
                     try
                     {
                         var purl = new PackageURL(target);
-                        var results = findSourceTool.FindSource(purl).Result.ToList();
+                        var results = findSourceTool.FindSource(purl)
+                            .Result.ToList();
                         results.Sort((a, b) => (a.Value.CompareTo(b.Value)));
                         results.Reverse();
 
@@ -58,6 +64,30 @@ namespace Microsoft.CST.OpenSource
                             Logger.Info($"{confidence:0.0}%\thttps://github.com/{result.Key.Namespace}/{result.Key.Name} ({result.Key})");
                         }
 
+                        // output to sarif file also
+                        string sarifFilePath = (string)findSourceTool.Options["sarif-file"];
+                        if (!string.IsNullOrEmpty(sarifFilePath))
+                        {
+                            List<Result> sarifResults = new List<Result>();
+                            foreach (var result in results)
+                            {
+                                var confidence = result.Value * 100.0;
+
+                                Result sarifResult = new Result()
+                                {
+                                    Message = new Message()
+                                    {
+                                        Text = $"https://github.com/{result.Key.Namespace}/{result.Key.Name}"
+                                    }
+                                };
+
+                                sarifResult.SetProperty("confidence", confidence);
+                                sarifResults.Add(sarifResult);
+                            }
+
+                            SarifBuilder sarifBuilder = new SarifBuilder();
+                            sarifBuilder.WriteSarifLog(sarifResults, sarifFilePath);
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -112,7 +142,7 @@ namespace Microsoft.CST.OpenSource
                     Logger.Warn("No repositories found for package {0}", purl);
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Logger.Warn(ex, "Error identifying source repository for {0}: {1}", purl, ex.Message);
             }
@@ -140,6 +170,10 @@ namespace Microsoft.CST.OpenSource
                     case "--help":
                         ShowUsage();
                         Environment.Exit(1);
+                        break;
+
+                    case "--output-sarif-file":
+                        Options["sarif-file"] = args[++i];
                         break;
 
                     case "--show-all":

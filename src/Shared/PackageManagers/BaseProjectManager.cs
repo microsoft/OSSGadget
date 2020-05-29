@@ -85,7 +85,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <returns></returns>
         protected virtual Task<Dictionary<PackageURL, double>> PackageMetadataSearch(PackageURL purl, string metadata)
         {
-            throw new NotImplementedException("BaseProjectManager does not implement PackageMetadataSearch.");
+            return Task.FromResult(new Dictionary<PackageURL, double>());
         }
 
         /// <summary>

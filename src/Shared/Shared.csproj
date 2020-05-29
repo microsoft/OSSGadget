@@ -25,6 +25,7 @@
     <PackageReference Include="NLog" Version="4.7.0" />
     <PackageReference Include="NLog.Schema" Version="4.7.0" />
     <PackageReference Include="NuGet.Versioning" Version="5.6.0" />
+    <PackageReference Include="Sarif.Sdk" Version="2.2.5" />
     <PackageReference Include="SemanticVersioning" Version="1.2.2" />
     <PackageReference Include="sharpcompress" Version="0.25.0" />
     <PackageReference Include="SharpZipLib" Version="1.2.0" />

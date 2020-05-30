@@ -14,7 +14,11 @@ namespace Microsoft.CST.OpenSource.Shared
         /// Class logger
         /// </summary>
         protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
-        string sarifVersion = "sarifv2";
+        const string SARIF_V1_STRING = "sarifv1";
+        const string SARIF_V2_STRING = "sarifv2";
+        const string TEXT_STRING = "text"; // no sarif, just text
+
+        readonly string sarifVersion = SARIF_V2_STRING; // default = v2
 
         public SarifBuilder(string sarifVersion)
         {
@@ -55,7 +59,16 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             SarifLog completedSarif = BuildSingleRunSarifLog(results);
             completedSarif.Save(writeStream);
+        }
 
+        public static bool isValidSarifVersion(string sarifVersion)
+        {
+            return (sarifVersion == SARIF_V1_STRING || sarifVersion == SARIF_V2_STRING);
+        }
+
+        public static bool isTextFormat(string textVersion)
+        {
+            return (textVersion == TEXT_STRING);
         }
     }
 }

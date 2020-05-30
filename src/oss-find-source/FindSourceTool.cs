@@ -58,14 +58,15 @@ namespace Microsoft.CST.OpenSource
                     {
                         var purl = new PackageURL(target);
                         var results = findSourceTool.FindSource(purl).Result.ToList();
-                        results.Sort((a, b) => (a.Value.CompareTo(b.Value)));
+                        results.Sort((a, b) => a.Value.CompareTo(b.Value));
                         results.Reverse();
 
+                        // select and print the output format
                         string format = ((string)findSourceTool.Options["format"]).ToLower();
-                        if (format == "text") {
+                        if (SarifBuilder.isTextFormat(format)) {
                             PrintText(results);
                         }
-                        else if(format == "sarifv1" || format == "sarifv2")
+                        else if(SarifBuilder.isValidSarifVersion(format))
                         {
                             PrintSarif(results, format);
                         }

@@ -109,7 +109,7 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         [DataTestMethod]
-        [DataRow("pkg:vsm/ms-vscode/PowerShell", "extension.vsixmanifest", 8)]
+        [DataRow("pkg:vsm/ms-vscode/PowerShell", "extension.vsixmanifest", 1)]
         public async Task VSM_Download_Version_Succeeds(string purl, string targetFilename, int expectedCount)
         {
             await TestDownload(purl, targetFilename, expectedCount);
@@ -127,7 +127,7 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         [DataTestMethod]
-        [DataRow("pkg:blah/blah", null, 1)]
+        [DataRow("pkg:invalid/invalid", "", 1)]
         public async Task Invalid_Package_Test_Download(string purl, string targetFilename, int expectedCount)
         {
             await Assert.ThrowsExceptionAsync<ArgumentException>(async () =>
@@ -137,7 +137,7 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         [DataTestMethod]
-        [DataRow("ckg:blah/blah", null, 1)]
+        [DataRow("ckg:invalid@invalid@invalid", "", 0)]
         public async Task Invalid_Purl_Test_Download(string purl, string targetFilename, int expectedCount)
         {
             await Assert.ThrowsExceptionAsync<FormatException>(async () =>
@@ -156,24 +156,34 @@ namespace Microsoft.CST.OpenSource.Tests
             }
 
             var packageUrl = new PackageURL(purl);
-            Assert.IsNotNull(packageUrl);
-
+            
             Directory.CreateDirectory(tempDirectoryName);
-            var downloadTool = new DownloadTool(); // do common initialization
-            PackageDownloader packageDownloader1 = await DownloadPackage(packageUrl, tempDirectoryName);
-            string dir = Directory.GetCurrentDirectory();
-            bool fileMatchPresent = Directory.EnumerateFiles(tempDirectoryName, targetFilename, SearchOption.AllDirectories).Any();
-            Assert.IsTrue(fileMatchPresent);
 
-            Assert.AreEqual(expectedCount, Directory.GetDirectories(tempDirectoryName).Count());
+            var downloadTool = new DownloadTool();
+            var packageDownloader = await DownloadPackage(packageUrl, tempDirectoryName);
+            var wereFilesDownloaded = Directory.EnumerateFiles(tempDirectoryName, targetFilename, SearchOption.AllDirectories).Any();
+            if (!wereFilesDownloaded)
+            {
+                throw new InternalTestFailureException("No files were downloaded.");
+            }
+
+            if (expectedCount != Directory.GetDirectories(tempDirectoryName).Count())
+            {
+                throw new InternalTestFailureException(string.Format("Directory count {0} does not match expected {1}", 
+                    Directory.GetDirectories(tempDirectoryName).Count(), expectedCount));
+            }
 
             // do that again with caching, this should not do anything since the cache already has the package
             await DownloadPackage(packageUrl, tempDirectoryName, true);
 
-            Assert.AreEqual(expectedCount, Directory.GetDirectories(tempDirectoryName).Count());
+            if (expectedCount != Directory.GetDirectories(tempDirectoryName).Count())
+            {
+                throw new InternalTestFailureException(string.Format("Directory count {0} does not match expected {1}",
+                    Directory.GetDirectories(tempDirectoryName).Count(), expectedCount));
+            }
 
             // one delete is enough, since its only a single cached copy
-            deleteTempDirs(packageDownloader1, tempDirectoryName);
+            deleteTempDirs(packageDownloader, tempDirectoryName);
         }
 
         /// <summary>
@@ -194,6 +204,10 @@ namespace Microsoft.CST.OpenSource.Tests
                     packageDownloader = new PackageDownloader(packageUrl, tempDirectoryName, doCache);
                     packageDownloader.DownloadPackageLocalCopy(packageUrl, false, true).Wait();
                     break;
+                }
+                catch(ArgumentException)
+                {
+                    throw;
                 }
                 catch (Exception)
                 {

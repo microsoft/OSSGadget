@@ -16,6 +16,7 @@ pr:
     - master
   paths:
     include:
+    - Pipelines
     - src/MultiExtractor
 
 stages:

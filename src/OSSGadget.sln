@@ -22,13 +22,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "oss-detect-backdoor", "oss-detect-backdoor\oss-detect-backdoor.csproj", "{4F3F5D54-9C66-4366-969B-35ACF18DC03F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "tests", "tests\tests.csproj", "{501992E3-6026-40C3-9E36-139C8130FF41}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "oss-tests", "tests\oss-tests.csproj", "{501992E3-6026-40C3-9E36-139C8130FF41}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "oss-detect-cryptography", "oss-detect-cryptography\oss-detect-cryptography.csproj", "{CD18B51D-21B0-4E1F-B0A2-F41E80D3BBDD}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "oss-risk-calculator", "oss-risk-calculator\oss-risk-calculator.csproj", "{84189BD7-D6F4-4E84-83A8-4FA1B811CDDD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared.MultiExtractor", "MultiExtractor\Shared.MultiExtractor.csproj", "{AB7A75CB-6FD8-4854-A6EE-0470867CACBB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MultiExtractor", "MultiExtractor\MultiExtractor.csproj", "{AB7A75CB-6FD8-4854-A6EE-0470867CACBB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MultiExtractor.Tests", "MultiExtractor.Tests\MultiExtractor.Tests.csproj", "{4811485D-2338-4DE5-8A02-428662CE14D4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -79,6 +81,10 @@ Global
 		{AB7A75CB-6FD8-4854-A6EE-0470867CACBB}.Debug|Any CPU.Build.0 = Release|Any CPU
 		{AB7A75CB-6FD8-4854-A6EE-0470867CACBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AB7A75CB-6FD8-4854-A6EE-0470867CACBB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4811485D-2338-4DE5-8A02-428662CE14D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4811485D-2338-4DE5-8A02-428662CE14D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4811485D-2338-4DE5-8A02-428662CE14D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4811485D-2338-4DE5-8A02-428662CE14D4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

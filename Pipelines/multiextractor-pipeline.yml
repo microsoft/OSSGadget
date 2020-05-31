@@ -38,13 +38,13 @@ stages:
       displayName: Dotnet Restore
       inputs:
         command: 'restore'
-        projects: 'src/tests/tests.csproj'
+        projects: 'src/MultiExtractor.Tests/MultiExtractor.Tests.csproj'
         verbosityRestore: 'Normal'
     - task: DotNetCoreCLI@2
       displayName: Dotnet Test
       inputs:
-        command: 'test --filter ClassName=Microsoft.CST.OpenSource.Tests.ExtractorTests'
-        projects: 'src/tests/tests.csproj'
+        command: 'test'
+        projects: 'src/MultiExtractor.Tests/MultiExtractor.Tests.csproj'
 
 - stage: Build
   jobs:

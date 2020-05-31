@@ -40,13 +40,13 @@ stages:
       displayName: Dotnet Restore
       inputs:
         command: 'restore'
-        projects: 'src/tests/tests.csproj'
+        projects: 'src/oss-tests/oss-tests.csproj'
         verbosityRestore: 'Normal'
     - task: DotNetCoreCLI@2
       displayName: Dotnet Test
       inputs:
-        command: 'test --filter ClassName=Microsoft.CST.OpenSource.Tests.DetectCryptographyTests.cs|ClassName=Microsoft.CST.OpenSource.Tests.DownloadTests.cs|ClassName=Microsoft.CST.OpenSource.Tests.FindSourceTests.cs|ClassName=Microsoft.CST.OpenSource.Tests.VersionTests.cs'
-        projects: 'src/tests/tests.csproj'
+        command: 'test'
+        projects: 'src/oss-tests/oss-tests.csproj'
 
 - stage: Build
   jobs:

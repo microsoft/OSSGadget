@@ -14,7 +14,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CST.ApplicationInspector.Commands" Version="1.2.24" />
+    <PackageReference Include="Microsoft.CST.ApplicationInspector.Commands" Version="1.2.26" />
   </ItemGroup>
 
   <ItemGroup>

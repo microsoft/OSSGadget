@@ -9,14 +9,16 @@ trigger:
     - master
   paths:
     include:
-    - src/*
+    - src/oss*
+    - src/Shared
 pr:
   branches:
     include:
     - master
   paths:
     include:
-    - src/*
+    - src/oss*
+    - src/Shared
 
 stages:
 - stage: Test
@@ -43,7 +45,7 @@ stages:
     - task: DotNetCoreCLI@2
       displayName: Dotnet Test
       inputs:
-        command: 'test'
+        command: 'test --filter ClassName=Microsoft.CST.OpenSource.Tests.DetectCryptographyTests.cs|ClassName=Microsoft.CST.OpenSource.Tests.DownloadTests.cs|ClassName=Microsoft.CST.OpenSource.Tests.FindSourceTests.cs|ClassName=Microsoft.CST.OpenSource.Tests.VersionTests.cs'
         projects: 'src/tests/tests.csproj'
 
 - stage: Build
@@ -140,13 +142,6 @@ stages:
         publishWebProjects: false
         zipAfterPublish: false
         workingDirectory: $(SolutionDirectory)
-    - task: DotNetCoreCLI@2
-      displayName: Pack MultiExtractor Nupkg (Lib)
-      inputs:
-        command: 'custom'
-        custom: 'pack'
-        arguments: '-c Release -o $(Build.BinariesDirectory)\nuget\MultiExtractor_$(ReleaseVersion)'
-        workingDirectory: '$(SolutionDirectory)\MultiExtractor'
     - task: AntiMalware@3
       displayName: Anti-Malware Scan
       inputs:
@@ -378,34 +373,7 @@ stages:
               ]
         SessionTimeout: '60'
         MaxConcurrency: '50'
-        MaxRetryAttempts: '5'
-    - task: EsrpCodeSigning@1
-      displayName: Code Sign Nuget Packages
-      inputs:
-        ConnectedServiceName: 'OSSGadget_CodeSign'
-        FolderPath: '$(Build.BinariesDirectory)/nuget/MultiExtractor_$(ReleaseVersion)'
-        Pattern: '*.nupkg, *.snupkg'
-        signConfigType: 'inlineSignParams'
-        inlineOperation: |
-          [
-                  {
-                      "KeyCode" : "CP-401405",
-                      "OperationCode" : "NuGetSign",
-                      "Parameters" : {},
-                      "ToolName" : "sign",
-                      "ToolVersion" : "1.0"
-                  },
-                  {
-                      "KeyCode" : "CP-401405",
-                      "OperationCode" : "NuGetVerify",
-                      "Parameters" : {},
-                      "ToolName" : "sign",
-                      "ToolVersion" : "1.0"
-                  }
-              ]
-        SessionTimeout: '60'
-        MaxConcurrency: '50'
-        MaxRetryAttempts: '5'
+        MaxRetryAttempts: '5'        
     - powershell: 'Get-ChildItem -Path ''$(Build.BinariesDirectory)'' -Recurse CodeSign* | foreach { Remove-Item -Path $_.FullName }'
       displayName: 'Delete Code Sign Summaries'
     - task: ArchiveFiles@2
@@ -474,7 +442,7 @@ stages:
         target: '$(Build.SourceVersion)'
         tagSource: 'userSpecifiedTag'
         tag: 'v$(ReleaseVersion)'
-        title: 'Release v$(ReleaseVersion)'
+        title: 'Release v$(ReleaseVersion) - OSS Gadget'
         assets: |
           $(Build.StagingDirectory)/*.zip
           $(Build.StagingDirectory)/HASHES.txt

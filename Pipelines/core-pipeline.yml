@@ -373,7 +373,7 @@ stages:
               ]
         SessionTimeout: '60'
         MaxConcurrency: '50'
-        MaxRetryAttempts: '5'        
+        MaxRetryAttempts: '5'
     - powershell: 'Get-ChildItem -Path ''$(Build.BinariesDirectory)'' -Recurse CodeSign* | foreach { Remove-Item -Path $_.FullName }'
       displayName: 'Delete Code Sign Summaries'
     - task: ArchiveFiles@2

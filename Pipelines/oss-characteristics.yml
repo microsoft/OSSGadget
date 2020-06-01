@@ -3,6 +3,8 @@
 
 variables:
   project: oss-characteristics
+  SolutionDirectory: src/
+  BuildConfiguration: Release
 
 name: OSSGadget_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r) $(project)
 trigger:

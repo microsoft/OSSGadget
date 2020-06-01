@@ -1,6 +1,3 @@
-# Azure Pipelines
-# https://aka.ms/yaml
-
 variables:
   project: oss-defog
   SolutionDirectory: src/
@@ -26,46 +23,7 @@ pr:
     - src/oss-defog
     - src/Shared
 
-stages:
-- stage: Test
-  jobs:
-  - job: build_test
-    displayName: OSS Gadget
-    pool:
-      vmImage: 'windows-latest'
-    steps:
-    - template: oss-tests.yml
-
-- stage: Build
-  jobs:
-  - job: build_nix
-    displayName: Linux & Mac
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-    - template: build-oss-component-mac-linux.yml
-      parameters: 
-        project: $(project)
-
-
-  - job: build_win
-    displayName: Windows, NetCoreApp, Nupkg
-    pool:
-      vmImage: 'windows-latest'
-    steps:
-    - template: build-oss-component-windows-nuget.yml
-      parameters: 
-        project: $(project)
-
-  - job: sign_hash_release
-    displayName: Code Sign, Generate Hashes, Publish Public Releases
-    dependsOn:
-    - build_nix
-    - build_win
-    condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI', 'BatchedCI', 'Manual'))
-    pool:
-      vmImage: 'windows-latest'
-    steps:
-    - template: sign-and-publish-oss-component.yml
-      parameters:
-        project:  $(project)
+steps:
+- template: oss-core.yml
+  parameters:
+    project: $(project)

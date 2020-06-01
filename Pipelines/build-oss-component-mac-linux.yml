@@ -17,7 +17,7 @@ steps:
         Write-Host "##vso[task.setvariable variable=ReleaseVersion;]$version"
 
   - task: DotNetCoreCLI@2
-    displayName: ${{ project}} - Dotnet Publish Linux x64
+    displayName: ${{ parameters.project }} - Dotnet Publish Linux x64
     inputs:
       command: 'publish'
       arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)/linux/OSSGadget_$(ReleaseVersion)/${{ parameters.project }} -r linux-x64'
@@ -25,7 +25,7 @@ steps:
       zipAfterPublish: false
       workingDirectory: $(SolutionDirectory)/${{ parameters.project }}
   - task: DotNetCoreCLI@2
-    displayName: ${{ project}} - Dotnet Publish MacOS x64
+    displayName: ${{ parameters.project }} - Dotnet Publish MacOS x64
     inputs:
       command: 'publish'
       arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)/macos/OSSGadget_$(ReleaseVersion)/${{ parameters.project }} -r osx-x64'

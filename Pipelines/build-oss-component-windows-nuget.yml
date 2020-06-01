@@ -16,21 +16,21 @@ steps:
         $version = (nbgv get-version -v AssemblyInformationalVersion).split('+')[0]
         Write-Host "##vso[task.setvariable variable=ReleaseVersion;]$version"
   - task: DotNetCoreCLI@2
-    displayName: ${{ project}} - Dotnet Publish Windows x64
+    displayName: ${{ parameters.project }} - Dotnet Publish Windows x64
     inputs:
       command: 'publish'
-      arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)\win-x64\OSSGadget_$(ReleaseVersion)\${{ project }} -r win-x64'
+      arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)\win-x64\OSSGadget_$(ReleaseVersion)\${{ parameters.project }} -r win-x64'
       publishWebProjects: false
       zipAfterPublish: false
-      workingDirectory: $(SolutionDirectory)/${{ project }}
+      workingDirectory: $(SolutionDirectory)/${{ parameters.project }}
   - task: DotNetCoreCLI@2
-    displayName: ${{ project}} - Dotnet Build .NET Core App
+    displayName: ${{ parameters.project }} - Dotnet Build .NET Core App
     inputs:
       command: 'build'
-      arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)\netcoreapp\OSSGadget_$(ReleaseVersion)\${{ project }}'
+      arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)\netcoreapp\OSSGadget_$(ReleaseVersion)\${{ parameters.project }}'
       publishWebProjects: false
       zipAfterPublish: false
-      workingDirectory: $(SolutionDirectory)/${{ project }}
+      workingDirectory: $(SolutionDirectory)/${{ parameters.project }}
   - task: AntiMalware@3
   displayName: Anti-Malware Scan
   inputs:
@@ -48,7 +48,7 @@ steps:
     rootFolderOrFile: '$(Build.BinariesDirectory)\win-x64\'
     includeRootFolder: true
     archiveType: 'zip'
-    archiveFile: '$(Build.StagingDirectory)\OSSGadget_win-x64_$(ReleaseVersion)-${{ project }}.zip'
+    archiveFile: '$(Build.StagingDirectory)\OSSGadget_win-x64_$(ReleaseVersion)-${{ parameters.project }}.zip'
     replaceExistingArchive: true
 - task: ArchiveFiles@2
   displayName: Archive Artifact - .NET Core App
@@ -56,7 +56,7 @@ steps:
     rootFolderOrFile: '$(Build.BinariesDirectory)\netcoreapp\'
     includeRootFolder: true
     archiveType: 'zip'
-    archiveFile: '$(Build.StagingDirectory)\OSSGadget_netcoreapp_$(ReleaseVersion)-${{ project }}.zip'
+    archiveFile: '$(Build.StagingDirectory)\OSSGadget_netcoreapp_$(ReleaseVersion)-${{ parameters.project }}.zip'
     replaceExistingArchive: true
 - task: PublishBuildArtifacts@1
   displayName: Store Windows, NetCoreApp, Nupkg Archives

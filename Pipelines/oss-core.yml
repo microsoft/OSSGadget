@@ -1,5 +1,6 @@
 parameters:
-  project: string
+- name: project
+  type: string
 
 stages:
 - stage: Test

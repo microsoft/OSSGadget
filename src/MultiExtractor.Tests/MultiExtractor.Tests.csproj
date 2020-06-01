@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -7,6 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="2.1.0" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.1.0" />
     <PackageReference Include="DiscUtils.Btrfs" Version="0.15.1-ci0002" />
     <PackageReference Include="DiscUtils.HfsPlus" Version="0.15.1-ci0002" />
     <PackageReference Include="DiscUtils.SquashFs" Version="0.15.1-ci0002" />
@@ -22,16 +25,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\oss-characteristics\oss-characteristic.csproj" />
-    <ProjectReference Include="..\oss-defog\oss-defog.csproj" />
-    <ProjectReference Include="..\oss-detect-backdoor\oss-detect-backdoor.csproj" />
-    <ProjectReference Include="..\oss-detect-cryptography\oss-detect-cryptography.csproj" />
-    <ProjectReference Include="..\oss-download\oss-download.csproj" />
-    <ProjectReference Include="..\oss-find-source\oss-find-source.csproj" />
-    <ProjectReference Include="..\oss-health\oss-health.csproj" />
-    <ProjectReference Include="..\Shared\Shared.csproj" />
+    <ProjectReference Include="..\MultiExtractor\MultiExtractor.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <None Update="TestData\10GB.7z.bz2">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -93,16 +88,16 @@
     <None Update="TestData\Shared.tar.xz">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TestData\Shared.wim">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="TestData\Shared.zip">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="TestData\Shared.vhd">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="TestData\Shared.vhdx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\Shared.wim">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\Shared.zip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="TestData\sysvbanner_1.0-17fakesync1_amd64.deb">
@@ -111,16 +106,11 @@
     <None Update="TestData\zblg.zip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TestData\zbsm.zip">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </None>
-    <None Update="TestData\zbxl.zip">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    <None Update="TestData\Shared.bsd.ar">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
   <ItemGroup>
-    <PackageReference Update="Nerdbank.GitVersioning" Version="3.1.91" />
+    <Folder Include="TestData\" />
   </ItemGroup>
-
 </Project>

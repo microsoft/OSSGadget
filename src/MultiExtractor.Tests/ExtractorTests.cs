@@ -6,9 +6,7 @@ using Microsoft.CST.OpenSource.MultiExtractor;
 using System.IO;
 using System.Linq;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using NLog.Fluent;
 using NLog;
 
 namespace Microsoft.CST.OpenSource.Tests

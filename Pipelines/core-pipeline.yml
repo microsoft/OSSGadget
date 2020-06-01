@@ -9,20 +9,23 @@ trigger:
     - master
   paths:
     include:
-    - src/*
+    - src/oss*
+    - src/Shared
 pr:
   branches:
     include:
     - master
   paths:
     include:
-    - src/*
+    - Pipelines
+    - src/oss*
+    - src/Shared
 
 stages:
 - stage: Test
   jobs:
   - job: build_test
-    displayName: Run Tests
+    displayName: Run OSS Gadget Tests
     pool:
       vmImage: 'windows-latest'
     steps:
@@ -38,13 +41,13 @@ stages:
       displayName: Dotnet Restore
       inputs:
         command: 'restore'
-        projects: 'src/tests/tests.csproj'
+        projects: 'src/oss-tests/oss-tests.csproj'
         verbosityRestore: 'Normal'
     - task: DotNetCoreCLI@2
       displayName: Dotnet Test
       inputs:
         command: 'test'
-        projects: 'src/tests/tests.csproj'
+        projects: 'src/oss-tests/oss-tests.csproj'
 
 - stage: Build
   jobs:
@@ -66,22 +69,9 @@ stages:
         script: |
           $version = (nbgv get-version -v AssemblyInformationalVersion).split('+')[0]
           Write-Host "##vso[task.setvariable variable=ReleaseVersion;]$version"
-    - task: DotNetCoreCLI@2
-      displayName: Dotnet Publish Linux x64
-      inputs:
-        command: 'publish'
-        arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)/linux/OSSGadget_$(ReleaseVersion) -r linux-x64'
-        publishWebProjects: false
-        zipAfterPublish: false
-        workingDirectory: $(SolutionDirectory)
-    - task: DotNetCoreCLI@2
-      displayName: Dotnet Publish MacOS x64
-      inputs:
-        command: 'publish'
-        arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)/macos/OSSGadget_$(ReleaseVersion) -r osx-x64'
-        publishWebProjects: false
-        zipAfterPublish: false
-        workingDirectory: $(SolutionDirectory)
+    - template: build-oss-component-mac-linux.yml
+      parameters: 
+        projects: ["oss-characteristics","oss-defog","oss-detect-backdoor","oss-detect-cryptography","oss-download","oss-find-source","oss-health","oss-risk-calculator"]
     - task: ArchiveFiles@2
       displayName: Archive Artifact - Linux
       inputs:
@@ -124,29 +114,9 @@ stages:
         script: |
           $version = (nbgv get-version -v AssemblyInformationalVersion).split('+')[0]
           Write-Host "##vso[task.setvariable variable=ReleaseVersion;]$version"
-    - task: DotNetCoreCLI@2
-      displayName: Dotnet Publish Windows x64
-      inputs:
-        command: 'publish'
-        arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)\win-x64\OSSGadget_$(ReleaseVersion) -r win-x64'
-        publishWebProjects: false
-        zipAfterPublish: false
-        workingDirectory: $(SolutionDirectory)
-    - task: DotNetCoreCLI@2
-      displayName: Dotnet Build .NET Core App
-      inputs:
-        command: 'build'
-        arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)\netcoreapp\OSSGadget_$(ReleaseVersion)'
-        publishWebProjects: false
-        zipAfterPublish: false
-        workingDirectory: $(SolutionDirectory)
-    - task: DotNetCoreCLI@2
-      displayName: Pack MultiExtractor Nupkg (Lib)
-      inputs:
-        command: 'custom'
-        custom: 'pack'
-        arguments: '-c Release -o $(Build.BinariesDirectory)\nuget\MultiExtractor_$(ReleaseVersion)'
-        workingDirectory: '$(SolutionDirectory)\MultiExtractor'
+    - template: build-oss-component-windows-nuget.yml
+      parameters: 
+        projects: ["oss-characteristics","oss-defog","oss-detect-backdoor","oss-detect-cryptography","oss-download","oss-find-source","oss-health","oss-risk-calculator"]
     - task: AntiMalware@3
       displayName: Anti-Malware Scan
       inputs:
@@ -174,14 +144,14 @@ stages:
         archiveType: 'zip'
         archiveFile: '$(Build.StagingDirectory)\OSSGadget_netcoreapp_$(ReleaseVersion).zip'
         replaceExistingArchive: true
-    - task: ArchiveFiles@2
-      displayName: Archive Artifact - Nupkg
-      inputs:
-        rootFolderOrFile: '$(Build.BinariesDirectory)\nuget'
-        includeRootFolder: true
-        archiveType: 'zip'
-        archiveFile: '$(Build.StagingDirectory)\OSSGadget_nuget_$(ReleaseVersion).zip'
-        replaceExistingArchive: true
+    # - task: ArchiveFiles@2
+    #   displayName: Archive Artifact - Nupkg
+    #   inputs:
+    #     rootFolderOrFile: '$(Build.BinariesDirectory)\nuget'
+    #     includeRootFolder: true
+    #     archiveType: 'zip'
+    #     archiveFile: '$(Build.StagingDirectory)\OSSGadget_nuget_$(ReleaseVersion).zip'
+    #     replaceExistingArchive: true
     - task: PublishBuildArtifacts@1
       displayName: Store Windows, NetCoreApp, Nupkg Archives
       inputs:
@@ -350,7 +320,7 @@ stages:
       displayName: Code Sign .NET Core App
       inputs:
         ConnectedServiceName: 'OSSGadget_CodeSign'
-        FolderPath: '$(Build.BinariesDirectory)/netcoreapp/OSSGadget_$(ReleaseVersion)'
+        FolderPath: '$(Build.BinariesDirectory)\netcoreapp\OSSGadget_$(ReleaseVersion)'
         Pattern: 'oss-characteristic.exe, oss-characteristic.dll, oss-defog.exe, oss-defog.dll, oss-detect-backdoor.exe, oss-detect-backdoor.dll, oss-download.exe, oss-download.dll, oss-find-source.exe, oss-find-source.dll, oss-health.exe, oss-health.dll'
         signConfigType: 'inlineSignParams'
         inlineOperation: |
@@ -371,33 +341,6 @@ stages:
                   {
                       "KeyCode" : "CP-230012",
                       "OperationCode" : "SigntoolVerify",
-                      "Parameters" : {},
-                      "ToolName" : "sign",
-                      "ToolVersion" : "1.0"
-                  }
-              ]
-        SessionTimeout: '60'
-        MaxConcurrency: '50'
-        MaxRetryAttempts: '5'
-    - task: EsrpCodeSigning@1
-      displayName: Code Sign Nuget Packages
-      inputs:
-        ConnectedServiceName: 'OSSGadget_CodeSign'
-        FolderPath: '$(Build.BinariesDirectory)/nuget/MultiExtractor_$(ReleaseVersion)'
-        Pattern: '*.nupkg, *.snupkg'
-        signConfigType: 'inlineSignParams'
-        inlineOperation: |
-          [
-                  {
-                      "KeyCode" : "CP-401405",
-                      "OperationCode" : "NuGetSign",
-                      "Parameters" : {},
-                      "ToolName" : "sign",
-                      "ToolVersion" : "1.0"
-                  },
-                  {
-                      "KeyCode" : "CP-401405",
-                      "OperationCode" : "NuGetVerify",
                       "Parameters" : {},
                       "ToolName" : "sign",
                       "ToolVersion" : "1.0"
@@ -450,16 +393,6 @@ stages:
             $tmp = (Get-FileHash "$(Build.StagingDirectory)\$name").Hash
             Add-Content $(Build.StagingDirectory)\HASHES.txt "$tmp`t$name"
           }
-    - task: PowerShell@2
-      displayName: Move Nuget Packages
-      inputs:
-        targetType: 'inline'
-        script: 'mv $env:BUILD_BINARIESDIRECTORY/nuget/MultiExtractor_$(ReleaseVersion)/*.nupkg $env:BUILD_STAGINGDIRECTORY/'
-    - task: PowerShell@2
-      displayName: Move Nuget Symbols
-      inputs:
-        targetType: 'inline'
-        script: 'mv $env:BUILD_BINARIESDIRECTORY/nuget/MultiExtractor_$(ReleaseVersion)/*.snupkg $env:BUILD_STAGINGDIRECTORY/'
     - task: PublishPipelineArtifact@1
       displayName: Publish Signed Artifacts to Pipeline
       inputs:
@@ -474,17 +407,17 @@ stages:
         target: '$(Build.SourceVersion)'
         tagSource: 'userSpecifiedTag'
         tag: 'v$(ReleaseVersion)'
-        title: 'Release v$(ReleaseVersion)'
+        title: 'Release v$(ReleaseVersion) - OSS Gadget'
         assets: |
           $(Build.StagingDirectory)/*.zip
           $(Build.StagingDirectory)/HASHES.txt
         changeLogCompareToRelease: 'lastNonDraftRelease'
         changeLogType: 'commitBased'
-    - task: NuGetCommand@2
-      displayName: Publish NuGet Packages
-      inputs:
-        command: 'push'
-        packagesToPush: '$(Build.StagingDirectory)/*.nupkg'
-        nuGetFeedType: 'external'
-        publishFeedCredentials: 'CST-E Nuget CI'
-        verbosityPush: 'Normal'
+    # - task: NuGetCommand@2
+    #   displayName: Publish NuGet Packages
+    #   inputs:
+    #     command: 'push'
+    #     packagesToPush: '$(Build.StagingDirectory)/*.nupkg'
+    #     nuGetFeedType: 'external'
+    #     publishFeedCredentials: 'CST-E Nuget CI'
+    #     verbosityPush: 'Normal'

@@ -4,7 +4,7 @@ parameters:
 steps:
   - ${{ each project in parameters.projects}}:
     - task: DotNetCoreCLI@2
-    displayName: Dotnet Publish Windows x64
+    displayName: ${{ project}} - Dotnet Publish Windows x64
     inputs:
       command: 'publish'
       arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)\win-x64\OSSGadget_$(ReleaseVersion)\${{ project }} -r win-x64'
@@ -12,7 +12,7 @@ steps:
       zipAfterPublish: false
       workingDirectory: $(SolutionDirectory)/${{ project }}
   - task: DotNetCoreCLI@2
-    displayName: Dotnet Build .NET Core App
+    displayName: ${{ project}} - Dotnet Build .NET Core App
     inputs:
       command: 'build'
       arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)\netcoreapp\OSSGadget_$(ReleaseVersion)\${{ project }}'

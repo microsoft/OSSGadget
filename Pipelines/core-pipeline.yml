@@ -21,6 +21,9 @@ pr:
     - src/oss*
     - src/Shared
 
+variables:
+  oss-tools: ["oss-characteristics","oss-defog","oss-detect-backdoor","oss-detect-cryptography","oss-download","oss-find-source","oss-health","oss-risk-calculator"]
+
 stages:
 - stage: Test
   jobs:
@@ -69,9 +72,23 @@ stages:
         script: |
           $version = (nbgv get-version -v AssemblyInformationalVersion).split('+')[0]
           Write-Host "##vso[task.setvariable variable=ReleaseVersion;]$version"
-    - template: build-oss-component-linux-mac.yml
-      parameters: 
-        param: ["oss-characteristics","oss-defog","oss-detect-backdoor","oss-detect-cryptography","oss-download","oss-find-source","oss-health","oss-risk-calculator"]
+    - ${{ each project in variables.oss-tools}}:
+      - task: DotNetCoreCLI@2
+        displayName: Dotnet Publish Linux x64
+        inputs:
+          command: 'publish'
+          arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)/linux/OSSGadget_$(ReleaseVersion)/$(project) -r linux-x64'
+          publishWebProjects: false
+          zipAfterPublish: false
+          workingDirectory: $(SolutionDirectory)/$(project)
+      - task: DotNetCoreCLI@2
+        displayName: Dotnet Publish MacOS x64
+        inputs:
+          command: 'publish'
+          arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)/macos/OSSGadget_$(ReleaseVersion)/$(project) -r osx-x64'
+          publishWebProjects: false
+          zipAfterPublish: false
+          workingDirectory: $(SolutionDirectory)/$(project)
     - task: ArchiveFiles@2
       displayName: Archive Artifact - Linux
       inputs:
@@ -114,9 +131,23 @@ stages:
         script: |
           $version = (nbgv get-version -v AssemblyInformationalVersion).split('+')[0]
           Write-Host "##vso[task.setvariable variable=ReleaseVersion;]$version"
-    - template: build-oss-component-windows.yml
-      parameters: 
-        param: ["oss-characteristics","oss-defog","oss-detect-backdoor","oss-detect-cryptography","oss-download","oss-find-source","oss-health","oss-risk-calculator"]
+    - ${{ each project in variables.oss-tools}}:
+      - task: DotNetCoreCLI@2
+        displayName: Dotnet Publish Windows x64
+        inputs:
+          command: 'publish'
+          arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)\win-x64\OSSGadget_$(ReleaseVersion)\$(project) -r win-x64'
+          publishWebProjects: false
+          zipAfterPublish: false
+          workingDirectory: $(SolutionDirectory)/$(project)
+      - task: DotNetCoreCLI@2
+        displayName: Dotnet Build .NET Core App
+        inputs:
+          command: 'build'
+          arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)\netcoreapp\OSSGadget_$(ReleaseVersion)\$(project)'
+          publishWebProjects: false
+          zipAfterPublish: false
+          workingDirectory: $(SolutionDirectory)/$(project)
     - task: AntiMalware@3
       displayName: Anti-Malware Scan
       inputs:

@@ -20,7 +20,7 @@ pr:
     - master
   paths:
     include:
-    - Pipelines
+    - Pipelines/$(project).yml
     - src/$(project)
     - src/Shared
 

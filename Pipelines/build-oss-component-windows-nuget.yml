@@ -1,6 +1,10 @@
 parameters:
   project: string
 
+variables:
+  SolutionDirectory: src/
+  BuildConfiguration: Release
+
 steps:
   - task: UseDotNet@2
     inputs:

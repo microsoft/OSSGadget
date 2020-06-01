@@ -30,7 +30,7 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         private readonly Dictionary<string, object> Options = new Dictionary<string, object>()
         {
-            { "download-directory", null },
+            { "download-directory", "." },
             { "use-cache", false },
             { "target", new List<string>() },
             { "extract", true },
@@ -55,13 +55,15 @@ namespace Microsoft.CST.OpenSource
                     try
                     {
                         var purl = new PackageURL(target);
-                        var packageDownloader = new PackageDownloader(purl, 
-                            (string)downloadTool.Options["download-directory"], 
-                            (bool)downloadTool.Options["use-cache"]);
-                        foreach (var downloadPath in await packageDownloader.
-                            DownloadPackageLocalCopy(purl, 
-                            (bool)downloadTool.Options["download-metadata-only"], 
-                            (bool)downloadTool.Options["extract"]))
+                        var downloadDirectory = (string)downloadTool.Options["download-directory"];
+                        var useCache = (bool)downloadTool.Options["use-cache"];
+                        var packageDownloader = new PackageDownloader(purl, downloadDirectory, useCache);
+
+                        var downloadMetadataOnly = (bool)downloadTool.Options["download-metadata-only"];
+                        var extract = (bool)downloadTool.Options["extract"];
+
+                        var downloadResults = await packageDownloader.DownloadPackageLocalCopy(purl, downloadMetadataOnly, extract);
+                        foreach (var downloadPath in downloadResults)
                         {
                             if (string.IsNullOrEmpty(downloadPath))
                             {
@@ -123,7 +125,7 @@ namespace Microsoft.CST.OpenSource
                         Environment.Exit(1);
                         break;
                     
-                    case "--metadata":
+                    case "--only-metadata":
                         Options["download-metadata-only"] = true;
                         break;
                     
@@ -163,8 +165,8 @@ positional arguments:
 
 optional arguments:
   --no-extract                  do not extract package contents 
-  --metadata                    only download metadata, not package content
-  --download-directory          the directory to download the package to
+  --only-metadata               only download metadata, not the package content
+  --download-directory          the location to download the package to (default: current directory)
   --use-cache                   do not download the package if it is already present in the destination directory
   --help                        show this help message and exit
   --version                     show version of this tool

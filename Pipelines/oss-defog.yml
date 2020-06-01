@@ -14,7 +14,7 @@ trigger:
     - master
   paths:
     include:
-    - src/$(project)
+    - src/oss-defog
     - src/Shared
 pr:
   branches:
@@ -22,8 +22,8 @@ pr:
     - master
   paths:
     include:
-    - Pipelines/$(project).yml
-    - src/$(project)
+    - Pipelines/oss-defog.yml
+    - src/oss-defog
     - src/Shared
 
 stages:

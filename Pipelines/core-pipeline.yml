@@ -23,7 +23,7 @@ pr:
 
 variables:
 - name: oss-tools
-  oss-tools: ["oss-characteristics","oss-defog","oss-detect-backdoor","oss-detect-cryptography","oss-download","oss-find-source","oss-health","oss-risk-calculator"]
+  value: ["oss-characteristics","oss-defog","oss-detect-backdoor","oss-detect-cryptography","oss-download","oss-find-source","oss-health","oss-risk-calculator"]
 
 stages:
 - stage: Test
@@ -73,8 +73,7 @@ stages:
         script: |
           $version = (nbgv get-version -v AssemblyInformationalVersion).split('+')[0]
           Write-Host "##vso[task.setvariable variable=ReleaseVersion;]$version"
-    - ${{ each project in variables.oss-tools}}:
-      template: build-oss-component-mac-linux.yml
+    - template: build-oss-component-mac-linux.yml
       parameters: ${{ project }}
     - task: ArchiveFiles@2
       displayName: Archive Artifact - Linux

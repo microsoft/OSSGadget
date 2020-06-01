@@ -2,20 +2,20 @@ parameters:
   projects: []
 
 steps:
-${{ each project in parameters.projects}}:
-  - task: DotNetCoreCLI@2
-          displayName: Dotnet Publish Linux x64
-          inputs:
-            command: 'publish'
-            arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)/linux/OSSGadget_$(ReleaseVersion)/${{ parameters.ProjectName }} -r linux-x64'
-            publishWebProjects: false
-            zipAfterPublish: false
-            workingDirectory: $(SolutionDirectory)/${{ parameters.ProjectName }}
-  - task: DotNetCoreCLI@2
-    displayName: Dotnet Publish MacOS x64
+  - ${{ each project in parameters.projects}}:
+    - task: DotNetCoreCLI@2
+    displayName: Dotnet Publish Windows x64
     inputs:
       command: 'publish'
-      arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)/macos/OSSGadget_$(ReleaseVersion)/${{ parameters.ProjectName }} -r osx-x64'
+      arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)\win-x64\OSSGadget_$(ReleaseVersion)\${{ project }} -r win-x64'
       publishWebProjects: false
       zipAfterPublish: false
-      workingDirectory: $(SolutionDirectory)/${{ parameters.ProjectName }}
+      workingDirectory: $(SolutionDirectory)/${{ project }}
+  - task: DotNetCoreCLI@2
+    displayName: Dotnet Build .NET Core App
+    inputs:
+      command: 'build'
+      arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)\netcoreapp\OSSGadget_$(ReleaseVersion)\${{ project }}'
+      publishWebProjects: false
+      zipAfterPublish: false
+      workingDirectory: $(SolutionDirectory)/${{ project }}

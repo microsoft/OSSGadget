@@ -1,21 +1,56 @@
 parameters:
-  projects: []
+  project: string
 
 steps:
-  - ${{ each project in parameters.projects}}:
-    - task: DotNetCoreCLI@2
-      displayName: ${{ project}} - Dotnet Publish Linux x64
-      inputs:
-        command: 'publish'
-        arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)/linux/OSSGadget_$(ReleaseVersion)/${{ project }} -r linux-x64'
-        publishWebProjects: false
-        zipAfterPublish: false
-        workingDirectory: $(SolutionDirectory)/${{ project }}
-    - task: DotNetCoreCLI@2
-      displayName: ${{ project}} - Dotnet Publish MacOS x64
-      inputs:
-        command: 'publish'
-        arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)/macos/OSSGadget_$(ReleaseVersion)/${{ project }} -r osx-x64'
-        publishWebProjects: false
-        zipAfterPublish: false
-        workingDirectory: $(SolutionDirectory)/${{ project }}
+  - task: UseDotNet@2
+    inputs:
+      packageType: 'sdk'
+      version: '3.1.x'
+  - script: 'dotnet tool install -g nbgv'
+    displayName: 'Install GitVersioning'
+  - task: PowerShell@2
+    displayName: Set Release Version
+    inputs:
+      targetType: 'inline'
+      script: |
+        $version = (nbgv get-version -v AssemblyInformationalVersion).split('+')[0]
+        Write-Host "##vso[task.setvariable variable=ReleaseVersion;]$version"
+
+  - task: DotNetCoreCLI@2
+    displayName: ${{ project}} - Dotnet Publish Linux x64
+    inputs:
+      command: 'publish'
+      arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)/linux/OSSGadget_$(ReleaseVersion)/${{ parameters.project }} -r linux-x64'
+      publishWebProjects: false
+      zipAfterPublish: false
+      workingDirectory: $(SolutionDirectory)/${{ parameters.project }}
+  - task: DotNetCoreCLI@2
+    displayName: ${{ project}} - Dotnet Publish MacOS x64
+    inputs:
+      command: 'publish'
+      arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)/macos/OSSGadget_$(ReleaseVersion)/${{ parameters.project }} -r osx-x64'
+      publishWebProjects: false
+      zipAfterPublish: false
+      workingDirectory: $(SolutionDirectory)/${{ parameters.project }}
+  - task: ArchiveFiles@2
+    displayName: Archive Artifact - Linux
+    inputs:
+      rootFolderOrFile: '$(Build.BinariesDirectory)/linux/'
+      includeRootFolder: true
+      archiveType: 'zip'
+      archiveFile: '$(Build.StagingDirectory)/OSSGadget_linux_$(ReleaseVersion)-${{ parameters.project }}.zip'
+      replaceExistingArchive: true
+  - task: ArchiveFiles@2
+    displayName: Archive Artifact - MacOS
+    inputs:
+      rootFolderOrFile: '$(Build.BinariesDirectory)/macos/'
+      includeRootFolder: true
+      archiveType: 'zip'
+      archiveFile: '$(Build.StagingDirectory)/OSSGadget_macos_$(ReleaseVersion)-${{ parameters.project }}.zip'
+      replaceExistingArchive: true
+  - task: PublishBuildArtifacts@1
+    displayName: Store Linux & Mac Archives
+    inputs:
+      PathtoPublish: '$(Build.StagingDirectory)'
+      ArtifactName: 'Unsigned_Nix'
+      publishLocation: 'Container'

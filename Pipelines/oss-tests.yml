@@ -1,0 +1,20 @@
+steps:
+  - task: UseDotNet@2
+    inputs:
+      packageType: 'sdk'
+      version: '3.1.x'
+  - task: NuGetToolInstaller@1
+    displayName: Install Nuget Tool
+    inputs:
+      versionSpec: '5.4.x'
+  - task: DotNetCoreCLI@2
+    displayName: Dotnet Restore
+    inputs:
+      command: 'restore'
+      projects: 'src/oss-tests/oss-tests.csproj'
+      verbosityRestore: 'Normal'
+  - task: DotNetCoreCLI@2
+    displayName: Dotnet Test
+    inputs:
+      command: 'test'
+      projects: 'src/oss-tests/oss-tests.csproj'

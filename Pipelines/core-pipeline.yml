@@ -144,14 +144,14 @@ stages:
         archiveType: 'zip'
         archiveFile: '$(Build.StagingDirectory)\OSSGadget_netcoreapp_$(ReleaseVersion).zip'
         replaceExistingArchive: true
-    - task: ArchiveFiles@2
-      displayName: Archive Artifact - Nupkg
-      inputs:
-        rootFolderOrFile: '$(Build.BinariesDirectory)\nuget'
-        includeRootFolder: true
-        archiveType: 'zip'
-        archiveFile: '$(Build.StagingDirectory)\OSSGadget_nuget_$(ReleaseVersion).zip'
-        replaceExistingArchive: true
+    # - task: ArchiveFiles@2
+    #   displayName: Archive Artifact - Nupkg
+    #   inputs:
+    #     rootFolderOrFile: '$(Build.BinariesDirectory)\nuget'
+    #     includeRootFolder: true
+    #     archiveType: 'zip'
+    #     archiveFile: '$(Build.StagingDirectory)\OSSGadget_nuget_$(ReleaseVersion).zip'
+    #     replaceExistingArchive: true
     - task: PublishBuildArtifacts@1
       displayName: Store Windows, NetCoreApp, Nupkg Archives
       inputs:
@@ -320,7 +320,7 @@ stages:
       displayName: Code Sign .NET Core App
       inputs:
         ConnectedServiceName: 'OSSGadget_CodeSign'
-        FolderPath: '$(Build.BinariesDirectory)/netcoreapp/OSSGadget_$(ReleaseVersion)'
+        FolderPath: '$(Build.BinariesDirectory)\netcoreapp\OSSGadget_$(ReleaseVersion)'
         Pattern: 'oss-characteristic.exe, oss-characteristic.dll, oss-defog.exe, oss-defog.dll, oss-detect-backdoor.exe, oss-detect-backdoor.dll, oss-download.exe, oss-download.dll, oss-find-source.exe, oss-find-source.dll, oss-health.exe, oss-health.dll'
         signConfigType: 'inlineSignParams'
         inlineOperation: |
@@ -393,16 +393,6 @@ stages:
             $tmp = (Get-FileHash "$(Build.StagingDirectory)\$name").Hash
             Add-Content $(Build.StagingDirectory)\HASHES.txt "$tmp`t$name"
           }
-    - task: PowerShell@2
-      displayName: Move Nuget Packages
-      inputs:
-        targetType: 'inline'
-        script: 'mv $env:BUILD_BINARIESDIRECTORY/nuget/MultiExtractor_$(ReleaseVersion)/*.nupkg $env:BUILD_STAGINGDIRECTORY/'
-    - task: PowerShell@2
-      displayName: Move Nuget Symbols
-      inputs:
-        targetType: 'inline'
-        script: 'mv $env:BUILD_BINARIESDIRECTORY/nuget/MultiExtractor_$(ReleaseVersion)/*.snupkg $env:BUILD_STAGINGDIRECTORY/'
     - task: PublishPipelineArtifact@1
       displayName: Publish Signed Artifacts to Pipeline
       inputs:
@@ -423,11 +413,11 @@ stages:
           $(Build.StagingDirectory)/HASHES.txt
         changeLogCompareToRelease: 'lastNonDraftRelease'
         changeLogType: 'commitBased'
-    - task: NuGetCommand@2
-      displayName: Publish NuGet Packages
-      inputs:
-        command: 'push'
-        packagesToPush: '$(Build.StagingDirectory)/*.nupkg'
-        nuGetFeedType: 'external'
-        publishFeedCredentials: 'CST-E Nuget CI'
-        verbosityPush: 'Normal'
+    # - task: NuGetCommand@2
+    #   displayName: Publish NuGet Packages
+    #   inputs:
+    #     command: 'push'
+    #     packagesToPush: '$(Build.StagingDirectory)/*.nupkg'
+    #     nuGetFeedType: 'external'
+    #     publishFeedCredentials: 'CST-E Nuget CI'
+    #     verbosityPush: 'Normal'

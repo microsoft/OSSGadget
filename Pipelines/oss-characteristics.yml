@@ -23,7 +23,7 @@ pr:
     - src/oss-characteristics
     - src/Shared
 
-steps:
-- template: oss-core.yml
+extends:
+  template: oss-core.yml
   parameters:
     project: $(project)

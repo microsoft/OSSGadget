@@ -52,7 +52,7 @@ stages:
 - stage: Build
   jobs:
   - job: build_nix
-    displayName: Build Linux & Mac
+    displayName: Linux & Mac
     pool:
       vmImage: 'ubuntu-latest'
     steps:
@@ -97,7 +97,7 @@ stages:
 
 
   - job: build_win
-    displayName: Build Windows, NetCoreApp, Nupkg
+    displayName: Windows, NetCoreApp, Nupkg
     pool:
       vmImage: 'windows-latest'
     steps:

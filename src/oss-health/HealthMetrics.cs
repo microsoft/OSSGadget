@@ -1,7 +1,11 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using Microsoft.CodeAnalysis.Sarif;
+using Microsoft.CST.OpenSource.Shared;
 using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -14,6 +18,13 @@ namespace Microsoft.CST.OpenSource.Health
         private const int MAX_HEALTH = 100;
         private const int MIN_HEALTH = 0;
 
+        PackageURL purl;
+
+        /// <summary>
+        /// Logger for this class
+        /// </summary>
+        private static NLog.ILogger Logger { get; set; }
+
         public double CommitHealth { get; set; }
         public double PullRequestHealth { get; set; }
         public double IssueHealth { get; set; }
@@ -23,14 +34,17 @@ namespace Microsoft.CST.OpenSource.Health
         public double RecentActivityHealth { get; set; }
         public double ProjectSizeHealth { get; set; }
 
+        public HealthMetrics(PackageURL purl)
+        {
+            this.purl = purl;
+        }
         public override string ToString()
         {
             Normalize();
 
             var sb = new StringBuilder();
-            var properties = this.GetType().GetProperties(BindingFlags.NonPublic |
-                                                          BindingFlags.Public |
-                                                          BindingFlags.Instance);
+
+            var properties = getHealthProperties();
             foreach (var property in properties.OrderBy(s => s.Name))
             {
                 if (property.Name.EndsWith("Health"))
@@ -66,11 +80,70 @@ namespace Microsoft.CST.OpenSource.Health
             sb.AppendFormat("{0,25} {1} \n", "", key);
             return sb.ToString();
         }
+        PropertyInfo[] getHealthProperties()
+        {
+            return this.GetType().GetProperties(BindingFlags.NonPublic |
+                                              BindingFlags.Public |
+                                              BindingFlags.Instance);
 
-        /**
-         * Normalizes all fields of this object.
-         */
-        public void Normalize()
+        }
+        public List<Result> toSarif()
+        {
+            List<Result> sarifResults = new List<Result>();
+            var projectManager = ProjectManagerFactory.CreateProjectManager(purl, null);
+
+            if (projectManager == null)
+            {
+                Logger.Error("Cannot determine the package type");
+            }
+
+            Normalize();
+
+            List<Result> results = new List<Result>();
+            var properties = getHealthProperties();
+            foreach (var property in properties.OrderBy(s => s.Name))
+            {
+                if (property.Name.EndsWith("Health"))
+                {
+                    var textualName = Regex.Replace(property.Name, "(\\B[A-Z])", " $1");
+                    var value = Convert.ToDouble(property.GetValue(this));
+
+                    Result healthResult = new Result()
+                    {
+                        Kind = ResultKind.Review,
+                        Level = FailureLevel.None,
+                        Message = new Message()
+                        {
+                            Text = textualName
+                        },
+                        Rank = value,
+
+                        Locations = new List<Location>() {
+                            new Location() {
+                                PhysicalLocation = new PhysicalLocation()
+                                {
+                                    Address = new Address()
+                                    {
+                                        FullyQualifiedName = projectManager.GetPackageAbsoluteUri(purl).AbsoluteUri,
+                                        AbsoluteAddress = 1,
+                                        Name = purl.ToString()
+                                    }
+                                }
+                            }
+                        }
+                    };
+
+                    results.Add(healthResult);
+                }
+            }
+
+            return results;
+        }
+
+                /**
+                 * Normalizes all fields of this object.
+                 */
+                public void Normalize()
         {
             CommitHealth = NormalizeField(CommitHealth);
             PullRequestHealth = NormalizeField(PullRequestHealth);

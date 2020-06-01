@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
@@ -10,7 +8,7 @@ namespace Microsoft.CST.OpenSource.Shared
         static StreamWriter streamWriter;
         static FileStream fileStream;
 
-        public static void RedirectConsole(string outFile)
+        public static bool RedirectConsole(string outFile)
         {
             // switch Console Out to file
             if (!string.IsNullOrEmpty(outFile) && streamWriter == null)
@@ -18,11 +16,15 @@ namespace Microsoft.CST.OpenSource.Shared
                 fileStream = new FileStream(outFile, FileMode.OpenOrCreate, FileAccess.Write);
                 streamWriter = new StreamWriter(fileStream);
                 Console.SetOut(streamWriter);
+                return true;
             }
+
+            return false;
         }
+
         public static StreamWriter GetCurrentWriteStream()
         {
-            if(streamWriter != null)
+            if (streamWriter != null)
             {
                 return streamWriter;
             }
@@ -34,7 +36,12 @@ namespace Microsoft.CST.OpenSource.Shared
 
         public static void RestoreConsole()
         {
-            if(streamWriter != null)
+            // switch back to Console
+            var standardOutput = new StreamWriter(Console.OpenStandardOutput());
+            standardOutput.AutoFlush = true;
+            Console.SetOut(standardOutput);
+
+            if (streamWriter != null)
             {
                 streamWriter.Close();
                 fileStream.Close();
@@ -42,10 +49,8 @@ namespace Microsoft.CST.OpenSource.Shared
                 streamWriter.Dispose();
                 fileStream.Dispose();
 
-                // switch back to Console
-                var standardOutput = new StreamWriter(Console.OpenStandardOutput());
-                standardOutput.AutoFlush = true;
-                Console.SetOut(standardOutput);
+                fileStream = null;
+                streamWriter = null;
             }
         }
     }

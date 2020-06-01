@@ -87,7 +87,7 @@ namespace Microsoft.CST.OpenSource
             if (this.packageManager != null)
             {
                 // figure out which version we want to download
-                PackageURL vPurl = null;
+                PackageURL vPurl;
                 if (purl.Version == null)
                 {
                     var versions = await packageManager.EnumerateVersions(purl);

@@ -21,6 +21,11 @@ namespace Microsoft.CST.OpenSource.Shared
         {
         }
 
+        public override Uri GetPackageAbsoluteUri(PackageURL purl)
+        {
+            return new Uri($"{ENV_NUGET_HOMEPAGE}/{purl?.Name}");
+        }
+
         /// <summary>
         /// Download one NuGet package and extract it to the target directory.
         /// </summary>

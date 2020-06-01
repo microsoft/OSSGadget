@@ -61,14 +61,16 @@ namespace Microsoft.CST.OpenSource.Tests
                     },
                     Kind = ResultKind.Informational,
                     Level = FailureLevel.None,
-                    Rank = confidence
+                    Rank = confidence,
+                    Locations = OutputBuilder.BuildPurlLocation(new PackageURL(purl))
                 };
 
                 sarifResults.Add(sarifResult);
             }
 
-            SarifBuilder sarifBuilder = new SarifBuilder("sarifv2");
-            SarifLog sarif = sarifBuilder.BuildSingleRunSarifLog(sarifResults);
+            OutputBuilder outputBuilder = new OutputBuilder("sarifv2");
+            outputBuilder.AppendOutput(sarifResults);
+            SarifLog sarif = outputBuilder.BuildSingleRunSarifLog();
             Assert.IsNotNull(sarif);
             Assert.IsNotNull(sarif.Runs.FirstOrDefault().Tool.Driver.Name);
             Assert.AreEqual(sarif.Runs.FirstOrDefault().Results.FirstOrDefault().Message.Text, targetResult);

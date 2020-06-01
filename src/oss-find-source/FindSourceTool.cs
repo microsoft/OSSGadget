@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Sarif;
 using Microsoft.CST.OpenSource.Shared;
@@ -44,10 +45,28 @@ namespace Microsoft.CST.OpenSource
             Logger.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
             findSourceTool.ParseOptions(args);
 
+            // output to console or file?
             bool redirectConsole = !string.IsNullOrEmpty((string)findSourceTool.Options["output-file"]);
             if(redirectConsole)
             {
-                ConsoleHelper.RedirectConsole((string)findSourceTool.Options["output-file"]);
+                if (!ConsoleHelper.RedirectConsole((string)findSourceTool.Options["output-file"]))
+                {
+                    Logger.Error("Could not switch output from console to file");
+                    // continue with current output
+                }
+            }
+
+            // select output format
+            string format = ((string)findSourceTool.Options["format"]).ToLower();
+            OutputBuilder outputBuilder;
+            try
+            {
+                outputBuilder = new OutputBuilder(format);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                Logger.Error("Invalid output format");
+                return;
             }
 
             if (((IList<string>)findSourceTool.Options["target"]).Count > 0)
@@ -61,25 +80,14 @@ namespace Microsoft.CST.OpenSource
                         results.Sort((a, b) => a.Value.CompareTo(b.Value));
                         results.Reverse();
 
-                        // select and print the output format
-                        string format = ((string)findSourceTool.Options["format"]).ToLower();
-                        if (SarifBuilder.isTextFormat(format)) {
-                            PrintText(results);
-                        }
-                        else if(SarifBuilder.isValidSarifVersion(format))
-                        {
-                            PrintSarif(results, format);
-                        }
-                        else
-                        {
-                            Console.Error.WriteLine("Invalid format type");
-                        }
+                        findSourceTool.AppendOutput(outputBuilder, purl, results);
                     }
                     catch (Exception ex)
                     {
                         Logger.Warn("Error processing {0}: {1}", target, ex.Message);
                     }
                 }
+                outputBuilder.PrintOutput();
             }
             else
             {
@@ -97,39 +105,6 @@ namespace Microsoft.CST.OpenSource
         {
             CommonInitialization.Initialize();
             Logger = CommonInitialization.Logger;
-        }
-
-        static void PrintText(List<KeyValuePair<PackageURL, double>> results)
-        {
-            foreach (var result in results)
-            {
-                var confidence = result.Value * 100.0;
-                Console.Out.WriteLine($"{confidence:0.0}%\thttps://github.com/{result.Key.Namespace}/{result.Key.Name} ({result.Key})");
-            }
-        }
-
-        static void PrintSarif(List<KeyValuePair<PackageURL, double>> results, string format)
-        {
-            List<Result> sarifResults = new List<Result>();
-            foreach (var result in results)
-            {
-                var confidence = result.Value * 100.0;
-                Result sarifResult = new Result()
-                {
-                    Message = new Message()
-                    {
-                        Text = $"https://github.com/{result.Key.Namespace}/{result.Key.Name}"
-                    },
-                    Kind = ResultKind.Informational,
-                    Level = FailureLevel.None,
-                    Rank = confidence
-                };
-
-                sarifResults.Add(sarifResult);
-            }
-
-            SarifBuilder sarifBuilder = new SarifBuilder(format);
-            sarifBuilder.PrintSarifLog(sarifResults, ConsoleHelper.GetCurrentWriteStream());
         }
 
         public async Task<Dictionary<PackageURL, double>> FindSource(PackageURL purl)
@@ -171,6 +146,72 @@ namespace Microsoft.CST.OpenSource
             }
 
             return repositoryMap;
+        }
+
+        /// <summary>
+        /// Convert findSourceTool results into output format
+        /// </summary>
+        /// <param name="outputBuilder"></param>
+        /// <param name="purl"></param>
+        /// <param name="results"></param>
+        void AppendOutput(OutputBuilder outputBuilder, PackageURL purl, List<KeyValuePair<PackageURL, double>> results)
+        {
+            if (outputBuilder.isTextFormat())
+            {
+                outputBuilder.AppendOutput(GetTextResults(results));
+            }
+            else
+            {
+                outputBuilder.AppendOutput(GetSarifResults(purl, results));
+            }
+        }
+
+        /// <summary>
+        /// Convert findSourceTool results into text format
+        /// </summary>
+        /// <param name="results"></param>
+        /// <returns></returns>
+        static string GetTextResults(List<KeyValuePair<PackageURL, double>> results)
+        {
+            StringBuilder stringOutput = new StringBuilder();
+            foreach (var result in results)
+            {
+                var confidence = result.Value * 100.0;
+                stringOutput.Append(
+                    $"{confidence:0.0}%\thttps://github.com/{result.Key.Namespace}/{result.Key.Name} ({result.Key})");
+                stringOutput.Append(
+                    Environment.NewLine);
+            }
+            return stringOutput.ToString();
+        }
+
+        /// <summary>
+        /// Build and return a list of Sarif Result list from the find source results
+        /// </summary>
+        /// <param name="purl"></param>
+        /// <param name="results"></param>
+        /// <returns></returns>
+        static List<Result> GetSarifResults(PackageURL purl, List<KeyValuePair<PackageURL, double>> results)
+        {
+            List<Result> sarifResults = new List<Result>();
+            foreach (var result in results)
+            {
+                var confidence = result.Value * 100.0;
+                Result sarifResult = new Result()
+                {
+                    Message = new Message()
+                    {
+                        Text = $"https://github.com/{result.Key.Namespace}/{result.Key.Name}"
+                    },
+                    Kind = ResultKind.Informational,
+                    Level = FailureLevel.None,
+                    Rank = confidence,
+                    Locations = OutputBuilder.BuildPurlLocation(purl)
+                };
+
+                sarifResults.Add(sarifResult);
+            }
+            return sarifResults;
         }
 
         /// <summary>

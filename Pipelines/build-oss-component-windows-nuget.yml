@@ -42,26 +42,26 @@ steps:
       TreatSignatureUpdateFailureAs: 'Warning'
       SignatureFreshness: 'UpToDate'
       TreatStaleSignatureAs: 'Warning'
-- task: ArchiveFiles@2
-  displayName: Archive Artifact - Windows x64
-  inputs:
-    rootFolderOrFile: '$(Build.BinariesDirectory)\win-x64\'
-    includeRootFolder: true
-    archiveType: 'zip'
-    archiveFile: '$(Build.StagingDirectory)\OSSGadget_win-x64_$(ReleaseVersion)-${{ parameters.project }}.zip'
-    replaceExistingArchive: true
-- task: ArchiveFiles@2
-  displayName: Archive Artifact - .NET Core App
-  inputs:
-    rootFolderOrFile: '$(Build.BinariesDirectory)\netcoreapp\'
-    includeRootFolder: true
-    archiveType: 'zip'
-    archiveFile: '$(Build.StagingDirectory)\OSSGadget_netcoreapp_$(ReleaseVersion)-${{ parameters.project }}.zip'
-    replaceExistingArchive: true
-- task: PublishBuildArtifacts@1
-  displayName: Store Windows, NetCoreApp, Nupkg Archives
-  inputs:
-    PathtoPublish: '$(Build.StagingDirectory)'
-    ArtifactName: 'Unsigned_WinNuget'
-    publishLocation: 'Container'
+  - task: ArchiveFiles@2
+    displayName: Archive Artifact - Windows x64
+    inputs:
+      rootFolderOrFile: '$(Build.BinariesDirectory)\win-x64\'
+      includeRootFolder: true
+      archiveType: 'zip'
+      archiveFile: '$(Build.StagingDirectory)\OSSGadget_win-x64_$(ReleaseVersion)-${{ parameters.project }}.zip'
+      replaceExistingArchive: true
+  - task: ArchiveFiles@2
+    displayName: Archive Artifact - .NET Core App
+    inputs:
+      rootFolderOrFile: '$(Build.BinariesDirectory)\netcoreapp\'
+      includeRootFolder: true
+      archiveType: 'zip'
+      archiveFile: '$(Build.StagingDirectory)\OSSGadget_netcoreapp_$(ReleaseVersion)-${{ parameters.project }}.zip'
+      replaceExistingArchive: true
+  - task: PublishBuildArtifacts@1
+    displayName: Store Windows, NetCoreApp, Nupkg Archives
+    inputs:
+      PathtoPublish: '$(Build.StagingDirectory)'
+      ArtifactName: 'Unsigned_WinNuget'
+      publishLocation: 'Container'
 

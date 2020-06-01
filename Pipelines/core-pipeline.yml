@@ -25,7 +25,7 @@ stages:
 - stage: Test
   jobs:
   - job: build_test
-    displayName: Run Tests
+    displayName: Run OSS Gadget Tests
     pool:
       vmImage: 'windows-latest'
     steps:
@@ -114,7 +114,7 @@ stages:
         script: |
           $version = (nbgv get-version -v AssemblyInformationalVersion).split('+')[0]
           Write-Host "##vso[task.setvariable variable=ReleaseVersion;]$version"
-    - template: build-oss-component-mac-linux.yml
+    - template: build-oss-component-windows-nuget.yml
       parameters: 
         projects: ["oss-characteristics","oss-defog","oss-detect-backdoor","oss-detect-cryptography","oss-download","oss-find-source","oss-health","oss-risk-calculator"]
     - task: AntiMalware@3

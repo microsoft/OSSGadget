@@ -23,7 +23,7 @@ stages:
 - stage: Test
   jobs:
   - job: build_test
-    displayName: Run Tests
+    displayName: Run MultiExtractor Tests
     pool:
       vmImage: 'windows-latest'
     steps:

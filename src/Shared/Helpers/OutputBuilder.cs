@@ -111,7 +111,6 @@ namespace Microsoft.CST.OpenSource.Shared
         public static List<Location> BuildPurlLocation(PackageURL purl)
         {
             var projectManager = ProjectManagerFactory.CreateProjectManager(purl, null);
-
             if (projectManager == null)
             {
                 Logger.Error("Cannot determine the package type");

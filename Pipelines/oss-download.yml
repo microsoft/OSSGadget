@@ -2,7 +2,7 @@
 # https://aka.ms/yaml
 
 variables:
-  project: oss-characteristics
+  project: oss-find-source
   SolutionDirectory: src/
   BuildConfiguration: Release
 

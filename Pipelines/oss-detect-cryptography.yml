@@ -2,7 +2,7 @@
 # https://aka.ms/yaml
 
 variables:
-  project: oss-characteristics
+  project: oss-detect-cryptography
   SolutionDirectory: src/
   BuildConfiguration: Release
 

@@ -413,6 +413,7 @@ stages:
           $(Build.StagingDirectory)/HASHES.txt
         changeLogCompareToRelease: 'lastNonDraftRelease'
         changeLogType: 'commitBased'
+    # TODO: Build the nuget tools so we can publish them
     # - task: NuGetCommand@2
     #   displayName: Publish NuGet Packages
     #   inputs:

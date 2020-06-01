@@ -20,7 +20,7 @@ steps:
     displayName: ${{ parameters.project }} - Dotnet Publish Linux x64
     inputs:
       command: 'publish'
-      arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)/linux/OSSGadget_$(ReleaseVersion)/${{ parameters.project }} -r linux-x64'
+      arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)/${{ parameters.project }}-linux-x64_$(ReleaseVersion) -r linux-x64'
       publishWebProjects: false
       zipAfterPublish: false
       workingDirectory: $(SolutionDirectory)/${{ parameters.project }}
@@ -28,25 +28,25 @@ steps:
     displayName: ${{ parameters.project }} - Dotnet Publish MacOS x64
     inputs:
       command: 'publish'
-      arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)/macos/OSSGadget_$(ReleaseVersion)/${{ parameters.project }} -r osx-x64'
+      arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)/${{ parameters.project }}-osx-x64_$(ReleaseVersion) -r osx-x64'
       publishWebProjects: false
       zipAfterPublish: false
       workingDirectory: $(SolutionDirectory)/${{ parameters.project }}
   - task: ArchiveFiles@2
     displayName: Archive Artifact - Linux
     inputs:
-      rootFolderOrFile: '$(Build.BinariesDirectory)/linux/'
+      rootFolderOrFile: '$(Build.BinariesDirectory)/${{ parameters.project }}-linux-x64_$(ReleaseVersion)'
       includeRootFolder: true
       archiveType: 'zip'
-      archiveFile: '$(Build.StagingDirectory)/OSSGadget_linux_$(ReleaseVersion)-${{ parameters.project }}.zip'
+      archiveFile: '$(Build.StagingDirectory)/${{ parameters.project }}-linux-x64_$(ReleaseVersion).zip'
       replaceExistingArchive: true
   - task: ArchiveFiles@2
     displayName: Archive Artifact - MacOS
     inputs:
-      rootFolderOrFile: '$(Build.BinariesDirectory)/macos/'
+      rootFolderOrFile: '$(Build.BinariesDirectory)/${{ parameters.project }}-osx-x64_$(ReleaseVersion)'
       includeRootFolder: true
       archiveType: 'zip'
-      archiveFile: '$(Build.StagingDirectory)/OSSGadget_macos_$(ReleaseVersion)-${{ parameters.project }}.zip'
+      archiveFile: '$(Build.StagingDirectory)/${{ parameters.project }}-osx-x64_$(ReleaseVersion).zip'
       replaceExistingArchive: true
   - task: PublishBuildArtifacts@1
     displayName: Store Linux & Mac Archives

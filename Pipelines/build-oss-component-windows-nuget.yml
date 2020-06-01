@@ -19,7 +19,7 @@ steps:
     displayName: ${{ parameters.project }} - Dotnet Publish Windows x64
     inputs:
       command: 'publish'
-      arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)\win-x64\OSSGadget_$(ReleaseVersion)\${{ parameters.project }} -r win-x64'
+      arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)\${{ parameters.project }}-win-x64_$(ReleaseVersion) -r win-x64'
       publishWebProjects: false
       zipAfterPublish: false
       workingDirectory: $(SolutionDirectory)/${{ parameters.project }}
@@ -27,7 +27,7 @@ steps:
     displayName: ${{ parameters.project }} - Dotnet Build .NET Core App
     inputs:
       command: 'build'
-      arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)\netcoreapp\OSSGadget_$(ReleaseVersion)\${{ parameters.project }}'
+      arguments: '-c $(BuildConfiguration) -o $(Build.BinariesDirectory)\${{ parameters.project }}-netcoreapp_$(ReleaseVersion)'
       publishWebProjects: false
       zipAfterPublish: false
       workingDirectory: $(SolutionDirectory)/${{ parameters.project }}
@@ -45,18 +45,18 @@ steps:
   - task: ArchiveFiles@2
     displayName: Archive Artifact - Windows x64
     inputs:
-      rootFolderOrFile: '$(Build.BinariesDirectory)\win-x64\'
+      rootFolderOrFile: '$(Build.BinariesDirectory)\${{ parameters.project }}-win-x64_$(ReleaseVersion)'
       includeRootFolder: true
       archiveType: 'zip'
-      archiveFile: '$(Build.StagingDirectory)\OSSGadget_win-x64_$(ReleaseVersion)-${{ parameters.project }}.zip'
+      archiveFile: '$(Build.StagingDirectory)\${{ parameters.project }}-win-x64_$(ReleaseVersion).zip'
       replaceExistingArchive: true
   - task: ArchiveFiles@2
     displayName: Archive Artifact - .NET Core App
     inputs:
-      rootFolderOrFile: '$(Build.BinariesDirectory)\netcoreapp\'
+      rootFolderOrFile: '$(Build.BinariesDirectory)\${{ parameters.project }}-netcoreapp_$(ReleaseVersion)'
       includeRootFolder: true
       archiveType: 'zip'
-      archiveFile: '$(Build.StagingDirectory)\OSSGadget_netcoreapp_$(ReleaseVersion)-${{ parameters.project }}.zip'
+      archiveFile: '$(Build.StagingDirectory)\${{ parameters.project }}-netcoreapp_$(ReleaseVersion).zip'
       replaceExistingArchive: true
   - task: PublishBuildArtifacts@1
     displayName: Store Windows, NetCoreApp, Nupkg Archives

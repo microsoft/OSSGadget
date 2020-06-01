@@ -54,7 +54,7 @@ steps:
     displayName: Code Sign Linux
     inputs:
       ConnectedServiceName: 'OSSGadget_CodeSign'
-      FolderPath: '$(Build.BinariesDirectory)/linux/OSSGadget_$(ReleaseVersion)'
+      FolderPath: '$(Build.BinariesDirectory)/${{ parameters.project }}-linux-x64_$(ReleaseVersion)'
       Pattern: 'oss-characteristic.dll, oss-defog.dll, oss-detect-backdoor.dll, oss-download.dll, oss-find-source.dll, oss-health.dll'
       signConfigType: 'inlineSignParams'
       inlineOperation: |
@@ -87,7 +87,7 @@ steps:
     displayName: Code Sign MacOS
     inputs:
       ConnectedServiceName: 'OSSGadget_CodeSign'
-      FolderPath: '$(Build.BinariesDirectory)/macos/OSSGadget_$(ReleaseVersion)'
+      FolderPath: '$(Build.BinariesDirectory)/${{ parameters.project }}-osx-x64_$(ReleaseVersion)'
       Pattern: 'oss-characteristic.dll, oss-defog.dll, oss-detect-backdoor.dll, oss-download.dll, oss-find-source.dll, oss-health.dll'
       signConfigType: 'inlineSignParams'
       inlineOperation: |
@@ -120,7 +120,7 @@ steps:
     displayName: Code Sign Windows
     inputs:
       ConnectedServiceName: 'OSSGadget_CodeSign'
-      FolderPath: '$(Build.BinariesDirectory)\win-x64\OSSGadget_$(ReleaseVersion)'
+      FolderPath: '$(Build.BinariesDirectory)\${{ parameters.project }}-win-x64_$(ReleaseVersion)'
       Pattern: 'oss-characteristic.exe, oss-characteristic.dll, oss-defog.exe, oss-defog.dll, oss-detect-backdoor.exe, oss-detect-backdoor.dll, oss-download.exe, oss-download.dll, oss-find-source.exe, oss-find-source.dll, oss-health.exe, oss-health.dll'
       signConfigType: 'inlineSignParams'
       inlineOperation: |
@@ -153,7 +153,7 @@ steps:
     displayName: Code Sign .NET Core App
     inputs:
       ConnectedServiceName: 'OSSGadget_CodeSign'
-      FolderPath: '$(Build.BinariesDirectory)\netcoreapp\OSSGadget_$(ReleaseVersion)'
+      FolderPath: '$(Build.BinariesDirectory)\${{ parameters.project }}-netcoreapp_$(ReleaseVersion)'
       Pattern: 'oss-characteristic.exe, oss-characteristic.dll, oss-defog.exe, oss-defog.dll, oss-detect-backdoor.exe, oss-detect-backdoor.dll, oss-download.exe, oss-download.dll, oss-find-source.exe, oss-find-source.dll, oss-health.exe, oss-health.dll'
       signConfigType: 'inlineSignParams'
       inlineOperation: |
@@ -187,34 +187,34 @@ steps:
   - task: ArchiveFiles@2
     displayName: Archive Artifact - Linux
     inputs:
-      rootFolderOrFile: '$(Build.BinariesDirectory)/linux/OSSGadget_$(ReleaseVersion)'
+      rootFolderOrFile: '$(Build.BinariesDirectory)/${{ parameters.project }}-linux-x64_$(ReleaseVersion)'
       includeRootFolder: true
       archiveType: 'zip'
-      archiveFile: '$(Build.StagingDirectory)/OSSGadget_linux_$(ReleaseVersion)-${{ parameters.project }}.zip'
+      archiveFile: '$(Build.StagingDirectory)/${{ parameters.project }}-linux-x64_$(ReleaseVersion).zip'
       replaceExistingArchive: true
   - task: ArchiveFiles@2
     displayName: Archive Artifact - MacOS
     inputs:
-      rootFolderOrFile: '$(Build.BinariesDirectory)/macos/OSSGadget_$(ReleaseVersion)'
+      rootFolderOrFile: '$(Build.BinariesDirectory)/${{ parameters.project }}-osx-x64_$(ReleaseVersion)'
       includeRootFolder: true
       archiveType: 'zip'
-      archiveFile: '$(Build.StagingDirectory)/OSSGadget_macos_$(ReleaseVersion)-${{ parameters.project }}.zip'
+      archiveFile: '$(Build.StagingDirectory)/${{ parameters.project }}-osx-x64_$(ReleaseVersion).zip'
       replaceExistingArchive: true
   - task: ArchiveFiles@2
     displayName: Archive Artifact - Windows
     inputs:
-      rootFolderOrFile: '$(Build.BinariesDirectory)/win-x64/OSSGadget_$(ReleaseVersion)'
+      rootFolderOrFile: '$(Build.BinariesDirectory)/${{ parameters.project }}-win-x64_$(ReleaseVersion)'
       includeRootFolder: true
       archiveType: 'zip'
-      archiveFile: '$(Build.StagingDirectory)/OSSGadget_win-x64_$(ReleaseVersion)-${{ parameters.project }}.zip'
+      archiveFile: '$(Build.StagingDirectory)/${{ parameters.project }}-win-x64_$(ReleaseVersion).zip'
       replaceExistingArchive: true
   - task: ArchiveFiles@2
     displayName: Archive Artifact - .NET Core App
     inputs:
-      rootFolderOrFile: '$(Build.BinariesDirectory)/netcoreapp/OSSGadget_$(ReleaseVersion)'
+      rootFolderOrFile: '$(Build.BinariesDirectory)/${{ parameters.project }}-netcoreapp_$(ReleaseVersion)'
       includeRootFolder: true
       archiveType: 'zip'
-      archiveFile: '$(Build.StagingDirectory)/OSSGadget_netcoreapp_$(ReleaseVersion)-${{ parameters.project }}.zip'
+      archiveFile: '$(Build.StagingDirectory)/${{ parameters.project }}-netcoreapp_$(ReleaseVersion).zip'
       replaceExistingArchive: true
   - task: PublishPipelineArtifact@1
     displayName: Publish Signed Artifacts to Pipeline

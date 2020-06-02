@@ -19,6 +19,12 @@ namespace Microsoft.CST.OpenSource.Shared
         {
         }
 
+        public override Uri GetPackageAbsoluteUri(PackageURL purl)
+        {
+            // CRAN doesn't have a homepage for package version
+            return new Uri($"{ENV_CRAN_ENDPOINT}/web/packages/{purl?.Name}/index.html");
+        }
+
         /// <summary>
         /// Download one CRAN package and extract it to the target directory.
         /// </summary>

@@ -22,6 +22,12 @@ namespace Microsoft.CST.OpenSource.Shared
         {
         }
 
+        public override Uri GetPackageAbsoluteUri(PackageURL purl)
+        {
+            // there is no version page for marketplace vsix
+            return new Uri($"{ENV_VS_MARKETPLACE_ENDPOINT}/items/itemName={purl?.Name}");
+        }
+
         /// <summary>
         /// Download one VS Marketplace package and extract it to the target directory.
         /// </summary>

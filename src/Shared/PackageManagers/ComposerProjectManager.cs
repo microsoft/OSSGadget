@@ -18,6 +18,12 @@ namespace Microsoft.CST.OpenSource.Shared
         {
         }
 
+        public override Uri GetPackageAbsoluteUri(PackageURL purl)
+        {
+            return new Uri($"{ENV_COMPOSER_ENDPOINT}/packages/{purl?.Namespace}/{purl?.Name}");
+            // TODO: Add version support
+        }
+
         /// <summary>
         /// Download one Composer (PHP) package and extract it to the target directory.
         /// </summary>

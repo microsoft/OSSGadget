@@ -4,7 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Sarif;
 using Microsoft.CST.OpenSource.Shared;
 
 namespace Microsoft.CST.OpenSource
@@ -33,6 +35,8 @@ namespace Microsoft.CST.OpenSource
         {
             { "target", new List<string>() },
             { "show-all", false },
+            { "format", "text" },
+            { "output-file", null }
         };
 
         static void Main(string[] args)
@@ -40,6 +44,30 @@ namespace Microsoft.CST.OpenSource
             var findSourceTool = new FindSourceTool();
             Logger.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
             findSourceTool.ParseOptions(args);
+
+            // output to console or file?
+            bool redirectConsole = !string.IsNullOrEmpty((string)findSourceTool.Options["output-file"]);
+            if(redirectConsole)
+            {
+                if (!ConsoleHelper.RedirectConsole((string)findSourceTool.Options["output-file"]))
+                {
+                    Logger.Error("Could not switch output from console to file");
+                    // continue with current output
+                }
+            }
+
+            // select output format
+            string format = ((string)findSourceTool.Options["format"]).ToLower();
+            OutputBuilder outputBuilder;
+            try
+            {
+                outputBuilder = new OutputBuilder(format);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                Logger.Error("Invalid output format");
+                return;
+            }
 
             if (((IList<string>)findSourceTool.Options["target"]).Count > 0)
             {
@@ -49,27 +77,25 @@ namespace Microsoft.CST.OpenSource
                     {
                         var purl = new PackageURL(target);
                         var results = findSourceTool.FindSource(purl).Result.ToList();
-                        results.Sort((a, b) => (a.Value.CompareTo(b.Value)));
-                        results.Reverse();
-
-                        foreach (var result in results)
-                        {
-                            var confidence = result.Value * 100.0;
-                            Logger.Info($"{confidence:0.0}%\thttps://github.com/{result.Key.Namespace}/{result.Key.Name} ({result.Key})");
-                        }
-
+                        results.Sort((b, a) => a.Value.CompareTo(b.Value));
+                        findSourceTool.AppendOutput(outputBuilder, purl, results);
                     }
                     catch (Exception ex)
                     {
                         Logger.Warn("Error processing {0}: {1}", target, ex.Message);
                     }
                 }
+                outputBuilder.PrintOutput();
             }
             else
             {
                 Logger.Warn("No target provided; nothing to locate source for.");
                 FindSourceTool.ShowUsage();
                 Environment.Exit(1);
+            }
+            if (redirectConsole)
+            {
+                ConsoleHelper.RestoreConsole();
             }
         }
 
@@ -112,12 +138,78 @@ namespace Microsoft.CST.OpenSource
                     Logger.Warn("No repositories found for package {0}", purl);
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Logger.Warn(ex, "Error identifying source repository for {0}: {1}", purl, ex.Message);
             }
 
             return repositoryMap;
+        }
+
+        /// <summary>
+        /// Convert findSourceTool results into output format
+        /// </summary>
+        /// <param name="outputBuilder"></param>
+        /// <param name="purl"></param>
+        /// <param name="results"></param>
+        void AppendOutput(OutputBuilder outputBuilder, PackageURL purl, List<KeyValuePair<PackageURL, double>> results)
+        {
+            if (outputBuilder.isTextFormat())
+            {
+                outputBuilder.AppendOutput(GetTextResults(results));
+            }
+            else
+            {
+                outputBuilder.AppendOutput(GetSarifResults(purl, results));
+            }
+        }
+
+        /// <summary>
+        /// Convert findSourceTool results into text format
+        /// </summary>
+        /// <param name="results"></param>
+        /// <returns></returns>
+        static string GetTextResults(List<KeyValuePair<PackageURL, double>> results)
+        {
+            StringBuilder stringOutput = new StringBuilder();
+            foreach (var result in results)
+            {
+                var confidence = result.Value * 100.0;
+                stringOutput.Append(
+                    $"{confidence:0.0}%\thttps://github.com/{result.Key.Namespace}/{result.Key.Name} ({result.Key})");
+                stringOutput.Append(
+                    Environment.NewLine);
+            }
+            return stringOutput.ToString();
+        }
+
+        /// <summary>
+        /// Build and return a list of Sarif Result list from the find source results
+        /// </summary>
+        /// <param name="purl"></param>
+        /// <param name="results"></param>
+        /// <returns></returns>
+        static List<Result> GetSarifResults(PackageURL purl, List<KeyValuePair<PackageURL, double>> results)
+        {
+            List<Result> sarifResults = new List<Result>();
+            foreach (var result in results)
+            {
+                var confidence = result.Value * 100.0;
+                Result sarifResult = new Result()
+                {
+                    Message = new Message()
+                    {
+                        Text = $"https://github.com/{result.Key.Namespace}/{result.Key.Name}"
+                    },
+                    Kind = ResultKind.Informational,
+                    Level = FailureLevel.None,
+                    Rank = confidence,
+                    Locations = OutputBuilder.BuildPurlLocation(purl)
+                };
+
+                sarifResults.Add(sarifResult);
+            }
+            return sarifResults;
         }
 
         /// <summary>
@@ -140,6 +232,14 @@ namespace Microsoft.CST.OpenSource
                     case "--help":
                         ShowUsage();
                         Environment.Exit(1);
+                        break;
+
+                    case "--format":
+                        Options["format"] = args[++i];
+                        break;
+
+                    case "--output-file":
+                        Options["output-file"] = args[++i];
                         break;
 
                     case "--show-all":
@@ -184,6 +284,8 @@ positional arguments:
 optional arguments:
   --show-all                    show all possibilities of the package source repositories
                                  (default: show only the top result)
+  --format                      selct the output format (text|sarifv1|sarifv2). (default is text)
+  --output-file                 send the command output to a file instead of stdout
   --help                        show this help message and exit
   --version                     show version of this tool
 ");

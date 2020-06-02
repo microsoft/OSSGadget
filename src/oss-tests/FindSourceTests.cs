@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Sarif;
 using Microsoft.CST.OpenSource.Shared;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -34,6 +36,44 @@ namespace Microsoft.CST.OpenSource.Tests
                 }
             }
             Assert.IsTrue(success, $"Result {targetResult} not found from {purl}");
+        }
+
+        [DataTestMethod]
+        [DataRow("pkg:npm/md5", "https://github.com/pvorb/node-md5")]
+        public async Task Check_Sarif(string purl, string targetResult)
+        {
+            // for initialization
+            FindSourceTool tool = new FindSourceTool();
+
+            RepoSearch searchTool = new RepoSearch();
+            var results = await searchTool.ResolvePackageLibraryAsync(new PackageURL(purl));
+
+            List<Result> sarifResults = new List<Result>();
+            foreach (var result in results)
+            {
+                var confidence = result.Value * 100.0;
+
+                Result sarifResult = new Result()
+                {
+                    Message = new Message()
+                    {
+                        Text = $"https://github.com/{result.Key.Namespace}/{result.Key.Name}"
+                    },
+                    Kind = ResultKind.Informational,
+                    Level = FailureLevel.None,
+                    Rank = confidence,
+                    Locations = OutputBuilder.BuildPurlLocation(new PackageURL(purl))
+                };
+
+                sarifResults.Add(sarifResult);
+            }
+
+            OutputBuilder outputBuilder = new OutputBuilder("sarifv2");
+            outputBuilder.AppendOutput(sarifResults);
+            SarifLog sarif = outputBuilder.BuildSingleRunSarifLog();
+            Assert.IsNotNull(sarif);
+            Assert.IsNotNull(sarif.Runs.FirstOrDefault().Tool.Driver.Name);
+            Assert.AreEqual(sarif.Runs.FirstOrDefault().Results.FirstOrDefault().Message.Text, targetResult);
         }
 
         [DataTestMethod]

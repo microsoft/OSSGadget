@@ -45,6 +45,11 @@ namespace Microsoft.CST.OpenSource.Shared
         {
         }
 
+        public override Uri GetPackageAbsoluteUri(PackageURL purl)
+        {
+            return new Uri($"{ENV_GITHUB_ENDPOINT}/{purl.Namespace}/{purl.Name}");
+        }
+
         /// <summary>
         /// Download one GitHub package and extract it to the target directory.
         /// </summary>

@@ -17,6 +17,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Properties\**" />
+    <EmbeddedResource Remove="Properties\**" />
+    <None Remove="Properties\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AngleSharp" Version="1.0.0-alpha-822" />
     <PackageReference Include="F23.StringSimilarity" Version="3.1.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.23" />
@@ -26,6 +32,7 @@
     <PackageReference Include="NLog" Version="4.7.2" />
     <PackageReference Include="NLog.Schema" Version="4.7.2" />
     <PackageReference Include="NuGet.Versioning" Version="5.6.0" />
+    <PackageReference Include="Sarif.Sdk" Version="2.2.5" />
     <PackageReference Include="SemanticVersioning" Version="1.2.2" />
     <PackageReference Include="sharpcompress" Version="0.25.1" />
     <PackageReference Include="SharpZipLib" Version="1.2.0" />

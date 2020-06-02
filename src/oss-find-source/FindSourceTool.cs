@@ -77,9 +77,7 @@ namespace Microsoft.CST.OpenSource
                     {
                         var purl = new PackageURL(target);
                         var results = findSourceTool.FindSource(purl).Result.ToList();
-                        results.Sort((a, b) => a.Value.CompareTo(b.Value));
-                        results.Reverse();
-
+                        results.Sort((b, a) => a.Value.CompareTo(b.Value));
                         findSourceTool.AppendOutput(outputBuilder, purl, results);
                     }
                     catch (Exception ex)

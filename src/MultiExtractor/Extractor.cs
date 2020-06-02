@@ -37,55 +37,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
         private const string DEBUG_STRING = "Failed parsing archive of type {0} {1}:{2} ({3})";
 
-        /// <summary>
-        /// The maximum number of items to take at once in the parallel extractors
-        /// </summary>
-        private const int MAX_BATCH_SIZE = 50;
-
-        /// <summary>
-        /// By default, stop extracting if the total number of bytes
-        /// seen is greater than this multiple of the original archive
-        /// size. Used to avoid denial of service (zip bombs and the like).
-        /// </summary>
-        private const double DEFAULT_MAX_EXTRACTED_BYTES_RATIO = 60.0;
-        
-        /// <summary>
-        /// By default, stop processing after this time span. Used to avoid
-        /// denial of service (zip bombs and the like).
-        /// </summary>
-        public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(300);
-
-        /// <summary>
-        /// The maximum number of bytes to extract from the archive and
-        /// all embedded archives. Set to 0 to remove limit. Note that
-        /// MaxExpansionRatio may also apply. Defaults to 0.
-        /// </summary>
-        public long MaxExtractedBytes { get; set; } = 0;
-
-        /// <summary>
-        /// Backing store for MaxExtractedBytesRatio.
-        /// </summary>
-        private double _MaxExtractedBytesRatio;
-
-        /// <summary>
-        /// The maximum number of bytes to extract from the archive and
-        /// all embedded archives, relative to the size of the initial
-        /// archive. The default value of 100 means if the archive is 5k
-        /// in size, stop processing after 500k bytes are extracted. Set
-        /// this to 0 to mean, 'no limit'. Not that MaxExtractedBytes
-        /// may also apply.
-        /// </summary>
-        public double MaxExtractedBytesRatio {
-            get
-            {
-                return _MaxExtractedBytesRatio;
-            }
-
-            set
-            {
-                _MaxExtractedBytesRatio = Math.Max(value, 0);
-            }
-        }
+        private readonly ExtractorOptions options;
 
         /// <summary>
         /// Logger for interesting events.
@@ -105,11 +57,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         /// </summary>
         private long CurrentOperationProcessedBytesLeft = -1;
 
-        public Extractor(bool enableTiming = false)
-        {   
-            MaxExtractedBytesRatio = DEFAULT_MAX_EXTRACTED_BYTES_RATIO;
+        public Extractor(ExtractorOptions? opts = null)
+        {
+            options = opts ?? new ExtractorOptions();
             GovernorStopwatch = new Stopwatch();
-            EnableTiming = enableTiming;
             SetupHelper.RegisterAssembly(typeof(BtrfsFileSystem).Assembly);
             SetupHelper.RegisterAssembly(typeof(ExtFileSystem).Assembly);
             SetupHelper.RegisterAssembly(typeof(FatFileSystem).Assembly);
@@ -137,8 +88,8 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             GovernorStopwatch = Stopwatch.StartNew();
 
             // Default value is we take MaxExtractedBytes (meaning, ratio is not defined)
-            CurrentOperationProcessedBytesLeft = MaxExtractedBytes;
-            if (MaxExtractedBytesRatio > 0)
+            CurrentOperationProcessedBytesLeft = options.MaxExtractedBytes;
+            if (options.MaxExtractedBytesRatio > 0)
             {
                 long streamLength;
                 try
@@ -151,9 +102,9 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 }
 
                 // Ratio *is* defined, so the max value would be based on the stream length
-                var maxViaRatio = (long)(MaxExtractedBytesRatio * streamLength);
+                var maxViaRatio = (long)(options.MaxExtractedBytesRatio * streamLength);
                 // Assign the samller of the two, accounting for MaxExtractedBytes == 0 means, 'no limit'.
-                CurrentOperationProcessedBytesLeft = Math.Min(maxViaRatio, MaxExtractedBytes > 0 ? MaxExtractedBytes : long.MaxValue);
+                CurrentOperationProcessedBytesLeft = Math.Min(maxViaRatio, options.MaxExtractedBytes > 0 ? options.MaxExtractedBytes : long.MaxValue);
             }
         }
 
@@ -169,7 +120,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
         {
             Logger.ConditionalTrace("CheckResourceGovernor(duration={0}, bytes={1})", GovernorStopwatch.Elapsed.TotalMilliseconds, CurrentOperationProcessedBytesLeft);
 
-            if (EnableTiming && GovernorStopwatch.Elapsed > Timeout)
+            if (EnableTiming && GovernorStopwatch.Elapsed > options.Timeout)
             {
                 throw new TimeoutException(string.Format($"Processing timeout exceeded: {GovernorStopwatch.Elapsed.TotalMilliseconds} ms."));
             }
@@ -344,7 +295,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         var fileList = image.GetFiles(image.Root.FullName, "*.*", SearchOption.AllDirectories).ToList();
                         while (fileList.Any())
                         {
-                            int batchSize = Math.Min(MAX_BATCH_SIZE, fileList.Count);
+                            int batchSize = Math.Min(options.BatchSize, fileList.Count);
                             var range = fileList.Take(batchSize);
                             var streamsAndNames = new List<(DiscFileInfo, Stream)>();
                             foreach (var file in range)
@@ -411,7 +362,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             else
             {
-                yield return fileEntry;
+                if (options.ExtractSelfOnFail)
+                {
+                    yield return fileEntry;
+                }
             }
         }
 
@@ -447,7 +401,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             else
             {
-                yield return fileEntry;
+                if (options.ExtractSelfOnFail)
+                {
+                    yield return fileEntry;
+                }
             }
         }
 
@@ -485,7 +442,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             else
             {
-                yield return fileEntry;
+                if (options.ExtractSelfOnFail)
+                {
+                    yield return fileEntry;
+                }
             }
         }
 
@@ -521,7 +481,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             else
             {
-                yield return fileEntry;
+                if (options.ExtractSelfOnFail)
+                {
+                    yield return fileEntry;
+                }
             }
         }
 
@@ -540,7 +503,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 {
                     ConcurrentStack<FileEntry> files = new ConcurrentStack<FileEntry>();
 
-                    int batchSize = Math.Min(MAX_BATCH_SIZE, entries.Length);
+                    int batchSize = Math.Min(options.BatchSize, entries.Length);
                     var selectedFileNames = entries[0..batchSize];
                     var fileInfoTuples = new List<(DiscFileInfo, Stream)>();
 
@@ -603,7 +566,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             else
             {
-                yield return fileEntry;
+                if (options.ExtractSelfOnFail)
+                {
+                    yield return fileEntry;
+                }
             }
         }
 
@@ -628,7 +594,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 if (parallel)
                 {
                     var tempStore = new ConcurrentStack<FileEntry>();
-                    var selectedEntries = fileEntries.Take(MAX_BATCH_SIZE);
+                    var selectedEntries = fileEntries.Take(options.BatchSize);
                     CheckResourceGovernor(selectedEntries.Sum(x => x.Content.Length));
                     selectedEntries.AsParallel().ForAll(arEntry =>
                     {
@@ -657,7 +623,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             else
             {
-                yield return fileEntry;
+                if (options.ExtractSelfOnFail)
+                {
+                    yield return fileEntry;
+                }
             }
         }
 
@@ -698,7 +667,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
                     while (zipEntries.Count > 0)
                     {
-                        int batchSize = Math.Min(MAX_BATCH_SIZE, zipEntries.Count);
+                        int batchSize = Math.Min(options.BatchSize, zipEntries.Count);
                         var selectedEntries = zipEntries.GetRange(0, batchSize);
                         CheckResourceGovernor(selectedEntries.Sum(x => x.Size));
                         try
@@ -844,8 +813,15 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                         }
                     }
                 }
+                gzipArchive.Dispose();
             }
-            gzipArchive?.Dispose();
+            else
+            {
+                if (options.ExtractSelfOnFail)
+                {
+                    yield return fileEntry;
+                }
+            }
         }
 
         /// <summary>
@@ -901,8 +877,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             else
             {
-                // If we couldn't parse it just return it
-                yield return fileEntry;
+                if (options.ExtractSelfOnFail)
+                {
+                    yield return fileEntry;
+                }
             }
         }
 
@@ -951,12 +929,15 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                 {
                     yield return extractedFile;
                 }
+                xzStream.Dispose();
             }
             else
             {
-                yield return fileEntry;
+                if (options.ExtractSelfOnFail)
+                {
+                    yield return fileEntry;
+                }
             }
-            xzStream?.Dispose();
         }
 
         /// <summary>
@@ -996,7 +977,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             else
             {
-                yield return fileEntry;
+                if (options.ExtractSelfOnFail)
+                {
+                    yield return fileEntry;
+                }
             }
         }
 
@@ -1026,7 +1010,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
                     while (entries.Any())
                     {
-                        int batchSize = Math.Min(MAX_BATCH_SIZE, entries.Count());
+                        int batchSize = Math.Min(options.BatchSize, entries.Count());
 
                         var streams = entries.Take(batchSize).Select(entry => (entry, entry.OpenEntryStream())).ToList();
 
@@ -1094,7 +1078,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             else
             {
-                yield return fileEntry;
+                if (options.ExtractSelfOnFail)
+                {
+                    yield return fileEntry;
+                }
             }
         }
 
@@ -1124,7 +1111,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
                     while (entries.Count() > 0)
                     {
-                        int batchSize = Math.Min(MAX_BATCH_SIZE, entries.Count());
+                        int batchSize = Math.Min(options.BatchSize, entries.Count());
                         var selectedEntries = entries.GetRange(0, batchSize).Select(entry => (entry, entry.OpenEntryStream()));
                         CheckResourceGovernor(selectedEntries.Sum(x => x.entry.Size));
 
@@ -1196,7 +1183,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             else
             {
-                yield return fileEntry;
+                if (options.ExtractSelfOnFail)
+                {
+                    yield return fileEntry;
+                }
             }
         }
 
@@ -1224,7 +1214,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
                     while (entries.Any())
                     {
-                        int batchSize = Math.Min(MAX_BATCH_SIZE, entries.Count());
+                        int batchSize = Math.Min(options.BatchSize, entries.Count());
                         var selectedEntries = entries.Take(batchSize);
 
                         CheckResourceGovernor(selectedEntries.Sum(x => x.Content.Length));
@@ -1257,7 +1247,10 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
             }
             else
             {
-                yield return fileEntry;
+                if (options.ExtractSelfOnFail)
+                {
+                    yield return fileEntry;
+                }
             }
         }
 
@@ -1289,7 +1282,7 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
 
                     while (diskFiles.Any())
                     {
-                        int batchSize = Math.Min(MAX_BATCH_SIZE, diskFiles.Count);
+                        int batchSize = Math.Min(options.BatchSize, diskFiles.Count);
                         var range = diskFiles.GetRange(0, batchSize);
                         var fileinfos = new List<(DiscFileInfo, Stream)>();
                         long totalLength = 0;
@@ -1354,7 +1347,6 @@ namespace Microsoft.CST.OpenSource.MultiExtractor
                     }
                 }
             }
-            
         }
 
         /// <summary>

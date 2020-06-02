@@ -25,7 +25,7 @@ namespace Microsoft.CST.OpenSource.Shared
         {
         }
 
-        public override Uri GetPackageAbsoluteUri(PackageURL purl)
+        public override Uri? GetPackageAbsoluteUri(PackageURL purl)
         {
             var availablePools = GetPoolsForProject(purl).Result;
             foreach (var pool in availablePools)
@@ -273,7 +273,7 @@ namespace Microsoft.CST.OpenSource.Shared
             return SortVersions(versionList.Distinct());
         }
 
-        public override async Task<string> GetMetadata(PackageURL purl)
+        public override async Task<string?> GetMetadata(PackageURL purl)
         {
             Logger.Trace("GetMetadata {0}", purl?.ToString());
             

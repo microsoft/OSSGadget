@@ -51,7 +51,7 @@ namespace Microsoft.CST.OpenSource.Shared
             var url = $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}/{packageVersion}/download";
             try
             {
-                string targetName = $"cargo-{purl.ToStringFilename()}";
+                string targetName = $"cargo-{purl?.ToStringFilename()}";
                 string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                 // if the cache is already present, no need to extract
                 if (doExtract && cached && Directory.Exists(extractionPath))
@@ -60,6 +60,11 @@ namespace Microsoft.CST.OpenSource.Shared
                     return downloadedPaths;
                 }
                 Logger.Debug("Downloading {0}", url);
+
+                if (WebClient == null)
+                {
+                    throw new NullReferenceException(nameof(WebClient));
+                }
                 var result = await WebClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
 
@@ -122,7 +127,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">Package URL for the package</param>
         /// <returns>Metadata as a string</returns>
-        public override async Task<string> GetMetadata(PackageURL purl)
+        public override async Task<string?> GetMetadata(PackageURL purl)
         {
             try
             {

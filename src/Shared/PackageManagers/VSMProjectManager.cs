@@ -261,7 +261,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
         }
 
-        public override async Task<string> GetMetadata(PackageURL purl)
+        public override async Task<string?> GetMetadata(PackageURL purl)
         {
             try
             {

@@ -54,11 +54,12 @@ namespace Microsoft.CST.OpenSource.Shared
                 foreach (var suffix in suffixes)
                 {
                     var url = $"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/{packageVersion}/{packageName}-{packageVersion}{suffix}.jar";
+                    if (WebClient == null) { throw new NullReferenceException(nameof(WebClient)); }
                     var result = await WebClient.GetAsync(url);
                     result.EnsureSuccessStatusCode();
                     Logger.Debug($"Downloading {purl}...");
 
-                    var targetName = $"maven-{purl.Namespace}/{packageName}{suffix}@{packageVersion}";
+                    var targetName = $"maven-{purl?.Namespace}/{packageName}{suffix}@{packageVersion}";
                     string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                     if (doExtract && Directory.Exists(extractionPath) && cached == true)
                     {
@@ -84,7 +85,7 @@ namespace Microsoft.CST.OpenSource.Shared
             return downloadedPaths;
         }
 
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
+        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL? purl)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
             if (purl == null)
@@ -93,17 +94,20 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             try
             {
-                var packageNamespace = purl.Namespace.Replace('.', '/');
-                var packageName = purl.Name;
+                var packageNamespace = purl?.Namespace?.Replace('.', '/');
+                var packageName = purl?.Name;
                 var content = await GetHttpStringCache($"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/maven-metadata.xml");
                 var versionList = new List<string>();
 
                 var doc = new XmlDocument();
                 doc.LoadXml(content);
-                foreach (XmlNode versionObject in doc.GetElementsByTagName("version"))
+                foreach (XmlNode? versionObject in doc.GetElementsByTagName("version"))
                 {
-                    Logger.Debug("Identified {0} version {1}.", packageName, versionObject.InnerText);
-                    versionList.Add(versionObject.InnerText);
+                    if (versionObject != null)
+                    {
+                        Logger.Debug("Identified {0} version {1}.", packageName, versionObject.InnerText);
+                        versionList.Add(versionObject.InnerText);
+                    }
                 }
                 return SortVersions(versionList.Distinct());
             }
@@ -113,13 +117,13 @@ namespace Microsoft.CST.OpenSource.Shared
                 return Array.Empty<string>();
             }
         }
-        public override async Task<string> GetMetadata(PackageURL purl)
+        public override async Task<string?> GetMetadata(PackageURL purl)
         {
             try
             {
-                var packageNamespace = purl.Namespace.Replace('.', '/');
-                var packageName = purl.Name;
-                if (purl.Version == null)
+                var packageNamespace = purl?.Namespace?.Replace('.', '/');
+                var packageName = purl?.Name;
+                if (purl?.Version == null)
                 {
                     foreach (var version in await EnumerateVersions(purl))
                     {

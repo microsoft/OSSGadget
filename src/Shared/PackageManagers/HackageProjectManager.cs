@@ -45,9 +45,10 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 var url = $"{ENV_HACKAGE_ENDPOINT}/package/{packageName}-{packageVersion}/{packageName}-{packageVersion}.tar.gz";
+                if (WebClient == null) { throw new NullReferenceException(nameof(WebClient)); }
                 var result = await WebClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
-                Logger.Debug("Downloading {0}...", purl.ToString());
+                Logger.Debug("Downloading {0}...", purl?.ToString());
 
                 var targetName = $"hackage-{packageName}@{packageVersion}";
                 string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
@@ -85,6 +86,7 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 var packageName = purl.Name;
+                if (WebClient == null) { throw new NullReferenceException(nameof(WebClient)); }
                 var html = await WebClient.GetAsync($"{ENV_HACKAGE_ENDPOINT}/package/{packageName}");
                 html.EnsureSuccessStatusCode();
                 var parser = new HtmlParser();
@@ -115,7 +117,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
         }
 
-        public override async Task<string> GetMetadata(PackageURL purl)
+        public override async Task<string?> GetMetadata(PackageURL purl)
         {
             try
             {

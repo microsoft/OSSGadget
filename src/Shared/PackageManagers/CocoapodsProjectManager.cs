@@ -56,7 +56,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
             if (podspec.RootElement.TryGetProperty("source", out var source))
             {
-                string url = null;
+                string? url = null;
                 if (source.TryGetProperty("git", out var sourceGit) &&
                     source.TryGetProperty("tag", out var sourceTag))
                 {
@@ -77,10 +77,11 @@ namespace Microsoft.CST.OpenSource.Shared
                 if (url != null)
                 {
                     Logger.Debug("Downloading {0}...", purl);
+                    if (WebClient == null) { throw new NullReferenceException(nameof(WebClient)); }
                     var result = await WebClient.GetAsync(url);
                     result.EnsureSuccessStatusCode();
                     
-                    var targetName = $"cocoapods-{purl.ToStringFilename()}";
+                    var targetName = $"cocoapods-{purl?.ToStringFilename()}";
                     string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                     if (doExtract && Directory.Exists(extractionPath) && cached == true)
                     {
@@ -117,7 +118,7 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 var packageName = purl.Name;
-                var prefix = GetCocoapodsPrefix(packageName);
+                var prefix = GetCocoapodsPrefix(packageName ?? string.Empty);
                 var html = await GetHttpStringCache($"{ENV_COCOAPODS_SPECS_ENDPOINT}/Specs/{prefix}/{packageName}");
 
                 var parser = new HtmlParser();
@@ -163,7 +164,7 @@ namespace Microsoft.CST.OpenSource.Shared
             return prefix;
         }
 
-        public override async Task<string> GetMetadata(PackageURL purl)
+        public override async Task<string?> GetMetadata(PackageURL purl)
         {
             try
             {

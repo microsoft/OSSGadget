@@ -76,14 +76,14 @@ namespace Microsoft.CST.OpenSource.Shared
 
             try
             {
-                var url = $"{ENV_GITHUB_ENDPOINT}/{purl.Namespace}/{purl.Name}";
+                var url = $"{ENV_GITHUB_ENDPOINT}/{purl?.Namespace}/{purl?.Name}";
                 var invalidChars = Path.GetInvalidFileNameChars();
 
                 // TODO: Externalize this normalization
-                var fsNamespace = new String(purl.Namespace.Select(ch => invalidChars.Contains(ch) ? '_' : ch).ToArray());
-                var fsName = new String(purl.Name.Select(ch => invalidChars.Contains(ch) ? '_' : ch).ToArray());
-                var fsVersion = new String(purl.Version.Select(ch => invalidChars.Contains(ch) ? '_' : ch).ToArray());
-                var workingDirectory = string.IsNullOrWhiteSpace(purl.Version) ?
+                var fsNamespace = new string((purl?.Namespace?.Select(ch => invalidChars.Contains(ch) ? '_' : ch) ?? Array.Empty<char>()).ToArray());
+                var fsName = new string((purl?.Name?.Select(ch => invalidChars.Contains(ch) ? '_' : ch) ?? Array.Empty<char>()).ToArray());
+                var fsVersion = new string((purl?.Version?.Select(ch => invalidChars.Contains(ch) ? '_' : ch) ?? Array.Empty<char>()).ToArray());
+                var workingDirectory = string.IsNullOrWhiteSpace(purl?.Version) ?
                                         Path.Join(TopLevelExtractionDirectory, $"github-{fsNamespace}-{fsName}") :
                                         Path.Join(TopLevelExtractionDirectory, $"github-{fsNamespace}-{fsName}-{fsVersion}");
                 string extractionPath = Path.Combine(TopLevelExtractionDirectory, workingDirectory);
@@ -105,7 +105,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (LibGit2Sharp.NotFoundException ex)
             {
-                Logger.Warn(ex, "The version {0} is not a valid git reference: {1}", purl.Version, ex.Message);
+                Logger.Warn(ex, "The version {0} is not a valid git reference: {1}", purl?.Version, ex.Message);
             }
             catch (Exception ex)
             {
@@ -141,7 +141,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 return Array.Empty<string>();
             }
         }
-        public override async Task<string> GetMetadata(PackageURL purl)
+        public override async Task<string?> GetMetadata(PackageURL purl)
         {
             await Task.Run(() => { });  // Avoid async warning -- @HACK
             return $"https://github.com/{purl.Namespace}/{purl.Name}";
@@ -177,7 +177,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
             try
             {
-                foreach (Match match in GithubExtractorRegex.Matches(searchText))
+                foreach (Match match in GithubExtractorRegex.Matches(searchText).Where(match => match != null))
                 {
                     repositoryList.Add(new PackageURL("github", match.Groups["user"].Value, match.Groups["repo"].Value, null, null, null));
                 }

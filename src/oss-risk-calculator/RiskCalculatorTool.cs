@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -20,17 +21,17 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         /// Holds the version string, from the assembly.
         /// </summary>
-        private static readonly string VERSION = typeof(RiskCalculatorTool).Assembly.GetName().Version.ToString();
+        private static readonly string? VERSION = typeof(RiskCalculatorTool).Assembly?.GetName().Version?.ToString();
 
         /// <summary>
         /// Logger for this class
         /// </summary>
-        private static NLog.ILogger Logger { get; set; }
+        private static NLog.ILogger? Logger { get; set; }
 
         /// <summary>
         /// Command line options
         /// </summary>
-        public Dictionary<string, object> Options = new Dictionary<string, object>()
+        public Dictionary<string, object?> Options = new Dictionary<string, object?>()
         {
             { "target", new List<string>() },
             { "external-risk", 0 },
@@ -47,30 +48,31 @@ namespace Microsoft.CST.OpenSource
             var riskCalculator = new RiskCalculatorTool();
 
 
-            Logger.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
+            Logger?.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
             riskCalculator.ParseOptions(args);
 
-            if (((IList<string>)riskCalculator.Options["target"]).Count > 0)
+            if (riskCalculator.Options["target"] is IList<string> targetList && targetList.Count > 0)
             {
-                foreach (var target in (IList<string>)riskCalculator.Options["target"])
+                foreach (var target in targetList)
                 {
                     try
                     {
+                        var useCache = (bool?)riskCalculator.Options["use-cache"] == true;
                         var purl = new PackageURL(target);
                         var riskLevel = riskCalculator.CalculateRisk(purl, 
-                            (string)riskCalculator.Options["download-directory"], 
-                            (bool)riskCalculator.Options["use-cache"]).Result;
-                        Logger.Info($"Risk Level: {riskLevel}");
+                            (string?)riskCalculator.Options["download-directory"], 
+                            useCache).Result;
+                        Logger?.Info($"Risk Level: {riskLevel}");
                     }
                     catch (Exception ex)
                     {
-                        Logger.Warn("Error processing {0}: {1}", target, ex.Message);
+                        Logger?.Warn("Error processing {0}: {1}", target, ex.Message);
                     }
                 }
             }
             else
             {
-                Logger.Warn("No target provided; nothing to analyze.");
+                Logger?.Warn("No target provided; nothing to analyze.");
                 ShowUsage();
                 Environment.Exit(1);
             }
@@ -82,9 +84,9 @@ namespace Microsoft.CST.OpenSource
             Logger = CommonInitialization.Logger;
         }
 
-        public async Task<double> CalculateRisk(PackageURL purl, string targetDirectory, bool doCaching)
+        public async Task<double> CalculateRisk(PackageURL purl, string? targetDirectory, bool doCaching)
         {
-            Logger.Trace("CalculateRisk({0})", purl?.ToString());
+            Logger?.Trace("CalculateRisk({0})", purl.ToString());
 
             var characteristicTool = new CharacteristicTool();
             var characteristics = characteristicTool.AnalyzePackage(purl, targetDirectory, doCaching).Result;
@@ -93,7 +95,7 @@ namespace Microsoft.CST.OpenSource
             var healthMetrics = healthTool.CheckHealth(purl).Result;
             if (healthMetrics == null)
             {
-                Logger.Warn("Unable to determine health metrics, will use a default of 0");
+                Logger?.Warn("Unable to determine health metrics, will use a default of 0");
                 healthMetrics = new HealthMetrics(purl)
                 {
                     SecurityIssueHealth = 0,
@@ -117,9 +119,11 @@ namespace Microsoft.CST.OpenSource
             bool isHighRisk = false;
             foreach (var charKey in characteristics.Keys)
             {
-                foreach (var tag in characteristics[charKey].Metadata.UniqueTags)
-                {
-                    isHighRisk |= highRiskTags.Any(t => tag.Key.StartsWith(t));
+                if (characteristics[charKey]?.Metadata.UniqueTags is ConcurrentDictionary<string, byte> dict) {
+                    foreach (var tag in dict)
+                    {
+                        isHighRisk |= highRiskTags.Any(t => tag.Key.StartsWith(t));
+                    }
                 }
             }
             if (isHighRisk)
@@ -179,7 +183,10 @@ namespace Microsoft.CST.OpenSource
                         break;
 
                     default:
-                        ((IList<string>)Options["target"]).Add(args[i]);
+                        if (Options["target"] is IList<string> targetList)
+                        {
+                            targetList.Add(args[i]);
+                        }
                         break;
                 }
             }

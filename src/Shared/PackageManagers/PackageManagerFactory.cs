@@ -14,7 +14,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl"></param>
         /// <returns>BaseProjectManager object</returns>
-        public static BaseProjectManager CreateProjectManager(PackageURL purl, string destinationDirectory)
+        public static BaseProjectManager? CreateProjectManager(PackageURL purl, string? destinationDirectory)
         {
             if(projectManagers.Count == 0)
             {
@@ -29,8 +29,11 @@ namespace Microsoft.CST.OpenSource.Shared
             if (downloaderClass != null)
             {
                 var ctor = downloaderClass.GetConstructor(new Type[] { typeof(string) });
-                var _downloader = (BaseProjectManager)(ctor.Invoke(new object[] { destinationDirectory }));
-                return _downloader;
+                if (ctor != null)
+                {
+                    var _downloader = (BaseProjectManager)(ctor.Invoke(new object?[] { destinationDirectory }));
+                    return _downloader;
+                }
             }
 
             return null;

@@ -50,6 +50,7 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 var url = $"{ENV_RUBYGEMS_ENDPOINT}/downloads/{packageName}-{packageVersion}.gem";
+                if (WebClient == null) { throw new NullReferenceException(nameof(WebClient)); }
                 var result = await WebClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
                 Logger.Debug("Downloading {0}...", purl);
@@ -111,7 +112,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 return Array.Empty<string>();
             }
         }
-        public override async Task<string> GetMetadata(PackageURL purl)
+        public override async Task<string?> GetMetadata(PackageURL purl)
         {
             try
             {

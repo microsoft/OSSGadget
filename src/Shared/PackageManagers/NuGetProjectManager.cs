@@ -49,9 +49,10 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 var doc = await GetJsonCache($"{ENV_NUGET_ENDPOINT_API}/v3/registration3/{packageName}/{packageVersion}.json");
                 var archive = doc.RootElement.GetProperty("packageContent").GetString();
+                if (WebClient == null) { throw new NullReferenceException(nameof(WebClient)); }
                 var result = await WebClient.GetAsync(archive);
                 result.EnsureSuccessStatusCode();
-                Logger.Debug("Downloading {0}...", purl.ToString());
+                Logger.Debug("Downloading {0}...", purl?.ToString());
 
                 var targetName = $"nuget-{packageName}@{packageVersion}";
                 string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
@@ -110,12 +111,12 @@ namespace Microsoft.CST.OpenSource.Shared
                 return Array.Empty<string>();
             }
         }
-        public override async Task<string> GetMetadata(PackageURL purl)
+        public override async Task<string?> GetMetadata(PackageURL purl)
         {
             try
             {
                 var packageName = purl.Name;
-                var content = await GetHttpStringCache($"{ENV_NUGET_ENDPOINT_API}/v3/registration3/{packageName.ToLower()}/index.json");
+                var content = await GetHttpStringCache($"{ENV_NUGET_ENDPOINT_API}/v3/registration3/{packageName?.ToLower()}/index.json");
                 return content;
             }
             catch (Exception ex)

@@ -10,6 +10,8 @@
     <RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>
     <Configurations>Debug;Release</Configurations>
     <AssemblyName>Shared</AssemblyName>
+    <LangVersion>8.0</LangVersion>
+    <Nullable>Enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

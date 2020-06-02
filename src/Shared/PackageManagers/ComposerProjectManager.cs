@@ -56,6 +56,7 @@ namespace Microsoft.CST.OpenSource.Shared
                             continue;
                         }
                         var url = versionObject.Value.GetProperty("dist").GetProperty("url").GetString();
+                        if (WebClient == null) { throw new NullReferenceException(nameof(WebClient)); }
                         var result = await WebClient.GetAsync(url);
                         result.EnsureSuccessStatusCode();
                         Logger.Debug("Downloading {0}...", purl);
@@ -129,7 +130,7 @@ namespace Microsoft.CST.OpenSource.Shared
             return versionList;
         }
 
-        public override async Task<string> GetMetadata(PackageURL purl)
+        public override async Task<string?> GetMetadata(PackageURL purl)
         {
             try
             {

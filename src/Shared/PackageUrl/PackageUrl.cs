@@ -53,37 +53,37 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <summary>
         /// The PackageURL scheme constant.
         /// </summary>
-        public string Scheme { get; private set; } = "pkg";
+        public string? Scheme { get; private set; } = "pkg";
 
         /// <summary>
         /// The package "type" or package "protocol" such as nuget, npm, nuget, gem, pypi, etc.
         /// </summary>
-        public string Type { get; private set; }
+        public string? Type { get; private set; }
 
         /// <summary>
         /// The name prefix such as a Maven groupid, a Docker image owner, a GitHub user or organization.
         /// </summary>
-        public string Namespace { get; private set; }
+        public string? Namespace { get; private set; }
 
         /// <summary>
         /// The name of the package.
         /// </summary>
-        public string Name { get; private set; }
+        public string? Name { get; private set; }
 
         /// <summary>
         /// The version of the package.
         /// </summary>
-        public string Version { get; private set; }
+        public string? Version { get; private set; }
 
         /// <summary>
         /// Extra qualifying data for a package such as an OS, architecture, a distro, etc.
         /// <summary>
-        public SortedDictionary<string, string> Qualifiers { get; private set; }
+        public SortedDictionary<string, string>? Qualifiers { get; private set; }
 
         /// <summary>
         /// Extra subpath within a package, relative to the package root.
         /// </summary>
-        public string Subpath { get; private set; }
+        public string? Subpath { get; private set; }
 
         /// <summary>
         /// Constructs a new PackageURL object by parsing the specified string.
@@ -117,7 +117,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// @param qualifiers an array of key/value pair qualifiers
         /// @param subpath the subpath string
         /// <exception cref="FormatException">Thrown when parsing fails.</exception>
-        public PackageURL(string type, string @namespace, string name, string version, SortedDictionary<string, string> qualifiers, string subpath)
+        public PackageURL(string? type, string? @namespace, string? name, string? version, SortedDictionary<string, string>? qualifiers, string? subpath)
         {
             Type = ValidateType(type);
             Namespace = ValidateNamespace(@namespace);
@@ -258,7 +258,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
         }
 
-        private static string ValidateType(string type)
+        private static string? ValidateType(string? type)
         {
             if (type == null || !s_typePattern.IsMatch(type))
             {
@@ -267,7 +267,7 @@ namespace Microsoft.CST.OpenSource.Shared
             return type.ToLower();
         }
 
-        private string ValidateNamespace(string @namespace)
+        private string? ValidateNamespace(string? @namespace)
         {
             if (@namespace == null)
             {
@@ -281,7 +281,7 @@ namespace Microsoft.CST.OpenSource.Shared
             return WebUtility.UrlDecode(@namespace.ToLower());
         }
 
-        private string ValidateName(string name)
+        private string? ValidateName(string? name)
         {
             if (name == null)
             {
@@ -313,14 +313,14 @@ namespace Microsoft.CST.OpenSource.Shared
             return list;
         }
 
-        private static string ValidateSubpath(string subpath) => subpath?.Trim('/'); // leading and trailing slashes always need to be removed
+        private static string? ValidateSubpath(string? subpath) => subpath?.Trim('/'); // leading and trailing slashes always need to be removed
 
         public override int GetHashCode()
         {
             return HashCode.Combine(Scheme, Type, Namespace, Name, Version, Qualifiers, Subpath);
         }
 
-        public bool Equals(PackageURL obj)
+        public bool Equals(PackageURL? obj)
         {
             return obj is PackageURL uRL &&
                    Scheme == uRL.Scheme &&

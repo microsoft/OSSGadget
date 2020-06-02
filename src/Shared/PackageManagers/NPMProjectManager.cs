@@ -90,9 +90,10 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 var doc = await GetJsonCache($"{ENV_NPM_ENDPOINT}/{packageName}");
                 var tarball = doc.RootElement.GetProperty("versions").GetProperty(packageVersion).GetProperty("dist").GetProperty("tarball").GetString();
+                if (WebClient == null) { throw new NullReferenceException(nameof(WebClient)); }
                 var result = await WebClient.GetAsync(tarball);
                 result.EnsureSuccessStatusCode();
-                Logger.Debug("Downloading {0}...", purl.ToString());
+                Logger.Debug("Downloading {0}...", purl?.ToString());
                 var targetName = $"npm-{packageName}@{packageVersion}";
                 string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                 if (doExtract && Directory.Exists(extractionPath) && cached == true)
@@ -150,7 +151,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
         }
 
-        public override async Task<string> GetMetadata(PackageURL purl)
+        public override async Task<string?> GetMetadata(PackageURL purl)
         {
             try
             {
@@ -174,7 +175,7 @@ namespace Microsoft.CST.OpenSource.Shared
             string metadata)
         {
             var mapping = new Dictionary<PackageURL, double>();
-            if (purl.Name.StartsWith('_') || npm_internal_modules.Contains(purl.Name))
+            if (purl?.Name is string purlName && (purlName.StartsWith('_') || npm_internal_modules.Contains(purlName)))
             {
                 // url = 'https://github.com/nodejs/node/tree/master/lib' + package.name,
 

@@ -12,7 +12,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <summary>
         /// Static HttpClient for use in all HTTP connections.
         /// </summary>
-        public static HttpClient WebClient { get; private set; } = null;
+        public static HttpClient? WebClient { get; private set; } = null;
         
         /// <summary>
         /// User Agent string, when needed to connect to external resources.
@@ -23,7 +23,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <summary>
         /// Common Logger for all OSS Gadget tools.
         /// </summary>
-        public static NLog.Logger Logger { get; private set; }
+        public static NLog.Logger? Logger { get; private set; }
 
         /// <summary>
         /// Prevent being initialized multiple times.
@@ -90,7 +90,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     var value = Environment.GetEnvironmentVariable(bareName);
                     if (value != null)
                     {
-                        Logger.Debug("Assiging value of {0} to {1}", bareName, fieldInfo.Name);
+                        Logger?.Debug("Assiging value of {0} to {1}", bareName, fieldInfo.Name);
                         fieldInfo.SetValue(null, value);
                     }
                 }

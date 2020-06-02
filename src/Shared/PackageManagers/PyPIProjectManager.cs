@@ -64,6 +64,7 @@ namespace Microsoft.CST.OpenSource.Shared
                         {
                             continue;   // Missing a package type
                         }
+                        if (WebClient == null) { throw new NullReferenceException(nameof(WebClient)); }
                         var result = await WebClient.GetAsync(release.GetProperty("url").GetString());
                         result.EnsureSuccessStatusCode();
                         var targetName = $"pypi-{packageType}-{packageName}@{packageVersion}";
@@ -132,7 +133,7 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
 
-        public override async Task<string> GetMetadata(PackageURL purl)
+        public override async Task<string?> GetMetadata(PackageURL purl)
         {
             try
             {

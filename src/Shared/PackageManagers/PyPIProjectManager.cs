@@ -64,8 +64,7 @@ namespace Microsoft.CST.OpenSource.Shared
                         {
                             continue;   // Missing a package type
                         }
-                        if (WebClient == null) { throw new NullReferenceException(nameof(WebClient)); }
-                        var result = await WebClient.GetAsync(release.GetProperty("url").GetString());
+                                var result = await WebClient.GetAsync(release.GetProperty("url").GetString());
                         result.EnsureSuccessStatusCode();
                         var targetName = $"pypi-{packageType}-{packageName}@{packageVersion}";
                         string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);

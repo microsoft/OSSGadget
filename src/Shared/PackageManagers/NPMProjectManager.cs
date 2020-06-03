@@ -90,7 +90,6 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 var doc = await GetJsonCache($"{ENV_NPM_ENDPOINT}/{packageName}");
                 var tarball = doc.RootElement.GetProperty("versions").GetProperty(packageVersion).GetProperty("dist").GetProperty("tarball").GetString();
-                if (WebClient == null) { throw new NullReferenceException(nameof(WebClient)); }
                 var result = await WebClient.GetAsync(tarball);
                 result.EnsureSuccessStatusCode();
                 Logger.Debug("Downloading {0}...", purl?.ToString());

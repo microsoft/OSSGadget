@@ -21,7 +21,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <summary>
         /// Static HttpClient for use in all HTTP connections.
         /// </summary>
-        protected static HttpClient? WebClient;
+        protected static HttpClient WebClient;
 
         /// <summary>
         /// Logger for each of the subclasses
@@ -106,7 +106,14 @@ namespace Microsoft.CST.OpenSource.Shared
             this.Options = new Dictionary<string, object>();
             CommonInitialization.OverrideEnvironmentVariables(this);
             this.TopLevelExtractionDirectory = destinationDirectory;
-            WebClient = CommonInitialization.WebClient;
+            if (CommonInitialization.WebClient is HttpClient client)
+            {
+                WebClient = client;
+            }
+            else
+            {
+                throw new NullReferenceException(nameof(WebClient));
+            }
         }
 
         /// <summary>
@@ -127,7 +134,6 @@ namespace Microsoft.CST.OpenSource.Shared
                     }
                 }
             }
-            if (WebClient == null) { throw new NullReferenceException(nameof(WebClient)); }
             var result = await WebClient.GetAsync(uri);
             result.EnsureSuccessStatusCode();   // Don't cache error codes
             var contentLength = result.Content.Headers.ContentLength ?? 8192;
@@ -169,7 +175,6 @@ namespace Microsoft.CST.OpenSource.Shared
                     }
                 }
 
-                if (WebClient == null) { throw new NullReferenceException(nameof(WebClient)); }
                 var result = await WebClient.GetAsync(uri);
                 result.EnsureSuccessStatusCode();   // Don't cache error codes
                 var contentLength = result.Content.Headers.ContentLength ?? 8192;

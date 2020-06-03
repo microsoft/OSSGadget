@@ -49,7 +49,6 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 var url = $"{ENV_CRAN_ENDPOINT}/src/contrib/{packageName}_{packageVersion}.tar.gz";
-                if (WebClient == null) { throw new NullReferenceException(nameof(WebClient)); }
                 var result = await WebClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
                 Logger.Debug("Downloading {0}...", purl);
@@ -85,7 +84,6 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 var url = $"{ENV_CRAN_ENDPOINT}/src/contrib/Archive/{packageName}/{packageName}_{packageVersion}.tar.gz";
-                if (WebClient == null) { throw new NullReferenceException(nameof(WebClient)); }
                 var result = await WebClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
                 Logger.Debug("Downloading {0}...", purl);
@@ -123,7 +121,6 @@ namespace Microsoft.CST.OpenSource.Shared
                 var versionList = new List<string>();
 
                 // Get the latest version
-                if (WebClient == null) { throw new NullReferenceException(nameof(WebClient)); }
                 var html = await WebClient.GetAsync($"{ENV_CRAN_ENDPOINT}/web/packages/{packageName}/index.html");
                 html.EnsureSuccessStatusCode();
                 var parser = new HtmlParser();

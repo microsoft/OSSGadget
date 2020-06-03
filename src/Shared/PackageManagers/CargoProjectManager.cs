@@ -62,10 +62,6 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
                 Logger.Debug("Downloading {0}", url);
 
-                if (WebClient == null)
-                {
-                    throw new NullReferenceException(nameof(WebClient));
-                }
                 var result = await WebClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
 

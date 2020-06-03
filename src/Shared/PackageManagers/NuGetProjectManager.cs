@@ -49,7 +49,6 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 var doc = await GetJsonCache($"{ENV_NUGET_ENDPOINT_API}/v3/registration3/{packageName}/{packageVersion}.json");
                 var archive = doc.RootElement.GetProperty("packageContent").GetString();
-                if (WebClient == null) { throw new NullReferenceException(nameof(WebClient)); }
                 var result = await WebClient.GetAsync(archive);
                 result.EnsureSuccessStatusCode();
                 Logger.Debug("Downloading {0}...", purl?.ToString());

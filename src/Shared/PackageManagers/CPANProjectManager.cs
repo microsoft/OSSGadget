@@ -93,7 +93,6 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
 
                 var binaryUrl = anchor.GetAttribute("href");
-                if (WebClient == null) { throw new NullReferenceException(nameof(WebClient)); }
                 var result = await WebClient.GetAsync(binaryUrl);
                 result.EnsureSuccessStatusCode();
                 Logger.Debug("Downloading {0}...", purl);

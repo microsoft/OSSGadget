@@ -23,6 +23,13 @@ namespace Microsoft.CST.OpenSource.Shared
         {
         }
 
+        public override Uri GetPackageAbsoluteUri(PackageURL purl)
+        {
+            var packageName = purl?.Name;
+            return new Uri($"{ENV_CPAN_ENDPOINT}/pod/{packageName}");
+            // TODO: Add version support
+        }
+
         /// <summary>
         /// Download one CPAN package and extract it to the target directory.
         /// </summary>

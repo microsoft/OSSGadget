@@ -66,6 +66,16 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
+        /// Get the uri for the package home page (no version)
+        /// </summary>
+        /// <param name="purl"></param>
+        /// <returns></returns>
+        public virtual Uri GetPackageAbsoluteUri(PackageURL purl)
+        {
+            throw new NotImplementedException("BaseProjectManager does not implement GetPackageAbsoluteUri.");
+        }
+
+        /// <summary>
         /// This method should return text reflecting metadata for the given package.
         /// There is no assumed format.
         /// </summary>
@@ -85,7 +95,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <returns></returns>
         protected virtual Task<Dictionary<PackageURL, double>> PackageMetadataSearch(PackageURL purl, string metadata)
         {
-            throw new NotImplementedException("BaseProjectManager does not implement PackageMetadataSearch.");
+            return Task.FromResult(new Dictionary<PackageURL, double>());
         }
 
         /// <summary>

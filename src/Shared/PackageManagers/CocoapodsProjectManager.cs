@@ -27,6 +27,11 @@ namespace Microsoft.CST.OpenSource.Shared
         {
         }
 
+        public override Uri GetPackageAbsoluteUri(PackageURL purl)
+        {
+            return new Uri($"{ENV_COCOAPODS_METADATA_ENDPOINT}/pods/{purl.Name}");
+        }
+
         /// <summary>
         /// Download one Cocoapods package and extract it to the target directory.
         /// </summary>

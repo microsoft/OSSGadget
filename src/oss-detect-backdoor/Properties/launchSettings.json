@@ -1,7 +1,0 @@
-{
-  "profiles": {
-    "oss-detect-backdoor": {
-      "commandName": "Project"
-    }
-  }
-}

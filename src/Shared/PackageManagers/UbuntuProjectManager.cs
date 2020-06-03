@@ -25,6 +25,20 @@ namespace Microsoft.CST.OpenSource.Shared
         {
         }
 
+        public override Uri GetPackageAbsoluteUri(PackageURL purl)
+        {
+            var availablePools = GetPoolsForProject(purl).Result;
+            foreach (var pool in availablePools)
+            {
+                var archiveBaseUrl = GetArchiveBaseUrlForProject(purl, pool).Result;
+                if (archiveBaseUrl != null)
+                {
+                    return new Uri(archiveBaseUrl);
+                }
+            }
+            return null;
+        }
+
         /// <summary>
         /// Download one VS Marketplace package and extract it to the target directory.
         /// </summary>

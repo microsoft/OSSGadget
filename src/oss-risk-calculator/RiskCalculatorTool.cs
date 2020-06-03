@@ -94,7 +94,7 @@ namespace Microsoft.CST.OpenSource
             if (healthMetrics == null)
             {
                 Logger.Warn("Unable to determine health metrics, will use a default of 0");
-                healthMetrics = new HealthMetrics()
+                healthMetrics = new HealthMetrics(purl)
                 {
                     SecurityIssueHealth = 0,
                     CommitHealth = 0,

@@ -19,6 +19,11 @@ namespace Microsoft.CST.OpenSource.Shared
         {
         }
 
+        public override Uri GetPackageAbsoluteUri(PackageURL purl)
+        {
+            return new Uri($"{ENV_HACKAGE_ENDPOINT}/package/{purl?.Name}");
+        }
+
         /// <summary>
         /// Download one Hackage (Haskell) package and extract it to the target directory.
         /// </summary>

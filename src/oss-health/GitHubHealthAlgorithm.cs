@@ -91,7 +91,7 @@ namespace Microsoft.CST.OpenSource.Health
         {
             Logger.Debug("GetHealth({0}/{1})", purl.Namespace, purl.Name);
 
-            var health = new HealthMetrics();
+            var health = new HealthMetrics(purl);
             var initialRateLimit = await Client.Miscellaneous.GetRateLimits();
             var remaining = initialRateLimit.Resources.Core.Remaining;
             if (remaining < 500)

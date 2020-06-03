@@ -19,6 +19,14 @@ namespace Microsoft.CST.OpenSource.Shared
         {
         }
 
+        public override Uri GetPackageAbsoluteUri(PackageURL purl)
+        {
+            var packageNamespace = purl?.Namespace?.Replace('.', '/');
+            var packageName = purl?.Name;
+
+            return new Uri($"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}");
+        }
+
         /// <summary>
         /// Download one Maven package and extract it to the target directory.
         /// </summary>

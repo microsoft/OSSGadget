@@ -21,6 +21,14 @@ namespace Microsoft.CST.OpenSource.Shared
         public CargoProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
         }
+
+        public override Uri GetPackageAbsoluteUri(PackageURL purl)
+        {
+            var packageName = purl?.Name;
+            return new Uri($"{ENV_CARGO_ENDPOINT}/crates/{packageName}");
+            // TODO: Add version support
+        }
+
         /// <summary>
         /// Download one Cargo package and extract it to the target directory.
         /// </summary>

@@ -54,11 +54,11 @@ namespace Microsoft.CST.OpenSource.Shared
                 foreach (var suffix in suffixes)
                 {
                     var url = $"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/{packageVersion}/{packageName}-{packageVersion}{suffix}.jar";
-                        var result = await WebClient.GetAsync(url);
+                    var result = await WebClient.GetAsync(url);
                     result.EnsureSuccessStatusCode();
                     Logger.Debug($"Downloading {purl}...");
 
-                    var targetName = $"maven-{purl?.Namespace}/{packageName}{suffix}@{packageVersion}";
+                    var targetName = $"maven-{packageNamespace}/{packageName}{suffix}@{packageVersion}";
                     string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                     if (doExtract && Directory.Exists(extractionPath) && cached == true)
                     {

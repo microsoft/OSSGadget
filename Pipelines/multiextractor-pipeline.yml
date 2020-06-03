@@ -41,6 +41,7 @@ stages:
         command: 'restore'
         projects: 'src/MultiExtractor.Tests/MultiExtractor.Tests.csproj'
         verbosityRestore: 'Normal'
+        restoreArguments: --configfile NuGet.Config
     - task: DotNetCoreCLI@2
       displayName: Dotnet Test
       inputs:

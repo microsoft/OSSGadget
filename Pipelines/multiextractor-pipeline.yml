@@ -39,7 +39,7 @@ stages:
       displayName: Dotnet Add Source
       inputs:
         command: 'custom'
-        custom: 'nuget add source'
+        custom: 'nuget add source MyGet'
         arguments: '--configfile NuGet.Config'
         workingDirectory: 'src/MultiExtractor.Tests/'
     - task: DotNetCoreCLI@2

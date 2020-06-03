@@ -34,7 +34,7 @@ namespace Microsoft.CST.OpenSource
         private bool actualCaching = false;
 
         // folders created
-        List<string>? downloadPaths { get; set; }
+        List<string> downloadPaths { get; set; } = new List<string>();
 
         /// <summary>
         /// Constuctor - creates a class object for downloading packages
@@ -144,6 +144,9 @@ namespace Microsoft.CST.OpenSource
                 downloadDirectories.AddRange(await this.Download(version, metadataOnly, doExtract));
             }
 
+            // Add the return values to our internal storage to be cleaned up later by CleanPackageLocalCopy
+            this.downloadPaths.AddRange(downloadDirectories);
+
             return downloadDirectories;
         }
 
@@ -174,15 +177,12 @@ namespace Microsoft.CST.OpenSource
         {
             try
             {
-                if (this.downloadPaths != null)
+                foreach (string packageDirectory in this.downloadPaths)
                 {
-                    foreach (string packageDirectory in this.downloadPaths)
+                    if (Directory.Exists(packageDirectory))
                     {
-                        if (Directory.Exists(packageDirectory))
-                        {
-                            Logger.Trace("Removing directory {0}", packageDirectory);
-                            Directory.Delete(packageDirectory, true);
-                        }
+                        Logger.Trace("Removing directory {0}", packageDirectory);
+                        Directory.Delete(packageDirectory, true);
                     }
                 }
             }
@@ -190,6 +190,8 @@ namespace Microsoft.CST.OpenSource
             {
                 Logger.Warn("Error removing {0}: {1}", destinationDirectory, ex.Message);
             }
+
+            this.downloadPaths.Clear();
         }
 
 
@@ -239,6 +241,9 @@ namespace Microsoft.CST.OpenSource
                     downloadPaths.AddRange(await packageManager.DownloadVersion(purl, doExtract, this.actualCaching));
                 }
             }
+
+            // Add the return values to our internal storage to be cleaned up later by CleanPackageLocalCopy
+            this.downloadPaths.AddRange(downloadPaths);
 
             return downloadPaths;
         }

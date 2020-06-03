@@ -39,8 +39,6 @@ stages:
       inputs:
         command: 'restore'
         restoreSolution: 'src/MultiExtractor.Tests/*.csproj'
-        feedsToUse: 'config'
-        nugetConfigPath: 'src/NuGet.Config'
         noCache: true
         verbosityRestore: 'Normal'
     - task: DotNetCoreCLI@2

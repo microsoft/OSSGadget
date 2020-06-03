@@ -89,7 +89,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
                 // TODO: Externalize this normalization
                 var fsNamespace = new string((packageNamespace.Select(ch => invalidChars.Contains(ch) ? '_' : ch) ?? Array.Empty<char>()).ToArray());
-                var fsName = new string((packageName?.Select(ch => invalidChars.Contains(ch) ? '_' : ch) ?? Array.Empty<char>()).ToArray());
+                var fsName = new string((packageName.Select(ch => invalidChars.Contains(ch) ? '_' : ch) ?? Array.Empty<char>()).ToArray());
                 var fsVersion = new string((packageVersion.Select(ch => invalidChars.Contains(ch) ? '_' : ch) ?? Array.Empty<char>()).ToArray());
                 var workingDirectory = string.IsNullOrWhiteSpace(packageVersion) ?
                                         Path.Join(TopLevelExtractionDirectory, $"github-{fsNamespace}-{fsName}") :

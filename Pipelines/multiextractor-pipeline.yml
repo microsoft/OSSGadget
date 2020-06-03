@@ -35,11 +35,13 @@ stages:
       displayName: Install Nuget Tool
       inputs:
         versionSpec: '5.4.x'
-    - task: DotNetCoreCLI@2
-      displayName: Dotnet Restore
+    - task: NuGetCommand@2
+      displayName: NuGet Restore
       inputs:
         command: 'restore'
-        projects: 'src/MultiExtractor.Tests/MultiExtractor.Tests.csproj'
+        restoreSolution: 'src/MultiExtractor.Tests/MultiExtractor.Tests.csproj'
+        feedsToUse: 'config'
+        nugetConfigPath: 'src/MultiExtractor/NuGet.Config'
         verbosityRestore: 'Normal'
     - task: DotNetCoreCLI@2
       displayName: Dotnet Test

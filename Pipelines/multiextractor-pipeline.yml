@@ -35,11 +35,14 @@ stages:
       displayName: Install Nuget Tool
       inputs:
         versionSpec: '5.4.x'
-    - task: CmdLine@2
+    - task: NuGetCommand@2
       inputs:
-        script: 'dotnet restore --configfile NuGet.Config'
-        workingDirectory: 'src/'
-        failOnStderr: true
+        command: 'restore'
+        restoreSolution: 'src/*.sln'
+        feedsToUse: 'config'
+        nugetConfigPath: 'src/NuGet.Config'
+        noCache: true
+        verbosityRestore: 'Normal'
     - task: DotNetCoreCLI@2
       displayName: Dotnet Test
       inputs:

@@ -52,7 +52,7 @@ namespace Microsoft.CST.OpenSource.Shared
             var downloadedPaths = new List<string>();
             var downloadedUrls = new HashSet<string>();
 
-            if (purl == null || purl.Name == null)
+            if (purl == null || purl.Name == null || packageVersion == null)
             {
                 return downloadedPaths;
             }
@@ -129,7 +129,7 @@ namespace Microsoft.CST.OpenSource.Shared
                             }
 
                             var seenFiles = new HashSet<string>();
-                            foreach (Match match in Regex.Matches(dscContent, "^ [a-z0-9]+ \\d+ (.*)$", RegexOptions.Multiline | RegexOptions.IgnoreCase))
+                            foreach (Match match in Regex.Matches(dscContent, "^ [a-z0-9]+ \\d+ (.*)$", RegexOptions.Multiline | RegexOptions.IgnoreCase).Where(x => x != null))
                             {
                                 seenFiles.Add(match.Groups[1].Value.Trim());
                             }
@@ -186,12 +186,20 @@ namespace Microsoft.CST.OpenSource.Shared
         private List<string> GetBaseURLs(PackageURL purl)
         {
             var results = new List<string>();
-            var dirName = purl.Name.StartsWith("lib") ? "lib" + purl.Name.Substring(3, 1) : purl.Name.Substring(0, 1);
+            var dirName = string.Empty;
+            if (purl.Name is string purlName)
+            {
+                dirName = purlName.StartsWith("lib") ? "lib" + purlName.Substring(3, 1) : purlName.Substring(0, 1);
+            }
+            else
+            {
+                return results;
+            }
 
             var distroName = "ubuntu";  // default
             purl.Qualifiers?.TryGetValue("distro", out distroName);
             
-            if (purl.Qualifiers != null && purl.Qualifiers.TryGetValue("pool", out string selectedPool))
+            if (purl.Qualifiers != null && purl.Qualifiers.TryGetValue("pool", out string? selectedPool))
             {
                 results.Add($"{ENV_UBUNTU_ARCHIVE_MIRROR}/{distroName}/pool/{selectedPool}/{dirName}/{purl.Name}/");
             }
@@ -245,7 +253,7 @@ namespace Microsoft.CST.OpenSource.Shared
                         {
                             Logger.Debug("Found a .dsc file: {0}", anchorHref);
                             var dscContent = await GetHttpStringCache(archiveBaseUrl + "/" + anchorHref);
-                            foreach (var line in dscContent.Split(new char[] { '\n', '\r' }))
+                            foreach (var line in dscContent?.Split(new char[] { '\n', '\r' }) ?? Array.Empty<string>())
                             {
                                 if (line.StartsWith("Version:"))
                                 {
@@ -345,7 +353,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <param name="purl"></param>
         /// <param name="pool"></param>
         /// <returns></returns>
-        private async Task<string> GetArchiveBaseUrlForProject(PackageURL purl, string pool)
+        private async Task<string?> GetArchiveBaseUrlForProject(PackageURL purl, string pool)
         {
             try
             {

@@ -23,12 +23,12 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         /// Holds the version string, from the assembly.
         /// </summary>
-        private static readonly string VERSION = typeof(DefoggerTool).Assembly.GetName().Version.ToString();
+        private static readonly string? VERSION = typeof(DefoggerTool).Assembly?.GetName().Version?.ToString();
 
         /// <summary>
         /// Logger for this class
         /// </summary>
-        private static NLog.ILogger Logger { get; set; }
+        private static NLog.ILogger? Logger { get; set; }
 
         /// <summary>
         /// Regular expression that matches Base64-encoded text.
@@ -63,7 +63,7 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         /// Command line options passed into this tool.
         /// </summary>
-        private readonly IDictionary<string, object> Options = new Dictionary<string, object>()
+        private readonly IDictionary<string, object?> Options = new Dictionary<string, object?>()
         {
             { "target", new List<string>() },
             { "download-directory", null },
@@ -93,6 +93,16 @@ namespace Microsoft.CST.OpenSource
             public string Filename;
             public string EncodedText;
             public string DecodedText;
+
+            public EncodedString(EncodedStringType Type, string Filename, string EncodedText, string DecodedText)
+            {
+                this.Type = Type;
+                this.Filename = Filename;
+                this.EncodedText = EncodedText;
+                this.DecodedText = DecodedText;
+            }
+
+
         }
 
         static void Main(string[] args)
@@ -100,14 +110,14 @@ namespace Microsoft.CST.OpenSource
             CommonInitialization.Initialize();
             Logger = CommonInitialization.Logger;
 
-            Logger.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
+            Logger?.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
 
             var defoggerTool = new DefoggerTool();
             defoggerTool.ParseOptions(args);
 
-            if (((IList<string>)defoggerTool.Options["target"]).Count > 0)
+            if (defoggerTool.Options["target"] is IList<string> targetList && targetList.Count > 0)
             {
-                foreach (var target in (IList<string>)defoggerTool.Options["target"])
+                foreach (var target in targetList)
                 {
                     try
                     {
@@ -115,8 +125,8 @@ namespace Microsoft.CST.OpenSource
                         {
                             var purl = new PackageURL(target);
                             defoggerTool.AnalyzePackage(purl, 
-                                (string)defoggerTool.Options["download-directory"], 
-                                (bool)defoggerTool.Options["use-cache"]).Wait();
+                                (string?)defoggerTool.Options["download-directory"], 
+                                (bool?)defoggerTool.Options["use-cache"] == true).Wait();
                         }
                         else if (Directory.Exists(target))
                         {
@@ -129,25 +139,25 @@ namespace Microsoft.CST.OpenSource
 
                         foreach (var finding in defoggerTool.Findings)
                         {
-                            Logger.Info("{0}: {1} -> {2}", finding.Filename, finding.EncodedText, finding.DecodedText);
+                            Logger?.Info("{0}: {1} -> {2}", finding.Filename, finding.EncodedText, finding.DecodedText);
                         }
                     }
                     catch (Exception ex)
                     {
-                        Logger.Warn(ex, "Unable to analyze {0}: {1}", target, ex.Message);
+                        Logger?.Warn(ex, "Unable to analyze {0}: {1}", target, ex.Message);
                     }
                 }
             }
             else
             {
-                Logger.Warn("No target provided; nothing to analyze.");
+                Logger?.Warn("No target provided; nothing to analyze.");
                 DefoggerTool.ShowUsage();
                 Environment.Exit(1);
             }
         }
 
         /// <summary>
-        /// Initializes a new DefoggerTool intstance.
+        /// Initializes a new DefoggerTool instance.
         /// </summary>
         public DefoggerTool()
         {
@@ -159,9 +169,9 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         /// <param name="purl">The package-url of the package to analyze.</param>
         /// <returns>n/a</returns>
-        public async Task AnalyzePackage(PackageURL purl, string destinationDirectory, bool doCaching)
+        public async Task AnalyzePackage(PackageURL purl, string? destinationDirectory, bool doCaching)
         {
-            Logger.Trace("AnalyzePackage({0})", purl.ToString());
+            Logger?.Trace("AnalyzePackage({0})", purl.ToString());
 
             var packageDownloader = new PackageDownloader(purl, destinationDirectory, doCaching);
             foreach (var directory in await packageDownloader.DownloadPackageLocalCopy(purl, false, true))
@@ -178,7 +188,7 @@ namespace Microsoft.CST.OpenSource
         /// <param name="directory">directory to analyze.</param>
         public void AnalyzeDirectory(string directory)
         {
-            Logger.Trace("AnalyzeDirectory({0})", directory);
+            Logger?.Trace("AnalyzeDirectory({0})", directory);
             var fileList = Directory.EnumerateFiles(directory, @"*.*", SearchOption.AllDirectories);
             foreach (var filename in fileList)
             {
@@ -188,7 +198,7 @@ namespace Microsoft.CST.OpenSource
                 }
                 catch (Exception ex)
                 {
-                    Logger.Warn("Error processing file [{0}]: {1}", filename, ex.Message);
+                    Logger?.Warn("Error processing file [{0}]: {1}", filename, ex.Message);
                 }
             }
         }
@@ -199,12 +209,12 @@ namespace Microsoft.CST.OpenSource
         /// <param name="filename">filename to analyze</param>
         public void AnalyzeFile(string filename)
         {
-            Logger.Trace("AnalyzeFile({0})", filename);
+            Logger?.Trace("AnalyzeFile({0})", filename);
 
             var mimeType = MimeTypeMap.GetMimeType(Path.GetExtension(filename));
             if (IGNORE_MIME_REGEX.IsMatch(mimeType))
             {
-                Logger.Debug("Ignoring {0}; invalid MIME type: {1}", filename, mimeType);
+                Logger?.Debug("Ignoring {0}; invalid MIME type: {1}", filename, mimeType);
                 return;
             }
 
@@ -212,7 +222,7 @@ namespace Microsoft.CST.OpenSource
             var fileContents = File.ReadAllText(filename);
             #pragma warning restore SEC0116 // Path Tampering Unvalidated File Path
 
-            foreach (Match match in BASE64_REGEX.Matches(fileContents))
+            foreach (Match match in BASE64_REGEX.Matches(fileContents).Where(match => match != null))
             {
                 if (!match.Success)
                 {
@@ -237,24 +247,23 @@ namespace Microsoft.CST.OpenSource
                     var reencoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(decoded));
                     if (match.Value.Equals(reencoded))
                     {
-                        Findings.Add(new EncodedString()
-                        {
-                            Filename = filename,
-                            EncodedText = match.Value,
-                            DecodedText = decoded,
-                            Type = EncodedStringType.Base64
-                        });
+                        Findings.Add(new EncodedString(
+                            Filename: filename,
+                            EncodedText: match.Value,
+                            DecodedText: decoded,
+                            Type: EncodedStringType.Base64
+                        ));
                     }
                     
                 }
                 catch (Exception ex)
                 {
                     // No action needed
-                    Logger.Trace("Invalid match for {0}: {1}", match.Value, ex.Message);
+                    Logger?.Trace("Invalid match for {0}: {1}", match.Value, ex.Message);
                 }
             }
             
-            foreach (Match match in HEX_REGEX.Matches(fileContents))
+            foreach (Match match in HEX_REGEX.Matches(fileContents).Where(match => match != null))
             {
                 var decodedText = HexToString(match.Value);
 
@@ -264,19 +273,18 @@ namespace Microsoft.CST.OpenSource
                     continue;
                 }
                 // We don't need to do the dance we did above because all hex strings are valid encodings.
-                Findings.Append(new EncodedString()
-                {
-                    Filename = filename,
-                    EncodedText = match.Value,
-                    DecodedText = decodedText,
-                    Type = EncodedStringType.Hex
-                });
+                Findings.Append(new EncodedString(
+                    Filename: filename,
+                    EncodedText: match.Value,
+                    DecodedText: decodedText,
+                    Type: EncodedStringType.Hex
+                ));
             }
         }
 
         private static string HexToString(String hex)
         {
-            //Logger.Trace("HexToString({0})", hex);
+            //Logger?.Trace("HexToString({0})", hex);
 
             hex = hex.Trim();
             var stringLength = hex.Length;
@@ -314,7 +322,7 @@ namespace Microsoft.CST.OpenSource
         /// <returns></returns>
         private static bool IsInterestingString(string s)
         {
-            //Logger.Trace("IsInterestingString({0})", s);
+            //Logger?.Trace("IsInterestingString({0})", s);
             if (string.IsNullOrWhiteSpace(s))
             {
                 return false;
@@ -328,7 +336,7 @@ namespace Microsoft.CST.OpenSource
                  (s.Contains("ReleaseAsset") && Regex.IsMatch(@"\d+:ReleaseAsset\d+", s)) ||
                  (s.Contains("Release") && Regex.IsMatch(@"\d+:Release\d+", s)))
             {
-                //Logger.Debug($"No, has tag: [{s}]");
+                //Logger?.Debug($"No, has tag: [{s}]");
                 return false;
             }
 
@@ -340,7 +348,7 @@ namespace Microsoft.CST.OpenSource
             // Otherwise, if we're too short, we're uninteresting
             if (s.Length < DEFAULT_MINIMUM_STRING_LENGTH)
             {
-                //Logger.Debug($"No, too short: [{s}]");
+                //Logger?.Debug($"No, too short: [{s}]");
                 return false;
             }
             // Otherwise, if we're pretty long, we're interesting
@@ -349,7 +357,7 @@ namespace Microsoft.CST.OpenSource
                 return true;
             }
             // Otherwise, we're uninteresting
-            //Logger.Debug($"No, fall through: [{s}]");
+            //Logger?.Debug($"No, fall through: [{s}]");
             return false;
         }
 
@@ -390,7 +398,10 @@ namespace Microsoft.CST.OpenSource
                         break;
 
                     default:
-                        ((IList<string>)Options["target"]).Add(args[i]);
+                        if (Options["target"] is IList<string> targetList)
+                        {
+                            targetList.Add(args[i]);
+                        }
                         break;
                 }
             }

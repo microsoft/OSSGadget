@@ -49,7 +49,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
             try
             {
-                Stream resultStream = null;
+                Stream? resultStream = null;
                 var cacheResult = GetCache(packageName);
                 if (cacheResult != null)
                 {
@@ -74,7 +74,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
                 if (!doc.RootElement.TryGetProperty("results", out JsonElement results))
                 {
-                    return null;
+                    return downloadedPaths;
                 }
 
                 /*
@@ -169,9 +169,9 @@ namespace Microsoft.CST.OpenSource.Shared
                 DataCache.Set<string>($"vsm__{key}", value, mce);
             }
         }
-        private static string GetCache(string key)
+        private static string? GetCache(string key)
         {
-            string result = null;
+            string? result = null;
             lock(DataCache)
             {
                 result = DataCache.Get<string>($"vsm__{key}");
@@ -196,7 +196,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
             try
             {
-                Stream resultStream = null;
+                Stream? resultStream = null;
                 var cacheResult = GetCache(packageName);
                 if (cacheResult != null)
                 {

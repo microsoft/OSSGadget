@@ -382,7 +382,7 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             Logger.Trace("IdentifySourceRepository({0})", purl);
 
-            var rawMetadataString = await GetMetadata(purl);
+            var rawMetadataString = await GetMetadata(purl) ?? string.Empty;
             var sourceRepositoryMap = new Dictionary<PackageURL, double>();
             
             // Check the specific PackageManager-specific implementation first

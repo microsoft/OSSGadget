@@ -57,7 +57,15 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <returns>n/a</returns>
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
-            Logger.Trace("DownloadVersion {0}", purl?.ToString());
+            var downloadedPaths = new List<string>();
+
+            if (purl == null)
+            {
+                Logger.Error("'purl' argument must not be null.");
+                return downloadedPaths;
+            }
+
+            Logger.Trace("DownloadVersion {0}", purl.ToString());
 
             if (doExtract == false)
             {
@@ -66,7 +74,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
             var packageNamespace = purl?.Namespace;
             var packageName = purl?.Name;
-            var downloadedPaths = new List<string>();
+            var packageVersion = purl?.Version;
 
             if (string.IsNullOrWhiteSpace(packageNamespace) || string.IsNullOrWhiteSpace(packageName))
             {
@@ -76,14 +84,14 @@ namespace Microsoft.CST.OpenSource.Shared
 
             try
             {
-                var url = $"{ENV_GITHUB_ENDPOINT}/{purl?.Namespace}/{purl?.Name}";
+                var url = $"{ENV_GITHUB_ENDPOINT}/{packageNamespace}/{packageName}";
                 var invalidChars = Path.GetInvalidFileNameChars();
 
                 // TODO: Externalize this normalization
-                var fsNamespace = new string((purl?.Namespace?.Select(ch => invalidChars.Contains(ch) ? '_' : ch) ?? Array.Empty<char>()).ToArray());
-                var fsName = new string((purl?.Name?.Select(ch => invalidChars.Contains(ch) ? '_' : ch) ?? Array.Empty<char>()).ToArray());
-                var fsVersion = new string((purl?.Version?.Select(ch => invalidChars.Contains(ch) ? '_' : ch) ?? Array.Empty<char>()).ToArray());
-                var workingDirectory = string.IsNullOrWhiteSpace(purl?.Version) ?
+                var fsNamespace = new string((packageNamespace.Select(ch => invalidChars.Contains(ch) ? '_' : ch) ?? Array.Empty<char>()).ToArray());
+                var fsName = new string((packageName?.Select(ch => invalidChars.Contains(ch) ? '_' : ch) ?? Array.Empty<char>()).ToArray());
+                var fsVersion = new string((packageVersion.Select(ch => invalidChars.Contains(ch) ? '_' : ch) ?? Array.Empty<char>()).ToArray());
+                var workingDirectory = string.IsNullOrWhiteSpace(packageVersion) ?
                                         Path.Join(TopLevelExtractionDirectory, $"github-{fsNamespace}-{fsName}") :
                                         Path.Join(TopLevelExtractionDirectory, $"github-{fsNamespace}-{fsName}-{fsVersion}");
                 string extractionPath = Path.Combine(TopLevelExtractionDirectory, workingDirectory);
@@ -96,16 +104,16 @@ namespace Microsoft.CST.OpenSource.Shared
                 Repository.Clone(url, workingDirectory);
 
                 var repo = new Repository(workingDirectory);
-                if (!string.IsNullOrWhiteSpace(purl.Version))
+                if (!string.IsNullOrWhiteSpace(packageVersion))
                 {
-                    Commands.Checkout(repo, purl.Version);
+                    Commands.Checkout(repo, packageVersion);
                     downloadedPaths.Add(workingDirectory);
                 }
                 repo.Dispose();
             }
             catch (LibGit2Sharp.NotFoundException ex)
             {
-                Logger.Warn(ex, "The version {0} is not a valid git reference: {1}", purl?.Version, ex.Message);
+                Logger.Warn(ex, "The version {0} is not a valid git reference: {1}", packageVersion, ex.Message);
             }
             catch (Exception ex)
             {

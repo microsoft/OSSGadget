@@ -192,7 +192,7 @@ namespace Microsoft.CST.OpenSource.Shared
             // which is more likely best maintained
             // TODO: If the latest version JSONElement doesnt have the repo infor, should we search all elements 
             // on that chance that one of them might have it?
-            JsonElement? versionJSON = string.IsNullOrEmpty(purl.Version) ? GetLatestVersionElement(contentJSON) : 
+            JsonElement? versionJSON = string.IsNullOrEmpty(purl?.Version) ? GetLatestVersionElement(contentJSON) : 
                 GetVersionElement(contentJSON, new Version(purl.Version));
 
             if (versionJSON is JsonElement notNullVersionJSON)
@@ -235,8 +235,8 @@ namespace Microsoft.CST.OpenSource.Shared
                     allVersions.Add(new Version(version.Name));
                 }
             }
-            catch (KeyNotFoundException) { return null; }
-            catch (InvalidOperationException) { return null; }
+            catch (KeyNotFoundException) { return allVersions; }
+            catch (InvalidOperationException) { return allVersions; }
 
             return allVersions;
         }

@@ -36,12 +36,18 @@ stages:
       inputs:
         versionSpec: '5.4.x'
     - task: DotNetCoreCLI@2
+      displayName: Dotnet Add Source
+      inputs:
+        command: 'custom'
+        custom: 'nuget add source'
+        arguments: '--configfile NuGet.Config'
+        workingDirectory: 'src/MultiExtractor.Tests/'
+    - task: DotNetCoreCLI@2
       displayName: Dotnet Restore
       inputs:
         command: 'restore'
         projects: 'src/MultiExtractor.Tests/MultiExtractor.Tests.csproj'
         verbosityRestore: 'Normal'
-        restoreArguments: --configfile NuGet.Config
     - task: DotNetCoreCLI@2
       displayName: Dotnet Test
       inputs:

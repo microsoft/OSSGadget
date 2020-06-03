@@ -18,12 +18,12 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         /// Holds the version string, from the assembly.
         /// </summary>
-        private static readonly string? VERSION = typeof(DownloadTool).Assembly?.GetName().Version?.ToString();
+        private static readonly string VERSION = typeof(DownloadTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
 
         /// <summary>
         /// Logger for this class
         /// </summary>
-        private static NLog.ILogger? Logger { get; set; }
+        private static NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// Command line options
@@ -44,7 +44,7 @@ namespace Microsoft.CST.OpenSource
         static async Task Main(string[] args)
         {
             var downloadTool = new DownloadTool();
-            Logger?.Info($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
+            Logger.Info($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
 
             downloadTool.ParseOptions(args);
 
@@ -91,10 +91,8 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        public DownloadTool()
+        public DownloadTool() : base()
         {
-            CommonInitialization.Initialize();
-            Logger = CommonInitialization.Logger;
         }
 
         /// <summary>

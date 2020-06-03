@@ -20,12 +20,12 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         /// Holds the version string, from the assembly.
         /// </summary>
-        private static readonly string? VERSION = typeof(CharacteristicTool).Assembly?.GetName().Version?.ToString();
+        private static readonly string VERSION = typeof(CharacteristicTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
 
         /// <summary>
         /// Logger for this class
         /// </summary>
-        private static NLog.ILogger? Logger { get; set; }
+        private static NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// Command line options
@@ -93,10 +93,8 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        public CharacteristicTool()
+        public CharacteristicTool() : base()
         {
-            CommonInitialization.Initialize();
-            Logger = CommonInitialization.Logger;
         }
 
 

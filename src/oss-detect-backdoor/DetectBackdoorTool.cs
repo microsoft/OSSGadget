@@ -18,7 +18,7 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         /// Holds the version string, from the assembly.
         /// </summary>
-        private static readonly string? VERSION = typeof(DetectBackdoorTool).Assembly?.GetName().Version?.ToString();
+        private static readonly string VERSION = typeof(DetectBackdoorTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
 
         /// <summary>
         /// Location of the backdoor detection rules.
@@ -28,7 +28,7 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         /// Logger for this class
         /// </summary>
-        private static NLog.ILogger? Logger { get; set; }
+        private static NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// Command line options
@@ -82,10 +82,8 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        public DetectBackdoorTool()
+        public DetectBackdoorTool() : base()
         {
-            CommonInitialization.Initialize();
-            Logger = CommonInitialization.Logger;
         }
 
         /// <summary>

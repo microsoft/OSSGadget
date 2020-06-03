@@ -21,17 +21,17 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         /// Holds the version string, from the assembly.
         /// </summary>
-        private static readonly string VERSION = typeof(FindSourceTool).Assembly.GetName().Version.ToString();
+        private static readonly string VERSION = typeof(FindSourceTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
 
         /// <summary>
         /// Logger for this class
         /// </summary>
-        private static NLog.ILogger Logger { get; set; }
+        private static NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// Command line options
         /// </summary>
-        private readonly Dictionary<string, object> Options = new Dictionary<string, object>()
+        private readonly Dictionary<string, object?> Options = new Dictionary<string, object?>()
         {
             { "target", new List<string>() },
             { "show-all", false },
@@ -46,10 +46,10 @@ namespace Microsoft.CST.OpenSource
             findSourceTool.ParseOptions(args);
 
             // output to console or file?
-            bool redirectConsole = !string.IsNullOrEmpty((string)findSourceTool.Options["output-file"]);
-            if(redirectConsole)
+            bool redirectConsole = !string.IsNullOrEmpty((string?)findSourceTool.Options["output-file"]);
+            if(redirectConsole && findSourceTool.Options["output-file"] is string outputLoc)
             {
-                if (!ConsoleHelper.RedirectConsole((string)findSourceTool.Options["output-file"]))
+                if (!ConsoleHelper.RedirectConsole(outputLoc))
                 {
                     Logger.Error("Could not switch output from console to file");
                     // continue with current output
@@ -57,7 +57,7 @@ namespace Microsoft.CST.OpenSource
             }
 
             // select output format
-            string format = ((string)findSourceTool.Options["format"]).ToLower();
+            string format = ((string?)findSourceTool.Options["format"] ?? string.Empty).ToLower();
             OutputBuilder outputBuilder;
             try
             {
@@ -69,9 +69,9 @@ namespace Microsoft.CST.OpenSource
                 return;
             }
 
-            if (((IList<string>)findSourceTool.Options["target"]).Count > 0)
+            if (findSourceTool.Options["target"] is IList<string> targetList && targetList.Count > 0)
             {
-                foreach (var target in (IList<string>)findSourceTool.Options["target"])
+                foreach (var target in targetList)
                 {
                     try
                     {
@@ -99,10 +99,8 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        public FindSourceTool()
+        public FindSourceTool() : base()
         {
-            CommonInitialization.Initialize();
-            Logger = CommonInitialization.Logger;
         }
 
         public async Task<Dictionary<PackageURL, double>> FindSource(PackageURL purl)
@@ -252,14 +250,16 @@ namespace Microsoft.CST.OpenSource
                         Environment.Exit(1);
                         break;
                     default:
-                        ((IList<string>)Options["target"]).Add(args[i]);
+                        if (Options["target"] is IList<string> innerTargetList)
+                        {
+                            innerTargetList.Add(args[i]);
+                        }
                         break;
                 }
             }
 
-            if (((IList<string>)Options["target"]).Count == 0)
+            if (Options["target"] is IList<string> targetList && targetList.Count == 0)
             {
-
                 Logger.Error("Please enter the package(s) to search for");
                 ShowUsage();
                 Environment.Exit(1);

@@ -21,7 +21,9 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <summary>
         /// Static HttpClient for use in all HTTP connections.
         /// </summary>
+#pragma warning disable CS8618 // Non-nullable field is uninitialized. Not actually uninitialized. False positive.
         protected static HttpClient WebClient;
+#pragma warning restore CS8618
 
         /// <summary>
         /// Logger for each of the subclasses
@@ -103,9 +105,10 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         public BaseProjectManager(string destinationDirectory)
         {
-            this.Options = new Dictionary<string, object>();
+            Options = new Dictionary<string, object>();
             CommonInitialization.OverrideEnvironmentVariables(this);
-            this.TopLevelExtractionDirectory = destinationDirectory;
+            TopLevelExtractionDirectory = destinationDirectory;
+
             if (CommonInitialization.WebClient is HttpClient client)
             {
                 WebClient = client;

@@ -23,12 +23,12 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         /// Holds the version string, from the assembly.
         /// </summary>
-        private static readonly string? VERSION = typeof(DefoggerTool).Assembly?.GetName().Version?.ToString();
+        private static readonly string VERSION = typeof(DefoggerTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
 
         /// <summary>
         /// Logger for this class
         /// </summary>
-        private static NLog.ILogger? Logger { get; set; }
+        private static NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// Regular expression that matches Base64-encoded text.
@@ -108,7 +108,6 @@ namespace Microsoft.CST.OpenSource
         static void Main(string[] args)
         {
             CommonInitialization.Initialize();
-            Logger = CommonInitialization.Logger;
 
             Logger?.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
 
@@ -159,7 +158,7 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         /// Initializes a new DefoggerTool instance.
         /// </summary>
-        public DefoggerTool()
+        public DefoggerTool() : base()
         {
             Findings = new List<EncodedString>();
         }

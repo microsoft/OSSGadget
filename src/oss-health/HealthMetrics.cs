@@ -23,7 +23,7 @@ namespace Microsoft.CST.OpenSource.Health
         /// <summary>
         /// Logger for this class
         /// </summary>
-        private static NLog.ILogger Logger { get; set; }
+        private static NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
 
         public double CommitHealth { get; set; }
         public double PullRequestHealth { get; set; }
@@ -95,6 +95,7 @@ namespace Microsoft.CST.OpenSource.Health
             if (projectManager == null)
             {
                 Logger.Error("Cannot determine the package type");
+                return sarifResults;
             }
 
             Normalize();
@@ -124,7 +125,7 @@ namespace Microsoft.CST.OpenSource.Health
                                 {
                                     Address = new Address()
                                     {
-                                        FullyQualifiedName = projectManager.GetPackageAbsoluteUri(purl).AbsoluteUri,
+                                        FullyQualifiedName = projectManager.GetPackageAbsoluteUri(purl)?.AbsoluteUri,
                                         AbsoluteAddress = 1,
                                         Name = purl.ToString()
                                     }

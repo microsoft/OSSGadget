@@ -11,7 +11,7 @@ using Microsoft.CST.OpenSource.Shared;
 
 namespace Microsoft.CST.OpenSource
 {
-    class RiskCalculatorTool
+    class RiskCalculatorTool : OSSGadget
     {
         /// <summary>
         /// Name of this tool.
@@ -21,12 +21,7 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         /// Holds the version string, from the assembly.
         /// </summary>
-        private static readonly string? VERSION = typeof(RiskCalculatorTool).Assembly?.GetName().Version?.ToString();
-
-        /// <summary>
-        /// Logger for this class
-        /// </summary>
-        private static NLog.ILogger? Logger { get; set; }
+        private static readonly string VERSION = typeof(RiskCalculatorTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
 
         /// <summary>
         /// Command line options
@@ -46,7 +41,6 @@ namespace Microsoft.CST.OpenSource
         static void Main(string[] args)
         {
             var riskCalculator = new RiskCalculatorTool();
-
 
             Logger?.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
             riskCalculator.ParseOptions(args);
@@ -78,10 +72,8 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        public RiskCalculatorTool()
+        public RiskCalculatorTool() : base()
         {
-            CommonInitialization.Initialize();
-            Logger = CommonInitialization.Logger;
         }
 
         public async Task<double> CalculateRisk(PackageURL purl, string? targetDirectory, bool doCaching)

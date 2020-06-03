@@ -35,13 +35,12 @@ stages:
       displayName: Install Nuget Tool
       inputs:
         versionSpec: '5.4.x'
-    - task: DotNetCoreCLI@2
+    - task: CmdLine@2
       displayName: Dotnet Add Source
       inputs:
-        command: 'custom'
-        custom: 'nuget add source MyGet'
-        arguments: '--configfile NuGet.Config'
+        script: 'dotnet nuget add source MyGet --configfile NuGet.Config'
         workingDirectory: 'src/MultiExtractor.Tests/'
+        failOnStderr: true
     - task: DotNetCoreCLI@2
       displayName: Dotnet Restore
       inputs:

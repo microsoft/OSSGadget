@@ -38,7 +38,7 @@ stages:
     - task: NuGetCommand@2
       inputs:
         command: 'restore'
-        restoreSolution: 'src/*.sln'
+        restoreSolution: 'src/MultiExtractor.Tests/*.csproj'
         feedsToUse: 'config'
         nugetConfigPath: 'src/NuGet.Config'
         noCache: true

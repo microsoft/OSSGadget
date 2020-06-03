@@ -43,11 +43,12 @@ namespace Microsoft.CST.OpenSource.Shared
 
             var packageName = purl?.Name;
             var packageVersion = purl?.Version;
+            var fileName = purl?.ToStringFilename();
             var downloadedPaths = new List<string>();
 
-            if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
+            if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion) || string.IsNullOrWhiteSpace(fileName))
             {
-                Logger.Error("Unable to download [{0} {1}]. Both must be defined.", packageName, packageVersion);
+                Logger.Error("Error with 'purl' argument. Unable to download [{0} {1}] @ {2}. Both must be defined.", packageName, packageVersion, fileName);
                 return downloadedPaths;
             }
 
@@ -81,7 +82,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     var result = await WebClient.GetAsync(url);
                     result.EnsureSuccessStatusCode();
                     
-                    var targetName = $"cocoapods-{purl?.ToStringFilename()}";
+                    var targetName = $"cocoapods-{fileName}";
                     string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                     if (doExtract && Directory.Exists(extractionPath) && cached == true)
                     {

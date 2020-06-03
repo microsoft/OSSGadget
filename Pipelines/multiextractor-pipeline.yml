@@ -37,8 +37,8 @@ stages:
         versionSpec: '5.4.x'
     - task: CmdLine@2
       inputs:
-        script: 'dotnet restore MultiExtractor.Tests.csproj'
-        workingDirectory: 'src/MultiExtractor.Tests/'
+        script: 'dotnet restore --configfile NuGet.Config'
+        workingDirectory: 'src/'
         failOnStderr: true
     - task: DotNetCoreCLI@2
       displayName: Dotnet Test

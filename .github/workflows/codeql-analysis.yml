@@ -26,9 +26,14 @@ jobs:
       with:
         languages: csharp
 
+    - name: Setup NuGet.exe for use with actions
+      uses: NuGet/setup-nuget@v1.0.2
+      with:
+        nuget-version: latest
+
     - name: Build OSS Gadget
       run: |
-         dotnet restore
+         nuget restore OSSGadget.sln -ConfigFile RecursiveExtractor/NuGet.Config
          dotnet build -c Release
       working-directory: ./src
 

@@ -1,10 +1,10 @@
-﻿## MultiExtractor
+﻿## RecursiveExtractor
 
-MultiExtract is a general-purpose file extractor.
+RecursiveExtractor is a general-purpose file extractor.
 
 ### Format Support
 
-MultiExtractor supports extracting the following types of archives:
+RecursiveExtractor supports extracting the following types of archives:
 
 * GNU AR
 * BZip2
@@ -18,19 +18,19 @@ MultiExtractor supports extracting the following types of archives:
 * XZip
 * zip
 
-## Using MultiExtractor
+## Using RecursiveExtractor
 
-To use MultiExtractor, just instantiate an `Extractor` object and call the `ExtractFile`
+To use RecursiveExtractor, just instantiate an `Extractor` object and call the `ExtractFile`
 method with either a filename or a byte array. This method will return an IEnumerable
 of FileEntry objects, each one of which will contain the name of the file and its 
 contents, plus some additional metadata. 
 
 ```
-using Microsoft.CST.MultiExtractor;
+using Microsoft.CST.RecursiveExtractor;
 
 ...
 
-// Initialize the MultiExtractor extractor
+// Initialize the RecursiveExtractor extractor
 var extractor = new Extractor();
 
 // Extract from an existing file
@@ -51,7 +51,7 @@ foreach (var fileEntry in extractor.ExtractFile("nonexistent.zip", bytes))
 
 ## Issues
 
-If you find any issues with MultiExtractor, please [open an issue](https://github.com/Microsoft/OSSGadget/issues/new)
+If you find any issues with RecursiveExtractor, please [open an issue](https://github.com/Microsoft/OSSGadget/issues/new)
 in the [Microsoft/OSSGadget](https://github.com/Microsoft/OSSGadget) repository.
 
 

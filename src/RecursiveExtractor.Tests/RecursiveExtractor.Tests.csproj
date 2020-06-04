@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MultiExtractor\RecursiveExtractor.csproj" />
+    <ProjectReference Include="..\RecursiveExtractor\RecursiveExtractor.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="TestData\10GB.7z.bz2">

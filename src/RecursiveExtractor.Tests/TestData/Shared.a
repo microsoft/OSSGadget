@@ -364,7 +364,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
         /// <summary>
         /// Extracts an archive (given by 'bytes') into a directory named
-        /// 'directoryName', recursively, using MultiExtractor.
+        /// 'directoryName', recursively, using RecursiveExtractor.
         /// </summary>
         /// <param name="directoryName"> directory to extract content into (within TopLevelExtractionDirectory)</param>
         /// <param name="bytes">bytes to extract (should be an archive file)</param>

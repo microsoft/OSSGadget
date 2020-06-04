@@ -1,7 +1,7 @@
 # Azure Pipelines
 # https://aka.ms/yaml
 
-name: MultiExtractor_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
+name: RecursiveExtractor_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
 trigger:
   batch: true
   branches:
@@ -9,7 +9,7 @@ trigger:
     - master
   paths:
     include:
-    - src/MultiExtractor
+    - src/RecursiveExtractor
 pr:
   branches:
     include:
@@ -17,13 +17,13 @@ pr:
   paths:
     include:
     - Pipelines
-    - src/MultiExtractor
+    - src/RecursiveExtractor
 
 stages:
 - stage: Test
   jobs:
   - job: build_test
-    displayName: Run MultiExtractor Tests
+    displayName: Run RecursiveExtractor Tests
     pool:
       vmImage: 'windows-latest'
     steps:
@@ -39,15 +39,15 @@ stages:
       displayName: NuGet Restore
       inputs:
         command: 'restore'
-        restoreSolution: 'src/MultiExtractor.Tests/MultiExtractor.Tests.csproj'
+        restoreSolution: 'src/RecursiveExtractor.Tests/RecursiveExtractor.Tests.csproj'
         feedsToUse: 'config'
-        nugetConfigPath: 'src/MultiExtractor/NuGet.Config'
+        nugetConfigPath: 'src/RecursiveExtractor/NuGet.Config'
         verbosityRestore: 'Normal'
     - task: DotNetCoreCLI@2
       displayName: Dotnet Test
       inputs:
         command: 'test'
-        projects: 'src/MultiExtractor.Tests/MultiExtractor.Tests.csproj'
+        projects: 'src/RecursiveExtractor.Tests/RecursiveExtractor.Tests.csproj'
 
 - stage: Build
   jobs:
@@ -70,12 +70,12 @@ stages:
           $version = (nbgv get-version -v AssemblyInformationalVersion).split('+')[0]
           Write-Host "##vso[task.setvariable variable=ReleaseVersion;]$version"
     - task: DotNetCoreCLI@2
-      displayName: Pack MultiExtractor Nupkg (Lib)
+      displayName: Pack RecursiveExtractor Nupkg (Lib)
       inputs:
         command: 'custom'
         custom: 'pack'
-        arguments: '-c Release -o $(Build.BinariesDirectory)\nuget\MultiExtractor_$(ReleaseVersion)'
-        workingDirectory: '$(SolutionDirectory)\MultiExtractor'
+        arguments: '-c Release -o $(Build.BinariesDirectory)\nuget\RecursiveExtractor_$(ReleaseVersion)'
+        workingDirectory: '$(SolutionDirectory)\RecursiveExtractor'
     - task: AntiMalware@3
       displayName: Anti-Malware Scan
       inputs:
@@ -93,7 +93,7 @@ stages:
         rootFolderOrFile: '$(Build.BinariesDirectory)\nuget'
         includeRootFolder: true
         archiveType: 'zip'
-        archiveFile: '$(Build.StagingDirectory)\MultiExtractor_nuget_$(ReleaseVersion).zip'
+        archiveFile: '$(Build.StagingDirectory)\RecursiveExtractor_nuget_$(ReleaseVersion).zip'
         replaceExistingArchive: true
     - task: PublishBuildArtifacts@1
       displayName: Store Windows, NetCoreApp, Nupkg Archives
@@ -155,7 +155,7 @@ stages:
       displayName: Code Sign Nuget Packages
       inputs:
         ConnectedServiceName: 'OSSGadget_CodeSign'
-        FolderPath: '$(Build.BinariesDirectory)/nuget/MultiExtractor_$(ReleaseVersion)'
+        FolderPath: '$(Build.BinariesDirectory)/nuget/RecursiveExtractor_$(ReleaseVersion)'
         Pattern: '*.nupkg, *.snupkg'
         signConfigType: 'inlineSignParams'
         inlineOperation: |
@@ -194,12 +194,12 @@ stages:
       displayName: Move Nuget Packages
       inputs:
         targetType: 'inline'
-        script: 'mv $env:BUILD_BINARIESDIRECTORY/nuget/MultiExtractor_$(ReleaseVersion)/*.nupkg $env:BUILD_STAGINGDIRECTORY/'
+        script: 'mv $env:BUILD_BINARIESDIRECTORY/nuget/RecursiveExtractor_$(ReleaseVersion)/*.nupkg $env:BUILD_STAGINGDIRECTORY/'
     - task: PowerShell@2
       displayName: Move Nuget Symbols
       inputs:
         targetType: 'inline'
-        script: 'mv $env:BUILD_BINARIESDIRECTORY/nuget/MultiExtractor_$(ReleaseVersion)/*.snupkg $env:BUILD_STAGINGDIRECTORY/'
+        script: 'mv $env:BUILD_BINARIESDIRECTORY/nuget/RecursiveExtractor_$(ReleaseVersion)/*.snupkg $env:BUILD_STAGINGDIRECTORY/'
     - task: PublishPipelineArtifact@1
       displayName: Publish Signed Artifacts to Pipeline
       inputs:
@@ -214,7 +214,7 @@ stages:
         target: '$(Build.SourceVersion)'
         tagSource: 'userSpecifiedTag'
         tag: 'v$(ReleaseVersion)'
-        title: 'Release v$(ReleaseVersion) - MultiExtractor'
+        title: 'Release v$(ReleaseVersion) - RecursiveExtractor'
         assets: |
           $(Build.StagingDirectory)/*.zip
           $(Build.StagingDirectory)/HASHES.txt

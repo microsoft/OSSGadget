@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RootNamespace>Microsoft.CST.OpenSource</RootNamespace>
+    <Version>0.0.0-placeholder</Version>
+    <Company>Microsoft</Company>
+    <Authors>Microsoft</Authors>
+    <copyright>© Microsoft Corporation. All rights reserved.</copyright> 
+    <RepositoryType>GitHub</RepositoryType>
+    <RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>
+    <Configurations>Debug;Release</Configurations>
+    <LangVersion>8.0</LangVersion>
+    <Nullable>Enable</Nullable>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <Description>RecursiveExtractor is able to process the following formats: ar, bzip2, deb, gzip, iso, tar, vhd, vhdx, vmdk, wim, xzip, and zip. RecursiveExtractor automatically detects the archive type and fails gracefully when attempting to process malformed content.</Description>
+    <PackageId>Microsoft.CST.RecursiveExtractor</PackageId>
+    <PackageTags>unzip extract extractor</PackageTags>
+    <PackageVersion>0.0.0-placeholder</PackageVersion>
+    <PackageProjectUrl>https://github.com/microsoft/OSSGadget</PackageProjectUrl>
+    <PackageIcon>icon-128.png</PackageIcon>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DiscUtils" Version="0.16.0-alpha0020" />
+    <PackageReference Include="NLog" Version="4.7.2" />
+    <PackageReference Include="SharpCompress" Version="0.25.1" />
+    <PackageReference Include="SharpZipLib" Version="1.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.1.91" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="" />
+    <None Include="..\..\icon-128.png" Pack="true" PackagePath="" />
+  </ItemGroup>
+</Project>

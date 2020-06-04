@@ -26,11 +26,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "oss-detect-cryptography", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "oss-risk-calculator", "oss-risk-calculator\oss-risk-calculator.csproj", "{84189BD7-D6F4-4E84-83A8-4FA1B811CDDD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MultiExtractor", "MultiExtractor\MultiExtractor.csproj", "{AB7A75CB-6FD8-4854-A6EE-0470867CACBB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RecursiveExtractor", "RecursiveExtractor\RecursiveExtractor.csproj", "{AB7A75CB-6FD8-4854-A6EE-0470867CACBB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MultiExtractor.Tests", "MultiExtractor.Tests\MultiExtractor.Tests.csproj", "{4811485D-2338-4DE5-8A02-428662CE14D4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RecursiveExtractor.Tests", "RecursiveExtractor.Tests\RecursiveExtractor.Tests.csproj", "{4811485D-2338-4DE5-8A02-428662CE14D4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "oss-tests", "oss-tests\oss-tests.csproj", "{812DF4A5-057B-4227-A3E8-4DFF67DBE07A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "oss-tests", "oss-tests\oss-tests.csproj", "{812DF4A5-057B-4227-A3E8-4DFF67DBE07A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

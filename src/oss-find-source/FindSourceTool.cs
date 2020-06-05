@@ -55,7 +55,8 @@ namespace Microsoft.CST.OpenSource
             OutputBuilder outputBuilder;
             try
             {
-                outputBuilder = new OutputBuilder(((string?)findSourceTool.Options["format"] ?? string.Empty));
+                outputBuilder = new OutputBuilder(((string?)findSourceTool.Options["format"] ?? 
+                    OutputBuilder.OutputFormat.text.ToString()));
             }
             catch (ArgumentOutOfRangeException)
             {

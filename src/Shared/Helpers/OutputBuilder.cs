@@ -18,7 +18,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
-        enum OutputFormat
+        public enum OutputFormat
         {
             sarifv1,
             sarifv2 ,

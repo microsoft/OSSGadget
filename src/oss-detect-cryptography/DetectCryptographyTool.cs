@@ -20,7 +20,7 @@ using WebAssembly.Instructions;
 
 namespace Microsoft.CST.OpenSource
 {
-    public class DetectCryptographyTool
+    public class DetectCryptographyTool : OSSGadget
     {
         /// <summary>
         /// Name of this tool.
@@ -31,11 +31,6 @@ namespace Microsoft.CST.OpenSource
         /// Holds the version string, from the assembly.
         /// </summary>
         private static readonly string VERSION = typeof(DetectCryptographyTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
-
-        /// <summary>
-        /// Logger for this class
-        /// </summary>
-        private static NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// Command line options

@@ -11,7 +11,7 @@ using Microsoft.CST.OpenSource.Shared;
 
 namespace Microsoft.CST.OpenSource
 {
-    public class FindSourceTool
+    public class FindSourceTool : OSSGadget
     {
         /// <summary>
         /// Name of this tool.
@@ -22,11 +22,6 @@ namespace Microsoft.CST.OpenSource
         /// Holds the version string, from the assembly.
         /// </summary>
         private static readonly string VERSION = typeof(FindSourceTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
-
-        /// <summary>
-        /// Logger for this class
-        /// </summary>
-        private static NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// Command line options

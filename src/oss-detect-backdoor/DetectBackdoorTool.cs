@@ -18,7 +18,7 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         /// Holds the version string, from the assembly.
         /// </summary>
-        private static readonly string VERSION = typeof(DetectBackdoorTool).Assembly.GetName().Version.ToString();
+        private static readonly string VERSION = typeof(DetectBackdoorTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
 
         /// <summary>
         /// Location of the backdoor detection rules.
@@ -28,12 +28,12 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         /// Logger for this class
         /// </summary>
-        private static NLog.ILogger Logger { get; set; }
+        private static NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// Command line options
         /// </summary>
-        private readonly Dictionary<string, object> Options = new Dictionary<string, object>()
+        private readonly Dictionary<string, object?> Options = new Dictionary<string, object?>()
         {
             { "target", new List<string>() },
             { "download-directory", null },
@@ -47,10 +47,10 @@ namespace Microsoft.CST.OpenSource
         static async Task Main(string[] args)
         {
             var detectBackdoorTool = new DetectBackdoorTool();
-            Logger.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
+            Logger?.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
             detectBackdoorTool.ParseOptions(args);
 
-            if (((IList<string>)detectBackdoorTool.Options["target"]).Count > 0)
+            if (detectBackdoorTool.Options["target"] is IList<string> targetList && targetList.Count > 0)
             {
                 var characteristicTool = new CharacteristicTool();
                 characteristicTool.Options["target"] = detectBackdoorTool.Options["target"];
@@ -59,33 +59,31 @@ namespace Microsoft.CST.OpenSource
                 characteristicTool.Options["download-directory"] = detectBackdoorTool.Options["download-directory"];
                 characteristicTool.Options["use-cache"] = detectBackdoorTool.Options["use-cache"];
 
-                foreach (var target in (IList<string>)detectBackdoorTool.Options["target"])
+                foreach (var target in targetList)
                 {
                     try
                     {
                         var purl = new PackageURL(target);
                         characteristicTool.AnalyzePackage(purl, 
-                            (string)detectBackdoorTool.Options["download-directory"], 
-                            (bool)detectBackdoorTool.Options["use-cache"]).Wait();
+                            (string?)detectBackdoorTool.Options["download-directory"], 
+                            (bool?)detectBackdoorTool.Options["use-cache"] == true).Wait();
                     }
                     catch (Exception ex)
                     {
-                        Logger.Warn(ex, "Error processing {0}: {1}", target, ex.Message);
+                        Logger?.Warn(ex, "Error processing {0}: {1}", target, ex.Message);
                     }
                 }
             }
             else
             {
-                Logger.Warn("No target provided; nothing to analyze.");
+                Logger?.Warn("No target provided; nothing to analyze.");
                 DetectBackdoorTool.ShowUsage();
                 Environment.Exit(1);
             }
         }
 
-        public DetectBackdoorTool()
+        public DetectBackdoorTool() : base()
         {
-            CommonInitialization.Initialize();
-            Logger = CommonInitialization.Logger;
         }
 
         /// <summary>
@@ -125,7 +123,10 @@ namespace Microsoft.CST.OpenSource
                         break;
 
                     default:
-                        ((IList<string>)Options["target"]).Add(args[i]);
+                        if (Options["target"] is IList<string> targetList)
+                        {
+                            targetList.Add(args[i]);
+                        }
                         break;
                 }
             }

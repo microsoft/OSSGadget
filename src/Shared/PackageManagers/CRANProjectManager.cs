@@ -130,7 +130,11 @@ namespace Microsoft.CST.OpenSource.Shared
                 {
                     if (tds[i].TextContent == "Version:")
                     {
-                        versionList.Add(tds[i + 1]?.TextContent?.Trim());
+                        var value = tds[i + 1]?.TextContent?.Trim();
+                        if (value != null)
+                        {
+                            versionList.Add(value);
+                        }
                         break;
                     }
                 }
@@ -159,7 +163,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 return Array.Empty<string>();
             }
         }
-        public override async Task<string> GetMetadata(PackageURL purl)
+        public override async Task<string?> GetMetadata(PackageURL purl)
         {
             try
             {

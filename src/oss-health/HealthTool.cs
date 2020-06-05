@@ -10,7 +10,7 @@ using Microsoft.CST.OpenSource.Health;
 
 namespace Microsoft.CST.OpenSource
 {
-    public class HealthTool
+    public class HealthTool : OSSGadget
     {
         /// <summary>
         /// Name of this tool.
@@ -20,12 +20,7 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         /// Holds the version string, from the assembly.
         /// </summary>
-        private static readonly string VERSION = typeof(HealthTool).Assembly.GetName().Version.ToString();
-
-        /// <summary>
-        /// Logger for this class
-        /// </summary>
-        private static NLog.ILogger Logger { get; set; }
+        private static readonly string VERSION = typeof(HealthTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
 
         /// <summary>
         /// Command line options
@@ -49,10 +44,10 @@ namespace Microsoft.CST.OpenSource
                     {
                         var purl = new PackageURL(target);
                         var healthMetrics = healthTool.CheckHealth(purl).Result;
-                        
+
                         // @TODO Improve this output
                         Logger.Info($"Health for {purl} (via {purl})");
-                        Logger.Info(healthMetrics.ToString());
+                        Logger.Info(healthMetrics?.ToString());
                     }
                     catch (Exception ex)
                     {
@@ -68,13 +63,11 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        public HealthTool()
+        public HealthTool() : base()
         {
-            CommonInitialization.Initialize();
-            Logger = CommonInitialization.Logger;
         }
         
-        public async Task<HealthMetrics> CheckHealth(PackageURL purl)
+        public async Task<HealthMetrics?> CheckHealth(PackageURL purl)
         {
             var packageManager = ProjectManagerFactory.CreateProjectManager(purl, null);
 

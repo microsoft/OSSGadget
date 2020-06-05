@@ -92,7 +92,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 var tarball = doc.RootElement.GetProperty("versions").GetProperty(packageVersion).GetProperty("dist").GetProperty("tarball").GetString();
                 var result = await WebClient.GetAsync(tarball);
                 result.EnsureSuccessStatusCode();
-                Logger.Debug("Downloading {0}...", purl.ToString());
+                Logger.Debug("Downloading {0}...", purl?.ToString());
                 var targetName = $"npm-{packageName}@{packageVersion}";
                 string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                 if (doExtract && Directory.Exists(extractionPath) && cached == true)
@@ -150,7 +150,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
         }
 
-        public override async Task<string> GetMetadata(PackageURL purl)
+        public override async Task<string?> GetMetadata(PackageURL purl)
         {
             try
             {
@@ -174,7 +174,7 @@ namespace Microsoft.CST.OpenSource.Shared
             string metadata)
         {
             var mapping = new Dictionary<PackageURL, double>();
-            if (purl.Name.StartsWith('_') || npm_internal_modules.Contains(purl.Name))
+            if (purl?.Name is string purlName && (purlName.StartsWith('_') || npm_internal_modules.Contains(purlName)))
             {
                 // url = 'https://github.com/nodejs/node/tree/master/lib' + package.name,
 
@@ -192,7 +192,7 @@ namespace Microsoft.CST.OpenSource.Shared
             // which is more likely best maintained
             // TODO: If the latest version JSONElement doesnt have the repo infor, should we search all elements 
             // on that chance that one of them might have it?
-            JsonElement? versionJSON = string.IsNullOrEmpty(purl.Version) ? GetLatestVersionElement(contentJSON) : 
+            JsonElement? versionJSON = string.IsNullOrEmpty(purl?.Version) ? GetLatestVersionElement(contentJSON) : 
                 GetVersionElement(contentJSON, new Version(purl.Version));
 
             if (versionJSON is JsonElement notNullVersionJSON)
@@ -235,8 +235,8 @@ namespace Microsoft.CST.OpenSource.Shared
                     allVersions.Add(new Version(version.Name));
                 }
             }
-            catch (KeyNotFoundException) { return null; }
-            catch (InvalidOperationException) { return null; }
+            catch (KeyNotFoundException) { return allVersions; }
+            catch (InvalidOperationException) { return allVersions; }
 
             return allVersions;
         }

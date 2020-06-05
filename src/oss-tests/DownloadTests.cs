@@ -149,7 +149,7 @@ namespace Microsoft.CST.OpenSource.Tests
 
         private async Task TestDownload(string purl, string targetFilename, int expectedCount)
         {
-            string tempDirectoryName = null;
+            string? tempDirectoryName = null;
             while (tempDirectoryName == null || File.Exists(tempDirectoryName))
             {
                 tempDirectoryName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
@@ -192,11 +192,11 @@ namespace Microsoft.CST.OpenSource.Tests
         /// <param name="packageUrl"></param>
         /// <param name="tempDirectoryName"></param>
         /// <returns></returns>
-        private async Task<PackageDownloader> DownloadPackage(PackageURL packageUrl, string tempDirectoryName, bool doCache = false)
+        private async Task<PackageDownloader?> DownloadPackage(PackageURL packageUrl, string tempDirectoryName, bool doCache = false)
         {
             int numAttempts = 3;
             int numSecondsWait = 10;
-            PackageDownloader packageDownloader = null;
+            PackageDownloader? packageDownloader = null;
             while (numAttempts-- > 0)
             {
                 try
@@ -222,11 +222,11 @@ namespace Microsoft.CST.OpenSource.Tests
         /// </summary>
         /// <param name="packageDownloader"></param>
         /// <param name="tempDirectoryName"></param>
-        void deleteTempDirs(PackageDownloader packageDownloader, string tempDirectoryName)
+        void deleteTempDirs(PackageDownloader? packageDownloader, string tempDirectoryName)
         {
             try
             {
-                packageDownloader.ClearPackageLocalCopyIfNoCaching();
+                packageDownloader?.ClearPackageLocalCopyIfNoCaching();
                 Directory.Delete(tempDirectoryName, true);
             }
             catch (Exception)
@@ -238,7 +238,7 @@ namespace Microsoft.CST.OpenSource.Tests
                         Attributes = FileAttributes.Normal
                     };
                 }
-                packageDownloader.ClearPackageLocalCopyIfNoCaching();
+                packageDownloader?.ClearPackageLocalCopyIfNoCaching();
                 Directory.Delete(tempDirectoryName, true);
             }
         }

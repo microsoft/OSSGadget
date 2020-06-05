@@ -22,7 +22,7 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("pkg:npm/aes-js", "Cryptography.Implementation.BlockCipher.AES")]
         [DataRow("pkg:npm/des", "Cryptography.Implementation.BlockCipher.DES")]
         [DataRow("pkg:npm/sm4-demo", "Cryptography.Implementation.BlockCipher.SM4")]
-        public async Task TestPackageDectionSucceeds(string purl, params string[] expectedTags)
+        public async Task TestPackageDetectionSucceeds(string purl, params string[] expectedTags)
         {
             await TestDetectCryptography(purl, expectedTags);
         }

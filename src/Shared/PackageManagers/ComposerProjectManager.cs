@@ -129,7 +129,7 @@ namespace Microsoft.CST.OpenSource.Shared
             return versionList;
         }
 
-        public override async Task<string> GetMetadata(PackageURL purl)
+        public override async Task<string?> GetMetadata(PackageURL purl)
         {
             try
             {

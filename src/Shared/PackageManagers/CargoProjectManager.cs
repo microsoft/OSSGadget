@@ -40,18 +40,19 @@ namespace Microsoft.CST.OpenSource.Shared
 
             var packageName = purl?.Name;
             var packageVersion = purl?.Version;
+            var fileName = purl?.ToStringFilename();
             var downloadedPaths = new List<string>();
 
-            if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
+            if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion) || string.IsNullOrWhiteSpace(fileName))
             {
-                Logger.Error("Unable to download [{0} {1}]. Both must be defined.", packageName, packageVersion);
+                Logger.Error("Error with 'purl' argument. Unable to download [{0} {1}] @ {2}. Both must be defined.", packageName, packageVersion, fileName);
                 return downloadedPaths;
             }
 
             var url = $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}/{packageVersion}/download";
             try
             {
-                string targetName = $"cargo-{purl.ToStringFilename()}";
+                string targetName = $"cargo-{fileName}";
                 string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                 // if the cache is already present, no need to extract
                 if (doExtract && cached && Directory.Exists(extractionPath))
@@ -60,6 +61,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     return downloadedPaths;
                 }
                 Logger.Debug("Downloading {0}", url);
+
                 var result = await WebClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
 
@@ -122,7 +124,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">Package URL for the package</param>
         /// <returns>Metadata as a string</returns>
-        public override async Task<string> GetMetadata(PackageURL purl)
+        public override async Task<string?> GetMetadata(PackageURL purl)
         {
             try
             {

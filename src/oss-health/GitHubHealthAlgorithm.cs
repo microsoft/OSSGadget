@@ -39,7 +39,7 @@ namespace Microsoft.CST.OpenSource.Health
         /// Updated automatically during program start.
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        private static string ENV_GITHUB_ACCESS_TOKEN = null;
+        private static string? ENV_GITHUB_ACCESS_TOKEN = null;
 
         /// <summary>
         /// User Agent used when connecting to GitHub.

@@ -23,7 +23,7 @@ namespace Microsoft.CST.OpenSource
 
         List<PackageURL> PackageVersions { get; set; }
 
-        BaseProjectManager packageManager { get; set; }
+        BaseProjectManager? packageManager { get; set; }
 
         string destinationDirectory { get; set; }
 
@@ -34,7 +34,7 @@ namespace Microsoft.CST.OpenSource
         private bool actualCaching = false;
 
         // folders created
-        List<string> downloadPaths { get; set; }
+        List<string> downloadPaths { get; set; } = new List<string>();
 
         /// <summary>
         /// Constuctor - creates a class object for downloading packages
@@ -42,7 +42,7 @@ namespace Microsoft.CST.OpenSource
         /// <param name="purl">package to download</param>
         /// <param name="destinationDir">the directory where the package needs to be placed</param>
         /// <param name="doCaching">check and use the cache if it exists - create if not</param>
-        public PackageDownloader(PackageURL purl, string destinationDir = null, bool doCaching = false)
+        public PackageDownloader(PackageURL? purl, string? destinationDir = null, bool doCaching = false)
         {
             if (purl == null)
             {
@@ -144,6 +144,9 @@ namespace Microsoft.CST.OpenSource
                 downloadDirectories.AddRange(await this.Download(version, metadataOnly, doExtract));
             }
 
+            // Add the return values to our internal storage to be cleaned up later by CleanPackageLocalCopy
+            this.downloadPaths.AddRange(downloadDirectories);
+
             return downloadDirectories;
         }
 
@@ -174,15 +177,12 @@ namespace Microsoft.CST.OpenSource
         {
             try
             {
-                if (this.downloadPaths != null)
+                foreach (string packageDirectory in this.downloadPaths)
                 {
-                    foreach (string packageDirectory in this.downloadPaths)
+                    if (Directory.Exists(packageDirectory))
                     {
-                        if (Directory.Exists(packageDirectory))
-                        {
-                            Logger.Trace("Removing directory {0}", packageDirectory);
-                            Directory.Delete(packageDirectory, true);
-                        }
+                        Logger.Trace("Removing directory {0}", packageDirectory);
+                        Directory.Delete(packageDirectory, true);
                     }
                 }
             }
@@ -190,6 +190,8 @@ namespace Microsoft.CST.OpenSource
             {
                 Logger.Warn("Error removing {0}: {1}", destinationDirectory, ex.Message);
             }
+
+            this.downloadPaths.Clear();
         }
 
 
@@ -212,31 +214,36 @@ namespace Microsoft.CST.OpenSource
             bool doExtract)
         {
             List<string> downloadPaths = new List<string>();
-            if (metadataOnly)
+            if (packageManager != null)
             {
-                var metadata = await this.packageManager.GetMetadata(purl);
-                if (metadata != null)
+                if (metadataOnly)
                 {
-                    var outputFilename = Path.Combine(this.packageManager.TopLevelExtractionDirectory, $"metadata-{purl.ToStringFilename()}");
-
-                    // this will be effectively the same as above, if the cache doesnt exist
-                    if (!this.actualCaching)
+                    var metadata = await packageManager.GetMetadata(purl);
+                    if (metadata != null)
                     {
-                        while (File.Exists(outputFilename))
+                        var outputFilename = Path.Combine(packageManager.TopLevelExtractionDirectory, $"metadata-{purl.ToStringFilename()}");
+
+                        // this will be effectively the same as above, if the cache doesnt exist
+                        if (!this.actualCaching)
                         {
-                            outputFilename = Path.Combine(this.packageManager.TopLevelExtractionDirectory, $"metadata-{purl.ToStringFilename()}-{DateTime.Now.Ticks}");
+                            while (File.Exists(outputFilename))
+                            {
+                                outputFilename = Path.Combine(packageManager.TopLevelExtractionDirectory, $"metadata-{purl.ToStringFilename()}-{DateTime.Now.Ticks}");
+                            }
                         }
+                        File.WriteAllText(outputFilename, metadata);
+                        downloadPaths.Add(outputFilename);
                     }
-                    File.WriteAllText(outputFilename, metadata);
-                    downloadPaths.Add(outputFilename);
+                }
+                else
+                {
+                    // only version download requests reach here
+                    downloadPaths.AddRange(await packageManager.DownloadVersion(purl, doExtract, this.actualCaching));
                 }
             }
-            else
-            {
-                // only version download requests reach here
-                downloadPaths.AddRange(await this.packageManager.DownloadVersion(purl, doExtract, this.actualCaching));
-                this.downloadPaths = downloadPaths;
-            }
+
+            // Add the return values to our internal storage to be cleaned up later by CleanPackageLocalCopy
+            this.downloadPaths.AddRange(downloadPaths);
 
             return downloadPaths;
         }

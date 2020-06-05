@@ -57,11 +57,10 @@ namespace Microsoft.CST.OpenSource
             }
 
             // select output format
-            string format = ((string)findSourceTool.Options["format"]).ToLower();
             OutputBuilder outputBuilder;
             try
             {
-                outputBuilder = new OutputBuilder(format);
+                outputBuilder = new OutputBuilder((string)findSourceTool.Options["format"]);
             }
             catch (ArgumentOutOfRangeException)
             {

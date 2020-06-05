@@ -64,6 +64,7 @@ namespace Microsoft.CST.OpenSource.Shared
                         {
                             continue;   // Missing a package type
                         }
+
                         var result = await WebClient.GetAsync(release.GetProperty("url").GetString());
                         result.EnsureSuccessStatusCode();
                         var targetName = $"pypi-{packageType}-{packageName}@{packageVersion}";
@@ -132,7 +133,7 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
 
-        public override async Task<string> GetMetadata(PackageURL purl)
+        public override async Task<string?> GetMetadata(PackageURL purl)
         {
             try
             {
@@ -148,7 +149,7 @@ namespace Microsoft.CST.OpenSource.Shared
         protected async override Task<Dictionary<PackageURL, double>> PackageMetadataSearch(PackageURL purl, string metadata)
         {
             var mapping = new Dictionary<PackageURL, double>();
-            if (purl.Name.StartsWith('_')) // TODO: there are internal modules which do not start with _
+            if (purl.Name?.StartsWith('_') ?? false) // TODO: there are internal modules which do not start with _
             {
                 // TODO: internal modules could also be in https://github.com/python/cpython/tree/master/Modules/
                 mapping.Add(new PackageURL(purl.Type, purl.Namespace, purl.Name, null, null, "cpython/tree/master/Lib/"), 1.0F);
@@ -156,7 +157,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             if (string.IsNullOrEmpty(metadata))
             {
-                return null;
+                return mapping;
             }
             JsonDocument contentJSON = JsonDocument.Parse(metadata);
 

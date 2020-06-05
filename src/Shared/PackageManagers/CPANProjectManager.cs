@@ -50,7 +50,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
 
             // Locate the URL
-            string packageVersionUrl = null;
+            string? packageVersionUrl = null;
             var html = await GetHttpStringCache($"{ENV_CPAN_ENDPOINT}/release/{packageName}");
             var parser = new HtmlParser();
             var document = await parser.ParseDocumentAsync(html);
@@ -160,7 +160,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
         }
 
-        public override async Task<string> GetMetadata(PackageURL purl)
+        public override async Task<string?> GetMetadata(PackageURL purl)
         {
             try
             {

@@ -20,17 +20,17 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         /// Holds the version string, from the assembly.
         /// </summary>
-        private static readonly string VERSION = typeof(CharacteristicTool).Assembly.GetName().Version.ToString();
+        private static readonly string VERSION = typeof(CharacteristicTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
 
         /// <summary>
         /// Logger for this class
         /// </summary>
-        private static NLog.ILogger Logger { get; set; }
+        private static NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// Command line options
         /// </summary>
-        public Dictionary<string, object> Options = new Dictionary<string, object>()
+        public Dictionary<string, object?> Options = new Dictionary<string, object?>()
         {
             { "target", new List<string>() },
             { "disable-default-rules", false },
@@ -46,55 +46,55 @@ namespace Microsoft.CST.OpenSource
         static void Main(string[] args)
         {
             var characteristicTool = new CharacteristicTool();
-            Logger.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
+            Logger?.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
             characteristicTool.ParseOptions(args);
 
-            if (((IList<string>)characteristicTool.Options["target"]).Count > 0)
+            if (characteristicTool.Options["target"] is IList<string> targetList && targetList.Count > 0)
             {
-                foreach (var target in (IList<string>)characteristicTool.Options["target"])
+                foreach (var target in targetList)
                 {
                     try
                     {
                         var purl = new PackageURL(target);
                         var analysisResult = characteristicTool.AnalyzePackage(purl, 
-                            (string)characteristicTool.Options["download-directory"], 
-                            (bool)characteristicTool.Options["use-cache"]).Result;
+                            (string?)characteristicTool.Options["download-directory"], 
+                            (bool?)characteristicTool.Options["use-cache"] == true).Result;
 
                         var sb = new StringBuilder();
                         sb.AppendLine(target);
                         foreach (var key in analysisResult.Keys)
                         {
-                            var metadata = analysisResult[key].Metadata;
+                            var metadata = analysisResult[key]?.Metadata;
 
-                            
-                            sb.AppendFormat("Programming Language: {0}\n", string.Join(", ", metadata.Languages.Keys));
-                            sb.AppendLine("Unique Tags: ");
-                            foreach (var tag in metadata.UniqueTags)
+                            if (metadata != null)
                             {
-                                sb.AppendFormat($" * {tag}\n");
+                                sb.AppendFormat("Programming Language: {0}\n", string.Join(", ", metadata.Languages.Keys));
+                                sb.AppendLine("Unique Tags: ");
+                                foreach (var tag in metadata.UniqueTags)
+                                {
+                                    sb.AppendFormat($" * {tag}\n");
+                                }
                             }
                         }
 
-                        Logger.Info(sb.ToString());
+                        Logger?.Info(sb.ToString());
                     }
                     catch (Exception ex)
                     {
-                        Logger.Warn(ex, "Error processing {0}: {1}", target, ex.Message);
+                        Logger?.Warn(ex, "Error processing {0}: {1}", target, ex.Message);
                     }
                 }
             }
             else
             {
-                Logger.Warn("No target provided; nothing to analyze.");
+                Logger?.Warn("No target provided; nothing to analyze.");
                 CharacteristicTool.ShowUsage();
                 Environment.Exit(1);
             }
         }
 
-        public CharacteristicTool()
+        public CharacteristicTool() : base()
         {
-            CommonInitialization.Initialize();
-            Logger = CommonInitialization.Logger;
         }
 
 
@@ -103,13 +103,13 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         /// <param name="purl">The package-url of the package to analyze.</param>
         /// <returns>List of tags identified</returns>
-        public async Task<Dictionary<string, AnalyzeResult>> AnalyzePackage(PackageURL purl, 
-            string targetDirectoryName, 
+        public async Task<Dictionary<string, AnalyzeResult?>> AnalyzePackage(PackageURL purl, 
+            string? targetDirectoryName, 
             bool doCaching)
         {
-            Logger.Trace("AnalyzePackage({0})", purl.ToString());
+            Logger?.Trace("AnalyzePackage({0})", purl.ToString());
 
-            var analysisResults = new Dictionary<string, AnalyzeResult>();
+            var analysisResults = new Dictionary<string, AnalyzeResult?>();
 
             var packageDownloader = new PackageDownloader(purl, targetDirectoryName, doCaching);
             // ensure that the cache directory has the required package, download it otherwise
@@ -126,7 +126,7 @@ namespace Microsoft.CST.OpenSource
             }
             else
             {
-                Logger.Warn("Error downloading {0}.", purl.ToString());
+                Logger?.Warn("Error downloading {0}.", purl.ToString());
             }
             packageDownloader.ClearPackageLocalCopyIfNoCaching();
             return analysisResults;
@@ -137,11 +137,11 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         /// <param name="directory">directory to analyze.</param>
         /// <returns>List of tags identified</returns>
-        public async Task<AnalyzeResult> AnalyzeDirectory(string directory)
+        public async Task<AnalyzeResult?> AnalyzeDirectory(string directory)
         {
-            Logger.Trace("AnalyzeDirectory({0})", directory);
+            Logger?.Trace("AnalyzeDirectory({0})", directory);
 
-            AnalyzeResult analysisResult = null;
+            AnalyzeResult? analysisResult = null;
 
             // Call Application Inspector using the NuGet package
             var options = new AnalyzeOptions()
@@ -149,19 +149,19 @@ namespace Microsoft.CST.OpenSource
                 ConsoleVerbosityLevel = "None",
                 LogFileLevel = "Off",
                 SourcePath = directory,
-                IgnoreDefaultRules = (bool)Options["disable-default-rules"],
-                CustomRulesPath = (string)Options["custom-rule-directory"],
+                IgnoreDefaultRules = (bool?)Options["disable-default-rules"] == true,
+                CustomRulesPath = (string?)Options["custom-rule-directory"],
             };
             
             try
             {
                 var analyzeCommand = new AnalyzeCommand(options);
                 analysisResult = analyzeCommand.GetResult();
-                Logger.Debug("Operation Complete: {0} files analyzed.", analysisResult?.Metadata?.TotalFiles);
+                Logger?.Debug("Operation Complete: {0} files analyzed.", analysisResult?.Metadata?.TotalFiles);
             }
             catch(Exception ex)
             {
-                Logger.Warn("Error analyzing {0}: {1}", directory, ex.Message);
+                Logger?.Warn("Error analyzing {0}: {1}", directory, ex.Message);
             }
 
             return analysisResult;
@@ -212,7 +212,8 @@ namespace Microsoft.CST.OpenSource
                         break;
 
                     default:
-                        ((IList<string>)Options["target"]).Add(args[i]);
+                        if (Options["target"] is IList<string> targetList)
+                            targetList.Add(args[i]);
                         break;
                 }
             }

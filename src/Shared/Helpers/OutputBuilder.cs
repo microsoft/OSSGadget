@@ -31,36 +31,11 @@ namespace Microsoft.CST.OpenSource.Shared
         List<Result> sarifResults = new List<Result>();
 
         // cache variables to avoid reflection
-        static string _AssemblyName = null;
-        string AssemblyName { 
-            get
-            {
-                _AssemblyName ??= Assembly.GetEntryAssembly().GetName().Name;
-                return _AssemblyName;
-            } 
-        }
+        static readonly string AssemblyName = Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty;
 
-        static string _Version = null;
-        string Version
-        {
-            get
-            {
-                _Version ??= Assembly.GetEntryAssembly().
-                    GetCustomAttribute<AssemblyFileVersionAttribute>().Version.ToString();
-                return _Version;
-            }
-        }
+        static readonly string Version = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version.ToString() ?? string.Empty;
 
-        static string _Company = null;
-        string Company
-        {
-            get
-            {
-                _Company ??= Assembly.GetEntryAssembly().
-                    GetCustomAttribute<AssemblyCompanyAttribute>().Company;
-                return _Company;
-            }
-        }
+        static readonly string Company = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyCompanyAttribute>()?.Company ?? string.Empty;
 
         public OutputBuilder(string format)
         {
@@ -122,7 +97,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     {
                         Address = new Address()
                         {
-                            FullyQualifiedName = projectManager.GetPackageAbsoluteUri(purl).AbsoluteUri,
+                            FullyQualifiedName = projectManager?.GetPackageAbsoluteUri(purl)?.AbsoluteUri,
                             AbsoluteAddress = 1,
                             Name = purl.ToString()
                         }

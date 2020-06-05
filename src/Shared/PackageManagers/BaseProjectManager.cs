@@ -21,7 +21,9 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <summary>
         /// Static HttpClient for use in all HTTP connections.
         /// </summary>
+#pragma warning disable CS8618 // Non-nullable field is uninitialized. Not actually uninitialized. False positive.
         protected static HttpClient WebClient;
+#pragma warning restore CS8618
 
         /// <summary>
         /// Logger for each of the subclasses
@@ -70,7 +72,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl"></param>
         /// <returns></returns>
-        public virtual Uri GetPackageAbsoluteUri(PackageURL purl)
+        public virtual Uri? GetPackageAbsoluteUri(PackageURL purl)
         {
             throw new NotImplementedException("BaseProjectManager does not implement GetPackageAbsoluteUri.");
         }
@@ -81,7 +83,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl">PackageURL to search</param>
         /// <returns>a string containing metadata.</returns>
-        public virtual Task<string> GetMetadata(PackageURL purl)
+        public virtual Task<string?> GetMetadata(PackageURL purl)
         {
             throw new NotImplementedException("BaseProjectManager does not implement GetMetadata.");
         }
@@ -103,10 +105,18 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         public BaseProjectManager(string destinationDirectory)
         {
-            this.Options = new Dictionary<string, object>();
+            Options = new Dictionary<string, object>();
             CommonInitialization.OverrideEnvironmentVariables(this);
-            this.TopLevelExtractionDirectory = destinationDirectory;
-            WebClient = CommonInitialization.WebClient;
+            TopLevelExtractionDirectory = destinationDirectory;
+
+            if (CommonInitialization.WebClient is HttpClient client)
+            {
+                WebClient = client;
+            }
+            else
+            {
+                throw new NullReferenceException(nameof(WebClient));
+            }
         }
 
         /// <summary>
@@ -127,7 +137,6 @@ namespace Microsoft.CST.OpenSource.Shared
                     }
                 }
             }
-
             var result = await WebClient.GetAsync(uri);
             result.EnsureSuccessStatusCode();   // Don't cache error codes
             var contentLength = result.Content.Headers.ContentLength ?? 8192;
@@ -150,11 +159,11 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="uri">URI to load.</param>
         /// <returns></returns>
-        public static async Task<string> GetHttpStringCache(string uri, bool useCache = true, bool neverThrow = false)
+        public static async Task<string?> GetHttpStringCache(string uri, bool useCache = true, bool neverThrow = false)
         {
             Logger.Trace("GetHttpStringCache({0}, {1})", uri, useCache);
 
-            string resultString;
+            string? resultString = null;
             
             try
             {
@@ -168,7 +177,6 @@ namespace Microsoft.CST.OpenSource.Shared
                         }
                     }
                 }
-
 
                 var result = await WebClient.GetAsync(uri);
                 result.EnsureSuccessStatusCode();   // Don't cache error codes
@@ -185,11 +193,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
             } catch(Exception)
             {
-                if (neverThrow)
-                {
-                    return null;
-                }
-                else
+                if (!neverThrow)
                 {
                     throw;
                 }
@@ -217,7 +221,7 @@ namespace Microsoft.CST.OpenSource.Shared
             // @TODO: Check the regex below; does this match GitHub's scheme?
             var githubRegex = new Regex(@"github\.com/([a-z0-9\-_\.]+)/([a-z0-9\-_\.]+)",
                                         RegexOptions.IgnoreCase);
-            foreach (Match match in githubRegex.Matches(content))
+            foreach (Match match in githubRegex.Matches(content).Where(match => match != null))
             {
                 var user = match.Groups[1].Value;
                 var repo = match.Groups[2].Value;
@@ -256,7 +260,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <returns></returns>
         public async Task<string> ExtractArchive(string directoryName, byte[] bytes, bool cached = false)
         {
-            Logger.Trace("ExtractArchive({0}, <bytes> len={1})", directoryName, bytes?.Length);
+            Logger.Trace("ExtractArchive({0}, <bytes> len={1})", directoryName, bytes.Length);
 
             Directory.CreateDirectory(TopLevelExtractionDirectory);
 
@@ -336,7 +340,7 @@ namespace Microsoft.CST.OpenSource.Shared
                         var verResult = method(version);
                         // Make sure the method doesn't mangle the version
                         // This is due to System.Version normalizalizing "0.01" to "0.1".
-                        if (verResult != null && verResult.ToString().Equals(version))
+                        if (verResult != null && (verResult.ToString() ?? string.Empty).Equals(version))
                         {
                             objList.Add(verResult);
                         }
@@ -355,7 +359,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 // If we have a successful result (right size), then we should be good.
                 if (objList != null && objList.Count() == versionList.Count())
                 {
-                    return objList.Select(o => o.ToString());
+                    return objList.Select(o => o.ToString() ?? string.Empty);
                 }
             }
 
@@ -381,7 +385,7 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             Logger.Trace("IdentifySourceRepository({0})", purl);
 
-            var rawMetadataString = await GetMetadata(purl);
+            var rawMetadataString = await GetMetadata(purl) ?? string.Empty;
             var sourceRepositoryMap = new Dictionary<PackageURL, double>();
             
             // Check the specific PackageManager-specific implementation first

@@ -12,7 +12,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <summary>
         /// Static HttpClient for use in all HTTP connections.
         /// </summary>
-        public static HttpClient WebClient { get; private set; } = null;
+        public static HttpClient? WebClient { get; private set; } = null;
         
         /// <summary>
         /// User Agent string, when needed to connect to external resources.
@@ -21,14 +21,11 @@ namespace Microsoft.CST.OpenSource.Shared
         private static string ENV_HTTPCLIENT_USER_AGENT = "OSSDL";
 
         /// <summary>
-        /// Common Logger for all OSS Gadget tools.
-        /// </summary>
-        public static NLog.Logger Logger { get; private set; }
-
-        /// <summary>
         /// Prevent being initialized multiple times.
         /// </summary>
         private static bool Initialized = false;
+
+        public static NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// Initializes common infrastructure, like logging.
@@ -52,8 +49,6 @@ namespace Microsoft.CST.OpenSource.Shared
 
             WebClient = new HttpClient(handler);
             WebClient.DefaultRequestHeaders.UserAgent.ParseAdd(ENV_HTTPCLIENT_USER_AGENT);
-
-            Logger = NLog.LogManager.GetCurrentClassLogger();
             
             // @TODO Does this actually run?
             System.Runtime.Loader.AssemblyLoadContext.Default.Unloading += (_) =>

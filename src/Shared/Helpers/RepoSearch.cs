@@ -67,6 +67,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
                 if (repoMappings == null || !repoMappings.Any())
                 {
+                    repoMappings = new Dictionary<PackageURL, double>();
                     Logger.Info("No repositories were found after searching metadata.");
                 }
             }

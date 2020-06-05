@@ -5,8 +5,8 @@ namespace Microsoft.CST.OpenSource.Shared
 {
     public class ConsoleHelper
     {
-        static StreamWriter streamWriter;
-        static FileStream fileStream;
+        static StreamWriter? streamWriter;
+        static FileStream? fileStream;
 
         public static bool RedirectConsole(string outFile)
         {
@@ -41,17 +41,14 @@ namespace Microsoft.CST.OpenSource.Shared
             standardOutput.AutoFlush = true;
             Console.SetOut(standardOutput);
 
-            if (streamWriter != null)
-            {
-                streamWriter.Close();
-                fileStream.Close();
+            streamWriter?.Close();
+            fileStream?.Close();
 
-                streamWriter.Dispose();
-                fileStream.Dispose();
+            streamWriter?.Dispose();
+            fileStream?.Dispose();
 
-                fileStream = null;
-                streamWriter = null;
-            }
+            fileStream = null;
+            streamWriter = null;
         }
     }
 }

@@ -20,7 +20,7 @@ using WebAssembly.Instructions;
 
 namespace Microsoft.CST.OpenSource
 {
-    public class DetectCryptographyTool
+    public class DetectCryptographyTool : OSSGadget
     {
         /// <summary>
         /// Name of this tool.
@@ -30,17 +30,12 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         /// Holds the version string, from the assembly.
         /// </summary>
-        private static readonly string VERSION = typeof(DetectCryptographyTool).Assembly.GetName().Version.ToString();
-
-        /// <summary>
-        /// Logger for this class
-        /// </summary>
-        private static NLog.ILogger Logger { get; set; }
+        private static readonly string VERSION = typeof(DetectCryptographyTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
 
         /// <summary>
         /// Command line options
         /// </summary>
-        public Dictionary<string, object> Options = new Dictionary<string, object>()
+        public Dictionary<string, object?> Options = new Dictionary<string, object?>()
         {
             { "target", new List<string>() },
             { "disable-default-rules", false },
@@ -66,21 +61,21 @@ namespace Microsoft.CST.OpenSource
 
             detectCryptographyTool.ParseOptions(args);
 
-            if (((IList<string>)detectCryptographyTool.Options["target"]).Count > 0)
+            if (detectCryptographyTool.Options["target"] is IList<string> targetList && targetList.Count > 0)
             {
                 var sb = new StringBuilder();
-                foreach (var target in (IList<string>)detectCryptographyTool.Options["target"])
+                foreach (var target in targetList)
                 {
                     sb.Clear();
                     try
                     {
-                        List<IssueRecord> results = null;
+                        List<IssueRecord>? results = null;
                         if (target.StartsWith("pkg:", StringComparison.InvariantCulture))
                         {
                             var purl = new PackageURL(target);
                             results = await detectCryptographyTool.AnalyzePackage(purl, 
-                                (string)detectCryptographyTool.Options["download-directory"], 
-                                (bool)detectCryptographyTool.Options["use-cache"]);
+                                (string?)detectCryptographyTool.Options["download-directory"], 
+                                (bool?)detectCryptographyTool.Options["use-cache"] == true);
                         }
                         else if (Directory.Exists(target))
                         {
@@ -88,7 +83,7 @@ namespace Microsoft.CST.OpenSource
                         }
                         else if (File.Exists(target))
                         {
-                            string targetDirectoryName = null;
+                            string? targetDirectoryName = null;
                             while (targetDirectoryName == null || Directory.Exists(targetDirectoryName))
                             {
                                 targetDirectoryName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
@@ -156,7 +151,7 @@ namespace Microsoft.CST.OpenSource
                                 sb.AppendLine($"[ ] {target} - This software package does NOT contains words that suggest cryptography.");
                             }
                             
-                            if ((bool)detectCryptographyTool.Options["verbose"])
+                            if ((bool?)detectCryptographyTool.Options["verbose"] == true)
                             {
                                 var items = results.GroupBy(k => k.Issue.Rule.Name).OrderByDescending(k => k.Count());
                                 foreach (var item in items)
@@ -217,10 +212,8 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        public DetectCryptographyTool()
+        public DetectCryptographyTool() : base()
         {
-            CommonInitialization.Initialize();
-            Logger = CommonInitialization.Logger;
         }
 
 
@@ -229,7 +222,7 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         /// <param name="purl">The package-url of the package to analyze.</param>
         /// <returns>List of tags identified</returns>
-        public async Task<List<IssueRecord>> AnalyzePackage(PackageURL purl, string targetDirectoryName, bool doCaching)
+        public async Task<List<IssueRecord>> AnalyzePackage(PackageURL purl, string? targetDirectoryName, bool doCaching)
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
 
@@ -379,7 +372,7 @@ namespace Microsoft.CST.OpenSource
             var analysisResults = new List<IssueRecord>();
 
             RuleSet rules = new RuleSet();
-            if (!(bool)Options["disable-default-rules"])
+            if (Options["disable-default-rules"] is bool disableDefaultRules && !disableDefaultRules)
             {
                 var assembly = Assembly.GetExecutingAssembly();
                 foreach (var resourceName in assembly.GetManifestResourceNames())
@@ -389,7 +382,7 @@ namespace Microsoft.CST.OpenSource
                         try
                         {
                             var stream = assembly.GetManifestResourceStream(resourceName);
-                            using var resourceStream = new StreamReader(stream);
+                            using var resourceStream = new StreamReader(stream ?? new MemoryStream());
                             rules.AddString(resourceStream.ReadToEnd(), resourceName);
                         }
                         catch(Exception ex)
@@ -400,9 +393,9 @@ namespace Microsoft.CST.OpenSource
                 }
             }
 
-            if ((string)Options["custom-rule-directory"] != null)
+            if (Options["custom-rule-directory"] is string customDirectory)
             {
-                rules.AddDirectory((string)Options["custom-rule-directory"]);
+                rules.AddDirectory(customDirectory);
             }
 
             if (rules.Count() == 0)
@@ -473,7 +466,7 @@ namespace Microsoft.CST.OpenSource
                     }
                     Logger.Debug($"Analyzing {filename}, length={buffer.Length}");
                     
-                    Issue[] fileResults = null;
+                    Issue[]? fileResults = null;
                     var task = Task.Run(() => processor.Analyze(buffer, Language.FromFileName(filename)));
                     if (task.Wait(TimeSpan.FromSeconds(2)))
                     {
@@ -632,7 +625,10 @@ namespace Microsoft.CST.OpenSource
                         break;
 
                     default:
-                        ((IList<string>)Options["target"]).Add(args[i]);
+                        if (Options["target"] is IList<string> targetList)
+                        {
+                            targetList.Add(args[i]);
+                        }
                         break;
                 }
             }

@@ -12,6 +12,8 @@
     <RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>
     <StartupObject>Microsoft.CST.OpenSource.RiskCalculatorTool</StartupObject>
     <Configurations>Debug;Release</Configurations>
+    <LangVersion>8.0</LangVersion>
+    <Nullable>Enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

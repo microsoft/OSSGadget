@@ -226,7 +226,7 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Build and return a list of Sarif Result list from the find source results
+        /// Build and return a list of Sarif Result list from the find characterstics results
         /// </summary>
         /// <param name="purl"></param>
         /// <param name="results"></param>

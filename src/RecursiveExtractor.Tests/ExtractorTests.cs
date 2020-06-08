@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.CST.OpenSource.MultiExtractor;
+using Microsoft.CST.OpenSource.RecursiveExtractor;
 using System.IO;
 using System.Linq;
 using System;

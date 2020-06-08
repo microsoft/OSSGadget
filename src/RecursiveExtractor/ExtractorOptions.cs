@@ -1,5 +1,5 @@
 ﻿using System;
-namespace Microsoft.CST.OpenSource.MultiExtractor
+namespace Microsoft.CST.OpenSource.RecursiveExtractor
 {
     public class ExtractorOptions
     {

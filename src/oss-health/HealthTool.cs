@@ -79,6 +79,7 @@ namespace Microsoft.CST.OpenSource
                         Logger.Warn("Error processing {0}: {1}", target, ex.Message);
                     }
                 }
+                outputBuilder.PrintOutput();
             }
             else
             {
@@ -161,6 +162,14 @@ namespace Microsoft.CST.OpenSource
                     case "--help":
                         ShowUsage();
                         Environment.Exit(1);
+                        break;
+
+                    case "--format":
+                        Options["format"] = args[++i];
+                        break;
+
+                    case "--output-file":
+                        Options["output-file"] = args[++i];
                         break;
 
                     case "-v":

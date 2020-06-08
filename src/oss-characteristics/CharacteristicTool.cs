@@ -54,29 +54,31 @@ namespace Microsoft.CST.OpenSource
             characteristicTool.ParseOptions(args);
 
             // output to console or file?
-            bool redirectConsole = !string.IsNullOrEmpty((string)characteristicTool.Options["output-file"]);
+            bool redirectConsole = !string.IsNullOrEmpty((string?)characteristicTool.Options["output-file"]);
             if (redirectConsole)
             {
-                if (!ConsoleHelper.RedirectConsole((string)characteristicTool.Options["output-file"]))
+                if (!ConsoleHelper.RedirectConsole((string?)characteristicTool.Options["output-file"] ?? 
+                    string.Empty))
                 {
-                    Logger.Error("Could not switch output from console to file");
+                    Logger?.Error("Could not switch output from console to file");
                     // continue with current output
                 }
             }
 
             // select output format
-            OutputBuilder outputBuilder;
+            OutputBuilder? outputBuilder;
             try
             {
-                outputBuilder = new OutputBuilder((string)characteristicTool.Options["format"]);
+                outputBuilder = new OutputBuilder((string?)characteristicTool.Options["format"] ??
+                                        OutputBuilder.OutputFormat.text.ToString());
             }
             catch (ArgumentOutOfRangeException)
             {
-                Logger.Error("Invalid output format");
+                Logger?.Error("Invalid output format");
                 return;
             }
 
-            if (((IList<string>)characteristicTool.Options["target"]).Count > 0)
+            if (characteristicTool.Options["target"] is IList<string> targetList && targetList.Count > 0)
             {
                 foreach (var target in targetList)
                 {
@@ -188,7 +190,7 @@ namespace Microsoft.CST.OpenSource
         /// <param name="outputBuilder"></param>
         /// <param name="purl"></param>
         /// <param name="results"></param>
-        void AppendOutput(OutputBuilder outputBuilder, PackageURL purl, Dictionary<string, AnalyzeResult> analysisResults)
+        void AppendOutput(OutputBuilder outputBuilder, PackageURL purl, Dictionary<string, AnalyzeResult?> analysisResults)
         {
             if (outputBuilder.isTextFormat())
             {
@@ -205,19 +207,22 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         /// <param name="results"></param>
         /// <returns></returns>
-        static string GetTextResults(PackageURL purl, Dictionary<string, AnalyzeResult> analysisResult)
+        static string GetTextResults(PackageURL purl, Dictionary<string, AnalyzeResult?> analysisResult)
         {
             StringBuilder stringOutput = new StringBuilder();
             stringOutput.AppendLine(purl.ToString());
-            foreach (var key in analysisResult.Keys)
+            if (analysisResult.HasAtLeastOneNonNullValue())
             {
-                var metadata = analysisResult[key].Metadata;
-
-                stringOutput.AppendFormat("Programming Language: {0}\n", string.Join(", ", metadata.Languages.Keys));
-                stringOutput.AppendLine("Unique Tags: ");
-                foreach (var tag in metadata.UniqueTags)
+                foreach (var key in analysisResult.Keys)
                 {
-                    stringOutput.AppendFormat($" * {tag}\n");
+                    var metadata = analysisResult?[key]?.Metadata;
+
+                    stringOutput.AppendFormat("Programming Language: {0}\n", string.Join(", ", metadata.Languages.Keys));
+                    stringOutput.AppendLine("Unique Tags: ");
+                    foreach (var tag in metadata.UniqueTags)
+                    {
+                        stringOutput.AppendFormat($" * {tag}\n");
+                    }
                 }
             }
             return stringOutput.ToString();
@@ -229,30 +234,37 @@ namespace Microsoft.CST.OpenSource
         /// <param name="purl"></param>
         /// <param name="results"></param>
         /// <returns></returns>
-        static List<SarifResult> GetSarifResults(PackageURL purl, Dictionary<string, AnalyzeResult> analysisResult)
+        static List<SarifResult> GetSarifResults(PackageURL purl, Dictionary<string, AnalyzeResult?> analysisResult)
         {
             List<SarifResult> sarifResults = new List<SarifResult>();
-            foreach (var key in analysisResult.Keys)
+            if (analysisResult.HasAtLeastOneNonNullValue())
             {
-                var metadata = analysisResult[key].Metadata;
-                SarifResult sarifResult = new SarifResult()
+                foreach (var key in analysisResult.Keys)
                 {
-                    Message = new Message()
+                    var metadata = analysisResult?[key]?.Metadata;
+                    SarifResult sarifResult = new SarifResult()
                     {
-                        Text = string.Join(", ", metadata.Languages.Keys),
-                         Id = "languages"
-                    },
-                    Kind = ResultKind.Informational,
-                    Level = FailureLevel.None,
-                    Locations = OutputBuilder.BuildPurlLocation(purl),
-                };
+                        Message = new Message()
+                        {
+                            Text = string.Join(", ", metadata?.Languages?.Keys ?? Array.Empty<string>()),
+                            Id = "languages"
+                        },
+                        Kind = ResultKind.Informational,
+                        Level = FailureLevel.None,
+                        Locations = OutputBuilder.BuildPurlLocation(purl),
+                    };
 
-                foreach (var tag in metadata.UniqueTags)
-                {
-                    sarifResult.SetProperty(tag.Key, tag.Value);
+                    if (metadata?.UniqueTags?.HasAtLeastOneNonNullValue() ?? true)
+                    {
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+                        foreach (var tag in metadata.UniqueTags)
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
+                        {
+                            sarifResult?.SetProperty(tag.Key, tag.Value);
+                        }
+                    }
+                    sarifResults.Add(sarifResult);
                 }
-
-                sarifResults.Add(sarifResult);
             }
             return sarifResults;
         }

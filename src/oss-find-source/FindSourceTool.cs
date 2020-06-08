@@ -64,8 +64,7 @@ namespace Microsoft.CST.OpenSource
                 return;
             }
 
-            if (findSourceTool.Options["target"] is IList<string> targetList && targetList.Count > 0)
-            {
+            if (findSourceTool.Options["target"] is IList<string> targetList && targetList.Count > 0)            {
                 foreach (var target in targetList)
                 {
                     try

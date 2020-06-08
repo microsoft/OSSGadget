@@ -62,7 +62,7 @@ project.fragment.lock.json
 artifacts/
 
 # launchsettings
-Properties/launchSettings.json
+*launchSettings.json
 
 # StyleCop
 StyleCopReport.xml

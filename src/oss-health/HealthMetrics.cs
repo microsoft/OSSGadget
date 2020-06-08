@@ -89,13 +89,12 @@ namespace Microsoft.CST.OpenSource.Health
         }
         public List<Result> toSarif()
         {
-            List<Result> sarifResults = new List<Result>();
-            var projectManager = ProjectManagerFactory.CreateProjectManager(purl, null);
+            BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, null);
 
             if (projectManager == null)
             {
                 Logger.Error("Cannot determine the package type");
-                return sarifResults;
+                return new List<Result>();
             }
 
             Normalize();
@@ -125,7 +124,7 @@ namespace Microsoft.CST.OpenSource.Health
                                 {
                                     Address = new Address()
                                     {
-                                        FullyQualifiedName = projectManager.GetPackageAbsoluteUri(purl)?.AbsoluteUri,
+                                        FullyQualifiedName = projectManager?.GetPackageAbsoluteUri(purl)?.AbsoluteUri,
                                         AbsoluteAddress = 1,
                                         Name = purl.ToString()
                                     }

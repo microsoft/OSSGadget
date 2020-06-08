@@ -5,7 +5,7 @@ using NLog.Fluent;
 using System;
 using System.IO;
 
-namespace Microsoft.CST.OpenSource.MultiExtractor
+namespace Microsoft.CST.OpenSource.RecursiveExtractor
 {
     public class FileEntry
     {

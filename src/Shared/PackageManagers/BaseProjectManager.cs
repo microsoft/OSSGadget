@@ -12,7 +12,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using F23.StringSimilarity;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.CST.OpenSource.MultiExtractor;
+using Microsoft.CST.OpenSource.RecursiveExtractor;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
@@ -253,7 +253,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
         /// <summary>
         /// Extracts an archive (given by 'bytes') into a directory named
-        /// 'directoryName', recursively, using MultiExtractor.
+        /// 'directoryName', recursively, using RecursiveExtractor.
         /// </summary>
         /// <param name="directoryName"> directory to extract content into (within TopLevelExtractionDirectory)</param>
         /// <param name="bytes">bytes to extract (should be an archive file)</param>

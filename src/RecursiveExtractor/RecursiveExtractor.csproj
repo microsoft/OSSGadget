@@ -1,8 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <PackageId>Microsoft.CST.MultiExtractor</PackageId>
-    
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>Microsoft.CST.OpenSource</RootNamespace>
     <Version>0.0.0-placeholder</Version>
@@ -15,8 +13,8 @@
     <LangVersion>8.0</LangVersion>
     <Nullable>Enable</Nullable>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <Description>MultiExtractor is a recursive extractor, able to process the following formats: ar, bzip2, deb, gzip, iso, tar, vhd, vhdx, vmdk, wim, xzip, and zip. MultiExtractor automatically detects the archive type and fails gracefully when attempting to process malformed content.</Description>
-    <PackageId>Microsoft.CST.MultiExtractor</PackageId>
+    <Description>RecursiveExtractor is able to process the following formats: ar, bzip2, deb, gzip, iso, tar, vhd, vhdx, vmdk, wim, xzip, and zip. RecursiveExtractor automatically detects the archive type and fails gracefully when attempting to process malformed content.</Description>
+    <PackageId>Microsoft.CST.RecursiveExtractor</PackageId>
     <PackageTags>unzip extract extractor</PackageTags>
     <PackageVersion>0.0.0-placeholder</PackageVersion>
     <PackageProjectUrl>https://github.com/microsoft/OSSGadget</PackageProjectUrl>

@@ -204,6 +204,8 @@ positional arguments:
 {BaseProjectManager.GetCommonSupportedHelpText()}
 
 optional arguments:
+  --format                      selct the output format (text|sarifv1|sarifv2). (default is text)
+  --output-file                 send the command output to a file instead of stdout
   --help                        show this help message and exit
   --version                     show version of this tool
 ");

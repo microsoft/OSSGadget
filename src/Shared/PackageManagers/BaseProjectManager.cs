@@ -12,7 +12,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using F23.StringSimilarity;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.CST.OpenSource.MultiExtractor;
+using Microsoft.CST.OpenSource.RecursiveExtractor;
 
 namespace Microsoft.CST.OpenSource.Shared
 {

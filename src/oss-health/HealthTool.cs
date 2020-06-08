@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CST.OpenSource.Shared;
 using Microsoft.CST.OpenSource.Health;
+using Microsoft.CodeAnalysis.Sarif;
 
 namespace Microsoft.CST.OpenSource
 {
@@ -25,9 +26,11 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         /// Command line options
         /// </summary>
-        private readonly Dictionary<string, object> Options = new Dictionary<string, object>()
+        private readonly Dictionary<string, object?> Options = new Dictionary<string, object?>()
         {
-            { "target", new List<string>() }
+            { "target", new List<string>() },
+            { "format", "text" },
+            { "output-file", null }
         };
 
         static void Main(string[] args)
@@ -36,18 +39,40 @@ namespace Microsoft.CST.OpenSource
             Logger.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
             healthTool.ParseOptions(args);
 
-            if (((IList<string>)healthTool.Options["target"]).Count > 0)
+            // output to console or file?
+            bool redirectConsole = !string.IsNullOrEmpty((string?)healthTool.Options["output-file"]);
+            if (redirectConsole && healthTool.Options["output-file"] is string outputLoc)
             {
-                foreach (var target in (IList<string>)healthTool.Options["target"])
+                if (!ConsoleHelper.RedirectConsole(outputLoc))
+                {
+                    Logger.Error("Could not switch output from console to file");
+                    // continue with current output
+                }
+            }
+
+            // select output format
+            string format = ((string?)healthTool.Options["format"] ?? string.Empty).ToLower();
+            OutputBuilder outputBuilder;
+            try
+            {
+                outputBuilder = new OutputBuilder(format);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                Logger.Error("Invalid output format");
+                return;
+            }
+
+            if (healthTool.Options["target"] is IList<string> targetList && targetList.Count > 0)
+            {
+                foreach (var target in targetList)
                 {
                     try
                     {
                         var purl = new PackageURL(target);
                         var healthMetrics = healthTool.CheckHealth(purl).Result;
+                        healthTool.AppendOutput(outputBuilder, purl, healthMetrics);
 
-                        // @TODO Improve this output
-                        Logger.Info($"Health for {purl} (via {purl})");
-                        Logger.Info(healthMetrics?.ToString());
                     }
                     catch (Exception ex)
                     {
@@ -103,6 +128,19 @@ namespace Microsoft.CST.OpenSource
             return null;
         }
 
+        void AppendOutput(OutputBuilder outputBuilder, PackageURL purl, HealthMetrics? healthMetrics)
+        {
+            if (outputBuilder.isTextFormat())
+            {
+                outputBuilder.AppendOutput($"Health for {purl} (via {purl})\n");
+                outputBuilder.AppendOutput(healthMetrics?.ToString() ?? string.Empty);
+            }
+            else
+            {
+                outputBuilder.AppendOutput(healthMetrics?.toSarif() ?? Array.Empty<Result>().ToList() );
+            }
+        }
+
         /// <summary>
         /// Parses options for this program.
         /// </summary>
@@ -132,7 +170,10 @@ namespace Microsoft.CST.OpenSource
                         break;
 
                     default:
-                        ((IList<string>)Options["target"]).Add(args[i]);
+                        if (Options["target"] is IList<string> innerTargetList)
+                        {
+                            innerTargetList.Add(args[i]);
+                        }
                         break;
                 }
             }

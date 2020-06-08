@@ -33,7 +33,7 @@ jobs:
 
     - name: Build OSS Gadget
       run: |
-         nuget restore OSSGadget.sln -ConfigFile RecursiveExtractor/NuGet.Config
+         nuget restore OSSGadget.sln -ConfigFile NuGet.Config
          dotnet build -c Release
       working-directory: ./src
 

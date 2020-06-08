@@ -6,11 +6,13 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.ApplicationInspector.Commands;
+using Microsoft.CodeAnalysis.Sarif;
 using Microsoft.CST.OpenSource.Shared;
+using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
 
 namespace Microsoft.CST.OpenSource
 {
-    public class CharacteristicTool
+    public class CharacteristicTool : OSSGadget
     {
         /// <summary>
         /// Name of this tool.
@@ -23,11 +25,6 @@ namespace Microsoft.CST.OpenSource
         private static readonly string VERSION = typeof(CharacteristicTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
 
         /// <summary>
-        /// Logger for this class
-        /// </summary>
-        private static NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
-
-        /// <summary>
         /// Command line options
         /// </summary>
         public Dictionary<string, object?> Options = new Dictionary<string, object?>()
@@ -36,7 +33,9 @@ namespace Microsoft.CST.OpenSource
             { "disable-default-rules", false },
             { "custom-rule-directory", null },
             { "download-directory", null },
-            { "use-cache", false }
+            { "use-cache", false },
+            { "format", "text" },
+            { "output-file", null }
         };
 
         /// <summary>
@@ -49,6 +48,31 @@ namespace Microsoft.CST.OpenSource
             Logger?.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
             characteristicTool.ParseOptions(args);
 
+            // output to console or file?
+            bool redirectConsole = !string.IsNullOrEmpty((string?)characteristicTool.Options["output-file"]);
+            if (redirectConsole)
+            {
+                if (!ConsoleHelper.RedirectConsole((string?)characteristicTool.Options["output-file"] ?? 
+                    string.Empty))
+                {
+                    Logger?.Error("Could not switch output from console to file");
+                    // continue with current output
+                }
+            }
+
+            // select output format
+            OutputBuilder? outputBuilder;
+            try
+            {
+                outputBuilder = new OutputBuilder((string?)characteristicTool.Options["format"] ??
+                                        OutputBuilder.OutputFormat.text.ToString());
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                Logger?.Error("Invalid output format");
+                return;
+            }
+
             if (characteristicTool.Options["target"] is IList<string> targetList && targetList.Count > 0)
             {
                 foreach (var target in targetList)
@@ -60,36 +84,24 @@ namespace Microsoft.CST.OpenSource
                             (string?)characteristicTool.Options["download-directory"], 
                             (bool?)characteristicTool.Options["use-cache"] == true).Result;
 
-                        var sb = new StringBuilder();
-                        sb.AppendLine(target);
-                        foreach (var key in analysisResult.Keys)
-                        {
-                            var metadata = analysisResult[key]?.Metadata;
-
-                            if (metadata != null)
-                            {
-                                sb.AppendFormat("Programming Language: {0}\n", string.Join(", ", metadata.Languages.Keys));
-                                sb.AppendLine("Unique Tags: ");
-                                foreach (var tag in metadata.UniqueTags)
-                                {
-                                    sb.AppendFormat($" * {tag}\n");
-                                }
-                            }
-                        }
-
-                        Logger?.Info(sb.ToString());
+                        characteristicTool.AppendOutput(outputBuilder, purl, analysisResult);
                     }
                     catch (Exception ex)
                     {
                         Logger?.Warn(ex, "Error processing {0}: {1}", target, ex.Message);
                     }
                 }
-            }
+                outputBuilder.PrintOutput();
+            } 
             else
             {
                 Logger?.Warn("No target provided; nothing to analyze.");
                 CharacteristicTool.ShowUsage();
                 Environment.Exit(1);
+            }
+            if (redirectConsole)
+            {
+                ConsoleHelper.RestoreConsole();
             }
         }
 
@@ -168,6 +180,91 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
+        /// Convert charactersticTool results into output format
+        /// </summary>
+        /// <param name="outputBuilder"></param>
+        /// <param name="purl"></param>
+        /// <param name="results"></param>
+        void AppendOutput(OutputBuilder outputBuilder, PackageURL purl, Dictionary<string, AnalyzeResult?> analysisResults)
+        {
+            if (outputBuilder.isTextFormat())
+            {
+                outputBuilder.AppendOutput(GetTextResults(purl, analysisResults));
+            }
+            else
+            {
+                outputBuilder.AppendOutput(GetSarifResults(purl, analysisResults));
+            }
+        }
+
+        /// <summary>
+        /// Convert charactersticTool results into text format
+        /// </summary>
+        /// <param name="results"></param>
+        /// <returns></returns>
+        static string GetTextResults(PackageURL purl, Dictionary<string, AnalyzeResult?> analysisResult)
+        {
+            StringBuilder stringOutput = new StringBuilder();
+            stringOutput.AppendLine(purl.ToString());
+            if (analysisResult.HasAtLeastOneNonNullValue())
+            {
+                foreach (var key in analysisResult.Keys)
+                {
+                    var metadata = analysisResult?[key]?.Metadata;
+
+                    stringOutput.AppendFormat("Programming Language: {0}\n", string.Join(", ", metadata.Languages.Keys));
+                    stringOutput.AppendLine("Unique Tags: ");
+                    foreach (var tag in metadata.UniqueTags)
+                    {
+                        stringOutput.AppendFormat($" * {tag}\n");
+                    }
+                }
+            }
+            return stringOutput.ToString();
+        }
+
+        /// <summary>
+        /// Build and return a list of Sarif Result list from the find characterstics results
+        /// </summary>
+        /// <param name="purl"></param>
+        /// <param name="results"></param>
+        /// <returns></returns>
+        static List<SarifResult> GetSarifResults(PackageURL purl, Dictionary<string, AnalyzeResult?> analysisResult)
+        {
+            List<SarifResult> sarifResults = new List<SarifResult>();
+            if (analysisResult.HasAtLeastOneNonNullValue())
+            {
+                foreach (var key in analysisResult.Keys)
+                {
+                    var metadata = analysisResult?[key]?.Metadata;
+                    SarifResult sarifResult = new SarifResult()
+                    {
+                        Message = new Message()
+                        {
+                            Text = string.Join(", ", metadata?.Languages?.Keys ?? Array.Empty<string>()),
+                            Id = "languages"
+                        },
+                        Kind = ResultKind.Informational,
+                        Level = FailureLevel.None,
+                        Locations = OutputBuilder.BuildPurlLocation(purl),
+                    };
+
+                    if (metadata?.UniqueTags?.HasAtLeastOneNonNullValue() ?? true)
+                    {
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+                        foreach (var tag in metadata.UniqueTags)
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
+                        {
+                            sarifResult?.SetProperty(tag.Key, tag.Value);
+                        }
+                    }
+                    sarifResults.Add(sarifResult);
+                }
+            }
+            return sarifResults;
+        }
+
+        /// <summary>
         /// Parses options for this program.
         /// </summary>
         /// <param name="args">arguments (passed in from the user)</param>
@@ -209,6 +306,14 @@ namespace Microsoft.CST.OpenSource
 
                     case "--disable-default-rules":
                         Options["disable-default-rules"] = true;
+                        break;
+
+                    case "--format":
+                        Options["format"] = args[++i];
+                        break;
+
+                    case "--output-file":
+                        Options["output-file"] = args[++i];
                         break;
 
                     default:

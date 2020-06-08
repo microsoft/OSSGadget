@@ -8,7 +8,7 @@ using Microsoft.CST.OpenSource.Shared;
 
 namespace Microsoft.CST.OpenSource
 {
-    public class DetectBackdoorTool
+    public class DetectBackdoorTool : OSSGadget
     {
         /// <summary>
         /// Name of this tool.

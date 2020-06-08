@@ -18,7 +18,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
-        enum OutputFormat
+        public enum OutputFormat
         {
             sarifv1,
             sarifv2 ,
@@ -85,7 +85,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <returns>Location list with single location object</returns>
         public static List<Location> BuildPurlLocation(PackageURL purl)
         {
-            var projectManager = ProjectManagerFactory.CreateProjectManager(purl, null);
+            BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, null);
             if (projectManager == null)
             {
                 Logger.Error("Cannot determine the package type");

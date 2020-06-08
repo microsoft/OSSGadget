@@ -41,7 +41,7 @@ stages:
         command: 'restore'
         restoreSolution: 'src/RecursiveExtractor.Tests/RecursiveExtractor.Tests.csproj'
         feedsToUse: 'config'
-        nugetConfigPath: 'src/RecursiveExtractor/NuGet.Config'
+        nugetConfigPath: 'src/NuGet.Config'
         verbosityRestore: 'Normal'
     - task: DotNetCoreCLI@2
       displayName: Dotnet Test

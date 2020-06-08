@@ -52,11 +52,11 @@ namespace Microsoft.CST.OpenSource
             }
 
             // select output format
-            string format = ((string?)findSourceTool.Options["format"] ?? string.Empty).ToLower();
             OutputBuilder outputBuilder;
             try
             {
-                outputBuilder = new OutputBuilder(format);
+                outputBuilder = new OutputBuilder(((string?)findSourceTool.Options["format"] ?? 
+                    OutputBuilder.OutputFormat.text.ToString()));
             }
             catch (ArgumentOutOfRangeException)
             {
@@ -64,8 +64,7 @@ namespace Microsoft.CST.OpenSource
                 return;
             }
 
-            if (findSourceTool.Options["target"] is IList<string> targetList && targetList.Count > 0)
-            {
+            if (findSourceTool.Options["target"] is IList<string> targetList && targetList.Count > 0)            {
                 foreach (var target in targetList)
                 {
                     try

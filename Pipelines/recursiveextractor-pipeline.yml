@@ -35,13 +35,11 @@ stages:
       displayName: Install Nuget Tool
       inputs:
         versionSpec: '5.4.x'
-    - task: NuGetCommand@2
-      displayName: NuGet Restore
+    - task: DotNetCoreCLI@2
+      displayName: Dotnet Restore
       inputs:
         command: 'restore'
-        restoreSolution: 'src/RecursiveExtractor.Tests/RecursiveExtractor.Tests.csproj'
-        feedsToUse: 'config'
-        nugetConfigPath: 'src/NuGet.Config'
+        projects: 'src/RecursiveExtractor.Tests/RecursiveExtractor.Tests.csproj'
         verbosityRestore: 'Normal'
     - task: DotNetCoreCLI@2
       displayName: Dotnet Test
@@ -213,7 +211,7 @@ stages:
         action: 'create'
         target: '$(Build.SourceVersion)'
         tagSource: 'userSpecifiedTag'
-        tag: 'v$(ReleaseVersion)'
+        tag: 'RE_v$(ReleaseVersion)'
         title: 'Release v$(ReleaseVersion) - RecursiveExtractor'
         assets: |
           $(Build.StagingDirectory)/*.zip

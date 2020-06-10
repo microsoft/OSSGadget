@@ -25,7 +25,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DiscUtils" Version="0.16.0-alpha0020" />
+    <PackageReference Include="DiscUtils.Btrfs" Version="0.15.1-ci0002" />
+    <PackageReference Include="DiscUtils.Core" Version="0.15.1-ci0002" />
+    <PackageReference Include="DiscUtils.Ext" Version="0.15.1-ci0002" />
+    <PackageReference Include="DiscUtils.Fat" Version="0.15.1-ci0002" />
+    <PackageReference Include="DiscUtils.HfsPlus" Version="0.15.1-ci0002" />
+    <PackageReference Include="DiscUtils.Iso9660" Version="0.15.1-ci0002" />
+    <PackageReference Include="DiscUtils.Ntfs" Version="0.15.1-ci0002" />
+    <PackageReference Include="DiscUtils.Vhd" Version="0.15.1-ci0002" />
+    <PackageReference Include="DiscUtils.Vhdx" Version="0.15.1-ci0002" />
+    <PackageReference Include="DiscUtils.Vmdk" Version="0.15.1-ci0002" />
+    <PackageReference Include="DiscUtils.Wim" Version="0.15.1-ci0002" />
+    <PackageReference Include="DiscUtils.Xfs" Version="0.15.1-ci0002" />
     <PackageReference Include="NLog" Version="4.7.2" />
     <PackageReference Include="SharpCompress" Version="0.25.1" />
     <PackageReference Include="SharpZipLib" Version="1.2.0" />

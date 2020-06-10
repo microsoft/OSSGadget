@@ -211,7 +211,7 @@ stages:
         action: 'create'
         target: '$(Build.SourceVersion)'
         tagSource: 'userSpecifiedTag'
-        tag: 'v$(ReleaseVersion)'
+        tag: 'RE_v$(ReleaseVersion)'
         title: 'Release v$(ReleaseVersion) - RecursiveExtractor'
         assets: |
           $(Build.StagingDirectory)/*.zip

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CST.OpenSource.Shared;
 using Microsoft.CST.OpenSource.Health;
+using Microsoft.CodeAnalysis.Sarif;
 
 namespace Microsoft.CST.OpenSource
 {
@@ -25,9 +26,11 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         /// Command line options
         /// </summary>
-        private readonly Dictionary<string, object> Options = new Dictionary<string, object>()
+        private readonly Dictionary<string, object?> Options = new Dictionary<string, object?>()
         {
-            { "target", new List<string>() }
+            { "target", new List<string>() },
+            { "format", "text" },
+            { "output-file", null }
         };
 
         static void Main(string[] args)
@@ -36,24 +39,47 @@ namespace Microsoft.CST.OpenSource
             Logger.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
             healthTool.ParseOptions(args);
 
-            if (((IList<string>)healthTool.Options["target"]).Count > 0)
+            // output to console or file?
+            bool redirectConsole = !string.IsNullOrEmpty((string?)healthTool.Options["output-file"]);
+            if (redirectConsole && healthTool.Options["output-file"] is string outputLoc)
             {
-                foreach (var target in (IList<string>)healthTool.Options["target"])
+                if (!ConsoleHelper.RedirectConsole(outputLoc))
+                {
+                    Logger.Error("Could not switch output from console to file");
+                    // continue with current output
+                }
+            }
+
+            // select output format
+            string format = ((string?)healthTool.Options["format"] ?? string.Empty).ToLower();
+            OutputBuilder outputBuilder;
+            try
+            {
+                outputBuilder = new OutputBuilder(format);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                Logger.Error("Invalid output format");
+                return;
+            }
+
+            if (healthTool.Options["target"] is IList<string> targetList && targetList.Count > 0)
+            {
+                foreach (var target in targetList)
                 {
                     try
                     {
                         var purl = new PackageURL(target);
                         var healthMetrics = healthTool.CheckHealth(purl).Result;
+                        healthTool.AppendOutput(outputBuilder, purl, healthMetrics);
 
-                        // @TODO Improve this output
-                        Logger.Info($"Health for {purl} (via {purl})");
-                        Logger.Info(healthMetrics?.ToString());
                     }
                     catch (Exception ex)
                     {
                         Logger.Warn("Error processing {0}: {1}", target, ex.Message);
                     }
                 }
+                outputBuilder.PrintOutput();
             }
             else
             {
@@ -103,6 +129,19 @@ namespace Microsoft.CST.OpenSource
             return null;
         }
 
+        void AppendOutput(OutputBuilder outputBuilder, PackageURL purl, HealthMetrics? healthMetrics)
+        {
+            if (outputBuilder.isTextFormat())
+            {
+                outputBuilder.AppendOutput($"Health for {purl} (via {purl})\n");
+                outputBuilder.AppendOutput(healthMetrics?.ToString() ?? string.Empty);
+            }
+            else
+            {
+                outputBuilder.AppendOutput(healthMetrics?.toSarif() ?? Array.Empty<Result>().ToList() );
+            }
+        }
+
         /// <summary>
         /// Parses options for this program.
         /// </summary>
@@ -125,6 +164,14 @@ namespace Microsoft.CST.OpenSource
                         Environment.Exit(1);
                         break;
 
+                    case "--format":
+                        Options["format"] = args[++i];
+                        break;
+
+                    case "--output-file":
+                        Options["output-file"] = args[++i];
+                        break;
+
                     case "-v":
                     case "--version":
                         Console.Error.WriteLine($"{TOOL_NAME} {VERSION}");
@@ -132,7 +179,10 @@ namespace Microsoft.CST.OpenSource
                         break;
 
                     default:
-                        ((IList<string>)Options["target"]).Add(args[i]);
+                        if (Options["target"] is IList<string> innerTargetList)
+                        {
+                            innerTargetList.Add(args[i]);
+                        }
                         break;
                 }
             }
@@ -154,6 +204,8 @@ positional arguments:
 {BaseProjectManager.GetCommonSupportedHelpText()}
 
 optional arguments:
+  --format                      selct the output format (text|sarifv1|sarifv2). (default is text)
+  --output-file                 send the command output to a file instead of stdout
   --help                        show this help message and exit
   --version                     show version of this tool
 ");

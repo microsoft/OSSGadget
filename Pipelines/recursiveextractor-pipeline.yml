@@ -39,7 +39,7 @@ stages:
       displayName: Dotnet Restore
       inputs:
         command: 'restore'
-        restoreSolution: 'src/RecursiveExtractor.Tests/RecursiveExtractor.Tests.csproj'
+        projects: 'src/RecursiveExtractor.Tests/RecursiveExtractor.Tests.csproj'
         verbosityRestore: 'Normal'
     - task: DotNetCoreCLI@2
       displayName: Dotnet Test

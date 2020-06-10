@@ -37,13 +37,11 @@ stages:
       displayName: Install Nuget Tool
       inputs:
         versionSpec: '5.4.x'
-    - task: NuGetCommand@2
-      displayName: NuGet Restore
+    - task: DotNetCoreCLI@2
+      displayName: Dotnet Restore
       inputs:
         command: 'restore'
-        restoreSolution: 'src/OSSGadget.sln'
-        feedsToUse: 'config'
-        nugetConfigPath: 'src/NuGet.Config'
+        projects: 'src/oss-tests/oss-tests.csproj'
         verbosityRestore: 'Normal'
     - task: DotNetCoreCLI@2
       displayName: Dotnet Test

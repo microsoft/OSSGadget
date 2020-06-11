@@ -1,15 +1,21 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+using Microsoft.CST.OpenSource.Shared;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.CST.OpenSource.Shared;
 
 namespace Microsoft.CST.OpenSource
 {
     public class DetectBackdoorTool : OSSGadget
     {
+        #region Private Fields
+
+        /// <summary>
+        /// Location of the backdoor detection rules.
+        /// </summary>
+        private const string RULE_DIRECTORY = @"Resources\BackdoorRules";
+
         /// <summary>
         /// Name of this tool.
         /// </summary>
@@ -21,16 +27,6 @@ namespace Microsoft.CST.OpenSource
         private static readonly string VERSION = typeof(DetectBackdoorTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
 
         /// <summary>
-        /// Location of the backdoor detection rules.
-        /// </summary>
-        private const string RULE_DIRECTORY = @"Resources\BackdoorRules";
-
-        /// <summary>
-        /// Logger for this class
-        /// </summary>
-        private static NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
-
-        /// <summary>
         /// Command line options
         /// </summary>
         private readonly Dictionary<string, object?> Options = new Dictionary<string, object?>()
@@ -40,11 +36,32 @@ namespace Microsoft.CST.OpenSource
             { "use-cache", false }
         };
 
+        #endregion Private Fields
+
+        #region Public Constructors
+
+        public DetectBackdoorTool() : base()
+        {
+        }
+
+        #endregion Public Constructors
+
+        #region Private Properties
+
+        /// <summary>
+        /// Logger for this class
+        /// </summary>
+        private static NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
+
+        #endregion Private Properties
+
+        #region Private Methods
+
         /// <summary>
         /// Main entrypoint for the download program.
         /// </summary>
         /// <param name="args">parameters passed in from the user</param>
-        static async Task Main(string[] args)
+        private static async Task Main(string[] args)
         {
             var detectBackdoorTool = new DetectBackdoorTool();
             Logger?.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
@@ -64,8 +81,8 @@ namespace Microsoft.CST.OpenSource
                     try
                     {
                         var purl = new PackageURL(target);
-                        characteristicTool.AnalyzePackage(purl, 
-                            (string?)detectBackdoorTool.Options["download-directory"], 
+                        characteristicTool.AnalyzePackage(purl,
+                            (string?)detectBackdoorTool.Options["download-directory"],
                             (bool?)detectBackdoorTool.Options["use-cache"] == true).Wait();
                     }
                     catch (Exception ex)
@@ -82,8 +99,27 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        public DetectBackdoorTool() : base()
+        /// <summary>
+        /// Displays usage information for the program.
+        /// </summary>
+        private static void ShowUsage()
         {
+            Console.Error.WriteLine($@"
+{TOOL_NAME} {VERSION}
+
+Usage: {TOOL_NAME} [options] package-url...
+
+positional arguments:
+    package-url                 PackgeURL specifier to download (required, repeats OK)
+
+{BaseProjectManager.GetCommonSupportedHelpText()}
+
+optional arguments:
+  --download-directory          the directory to download the package to
+  --use-cache                   do not download the package if it is already present in the destination directory
+  --help                        show this help message and exit
+  --version                     show version of this tool
+");
         }
 
         /// <summary>
@@ -132,27 +168,6 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        /// <summary>
-        /// Displays usage information for the program.
-        /// </summary>
-        private static void ShowUsage()
-        {
-            Console.Error.WriteLine($@"
-{TOOL_NAME} {VERSION}
-
-Usage: {TOOL_NAME} [options] package-url...
-
-positional arguments:
-    package-url                 PackgeURL specifier to download (required, repeats OK)
-
-{BaseProjectManager.GetCommonSupportedHelpText()}
-
-optional arguments:
-  --download-directory          the directory to download the package to
-  --use-cache                   do not download the package if it is already present in the destination directory
-  --help                        show this help message and exit
-  --version                     show version of this tool
-");
-        }
+        #endregion Private Methods
     }
 }

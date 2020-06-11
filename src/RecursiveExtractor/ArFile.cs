@@ -1,5 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using System;
 using System.Collections.Generic;
@@ -11,9 +10,16 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
     /**
      * Gnu Ar file parser.  Supports SystemV style lookup tables in both 32 and 64 bit mode as well as BSD and GNU formatted .ars.
      */
+
     public static class ArFile
     {
+        #region Private Fields
+
         private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
+        #endregion Private Fields
+
+        #region Public Methods
 
         // Simple method which returns a the file entries. We can't make this a continuation because
         // we're using spans.
@@ -43,7 +49,8 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                     // Header with list of file names
                     if (filename.StartsWith("//"))
                     {
-                        // This should just be a list of names, size should be safe to load in memory and cast to int
+                        // This should just be a list of names, size should be safe to load in
+                        // memory and cast to int
                         var fileNamesBytes = new byte[size];
                         fileEntry.Content.Read(fileNamesBytes, 0, (int)size);
 
@@ -77,7 +84,7 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                             fileEntry.Content.Read(nameSpan);
 
                             var entryStream = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
-                            
+
                             // The name length is included in the total size reported in the header
                             CopyStreamBytes(fileEntry.Content, entryStream, size - nameLength);
 
@@ -86,10 +93,9 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                     }
                     else if (filename.Equals('/'))
                     {
-                        // System V symbol lookup table
-                        // N = 32 bit big endian integers (entries in table)
-                        // then N 32 bit big endian integers representing prositions in archive
-                        // then N \0 terminated strings "symbol name" (possibly filename)
+                        // System V symbol lookup table N = 32 bit big endian integers (entries in
+                        // table) then N 32 bit big endian integers representing prositions in
+                        // archive then N \0 terminated strings "symbol name" (possibly filename)
 
                         var tableContents = new Span<byte>(new byte[size]);
                         fileEntry.Content.Read(tableContents);
@@ -105,7 +111,7 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                         var sb = new StringBuilder();
                         var fileEntries = new List<(int, string)>();
 
-                        for (int i = 0; i< tableContents.Length; i++)
+                        for (int i = 0; i < tableContents.Length; i++)
                         {
                             if (tableContents.Slice(i, 1)[0] == '\0')
                             {
@@ -153,11 +159,10 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                     }
                     else if (filename.Equals("/SYM64/"))
                     {
-                        // https://en.wikipedia.org/wiki/Ar_(Unix)#System_V_(or_GNU)_variant
-                        // GNU lookup table (archives larger than 4GB)
-                        // N = 64 bit big endian integers (entries in table)
-                        // then N 64 bit big endian integers representing positions in archive
-                        // then N \0 terminated strings "symbol name" (possibly filename)
+                        // https://en.wikipedia.org/wiki/Ar_(Unix)#System_V_(or_GNU)_variant GNU
+                        // lookup table (archives larger than 4GB) N = 64 bit big endian integers
+                        // (entries in table) then N 64 bit big endian integers representing
+                        // positions in archive then N \0 terminated strings "symbol name" (possibly filename)
 
                         var buffer = new byte[8];
                         fileEntry.Content.Read(buffer, 0, 8);
@@ -255,22 +260,22 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                     yield break;
                 }
 
-                // Entries are padded on even byte boundaries
-                // https://docs.oracle.com/cd/E36784_01/html/E36873/ar.h-3head.html  
+                // Entries are padded on even byte boundaries https://docs.oracle.com/cd/E36784_01/html/E36873/ar.h-3head.html
                 fileEntry.Content.Position = fileEntry.Content.Position % 2 == 1 ? fileEntry.Content.Position + 1 : fileEntry.Content.Position;
             }
         }
 
-        internal static void CopyStreamBytes(Stream input, Stream output, long bytes)
+        public static long Int64FromBigEndianBytes(byte[] value)
         {
-            byte[] buffer = new byte[32768];
-            long read;
-            while (bytes > 0 &&
-                   (read = input.Read(buffer, 0, (int)Math.Min(buffer.Length, bytes))) > 0)
+            if (value.Length == 8)
             {
-                output.Write(buffer, 0, (int)read);
-                bytes -= read;
+                if (BitConverter.IsLittleEndian)
+                {
+                    Array.Reverse(value);
+                }
+                return BitConverter.ToInt64(value);
             }
+            return -1;
         }
 
         public static int IntFromBigEndianBytes(byte[] value)
@@ -286,17 +291,22 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
             return -1;
         }
 
-        public static long Int64FromBigEndianBytes(byte[] value)
+        #endregion Public Methods
+
+        #region Internal Methods
+
+        internal static void CopyStreamBytes(Stream input, Stream output, long bytes)
         {
-            if (value.Length == 8)
+            byte[] buffer = new byte[32768];
+            long read;
+            while (bytes > 0 &&
+                   (read = input.Read(buffer, 0, (int)Math.Min(buffer.Length, bytes))) > 0)
             {
-                if (BitConverter.IsLittleEndian)
-                {
-                    Array.Reverse(value);
-                }
-                return BitConverter.ToInt64(value);
+                output.Write(buffer, 0, (int)read);
+                bytes -= read;
             }
-            return -1;
         }
+
+        #endregion Internal Methods
     }
 }

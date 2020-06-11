@@ -1,19 +1,19 @@
-// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+using Microsoft.CST.OpenSource.Shared;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CST.OpenSource.Shared;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Microsoft.CST.OpenSource.Tests
 {
     [TestClass]
     public class DownloadTests
     {
+        #region Public Methods
 
         [DataTestMethod]
         [DataRow("pkg:cargo/rand@0.7.3", "CARGO.toml", 1)]
@@ -73,6 +73,26 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         [DataTestMethod]
+        [DataRow("pkg:invalid/invalid", "", 1)]
+        public async Task Invalid_Package_Test_Download(string purl, string targetFilename, int expectedCount)
+        {
+            await Assert.ThrowsExceptionAsync<ArgumentException>(async () =>
+            {
+                await TestDownload(purl, targetFilename, expectedCount);
+            }, "Expected a ArgumentException but no exception was thrown.");
+        }
+
+        [DataTestMethod]
+        [DataRow("ckg:invalid@invalid@invalid", "", 0)]
+        public async Task Invalid_Purl_Test_Download(string purl, string targetFilename, int expectedCount)
+        {
+            await Assert.ThrowsExceptionAsync<FormatException>(async () =>
+            {
+                await TestDownload(purl, targetFilename, expectedCount);
+            }, "Expected a FormatException but no exception was thrown.");
+        }
+
+        [DataTestMethod]
         [DataRow("pkg:maven/org%2Fapache%2Fxmlgraphics/batik-anim@1.9", "MANIFEST.MF", 1)]
         public async Task Maven_Download_Version_Succeeds(string purl, string targetFilename, int expectedCount)
         {
@@ -92,6 +112,16 @@ namespace Microsoft.CST.OpenSource.Tests
         public async Task NuGet_Download_Version_Succeeds(string purl, string targetFilename, int expectedCount)
         {
             await TestDownload(purl, targetFilename, expectedCount);
+        }
+
+        [DataTestMethod]
+        [DataRow(null, null, 1)]
+        public async Task Null_Test_Download(string purl, string targetFilename, int expectedCount)
+        {
+            await Assert.ThrowsExceptionAsync<FormatException>(async () =>
+            {
+                await TestDownload(purl, targetFilename, expectedCount);
+            }, "Expected a FormatException but no exception was thrown.");
         }
 
         [DataTestMethod]
@@ -115,75 +145,34 @@ namespace Microsoft.CST.OpenSource.Tests
             await TestDownload(purl, targetFilename, expectedCount);
         }
 
+        #endregion Public Methods
 
-        [DataTestMethod]
-        [DataRow(null, null, 1)]
-        public async Task Null_Test_Download(string purl, string targetFilename, int expectedCount)
+        #region Private Methods
+
+        /// <summary>
+        /// delete the package download
+        /// </summary>
+        /// <param name="packageDownloader"></param>
+        /// <param name="tempDirectoryName"></param>
+        private void deleteTempDirs(PackageDownloader? packageDownloader, string tempDirectoryName)
         {
-            await Assert.ThrowsExceptionAsync<FormatException>(async () =>
+            try
             {
-                await TestDownload(purl, targetFilename, expectedCount);
-            }, "Expected a FormatException but no exception was thrown.");
-        }
-
-        [DataTestMethod]
-        [DataRow("pkg:invalid/invalid", "", 1)]
-        public async Task Invalid_Package_Test_Download(string purl, string targetFilename, int expectedCount)
-        {
-            await Assert.ThrowsExceptionAsync<ArgumentException>(async () =>
-            {
-                await TestDownload(purl, targetFilename, expectedCount);
-            }, "Expected a ArgumentException but no exception was thrown.");
-        }
-
-        [DataTestMethod]
-        [DataRow("ckg:invalid@invalid@invalid", "", 0)]
-        public async Task Invalid_Purl_Test_Download(string purl, string targetFilename, int expectedCount)
-        {
-            await Assert.ThrowsExceptionAsync<FormatException>(async () =>
-            {
-                await TestDownload(purl, targetFilename, expectedCount);
-            }, "Expected a FormatException but no exception was thrown.");
-        }
-
-
-        private async Task TestDownload(string purl, string targetFilename, int expectedCount)
-        {
-            string? tempDirectoryName = null;
-            while (tempDirectoryName == null || File.Exists(tempDirectoryName))
-            {
-                tempDirectoryName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+                packageDownloader?.ClearPackageLocalCopyIfNoCaching();
+                Directory.Delete(tempDirectoryName, true);
             }
-
-            var packageUrl = new PackageURL(purl);
-            
-            Directory.CreateDirectory(tempDirectoryName);
-
-            var downloadTool = new DownloadTool();
-            var packageDownloader = await DownloadPackage(packageUrl, tempDirectoryName);
-            var wereFilesDownloaded = Directory.EnumerateFiles(tempDirectoryName, targetFilename, SearchOption.AllDirectories).Any();
-            if (!wereFilesDownloaded)
+            catch (Exception)
             {
-                throw new InternalTestFailureException("No files were downloaded.");
+                foreach (var filename in Directory.EnumerateFileSystemEntries(tempDirectoryName, "*", SearchOption.AllDirectories))
+                {
+                    var fileInfo = new FileInfo(filename)
+                    {
+                        Attributes = FileAttributes.Normal
+                    };
+                }
+                packageDownloader?.ClearPackageLocalCopyIfNoCaching();
+                Directory.Delete(tempDirectoryName, true);
             }
-
-            if (expectedCount != Directory.GetDirectories(tempDirectoryName).Count())
-            {
-                throw new InternalTestFailureException(string.Format("Directory count {0} does not match expected {1}", 
-                    Directory.GetDirectories(tempDirectoryName).Count(), expectedCount));
-            }
-
-            // do that again with caching, this should not do anything since the cache already has the package
-            await DownloadPackage(packageUrl, tempDirectoryName, true);
-
-            if (expectedCount != Directory.GetDirectories(tempDirectoryName).Count())
-            {
-                throw new InternalTestFailureException(string.Format("Directory count {0} does not match expected {1}",
-                    Directory.GetDirectories(tempDirectoryName).Count(), expectedCount));
-            }
-
-            // one delete is enough, since its only a single cached copy
-            deleteTempDirs(packageDownloader, tempDirectoryName);
         }
 
         /// <summary>
@@ -205,7 +194,7 @@ namespace Microsoft.CST.OpenSource.Tests
                     packageDownloader.DownloadPackageLocalCopy(packageUrl, false, true).Wait();
                     break;
                 }
-                catch(ArgumentException)
+                catch (ArgumentException)
                 {
                     throw;
                 }
@@ -217,30 +206,46 @@ namespace Microsoft.CST.OpenSource.Tests
             return packageDownloader;
         }
 
-        /// <summary>
-        /// delete the package download
-        /// </summary>
-        /// <param name="packageDownloader"></param>
-        /// <param name="tempDirectoryName"></param>
-        void deleteTempDirs(PackageDownloader? packageDownloader, string tempDirectoryName)
+        private async Task TestDownload(string purl, string targetFilename, int expectedCount)
         {
-            try
+            string? tempDirectoryName = null;
+            while (tempDirectoryName == null || File.Exists(tempDirectoryName))
             {
-                packageDownloader?.ClearPackageLocalCopyIfNoCaching();
-                Directory.Delete(tempDirectoryName, true);
+                tempDirectoryName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             }
-            catch (Exception)
+
+            var packageUrl = new PackageURL(purl);
+
+            Directory.CreateDirectory(tempDirectoryName);
+
+            var downloadTool = new DownloadTool();
+            var packageDownloader = await DownloadPackage(packageUrl, tempDirectoryName);
+            var wereFilesDownloaded = Directory.EnumerateFiles(tempDirectoryName, targetFilename, SearchOption.AllDirectories).Any();
+            if (!wereFilesDownloaded)
             {
-                foreach (var filename in Directory.EnumerateFileSystemEntries(tempDirectoryName, "*", SearchOption.AllDirectories))
-                {
-                    var fileInfo = new FileInfo(filename)
-                    {
-                        Attributes = FileAttributes.Normal
-                    };
-                }
-                packageDownloader?.ClearPackageLocalCopyIfNoCaching();
-                Directory.Delete(tempDirectoryName, true);
+                throw new InternalTestFailureException("No files were downloaded.");
             }
+
+            if (expectedCount != Directory.GetDirectories(tempDirectoryName).Count())
+            {
+                throw new InternalTestFailureException(string.Format("Directory count {0} does not match expected {1}",
+                    Directory.GetDirectories(tempDirectoryName).Count(), expectedCount));
+            }
+
+            // do that again with caching, this should not do anything since the cache already has
+            // the package
+            await DownloadPackage(packageUrl, tempDirectoryName, true);
+
+            if (expectedCount != Directory.GetDirectories(tempDirectoryName).Count())
+            {
+                throw new InternalTestFailureException(string.Format("Directory count {0} does not match expected {1}",
+                    Directory.GetDirectories(tempDirectoryName).Count(), expectedCount));
+            }
+
+            // one delete is enough, since its only a single cached copy
+            deleteTempDirs(packageDownloader, tempDirectoryName);
         }
+
+        #endregion Private Methods
     }
 }

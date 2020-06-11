@@ -1,42 +1,18 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Sarif;
 using Microsoft.CST.OpenSource.Shared;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Tests
 {
     [TestClass]
     public class FindSourceTests
     {
-        [DataTestMethod]
-        [DataRow("pkg:npm/md5", "pkg:github/pvorb/node-md5")]
-        [DataRow("pkg:pypi/moment", "pkg:github/zachwill/moment")]
-        [DataRow("pkg:nuget/Newtonsoft.Json", "pkg:github/jamesnk/newtonsoft.json")]
-        [DataRow("pkg:pypi/django", "pkg:github/django/django")]
-        public async Task FindSource_Success(string purl, string targetResult)
-        {
-            // for initialization
-            FindSourceTool tool = new FindSourceTool();
-
-            RepoSearch searchTool = new RepoSearch();
-            var results = await searchTool.ResolvePackageLibraryAsync(new PackageURL(purl));
-            var targetPurl = new PackageURL(targetResult);
-            var success = false;
-
-            foreach (var resultEntry in results)
-            {
-                if (resultEntry.Key.Equals(targetPurl))
-                {
-                    success = true;
-                }
-            }
-            Assert.IsTrue(success, $"Result {targetResult} not found from {purl}");
-        }
+        #region Public Methods
 
         [DataTestMethod]
         [DataRow("pkg:npm/md5", "https://github.com/pvorb/node-md5")]
@@ -89,5 +65,32 @@ namespace Microsoft.CST.OpenSource.Tests
             var results = await searchTool.ResolvePackageLibraryAsync(new PackageURL(purl));
             Assert.IsTrue(results.Count() == 0, $"Result {results} obtained from non-existent {purl}");
         }
+
+        [DataTestMethod]
+        [DataRow("pkg:npm/md5", "pkg:github/pvorb/node-md5")]
+        [DataRow("pkg:pypi/moment", "pkg:github/zachwill/moment")]
+        [DataRow("pkg:nuget/Newtonsoft.Json", "pkg:github/jamesnk/newtonsoft.json")]
+        [DataRow("pkg:pypi/django", "pkg:github/django/django")]
+        public async Task FindSource_Success(string purl, string targetResult)
+        {
+            // for initialization
+            FindSourceTool tool = new FindSourceTool();
+
+            RepoSearch searchTool = new RepoSearch();
+            var results = await searchTool.ResolvePackageLibraryAsync(new PackageURL(purl));
+            var targetPurl = new PackageURL(targetResult);
+            var success = false;
+
+            foreach (var resultEntry in results)
+            {
+                if (resultEntry.Key.Equals(targetPurl))
+                {
+                    success = true;
+                }
+            }
+            Assert.IsTrue(success, $"Result {targetResult} not found from {purl}");
+        }
+
+        #endregion Public Methods
     }
 }

@@ -1,5 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using System;
 using System.Collections.Generic;
@@ -10,22 +9,24 @@ using System.Xml;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
-    class MavenProjectManager : BaseProjectManager
+    internal class MavenProjectManager : BaseProjectManager
     {
+        #region Public Fields
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_MAVEN_ENDPOINT = "https://repo1.maven.org/maven2";
+
+        #endregion Public Fields
+
+        #region Public Constructors
 
         public MavenProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
         }
 
-        public override Uri GetPackageAbsoluteUri(PackageURL purl)
-        {
-            var packageNamespace = purl?.Namespace?.Replace('.', '/');
-            var packageName = purl?.Name;
+        #endregion Public Constructors
 
-            return new Uri($"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}");
-        }
+        #region Public Methods
 
         /// <summary>
         /// Download one Maven package and extract it to the target directory.
@@ -116,6 +117,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 return Array.Empty<string>();
             }
         }
+
         public override async Task<string?> GetMetadata(PackageURL purl)
         {
             try
@@ -142,5 +144,15 @@ namespace Microsoft.CST.OpenSource.Shared
                 return null;
             }
         }
+
+        public override Uri GetPackageAbsoluteUri(PackageURL purl)
+        {
+            var packageNamespace = purl?.Namespace?.Replace('.', '/');
+            var packageName = purl?.Name;
+
+            return new Uri($"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}");
+        }
+
+        #endregion Public Methods
     }
 }

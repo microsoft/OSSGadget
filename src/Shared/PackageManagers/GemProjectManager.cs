@@ -1,5 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using System;
 using System.Collections.Generic;
@@ -11,22 +10,27 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
-    class GemProjectManager : BaseProjectManager
+    internal class GemProjectManager : BaseProjectManager
     {
+        #region Public Fields
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_RUBYGEMS_ENDPOINT = "https://rubygems.org";
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_RUBYGEMS_ENDPOINT_API = "https://api.rubygems.org";
 
+        #endregion Public Fields
+
+        #region Public Constructors
+
         public GemProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
         }
 
-        public override Uri GetPackageAbsoluteUri(PackageURL purl)
-        {
-            return new Uri($"{ENV_RUBYGEMS_ENDPOINT}/gems/{purl?.Name}");
-        }
+        #endregion Public Constructors
+
+        #region Public Methods
 
         /// <summary>
         /// Download one RubyGems package and extract it to the target directory.
@@ -111,6 +115,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 return Array.Empty<string>();
             }
         }
+
         public override async Task<string?> GetMetadata(PackageURL purl)
         {
             try
@@ -125,5 +130,12 @@ namespace Microsoft.CST.OpenSource.Shared
                 return null;
             }
         }
+
+        public override Uri GetPackageAbsoluteUri(PackageURL purl)
+        {
+            return new Uri($"{ENV_RUBYGEMS_ENDPOINT}/gems/{purl?.Name}");
+        }
+
+        #endregion Public Methods
     }
 }

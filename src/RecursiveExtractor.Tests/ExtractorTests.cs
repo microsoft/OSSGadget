@@ -1,19 +1,26 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.CST.OpenSource.RecursiveExtractor;
-using System.IO;
-using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NLog;
 using System;
 using System.Collections.Generic;
-using NLog;
+using System.IO;
+using System.Linq;
 
 namespace Microsoft.CST.OpenSource.Tests
 {
     [TestClass]
     public class ExtractorTests
     {
+        #region Protected Fields
+
+        protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
+        #endregion Protected Fields
+
+        #region Public Methods
+
         [DataTestMethod]
         [DataRow("Shared.zip", false)]
         [DataRow("Shared.zip", true)]
@@ -60,7 +67,6 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataTestMethod]
         [DataRow("Nested.Zip", false, 26 * 8)]
         [DataRow("Nested.Zip", true, 26 * 8)]
-
         public void ExtractNestedArchive(string fileName, bool parallel, int expectedNumFiles)
         {
             var extractor = new Extractor();
@@ -142,14 +148,14 @@ namespace Microsoft.CST.OpenSource.Tests
             {
                 return;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                Logger.Debug(e,"Shouldn't hit other exceptions in this test.");
+                Logger.Debug(e, "Shouldn't hit other exceptions in this test.");
             }
             // Getting here means we didnt catch the bomb
             Assert.Fail();
         }
 
-        protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+        #endregion Public Methods
     }
 }

@@ -1,5 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using System;
 using System.Collections.Generic;
@@ -10,19 +9,24 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
-    class PyPIProjectManager : BaseProjectManager
+    internal class PyPIProjectManager : BaseProjectManager
     {
+        #region Public Fields
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_PYPI_ENDPOINT = "https://pypi.org";
+
+        #endregion Public Fields
+
+        #region Public Constructors
 
         public PyPIProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
         }
 
-        public override Uri GetPackageAbsoluteUri(PackageURL purl)
-        {
-            return new Uri($"{ENV_PYPI_ENDPOINT}/project/{purl?.Name}");
-        }
+        #endregion Public Constructors
+
+        #region Public Methods
 
         /// <summary>
         /// Download one PyPI package and extract it to the target directory.
@@ -132,7 +136,6 @@ namespace Microsoft.CST.OpenSource.Shared
             }
         }
 
-
         public override async Task<string?> GetMetadata(PackageURL purl)
         {
             try
@@ -145,6 +148,15 @@ namespace Microsoft.CST.OpenSource.Shared
                 return null;
             }
         }
+
+        public override Uri GetPackageAbsoluteUri(PackageURL purl)
+        {
+            return new Uri($"{ENV_PYPI_ENDPOINT}/project/{purl?.Name}");
+        }
+
+        #endregion Public Methods
+
+        #region Protected Methods
 
         protected async override Task<Dictionary<PackageURL, double>> PackageMetadataSearch(PackageURL purl, string metadata)
         {
@@ -193,5 +205,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
             return mapping;
         }
+
+        #endregion Protected Methods
     }
 }

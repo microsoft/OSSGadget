@@ -1,24 +1,38 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using System.Threading.Tasks;
 using Microsoft.CST.OpenSource.Shared;
+using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Health
 {
     /// <summary>
     /// Abstract base class for health algorithms
     /// </summary>
-    abstract class BaseHealthAlgorithm
+    internal abstract class BaseHealthAlgorithm
     {
+        #region Protected Fields
+
         /// <summary>
         /// Logger for each of the subclasses
         /// </summary>
         protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
+        #endregion Protected Fields
+
+        #region Public Constructors
+
         public BaseHealthAlgorithm()
         {
             CommonInitialization.OverrideEnvironmentVariables(this);
+        }
+
+        #endregion Public Constructors
+
+        #region Public Methods
+
+        public static double Clamp(double value, double min = 0, double max = 100)
+        {
+            return (value < min) ? min : (value > max) ? max : value;
         }
 
         /// <summary>
@@ -27,9 +41,6 @@ namespace Microsoft.CST.OpenSource.Health
         /// <returns></returns>
         public abstract Task<HealthMetrics> GetHealth();
 
-        public static double Clamp(double value, double min = 0, double max = 100)
-        {
-            return (value < min) ? min : (value > max) ? max : value;
-        }
+        #endregion Public Methods
     }
 }

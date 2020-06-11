@@ -1,5 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using System;
 using System.Collections.Generic;
@@ -79,12 +78,12 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
 
         public static ArchiveFileType DetectFileType(string filename)
         {
-            #pragma warning disable SEC0116 // Path Tampering Unvalidated File Path
-            using var fs = new FileStream(filename,FileMode.Open);
-            #pragma warning restore SEC0116 // Path Tampering Unvalidated File Path
+#pragma warning disable SEC0116 // Path Tampering Unvalidated File Path
+            using var fs = new FileStream(filename, FileMode.Open);
+#pragma warning restore SEC0116 // Path Tampering Unvalidated File Path
 
-            // If you don't pass passthroughStream: true here it will read the entire file into the stream in FileEntry
-            // This way it will only read the bytes minimagic uses
+            // If you don't pass passthroughStream: true here it will read the entire file into the
+            // stream in FileEntry This way it will only read the bytes minimagic uses
             var fileEntry = new FileEntry(filename, fs, null, passthroughStream: true);
             return DetectFileType(fileEntry);
         }
@@ -135,11 +134,11 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                 {
                     return ArchiveFileType.P7ZIP;
                 }
-                if (Encoding.ASCII.GetString(buffer.Slice(0,8)) == "MSWIM\0\0\0" || Encoding.ASCII.GetString(buffer.Slice(0, 8)) == "WLPWM\0\0\0")
+                if (Encoding.ASCII.GetString(buffer.Slice(0, 8)) == "MSWIM\0\0\0" || Encoding.ASCII.GetString(buffer.Slice(0, 8)) == "WLPWM\0\0\0")
                 {
                     return ArchiveFileType.WIM;
                 }
-                if (Encoding.ASCII.GetString(buffer.Slice(0,4)) == "KDMV")
+                if (Encoding.ASCII.GetString(buffer.Slice(0, 4)) == "KDMV")
                 {
                     fileEntry.Content.Position = 512;
                     Span<byte> secondToken = stackalloc byte[21];
@@ -153,14 +152,14 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                 }
                 // some kind of unix Archive https://en.wikipedia.org/wiki/Ar_(Unix)
                 if (buffer[0] == 0x21 && buffer[1] == 0x3c && buffer[2] == 0x61 && buffer[3] == 0x72 && buffer[4] == 0x63 && buffer[5] == 0x68 && buffer[6] == 0x3e)
-                {   
+                {
                     // .deb https://manpages.debian.org/unstable/dpkg-dev/deb.5.en.html
                     fileEntry.Content.Position = 68;
                     fileEntry.Content.Read(buffer.Slice(0, 4));
                     fileEntry.Content.Position = initialPosition;
-                    
+
                     var encoding = new ASCIIEncoding();
-                    if (encoding.GetString(buffer.Slice(0,4)) == "2.0\n")
+                    if (encoding.GetString(buffer.Slice(0, 4)) == "2.0\n")
                     {
                         return ArchiveFileType.DEB;
                     }
@@ -178,7 +177,7 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                         if (size > 0)
                         {
                             // Defined ending characters for a header
-                            if (headerBuffer[58]=='`' && headerBuffer[59] == '\n')
+                            if (headerBuffer[58] == '`' && headerBuffer[59] == '\n')
                             {
                                 return ArchiveFileType.AR;
                             }
@@ -186,7 +185,7 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                     }
                 }
                 // https://winprotocoldoc.blob.core.windows.net/productionwindowsarchives/MS-VHDX/%5bMS-VHDX%5d.pdf
-                if (Encoding.UTF8.GetString(buffer.Slice(0,8)).Equals("vhdxfile"))
+                if (Encoding.UTF8.GetString(buffer.Slice(0, 8)).Equals("vhdxfile"))
                 {
                     return ArchiveFileType.VHDX;
                 }
@@ -195,7 +194,7 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
             if (fileEntry.Content.Length >= 262)
             {
                 fileEntry.Content.Position = 257;
-                fileEntry.Content.Read(buffer.Slice(0,5));
+                fileEntry.Content.Read(buffer.Slice(0, 5));
                 fileEntry.Content.Position = initialPosition;
 
                 if (buffer[0] == 0x75 && buffer[1] == 0x73 && buffer[2] == 0x74 && buffer[3] == 0x61 && buffer[4] == 0x72)
@@ -204,8 +203,8 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                 }
             }
 
-            // ISO Format https://en.wikipedia.org/wiki/ISO_9660#Overall_structure
-            // Reserved space + 1 header
+            // ISO Format https://en.wikipedia.org/wiki/ISO_9660#Overall_structure Reserved space +
+            // 1 header
             if (fileEntry.Content.Length > 32768 + 2048)
             {
                 fileEntry.Content.Position = 32769;

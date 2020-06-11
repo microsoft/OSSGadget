@@ -1,19 +1,18 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+using Microsoft.CST.OpenSource.Shared;
+using MimeTypes;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Text.RegularExpressions;
-using Microsoft.CST.OpenSource.Shared;
-using MimeTypes;
+using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource
 {
-    class DefoggerTool : OSSGadget
+    internal class DefoggerTool : OSSGadget
     {
         /// <summary>
         /// Name of this tool.
@@ -28,32 +27,32 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         /// Regular expression that matches Base64-encoded text.
         /// </summary>
-        static readonly Regex BASE64_REGEX = new Regex("(([A-Z0-9+\\/]{4})+([A-Z0-9+\\/]{3}=|[A-Z0-9+\\/]{2}==)?)", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(5000));
+        private static readonly Regex BASE64_REGEX = new Regex("(([A-Z0-9+\\/]{4})+([A-Z0-9+\\/]{3}=|[A-Z0-9+\\/]{2}==)?)", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(5000));
 
         /// <summary>
         /// Regular expression that matches hex-encoded text.
         /// </summary>
-        static readonly Regex HEX_REGEX = new Regex(@"(0x)?([A-F0-9]{16,})", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        private static readonly Regex HEX_REGEX = new Regex(@"(0x)?([A-F0-9]{16,})", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
         /// <summary>
         /// Short strings must match this regular expression to be reported.
         /// </summary>
-        static readonly Regex SHORT_INTERESTING_STRINGS_REGEX = new Regex(@"^[A-Z0-9\-:]+$", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(5000));
+        private static readonly Regex SHORT_INTERESTING_STRINGS_REGEX = new Regex(@"^[A-Z0-9\-:]+$", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(5000));
 
         /// <summary>
         /// Do not analyze binary files (those with a MIME type that matches this regular expression).
         /// </summary>
-        static readonly Regex IGNORE_MIME_REGEX = new Regex(@"audio|video|x-msdownload", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(5000));
+        private static readonly Regex IGNORE_MIME_REGEX = new Regex(@"audio|video|x-msdownload", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(5000));
 
         /// <summary>
         /// Only report detected strings this length or longer.
         /// </summary>
-        const int DEFAULT_MINIMUM_STRING_LENGTH = 8;
+        private const int DEFAULT_MINIMUM_STRING_LENGTH = 8;
 
         /// <summary>
         /// Strings longer than this are interesting.
         /// </summary>
-        const int INTERESTING_STRINGS_CUTOFF = 24;
+        private const int INTERESTING_STRINGS_CUTOFF = 24;
 
         /// <summary>
         /// Command line options passed into this tool.
@@ -96,11 +95,9 @@ namespace Microsoft.CST.OpenSource
                 this.EncodedText = EncodedText;
                 this.DecodedText = DecodedText;
             }
-
-
         }
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             CommonInitialization.Initialize();
 
@@ -118,8 +115,8 @@ namespace Microsoft.CST.OpenSource
                         if (target.StartsWith("pkg:"))
                         {
                             var purl = new PackageURL(target);
-                            defoggerTool.AnalyzePackage(purl, 
-                                (string?)defoggerTool.Options["download-directory"], 
+                            defoggerTool.AnalyzePackage(purl,
+                                (string?)defoggerTool.Options["download-directory"],
                                 (bool?)defoggerTool.Options["use-cache"] == true).Wait();
                         }
                         else if (Directory.Exists(target))
@@ -212,9 +209,9 @@ namespace Microsoft.CST.OpenSource
                 return;
             }
 
-            #pragma warning disable SEC0116 // Path Tampering Unvalidated File Path
+#pragma warning disable SEC0116 // Path Tampering Unvalidated File Path
             var fileContents = File.ReadAllText(filename);
-            #pragma warning restore SEC0116 // Path Tampering Unvalidated File Path
+#pragma warning restore SEC0116 // Path Tampering Unvalidated File Path
 
             foreach (Match match in BASE64_REGEX.Matches(fileContents).Where(match => match != null))
             {
@@ -223,9 +220,9 @@ namespace Microsoft.CST.OpenSource
                     continue;
                 }
 
-                // Try to decode and then re-encode. Are we successful, and
-                // do we get the same value we started out with? This will filter out
-                // Base64-encoded binary data, which is what we want.
+                // Try to decode and then re-encode. Are we successful, and do we get the same value
+                // we started out with? This will filter out Base64-encoded binary data, which is
+                // what we want.
                 try
                 {
                     var bytes = Convert.FromBase64String(match.Value);
@@ -248,7 +245,6 @@ namespace Microsoft.CST.OpenSource
                             Type: EncodedStringType.Base64
                         ));
                     }
-                    
                 }
                 catch (Exception ex)
                 {
@@ -256,7 +252,7 @@ namespace Microsoft.CST.OpenSource
                     Logger?.Trace("Invalid match for {0}: {1}", match.Value, ex.Message);
                 }
             }
-            
+
             foreach (Match match in HEX_REGEX.Matches(fileContents).Where(match => match != null))
             {
                 var decodedText = HexToString(match.Value);
@@ -307,7 +303,6 @@ namespace Microsoft.CST.OpenSource
             // Convert the bytes back into a UTF8 string
             return Encoding.UTF8.GetString(bytes);
         }
-
 
         /// <summary>
         /// Decides whether the given string is interesting or not

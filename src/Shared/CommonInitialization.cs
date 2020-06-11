@@ -1,5 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using System;
 using System.Net.Http;
@@ -13,7 +12,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// Static HttpClient for use in all HTTP connections.
         /// </summary>
         public static HttpClient? WebClient { get; private set; } = null;
-        
+
         /// <summary>
         /// User Agent string, when needed to connect to external resources.
         /// </summary>
@@ -39,17 +38,17 @@ namespace Microsoft.CST.OpenSource.Shared
             }
 
             // Initialize the static HttpClient
-            #pragma warning disable CA2000 // Held onto by WebClient
+#pragma warning disable CA2000 // Held onto by WebClient
             var handler = new HttpClientHandler()
             {
                 AllowAutoRedirect = true,
                 UseCookies = false
             };
-            #pragma warning restore CA2000
+#pragma warning restore CA2000
 
             WebClient = new HttpClient(handler);
             WebClient.DefaultRequestHeaders.UserAgent.ParseAdd(ENV_HTTPCLIENT_USER_AGENT);
-            
+
             // @TODO Does this actually run?
             System.Runtime.Loader.AssemblyLoadContext.Default.Unloading += (_) =>
             {
@@ -65,9 +64,9 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// Overrides static members starting with ENV_ with the respective 
-        /// environment variables.Allows users to easily override fields like
-        /// API endpoint roots. Only strings are supported.
+        /// Overrides static members starting with ENV_ with the respective environment
+        /// variables.Allows users to easily override fields like API endpoint roots. Only strings
+        /// are supported.
         /// </summary>
         /// <param name="targetObject">Examine this object (using reflection)</param>
         public static void OverrideEnvironmentVariables(object targetObject)
@@ -81,7 +80,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     fieldInfo.Name.Length > 4)
                 {
                     var bareName = fieldInfo.Name.Substring(4);
-                    
+
                     var value = Environment.GetEnvironmentVariable(bareName);
                     if (value != null)
                     {

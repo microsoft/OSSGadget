@@ -1,18 +1,19 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+using Microsoft.CodeAnalysis.Sarif;
+using Microsoft.CST.OpenSource.Shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Sarif;
-using Microsoft.CST.OpenSource.Shared;
 
 namespace Microsoft.CST.OpenSource
 {
     public class FindSourceTool : OSSGadget
     {
+        #region Private Fields
+
         /// <summary>
         /// Name of this tool.
         /// </summary>
@@ -34,75 +35,24 @@ namespace Microsoft.CST.OpenSource
             { "output-file", null }
         };
 
-        static void Main(string[] args)
-        {
-            var findSourceTool = new FindSourceTool();
-            Logger.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
-            findSourceTool.ParseOptions(args);
+        #endregion Private Fields
 
-            // output to console or file?
-            bool redirectConsole = !string.IsNullOrEmpty((string?)findSourceTool.Options["output-file"]);
-            if(redirectConsole && findSourceTool.Options["output-file"] is string outputLoc)
-            {
-                if (!ConsoleHelper.RedirectConsole(outputLoc))
-                {
-                    Logger.Error("Could not switch output from console to file");
-                    // continue with current output
-                }
-            }
-
-            // select output format
-            OutputBuilder outputBuilder;
-            try
-            {
-                outputBuilder = new OutputBuilder(((string?)findSourceTool.Options["format"] ?? 
-                    OutputBuilder.OutputFormat.text.ToString()));
-            }
-            catch (ArgumentOutOfRangeException)
-            {
-                Logger.Error("Invalid output format");
-                return;
-            }
-
-            if (findSourceTool.Options["target"] is IList<string> targetList && targetList.Count > 0)            {
-                foreach (var target in targetList)
-                {
-                    try
-                    {
-                        var purl = new PackageURL(target);
-                        var results = findSourceTool.FindSource(purl).Result.ToList();
-                        results.Sort((b, a) => a.Value.CompareTo(b.Value));
-                        findSourceTool.AppendOutput(outputBuilder, purl, results);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Warn("Error processing {0}: {1}", target, ex.Message);
-                    }
-                }
-                outputBuilder.PrintOutput();
-            }
-            else
-            {
-                Logger.Warn("No target provided; nothing to locate source for.");
-                FindSourceTool.ShowUsage();
-                Environment.Exit(1);
-            }
-            if (redirectConsole)
-            {
-                ConsoleHelper.RestoreConsole();
-            }
-        }
+        #region Public Constructors
 
         public FindSourceTool() : base()
         {
         }
+
+        #endregion Public Constructors
+
+        #region Public Methods
 
         public async Task<Dictionary<PackageURL, double>> FindSource(PackageURL purl)
         {
             Logger.Trace("FindSource({0})", purl);
 
             var repositoryMap = new Dictionary<PackageURL, double>();
-            
+
             if (purl == null)
             {
                 Logger.Warn("FindSource was passed an invalid purl.");
@@ -138,42 +88,9 @@ namespace Microsoft.CST.OpenSource
             return repositoryMap;
         }
 
-        /// <summary>
-        /// Convert findSourceTool results into output format
-        /// </summary>
-        /// <param name="outputBuilder"></param>
-        /// <param name="purl"></param>
-        /// <param name="results"></param>
-        void AppendOutput(OutputBuilder outputBuilder, PackageURL purl, List<KeyValuePair<PackageURL, double>> results)
-        {
-            if (outputBuilder.isTextFormat())
-            {
-                outputBuilder.AppendOutput(GetTextResults(results));
-            }
-            else
-            {
-                outputBuilder.AppendOutput(GetSarifResults(purl, results));
-            }
-        }
+        #endregion Public Methods
 
-        /// <summary>
-        /// Convert findSourceTool results into text format
-        /// </summary>
-        /// <param name="results"></param>
-        /// <returns></returns>
-        static string GetTextResults(List<KeyValuePair<PackageURL, double>> results)
-        {
-            StringBuilder stringOutput = new StringBuilder();
-            foreach (var result in results)
-            {
-                var confidence = result.Value * 100.0;
-                stringOutput.Append(
-                    $"{confidence:0.0}%\thttps://github.com/{result.Key.Namespace}/{result.Key.Name} ({result.Key})");
-                stringOutput.Append(
-                    Environment.NewLine);
-            }
-            return stringOutput.ToString();
-        }
+        #region Private Methods
 
         /// <summary>
         /// Build and return a list of Sarif Result list from the find source results
@@ -181,7 +98,7 @@ namespace Microsoft.CST.OpenSource
         /// <param name="purl"></param>
         /// <param name="results"></param>
         /// <returns></returns>
-        static List<Result> GetSarifResults(PackageURL purl, List<KeyValuePair<PackageURL, double>> results)
+        private static List<Result> GetSarifResults(PackageURL purl, List<KeyValuePair<PackageURL, double>> results)
         {
             List<Result> sarifResults = new List<Result>();
             foreach (var result in results)
@@ -202,6 +119,128 @@ namespace Microsoft.CST.OpenSource
                 sarifResults.Add(sarifResult);
             }
             return sarifResults;
+        }
+
+        /// <summary>
+        /// Convert findSourceTool results into text format
+        /// </summary>
+        /// <param name="results"></param>
+        /// <returns></returns>
+        private static string GetTextResults(List<KeyValuePair<PackageURL, double>> results)
+        {
+            StringBuilder stringOutput = new StringBuilder();
+            foreach (var result in results)
+            {
+                var confidence = result.Value * 100.0;
+                stringOutput.Append(
+                    $"{confidence:0.0}%\thttps://github.com/{result.Key.Namespace}/{result.Key.Name} ({result.Key})");
+                stringOutput.Append(
+                    Environment.NewLine);
+            }
+            return stringOutput.ToString();
+        }
+
+        private static void Main(string[] args)
+        {
+            var findSourceTool = new FindSourceTool();
+            Logger.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
+            findSourceTool.ParseOptions(args);
+
+            // output to console or file?
+            bool redirectConsole = !string.IsNullOrEmpty((string?)findSourceTool.Options["output-file"]);
+            if (redirectConsole && findSourceTool.Options["output-file"] is string outputLoc)
+            {
+                if (!ConsoleHelper.RedirectConsole(outputLoc))
+                {
+                    Logger.Error("Could not switch output from console to file");
+                    // continue with current output
+                }
+            }
+
+            // select output format
+            OutputBuilder outputBuilder;
+            try
+            {
+                outputBuilder = new OutputBuilder(((string?)findSourceTool.Options["format"] ??
+                    OutputBuilder.OutputFormat.text.ToString()));
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                Logger.Error("Invalid output format");
+                return;
+            }
+
+            if (findSourceTool.Options["target"] is IList<string> targetList && targetList.Count > 0)
+            {
+                foreach (var target in targetList)
+                {
+                    try
+                    {
+                        var purl = new PackageURL(target);
+                        var results = findSourceTool.FindSource(purl).Result.ToList();
+                        results.Sort((b, a) => a.Value.CompareTo(b.Value));
+                        findSourceTool.AppendOutput(outputBuilder, purl, results);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Warn("Error processing {0}: {1}", target, ex.Message);
+                    }
+                }
+                outputBuilder.PrintOutput();
+            }
+            else
+            {
+                Logger.Warn("No target provided; nothing to locate source for.");
+                FindSourceTool.ShowUsage();
+                Environment.Exit(1);
+            }
+            if (redirectConsole)
+            {
+                ConsoleHelper.RestoreConsole();
+            }
+        }
+
+        /// <summary>
+        /// Displays usage information for the program.
+        /// </summary>
+        private static void ShowUsage()
+        {
+            Console.Error.WriteLine($@"
+{TOOL_NAME} {VERSION}
+
+Usage: {TOOL_NAME} [options] package-url...
+
+positional arguments:
+    package-url                 PackgeURL specifier to analyze (required, repeats OK)
+
+{BaseProjectManager.GetCommonSupportedHelpText()}
+
+optional arguments:
+  --show-all                    show all possibilities of the package source repositories
+                                 (default: show only the top result)
+  --format                      selct the output format (text|sarifv1|sarifv2). (default is text)
+  --output-file                 send the command output to a file instead of stdout
+  --help                        show this help message and exit
+  --version                     show version of this tool
+");
+        }
+
+        /// <summary>
+        /// Convert findSourceTool results into output format
+        /// </summary>
+        /// <param name="outputBuilder"></param>
+        /// <param name="purl"></param>
+        /// <param name="results"></param>
+        private void AppendOutput(OutputBuilder outputBuilder, PackageURL purl, List<KeyValuePair<PackageURL, double>> results)
+        {
+            if (outputBuilder.isTextFormat())
+            {
+                outputBuilder.AppendOutput(GetTextResults(results));
+            }
+            else
+            {
+                outputBuilder.AppendOutput(GetSarifResults(purl, results));
+            }
         }
 
         /// <summary>
@@ -243,6 +282,7 @@ namespace Microsoft.CST.OpenSource
                         Console.Error.WriteLine($"{TOOL_NAME} {VERSION}");
                         Environment.Exit(1);
                         break;
+
                     default:
                         if (Options["target"] is IList<string> innerTargetList)
                         {
@@ -260,29 +300,6 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        /// <summary>
-        /// Displays usage information for the program.
-        /// </summary>
-        private static void ShowUsage()
-        {
-            Console.Error.WriteLine($@"
-{TOOL_NAME} {VERSION}
-
-Usage: {TOOL_NAME} [options] package-url...
-
-positional arguments:
-    package-url                 PackgeURL specifier to analyze (required, repeats OK)
-
-{BaseProjectManager.GetCommonSupportedHelpText()}
-
-optional arguments:
-  --show-all                    show all possibilities of the package source repositories
-                                 (default: show only the top result)
-  --format                      selct the output format (text|sarifv1|sarifv2). (default is text)
-  --output-file                 send the command output to a file instead of stdout
-  --help                        show this help message and exit
-  --version                     show version of this tool
-");
-        }
+        #endregion Private Methods
     }
 }

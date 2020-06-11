@@ -1,18 +1,19 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+using Microsoft.CodeAnalysis.Sarif;
+using Microsoft.CST.OpenSource.Health;
+using Microsoft.CST.OpenSource.Shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CST.OpenSource.Shared;
-using Microsoft.CST.OpenSource.Health;
-using Microsoft.CodeAnalysis.Sarif;
 
 namespace Microsoft.CST.OpenSource
 {
     public class HealthTool : OSSGadget
     {
+        #region Private Fields
+
         /// <summary>
         /// Name of this tool.
         /// </summary>
@@ -33,7 +34,59 @@ namespace Microsoft.CST.OpenSource
             { "output-file", null }
         };
 
-        static void Main(string[] args)
+        #endregion Private Fields
+
+        #region Public Constructors
+
+        public HealthTool() : base()
+        {
+        }
+
+        #endregion Public Constructors
+
+        #region Public Methods
+
+        public async Task<HealthMetrics?> CheckHealth(PackageURL purl)
+        {
+            var packageManager = ProjectManagerFactory.CreateProjectManager(purl, null);
+
+            if (packageManager != null)
+            {
+                var content = await packageManager.GetMetadata(purl);
+                if (!string.IsNullOrWhiteSpace(content))
+                {
+                    RepoSearch repoSearcher = new RepoSearch();
+                    foreach (var (githubPurl, _) in await repoSearcher.ResolvePackageLibraryAsync(purl))
+                    {
+                        try
+                        {
+                            var healthAlgorithm = new GitHubHealthAlgorithm(githubPurl);
+                            var health = await healthAlgorithm.GetHealth();
+                            return health;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Warn(ex, "Unable to calculate health for {0}: {1}", githubPurl, ex.Message);
+                        }
+                    }
+                }
+                else
+                {
+                    Logger.Warn("No metadata found for {0}", purl.ToString());
+                }
+            }
+            else
+            {
+                throw new ArgumentException("Invalid Package URL type: {0}", purl.Type);
+            }
+            return null;
+        }
+
+        #endregion Public Methods
+
+        #region Private Methods
+
+        private static void Main(string[] args)
         {
             var healthTool = new HealthTool();
             Logger.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
@@ -72,7 +125,6 @@ namespace Microsoft.CST.OpenSource
                         var purl = new PackageURL(target);
                         var healthMetrics = healthTool.CheckHealth(purl).Result;
                         healthTool.AppendOutput(outputBuilder, purl, healthMetrics);
-
                     }
                     catch (Exception ex)
                     {
@@ -89,47 +141,30 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        public HealthTool() : base()
+        /// <summary>
+        /// Displays usage information for the program.
+        /// </summary>
+        private static void ShowUsage()
         {
-        }
-        
-        public async Task<HealthMetrics?> CheckHealth(PackageURL purl)
-        {
-            var packageManager = ProjectManagerFactory.CreateProjectManager(purl, null);
+            Console.Error.WriteLine($@"
+{TOOL_NAME} {VERSION}
 
-            if (packageManager != null)
-            {
-                var content = await packageManager.GetMetadata(purl);
-                if (!string.IsNullOrWhiteSpace(content))
-                {
-                    RepoSearch repoSearcher = new RepoSearch();
-                    foreach (var (githubPurl, _) in await repoSearcher.ResolvePackageLibraryAsync(purl))
-                    {
-                        try
-                        {
-                            var healthAlgorithm = new GitHubHealthAlgorithm(githubPurl);
-                            var health = await healthAlgorithm.GetHealth();
-                            return health;
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Warn(ex, "Unable to calculate health for {0}: {1}", githubPurl, ex.Message);
-                        }
-                    }
-                }
-                else
-                {
-                    Logger.Warn("No metadata found for {0}", purl.ToString());
-                }
-            }
-            else
-            {
-                throw new ArgumentException("Invalid Package URL type: {0}", purl.Type);
-            }
-            return null;
+Usage: {TOOL_NAME} [options] package-url...
+
+positional arguments:
+    package-url                 PackgeURL specifier to check health for (required, repeats OK)
+
+{BaseProjectManager.GetCommonSupportedHelpText()}
+
+optional arguments:
+  --format                      selct the output format (text|sarifv1|sarifv2). (default is text)
+  --output-file                 send the command output to a file instead of stdout
+  --help                        show this help message and exit
+  --version                     show version of this tool
+");
         }
 
-        void AppendOutput(OutputBuilder outputBuilder, PackageURL purl, HealthMetrics? healthMetrics)
+        private void AppendOutput(OutputBuilder outputBuilder, PackageURL purl, HealthMetrics? healthMetrics)
         {
             if (outputBuilder.isTextFormat())
             {
@@ -138,7 +173,7 @@ namespace Microsoft.CST.OpenSource
             }
             else
             {
-                outputBuilder.AppendOutput(healthMetrics?.toSarif() ?? Array.Empty<Result>().ToList() );
+                outputBuilder.AppendOutput(healthMetrics?.toSarif() ?? Array.Empty<Result>().ToList());
             }
         }
 
@@ -188,27 +223,6 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        /// <summary>
-        /// Displays usage information for the program.
-        /// </summary>
-        private static void ShowUsage()
-        {
-            Console.Error.WriteLine($@"
-{TOOL_NAME} {VERSION}
-
-Usage: {TOOL_NAME} [options] package-url...
-
-positional arguments:
-    package-url                 PackgeURL specifier to check health for (required, repeats OK)
-
-{BaseProjectManager.GetCommonSupportedHelpText()}
-
-optional arguments:
-  --format                      selct the output format (text|sarifv1|sarifv2). (default is text)
-  --output-file                 send the command output to a file instead of stdout
-  --help                        show this help message and exit
-  --version                     show version of this tool
-");
-        }
+        #endregion Private Methods
     }
 }

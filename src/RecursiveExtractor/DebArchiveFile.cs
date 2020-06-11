@@ -8,8 +8,11 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
      * Very simple implementation of an .Deb format parser, needed for Debian .deb archives.
      * See: https://en.wikipedia.org/wiki/Deb_(file_format)#/media/File:Deb_File_Structure.svg
      */
+
     public static class DebArchiveFile
     {
+        #region Public Methods
+
         public static IEnumerable<FileEntry> GetFileEntries(FileEntry fileEntry)
         {
             if (fileEntry == null)
@@ -40,8 +43,10 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                 else
                 {
                     break;
-                }                
+                }
             }
         }
+
+        #endregion Public Methods
     }
 }

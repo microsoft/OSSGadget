@@ -1,20 +1,19 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+using ICSharpCode.Decompiler;
+using ICSharpCode.Decompiler.CSharp;
+using Microsoft.CST.OpenSource.Shared;
+using Microsoft.DevSkim;
 using PeNet;
+using SharpDisasm;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CST.OpenSource.Shared;
-using Microsoft.DevSkim;
-using ICSharpCode.Decompiler;
-using ICSharpCode.Decompiler.CSharp;
-using System.Text.RegularExpressions;
 using System.Reflection;
-using SharpDisasm;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using WebAssembly; // Acquire from https://www.nuget.org/packages/WebAssembly
 using WebAssembly.Instructions;
 
@@ -54,7 +53,7 @@ namespace Microsoft.CST.OpenSource
         /// Main entrypoint for the download program.
         /// </summary>
         /// <param name="args">parameters passed in from the user</param>
-        static async Task Main(string[] args)
+        private static async Task Main(string[] args)
         {
             var detectCryptographyTool = new DetectCryptographyTool();
             Logger.Info($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
@@ -73,8 +72,8 @@ namespace Microsoft.CST.OpenSource
                         if (target.StartsWith("pkg:", StringComparison.InvariantCulture))
                         {
                             var purl = new PackageURL(target);
-                            results = await detectCryptographyTool.AnalyzePackage(purl, 
-                                (string?)detectCryptographyTool.Options["download-directory"], 
+                            results = await detectCryptographyTool.AnalyzePackage(purl,
+                                (string?)detectCryptographyTool.Options["download-directory"],
                                 (bool?)detectCryptographyTool.Options["use-cache"] == true);
                         }
                         else if (Directory.Exists(target))
@@ -89,13 +88,13 @@ namespace Microsoft.CST.OpenSource
                                 targetDirectoryName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                             }
                             var projectManager = ProjectManagerFactory.CreateBaseProjectManager(targetDirectoryName);
-                            
-                            #pragma warning disable SCS0018 // Path traversal: injection possible in {1} argument passed to '{0}'
+
+#pragma warning disable SCS0018 // Path traversal: injection possible in {1} argument passed to '{0}'
                             var path = await projectManager.ExtractArchive("temp", File.ReadAllBytes(target));
-                            #pragma warning restore SCS0018 // Path traversal: injection possible in {1} argument passed to '{0}'
-                            
+#pragma warning restore SCS0018 // Path traversal: injection possible in {1} argument passed to '{0}'
+
                             results = await detectCryptographyTool.AnalyzeDirectory(path);
-                            
+
                             // Clean up after ourselves
                             try
                             {
@@ -109,7 +108,7 @@ namespace Microsoft.CST.OpenSource
                                 Logger.Warn("Unable to delete {0}: {1}", targetDirectoryName, ex.Message);
                             }
                         }
-                        
+
                         if (results == null)
                         {
                             Logger.Warn("Error generating results, was null.");
@@ -122,7 +121,7 @@ namespace Microsoft.CST.OpenSource
                         {
                             var shortTags = results.SelectMany(r => r.Issue.Rule.Tags)
                                                    .Distinct()
-                                                   .Where (t => t.StartsWith("Cryptography.Implementation."))
+                                                   .Where(t => t.StartsWith("Cryptography.Implementation."))
                                                    .Select(t => t.Replace("Cryptography.Implementation.", ""));
                             var otherTags = results.SelectMany(r => r.Issue.Rule.Tags)
                                                    .Distinct()
@@ -150,7 +149,7 @@ namespace Microsoft.CST.OpenSource
                             {
                                 sb.AppendLine($"[ ] {target} - This software package does NOT contains words that suggest cryptography.");
                             }
-                            
+
                             if ((bool?)detectCryptographyTool.Options["verbose"] == true)
                             {
                                 var items = results.GroupBy(k => k.Issue.Rule.Name).OrderByDescending(k => k.Count());
@@ -158,7 +157,7 @@ namespace Microsoft.CST.OpenSource
                                 {
                                     sb.AppendLine();
                                     sb.AppendLine($"There were {item.Count()} finding(s) of type [{item.Key}].");
-                                    
+
                                     foreach (var result in results)
                                     {
                                         if (result.Issue.Rule.Name == item.Key)
@@ -215,7 +214,6 @@ namespace Microsoft.CST.OpenSource
         public DetectCryptographyTool() : base()
         {
         }
-
 
         /// <summary>
         /// Analyze a package by downloading it first.
@@ -292,7 +290,7 @@ namespace Microsoft.CST.OpenSource
                         Logger.Warn("Unable to decompile {0}: {1}", filename, ex.Message);
                     }
                 }
-                
+
                 var resultStrings = new HashSet<string>();
 
                 try
@@ -306,9 +304,8 @@ namespace Microsoft.CST.OpenSource
                     {
                         resultStrings.Add(instruction.ToString());
                     }
-                    
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Logger.Warn("Unable to decompile {0}: {1}", filename, ex.Message);
                 }
@@ -333,9 +330,11 @@ namespace Microsoft.CST.OpenSource
                                 case OpCode.Int32Constant:
                                     resultStrings.Add(((Int32Constant)instruction).Value.ToString());
                                     break;
+
                                 case OpCode.Int64Constant:
                                     resultStrings.Add(((Int64Constant)instruction).Value.ToString());
                                     break;
+
                                 default:
                                     break;
                             }
@@ -343,7 +342,7 @@ namespace Microsoft.CST.OpenSource
                     }
                     return string.Join('\n', resultStrings);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Logger.Warn("Unable to analyze WebAssembly {0}: {1}", filename, ex.Message);
                 }
@@ -385,7 +384,7 @@ namespace Microsoft.CST.OpenSource
                             using var resourceStream = new StreamReader(stream ?? new MemoryStream());
                             rules.AddString(resourceStream.ReadToEnd(), resourceName);
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             Logger.Warn(ex, "Error loading {0}: {1}", resourceName, ex.Message);
                         }
@@ -425,7 +424,8 @@ namespace Microsoft.CST.OpenSource
                 try
                 {
                     fileContents = File.ReadAllBytes(filename);
-                } catch(Exception ex)
+                }
+                catch (Exception ex)
                 {
                     Logger.Trace(ex, "File {0} cannot be read, ignoring.", filename);
                     continue;
@@ -465,7 +465,7 @@ namespace Microsoft.CST.OpenSource
                         ));
                     }
                     Logger.Debug($"Analyzing {filename}, length={buffer.Length}");
-                    
+
                     Issue[]? fileResults = null;
                     var task = Task.Run(() => processor.Analyze(buffer, Language.FromFileName(filename)));
                     if (task.Wait(TimeSpan.FromSeconds(2)))
@@ -485,7 +485,7 @@ namespace Microsoft.CST.OpenSource
                         var excerpt = new List<string>();
                         var startLoc = Math.Max(issue.StartLocation.Line - 1, 0);
                         var endLoc = Math.Min(issue.EndLocation.Line + 1, fileContentArray.Length - 1);
-                        for (int i=startLoc; i<=endLoc; i++)
+                        for (int i = startLoc; i <= endLoc; i++)
                         {
                             excerpt.Add(fileContentArray[i].Trim());
                         }
@@ -498,7 +498,7 @@ namespace Microsoft.CST.OpenSource
                         );
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Logger.Warn(ex, "Error analyzing {0}: {1}", filename, ex.Message);
                     Logger.Warn(ex.StackTrace);
@@ -540,8 +540,8 @@ namespace Microsoft.CST.OpenSource
             windowSize = windowSize >= buffer.Length ? buffer.Length : windowSize;
             windowSize = windowSize <= 0 ? 50 : windowSize;
 
-            // This is a horrible regular expression, but the intent is to capture symbol characters that
-            // probably mean something within cryptographic code, but not within other code.
+            // This is a horrible regular expression, but the intent is to capture symbol characters
+            // that probably mean something within cryptographic code, but not within other code.
             var cryptoChars = new Regex("(?<=[a-z0-9_])\\^=?(?=[a-z_])|(?<=[a-z0-9_])(>{2,3}|<{2,3})=?(?=[a-z0-9])|(?<=[a-z0-9_])([&^~|])=?(?=[a-z0-9])", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
             // We report on the highest ratio of symbol to total characters
@@ -677,4 +677,3 @@ optional arguments:
         }
     }
 }
-

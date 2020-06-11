@@ -1,5 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using System;
 using System.Collections.Generic;
@@ -10,31 +9,34 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
-    class CargoProjectManager : BaseProjectManager
+    internal class CargoProjectManager : BaseProjectManager
     {
+        #region Public Fields
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_CARGO_ENDPOINT = "https://crates.io";
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_CARGO_ENDPOINT_STATIC = "https://static.crates.io";
 
+        #endregion Public Fields
+
+        #region Public Constructors
+
         public CargoProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
         }
 
-        public override Uri GetPackageAbsoluteUri(PackageURL purl)
-        {
-            var packageName = purl?.Name;
-            return new Uri($"{ENV_CARGO_ENDPOINT}/crates/{packageName}");
-            // TODO: Add version support
-        }
+        #endregion Public Constructors
+
+        #region Public Methods
 
         /// <summary>
         /// Download one Cargo package and extract it to the target directory.
         /// </summary>
         /// <param name="purl">Package URL of the package to download.</param>
         /// <returns>Path to the downloaded package</returns>
-        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract , bool cached = false)
+        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
@@ -110,7 +112,6 @@ namespace Microsoft.CST.OpenSource.Shared
                     }
                 }
                 return SortVersions(versionList.Distinct());
-
             }
             catch (Exception ex)
             {
@@ -138,5 +139,14 @@ namespace Microsoft.CST.OpenSource.Shared
                 return null;
             }
         }
+
+        public override Uri GetPackageAbsoluteUri(PackageURL purl)
+        {
+            var packageName = purl?.Name;
+            return new Uri($"{ENV_CARGO_ENDPOINT}/crates/{packageName}");
+            // TODO: Add version support
+        }
+
+        #endregion Public Methods
     }
 }

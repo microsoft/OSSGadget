@@ -1,15 +1,10 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using DiscUtils;
 using DiscUtils.Btrfs;
 using DiscUtils.Ext;
-using DiscUtils.HfsPlus;
 using DiscUtils.Fat;
+using DiscUtils.HfsPlus;
 using DiscUtils.Iso9660;
 using DiscUtils.Ntfs;
 using DiscUtils.Setup;
@@ -23,7 +18,12 @@ using SharpCompress.Archives.Rar;
 using SharpCompress.Archives.SevenZip;
 using SharpCompress.Compressors.BZip2;
 using SharpCompress.Compressors.Xz;
+using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 
 namespace Microsoft.CST.OpenSource.RecursiveExtractor
 {

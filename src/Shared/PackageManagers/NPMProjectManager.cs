@@ -1,5 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using System;
 using System.Collections.Generic;
@@ -11,8 +10,16 @@ using Version = SemVer.Version;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
-    class NPMProjectManager : BaseProjectManager
+    internal class NPMProjectManager : BaseProjectManager
     {
+        #region Public Fields
+
+        public static string ENV_NPM_ENDPOINT = "https://registry.npmjs.org";
+
+        #endregion Public Fields
+
+        #region Private Fields
+
         private static readonly List<string> npm_internal_modules = new List<string>()
         {
             "assert",
@@ -55,16 +62,17 @@ namespace Microsoft.CST.OpenSource.Shared
             "zlib"
         };
 
-        public static string ENV_NPM_ENDPOINT = "https://registry.npmjs.org";
+        #endregion Private Fields
+
+        #region Public Constructors
 
         public NPMProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
         }
 
-        public override Uri GetPackageAbsoluteUri(PackageURL purl)
-        {
-            return new Uri($"{ENV_NPM_ENDPOINT}/package/{purl?.Name}");
-        }
+        #endregion Public Constructors
+
+        #region Public Methods
 
         /// <summary>
         /// Download one NPM package and extract it to the target directory.
@@ -150,6 +158,18 @@ namespace Microsoft.CST.OpenSource.Shared
             }
         }
 
+        /// <summary>
+        /// Gets the latest version of the package
+        /// </summary>
+        /// <param name="contentJSON"></param>
+        /// <returns></returns>
+        public JsonElement? GetLatestVersionElement(JsonDocument contentJSON)
+        {
+            List<Version> versions = GetVersions(contentJSON);
+            Version maxVersion = versions.Max();
+            return GetVersionElement(contentJSON, maxVersion);
+        }
+
         public override async Task<string?> GetMetadata(PackageURL purl)
         {
             try
@@ -165,92 +185,9 @@ namespace Microsoft.CST.OpenSource.Shared
             }
         }
 
-        /// <summary>
-        /// Searches the package manager metadata to figure out the source code repository
-        /// </summary>
-        /// <param name="purl">the package for which we need to find the source code repository</param>
-        /// <returns>A dictionary, mapping each possible repo source entry to its probability/empty dictionary</returns>
-        protected async override Task<Dictionary<PackageURL, double>> PackageMetadataSearch(PackageURL purl, 
-            string metadata)
+        public override Uri GetPackageAbsoluteUri(PackageURL purl)
         {
-            var mapping = new Dictionary<PackageURL, double>();
-            if (purl?.Name is string purlName && (purlName.StartsWith('_') || npm_internal_modules.Contains(purlName)))
-            {
-                // url = 'https://github.com/nodejs/node/tree/master/lib' + package.name,
-
-                mapping.Add(new PackageURL(purl.Type, purl.Namespace, purl.Name, 
-                    null, null, "node/tree/master/lib"), 1.0F);
-                return mapping;
-            }
-            if (string.IsNullOrEmpty(metadata))
-            {
-                return mapping;
-            }
-            JsonDocument contentJSON = JsonDocument.Parse(metadata);
-
-            // if a version is provided, search that JSONElement, otherwise, just search the latest version,
-            // which is more likely best maintained
-            // TODO: If the latest version JSONElement doesnt have the repo infor, should we search all elements 
-            // on that chance that one of them might have it?
-            JsonElement? versionJSON = string.IsNullOrEmpty(purl?.Version) ? GetLatestVersionElement(contentJSON) : 
-                GetVersionElement(contentJSON, new Version(purl.Version));
-
-            if (versionJSON is JsonElement notNullVersionJSON)
-            {
-                try
-                {
-                    JsonElement repositoryJSON = notNullVersionJSON.GetProperty("repository");
-                    string repoType = repositoryJSON.GetProperty("type").ToString().ToLower();
-                    string repoURL = repositoryJSON.GetProperty("url").ToString();
-
-                    // right now we deal with only github repos
-                    if (repoType == "git")
-                    {
-                        PackageURL gitPURL = GitHubProjectManager.ParseUri(new Uri(repoURL));
-                        // we got a repository value the author specified in the metadata - 
-                        // so no further processing needed
-                        if (gitPURL != null)
-                        {
-                            mapping.Add(gitPURL, 1.0F);
-                            return mapping;
-                        }
-                    }
-                }
-                catch (KeyNotFoundException) { /* continue onwards */ }
-                catch (UriFormatException) {  /* the uri specified in the metadata invalid */ }
-            }
-
-            return mapping;
-        }
-
-        public List<Version> GetVersions(JsonDocument contentJSON)
-        {
-            List<Version> allVersions = new List<Version>();
-            JsonElement root = contentJSON.RootElement;
-            try
-            {
-                JsonElement versions = root.GetProperty("versions");
-                foreach (var version in versions.EnumerateObject())
-                {
-                    allVersions.Add(new Version(version.Name));
-                }
-            }
-            catch (KeyNotFoundException) { return allVersions; }
-            catch (InvalidOperationException) { return allVersions; }
-
-            return allVersions;
-        }
-
-        /// <summary>
-        /// Gets the latest version of the package
-        /// </summary>
-        /// <param name="contentJSON"></param>
-        /// <returns></returns>
-        public JsonElement? GetLatestVersionElement(JsonDocument contentJSON)
-        {
-            List<Version> versions = GetVersions(contentJSON);
-            Version maxVersion = versions.Max();
-            return GetVersionElement(contentJSON, maxVersion);
+            return new Uri($"{ENV_NPM_ENDPOINT}/package/{purl?.Name}");
         }
 
         public JsonElement? GetVersionElement(JsonDocument contentJSON, Version version)
@@ -273,5 +210,89 @@ namespace Microsoft.CST.OpenSource.Shared
 
             return null;
         }
+
+        public List<Version> GetVersions(JsonDocument contentJSON)
+        {
+            List<Version> allVersions = new List<Version>();
+            JsonElement root = contentJSON.RootElement;
+            try
+            {
+                JsonElement versions = root.GetProperty("versions");
+                foreach (var version in versions.EnumerateObject())
+                {
+                    allVersions.Add(new Version(version.Name));
+                }
+            }
+            catch (KeyNotFoundException) { return allVersions; }
+            catch (InvalidOperationException) { return allVersions; }
+
+            return allVersions;
+        }
+
+        #endregion Public Methods
+
+        #region Protected Methods
+
+        /// <summary>
+        /// Searches the package manager metadata to figure out the source code repository
+        /// </summary>
+        /// <param name="purl">the package for which we need to find the source code repository</param>
+        /// <returns>
+        /// A dictionary, mapping each possible repo source entry to its probability/empty dictionary
+        /// </returns>
+        protected async override Task<Dictionary<PackageURL, double>> PackageMetadataSearch(PackageURL purl,
+            string metadata)
+        {
+            var mapping = new Dictionary<PackageURL, double>();
+            if (purl?.Name is string purlName && (purlName.StartsWith('_') || npm_internal_modules.Contains(purlName)))
+            {
+                // url = 'https://github.com/nodejs/node/tree/master/lib' + package.name,
+
+                mapping.Add(new PackageURL(purl.Type, purl.Namespace, purl.Name,
+                    null, null, "node/tree/master/lib"), 1.0F);
+                return mapping;
+            }
+            if (string.IsNullOrEmpty(metadata))
+            {
+                return mapping;
+            }
+            JsonDocument contentJSON = JsonDocument.Parse(metadata);
+
+            // if a version is provided, search that JSONElement, otherwise, just search the latest
+            // version, which is more likely best maintained
+            // TODO: If the latest version JSONElement doesnt have the repo infor, should we search all elements
+            // on that chance that one of them might have it?
+            JsonElement? versionJSON = string.IsNullOrEmpty(purl?.Version) ? GetLatestVersionElement(contentJSON) :
+                GetVersionElement(contentJSON, new Version(purl.Version));
+
+            if (versionJSON is JsonElement notNullVersionJSON)
+            {
+                try
+                {
+                    JsonElement repositoryJSON = notNullVersionJSON.GetProperty("repository");
+                    string repoType = repositoryJSON.GetProperty("type").ToString().ToLower();
+                    string repoURL = repositoryJSON.GetProperty("url").ToString();
+
+                    // right now we deal with only github repos
+                    if (repoType == "git")
+                    {
+                        PackageURL gitPURL = GitHubProjectManager.ParseUri(new Uri(repoURL));
+                        // we got a repository value the author specified in the metadata - so no
+                        // further processing needed
+                        if (gitPURL != null)
+                        {
+                            mapping.Add(gitPURL, 1.0F);
+                            return mapping;
+                        }
+                    }
+                }
+                catch (KeyNotFoundException) { /* continue onwards */ }
+                catch (UriFormatException) {  /* the uri specified in the metadata invalid */ }
+            }
+
+            return mapping;
+        }
+
+        #endregion Protected Methods
     }
 }

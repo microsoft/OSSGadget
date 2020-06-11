@@ -1,27 +1,18 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+using Microsoft.CST.OpenSource.Health;
+using Microsoft.CST.OpenSource.Shared;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CST.OpenSource.Health;
-using Microsoft.CST.OpenSource.Shared;
 
 namespace Microsoft.CST.OpenSource
 {
-    class RiskCalculatorTool : OSSGadget
+    internal class RiskCalculatorTool : OSSGadget
     {
-        /// <summary>
-        /// Name of this tool.
-        /// </summary>
-        private const string TOOL_NAME = "oss-risk-calculator";
-
-        /// <summary>
-        /// Holds the version string, from the assembly.
-        /// </summary>
-        private static readonly string VERSION = typeof(RiskCalculatorTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
+        #region Public Fields
 
         /// <summary>
         /// Command line options
@@ -34,47 +25,31 @@ namespace Microsoft.CST.OpenSource
             { "use-cache", false }
         };
 
+        #endregion Public Fields
+
+        #region Private Fields
+
         /// <summary>
-        /// Main entrypoint for the download program.
+        /// Name of this tool.
         /// </summary>
-        /// <param name="args">parameters passed in from the user</param>
-        static void Main(string[] args)
-        {
-            var riskCalculator = new RiskCalculatorTool();
+        private const string TOOL_NAME = "oss-risk-calculator";
 
-            Logger?.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
-            riskCalculator.ParseOptions(args);
+        /// <summary>
+        /// Holds the version string, from the assembly.
+        /// </summary>
+        private static readonly string VERSION = typeof(RiskCalculatorTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
 
-            if (riskCalculator.Options["target"] is IList<string> targetList && targetList.Count > 0)
-            {
-                foreach (var target in targetList)
-                {
-                    try
-                    {
-                        var useCache = (bool?)riskCalculator.Options["use-cache"] == true;
-                        var purl = new PackageURL(target);
-                        var riskLevel = riskCalculator.CalculateRisk(purl, 
-                            (string?)riskCalculator.Options["download-directory"], 
-                            useCache).Result;
-                        Logger?.Info($"Risk Level: {riskLevel}");
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger?.Warn("Error processing {0}: {1}", target, ex.Message);
-                    }
-                }
-            }
-            else
-            {
-                Logger?.Warn("No target provided; nothing to analyze.");
-                ShowUsage();
-                Environment.Exit(1);
-            }
-        }
+        #endregion Private Fields
+
+        #region Public Constructors
 
         public RiskCalculatorTool() : base()
         {
         }
+
+        #endregion Public Constructors
+
+        #region Public Methods
 
         public async Task<double> CalculateRisk(PackageURL purl, string? targetDirectory, bool doCaching)
         {
@@ -99,7 +74,6 @@ namespace Microsoft.CST.OpenSource
                     RecentActivityHealth = 0,
                     ReleaseHealth = 0
                 };
-
             }
             // Risk calculation algorithm
             var aggregateRisk = (
@@ -111,7 +85,8 @@ namespace Microsoft.CST.OpenSource
             bool isHighRisk = false;
             foreach (var charKey in characteristics.Keys)
             {
-                if (characteristics[charKey]?.Metadata.UniqueTags is ConcurrentDictionary<string, byte> dict) {
+                if (characteristics[charKey]?.Metadata.UniqueTags is ConcurrentDictionary<string, byte> dict)
+                {
                     foreach (var tag in dict)
                     {
                         isHighRisk |= highRiskTags.Any(t => tag.Key.StartsWith(t));
@@ -123,6 +98,72 @@ namespace Microsoft.CST.OpenSource
                 aggregateRisk += 30.0;
             }
             return aggregateRisk;
+        }
+
+        #endregion Public Methods
+
+        #region Private Methods
+
+        /// <summary>
+        /// Main entrypoint for the download program.
+        /// </summary>
+        /// <param name="args">parameters passed in from the user</param>
+        private static void Main(string[] args)
+        {
+            var riskCalculator = new RiskCalculatorTool();
+
+            Logger?.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
+            riskCalculator.ParseOptions(args);
+
+            if (riskCalculator.Options["target"] is IList<string> targetList && targetList.Count > 0)
+            {
+                foreach (var target in targetList)
+                {
+                    try
+                    {
+                        var useCache = (bool?)riskCalculator.Options["use-cache"] == true;
+                        var purl = new PackageURL(target);
+                        var riskLevel = riskCalculator.CalculateRisk(purl,
+                            (string?)riskCalculator.Options["download-directory"],
+                            useCache).Result;
+                        Logger?.Info($"Risk Level: {riskLevel}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger?.Warn("Error processing {0}: {1}", target, ex.Message);
+                    }
+                }
+            }
+            else
+            {
+                Logger?.Warn("No target provided; nothing to analyze.");
+                ShowUsage();
+                Environment.Exit(1);
+            }
+        }
+
+        /// <summary>
+        /// Displays usage information for the program.
+        /// </summary>
+        private static void ShowUsage()
+        {
+            Console.Error.WriteLine($@"
+{TOOL_NAME} {VERSION}
+
+Usage: {TOOL_NAME} [options] package-url...
+
+positional arguments:
+    package-url                 PackgeURL specifier to download (required, repeats OK)
+
+{BaseProjectManager.GetCommonSupportedHelpText()}
+
+optional arguments:
+  --external-risk NUMBER        include additional risk in final calculation
+  --download-directory          the directory to download the package to
+  --use-cache                   do not download the package if it is already present in the destination directory
+  --help                        show this help message and exit
+  --version                     show version of this tool
+");
         }
 
         /// <summary>
@@ -184,29 +225,6 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        /// <summary>
-        /// Displays usage information for the program.
-        /// </summary>
-        private static void ShowUsage()
-        {
-            Console.Error.WriteLine($@"
-{TOOL_NAME} {VERSION}
-
-Usage: {TOOL_NAME} [options] package-url...
-
-positional arguments:
-    package-url                 PackgeURL specifier to download (required, repeats OK)
-
-{BaseProjectManager.GetCommonSupportedHelpText()}
-
-optional arguments:
-  --external-risk NUMBER        include additional risk in final calculation
-  --download-directory          the directory to download the package to
-  --use-cache                   do not download the package if it is already present in the destination directory
-  --help                        show this help message and exit
-  --version                     show version of this tool
-");
-        }
-
+        #endregion Private Methods
     }
 }

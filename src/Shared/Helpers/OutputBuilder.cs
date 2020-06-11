@@ -13,70 +13,57 @@ namespace Microsoft.CST.OpenSource.Shared
     /// </summary>
     public class OutputBuilder
     {
+        #region Protected Fields
+
         /// <summary>
         /// Class logger
         /// </summary>
         protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
-        public enum OutputFormat
-        {
-            sarifv1,
-            sarifv2 ,
-            text // no sarif, just text
-        };
+        #endregion Protected Fields
 
-        readonly OutputFormat CurrentOutputFormat = OutputFormat.text; // default = text
-
-        StringBuilder stringResults = new StringBuilder();
-        List<Result> sarifResults = new List<Result>();
+        #region Private Fields
 
         // cache variables to avoid reflection
-        static readonly string AssemblyName = Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty;
+        private static readonly string AssemblyName = Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty;
 
-        static readonly string Version = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version.ToString() ?? string.Empty;
+        private static readonly string Company = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyCompanyAttribute>()?.Company ?? string.Empty;
 
-        static readonly string Company = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyCompanyAttribute>()?.Company ?? string.Empty;
+        private static readonly string Version = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version.ToString() ?? string.Empty;
 
+        private readonly OutputFormat CurrentOutputFormat = OutputFormat.text;
+
+        private List<Result> sarifResults = new List<Result>();
+
+        private StringBuilder stringResults = new StringBuilder();
+
+        #endregion Private Fields
+
+        #region Public Constructors
+
+        // default = text
         public OutputBuilder(string format)
         {
-            if(!Enum.TryParse<OutputFormat>(format, true, out this.CurrentOutputFormat))
+            if (!Enum.TryParse<OutputFormat>(format, true, out this.CurrentOutputFormat))
             {
                 throw new ArgumentOutOfRangeException("Invalid output format");
             }
         }
 
-        /// <summary>
-        /// Prints to the currently selected output
-        /// </summary>
-        public void PrintOutput()
-        {
-            if (this.CurrentOutputFormat == OutputFormat.text)
-            {
-                Console.Out.Write(this.stringResults.ToString());
-            }
-            else
-            {
-                this.PrintSarifLog(ConsoleHelper.GetCurrentWriteStream());
-            }
-        }
+        #endregion Public Constructors
 
-        /// <summary>
-        /// Overload of AppendOutput to add to text
-        /// </summary>
-        /// <param name="output"></param>
-        public void AppendOutput(string output)
-        {
-            this.stringResults.Append(output);
-        }
+        #region Public Enums
 
-        /// <summary>
-        /// Overload of AppendOutput to add to SARIF
-        /// </summary>
-        /// <param name="results"></param>
-        public void AppendOutput(List<Result> results)
+        public enum OutputFormat
         {
-            this.sarifResults.AddRange(results);
-        }
+            sarifv1,
+            sarifv2,
+            text // no sarif, just text
+        };
+
+        #endregion Public Enums
+
+        #region Public Methods
 
         /// <summary>
         /// Build a SARIF Result.Location object for the purl package
@@ -107,6 +94,24 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
+        /// Overload of AppendOutput to add to text
+        /// </summary>
+        /// <param name="output"></param>
+        public void AppendOutput(string output)
+        {
+            this.stringResults.Append(output);
+        }
+
+        /// <summary>
+        /// Overload of AppendOutput to add to SARIF
+        /// </summary>
+        /// <param name="results"></param>
+        public void AppendOutput(List<Result> results)
+        {
+            this.sarifResults.AddRange(results);
+        }
+
+        /// <summary>
         /// Builds a SARIF log object with the stored results
         /// </summary>
         /// <returns></returns>
@@ -124,7 +129,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
             };
 
-            SarifVersion version = this.CurrentOutputFormat == OutputFormat.sarifv1 ? 
+            SarifVersion version = this.CurrentOutputFormat == OutputFormat.sarifv1 ?
                 SarifVersion.OneZeroZero : SarifVersion.Current;
             SarifLog sarifLog = new SarifLog()
             {
@@ -140,6 +145,32 @@ namespace Microsoft.CST.OpenSource.Shared
             return sarifLog;
         }
 
+        public bool isSarifFormat()
+        {
+            return this.CurrentOutputFormat == OutputFormat.sarifv1 ||
+                this.CurrentOutputFormat == OutputFormat.sarifv2;
+        }
+
+        public bool isTextFormat()
+        {
+            return this.CurrentOutputFormat == OutputFormat.text;
+        }
+
+        /// <summary>
+        /// Prints to the currently selected output
+        /// </summary>
+        public void PrintOutput()
+        {
+            if (this.CurrentOutputFormat == OutputFormat.text)
+            {
+                Console.Out.Write(this.stringResults.ToString());
+            }
+            else
+            {
+                this.PrintSarifLog(ConsoleHelper.GetCurrentWriteStream());
+            }
+        }
+
         /// <summary>
         /// Print the whole SARIF log to the stream
         /// </summary>
@@ -150,15 +181,6 @@ namespace Microsoft.CST.OpenSource.Shared
             completedSarif.Save(writeStream);
         }
 
-        public bool isTextFormat()
-        {
-            return this.CurrentOutputFormat == OutputFormat.text;
-        }
-
-        public bool isSarifFormat()
-        {
-            return this.CurrentOutputFormat == OutputFormat.sarifv1 ||
-                this.CurrentOutputFormat == OutputFormat.sarifv2;
-        }
+        #endregion Public Methods
     }
 }

@@ -1,17 +1,18 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+using Microsoft.CST.OpenSource.Shared;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CST.OpenSource.Shared;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Microsoft.CST.OpenSource.Tests
 {
     [TestClass]
     public class VersionTests
     {
+        #region Public Methods
+
         [DataTestMethod]
         [DataRow("0.1,0.2,0.3", "0.1,0.2,0.3")]
         [DataRow("0.1,0.3,0.2", "0.1,0.2,0.3")]
@@ -25,5 +26,7 @@ namespace Microsoft.CST.OpenSource.Tests
             var result = BaseProjectManager.SortVersions(preSort);
             Assert.IsTrue(result.SequenceEqual(postSort), $"Result {string.Join(',', result)} != {string.Join(',', postSort)}");
         }
+
+        #endregion Public Methods
     }
 }

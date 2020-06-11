@@ -1,15 +1,16 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+using Microsoft.CST.OpenSource.Shared;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.CST.OpenSource.Shared;
 
 namespace Microsoft.CST.OpenSource
 {
     public class DownloadTool : OSSGadget
     {
+        #region Private Fields
+
         /// <summary>
         /// Name of this tool.
         /// </summary>
@@ -32,11 +33,23 @@ namespace Microsoft.CST.OpenSource
             { "download-metadata-only", false}
         };
 
+        #endregion Private Fields
+
+        #region Public Constructors
+
+        public DownloadTool() : base()
+        {
+        }
+
+        #endregion Public Constructors
+
+        #region Private Methods
+
         /// <summary>
         /// Main entrypoint for the download program.
         /// </summary>
         /// <param name="args">parameters passed in from the user</param>
-        static async Task Main(string[] args)
+        private static async Task Main(string[] args)
         {
             var downloadTool = new DownloadTool();
             Logger.Info($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
@@ -69,7 +82,7 @@ namespace Microsoft.CST.OpenSource
                                 Logger.Info("Downloaded {0} to {1}", purl.ToString(), downloadPath);
                             }
                         }
-                            packageDownloader.ClearPackageLocalCopyIfNoCaching();
+                        packageDownloader.ClearPackageLocalCopyIfNoCaching();
                     }
                     catch (Exception ex)
                     {
@@ -86,8 +99,29 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        public DownloadTool() : base()
+        /// <summary>
+        /// Displays usage information for the program.
+        /// </summary>
+        private static void ShowUsage()
         {
+            Console.Error.WriteLine($@"
+{TOOL_NAME} {VERSION}
+
+Usage: {TOOL_NAME} [options] package-url...
+
+positional arguments:
+    package-url                 PackgeURL specifier to download (required, repeats OK)
+
+{BaseProjectManager.GetCommonSupportedHelpText()}
+
+optional arguments:
+  --no-extract                  do not extract package contents
+  --only-metadata               only download metadata, not the package content
+  --download-directory          the location to download the package to (default: current directory)
+  --use-cache                   do not download the package if it is already present in the destination directory
+  --help                        show this help message and exit
+  --version                     show version of this tool
+");
         }
 
         /// <summary>
@@ -117,15 +151,15 @@ namespace Microsoft.CST.OpenSource
                         Console.Error.WriteLine($"{TOOL_NAME} {VERSION}");
                         Environment.Exit(1);
                         break;
-                    
+
                     case "--only-metadata":
                         Options["download-metadata-only"] = true;
                         break;
-                    
+
                     case "--download-directory":
                         Options["download-directory"] = args[++i];
                         break;
-                    
+
                     case "--no-extract":
                         Options["extract"] = false;
                         break;
@@ -141,29 +175,6 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        /// <summary>
-        /// Displays usage information for the program.
-        /// </summary>
-        private static void ShowUsage()
-        {
-            Console.Error.WriteLine($@"
-{TOOL_NAME} {VERSION}
-
-Usage: {TOOL_NAME} [options] package-url...
-
-positional arguments:
-    package-url                 PackgeURL specifier to download (required, repeats OK)
-
-{BaseProjectManager.GetCommonSupportedHelpText()}
-
-optional arguments:
-  --no-extract                  do not extract package contents 
-  --only-metadata               only download metadata, not the package content
-  --download-directory          the location to download the package to (default: current directory)
-  --use-cache                   do not download the package if it is already present in the destination directory
-  --help                        show this help message and exit
-  --version                     show version of this tool
-");
-        }
+        #endregion Private Methods
     }
 }

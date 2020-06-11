@@ -1,7 +1,5 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using NLog.Fluent;
 using System;
 using System.IO;
 
@@ -9,14 +7,20 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
 {
     public class FileEntry
     {
+        #region Private Fields
+
         private readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
+        #endregion Private Fields
+
+        #region Public Constructors
+
         /// <summary>
-        /// Constructs a FileEntry object from a Stream.  
-        /// If passthroughStream is set to true, and the stream is seekable, it will directly use inputStream.
-        /// If passthroughStream is false or it is not seekable, it will copy the full contents of inputStream 
-        ///   to a new internal FileStream and attempt to reset the position of inputstream.
-        /// The finalizer for this class Disposes the contained Stream.
+        /// Constructs a FileEntry object from a Stream. If passthroughStream is set to true, and
+        /// the stream is seekable, it will directly use inputStream. If passthroughStream is false
+        /// or it is not seekable, it will copy the full contents of inputStream to a new internal
+        /// FileStream and attempt to reset the position of inputstream. The finalizer for this
+        /// class Disposes the contained Stream.
         /// </summary>
         /// <param name="name"></param>
         /// <param name="parentPath"></param>
@@ -61,7 +65,8 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
             }
             else
             {
-                // Back with a temporary filestream, this is optimized to be cached in memory when possible automatically by .NET
+                // Back with a temporary filestream, this is optimized to be cached in memory when
+                // possible automatically by .NET
                 Content = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
                 long? initialPosition = null;
 
@@ -78,7 +83,7 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                 {
                     inputStream.CopyTo(Content);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     Logger.Debug("Failed to copy stream from {0} ({1}:{2})", FullPath, e.GetType(), e.Message);
                 }
@@ -92,12 +97,10 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
             }
         }
 
-        public string? ParentPath { get; set; }
-        public string FullPath { get; set; }
-        public FileEntry? Parent { get; set; }
-        public string Name { get; set; }
-        public Stream Content { get; set; }
-        private bool Passthrough { get; }
+        #endregion Public Constructors
+
+        #region Private Destructors
+
         ~FileEntry()
         {
             if (!Passthrough)
@@ -105,5 +108,23 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                 Content?.Dispose();
             }
         }
+
+        #endregion Private Destructors
+
+        #region Public Properties
+
+        public Stream Content { get; set; }
+        public string FullPath { get; set; }
+        public string Name { get; set; }
+        public FileEntry? Parent { get; set; }
+        public string? ParentPath { get; set; }
+
+        #endregion Public Properties
+
+        #region Private Properties
+
+        private bool Passthrough { get; }
+
+        #endregion Private Properties
     }
 }

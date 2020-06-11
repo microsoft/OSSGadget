@@ -1,28 +1,32 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+using AngleSharp.Html.Parser;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using AngleSharp.Html.Parser;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
-    class HackageProjectManager : BaseProjectManager
+    internal class HackageProjectManager : BaseProjectManager
     {
+        #region Public Fields
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_HACKAGE_ENDPOINT = "https://hackage.haskell.org";
+
+        #endregion Public Fields
+
+        #region Public Constructors
 
         public HackageProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
         }
 
-        public override Uri GetPackageAbsoluteUri(PackageURL purl)
-        {
-            return new Uri($"{ENV_HACKAGE_ENDPOINT}/package/{purl?.Name}");
-        }
+        #endregion Public Constructors
+
+        #region Public Methods
 
         /// <summary>
         /// Download one Hackage (Haskell) package and extract it to the target directory.
@@ -129,5 +133,12 @@ namespace Microsoft.CST.OpenSource.Shared
                 return null;
             }
         }
+
+        public override Uri GetPackageAbsoluteUri(PackageURL purl)
+        {
+            return new Uri($"{ENV_HACKAGE_ENDPOINT}/package/{purl?.Name}");
+        }
+
+        #endregion Public Methods
     }
 }

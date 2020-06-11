@@ -1,29 +1,32 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+using AngleSharp.Html.Parser;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using AngleSharp.Html.Parser;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
-    class CRANProjectManager : BaseProjectManager
+    internal class CRANProjectManager : BaseProjectManager
     {
+        #region Public Fields
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_CRAN_ENDPOINT = "https://cran.r-project.org";
+
+        #endregion Public Fields
+
+        #region Public Constructors
 
         public CRANProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
         }
 
-        public override Uri GetPackageAbsoluteUri(PackageURL purl)
-        {
-            // CRAN doesn't have a homepage for package version
-            return new Uri($"{ENV_CRAN_ENDPOINT}/web/packages/{purl?.Name}/index.html");
-        }
+        #endregion Public Constructors
+
+        #region Public Methods
 
         /// <summary>
         /// Download one CRAN package and extract it to the target directory.
@@ -33,10 +36,10 @@ namespace Microsoft.CST.OpenSource.Shared
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
-            
+
             var packageName = purl?.Name;
             var packageVersion = purl?.Version;
-            
+
             var downloadedPaths = new List<string>();
 
             if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
@@ -163,6 +166,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 return Array.Empty<string>();
             }
         }
+
         public override async Task<string?> GetMetadata(PackageURL purl)
         {
             try
@@ -177,5 +181,13 @@ namespace Microsoft.CST.OpenSource.Shared
                 return null;
             }
         }
+
+        public override Uri GetPackageAbsoluteUri(PackageURL purl)
+        {
+            // CRAN doesn't have a homepage for package version
+            return new Uri($"{ENV_CRAN_ENDPOINT}/web/packages/{purl?.Name}/index.html");
+        }
+
+        #endregion Public Methods
     }
 }

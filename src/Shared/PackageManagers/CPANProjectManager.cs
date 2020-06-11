@@ -1,34 +1,36 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+using AngleSharp.Html.Parser;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using AngleSharp.Html.Parser;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
-    class CPANProjectManager : BaseProjectManager
+    internal class CPANProjectManager : BaseProjectManager
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        public static string ENV_CPAN_ENDPOINT = "https://metacpan.org";
+        #region Public Fields
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_CPAN_BINARY_ENDPOINT = "https://cpan.metacpan.org";
-        
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
+        public static string ENV_CPAN_ENDPOINT = "https://metacpan.org";
+
+        #endregion Public Fields
+
+        #region Public Constructors
+
         public CPANProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
         }
 
-        public override Uri GetPackageAbsoluteUri(PackageURL purl)
-        {
-            var packageName = purl?.Name;
-            return new Uri($"{ENV_CPAN_ENDPOINT}/pod/{packageName}");
-            // TODO: Add version support
-        }
+        #endregion Public Constructors
+
+        #region Public Methods
 
         /// <summary>
         /// Download one CPAN package and extract it to the target directory.
@@ -79,9 +81,9 @@ namespace Microsoft.CST.OpenSource.Shared
                 Logger.Warn($"Unable to find CPAN package {packageName}@{packageVersion}.");
                 return downloadedPaths;
             }
-            
+
             Logger.Debug($"Downloading {packageVersionUrl}");
-            
+
             html = await GetHttpStringCache(packageVersionUrl);
             document = await parser.ParseDocumentAsync(html);
             foreach (var italic in document.QuerySelectorAll("li a i.fa-download"))
@@ -174,5 +176,14 @@ namespace Microsoft.CST.OpenSource.Shared
                 return null;
             }
         }
+
+        public override Uri GetPackageAbsoluteUri(PackageURL purl)
+        {
+            var packageName = purl?.Name;
+            return new Uri($"{ENV_CPAN_ENDPOINT}/pod/{packageName}");
+            // TODO: Add version support
+        }
+
+        #endregion Public Methods
     }
 }

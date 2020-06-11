@@ -1,43 +1,40 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+using AngleSharp.Html.Parser;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using AngleSharp.Html.Parser;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
-    class UbuntuProjectManager : BaseProjectManager
+    internal class UbuntuProjectManager : BaseProjectManager
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        public static string ENV_UBUNTU_ENDPOINT = "https://packages.ubuntu.com";
+        #region Public Fields
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_UBUNTU_ARCHIVE_MIRROR = "https://mirror.math.princeton.edu/pub";
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
+        public static string ENV_UBUNTU_ENDPOINT = "https://packages.ubuntu.com";
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_UBUNTU_POOL_NAMES = "main,universe,multiverse,restricted";
+
+        #endregion Public Fields
+
+        #region Public Constructors
 
         public UbuntuProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
         }
 
-        public override Uri? GetPackageAbsoluteUri(PackageURL purl)
-        {
-            var availablePools = GetPoolsForProject(purl).Result;
-            foreach (var pool in availablePools)
-            {
-                var archiveBaseUrl = GetArchiveBaseUrlForProject(purl, pool).Result;
-                if (archiveBaseUrl != null)
-                {
-                    return new Uri(archiveBaseUrl);
-                }
-            }
-            return null;
-        }
+        #endregion Public Constructors
+
+        #region Public Methods
 
         /// <summary>
         /// Download one VS Marketplace package and extract it to the target directory.
@@ -47,7 +44,7 @@ namespace Microsoft.CST.OpenSource.Shared
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
-            
+
             var packageVersion = purl?.Version;
             var downloadedPaths = new List<string>();
             var downloadedUrls = new HashSet<string>();
@@ -118,8 +115,8 @@ namespace Microsoft.CST.OpenSource.Shared
                             }
                         }
 
-                        // Source Code URLs don't have the full version on the source files.
-                        // We need to find them in the .dsc
+                        // Source Code URLs don't have the full version on the source files. We need
+                        // to find them in the .dsc
                         else if (anchorHref.Contains(packageVersion) && anchorHref.EndsWith(".dsc"))
                         {
                             var dscContent = await GetHttpStringCache(archiveBaseUrl + "/" + anchorHref);
@@ -134,7 +131,8 @@ namespace Microsoft.CST.OpenSource.Shared
                                 seenFiles.Add(match.Groups[1].Value.Trim());
                             }
 
-                            // Now we need to go through the anchor tags again looking for the source code files
+                            // Now we need to go through the anchor tags again looking for the
+                            // source code files
                             foreach (var secondAnchor in document.QuerySelectorAll("a"))
                             {
                                 var secondHref = secondAnchor.GetAttribute("href");
@@ -147,7 +145,7 @@ namespace Microsoft.CST.OpenSource.Shared
                                         continue;
                                     }
                                     Logger.Debug("Downloading source code: {0}", fullDownloadUrl);
-                                    
+
                                     var downloadResult = await WebClient.GetAsync(fullDownloadUrl);
                                     if (!downloadResult.IsSuccessStatusCode)
                                     {
@@ -182,44 +180,11 @@ namespace Microsoft.CST.OpenSource.Shared
             return downloadedPaths;
         }
 
-
-        private List<string> GetBaseURLs(PackageURL purl)
-        {
-            var results = new List<string>();
-            var dirName = string.Empty;
-            if (purl.Name is string purlName)
-            {
-                dirName = purlName.StartsWith("lib") ? "lib" + purlName.Substring(3, 1) : purlName.Substring(0, 1);
-            }
-            else
-            {
-                return results;
-            }
-
-            var distroName = "ubuntu";  // default
-            purl.Qualifiers?.TryGetValue("distro", out distroName);
-            
-            if (purl.Qualifiers != null && purl.Qualifiers.TryGetValue("pool", out string? selectedPool))
-            {
-                results.Add($"{ENV_UBUNTU_ARCHIVE_MIRROR}/{distroName}/pool/{selectedPool}/{dirName}/{purl.Name}/");
-            }
-            else
-            {
-                foreach (var pool in ENV_UBUNTU_POOL_NAMES.Split(","))
-                {
-                    results.Add($"{ENV_UBUNTU_ARCHIVE_MIRROR}/{distroName}/pool/{pool}/{dirName}/{purl.Name}/");
-                    Logger.Debug($"{ENV_UBUNTU_ARCHIVE_MIRROR}/{distroName}/pool/{pool}/{dirName}/{purl.Name}/");
-
-                }
-            }
-            return results;
-        }
-
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
 
-            var versionList = new List<string>(); 
+            var versionList = new List<string>();
             if (purl == null || purl.Name == null)
             {
                 return versionList;
@@ -236,8 +201,8 @@ namespace Microsoft.CST.OpenSource.Shared
 
                 Logger.Debug("Located archive base URL: {0}", archiveBaseUrl);
 
-                // Now load the archive page, which will show all of the versions in each
-                // of the .dsc files there.
+                // Now load the archive page, which will show all of the versions in each of the
+                // .dsc files there.
                 try
                 {
                     var html = await GetHttpStringCache(archiveBaseUrl, neverThrow: true);
@@ -284,7 +249,7 @@ namespace Microsoft.CST.OpenSource.Shared
         public override async Task<string?> GetMetadata(PackageURL purl)
         {
             Logger.Trace("GetMetadata {0}", purl?.ToString());
-            
+
             if (purl == null || purl.Name == null)
             {
                 return string.Empty;
@@ -347,6 +312,24 @@ namespace Microsoft.CST.OpenSource.Shared
             return metadataContent.ToString();
         }
 
+        public override Uri? GetPackageAbsoluteUri(PackageURL purl)
+        {
+            var availablePools = GetPoolsForProject(purl).Result;
+            foreach (var pool in availablePools)
+            {
+                var archiveBaseUrl = GetArchiveBaseUrlForProject(purl, pool).Result;
+                if (archiveBaseUrl != null)
+                {
+                    return new Uri(archiveBaseUrl);
+                }
+            }
+            return null;
+        }
+
+        #endregion Public Methods
+
+        #region Private Methods
+
         /// <summary>
         /// Identifies the base URL for package source files.
         /// </summary>
@@ -383,9 +366,39 @@ namespace Microsoft.CST.OpenSource.Shared
             return null;
         }
 
+        private List<string> GetBaseURLs(PackageURL purl)
+        {
+            var results = new List<string>();
+            var dirName = string.Empty;
+            if (purl.Name is string purlName)
+            {
+                dirName = purlName.StartsWith("lib") ? "lib" + purlName.Substring(3, 1) : purlName.Substring(0, 1);
+            }
+            else
+            {
+                return results;
+            }
+
+            var distroName = "ubuntu";  // default
+            purl.Qualifiers?.TryGetValue("distro", out distroName);
+
+            if (purl.Qualifiers != null && purl.Qualifiers.TryGetValue("pool", out string? selectedPool))
+            {
+                results.Add($"{ENV_UBUNTU_ARCHIVE_MIRROR}/{distroName}/pool/{selectedPool}/{dirName}/{purl.Name}/");
+            }
+            else
+            {
+                foreach (var pool in ENV_UBUNTU_POOL_NAMES.Split(","))
+                {
+                    results.Add($"{ENV_UBUNTU_ARCHIVE_MIRROR}/{distroName}/pool/{pool}/{dirName}/{purl.Name}/");
+                    Logger.Debug($"{ENV_UBUNTU_ARCHIVE_MIRROR}/{distroName}/pool/{pool}/{dirName}/{purl.Name}/");
+                }
+            }
+            return results;
+        }
+
         /// <summary>
-        /// Identifies the available pools for a given Ubuntu project. For example,
-        /// 'xenial'.
+        /// Identifies the available pools for a given Ubuntu project. For example, 'xenial'.
         /// </summary>
         /// <param name="purl">Package URL to look up (only name is used).</param>
         /// <returns>List of pool names</returns>
@@ -417,5 +430,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             return pools;
         }
+
+        #endregion Private Methods
     }
 }

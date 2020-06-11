@@ -5,8 +5,26 @@ namespace Microsoft.CST.OpenSource.Shared
 {
     public class ConsoleHelper
     {
-        static StreamWriter? streamWriter;
-        static FileStream? fileStream;
+        #region Private Fields
+
+        private static FileStream? fileStream;
+        private static StreamWriter? streamWriter;
+
+        #endregion Private Fields
+
+        #region Public Methods
+
+        public static StreamWriter GetCurrentWriteStream()
+        {
+            if (streamWriter != null)
+            {
+                return streamWriter;
+            }
+            else
+            {
+                return new StreamWriter(Console.OpenStandardOutput());
+            }
+        }
 
         public static bool RedirectConsole(string outFile)
         {
@@ -20,18 +38,6 @@ namespace Microsoft.CST.OpenSource.Shared
             }
 
             return false;
-        }
-
-        public static StreamWriter GetCurrentWriteStream()
-        {
-            if (streamWriter != null)
-            {
-                return streamWriter;
-            }
-            else
-            {
-                return new StreamWriter(Console.OpenStandardOutput());
-            }
         }
 
         public static void RestoreConsole()
@@ -50,5 +56,7 @@ namespace Microsoft.CST.OpenSource.Shared
             fileStream = null;
             streamWriter = null;
         }
+
+        #endregion Public Methods
     }
 }

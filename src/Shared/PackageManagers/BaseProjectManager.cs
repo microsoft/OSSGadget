@@ -1,6 +1,8 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+using F23.StringSimilarity;
+using Microsoft.CST.OpenSource.RecursiveExtractor;
+using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -10,9 +12,6 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using F23.StringSimilarity;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.CST.OpenSource.RecursiveExtractor;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
@@ -50,12 +49,10 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         public string TopLevelExtractionDirectory { get; set; } = ".";
 
-        
         public virtual Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
         {
             throw new NotImplementedException("BaseProjectManager does not implement EnumerateVersions.");
         }
-
 
         /// <summary>
         /// Downloads a given PackageURL and extracts it locally to a directory.
@@ -78,8 +75,8 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// This method should return text reflecting metadata for the given package.
-        /// There is no assumed format.
+        /// This method should return text reflecting metadata for the given package. There is no
+        /// assumed format.
         /// </summary>
         /// <param name="purl">PackageURL to search</param>
         /// <returns>a string containing metadata.</returns>
@@ -88,11 +85,10 @@ namespace Microsoft.CST.OpenSource.Shared
             throw new NotImplementedException("BaseProjectManager does not implement GetMetadata.");
         }
 
-
         /// <summary>
-        /// Implemented by all package managers to search the metadata, and either
-        /// return a successful result for the package repository, or return a null 
-        /// in case of failure/nothing to do.
+        /// Implemented by all package managers to search the metadata, and either return a
+        /// successful result for the package repository, or return a null in case of
+        /// failure/nothing to do.
         /// </summary>
         /// <returns></returns>
         protected virtual Task<Dictionary<PackageURL, double>> PackageMetadataSearch(PackageURL purl, string metadata)
@@ -164,7 +160,7 @@ namespace Microsoft.CST.OpenSource.Shared
             Logger.Trace("GetHttpStringCache({0}, {1})", uri, useCache);
 
             string? resultString = null;
-            
+
             try
             {
                 if (useCache)
@@ -191,7 +187,8 @@ namespace Microsoft.CST.OpenSource.Shared
                         DataCache.Set<string>(uri, resultString, mce);
                     }
                 }
-            } catch(Exception)
+            }
+            catch (Exception)
             {
                 if (!neverThrow)
                 {
@@ -252,10 +249,10 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// Extracts an archive (given by 'bytes') into a directory named
-        /// 'directoryName', recursively, using RecursiveExtractor.
+        /// Extracts an archive (given by 'bytes') into a directory named 'directoryName',
+        /// recursively, using RecursiveExtractor.
         /// </summary>
-        /// <param name="directoryName"> directory to extract content into (within TopLevelExtractionDirectory)</param>
+        /// <param name="directoryName">directory to extract content into (within TopLevelExtractionDirectory)</param>
         /// <param name="bytes">bytes to extract (should be an archive file)</param>
         /// <returns></returns>
         public async Task<string> ExtractArchive(string directoryName, byte[] bytes, bool cached = false)
@@ -283,7 +280,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 // TODO: Does this prevent zip-slip?
                 foreach (var c in Path.GetInvalidPathChars())
                 {
-                    fullPath = fullPath.Replace(c, '-');    // ignore: lgtm [cs/string-concatenation-in-loop] 
+                    fullPath = fullPath.Replace(c, '-');    // ignore: lgtm [cs/string-concatenation-in-loop]
                 }
                 var filePathToWrite = Path.Combine(TopLevelExtractionDirectory, fullPath);
                 filePathToWrite = filePathToWrite.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
@@ -328,7 +325,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 (s) => new SemVer.Version(s, loose: true),
                 (s) => s
             };
-            
+
             // Iterate through each method we defined above.
             foreach (var method in methods)
             {
@@ -338,8 +335,8 @@ namespace Microsoft.CST.OpenSource.Shared
                     foreach (var version in versionList)
                     {
                         var verResult = method(version);
-                        // Make sure the method doesn't mangle the version
-                        // This is due to System.Version normalizalizing "0.01" to "0.1".
+                        // Make sure the method doesn't mangle the version This is due to
+                        // System.Version normalizalizing "0.01" to "0.1".
                         if (verResult != null && (verResult.ToString() ?? string.Empty).Equals(version))
                         {
                             objList.Add(verResult);
@@ -372,22 +369,22 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// Tries to find out the package repository from the metadata of the package.
-        /// Check with the specific package manager, if they have any specific extraction 
-        /// to do, w.r.t the metadata. If they found some package specific well defined metadata,
-        /// use that.
-        /// If that doesn't work, do a search across the metadata to find probable
-        /// source repository urls
+        /// Tries to find out the package repository from the metadata of the package. Check with
+        /// the specific package manager, if they have any specific extraction to do, w.r.t the
+        /// metadata. If they found some package specific well defined metadata, use that. If that
+        /// doesn't work, do a search across the metadata to find probable source repository urls
         /// </summary>
         /// <param name="purl">PackageURL to search</param>
-        /// <returns>A dictionary, mapping each possible repo source entry to its probability/empty dictionary</returns>
+        /// <returns>
+        /// A dictionary, mapping each possible repo source entry to its probability/empty dictionary
+        /// </returns>
         public async Task<Dictionary<PackageURL, double>> IdentifySourceRepository(PackageURL purl)
         {
             Logger.Trace("IdentifySourceRepository({0})", purl);
 
             var rawMetadataString = await GetMetadata(purl) ?? string.Empty;
             var sourceRepositoryMap = new Dictionary<PackageURL, double>();
-            
+
             // Check the specific PackageManager-specific implementation first
             try
             {
@@ -402,7 +399,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     return sourceRepositoryMap;
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Logger.Warn(ex, "Error searching package metadata for {0}: {1}", purl, ex.Message);
             }
@@ -439,17 +436,17 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 var baseScore = 0.8;     // Max confidence: 0.80
                 var levenshtein = new NormalizedLevenshtein();
-                
+
                 foreach (var group in sourceUrls.GroupBy(item => item))
                 {
-                    // the cumulative boosts should be < 0.2; otherwise it'd be an 1.0
-                    // score by Levenshtein distance
+                    // the cumulative boosts should be < 0.2; otherwise it'd be an 1.0 score by
+                    // Levenshtein distance
                     double similarityBoost = levenshtein.Similarity(purl.Name, group.Key.Name) * 0.0001;
-                    
-                    // give a similarly weighted boost based on the number of times a particular 
+
+                    // give a similarly weighted boost based on the number of times a particular
                     // candidate appear in the metadata
                     double countBoost = (double)(group.Count()) * 0.0001;
-                    
+
                     sourceRepositoryMap.Add(group.Key, baseScore + similarityBoost + countBoost);
                 }
             }

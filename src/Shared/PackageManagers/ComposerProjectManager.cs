@@ -1,5 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using System;
 using System.Collections.Generic;
@@ -9,20 +8,24 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
-    class ComposerProjectManager : BaseProjectManager
+    internal class ComposerProjectManager : BaseProjectManager
     {
+        #region Public Fields
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_COMPOSER_ENDPOINT = "https://repo.packagist.org";
+
+        #endregion Public Fields
+
+        #region Public Constructors
 
         public ComposerProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
         }
 
-        public override Uri GetPackageAbsoluteUri(PackageURL purl)
-        {
-            return new Uri($"{ENV_COMPOSER_ENDPOINT}/packages/{purl?.Namespace}/{purl?.Name}");
-            // TODO: Add version support
-        }
+        #endregion Public Constructors
+
+        #region Public Methods
 
         /// <summary>
         /// Download one Composer (PHP) package and extract it to the target directory.
@@ -37,7 +40,7 @@ namespace Microsoft.CST.OpenSource.Shared
             var packageVersion = purl?.Version;
             var downloadedPaths = new List<string>();
 
-            if (string.IsNullOrWhiteSpace(purl?.Namespace) || string.IsNullOrWhiteSpace(purl?.Name) || 
+            if (string.IsNullOrWhiteSpace(purl?.Namespace) || string.IsNullOrWhiteSpace(purl?.Name) ||
                 string.IsNullOrWhiteSpace(packageVersion))
             {
                 Logger.Error("Unable to download [{0} {1}]. Both must be defined.", packageName, packageVersion);
@@ -105,13 +108,13 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 return versionList;
             }
-            
+
             var packageName = $"{purl?.Namespace}/{purl?.Name}";
 
             try
             {
                 var doc = await GetJsonCache($"{ENV_COMPOSER_ENDPOINT}/p/{packageName}.json");
-                
+
                 foreach (var topObject in doc.RootElement.GetProperty("packages").EnumerateObject())
                 {
                     foreach (var versionObject in topObject.Value.EnumerateObject())
@@ -143,5 +146,13 @@ namespace Microsoft.CST.OpenSource.Shared
                 return null;
             }
         }
+
+        public override Uri GetPackageAbsoluteUri(PackageURL purl)
+        {
+            return new Uri($"{ENV_COMPOSER_ENDPOINT}/packages/{purl?.Namespace}/{purl?.Name}");
+            // TODO: Add version support
+        }
+
+        #endregion Public Methods
     }
 }

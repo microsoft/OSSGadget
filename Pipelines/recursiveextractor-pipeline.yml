@@ -18,6 +18,7 @@ pr:
     include:
     - Pipelines
     - src/RecursiveExtractor
+    - src/RecursiveExtractor.Tests
 
 stages:
 - stage: Test

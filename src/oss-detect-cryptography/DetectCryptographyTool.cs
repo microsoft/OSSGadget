@@ -22,17 +22,17 @@ namespace Microsoft.CST.OpenSource
     public class DetectCryptographyTool : OSSGadget
     {
         /// <summary>
-        /// Name of this tool.
+        ///     Name of this tool.
         /// </summary>
         private const string TOOL_NAME = "oss-detect-cryptography";
 
         /// <summary>
-        /// Holds the version string, from the assembly.
+        ///     Holds the version string, from the assembly.
         /// </summary>
         private static readonly string VERSION = typeof(DetectCryptographyTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
 
         /// <summary>
-        /// Command line options
+        ///     Command line options
         /// </summary>
         public Dictionary<string, object?> Options = new Dictionary<string, object?>()
         {
@@ -50,9 +50,9 @@ namespace Microsoft.CST.OpenSource
         };
 
         /// <summary>
-        /// Main entrypoint for the download program.
+        ///     Main entrypoint for the download program.
         /// </summary>
-        /// <param name="args">parameters passed in from the user</param>
+        /// <param name="args"> parameters passed in from the user </param>
         private static async Task Main(string[] args)
         {
             var detectCryptographyTool = new DetectCryptographyTool();
@@ -216,10 +216,10 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Analyze a package by downloading it first.
+        ///     Analyze a package by downloading it first.
         /// </summary>
-        /// <param name="purl">The package-url of the package to analyze.</param>
-        /// <returns>List of tags identified</returns>
+        /// <param name="purl"> The package-url of the package to analyze. </param>
+        /// <returns> List of tags identified </returns>
         public async Task<List<IssueRecord>> AnalyzePackage(PackageURL purl, string? targetDirectoryName, bool doCaching)
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
@@ -360,10 +360,10 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Analyzes a directory of files.
+        ///     Analyzes a directory of files.
         /// </summary>
-        /// <param name="directory">directory to analyze.</param>
-        /// <returns>List of tags identified</returns>
+        /// <param name="directory"> directory to analyze. </param>
+        /// <returns> List of tags identified </returns>
         public async Task<List<IssueRecord>> AnalyzeDirectory(string directory)
         {
             Logger.Trace("AnalyzeDirectory({0})", directory);
@@ -509,11 +509,11 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Calculates the density of cryptographic operators within the buffer.
+        ///     Calculates the density of cryptographic operators within the buffer.
         /// </summary>
-        /// <param name="buffer">Buffer to analyze</param>
-        /// <param name="windowSize">Size of the window to use</param>
-        /// <returns>Ratio (0-1) of the most dense windowSize characters of the buffer.</returns>
+        /// <param name="buffer"> Buffer to analyze </param>
+        /// <param name="windowSize"> Size of the window to use </param>
+        /// <returns> Ratio (0-1) of the most dense windowSize characters of the buffer. </returns>
         private double CalculateCryptoOpDensity(string buffer, int windowSize = 50)
         {
             Logger.Trace("CalculateCryptoOpDensity()");
@@ -540,8 +540,8 @@ namespace Microsoft.CST.OpenSource
             windowSize = windowSize >= buffer.Length ? buffer.Length : windowSize;
             windowSize = windowSize <= 0 ? 50 : windowSize;
 
-            // This is a horrible regular expression, but the intent is to capture symbol characters
-            // that probably mean something within cryptographic code, but not within other code.
+            // This is a horrible regular expression, but the intent is to capture symbol characters that
+            // probably mean something within cryptographic code, but not within other code.
             var cryptoChars = new Regex("(?<=[a-z0-9_])\\^=?(?=[a-z_])|(?<=[a-z0-9_])(>{2,3}|<{2,3})=?(?=[a-z0-9])|(?<=[a-z0-9_])([&^~|])=?(?=[a-z0-9])", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
             // We report on the highest ratio of symbol to total characters
@@ -564,11 +564,11 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Extract unique strings (alphabetic) from a string
-        /// TODO: This is ASCII-only.
+        ///     Extract unique strings (alphabetic) from a string
+        ///     TODO: This is ASCII-only.
         /// </summary>
-        /// <param name="buffer">string to scan</param>
-        /// <returns>unique strings</returns>
+        /// <param name="buffer"> string to scan </param>
+        /// <returns> unique strings </returns>
         private IEnumerable<string> UniqueStringsFromBinary(byte[] buffer)
         {
             var bufferString = Encoding.ASCII.GetString(buffer);
@@ -577,9 +577,9 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Parses options for this program.
+        ///     Parses options for this program.
         /// </summary>
-        /// <param name="args">arguments (passed in from the user)</param>
+        /// <param name="args"> arguments (passed in from the user) </param>
         private void ParseOptions(string[] args)
         {
             if (args == null)
@@ -635,7 +635,7 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Displays usage information for the program.
+        ///     Displays usage information for the program.
         /// </summary>
         private static void ShowUsage()
         {

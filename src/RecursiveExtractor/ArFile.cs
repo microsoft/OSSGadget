@@ -13,16 +13,8 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
 
     public static class ArFile
     {
-        #region Private Fields
-
-        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
-
-        #endregion Private Fields
-
-        #region Public Methods
-
-        // Simple method which returns a the file entries. We can't make this a continuation because
-        // we're using spans.
+        // Simple method which returns a the file entries. We can't make this a continuation because we're
+        // using spans.
         public static IEnumerable<FileEntry> GetFileEntries(FileEntry fileEntry)
         {
             if (fileEntry == null)
@@ -49,8 +41,8 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                     // Header with list of file names
                     if (filename.StartsWith("//"))
                     {
-                        // This should just be a list of names, size should be safe to load in
-                        // memory and cast to int
+                        // This should just be a list of names, size should be safe to load in memory and cast
+                        // to int
                         var fileNamesBytes = new byte[size];
                         fileEntry.Content.Read(fileNamesBytes, 0, (int)size);
 
@@ -94,8 +86,8 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                     else if (filename.Equals('/'))
                     {
                         // System V symbol lookup table N = 32 bit big endian integers (entries in
-                        // table) then N 32 bit big endian integers representing prositions in
-                        // archive then N \0 terminated strings "symbol name" (possibly filename)
+                        // table) then N 32 bit big endian integers representing prositions in archive then N
+                        // \0 terminated strings "symbol name" (possibly filename)
 
                         var tableContents = new Span<byte>(new byte[size]);
                         fileEntry.Content.Read(tableContents);
@@ -159,10 +151,10 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                     }
                     else if (filename.Equals("/SYM64/"))
                     {
-                        // https://en.wikipedia.org/wiki/Ar_(Unix)#System_V_(or_GNU)_variant GNU
-                        // lookup table (archives larger than 4GB) N = 64 bit big endian integers
-                        // (entries in table) then N 64 bit big endian integers representing
-                        // positions in archive then N \0 terminated strings "symbol name" (possibly filename)
+                        // https://en.wikipedia.org/wiki/Ar_(Unix)#System_V_(or_GNU)_variant GNU lookup table
+                        // (archives larger than 4GB) N = 64 bit big endian integers (entries in table) then N
+                        // 64 bit big endian integers representing positions in archive then N \0 terminated
+                        // strings "symbol name" (possibly filename)
 
                         var buffer = new byte[8];
                         fileEntry.Content.Read(buffer, 0, 8);
@@ -291,10 +283,6 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
             return -1;
         }
 
-        #endregion Public Methods
-
-        #region Internal Methods
-
         internal static void CopyStreamBytes(Stream input, Stream output, long bytes)
         {
             byte[] buffer = new byte[32768];
@@ -307,6 +295,6 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
             }
         }
 
-        #endregion Internal Methods
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
     }
 }

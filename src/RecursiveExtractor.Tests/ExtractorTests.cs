@@ -13,14 +13,6 @@ namespace Microsoft.CST.OpenSource.Tests
     [TestClass]
     public class ExtractorTests
     {
-        #region Protected Fields
-
-        protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
-
-        #endregion Protected Fields
-
-        #region Public Methods
-
         [DataTestMethod]
         [DataRow("Shared.zip", false)]
         [DataRow("Shared.zip", true)]
@@ -156,6 +148,6 @@ namespace Microsoft.CST.OpenSource.Tests
             Assert.Fail();
         }
 
-        #endregion Public Methods
+        protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
     }
 }

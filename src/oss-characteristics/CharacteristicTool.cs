@@ -15,10 +15,8 @@ namespace Microsoft.CST.OpenSource
 {
     public class CharacteristicTool : OSSGadget
     {
-        #region Public Fields
-
         /// <summary>
-        /// Command line options
+        ///     Command line options
         /// </summary>
         public Dictionary<string, object?> Options = new Dictionary<string, object?>()
         {
@@ -31,37 +29,15 @@ namespace Microsoft.CST.OpenSource
             { "output-file", null }
         };
 
-        #endregion Public Fields
-
-        #region Private Fields
-
-        /// <summary>
-        /// Name of this tool.
-        /// </summary>
-        private const string TOOL_NAME = "oss-characteristic";
-
-        /// <summary>
-        /// Holds the version string, from the assembly.
-        /// </summary>
-        private static readonly string VERSION = typeof(CharacteristicTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
-
-        #endregion Private Fields
-
-        #region Public Constructors
-
         public CharacteristicTool() : base()
         {
         }
 
-        #endregion Public Constructors
-
-        #region Public Methods
-
         /// <summary>
-        /// Analyzes a directory of files.
+        ///     Analyzes a directory of files.
         /// </summary>
-        /// <param name="directory">directory to analyze.</param>
-        /// <returns>List of tags identified</returns>
+        /// <param name="directory"> directory to analyze. </param>
+        /// <returns> List of tags identified </returns>
         public async Task<AnalyzeResult?> AnalyzeDirectory(string directory)
         {
             Logger?.Trace("AnalyzeDirectory({0})", directory);
@@ -93,10 +69,10 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Analyze a package by downloading it first.
+        ///     Analyze a package by downloading it first.
         /// </summary>
-        /// <param name="purl">The package-url of the package to analyze.</param>
-        /// <returns>List of tags identified</returns>
+        /// <param name="purl"> The package-url of the package to analyze. </param>
+        /// <returns> List of tags identified </returns>
         public async Task<Dictionary<string, AnalyzeResult?>> AnalyzePackage(PackageURL purl,
             string? targetDirectoryName,
             bool doCaching)
@@ -126,16 +102,22 @@ namespace Microsoft.CST.OpenSource
             return analysisResults;
         }
 
-        #endregion Public Methods
-
-        #region Private Methods
+        /// <summary>
+        ///     Name of this tool.
+        /// </summary>
+        private const string TOOL_NAME = "oss-characteristic";
 
         /// <summary>
-        /// Build and return a list of Sarif Result list from the find characterstics results
+        ///     Holds the version string, from the assembly.
         /// </summary>
-        /// <param name="purl"></param>
-        /// <param name="results"></param>
-        /// <returns></returns>
+        private static readonly string VERSION = typeof(CharacteristicTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
+
+        /// <summary>
+        ///     Build and return a list of Sarif Result list from the find characterstics results
+        /// </summary>
+        /// <param name="purl"> </param>
+        /// <param name="results"> </param>
+        /// <returns> </returns>
         private static List<SarifResult> GetSarifResults(PackageURL purl, Dictionary<string, AnalyzeResult?> analysisResult)
         {
             List<SarifResult> sarifResults = new List<SarifResult>();
@@ -170,10 +152,10 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Convert charactersticTool results into text format
+        ///     Convert charactersticTool results into text format
         /// </summary>
-        /// <param name="results"></param>
-        /// <returns></returns>
+        /// <param name="results"> </param>
+        /// <returns> </returns>
         private static string GetTextResults(PackageURL purl, Dictionary<string, AnalyzeResult?> analysisResult)
         {
             StringBuilder stringOutput = new StringBuilder();
@@ -197,9 +179,9 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Main entrypoint for the download program.
+        ///     Main entrypoint for the download program.
         /// </summary>
-        /// <param name="args">parameters passed in from the user</param>
+        /// <param name="args"> parameters passed in from the user </param>
         private static void Main(string[] args)
         {
             var characteristicTool = new CharacteristicTool();
@@ -264,7 +246,7 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Displays usage information for the program.
+        ///     Displays usage information for the program.
         /// </summary>
         private static void ShowUsage()
         {
@@ -291,11 +273,11 @@ optional arguments:
         }
 
         /// <summary>
-        /// Convert charactersticTool results into output format
+        ///     Convert charactersticTool results into output format
         /// </summary>
-        /// <param name="outputBuilder"></param>
-        /// <param name="purl"></param>
-        /// <param name="results"></param>
+        /// <param name="outputBuilder"> </param>
+        /// <param name="purl"> </param>
+        /// <param name="results"> </param>
         private void AppendOutput(OutputBuilder outputBuilder, PackageURL purl, Dictionary<string, AnalyzeResult?> analysisResults)
         {
             if (outputBuilder.isTextFormat())
@@ -309,9 +291,9 @@ optional arguments:
         }
 
         /// <summary>
-        /// Parses options for this program.
+        ///     Parses options for this program.
         /// </summary>
-        /// <param name="args">arguments (passed in from the user)</param>
+        /// <param name="args"> arguments (passed in from the user) </param>
         private void ParseOptions(string[] args)
         {
             if (args == null)
@@ -367,7 +349,5 @@ optional arguments:
                 }
             }
         }
-
-        #endregion Private Methods
     }
 }

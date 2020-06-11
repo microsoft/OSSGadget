@@ -12,58 +12,19 @@ namespace Microsoft.CST.OpenSource.Shared
 {
     internal class GitHubProjectManager : BaseProjectManager
     {
-        #region Public Fields
-
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_GITHUB_ENDPOINT = "https://github.com";
-
-        #endregion Public Fields
-
-        #region Private Fields
-
-        private static readonly Regex GithubExtractorRegex = new Regex(
-                    @"((?<protocol>https?|git|ssh|rsync)\+?)+\://" +
-                    @"(?:(?<username>[\w-]+)@)*" +
-                    @"(github\.com)" +
-                    @"[:/]*" +
-                    @"(?<port>[\d]+){0,1}" +
-                    @"\/(?<user>[\w-]+)" +
-                    @"\/(?<repo>[\w-]+)\/?",
-                        RegexOptions.Compiled);
-
-        /// <summary>
-        /// Regular expression that matches possible GitHub URLs
-        /// </summary>
-        private static readonly Regex GithubMatchRegex = new Regex(
-            @"^((?<protocol>https?|git|ssh|rsync)\+?)+\://" +
-            @"(?:(?<user>.+)@)*" +
-            @"(?<resource>[a-z0-9_.-]*)" +
-            @"[:/]*" +
-            @"(?<port>[\d]+){0,1}" +
-            @"(?<pathname>\/((?<namespace>[\w\-]+)\/)" +
-            @"(?<subpath>[\w\-]+\/)*" +
-            @"((?<name>[\w\-\.]+?)(\.git|\/)?)?)$",
-                RegexOptions.Singleline | RegexOptions.Compiled);
-
-        #endregion Private Fields
-
-        #region Public Constructors
 
         public GitHubProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
         }
 
-        #endregion Public Constructors
-
-        #region Public Methods
-
         /// <summary>
-        /// Return all github repo patterns in the searchText which have the same name as the
-        /// package repo
+        ///     Return all github repo patterns in the searchText which have the same name as the package repo
         /// </summary>
-        /// <param name="purl"></param>
-        /// <param name="searchText"></param>
-        /// <returns></returns>
+        /// <param name="purl"> </param>
+        /// <param name="searchText"> </param>
+        /// <returns> </returns>
         public static IEnumerable<PackageURL> ExtractGitHubUris(PackageURL purl, string searchText)
         {
             List<PackageURL> repositoryList = new List<PackageURL>();
@@ -102,10 +63,10 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// Download one GitHub package and extract it to the target directory.
+        ///     Download one GitHub package and extract it to the target directory.
         /// </summary>
-        /// <param name="purl">Package URL of the package to download.</param>
-        /// <returns>n/a</returns>
+        /// <param name="purl"> Package URL of the package to download. </param>
+        /// <returns> n/a </returns>
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             var downloadedPaths = new List<string>();
@@ -212,6 +173,28 @@ namespace Microsoft.CST.OpenSource.Shared
             return new Uri($"{ENV_GITHUB_ENDPOINT}/{purl.Namespace}/{purl.Name}");
         }
 
-        #endregion Public Methods
+        private static readonly Regex GithubExtractorRegex = new Regex(
+                                                                            @"((?<protocol>https?|git|ssh|rsync)\+?)+\://" +
+                    @"(?:(?<username>[\w-]+)@)*" +
+                    @"(github\.com)" +
+                    @"[:/]*" +
+                    @"(?<port>[\d]+){0,1}" +
+                    @"\/(?<user>[\w-]+)" +
+                    @"\/(?<repo>[\w-]+)\/?",
+                        RegexOptions.Compiled);
+
+        /// <summary>
+        ///     Regular expression that matches possible GitHub URLs
+        /// </summary>
+        private static readonly Regex GithubMatchRegex = new Regex(
+            @"^((?<protocol>https?|git|ssh|rsync)\+?)+\://" +
+            @"(?:(?<user>.+)@)*" +
+            @"(?<resource>[a-z0-9_.-]*)" +
+            @"[:/]*" +
+            @"(?<port>[\d]+){0,1}" +
+            @"(?<pathname>\/((?<namespace>[\w\-]+)\/)" +
+            @"(?<subpath>[\w\-]+\/)*" +
+            @"((?<name>[\w\-\.]+?)(\.git|\/)?)?)$",
+                RegexOptions.Singleline | RegexOptions.Compiled);
     }
 }

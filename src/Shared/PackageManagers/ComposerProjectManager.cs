@@ -10,28 +10,18 @@ namespace Microsoft.CST.OpenSource.Shared
 {
     internal class ComposerProjectManager : BaseProjectManager
     {
-        #region Public Fields
-
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_COMPOSER_ENDPOINT = "https://repo.packagist.org";
-
-        #endregion Public Fields
-
-        #region Public Constructors
 
         public ComposerProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
         }
 
-        #endregion Public Constructors
-
-        #region Public Methods
-
         /// <summary>
-        /// Download one Composer (PHP) package and extract it to the target directory.
+        ///     Download one Composer (PHP) package and extract it to the target directory.
         /// </summary>
-        /// <param name="purl">Package URL of the package to download.</param>
-        /// <returns>n/a</returns>
+        /// <param name="purl"> Package URL of the package to download. </param>
+        /// <returns> n/a </returns>
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
@@ -152,7 +142,5 @@ namespace Microsoft.CST.OpenSource.Shared
             return new Uri($"{ENV_COMPOSER_ENDPOINT}/packages/{purl?.Namespace}/{purl?.Name}");
             // TODO: Add version support
         }
-
-        #endregion Public Methods
     }
 }

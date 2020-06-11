@@ -11,28 +11,18 @@ namespace Microsoft.CST.OpenSource.Shared
 {
     internal class PyPIProjectManager : BaseProjectManager
     {
-        #region Public Fields
-
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_PYPI_ENDPOINT = "https://pypi.org";
-
-        #endregion Public Fields
-
-        #region Public Constructors
 
         public PyPIProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
         }
 
-        #endregion Public Constructors
-
-        #region Public Methods
-
         /// <summary>
-        /// Download one PyPI package and extract it to the target directory.
+        ///     Download one PyPI package and extract it to the target directory.
         /// </summary>
-        /// <param name="purl">Package URL of the package to download.</param>
-        /// <returns>the path or file written.</returns>
+        /// <param name="purl"> Package URL of the package to download. </param>
+        /// <returns> the path or file written. </returns>
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
@@ -154,10 +144,6 @@ namespace Microsoft.CST.OpenSource.Shared
             return new Uri($"{ENV_PYPI_ENDPOINT}/project/{purl?.Name}");
         }
 
-        #endregion Public Methods
-
-        #region Protected Methods
-
         protected async override Task<Dictionary<PackageURL, double>> PackageMetadataSearch(PackageURL purl, string metadata)
         {
             var mapping = new Dictionary<PackageURL, double>();
@@ -205,7 +191,5 @@ namespace Microsoft.CST.OpenSource.Shared
 
             return mapping;
         }
-
-        #endregion Protected Methods
     }
 }

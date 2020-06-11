@@ -32,10 +32,10 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// Download one Cocoapods package and extract it to the target directory.
+        ///     Download one Cocoapods package and extract it to the target directory.
         /// </summary>
-        /// <param name="purl">Package URL of the package to download.</param>
-        /// <returns>n/a</returns>
+        /// <param name="purl"> Package URL of the package to download. </param>
+        /// <returns> n/a </returns>
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
@@ -147,8 +147,8 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             var packageNameBytes = Encoding.UTF8.GetBytes(packageName);
 
-            // The Cocoapods standard uses MD5(project name) as a prefix for sharing. There is no
-            // security issue here, but we cannot use another algorithm.
+            // The Cocoapods standard uses MD5(project name) as a prefix for sharing. There is no security
+            // issue here, but we cannot use another algorithm.
 #pragma warning disable SCS0006, CA5351, CA1308 // Weak hash, ToLowerInvarant()
             using var hashAlgorithm = MD5.Create();
 

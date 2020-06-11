@@ -11,8 +11,6 @@ namespace Microsoft.CST.OpenSource.Tests
     [TestClass]
     public class DetectCryptographyTests
     {
-        #region Public Methods
-
         [DataTestMethod]
         [DataRow("pkg:npm/blake2", "Cryptography.Implementation.Hash.Blake", "Cryptography.Implementation.Hash.Blake2", "Cryptography.Implementation.Hash.JH", "Cryptography.Implementation.Hash.SHA-512")]
         [DataRow("pkg:npm/blake3", "Cryptography.Implementation.Hash.Blake3", "Cryptography.Implementation.Hash.SHA-512")]
@@ -27,10 +25,6 @@ namespace Microsoft.CST.OpenSource.Tests
         {
             await TestDetectCryptography(purl, expectedTags);
         }
-
-        #endregion Public Methods
-
-        #region Private Methods
 
         private async Task TestDetectCryptography(string purl, params string[] expectedTags)
         {
@@ -52,7 +46,5 @@ namespace Microsoft.CST.OpenSource.Tests
                 Assert.Fail("Unexpected findings: {0}", string.Join(", ", distinctFindings.Except(distinctTargets)));
             }
         }
-
-        #endregion Private Methods
     }
 }

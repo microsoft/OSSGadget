@@ -11,35 +11,18 @@ namespace Microsoft.CST.OpenSource.Shared
 {
     internal class NuGetProjectManager : BaseProjectManager
     {
-        #region Public Fields
-
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_NUGET_ENDPOINT_API = "https://api.nuget.org";
-
-        #endregion Public Fields
-
-        #region Private Fields
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        private static string ENV_NUGET_HOMEPAGE = "https://www.nuget.org/packages";
-
-        #endregion Private Fields
-
-        #region Public Constructors
 
         public NuGetProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
         }
 
-        #endregion Public Constructors
-
-        #region Public Methods
-
         /// <summary>
-        /// Download one NuGet package and extract it to the target directory.
+        ///     Download one NuGet package and extract it to the target directory.
         /// </summary>
-        /// <param name="purl">Package URL of the package to download.</param>
-        /// <returns>n/a</returns>
+        /// <param name="purl"> Package URL of the package to download. </param>
+        /// <returns> n/a </returns>
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
@@ -140,10 +123,6 @@ namespace Microsoft.CST.OpenSource.Shared
             return new Uri($"{ENV_NUGET_HOMEPAGE}/{purl?.Name}");
         }
 
-        #endregion Public Methods
-
-        #region Protected Methods
-
         protected async override Task<Dictionary<PackageURL, double>> PackageMetadataSearch(PackageURL purl, string metadata)
         {
             Dictionary<PackageURL, double> mapping = new Dictionary<PackageURL, double>();
@@ -151,8 +130,8 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 var packageName = purl.Name;
 
-                // nuget doesnt provide repository information in the json metadata; we have to
-                // extract it from the html home page
+                // nuget doesnt provide repository information in the json metadata; we have to extract it
+                // from the html home page
                 HtmlWeb web = new HtmlWeb();
                 HtmlDocument doc = web.Load($"{ENV_NUGET_HOMEPAGE}/{packageName}");
 
@@ -183,6 +162,7 @@ namespace Microsoft.CST.OpenSource.Shared
             return mapping;
         }
 
-        #endregion Protected Methods
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
+        private static string ENV_NUGET_HOMEPAGE = "https://www.nuget.org/packages";
     }
 }

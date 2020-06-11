@@ -12,8 +12,6 @@ namespace Microsoft.CST.OpenSource.Tests
     [TestClass]
     public class FindSourceTests
     {
-        #region Public Methods
-
         [DataTestMethod]
         [DataRow("pkg:npm/md5", "https://github.com/pvorb/node-md5")]
         public async Task Check_Sarif(string purl, string targetResult)
@@ -90,7 +88,5 @@ namespace Microsoft.CST.OpenSource.Tests
             }
             Assert.IsTrue(success, $"Result {targetResult} not found from {purl}");
         }
-
-        #endregion Public Methods
     }
 }

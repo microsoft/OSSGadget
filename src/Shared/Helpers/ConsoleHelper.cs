@@ -5,15 +5,6 @@ namespace Microsoft.CST.OpenSource.Shared
 {
     public class ConsoleHelper
     {
-        #region Private Fields
-
-        private static FileStream? fileStream;
-        private static StreamWriter? streamWriter;
-
-        #endregion Private Fields
-
-        #region Public Methods
-
         public static StreamWriter GetCurrentWriteStream()
         {
             if (streamWriter != null)
@@ -57,6 +48,7 @@ namespace Microsoft.CST.OpenSource.Shared
             streamWriter = null;
         }
 
-        #endregion Public Methods
+        private static FileStream? fileStream;
+        private static StreamWriter? streamWriter;
     }
 }

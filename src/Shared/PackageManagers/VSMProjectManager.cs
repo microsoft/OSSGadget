@@ -14,28 +14,18 @@ namespace Microsoft.CST.OpenSource.Shared
 {
     internal class VSMProjectManager : BaseProjectManager
     {
-        #region Public Fields
-
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_VS_MARKETPLACE_ENDPOINT = "https://marketplace.visualstudio.com";
-
-        #endregion Public Fields
-
-        #region Public Constructors
 
         public VSMProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
         }
 
-        #endregion Public Constructors
-
-        #region Public Methods
-
         /// <summary>
-        /// Download one VS Marketplace package and extract it to the target directory.
+        ///     Download one VS Marketplace package and extract it to the target directory.
         /// </summary>
-        /// <param name="purl">Package URL of the package to download.</param>
-        /// <returns>the path or file written.</returns>
+        /// <param name="purl"> Package URL of the package to download. </param>
+        /// <returns> the path or file written. </returns>
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
@@ -265,10 +255,6 @@ namespace Microsoft.CST.OpenSource.Shared
             return new Uri($"{ENV_VS_MARKETPLACE_ENDPOINT}/items/itemName={purl?.Name}");
         }
 
-        #endregion Public Methods
-
-        #region Private Methods
-
         private static string? GetCache(string key)
         {
             string? result = null;
@@ -287,7 +273,5 @@ namespace Microsoft.CST.OpenSource.Shared
                 DataCache.Set<string>($"vsm__{key}", value, mce);
             }
         }
-
-        #endregion Private Methods
     }
 }

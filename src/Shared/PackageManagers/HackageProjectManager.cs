@@ -11,28 +11,18 @@ namespace Microsoft.CST.OpenSource.Shared
 {
     internal class HackageProjectManager : BaseProjectManager
     {
-        #region Public Fields
-
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_HACKAGE_ENDPOINT = "https://hackage.haskell.org";
-
-        #endregion Public Fields
-
-        #region Public Constructors
 
         public HackageProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
         }
 
-        #endregion Public Constructors
-
-        #region Public Methods
-
         /// <summary>
-        /// Download one Hackage (Haskell) package and extract it to the target directory.
+        ///     Download one Hackage (Haskell) package and extract it to the target directory.
         /// </summary>
-        /// <param name="purl">Package URL of the package to download.</param>
-        /// <returns>n/a</returns>
+        /// <param name="purl"> Package URL of the package to download. </param>
+        /// <returns> n/a </returns>
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
@@ -138,7 +128,5 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             return new Uri($"{ENV_HACKAGE_ENDPOINT}/package/{purl?.Name}");
         }
-
-        #endregion Public Methods
     }
 }

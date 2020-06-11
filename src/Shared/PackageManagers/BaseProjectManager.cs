@@ -18,19 +18,19 @@ namespace Microsoft.CST.OpenSource.Shared
     public class BaseProjectManager
     {
         /// <summary>
-        /// Static HttpClient for use in all HTTP connections.
+        ///     Static HttpClient for use in all HTTP connections.
         /// </summary>
 #pragma warning disable CS8618 // Non-nullable field is uninitialized. Not actually uninitialized. False positive.
         protected static HttpClient WebClient;
 #pragma warning restore CS8618
 
         /// <summary>
-        /// Logger for each of the subclasses
+        ///     Logger for each of the subclasses
         /// </summary>
         protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
         /// <summary>
-        /// Protected memory cache to make subsequent loads of the same URL fast and transparent.
+        ///     Protected memory cache to make subsequent loads of the same URL fast and transparent.
         /// </summary>
         protected static readonly MemoryCache DataCache = new MemoryCache(
             new MemoryCacheOptions
@@ -40,12 +40,12 @@ namespace Microsoft.CST.OpenSource.Shared
         );
 
         /// <summary>
-        /// Per-object option container.
+        ///     Per-object option container.
         /// </summary>
         public Dictionary<string, object> Options { get; private set; }
 
         /// <summary>
-        /// The location (directory) to extract files to.
+        ///     The location (directory) to extract files to.
         /// </summary>
         public string TopLevelExtractionDirectory { get; set; } = ".";
 
@@ -55,49 +55,47 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// Downloads a given PackageURL and extracts it locally to a directory.
+        ///     Downloads a given PackageURL and extracts it locally to a directory.
         /// </summary>
-        /// <param name="purl">PackageURL to download</param>
-        /// <returns>Paths (either files or directory names) pertaining to the downloaded files.</returns>
+        /// <param name="purl"> PackageURL to download </param>
+        /// <returns> Paths (either files or directory names) pertaining to the downloaded files. </returns>
         public virtual Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             throw new NotImplementedException("BaseProjectManager does not implement DownloadVersion.");
         }
 
         /// <summary>
-        /// Get the uri for the package home page (no version)
+        ///     Get the uri for the package home page (no version)
         /// </summary>
-        /// <param name="purl"></param>
-        /// <returns></returns>
+        /// <param name="purl"> </param>
+        /// <returns> </returns>
         public virtual Uri? GetPackageAbsoluteUri(PackageURL purl)
         {
             throw new NotImplementedException("BaseProjectManager does not implement GetPackageAbsoluteUri.");
         }
 
         /// <summary>
-        /// This method should return text reflecting metadata for the given package. There is no
-        /// assumed format.
+        ///     This method should return text reflecting metadata for the given package. There is no assumed format.
         /// </summary>
-        /// <param name="purl">PackageURL to search</param>
-        /// <returns>a string containing metadata.</returns>
+        /// <param name="purl"> PackageURL to search </param>
+        /// <returns> a string containing metadata. </returns>
         public virtual Task<string?> GetMetadata(PackageURL purl)
         {
             throw new NotImplementedException("BaseProjectManager does not implement GetMetadata.");
         }
 
         /// <summary>
-        /// Implemented by all package managers to search the metadata, and either return a
-        /// successful result for the package repository, or return a null in case of
-        /// failure/nothing to do.
+        ///     Implemented by all package managers to search the metadata, and either return a successful
+        ///     result for the package repository, or return a null in case of failure/nothing to do.
         /// </summary>
-        /// <returns></returns>
+        /// <returns> </returns>
         protected virtual Task<Dictionary<PackageURL, double>> PackageMetadataSearch(PackageURL purl, string metadata)
         {
             return Task.FromResult(new Dictionary<PackageURL, double>());
         }
 
         /// <summary>
-        /// Initializes a new project management object.
+        ///     Initializes a new project management object.
         /// </summary>
         public BaseProjectManager(string destinationDirectory)
         {
@@ -116,10 +114,10 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// Retrieves JSON content from a given URI.
+        ///     Retrieves JSON content from a given URI.
         /// </summary>
-        /// <param name="uri">URI to load.</param>
-        /// <returns>Content, as a JsonDocument, possibly from cache.</returns>
+        /// <param name="uri"> URI to load. </param>
+        /// <returns> Content, as a JsonDocument, possibly from cache. </returns>
         public static async Task<JsonDocument> GetJsonCache(string uri, bool useCache = true)
         {
             Logger.Trace("GetJsonCache({0}, {1})", uri, useCache);
@@ -151,10 +149,10 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// Retrieves HTTP content from a given URI.
+        ///     Retrieves HTTP content from a given URI.
         /// </summary>
-        /// <param name="uri">URI to load.</param>
-        /// <returns></returns>
+        /// <param name="uri"> URI to load. </param>
+        /// <returns> </returns>
         public static async Task<string?> GetHttpStringCache(string uri, bool useCache = true, bool neverThrow = false)
         {
             Logger.Trace("GetHttpStringCache({0}, {1})", uri, useCache);
@@ -200,10 +198,10 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// Extracts GitHub URLs from a given piece of text.
+        ///     Extracts GitHub URLs from a given piece of text.
         /// </summary>
-        /// <param name="content">text to analyze</param>
-        /// <returns>PackageURLs (type=GitHub) located in the text.</returns>
+        /// <param name="content"> text to analyze </param>
+        /// <returns> PackageURLs (type=GitHub) located in the text. </returns>
         public static IEnumerable<PackageURL> ExtractGitHubPackageURLs(string content)
         {
             Logger.Trace("ExtractGitHubPackageURLs({0})", content?.Substring(0, 30));
@@ -249,12 +247,12 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// Extracts an archive (given by 'bytes') into a directory named 'directoryName',
-        /// recursively, using RecursiveExtractor.
+        ///     Extracts an archive (given by 'bytes') into a directory named 'directoryName', recursively,
+        ///     using RecursiveExtractor.
         /// </summary>
-        /// <param name="directoryName">directory to extract content into (within TopLevelExtractionDirectory)</param>
-        /// <param name="bytes">bytes to extract (should be an archive file)</param>
-        /// <returns></returns>
+        /// <param name="directoryName"> directory to extract content into (within TopLevelExtractionDirectory) </param>
+        /// <param name="bytes"> bytes to extract (should be an archive file) </param>
+        /// <returns> </returns>
         public async Task<string> ExtractArchive(string directoryName, byte[] bytes, bool cached = false)
         {
             Logger.Trace("ExtractArchive({0}, <bytes> len={1})", directoryName, bytes.Length);
@@ -299,10 +297,10 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// Sort a collection of version strings, trying multiple ways.
+        ///     Sort a collection of version strings, trying multiple ways.
         /// </summary>
-        /// <param name="versionList">list of version strings</param>
-        /// <returns>list of version strings, in sorted order</returns>
+        /// <param name="versionList"> list of version strings </param>
+        /// <returns> list of version strings, in sorted order </returns>
         public static IEnumerable<string> SortVersions(IEnumerable<string> versionList)
         {
             // Scrub the version list
@@ -335,8 +333,8 @@ namespace Microsoft.CST.OpenSource.Shared
                     foreach (var version in versionList)
                     {
                         var verResult = method(version);
-                        // Make sure the method doesn't mangle the version This is due to
-                        // System.Version normalizalizing "0.01" to "0.1".
+                        // Make sure the method doesn't mangle the version This is due to System.Version
+                        // normalizalizing "0.01" to "0.1".
                         if (verResult != null && (verResult.ToString() ?? string.Empty).Equals(version))
                         {
                             objList.Add(verResult);
@@ -369,14 +367,14 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// Tries to find out the package repository from the metadata of the package. Check with
-        /// the specific package manager, if they have any specific extraction to do, w.r.t the
-        /// metadata. If they found some package specific well defined metadata, use that. If that
-        /// doesn't work, do a search across the metadata to find probable source repository urls
+        ///     Tries to find out the package repository from the metadata of the package. Check with the
+        ///     specific package manager, if they have any specific extraction to do, w.r.t the metadata. If
+        ///     they found some package specific well defined metadata, use that. If that doesn't work, do a
+        ///     search across the metadata to find probable source repository urls
         /// </summary>
-        /// <param name="purl">PackageURL to search</param>
+        /// <param name="purl"> PackageURL to search </param>
         /// <returns>
-        /// A dictionary, mapping each possible repo source entry to its probability/empty dictionary
+        ///     A dictionary, mapping each possible repo source entry to its probability/empty dictionary
         /// </returns>
         public async Task<Dictionary<PackageURL, double>> IdentifySourceRepository(PackageURL purl)
         {
@@ -414,11 +412,11 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// Rank the source repo entry candidates by their edit distance.
+        ///     Rank the source repo entry candidates by their edit distance.
         /// </summary>
-        /// <param name="purl">the package</param>
-        /// <param name="rawMetadataString">metadata of the package</param>
-        /// <returns>Possible candidates of the package/empty dictionary</returns>
+        /// <param name="purl"> the package </param>
+        /// <param name="rawMetadataString"> metadata of the package </param>
+        /// <returns> Possible candidates of the package/empty dictionary </returns>
         protected Dictionary<PackageURL, double> ExtractRankedSourceRepositories(PackageURL purl, string rawMetadataString)
         {
             Logger.Trace("ExtractRankedSourceRepositories({0})", purl);
@@ -439,12 +437,11 @@ namespace Microsoft.CST.OpenSource.Shared
 
                 foreach (var group in sourceUrls.GroupBy(item => item))
                 {
-                    // the cumulative boosts should be < 0.2; otherwise it'd be an 1.0 score by
-                    // Levenshtein distance
+                    // the cumulative boosts should be < 0.2; otherwise it'd be an 1.0 score by Levenshtein distance
                     double similarityBoost = levenshtein.Similarity(purl.Name, group.Key.Name) * 0.0001;
 
-                    // give a similarly weighted boost based on the number of times a particular
-                    // candidate appear in the metadata
+                    // give a similarly weighted boost based on the number of times a particular candidate
+                    // appear in the metadata
                     double countBoost = (double)(group.Count()) * 0.0001;
 
                     sourceRepositoryMap.Add(group.Key, baseScore + similarityBoost + countBoost);

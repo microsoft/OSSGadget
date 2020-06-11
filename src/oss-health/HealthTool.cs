@@ -12,39 +12,9 @@ namespace Microsoft.CST.OpenSource
 {
     public class HealthTool : OSSGadget
     {
-        #region Private Fields
-
-        /// <summary>
-        /// Name of this tool.
-        /// </summary>
-        private const string TOOL_NAME = "oss-health";
-
-        /// <summary>
-        /// Holds the version string, from the assembly.
-        /// </summary>
-        private static readonly string VERSION = typeof(HealthTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
-
-        /// <summary>
-        /// Command line options
-        /// </summary>
-        private readonly Dictionary<string, object?> Options = new Dictionary<string, object?>()
-        {
-            { "target", new List<string>() },
-            { "format", "text" },
-            { "output-file", null }
-        };
-
-        #endregion Private Fields
-
-        #region Public Constructors
-
         public HealthTool() : base()
         {
         }
-
-        #endregion Public Constructors
-
-        #region Public Methods
 
         public async Task<HealthMetrics?> CheckHealth(PackageURL purl)
         {
@@ -82,9 +52,25 @@ namespace Microsoft.CST.OpenSource
             return null;
         }
 
-        #endregion Public Methods
+        /// <summary>
+        ///     Name of this tool.
+        /// </summary>
+        private const string TOOL_NAME = "oss-health";
 
-        #region Private Methods
+        /// <summary>
+        ///     Holds the version string, from the assembly.
+        /// </summary>
+        private static readonly string VERSION = typeof(HealthTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
+
+        /// <summary>
+        ///     Command line options
+        /// </summary>
+        private readonly Dictionary<string, object?> Options = new Dictionary<string, object?>()
+        {
+            { "target", new List<string>() },
+            { "format", "text" },
+            { "output-file", null }
+        };
 
         private static void Main(string[] args)
         {
@@ -142,7 +128,7 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Displays usage information for the program.
+        ///     Displays usage information for the program.
         /// </summary>
         private static void ShowUsage()
         {
@@ -178,9 +164,9 @@ optional arguments:
         }
 
         /// <summary>
-        /// Parses options for this program.
+        ///     Parses options for this program.
         /// </summary>
-        /// <param name="args">arguments (passed in from the user)</param>
+        /// <param name="args"> arguments (passed in from the user) </param>
         private void ParseOptions(string[] args)
         {
             if (args == null)
@@ -222,7 +208,5 @@ optional arguments:
                 }
             }
         }
-
-        #endregion Private Methods
     }
 }

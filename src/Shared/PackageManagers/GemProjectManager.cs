@@ -12,31 +12,21 @@ namespace Microsoft.CST.OpenSource.Shared
 {
     internal class GemProjectManager : BaseProjectManager
     {
-        #region Public Fields
-
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_RUBYGEMS_ENDPOINT = "https://rubygems.org";
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_RUBYGEMS_ENDPOINT_API = "https://api.rubygems.org";
 
-        #endregion Public Fields
-
-        #region Public Constructors
-
         public GemProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
         }
 
-        #endregion Public Constructors
-
-        #region Public Methods
-
         /// <summary>
-        /// Download one RubyGems package and extract it to the target directory.
+        ///     Download one RubyGems package and extract it to the target directory.
         /// </summary>
-        /// <param name="purl">Package URL of the package to download.</param>
-        /// <returns>n/a</returns>
+        /// <param name="purl"> Package URL of the package to download. </param>
+        /// <returns> n/a </returns>
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
@@ -135,7 +125,5 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             return new Uri($"{ENV_RUBYGEMS_ENDPOINT}/gems/{purl?.Name}");
         }
-
-        #endregion Public Methods
     }
 }

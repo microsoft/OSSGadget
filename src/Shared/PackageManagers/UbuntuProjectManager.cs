@@ -13,8 +13,6 @@ namespace Microsoft.CST.OpenSource.Shared
 {
     internal class UbuntuProjectManager : BaseProjectManager
     {
-        #region Public Fields
-
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_UBUNTU_ARCHIVE_MIRROR = "https://mirror.math.princeton.edu/pub";
 
@@ -24,23 +22,15 @@ namespace Microsoft.CST.OpenSource.Shared
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_UBUNTU_POOL_NAMES = "main,universe,multiverse,restricted";
 
-        #endregion Public Fields
-
-        #region Public Constructors
-
         public UbuntuProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
         }
 
-        #endregion Public Constructors
-
-        #region Public Methods
-
         /// <summary>
-        /// Download one VS Marketplace package and extract it to the target directory.
+        ///     Download one VS Marketplace package and extract it to the target directory.
         /// </summary>
-        /// <param name="purl">Package URL of the package to download.</param>
-        /// <returns>the path or file written.</returns>
+        /// <param name="purl"> Package URL of the package to download. </param>
+        /// <returns> the path or file written. </returns>
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
@@ -115,8 +105,8 @@ namespace Microsoft.CST.OpenSource.Shared
                             }
                         }
 
-                        // Source Code URLs don't have the full version on the source files. We need
-                        // to find them in the .dsc
+                        // Source Code URLs don't have the full version on the source files. We need to find
+                        // them in the .dsc
                         else if (anchorHref.Contains(packageVersion) && anchorHref.EndsWith(".dsc"))
                         {
                             var dscContent = await GetHttpStringCache(archiveBaseUrl + "/" + anchorHref);
@@ -131,8 +121,7 @@ namespace Microsoft.CST.OpenSource.Shared
                                 seenFiles.Add(match.Groups[1].Value.Trim());
                             }
 
-                            // Now we need to go through the anchor tags again looking for the
-                            // source code files
+                            // Now we need to go through the anchor tags again looking for the source code files
                             foreach (var secondAnchor in document.QuerySelectorAll("a"))
                             {
                                 var secondHref = secondAnchor.GetAttribute("href");
@@ -201,8 +190,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
                 Logger.Debug("Located archive base URL: {0}", archiveBaseUrl);
 
-                // Now load the archive page, which will show all of the versions in each of the
-                // .dsc files there.
+                // Now load the archive page, which will show all of the versions in each of the .dsc files there.
                 try
                 {
                     var html = await GetHttpStringCache(archiveBaseUrl, neverThrow: true);
@@ -326,16 +314,12 @@ namespace Microsoft.CST.OpenSource.Shared
             return null;
         }
 
-        #endregion Public Methods
-
-        #region Private Methods
-
         /// <summary>
-        /// Identifies the base URL for package source files.
+        ///     Identifies the base URL for package source files.
         /// </summary>
-        /// <param name="purl"></param>
-        /// <param name="pool"></param>
-        /// <returns></returns>
+        /// <param name="purl"> </param>
+        /// <param name="pool"> </param>
+        /// <returns> </returns>
         private async Task<string?> GetArchiveBaseUrlForProject(PackageURL purl, string pool)
         {
             try
@@ -398,10 +382,10 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// Identifies the available pools for a given Ubuntu project. For example, 'xenial'.
+        ///     Identifies the available pools for a given Ubuntu project. For example, 'xenial'.
         /// </summary>
-        /// <param name="purl">Package URL to look up (only name is used).</param>
-        /// <returns>List of pool names</returns>
+        /// <param name="purl"> Package URL to look up (only name is used). </param>
+        /// <returns> List of pool names </returns>
         private async Task<IEnumerable<string>> GetPoolsForProject(PackageURL purl)
         {
             var pools = new HashSet<string>();
@@ -430,7 +414,5 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             return pools;
         }
-
-        #endregion Private Methods
     }
 }

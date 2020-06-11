@@ -8,7 +8,7 @@ using System.Text;
 namespace Microsoft.CST.OpenSource.RecursiveExtractor
 {
     /// <summary>
-    /// ArchiveTypes are the kinds of archive files that this module can process.
+    ///     ArchiveTypes are the kinds of archive files that this module can process.
     /// </summary>
     public enum ArchiveFileType
     {
@@ -30,12 +30,12 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
     }
 
     /// <summary>
-    /// MiniMagic is a tiny implementation of a file type identifier based on binary signatures.
+    ///     MiniMagic is a tiny implementation of a file type identifier based on binary signatures.
     /// </summary>
     public static class MiniMagic
     {
         /// <summary>
-        /// Fallback using file extensions in case the binary signature doesn't match.
+        ///     Fallback using file extensions in case the binary signature doesn't match.
         /// </summary>
         private static readonly Dictionary<string, ArchiveFileType> FileExtensionMap = new Dictionary<string, ArchiveFileType>()
         {
@@ -82,17 +82,17 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
             using var fs = new FileStream(filename, FileMode.Open);
 #pragma warning restore SEC0116 // Path Tampering Unvalidated File Path
 
-            // If you don't pass passthroughStream: true here it will read the entire file into the
-            // stream in FileEntry This way it will only read the bytes minimagic uses
+            // If you don't pass passthroughStream: true here it will read the entire file into the stream in
+            // FileEntry This way it will only read the bytes minimagic uses
             var fileEntry = new FileEntry(filename, fs, null, passthroughStream: true);
             return DetectFileType(fileEntry);
         }
 
         /// <summary>
-        /// Detects the type of a file.
+        ///     Detects the type of a file.
         /// </summary>
-        /// <param name="fileEntry">FileEntry containing the file data.</param>
-        /// <returns></returns>
+        /// <param name="fileEntry"> FileEntry containing the file data. </param>
+        /// <returns> </returns>
         public static ArchiveFileType DetectFileType(FileEntry fileEntry)
         {
             if (fileEntry == null)
@@ -203,8 +203,7 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                 }
             }
 
-            // ISO Format https://en.wikipedia.org/wiki/ISO_9660#Overall_structure Reserved space +
-            // 1 header
+            // ISO Format https://en.wikipedia.org/wiki/ISO_9660#Overall_structure Reserved space + 1 header
             if (fileEntry.Content.Length > 32768 + 2048)
             {
                 fileEntry.Content.Position = 32769;

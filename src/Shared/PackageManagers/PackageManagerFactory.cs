@@ -6,25 +6,16 @@ namespace Microsoft.CST.OpenSource.Shared
 {
     public class ProjectManagerFactory
     {
-        #region Private Fields
-
-        // do reflection only once
-        private static List<Type> projectManagers = new List<Type>();
-
-        #endregion Private Fields
-
-        #region Public Methods
-
         public static BaseProjectManager CreateBaseProjectManager(string destinationDirectory)
         {
             return new BaseProjectManager(destinationDirectory);
         }
 
         /// <summary>
-        /// Get the project manager for the package type
+        ///     Get the project manager for the package type
         /// </summary>
-        /// <param name="purl"></param>
-        /// <returns>BaseProjectManager object</returns>
+        /// <param name="purl"> </param>
+        /// <returns> BaseProjectManager object </returns>
         public static BaseProjectManager? CreateProjectManager(PackageURL purl, string? destinationDirectory)
         {
             if (projectManagers.Count == 0)
@@ -50,6 +41,7 @@ namespace Microsoft.CST.OpenSource.Shared
             return null;
         }
 
-        #endregion Public Methods
+        // do reflection only once
+        private static List<Type> projectManagers = new List<Type>();
     }
 }

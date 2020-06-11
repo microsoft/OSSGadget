@@ -12,73 +12,17 @@ namespace Microsoft.CST.OpenSource.Shared
 {
     internal class NPMProjectManager : BaseProjectManager
     {
-        #region Public Fields
-
         public static string ENV_NPM_ENDPOINT = "https://registry.npmjs.org";
-
-        #endregion Public Fields
-
-        #region Private Fields
-
-        private static readonly List<string> npm_internal_modules = new List<string>()
-        {
-            "assert",
-            "async_hooks",
-            "buffer",
-            "child_process",
-            "cluster",
-            "console",
-            "constants",
-            "crypto",
-            "dgram",
-            "dns",
-            "domain",
-            "events",
-            "fs",
-            "http",
-            "http2",
-            "https",
-            "inspector",
-            "module",
-            "net",
-            "os",
-            "path",
-            "perf_hooks",
-            "process",
-            "punycode",
-            "querystring",
-            "readline",
-            "repl",
-            "stream",
-            "string_decoder",
-            "timers",
-            "tls",
-            "trace_events",
-            "tty",
-            "url",
-            "util",
-            "v8",
-            "vm",
-            "zlib"
-        };
-
-        #endregion Private Fields
-
-        #region Public Constructors
 
         public NPMProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
         }
 
-        #endregion Public Constructors
-
-        #region Public Methods
-
         /// <summary>
-        /// Download one NPM package and extract it to the target directory.
+        ///     Download one NPM package and extract it to the target directory.
         /// </summary>
-        /// <param name="purl">Package URL of the package to download.</param>
-        /// <returns>n/a</returns>
+        /// <param name="purl"> Package URL of the package to download. </param>
+        /// <returns> n/a </returns>
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
@@ -159,10 +103,10 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// Gets the latest version of the package
+        ///     Gets the latest version of the package
         /// </summary>
-        /// <param name="contentJSON"></param>
-        /// <returns></returns>
+        /// <param name="contentJSON"> </param>
+        /// <returns> </returns>
         public JsonElement? GetLatestVersionElement(JsonDocument contentJSON)
         {
             List<Version> versions = GetVersions(contentJSON);
@@ -229,16 +173,12 @@ namespace Microsoft.CST.OpenSource.Shared
             return allVersions;
         }
 
-        #endregion Public Methods
-
-        #region Protected Methods
-
         /// <summary>
-        /// Searches the package manager metadata to figure out the source code repository
+        ///     Searches the package manager metadata to figure out the source code repository
         /// </summary>
-        /// <param name="purl">the package for which we need to find the source code repository</param>
+        /// <param name="purl"> the package for which we need to find the source code repository </param>
         /// <returns>
-        /// A dictionary, mapping each possible repo source entry to its probability/empty dictionary
+        ///     A dictionary, mapping each possible repo source entry to its probability/empty dictionary
         /// </returns>
         protected async override Task<Dictionary<PackageURL, double>> PackageMetadataSearch(PackageURL purl,
             string metadata)
@@ -258,8 +198,8 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             JsonDocument contentJSON = JsonDocument.Parse(metadata);
 
-            // if a version is provided, search that JSONElement, otherwise, just search the latest
-            // version, which is more likely best maintained
+            // if a version is provided, search that JSONElement, otherwise, just search the latest version,
+            // which is more likely best maintained
             // TODO: If the latest version JSONElement doesnt have the repo infor, should we search all elements
             // on that chance that one of them might have it?
             JsonElement? versionJSON = string.IsNullOrEmpty(purl?.Version) ? GetLatestVersionElement(contentJSON) :
@@ -277,8 +217,8 @@ namespace Microsoft.CST.OpenSource.Shared
                     if (repoType == "git")
                     {
                         PackageURL gitPURL = GitHubProjectManager.ParseUri(new Uri(repoURL));
-                        // we got a repository value the author specified in the metadata - so no
-                        // further processing needed
+                        // we got a repository value the author specified in the metadata - so no further
+                        // processing needed
                         if (gitPURL != null)
                         {
                             mapping.Add(gitPURL, 1.0F);
@@ -293,6 +233,46 @@ namespace Microsoft.CST.OpenSource.Shared
             return mapping;
         }
 
-        #endregion Protected Methods
+        private static readonly List<string> npm_internal_modules = new List<string>()
+        {
+            "assert",
+            "async_hooks",
+            "buffer",
+            "child_process",
+            "cluster",
+            "console",
+            "constants",
+            "crypto",
+            "dgram",
+            "dns",
+            "domain",
+            "events",
+            "fs",
+            "http",
+            "http2",
+            "https",
+            "inspector",
+            "module",
+            "net",
+            "os",
+            "path",
+            "perf_hooks",
+            "process",
+            "punycode",
+            "querystring",
+            "readline",
+            "repl",
+            "stream",
+            "string_decoder",
+            "timers",
+            "tls",
+            "trace_events",
+            "tty",
+            "url",
+            "util",
+            "v8",
+            "vm",
+            "zlib"
+        };
     }
 }

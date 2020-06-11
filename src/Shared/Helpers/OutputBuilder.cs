@@ -9,38 +9,10 @@ using System.Text;
 namespace Microsoft.CST.OpenSource.Shared
 {
     /// <summary>
-    /// Builds the output text based on the format specified
+    ///     Builds the output text based on the format specified
     /// </summary>
     public class OutputBuilder
     {
-        #region Protected Fields
-
-        /// <summary>
-        /// Class logger
-        /// </summary>
-        protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
-
-        #endregion Protected Fields
-
-        #region Private Fields
-
-        // cache variables to avoid reflection
-        private static readonly string AssemblyName = Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty;
-
-        private static readonly string Company = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyCompanyAttribute>()?.Company ?? string.Empty;
-
-        private static readonly string Version = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version.ToString() ?? string.Empty;
-
-        private readonly OutputFormat CurrentOutputFormat = OutputFormat.text;
-
-        private List<Result> sarifResults = new List<Result>();
-
-        private StringBuilder stringResults = new StringBuilder();
-
-        #endregion Private Fields
-
-        #region Public Constructors
-
         // default = text
         public OutputBuilder(string format)
         {
@@ -50,10 +22,6 @@ namespace Microsoft.CST.OpenSource.Shared
             }
         }
 
-        #endregion Public Constructors
-
-        #region Public Enums
-
         public enum OutputFormat
         {
             sarifv1,
@@ -61,15 +29,11 @@ namespace Microsoft.CST.OpenSource.Shared
             text // no sarif, just text
         };
 
-        #endregion Public Enums
-
-        #region Public Methods
-
         /// <summary>
-        /// Build a SARIF Result.Location object for the purl package
+        ///     Build a SARIF Result.Location object for the purl package
         /// </summary>
-        /// <param name="purl"></param>
-        /// <returns>Location list with single location object</returns>
+        /// <param name="purl"> </param>
+        /// <returns> Location list with single location object </returns>
         public static List<Location> BuildPurlLocation(PackageURL purl)
         {
             BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, null);
@@ -94,27 +58,27 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// Overload of AppendOutput to add to text
+        ///     Overload of AppendOutput to add to text
         /// </summary>
-        /// <param name="output"></param>
+        /// <param name="output"> </param>
         public void AppendOutput(string output)
         {
             this.stringResults.Append(output);
         }
 
         /// <summary>
-        /// Overload of AppendOutput to add to SARIF
+        ///     Overload of AppendOutput to add to SARIF
         /// </summary>
-        /// <param name="results"></param>
+        /// <param name="results"> </param>
         public void AppendOutput(List<Result> results)
         {
             this.sarifResults.AddRange(results);
         }
 
         /// <summary>
-        /// Builds a SARIF log object with the stored results
+        ///     Builds a SARIF log object with the stored results
         /// </summary>
-        /// <returns></returns>
+        /// <returns> </returns>
         public SarifLog BuildSingleRunSarifLog()
         {
             Tool thisTool = new Tool
@@ -157,7 +121,7 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// Prints to the currently selected output
+        ///     Prints to the currently selected output
         /// </summary>
         public void PrintOutput()
         {
@@ -172,15 +136,31 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// Print the whole SARIF log to the stream
+        ///     Print the whole SARIF log to the stream
         /// </summary>
-        /// <param name="writeStream"></param>
+        /// <param name="writeStream"> </param>
         public void PrintSarifLog(StreamWriter writeStream)
         {
             SarifLog completedSarif = BuildSingleRunSarifLog();
             completedSarif.Save(writeStream);
         }
 
-        #endregion Public Methods
+        /// <summary>
+        ///     Class logger
+        /// </summary>
+        protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
+        // cache variables to avoid reflection
+        private static readonly string AssemblyName = Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty;
+
+        private static readonly string Company = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyCompanyAttribute>()?.Company ?? string.Empty;
+
+        private static readonly string Version = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version.ToString() ?? string.Empty;
+
+        private readonly OutputFormat CurrentOutputFormat = OutputFormat.text;
+
+        private List<Result> sarifResults = new List<Result>();
+
+        private StringBuilder stringResults = new StringBuilder();
     }
 }

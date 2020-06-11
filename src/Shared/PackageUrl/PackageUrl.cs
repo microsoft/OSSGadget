@@ -5,19 +5,19 @@
 // MIT License
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
-// associated documentation files (the "Software"), to deal in the Software without restriction,
-// including without limitation the rights to use, copy, modify, merge, publish, distribute,
-// sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// associated documentation files (the "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+// following conditions:
 //
-// The above copyright notice and this permission notice shall be included in all copies or
-// substantial portions of the Software.
+// The above copyright notice and this permission notice shall be included in all copies or substantial
+// portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
-// NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+// LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO
+// EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+// IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
 using System.Collections.Generic;
@@ -29,60 +29,52 @@ using System.Text.RegularExpressions;
 namespace Microsoft.CST.OpenSource.Shared
 {
     /// <summary>
-    /// Provides an object representation of a Package URL and easy access to its parts.
+    ///     Provides an object representation of a Package URL and easy access to its parts.
     ///
-    /// A purl is a URL composed of seven components: scheme:type/namespace/name@version?qualifiers#subpath
+    ///     A purl is a URL composed of seven components: scheme:type/namespace/name@version?qualifiers#subpath
     ///
-    /// Components are separated by a specific character for unambiguous parsing. A purl must NOT
-    /// contain a URL Authority i.e. there is no support for username, password, host and port
-    /// components. A namespace segment may sometimes look like a host but its interpretation is
-    /// specific to a type.
+    ///     Components are separated by a specific character for unambiguous parsing. A purl must NOT contain
+    ///     a URL Authority i.e. there is no support for username, password, host and port components. A
+    ///     namespace segment may sometimes look like a host but its interpretation is specific to a type.
     ///
-    /// To read full-spec, visit <a href="https://github.com/package-url/purl-spec">https://github.com/package-url/purl-spec</a>
+    ///     To read full-spec, visit <a href="https://github.com/package-url/purl-spec">
+    ///     https://github.com/package-url/purl-spec </a>
     /// </summary>
     public sealed class PackageURL : IEquatable<PackageURL>
     {
-        #region Private Fields
-
-        private static readonly Regex s_typePattern = new Regex("^[a-zA-Z][a-zA-Z0-9.+-]+$", RegexOptions.Compiled);
-
-        #endregion Private Fields
-
-        #region Public Constructors
-
         /// <summary>
-        /// Constructs a new PackageURL object by parsing the specified string.
+        ///     Constructs a new PackageURL object by parsing the specified string.
         /// </summary>
-        /// <param name="purl">A valid package URL string to parse.</param>
-        /// <exception cref="FormatException">Thrown when parsing fails.</exception>
+        /// <param name="purl"> A valid package URL string to parse. </param>
+        /// <exception cref="FormatException"> Thrown when parsing fails. </exception>
         public PackageURL(string purl)
         {
             Parse(purl);
         }
 
         /// <summary>
-        /// Constructs a new PackageURL object by specifying only the required parameters necessary
-        /// to create a valid PackageURL.
+        ///     Constructs a new PackageURL object by specifying only the required parameters necessary to
+        ///     create a valid PackageURL.
         /// </summary>
-        /// <param name="type">Type of package (i.e. nuget, npm, gem, etc).</param>
-        /// <param name="name">Name of the package.</param>
-        /// <exception cref="FormatException">Thrown when parsing fails.</exception>
+        /// <param name="type"> Type of package (i.e. nuget, npm, gem, etc). </param>
+        /// <param name="name"> Name of the package. </param>
+        /// <exception cref="FormatException"> Thrown when parsing fails. </exception>
         public PackageURL(string type, string name) : this(type, null, name, null, null, null)
         {
         }
 
         /// <summary>
-        /// Constructs a new PackageURL object.
+        ///     Constructs a new PackageURL object.
         /// </summary>
-        /// <param name="type">Type of package (i.e. nuget, npm, gem, etc).</param>
-        /// <param name="namespace">Namespace of package (i.e. group, owner, organization).</param>
-        /// <param name="name">Name of the package.</param>
-        /// <param name="version">Version of the package.</param>
+        /// <param name="type"> Type of package (i.e. nuget, npm, gem, etc). </param>
+        /// <param name="namespace"> Namespace of package (i.e. group, owner, organization). </param>
+        /// <param name="name"> Name of the package. </param>
+        /// <param name="version"> Version of the package. </param>
         /// <param name="qualifiers">
-        /// <see cref="SortedDictionary{string, string}"/> of key/value pair qualifiers.
+        ///     <see cref="SortedDictionary{string, string}"/> of key/value pair qualifiers.
         /// </param>
         /// @param qualifiers an array of key/value pair qualifiers @param subpath the subpath string
-        /// <exception cref="FormatException">Thrown when parsing fails.</exception>
+        /// <exception cref="FormatException"> Thrown when parsing fails. </exception>
         public PackageURL(string? type, string? @namespace, string? name, string? version, SortedDictionary<string, string>? qualifiers, string? subpath)
         {
             Type = ValidateType(type);
@@ -93,47 +85,38 @@ namespace Microsoft.CST.OpenSource.Shared
             Subpath = ValidateSubpath(subpath);
         }
 
-        #endregion Public Constructors
-
-        #region Public Properties
-
         /// <summary>
-        /// The name of the package.
+        ///     The name of the package.
         /// </summary>
         public string? Name { get; private set; }
 
         /// <summary>
-        /// The name prefix such as a Maven groupid, a Docker image owner, a GitHub user or organization.
+        ///     The name prefix such as a Maven groupid, a Docker image owner, a GitHub user or organization.
         /// </summary>
         public string? Namespace { get; private set; }
 
-        /// <summary> Extra qualifying data for a package such as an OS, architecture, a distro,
-        /// etc. <summary>
+        /// <summary> Extra qualifying data for a package such as an OS, architecture, a distro, etc. <summary>
         public SortedDictionary<string, string>? Qualifiers { get; private set; }
 
         /// <summary>
-        /// The PackageURL scheme constant.
+        ///     The PackageURL scheme constant.
         /// </summary>
         public string? Scheme { get; private set; } = "pkg";
 
         /// <summary>
-        /// Extra subpath within a package, relative to the package root.
+        ///     Extra subpath within a package, relative to the package root.
         /// </summary>
         public string? Subpath { get; private set; }
 
         /// <summary>
-        /// The package "type" or package "protocol" such as nuget, npm, nuget, gem, pypi, etc.
+        ///     The package "type" or package "protocol" such as nuget, npm, nuget, gem, pypi, etc.
         /// </summary>
         public string? Type { get; private set; }
 
         /// <summary>
-        /// The version of the package.
+        ///     The version of the package.
         /// </summary>
         public string? Version { get; private set; }
-
-        #endregion Public Properties
-
-        #region Public Methods
 
         public bool Equals(PackageURL? obj)
         {
@@ -153,7 +136,7 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// Returns a canonicalized representation of the purl.
+        ///     Returns a canonicalized representation of the purl.
         /// </summary>
         public override string ToString()
         {
@@ -202,9 +185,7 @@ namespace Microsoft.CST.OpenSource.Shared
             return Regex.Replace(this.ToString(), "[" + Regex.Escape(invalidChars) + "]", "-");
         }
 
-        #endregion Public Methods
-
-        #region Private Methods
+        private static readonly Regex s_typePattern = new Regex("^[a-zA-Z][a-zA-Z0-9.+-]+$", RegexOptions.Compiled);
 
         private static SortedDictionary<string, string> ValidateQualifiers(string qualifiers)
         {
@@ -343,8 +324,6 @@ namespace Microsoft.CST.OpenSource.Shared
 
             return WebUtility.UrlDecode(@namespace.ToLower());
         }
-
-        #endregion Private Methods
 
         // leading and trailing slashes always need to be removed
     }

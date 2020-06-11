@@ -13,8 +13,6 @@ namespace Microsoft.CST.OpenSource.Tests
     [TestClass]
     public class DownloadTests
     {
-        #region Public Methods
-
         [DataTestMethod]
         [DataRow("pkg:cargo/rand@0.7.3", "CARGO.toml", 1)]
         [DataRow("pkg:cargo/rand", "CARGO.toml", 1)]
@@ -145,15 +143,11 @@ namespace Microsoft.CST.OpenSource.Tests
             await TestDownload(purl, targetFilename, expectedCount);
         }
 
-        #endregion Public Methods
-
-        #region Private Methods
-
         /// <summary>
-        /// delete the package download
+        ///     delete the package download
         /// </summary>
-        /// <param name="packageDownloader"></param>
-        /// <param name="tempDirectoryName"></param>
+        /// <param name="packageDownloader"> </param>
+        /// <param name="tempDirectoryName"> </param>
         private void deleteTempDirs(PackageDownloader? packageDownloader, string tempDirectoryName)
         {
             try
@@ -176,11 +170,11 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         /// <summary>
-        /// Download the package
+        ///     Download the package
         /// </summary>
-        /// <param name="packageUrl"></param>
-        /// <param name="tempDirectoryName"></param>
-        /// <returns></returns>
+        /// <param name="packageUrl"> </param>
+        /// <param name="tempDirectoryName"> </param>
+        /// <returns> </returns>
         private async Task<PackageDownloader?> DownloadPackage(PackageURL packageUrl, string tempDirectoryName, bool doCache = false)
         {
             int numAttempts = 3;
@@ -232,8 +226,7 @@ namespace Microsoft.CST.OpenSource.Tests
                     Directory.GetDirectories(tempDirectoryName).Count(), expectedCount));
             }
 
-            // do that again with caching, this should not do anything since the cache already has
-            // the package
+            // do that again with caching, this should not do anything since the cache already has the package
             await DownloadPackage(packageUrl, tempDirectoryName, true);
 
             if (expectedCount != Directory.GetDirectories(tempDirectoryName).Count())
@@ -245,7 +238,5 @@ namespace Microsoft.CST.OpenSource.Tests
             // one delete is enough, since its only a single cached copy
             deleteTempDirs(packageDownloader, tempDirectoryName);
         }
-
-        #endregion Private Methods
     }
 }

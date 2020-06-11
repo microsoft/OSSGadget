@@ -11,8 +11,6 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
 
     public static class DebArchiveFile
     {
-        #region Public Methods
-
         public static IEnumerable<FileEntry> GetFileEntries(FileEntry fileEntry)
         {
             if (fileEntry == null)
@@ -46,7 +44,5 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                 }
             }
         }
-
-        #endregion Public Methods
     }
 }

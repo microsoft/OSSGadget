@@ -12,40 +12,9 @@ namespace Microsoft.CST.OpenSource
 {
     public class FindSourceTool : OSSGadget
     {
-        #region Private Fields
-
-        /// <summary>
-        /// Name of this tool.
-        /// </summary>
-        private const string TOOL_NAME = "oss-find-source";
-
-        /// <summary>
-        /// Holds the version string, from the assembly.
-        /// </summary>
-        private static readonly string VERSION = typeof(FindSourceTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
-
-        /// <summary>
-        /// Command line options
-        /// </summary>
-        private readonly Dictionary<string, object?> Options = new Dictionary<string, object?>()
-        {
-            { "target", new List<string>() },
-            { "show-all", false },
-            { "format", "text" },
-            { "output-file", null }
-        };
-
-        #endregion Private Fields
-
-        #region Public Constructors
-
         public FindSourceTool() : base()
         {
         }
-
-        #endregion Public Constructors
-
-        #region Public Methods
 
         public async Task<Dictionary<PackageURL, double>> FindSource(PackageURL purl)
         {
@@ -88,16 +57,33 @@ namespace Microsoft.CST.OpenSource
             return repositoryMap;
         }
 
-        #endregion Public Methods
-
-        #region Private Methods
+        /// <summary>
+        ///     Name of this tool.
+        /// </summary>
+        private const string TOOL_NAME = "oss-find-source";
 
         /// <summary>
-        /// Build and return a list of Sarif Result list from the find source results
+        ///     Holds the version string, from the assembly.
         /// </summary>
-        /// <param name="purl"></param>
-        /// <param name="results"></param>
-        /// <returns></returns>
+        private static readonly string VERSION = typeof(FindSourceTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
+
+        /// <summary>
+        ///     Command line options
+        /// </summary>
+        private readonly Dictionary<string, object?> Options = new Dictionary<string, object?>()
+        {
+            { "target", new List<string>() },
+            { "show-all", false },
+            { "format", "text" },
+            { "output-file", null }
+        };
+
+        /// <summary>
+        ///     Build and return a list of Sarif Result list from the find source results
+        /// </summary>
+        /// <param name="purl"> </param>
+        /// <param name="results"> </param>
+        /// <returns> </returns>
         private static List<Result> GetSarifResults(PackageURL purl, List<KeyValuePair<PackageURL, double>> results)
         {
             List<Result> sarifResults = new List<Result>();
@@ -122,10 +108,10 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Convert findSourceTool results into text format
+        ///     Convert findSourceTool results into text format
         /// </summary>
-        /// <param name="results"></param>
-        /// <returns></returns>
+        /// <param name="results"> </param>
+        /// <returns> </returns>
         private static string GetTextResults(List<KeyValuePair<PackageURL, double>> results)
         {
             StringBuilder stringOutput = new StringBuilder();
@@ -201,7 +187,7 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Displays usage information for the program.
+        ///     Displays usage information for the program.
         /// </summary>
         private static void ShowUsage()
         {
@@ -226,11 +212,11 @@ optional arguments:
         }
 
         /// <summary>
-        /// Convert findSourceTool results into output format
+        ///     Convert findSourceTool results into output format
         /// </summary>
-        /// <param name="outputBuilder"></param>
-        /// <param name="purl"></param>
-        /// <param name="results"></param>
+        /// <param name="outputBuilder"> </param>
+        /// <param name="purl"> </param>
+        /// <param name="results"> </param>
         private void AppendOutput(OutputBuilder outputBuilder, PackageURL purl, List<KeyValuePair<PackageURL, double>> results)
         {
             if (outputBuilder.isTextFormat())
@@ -244,9 +230,9 @@ optional arguments:
         }
 
         /// <summary>
-        /// Parses options for this program.
+        ///     Parses options for this program.
         /// </summary>
-        /// <param name="args">arguments (passed in from the user)</param>
+        /// <param name="args"> arguments (passed in from the user) </param>
         private void ParseOptions(string[] args)
         {
             if (args == null)
@@ -299,7 +285,5 @@ optional arguments:
                 Environment.Exit(1);
             }
         }
-
-        #endregion Private Methods
     }
 }

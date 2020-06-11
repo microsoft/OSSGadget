@@ -11,31 +11,21 @@ namespace Microsoft.CST.OpenSource.Shared
 {
     internal class CargoProjectManager : BaseProjectManager
     {
-        #region Public Fields
-
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_CARGO_ENDPOINT = "https://crates.io";
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_CARGO_ENDPOINT_STATIC = "https://static.crates.io";
 
-        #endregion Public Fields
-
-        #region Public Constructors
-
         public CargoProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
         }
 
-        #endregion Public Constructors
-
-        #region Public Methods
-
         /// <summary>
-        /// Download one Cargo package and extract it to the target directory.
+        ///     Download one Cargo package and extract it to the target directory.
         /// </summary>
-        /// <param name="purl">Package URL of the package to download.</param>
-        /// <returns>Path to the downloaded package</returns>
+        /// <param name="purl"> Package URL of the package to download. </param>
+        /// <returns> Path to the downloaded package </returns>
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
@@ -86,10 +76,10 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// Enumerates all possible versions of the package identified by purl.
+        ///     Enumerates all possible versions of the package identified by purl.
         /// </summary>
-        /// <param name="purl">Package URL specifying the package. Version is ignored.</param>
-        /// <returns>A list of package versions</returns>
+        /// <param name="purl"> Package URL specifying the package. Version is ignored. </param>
+        /// <returns> A list of package versions </returns>
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
@@ -121,10 +111,10 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// Gathers metadata (in no specific format) about the package.
+        ///     Gathers metadata (in no specific format) about the package.
         /// </summary>
-        /// <param name="purl">Package URL for the package</param>
-        /// <returns>Metadata as a string</returns>
+        /// <param name="purl"> Package URL for the package </param>
+        /// <returns> Metadata as a string </returns>
         public override async Task<string?> GetMetadata(PackageURL purl)
         {
             try
@@ -146,7 +136,5 @@ namespace Microsoft.CST.OpenSource.Shared
             return new Uri($"{ENV_CARGO_ENDPOINT}/crates/{packageName}");
             // TODO: Add version support
         }
-
-        #endregion Public Methods
     }
 }

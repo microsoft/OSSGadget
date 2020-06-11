@@ -10,37 +10,16 @@ using System.Threading.Tasks;
 namespace Microsoft.CST.OpenSource
 {
     /// <summary>
-    /// Class for managing the download of a single package
+    ///     Class for managing the download of a single package
     /// </summary>
     public class PackageDownloader
     {
-        #region Protected Fields
-
         /// <summary>
-        /// Logger for each of the subclasses
+        ///     Constuctor - creates a class object for downloading packages
         /// </summary>
-        protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
-
-        #endregion Protected Fields
-
-        #region Private Fields
-
-        // do we actually have a cache copy? or do we have to download?
-        private bool actualCaching = false;
-
-        // should we cache/check for the cache?
-        private bool doCache = false;
-
-        #endregion Private Fields
-
-        #region Public Constructors
-
-        /// <summary>
-        /// Constuctor - creates a class object for downloading packages
-        /// </summary>
-        /// <param name="purl">package to download</param>
-        /// <param name="destinationDir">the directory where the package needs to be placed</param>
-        /// <param name="doCaching">check and use the cache if it exists - create if not</param>
+        /// <param name="purl"> package to download </param>
+        /// <param name="destinationDir"> the directory where the package needs to be placed </param>
+        /// <param name="doCaching"> check and use the cache if it exists - create if not </param>
         public PackageDownloader(PackageURL? purl, string? destinationDir = null, bool doCaching = false)
         {
             if (purl == null)
@@ -74,24 +53,8 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        #endregion Public Constructors
-
-        #region Private Properties
-
-        private string destinationDirectory { get; set; }
-
-        // folders created
-        private List<string> downloadPaths { get; set; } = new List<string>();
-
-        private BaseProjectManager? packageManager { get; set; }
-        private List<PackageURL> PackageVersions { get; set; }
-
-        #endregion Private Properties
-
-        #region Public Methods
-
         /// <summary>
-        /// Clears the cache directory
+        ///     Clears the cache directory
         /// </summary>
         public async void ClearPackageLocalCopy()
         {
@@ -115,8 +78,7 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Clears the cache directory, if the cache argument was false, keep it for future
-        /// processing otherwise
+        ///     Clears the cache directory, if the cache argument was false, keep it for future processing otherwise
         /// </summary>
         public async void ClearPackageLocalCopyIfNoCaching()
         {
@@ -135,19 +97,19 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Downloads metadata if only metadata is requested; downloads and extracts the package if
-        /// doExtract is requested
+        ///     Downloads metadata if only metadata is requested; downloads and extracts the package if
+        ///     doExtract is requested
         /// </summary>
-        /// <param name="_downloader"></param>
-        /// <param name="purl"></param>
-        /// <param name="metadataOnly"></param>
-        /// <param name="doExtract"></param>
-        /// <param name="cached"></param>
+        /// <param name="_downloader"> </param>
+        /// <param name="purl"> </param>
+        /// <param name="metadataOnly"> </param>
+        /// <param name="doExtract"> </param>
+        /// <param name="cached"> </param>
         /// <returns>
-        /// A list with
-        /// 1) the name of the file if metadata requested
-        /// 2) The name of the file if package download and no extraction is requested
-        /// 3) The directory of the downloaded and extracted package, if extraction is requested
+        ///     A list with
+        ///     1) the name of the file if metadata requested
+        ///     2) The name of the file if package download and no extraction is requested
+        ///     3) The directory of the downloaded and extracted package, if extraction is requested
         /// </returns>
         public async Task<List<string>> Download(
             PackageURL purl,
@@ -190,18 +152,18 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Check if the target folder has a directory in the name of the package. If it does not,
-        /// download the package. This function handles both cached and non cached requests for
-        /// download and extract. if the target folder is specified, it assumes that caching is
-        /// requested; if not, it assumes there is no caching needed.
+        ///     Check if the target folder has a directory in the name of the package. If it does not,
+        ///     download the package. This function handles both cached and non cached requests for download
+        ///     and extract. if the target folder is specified, it assumes that caching is requested; if not,
+        ///     it assumes there is no caching needed.
         /// </summary>
-        /// <param name="purl">package to be downloaded</param>
+        /// <param name="purl"> package to be downloaded </param>
         /// <param name="metadataOnly">
-        /// whether to download only the package metadata, or the whole package
+        ///     whether to download only the package metadata, or the whole package
         /// </param>
-        /// <param name="doExtract">Extract the package or not</param>
-        /// <param name="destinationDirectory">the directory to use as cache for download</param>
-        /// <returns></returns>
+        /// <param name="doExtract"> Extract the package or not </param>
+        /// <param name="destinationDirectory"> the directory to use as cache for download </param>
+        /// <returns> </returns>
         public async Task<List<string>> DownloadPackageLocalCopy(PackageURL purl,
             bool metadataOnly,
             bool doExtract)
@@ -225,10 +187,10 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Get the package versions we need to process (if more than one indicated)
+        ///     Get the package versions we need to process (if more than one indicated)
         /// </summary>
-        /// <param name="purl"></param>
-        /// <returns></returns>
+        /// <param name="purl"> </param>
+        /// <returns> </returns>
         public async Task<List<PackageURL>> GetPackageVersionsToProcess(PackageURL purl)
         {
             List<PackageURL> packageVersions = new List<PackageURL>();
@@ -265,6 +227,23 @@ namespace Microsoft.CST.OpenSource
             return packageVersions;
         }
 
-        #endregion Public Methods
+        /// <summary>
+        ///     Logger for each of the subclasses
+        /// </summary>
+        protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
+        // do we actually have a cache copy? or do we have to download?
+        private bool actualCaching = false;
+
+        // should we cache/check for the cache?
+        private bool doCache = false;
+
+        private string destinationDirectory { get; set; }
+
+        // folders created
+        private List<string> downloadPaths { get; set; } = new List<string>();
+
+        private BaseProjectManager? packageManager { get; set; }
+        private List<PackageURL> PackageVersions { get; set; }
     }
 }

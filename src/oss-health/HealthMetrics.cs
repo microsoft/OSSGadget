@@ -14,58 +14,20 @@ namespace Microsoft.CST.OpenSource.Health
 {
     public class HealthMetrics
     {
-        #region Public Fields
-
         public double ReleaseHealth;
-
-        #endregion Public Fields
-
-        #region Private Fields
-
-        private const int MAX_HEALTH = 100;
-        private const int MIN_HEALTH = 0;
-
-        private PackageURL purl;
-
-        #endregion Private Fields
-
-        #region Public Constructors
 
         public HealthMetrics(PackageURL purl)
         {
             this.purl = purl;
         }
 
-        #endregion Public Constructors
-
-        #region Public Properties
-
         public double CommitHealth { get; set; }
-
         public double ContributorHealth { get; set; }
-
         public double IssueHealth { get; set; }
-
         public double ProjectSizeHealth { get; set; }
-
         public double PullRequestHealth { get; set; }
-
         public double RecentActivityHealth { get; set; }
-
         public double SecurityIssueHealth { get; set; }
-
-        #endregion Public Properties
-
-        #region Private Properties
-
-        /// <summary>
-        /// Logger for this class
-        /// </summary>
-        private static NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
-
-        #endregion Private Properties
-
-        #region Public Methods
 
         public void Normalize()
         {
@@ -172,9 +134,15 @@ namespace Microsoft.CST.OpenSource.Health
             return sb.ToString();
         }
 
-        #endregion Public Methods
+        private const int MAX_HEALTH = 100;
+        private const int MIN_HEALTH = 0;
 
-        #region Private Methods
+        private PackageURL purl;
+
+        /// <summary>
+        ///     Logger for this class
+        /// </summary>
+        private static NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
 
         private static double NormalizeField(double value)
         {
@@ -196,8 +164,6 @@ namespace Microsoft.CST.OpenSource.Health
                                               BindingFlags.Public |
                                               BindingFlags.Instance);
         }
-
-        #endregion Private Methods
 
         /**
          * Normalizes all fields of this object.

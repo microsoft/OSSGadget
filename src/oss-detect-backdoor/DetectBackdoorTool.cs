@@ -9,25 +9,27 @@ namespace Microsoft.CST.OpenSource
 {
     public class DetectBackdoorTool : OSSGadget
     {
-        #region Private Fields
+        public DetectBackdoorTool() : base()
+        {
+        }
 
         /// <summary>
-        /// Location of the backdoor detection rules.
+        ///     Location of the backdoor detection rules.
         /// </summary>
         private const string RULE_DIRECTORY = @"Resources\BackdoorRules";
 
         /// <summary>
-        /// Name of this tool.
+        ///     Name of this tool.
         /// </summary>
         private const string TOOL_NAME = "oss-detect-backdoor";
 
         /// <summary>
-        /// Holds the version string, from the assembly.
+        ///     Holds the version string, from the assembly.
         /// </summary>
         private static readonly string VERSION = typeof(DetectBackdoorTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
 
         /// <summary>
-        /// Command line options
+        ///     Command line options
         /// </summary>
         private readonly Dictionary<string, object?> Options = new Dictionary<string, object?>()
         {
@@ -36,31 +38,15 @@ namespace Microsoft.CST.OpenSource
             { "use-cache", false }
         };
 
-        #endregion Private Fields
-
-        #region Public Constructors
-
-        public DetectBackdoorTool() : base()
-        {
-        }
-
-        #endregion Public Constructors
-
-        #region Private Properties
-
         /// <summary>
-        /// Logger for this class
+        ///     Logger for this class
         /// </summary>
         private static NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
 
-        #endregion Private Properties
-
-        #region Private Methods
-
         /// <summary>
-        /// Main entrypoint for the download program.
+        ///     Main entrypoint for the download program.
         /// </summary>
-        /// <param name="args">parameters passed in from the user</param>
+        /// <param name="args"> parameters passed in from the user </param>
         private static async Task Main(string[] args)
         {
             var detectBackdoorTool = new DetectBackdoorTool();
@@ -100,7 +86,7 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Displays usage information for the program.
+        ///     Displays usage information for the program.
         /// </summary>
         private static void ShowUsage()
         {
@@ -123,9 +109,9 @@ optional arguments:
         }
 
         /// <summary>
-        /// Parses options for this program.
+        ///     Parses options for this program.
         /// </summary>
-        /// <param name="args">arguments (passed in from the user)</param>
+        /// <param name="args"> arguments (passed in from the user) </param>
         private void ParseOptions(string[] args)
         {
             if (args == null)
@@ -167,7 +153,5 @@ optional arguments:
                 }
             }
         }
-
-        #endregion Private Methods
     }
 }

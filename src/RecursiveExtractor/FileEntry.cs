@@ -7,26 +7,18 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
 {
     public class FileEntry
     {
-        #region Private Fields
-
-        private readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
-
-        #endregion Private Fields
-
-        #region Public Constructors
-
         /// <summary>
-        /// Constructs a FileEntry object from a Stream. If passthroughStream is set to true, and
-        /// the stream is seekable, it will directly use inputStream. If passthroughStream is false
-        /// or it is not seekable, it will copy the full contents of inputStream to a new internal
-        /// FileStream and attempt to reset the position of inputstream. The finalizer for this
-        /// class Disposes the contained Stream.
+        ///     Constructs a FileEntry object from a Stream. If passthroughStream is set to true, and the
+        ///     stream is seekable, it will directly use inputStream. If passthroughStream is false or it is
+        ///     not seekable, it will copy the full contents of inputStream to a new internal FileStream and
+        ///     attempt to reset the position of inputstream. The finalizer for this class Disposes the
+        ///     contained Stream.
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="parentPath"></param>
-        /// <param name="inputStream"></param>
-        /// <param name="parent"></param>
-        /// <param name="passthroughStream"></param>
+        /// <param name="name"> </param>
+        /// <param name="parentPath"> </param>
+        /// <param name="inputStream"> </param>
+        /// <param name="parent"> </param>
+        /// <param name="passthroughStream"> </param>
         public FileEntry(string name, Stream inputStream, FileEntry? parent = null, bool passthroughStream = false)
         {
             Parent = parent;
@@ -65,8 +57,8 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
             }
             else
             {
-                // Back with a temporary filestream, this is optimized to be cached in memory when
-                // possible automatically by .NET
+                // Back with a temporary filestream, this is optimized to be cached in memory when possible
+                // automatically by .NET
                 Content = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
                 long? initialPosition = null;
 
@@ -97,9 +89,12 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
             }
         }
 
-        #endregion Public Constructors
-
-        #region Private Destructors
+        public Stream Content { get; set; }
+        public string FullPath { get; set; }
+        public string Name { get; set; }
+        public FileEntry? Parent { get; set; }
+        public string? ParentPath { get; set; }
+        private readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
         ~FileEntry()
         {
@@ -109,22 +104,6 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
             }
         }
 
-        #endregion Private Destructors
-
-        #region Public Properties
-
-        public Stream Content { get; set; }
-        public string FullPath { get; set; }
-        public string Name { get; set; }
-        public FileEntry? Parent { get; set; }
-        public string? ParentPath { get; set; }
-
-        #endregion Public Properties
-
-        #region Private Properties
-
         private bool Passthrough { get; }
-
-        #endregion Private Properties
     }
 }

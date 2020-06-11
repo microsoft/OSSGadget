@@ -12,10 +12,8 @@ namespace Microsoft.CST.OpenSource
 {
     internal class RiskCalculatorTool : OSSGadget
     {
-        #region Public Fields
-
         /// <summary>
-        /// Command line options
+        ///     Command line options
         /// </summary>
         public Dictionary<string, object?> Options = new Dictionary<string, object?>()
         {
@@ -25,31 +23,9 @@ namespace Microsoft.CST.OpenSource
             { "use-cache", false }
         };
 
-        #endregion Public Fields
-
-        #region Private Fields
-
-        /// <summary>
-        /// Name of this tool.
-        /// </summary>
-        private const string TOOL_NAME = "oss-risk-calculator";
-
-        /// <summary>
-        /// Holds the version string, from the assembly.
-        /// </summary>
-        private static readonly string VERSION = typeof(RiskCalculatorTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
-
-        #endregion Private Fields
-
-        #region Public Constructors
-
         public RiskCalculatorTool() : base()
         {
         }
-
-        #endregion Public Constructors
-
-        #region Public Methods
 
         public async Task<double> CalculateRisk(PackageURL purl, string? targetDirectory, bool doCaching)
         {
@@ -100,14 +76,20 @@ namespace Microsoft.CST.OpenSource
             return aggregateRisk;
         }
 
-        #endregion Public Methods
-
-        #region Private Methods
+        /// <summary>
+        ///     Name of this tool.
+        /// </summary>
+        private const string TOOL_NAME = "oss-risk-calculator";
 
         /// <summary>
-        /// Main entrypoint for the download program.
+        ///     Holds the version string, from the assembly.
         /// </summary>
-        /// <param name="args">parameters passed in from the user</param>
+        private static readonly string VERSION = typeof(RiskCalculatorTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
+
+        /// <summary>
+        ///     Main entrypoint for the download program.
+        /// </summary>
+        /// <param name="args"> parameters passed in from the user </param>
         private static void Main(string[] args)
         {
             var riskCalculator = new RiskCalculatorTool();
@@ -143,7 +125,7 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Displays usage information for the program.
+        ///     Displays usage information for the program.
         /// </summary>
         private static void ShowUsage()
         {
@@ -167,9 +149,9 @@ optional arguments:
         }
 
         /// <summary>
-        /// Parses options for this program.
+        ///     Parses options for this program.
         /// </summary>
-        /// <param name="args">arguments (passed in from the user)</param>
+        /// <param name="args"> arguments (passed in from the user) </param>
         private void ParseOptions(string[] args)
         {
             if (args == null)
@@ -224,7 +206,5 @@ optional arguments:
                 }
             }
         }
-
-        #endregion Private Methods
     }
 }

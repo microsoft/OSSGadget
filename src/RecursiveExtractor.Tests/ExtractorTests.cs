@@ -124,7 +124,7 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("zblg.zip", true)]
         [DataRow("zbsm.zip", false)]
         [DataRow("zbsm.zip", true)]
-        [DataRow("zbxl.zip", false)] //These work but have stalled the anti-malware scanner on the pipeline
+        [DataRow("zbxl.zip", false)]
         [DataRow("zbxl.zip", true)]
         public void TestQuineBombs(string fileName, bool parallel)
         {

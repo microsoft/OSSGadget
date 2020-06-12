@@ -42,6 +42,8 @@ namespace Microsoft.CST.OpenSource
             { "custom-rule-directory", null },
             { "download-directory", null },
             { "use-cache", false },
+            { "format", "text" },
+            { "output-file", null },
             { "verbose", false }
         };
 
@@ -56,12 +58,15 @@ namespace Microsoft.CST.OpenSource
         /// <param name="args">parameters passed in from the user</param>
         static async Task Main(string[] args)
         {
-            var detectCryptographyTool = new DetectCryptographyTool();
+            DetectCryptographyTool? detectCryptographyTool = new DetectCryptographyTool();
             Logger.Info($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
 
             detectCryptographyTool.ParseOptions(args);
 
-            if (detectCryptographyTool.Options["target"] is IList<string> targetList && targetList.Count > 0)
+            // select output destination and format
+            detectCryptographyTool.SelectOutput((string?)detectCryptographyTool.Options["output-file"]);
+            OutputBuilder? outputBuilder = detectCryptographyTool?.SelectFormat((string?)detectCryptographyTool.Options["format"]);
+            if (detectCryptographyTool?.Options["target"] is IList<string> targetList && targetList.Count > 0)
             {
                 var sb = new StringBuilder();
                 foreach (var target in targetList)
@@ -655,6 +660,8 @@ optional arguments:
   --disable-default-rules       do not load default, built-in rules.
   --download-directory          the directory to download the package to
   --use-cache                   do not download the package if it is already present in the destination directory
+  --format                      selct the output format (text|sarifv1|sarifv2). (default is text)
+  --output-file                 send the command output to a file instead of stdout
   --help                        show this help message and exit
   --version                     show version of this tool
 ");

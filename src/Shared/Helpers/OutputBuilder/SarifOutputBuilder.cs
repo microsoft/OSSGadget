@@ -1,48 +1,35 @@
-﻿using Microsoft.CodeAnalysis.Sarif;
-using NLog;
+﻿using HtmlAgilityPack;
+using Microsoft.CodeAnalysis.Sarif;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Net.Http.Headers;
 using System.Reflection;
-using System.Text;
+using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
-    /// <summary>
-    /// Builds the output text based on the format specified
-    /// </summary>
-    public class OutputBuilder
+    public class SarifOutputBuilder : IOutputBuilder
     {
         /// <summary>
         /// Class logger
         /// </summary>
         protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
-        public enum OutputFormat
-        {
-            sarifv1,
-            sarifv2 ,
-            text // no sarif, just text
-        };
-
-        readonly OutputFormat CurrentOutputFormat = OutputFormat.text; // default = text
-
-        StringBuilder stringResults = new StringBuilder();
-        List<Result> sarifResults = new List<Result>();
+        List<Result>? sarifResults = new List<Result>();
+        readonly SarifVersion currentSarifVersion = SarifVersion.Current; // default = text
 
         // cache variables to avoid reflection
         static readonly string AssemblyName = Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty;
-
         static readonly string Version = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version.ToString() ?? string.Empty;
 
         static readonly string Company = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyCompanyAttribute>()?.Company ?? string.Empty;
 
-        public OutputBuilder(string format)
+        public SarifOutputBuilder(SarifVersion version)
         {
-            if(!Enum.TryParse<OutputFormat>(format, true, out this.CurrentOutputFormat))
-            {
-                throw new ArgumentOutOfRangeException("Invalid output format");
-            }
+            this.currentSarifVersion = version;
         }
 
         /// <summary>
@@ -50,32 +37,17 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         public void PrintOutput()
         {
-            if (this.CurrentOutputFormat == OutputFormat.text)
-            {
-                Console.Out.Write(this.stringResults.ToString());
-            }
-            else
-            {
-                this.PrintSarifLog(ConsoleHelper.GetCurrentWriteStream());
-            }
+            this.PrintSarifLog(ConsoleHelper.GetCurrentWriteStream());
         }
 
         /// <summary>
         /// Overload of AppendOutput to add to text
         /// </summary>
         /// <param name="output"></param>
-        public void AppendOutput(string output)
+        public void AppendOutput(object? output)
         {
-            this.stringResults.Append(output);
-        }
-
-        /// <summary>
-        /// Overload of AppendOutput to add to SARIF
-        /// </summary>
-        /// <param name="results"></param>
-        public void AppendOutput(List<Result> results)
-        {
-            this.sarifResults.AddRange(results);
+            var results = (IEnumerable<SarifResult>?)output ?? Array.Empty<SarifResult>().ToList();
+            this.sarifResults?.AddRange(results);
         }
 
         /// <summary>
@@ -88,7 +60,7 @@ namespace Microsoft.CST.OpenSource.Shared
             BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, null);
             if (projectManager == null)
             {
-                Logger.Error("Cannot determine the package type");
+                Logger?.Error("Cannot determine the package type");
             }
 
             return new List<Location>() {
@@ -124,8 +96,6 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
             };
 
-            SarifVersion version = this.CurrentOutputFormat == OutputFormat.sarifv1 ? 
-                SarifVersion.OneZeroZero : SarifVersion.Current;
             SarifLog sarifLog = new SarifLog()
             {
                 Runs = new List<Run>() {
@@ -135,10 +105,28 @@ namespace Microsoft.CST.OpenSource.Shared
                         Results = sarifResults
                     }
                 },
-                Version = version
+                Version = this.currentSarifVersion
             };
             return sarifLog;
         }
+
+        public string? GetOutput()
+        {
+            SarifLog completedSarif = BuildSingleRunSarifLog();
+            using (var ms = new MemoryStream())
+            {
+                var sw = new StreamWriter(ms, System.Text.Encoding.UTF8, -1, true);
+                var sr = new StreamReader(ms);
+
+                completedSarif.Save(sw);
+                ms.Position = 0;
+
+                string text = sr.ReadToEnd();
+                sw.Dispose();
+                sr.Dispose();
+                return text;
+            }
+        }        
 
         /// <summary>
         /// Print the whole SARIF log to the stream
@@ -148,17 +136,6 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             SarifLog completedSarif = BuildSingleRunSarifLog();
             completedSarif.Save(writeStream);
-        }
-
-        public bool isTextFormat()
-        {
-            return this.CurrentOutputFormat == OutputFormat.text;
-        }
-
-        public bool isSarifFormat()
-        {
-            return this.CurrentOutputFormat == OutputFormat.sarifv1 ||
-                this.CurrentOutputFormat == OutputFormat.sarifv2;
         }
     }
 }

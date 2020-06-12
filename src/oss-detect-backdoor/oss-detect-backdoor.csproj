@@ -58,6 +58,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\oss-characteristics\oss-characteristic.csproj" />
     <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>

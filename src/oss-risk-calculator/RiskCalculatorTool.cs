@@ -81,7 +81,8 @@ namespace Microsoft.CST.OpenSource
             Logger?.Trace("CalculateRisk({0})", purl.ToString());
 
             var characteristicTool = new CharacteristicTool();
-            var characteristics = characteristicTool.AnalyzePackage(purl, targetDirectory, doCaching).Result;
+            var cOptions = new CharacteristicTool.Options();
+            var characteristics = characteristicTool.AnalyzePackage(cOptions, purl, targetDirectory, doCaching).Result;
 
             var healthTool = new HealthTool();
             var healthMetrics = healthTool.CheckHealth(purl).Result;

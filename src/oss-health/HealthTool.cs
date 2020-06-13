@@ -15,75 +15,6 @@ namespace Microsoft.CST.OpenSource
 {
     public class HealthTool : OSSGadget
     {
-        /// <summary>
-        ///     Name of this tool.
-        /// </summary>
-        private const string TOOL_NAME = "oss-health";
-
-        /// <summary>
-        ///     Holds the version string, from the assembly.
-        /// </summary>
-        private static readonly string VERSION = typeof(HealthTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
-
-        public class Options
-        {
-            [Option('f', "format", Required = false, Default = "text",
-                HelpText = "selct the output format(text|sarifv1|sarifv2)")]
-            public string? Format { get; set; }
-
-            [Option('o', "output-file", Required = false, Default = null,
-                HelpText = "send the command output to a file instead of stdout")]
-            public string? OutputFile { get; set; }
-
-            [Value(0, Required = true,
-                HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze
-            public IEnumerable<string>? Targets { get; set; }
-
-#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
-
-            [Usage()]
-            public static IEnumerable<Example> Examples
-            {
-                get
-                {
-                    return new List<Example>() {
-                        new Example("Find the source code repository for the given package",
-                        new Options { Targets = new List<string>() {"[options]", "package-url..." } })};
-                }
-            }
-        }
-
-        private static async Task Main(string[] args)
-        {
-            var healthTool = new HealthTool();
-            await healthTool.ParseOptions<Options>(args).WithParsedAsync(healthTool.RunAsync);
-        }
-
-        private async Task RunAsync(Options options)
-        {
-            // select output destination and format
-            this.SelectOutput(options.OutputFile);
-            IOutputBuilder? outputBuilder = this.SelectFormat(options.Format);
-            if (options.Targets is IList<string> targetList && targetList.Count > 0)
-            {
-                foreach (var target in targetList)
-                {
-                    try
-                    {
-                        var purl = new PackageURL(target);
-                        var healthMetrics = this.CheckHealth(purl).Result;
-                        this.AppendOutput(outputBuilder, purl, healthMetrics);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Warn("Error processing {0}: {1}", target, ex.Message);
-                    }
-                }
-                outputBuilder?.PrintOutput();
-            }
-            this.RestoreOutput();
-        }
-
         public HealthTool() : base()
         {
         }
@@ -124,6 +55,48 @@ namespace Microsoft.CST.OpenSource
             return null;
         }
 
+        public class Options
+        {
+            [Usage()]
+            public static IEnumerable<Example> Examples
+            {
+                get
+                {
+                    return new List<Example>() {
+                        new Example("Find the source code repository for the given package",
+                        new Options { Targets = new List<string>() {"[options]", "package-url..." } })};
+                }
+            }
+
+            [Option('f', "format", Required = false, Default = "text",
+                            HelpText = "selct the output format(text|sarifv1|sarifv2)")]
+            public string? Format { get; set; }
+
+            [Option('o', "output-file", Required = false, Default = "",
+                HelpText = "send the command output to a file instead of stdout")]
+            public string OutputFile { get; set; } = "";
+
+            [Value(0, Required = true,
+                HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze
+            public IEnumerable<string>? Targets { get; set; }
+        }
+
+        /// <summary>
+        ///     Name of this tool.
+        /// </summary>
+        private const string TOOL_NAME = "oss-health";
+
+        /// <summary>
+        ///     Holds the version string, from the assembly.
+        /// </summary>
+        private static readonly string VERSION = typeof(HealthTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
+
+        private static async Task Main(string[] args)
+        {
+            var healthTool = new HealthTool();
+            await healthTool.ParseOptions<Options>(args).WithParsedAsync(healthTool.RunAsync);
+        }
+
         private void AppendOutput(IOutputBuilder? outputBuilder, PackageURL purl, HealthMetrics? healthMetrics)
         {
             switch (this.currentOutputFormat ?? OutputFormat.text)
@@ -147,6 +120,31 @@ namespace Microsoft.CST.OpenSource
                     });
                     break;
             }
+        }
+
+        private async Task RunAsync(Options options)
+        {
+            // select output destination and format
+            SelectOutput(options.OutputFile);
+            IOutputBuilder? outputBuilder = SelectFormat(options.Format);
+            if (options.Targets is IList<string> targetList && targetList.Count > 0)
+            {
+                foreach (var target in targetList)
+                {
+                    try
+                    {
+                        var purl = new PackageURL(target);
+                        var healthMetrics = CheckHealth(purl).Result;
+                        AppendOutput(outputBuilder, purl, healthMetrics);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Warn("Error processing {0}: {1}", target, ex.Message);
+                    }
+                }
+                outputBuilder?.PrintOutput();
+            }
+            RestoreOutput();
         }
     }
 }

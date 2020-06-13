@@ -118,11 +118,11 @@ namespace Microsoft.CST.OpenSource
 
             [Option('f', "format", Required = false, Default = "text",
                                                                 HelpText = "selct the output format(text|sarifv1|sarifv2)")]
-            public string? Format { get; set; }
+            public string Format { get; set; } = "text";
 
-            [Option('o', "output-file", Required = false, Default = null,
+            [Option('o', "output-file", Required = false, Default = "",
                 HelpText = "send the command output to a file instead of stdout")]
-            public string? OutputFile { get; set; }
+            public string OutputFile { get; set; } = "";
 
             [Value(0, Required = true,
                 HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze

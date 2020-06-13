@@ -21,9 +21,9 @@ namespace Microsoft.CST.OpenSource
                 HelpText = "selct the output format(text|sarifv1|sarifv2)")]
             public string Format { get; set; } = "text";
 
-            [Option('o', "output-file", Required = false, Default = null,
+            [Option('o', "output-file", Required = false, Default = "",
                 HelpText = "send the command output to a file instead of stdout")]
-            public string? OutputFile { get; set; }
+            public string OutputFile { get; set; } = "";
 
             [Option('s', "show-all", Required = false, Default = false,
                 HelpText = "show all possibilities of the package source repositories")]

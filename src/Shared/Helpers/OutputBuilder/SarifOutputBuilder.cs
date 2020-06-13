@@ -10,47 +10,16 @@ namespace Microsoft.CST.OpenSource.Shared
 {
     public class SarifOutputBuilder : IOutputBuilder
     {
-        /// <summary>
-        /// Class logger
-        /// </summary>
-        protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
-
-        List<Result>? sarifResults = new List<Result>();
-        readonly SarifVersion currentSarifVersion = SarifVersion.Current; // default = text
-
-        // cache variables to avoid reflection
-        static readonly string AssemblyName = Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty;
-        static readonly string Version = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version.ToString() ?? string.Empty;
-        static readonly string Company = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyCompanyAttribute>()?.Company ?? string.Empty;
-
         public SarifOutputBuilder(SarifVersion version)
         {
-            this.currentSarifVersion = version;
+            currentSarifVersion = version;
         }
 
         /// <summary>
-        /// Prints to the sarif output as string
+        ///     Build a SARIF Result.Location object for the purl package
         /// </summary>
-        public void PrintOutput()
-        {
-            this.PrintSarifLog(ConsoleHelper.GetCurrentWriteStream());
-        }
-
-        /// <summary>
-        /// Append results to sarif
-        /// </summary>
-        /// <param name="output"></param>
-        public void AppendOutput(IEnumerable<object>? output)
-        {
-            var results = (IEnumerable<SarifResult>?)output ?? Array.Empty<SarifResult>().ToList();
-            this.sarifResults?.AddRange(results);
-        }
-
-        /// <summary>
-        /// Build a SARIF Result.Location object for the purl package
-        /// </summary>
-        /// <param name="purl"></param>
-        /// <returns>Location list with single location object</returns>
+        /// <param name="purl"> </param>
+        /// <returns> Location list with single location object </returns>
         public static List<Location> BuildPurlLocation(PackageURL purl)
         {
             BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, null);
@@ -75,10 +44,22 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// Builds a SARIF log object with the stored results
+        ///     Append results to sarif
         /// </summary>
-        /// <returns></returns>
-        public SarifLog? BuildSingleRunSarifLog()
+        /// <param name="output"> </param>
+        public void AppendOutput(IEnumerable<object>? output)
+        {
+            if (output is IEnumerable<SarifResult> results)
+            {
+                sarifResults.AddRange(results);
+            }
+        }
+
+        /// <summary>
+        ///     Builds a SARIF log object with the stored results
+        /// </summary>
+        /// <returns> </returns>
+        public SarifLog BuildSingleRunSarifLog()
         {
             Tool thisTool = new Tool
             {
@@ -107,35 +88,53 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// Gets the string representation of the sarif
+        ///     Gets the string representation of the sarif
         /// </summary>
-        /// <returns></returns>
-        public string? GetOutput()
+        /// <returns> </returns>
+        public string GetOutput()
         {
-            SarifLog? completedSarif = BuildSingleRunSarifLog();
-            using (MemoryStream? ms = new MemoryStream())
-            {
-                StreamWriter? sw = new StreamWriter(ms, System.Text.Encoding.UTF8, -1, true);
-                StreamReader? sr = new StreamReader(ms);
+            SarifLog completedSarif = BuildSingleRunSarifLog();
 
-                completedSarif?.Save(sw);
-                ms.Position = 0;
+            using MemoryStream ms = new MemoryStream();
+            using StreamWriter sw = new StreamWriter(ms, System.Text.Encoding.UTF8, -1, true);
+            using StreamReader sr = new StreamReader(ms);
 
-                string text = sr.ReadToEnd();
-                sw?.Dispose();
-                sr?.Dispose();
-                return text;
-            }
-        }        
+            completedSarif.Save(sw);
+            ms.Position = 0;
+
+            return sr.ReadToEnd();
+        }
 
         /// <summary>
-        /// Print the whole SARIF log to the stream
+        ///     Prints to the sarif output as string
         /// </summary>
-        /// <param name="writeStream"></param>
+        public void PrintOutput()
+        {
+            PrintSarifLog(ConsoleHelper.GetCurrentWriteStream());
+        }
+
+        /// <summary>
+        ///     Print the whole SARIF log to the stream
+        /// </summary>
+        /// <param name="writeStream"> </param>
         public void PrintSarifLog(StreamWriter writeStream)
         {
-            SarifLog? completedSarif = BuildSingleRunSarifLog();
-            completedSarif?.Save(writeStream);
+            SarifLog completedSarif = BuildSingleRunSarifLog();
+            completedSarif.Save(writeStream);
         }
+
+        /// <summary>
+        ///     Class logger
+        /// </summary>
+        protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
+        // cache variables to avoid reflection
+        private static readonly string AssemblyName = Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty;
+
+        private static readonly string Company = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyCompanyAttribute>()?.Company ?? string.Empty;
+        private static readonly string Version = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version.ToString() ?? string.Empty;
+        private readonly SarifVersion currentSarifVersion = SarifVersion.Current;
+        private List<Result> sarifResults = new List<Result>();
+        // default = text
     }
 }

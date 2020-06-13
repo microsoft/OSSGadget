@@ -1,5 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using System;
 using System.Collections.Concurrent;
@@ -19,112 +18,52 @@ namespace Microsoft.CST.OpenSource
 {
     public class CharacteristicTool : OSSGadget
     {
-        /// <summary>
-        /// Name of this tool.
-        /// </summary>
-        private const string TOOL_NAME = "oss-characteristic";
-
-        /// <summary>
-        /// Holds the version string, from the assembly.
-        /// </summary>
-        private static readonly string VERSION = typeof(CharacteristicTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
-
-        public class Options
-        {
-#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable - commandlineparser doesnt handle nullable fields
-            [Option('f', "format", Required = false, Default = "text", 
-                HelpText = "selct the output format(text|sarifv1|sarifv2)")]
-            public string Format { get; set; }
-
-            [Option('o', "output-file", Required = false, Default = null, 
-                HelpText = "send the command output to a file instead of stdout")]
-            public string OutputFile { get; set; }
-
-            [Option('x', "disable-default-rules", Required = false, Default = false, 
-                HelpText = "do not load default, built-in rules.")]
-            public bool DisableDefaultRules { get; set; }
-
-            [Option('r', "custom-rule-directory", Required = false, Default = null, 
-                HelpText = "load rules from the specified directory.")]
-            public string CustomRuleDirectory { get; set; }
-
-            [Option('d', "download-directory", Required = false, Default = null, 
-                HelpText = "the directory to download the package to.")]
-            public string DownloadDirectory { get; set; }
-
-            [Option('c', "use-cache", Required = false, Default = false, 
-                HelpText = "do not download the package if it is already present in the destination directory.")]
-            public bool UseCache { get; set; }
-
-            [Value(0, Required = true, 
-                HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze
-            public IEnumerable<string> Targets { get; set; }
-#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
-
-            [Usage()]
-            public static IEnumerable<Example> Examples
-            {
-                get
-                {
-                    return new List<Example>() {
-                        new Example("Find the characterstics for the given package", 
-                        new Options { Targets = new List<string>() {"[options]", "package-url..." } })};
-                }
-            }
-        }
-
-        /// <summary>
-        /// Main entrypoint for the download program.
-        /// </summary>
-        /// <param name="args">parameters passed in from the user</param>
-        static async Task Main(string[] args)
-        {
-            var characteristicTool = new CharacteristicTool();
-            await characteristicTool.ParseOptions<Options>(args).WithParsedAsync(characteristicTool.RunAsync);
-        }
-
-        async Task RunAsync(Options options)
-        {
-            // select output destination and format
-            this.SelectOutput(options.OutputFile);
-            IOutputBuilder? outputBuilder = this.SelectFormat(options.Format);
-
-            if (options.Targets is IList<string> targetList && targetList.Count > 0)
-            {
-                foreach (var target in targetList)
-                {
-                    try
-                    {
-                        var purl = new PackageURL(target);
-                        var analysisResult = this.AnalyzePackage(options, purl, 
-                            options.DownloadDirectory, 
-                            options.UseCache == true).Result;
-
-                        this.AppendOutput(outputBuilder, purl, analysisResult);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger?.Warn(ex, "Error processing {0}: {1}", target, ex.Message);
-                    }
-                }
-                outputBuilder?.PrintOutput();
-            } 
-
-            this.RestoreOutput();
-        }
-
         public CharacteristicTool() : base()
         {
         }
 
+        /// <summary>
+        ///     Analyzes a directory of files.
+        /// </summary>
+        /// <param name="directory"> directory to analyze. </param>
+        /// <returns> List of tags identified </returns>
+        public async Task<AnalyzeResult?> AnalyzeDirectory(Options options, string directory)
+        {
+            Logger?.Trace("AnalyzeDirectory({0})", directory);
+
+            AnalyzeResult? analysisResult = null;
+
+            // Call Application Inspector using the NuGet package
+            var analyzeOptions = new AnalyzeOptions()
+            {
+                ConsoleVerbosityLevel = "None",
+                LogFileLevel = "Off",
+                SourcePath = directory,
+                IgnoreDefaultRules = options.DisableDefaultRules == true,
+                CustomRulesPath = options.CustomRuleDirectory,
+            };
+
+            try
+            {
+                var analyzeCommand = new AnalyzeCommand(analyzeOptions);
+                analysisResult = analyzeCommand.GetResult();
+                Logger?.Debug("Operation Complete: {0} files analyzed.", analysisResult?.Metadata?.TotalFiles);
+            }
+            catch (Exception ex)
+            {
+                Logger?.Warn("Error analyzing {0}: {1}", directory, ex.Message);
+            }
+
+            return analysisResult;
+        }
 
         /// <summary>
-        /// Analyze a package by downloading it first.
+        ///     Analyze a package by downloading it first.
         /// </summary>
-        /// <param name="purl">The package-url of the package to analyze.</param>
-        /// <returns>List of tags identified</returns>
-        public async Task<Dictionary<string, AnalyzeResult?>> AnalyzePackage(Options options, PackageURL purl, 
-            string? targetDirectoryName, 
+        /// <param name="purl"> The package-url of the package to analyze. </param>
+        /// <returns> List of tags identified </returns>
+        public async Task<Dictionary<string, AnalyzeResult?>> AnalyzePackage(Options options, PackageURL purl,
+            string? targetDirectoryName,
             bool doCaching)
         {
             Logger?.Trace("AnalyzePackage({0})", purl.ToString());
@@ -133,8 +72,8 @@ namespace Microsoft.CST.OpenSource
 
             var packageDownloader = new PackageDownloader(purl, targetDirectoryName, doCaching);
             // ensure that the cache directory has the required package, download it otherwise
-            var directoryNames = await packageDownloader.DownloadPackageLocalCopy(purl, 
-                false, 
+            var directoryNames = await packageDownloader.DownloadPackageLocalCopy(purl,
+                false,
                 true);
             if (directoryNames.Count > 0)
             {
@@ -152,102 +91,65 @@ namespace Microsoft.CST.OpenSource
             return analysisResults;
         }
 
-        /// <summary>
-        /// Analyzes a directory of files.
-        /// </summary>
-        /// <param name="directory">directory to analyze.</param>
-        /// <returns>List of tags identified</returns>
-        public async Task<AnalyzeResult?> AnalyzeDirectory(Options options, string directory)
+        public class Options
         {
-            Logger?.Trace("AnalyzeDirectory({0})", directory);
-
-            AnalyzeResult? analysisResult = null;
-
-            // Call Application Inspector using the NuGet package
-            var analyzeOptions = new AnalyzeOptions()
+            [Usage()]
+            public static IEnumerable<Example> Examples
             {
-                ConsoleVerbosityLevel = "None",
-                LogFileLevel = "Off",
-                SourcePath = directory,
-                IgnoreDefaultRules = options.DisableDefaultRules == true,
-                CustomRulesPath = options.CustomRuleDirectory,
-            };
-            
-            try
-            {
-                var analyzeCommand = new AnalyzeCommand(analyzeOptions);
-                analysisResult = analyzeCommand.GetResult();
-                Logger?.Debug("Operation Complete: {0} files analyzed.", analysisResult?.Metadata?.TotalFiles);
-            }
-            catch(Exception ex)
-            {
-                Logger?.Warn("Error analyzing {0}: {1}", directory, ex.Message);
-            }
-
-            return analysisResult;
-        }
-
-        /// <summary>
-        /// Convert charactersticTool results into output format
-        /// </summary>
-        /// <param name="outputBuilder"></param>
-        /// <param name="purl"></param>
-        /// <param name="results"></param>
-        void AppendOutput(IOutputBuilder? outputBuilder, PackageURL purl, Dictionary<string, AnalyzeResult?> analysisResults)
-        {
-            switch (this.currentOutputFormat ?? OutputFormat.text)
-            {
-                case OutputFormat.text:
-                    outputBuilder?.AppendOutput(GetTextResults(purl, analysisResults));
-                    break;
-
-                case OutputFormat.sarifv1:
-                case OutputFormat.sarifv2:
-                    outputBuilder?.AppendOutput(GetSarifResults(purl, analysisResults));
-                    break;
-
-                default:
-                    outputBuilder?.AppendOutput(GetTextResults(purl, analysisResults));
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// Convert charactersticTool results into text format
-        /// </summary>
-        /// <param name="results"></param>
-        /// <returns></returns>
-        static List<string> GetTextResults(PackageURL purl, Dictionary<string, AnalyzeResult?> analysisResult)
-        {
-            List<string> stringOutput = new List<string>();
-
-            stringOutput.Add(purl.ToString());
-            if (analysisResult.HasAtLeastOneNonNullValue())
-            {
-                StringBuilder builder = new StringBuilder();
-                foreach (var key in analysisResult.Keys)
+                get
                 {
-                    var metadata = analysisResult?[key]?.Metadata;
-
-                    stringOutput.Add(string.Format("Programming Language: {0}", 
-                        string.Join(", ", metadata?.Languages?.Keys ?? Array.Empty<string>().ToList())));
-                    stringOutput.Add("Unique Tags: ");
-                    foreach (var tag in metadata?.UniqueTags ?? new ConcurrentDictionary<string, byte>())
-                    {
-                        stringOutput.Add(string.Format($" * {tag}"));
-                    }
+                    return new List<Example>() {
+                        new Example("Find the characterstics for the given package",
+                        new Options { Targets = new List<string>() {"[options]", "package-url..." } })};
                 }
             }
-            return stringOutput;
+
+            [Option('r', "custom-rule-directory", Required = false, Default = null,
+                HelpText = "load rules from the specified directory.")]
+            public string? CustomRuleDirectory { get; set; }
+
+            [Option('x', "disable-default-rules", Required = false, Default = false,
+                HelpText = "do not load default, built-in rules.")]
+            public bool DisableDefaultRules { get; set; }
+
+            [Option('d', "download-directory", Required = false, Default = null,
+                HelpText = "the directory to download the package to.")]
+            public string? DownloadDirectory { get; set; }
+
+            [Option('f', "format", Required = false, Default = "text",
+                                                                HelpText = "selct the output format(text|sarifv1|sarifv2)")]
+            public string? Format { get; set; }
+
+            [Option('o', "output-file", Required = false, Default = null,
+                HelpText = "send the command output to a file instead of stdout")]
+            public string? OutputFile { get; set; }
+
+            [Value(0, Required = true,
+                HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze
+            public IEnumerable<string>? Targets { get; set; }
+
+            [Option('c', "use-cache", Required = false, Default = false,
+                            HelpText = "do not download the package if it is already present in the destination directory.")]
+            public bool UseCache { get; set; }
         }
 
         /// <summary>
-        /// Build and return a list of Sarif Result list from the find characterstics results
+        ///     Name of this tool.
         /// </summary>
-        /// <param name="purl"></param>
-        /// <param name="results"></param>
-        /// <returns></returns>
-        static List<SarifResult> GetSarifResults(PackageURL purl, Dictionary<string, AnalyzeResult?> analysisResult)
+        private const string TOOL_NAME = "oss-characteristic";
+
+        /// <summary>
+        ///     Holds the version string, from the assembly.
+        /// </summary>
+        private static readonly string VERSION = typeof(CharacteristicTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
+
+        /// <summary>
+        ///     Build and return a list of Sarif Result list from the find characterstics results
+        /// </summary>
+        /// <param name="purl"> </param>
+        /// <param name="results"> </param>
+        /// <returns> </returns>
+        private static List<SarifResult> GetSarifResults(PackageURL purl, Dictionary<string, AnalyzeResult?> analysisResult)
         {
             List<SarifResult> sarifResults = new List<SarifResult>();
             if (analysisResult.HasAtLeastOneNonNullValue())
@@ -278,6 +180,100 @@ namespace Microsoft.CST.OpenSource
                 }
             }
             return sarifResults;
+        }
+
+        /// <summary>
+        ///     Convert charactersticTool results into text format
+        /// </summary>
+        /// <param name="results"> </param>
+        /// <returns> </returns>
+        private static List<string> GetTextResults(PackageURL purl, Dictionary<string, AnalyzeResult?> analysisResult)
+        {
+            List<string> stringOutput = new List<string>();
+
+            stringOutput.Add(purl.ToString());
+            if (analysisResult.HasAtLeastOneNonNullValue())
+            {
+                StringBuilder builder = new StringBuilder();
+                foreach (var key in analysisResult.Keys)
+                {
+                    var metadata = analysisResult?[key]?.Metadata;
+
+                    stringOutput.Add(string.Format("Programming Language: {0}",
+                        string.Join(", ", metadata?.Languages?.Keys ?? Array.Empty<string>().ToList())));
+                    stringOutput.Add("Unique Tags: ");
+                    foreach (var tag in metadata?.UniqueTags ?? new ConcurrentDictionary<string, byte>())
+                    {
+                        stringOutput.Add(string.Format($" * {tag}"));
+                    }
+                }
+            }
+            return stringOutput;
+        }
+
+        /// <summary>
+        ///     Main entrypoint for the download program.
+        /// </summary>
+        /// <param name="args"> parameters passed in from the user </param>
+        private static async Task Main(string[] args)
+        {
+            var characteristicTool = new CharacteristicTool();
+            await characteristicTool.ParseOptions<Options>(args).WithParsedAsync(characteristicTool.RunAsync);
+        }
+
+        /// <summary>
+        ///     Convert charactersticTool results into output format
+        /// </summary>
+        /// <param name="outputBuilder"> </param>
+        /// <param name="purl"> </param>
+        /// <param name="results"> </param>
+        private void AppendOutput(IOutputBuilder? outputBuilder, PackageURL purl, Dictionary<string, AnalyzeResult?> analysisResults)
+        {
+            switch (this.currentOutputFormat ?? OutputFormat.text)
+            {
+                case OutputFormat.text:
+                    outputBuilder?.AppendOutput(GetTextResults(purl, analysisResults));
+                    break;
+
+                case OutputFormat.sarifv1:
+                case OutputFormat.sarifv2:
+                    outputBuilder?.AppendOutput(GetSarifResults(purl, analysisResults));
+                    break;
+
+                default:
+                    outputBuilder?.AppendOutput(GetTextResults(purl, analysisResults));
+                    break;
+            }
+        }
+
+        private async Task RunAsync(Options options)
+        {
+            // select output destination and format
+            this.SelectOutput(options.OutputFile);
+            IOutputBuilder? outputBuilder = this.SelectFormat(options.Format);
+
+            if (options.Targets is IList<string> targetList && targetList.Count > 0)
+            {
+                foreach (var target in targetList)
+                {
+                    try
+                    {
+                        var purl = new PackageURL(target);
+                        var analysisResult = this.AnalyzePackage(options, purl,
+                            options.DownloadDirectory,
+                            options.UseCache == true).Result;
+
+                        this.AppendOutput(outputBuilder, purl, analysisResult);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger?.Warn(ex, "Error processing {0}: {1}", target, ex.Message);
+                    }
+                }
+                outputBuilder?.PrintOutput();
+            }
+
+            this.RestoreOutput();
         }
     }
 }

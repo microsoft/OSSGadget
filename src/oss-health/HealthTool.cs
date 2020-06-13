@@ -1,5 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using System;
 using System.Collections.Generic;
@@ -17,29 +16,29 @@ namespace Microsoft.CST.OpenSource
     public class HealthTool : OSSGadget
     {
         /// <summary>
-        /// Name of this tool.
+        ///     Name of this tool.
         /// </summary>
         private const string TOOL_NAME = "oss-health";
 
         /// <summary>
-        /// Holds the version string, from the assembly.
+        ///     Holds the version string, from the assembly.
         /// </summary>
         private static readonly string VERSION = typeof(HealthTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
 
         public class Options
         {
-#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable - commandlineparser doesnt handle nullable fields
-            [Option('f', "format", Required = false, Default = "text", 
+            [Option('f', "format", Required = false, Default = "text",
                 HelpText = "selct the output format(text|sarifv1|sarifv2)")]
-            public string Format { get; set; }
+            public string? Format { get; set; }
 
-            [Option('o', "output-file", Required = false, Default = null, 
+            [Option('o', "output-file", Required = false, Default = null,
                 HelpText = "send the command output to a file instead of stdout")]
-            public string OutputFile { get; set; }
+            public string? OutputFile { get; set; }
 
-            [Value(0, Required = true, 
+            [Value(0, Required = true,
                 HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze
-            public IEnumerable<string> Targets { get; set; }
+            public IEnumerable<string>? Targets { get; set; }
+
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
 
             [Usage()]
@@ -48,19 +47,19 @@ namespace Microsoft.CST.OpenSource
                 get
                 {
                     return new List<Example>() {
-                        new Example("Find the source code repository for the given package", 
+                        new Example("Find the source code repository for the given package",
                         new Options { Targets = new List<string>() {"[options]", "package-url..." } })};
                 }
             }
         }
 
-        static async Task Main(string[] args)
+        private static async Task Main(string[] args)
         {
             var healthTool = new HealthTool();
             await healthTool.ParseOptions<Options>(args).WithParsedAsync(healthTool.RunAsync);
         }
 
-        async Task RunAsync(Options options)
+        private async Task RunAsync(Options options)
         {
             // select output destination and format
             this.SelectOutput(options.OutputFile);
@@ -74,7 +73,6 @@ namespace Microsoft.CST.OpenSource
                         var purl = new PackageURL(target);
                         var healthMetrics = this.CheckHealth(purl).Result;
                         this.AppendOutput(outputBuilder, purl, healthMetrics);
-
                     }
                     catch (Exception ex)
                     {
@@ -126,14 +124,14 @@ namespace Microsoft.CST.OpenSource
             return null;
         }
 
-        void AppendOutput(IOutputBuilder? outputBuilder, PackageURL purl, HealthMetrics? healthMetrics)
+        private void AppendOutput(IOutputBuilder? outputBuilder, PackageURL purl, HealthMetrics? healthMetrics)
         {
             switch (this.currentOutputFormat ?? OutputFormat.text)
             {
                 case OutputFormat.text:
-                    outputBuilder?.AppendOutput(new List<string>() { 
-                        $"Health for {purl} (via {purl})", 
-                        healthMetrics?.ToString() ?? string.Empty 
+                    outputBuilder?.AppendOutput(new List<string>() {
+                        $"Health for {purl} (via {purl})",
+                        healthMetrics?.ToString() ?? string.Empty
                     });
                     break;
 

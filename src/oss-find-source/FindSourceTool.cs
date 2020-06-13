@@ -1,5 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using System;
 using System.Collections.Generic;
@@ -18,22 +17,22 @@ namespace Microsoft.CST.OpenSource
     {
         public class Options
         {
-#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable - commandlineparser doesnt handle nullable fields
-            [Option('f', "format", Required = false, Default = "text", 
+            [Option('f', "format", Required = false, Default = "text",
                 HelpText = "selct the output format(text|sarifv1|sarifv2)")]
-            public string Format { get; set; }
+            public string Format { get; set; } = "text";
 
-            [Option('o', "output-file", Required = false, Default = null, 
+            [Option('o', "output-file", Required = false, Default = null,
                 HelpText = "send the command output to a file instead of stdout")]
-            public string OutputFile { get; set; } 
+            public string? OutputFile { get; set; }
 
-            [Option('s', "show-all", Required = false, Default = false, 
+            [Option('s', "show-all", Required = false, Default = false,
                 HelpText = "show all possibilities of the package source repositories")]
-            public bool ShowAll { get; set; } 
+            public bool ShowAll { get; set; }
 
-            [Value(0, Required = true, 
+            [Value(0, Required = true,
                 HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze
-            public IEnumerable<string> Targets { get; set; }
+            public IEnumerable<string>? Targets { get; set; }
+
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
 
             [Usage()]
@@ -47,14 +46,14 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        static async Task Main(string[] args)
+        private static async Task Main(string[] args)
         {
             var findSourceTool = new FindSourceTool();
             await findSourceTool.ParseOptions<Options>(args).WithParsedAsync(findSourceTool.RunAsync);
         }
 
-        async Task RunAsync(Options? options) {
-
+        private async Task RunAsync(Options? options)
+        {
             // select output destination and format
             this.SelectOutput(options?.OutputFile);
             IOutputBuilder? outputBuilder = this.SelectFormat(options?.Format);
@@ -102,7 +101,7 @@ namespace Microsoft.CST.OpenSource
             try
             {
                 RepoSearch? repoSearcher = new RepoSearch();
-                var repos = await (repoSearcher?.ResolvePackageLibraryAsync(purl) ?? 
+                var repos = await (repoSearcher?.ResolvePackageLibraryAsync(purl) ??
                     Task.FromResult(new Dictionary<PackageURL, double>()));
                 if (repos.Any())
                 {
@@ -126,14 +125,14 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Convert findSourceTool results into output format
+        ///     Convert findSourceTool results into output format
         /// </summary>
-        /// <param name="outputBuilder"></param>
-        /// <param name="purl"></param>
-        /// <param name="results"></param>
-        void AppendOutput(IOutputBuilder? outputBuilder, PackageURL? purl, List<KeyValuePair<PackageURL, double>>? results)
+        /// <param name="outputBuilder"> </param>
+        /// <param name="purl"> </param>
+        /// <param name="results"> </param>
+        private void AppendOutput(IOutputBuilder? outputBuilder, PackageURL? purl, List<KeyValuePair<PackageURL, double>>? results)
         {
-            switch(this.currentOutputFormat ?? OutputFormat.text)
+            switch (this.currentOutputFormat ?? OutputFormat.text)
             {
                 case OutputFormat.text:
                 default:
@@ -144,15 +143,15 @@ namespace Microsoft.CST.OpenSource
                 case OutputFormat.sarifv2:
                     outputBuilder?.AppendOutput(GetSarifResults(purl, results));
                     break;
-            }            
+            }
         }
 
         /// <summary>
-        /// Convert findSourceTool results into text format
+        ///     Convert findSourceTool results into text format
         /// </summary>
-        /// <param name="results"></param>
-        /// <returns></returns>
-        static List<string> GetTextResults(List<KeyValuePair<PackageURL, double>>? results)
+        /// <param name="results"> </param>
+        /// <returns> </returns>
+        private static List<string> GetTextResults(List<KeyValuePair<PackageURL, double>>? results)
         {
             //StringBuilder stringOutput = new StringBuilder();
             List<string> stringOutput = new List<string>();
@@ -166,12 +165,12 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Build and return a list of Sarif Result list from the find source results
+        ///     Build and return a list of Sarif Result list from the find source results
         /// </summary>
-        /// <param name="purl"></param>
-        /// <param name="results"></param>
-        /// <returns></returns>
-        static List<Result> GetSarifResults(PackageURL? purl, List<KeyValuePair<PackageURL, double>>? results)
+        /// <param name="purl"> </param>
+        /// <param name="results"> </param>
+        /// <returns> </returns>
+        private static List<Result> GetSarifResults(PackageURL? purl, List<KeyValuePair<PackageURL, double>>? results)
         {
             List<Result> sarifResults = new List<Result>();
             foreach (var result in results ?? new List<KeyValuePair<PackageURL, double>>())

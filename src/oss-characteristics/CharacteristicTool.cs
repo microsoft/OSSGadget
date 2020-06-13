@@ -2,7 +2,9 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.ApplicationInspector.Commands;
@@ -212,9 +214,10 @@ namespace Microsoft.CST.OpenSource
                 {
                     var metadata = analysisResult?[key]?.Metadata;
 
-                    stringOutput.AppendFormat("Programming Language: {0}\n", string.Join(", ", metadata.Languages.Keys));
+                    stringOutput.AppendFormat("Programming Language: {0}\n", 
+                        string.Join(", ", metadata?.Languages?.Keys ?? Array.Empty<string>().ToList()));
                     stringOutput.AppendLine("Unique Tags: ");
-                    foreach (var tag in metadata.UniqueTags)
+                    foreach (var tag in metadata?.UniqueTags ?? new ConcurrentDictionary<string, byte>())
                     {
                         stringOutput.AppendFormat($" * {tag}\n");
                     }
@@ -251,9 +254,7 @@ namespace Microsoft.CST.OpenSource
 
                     if (metadata?.UniqueTags?.HasAtLeastOneNonNullValue() ?? true)
                     {
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
-                        foreach (var tag in metadata.UniqueTags)
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
+                        foreach (var tag in metadata?.UniqueTags ?? new ConcurrentDictionary<string, byte>())
                         {
                             sarifResult?.SetProperty(tag.Key, tag.Value);
                         }
@@ -344,6 +345,8 @@ optional arguments:
   --disable-default-rules       do not load default, built-in rules.
   --download-directory          the directory to download the package to
   --use-cache                   do not download the package if it is already present in the destination directory
+  --format                      selct the output format (text|sarifv1|sarifv2). (default is text)
+  --output-file                 send the command output to a file instead of stdout
   --help                        show this help message and exit
   --version                     show version of this tool
 ");

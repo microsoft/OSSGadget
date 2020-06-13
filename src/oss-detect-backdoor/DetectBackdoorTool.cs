@@ -35,13 +35,16 @@ namespace Microsoft.CST.OpenSource
         public class Options
         {
 #pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable - commandlineparser doesnt handle nullable fields
-            [Option('d', "download-directory", Required = false, Default = null, HelpText = "the directory to download the package to.")]
+            [Option('d', "download-directory", Required = false, Default = null, 
+                
+                HelpText = "the directory to download the package to.")]
             public string DownloadDirectory { get; set; }
 
             [Option('c', "use-cache", Required = false, Default = false, HelpText = "do not download the package if it is already present in the destination directory.")]
             public bool UseCache { get; set; }
 
-            [Value(0, Required = true, HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze
+            [Value(0, Required = true, 
+                HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze
             public IEnumerable<string> Targets { get; set; }
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
 
@@ -51,7 +54,8 @@ namespace Microsoft.CST.OpenSource
                 get
                 {
                     return new List<Example>() {
-                        new Example("Find the characterstics for the given package", new Options { Targets = new List<string>() {"[options]", "package-url..." } })};
+                        new Example("Find the characterstics for the given package", 
+                        new Options { Targets = new List<string>() {"[options]", "package-url..." } })};
                 }
             }
         }

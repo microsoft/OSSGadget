@@ -22,7 +22,7 @@ namespace Microsoft.CST.OpenSource.Shared
             return stringResults.ToString();
         }
         /// <summary>
-        /// Overload of AppendOutput to add to text
+        /// Append more text to the result
         /// </summary>
         /// <param name="output"></param>
         public void AppendOutput(object? output)

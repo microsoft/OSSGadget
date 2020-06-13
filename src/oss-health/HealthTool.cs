@@ -29,13 +29,16 @@ namespace Microsoft.CST.OpenSource
         public class Options
         {
 #pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable - commandlineparser doesnt handle nullable fields
-            [Option('f', "format", Required = false, Default = "text", HelpText = "selct the output format(text|sarifv1|sarifv2)")]
+            [Option('f', "format", Required = false, Default = "text", 
+                HelpText = "selct the output format(text|sarifv1|sarifv2)")]
             public string Format { get; set; }
 
-            [Option('o', "output-file", Required = false, Default = null, HelpText = "send the command output to a file instead of stdout")]
+            [Option('o', "output-file", Required = false, Default = null, 
+                HelpText = "send the command output to a file instead of stdout")]
             public string OutputFile { get; set; }
 
-            [Value(0, Required = true, HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze
+            [Value(0, Required = true, 
+                HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze
             public IEnumerable<string> Targets { get; set; }
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
 
@@ -45,7 +48,8 @@ namespace Microsoft.CST.OpenSource
                 get
                 {
                     return new List<Example>() {
-                        new Example("Find the source code repository for the given package", new Options { Targets = new List<string>() {"[options]", "package-url..." } })};
+                        new Example("Find the source code repository for the given package", 
+                        new Options { Targets = new List<string>() {"[options]", "package-url..." } })};
                 }
             }
         }

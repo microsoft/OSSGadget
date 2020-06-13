@@ -61,11 +61,11 @@ namespace Microsoft.CST.OpenSource
             DetectCryptographyTool? detectCryptographyTool = new DetectCryptographyTool();
             Logger.Info($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
 
-            detectCryptographyTool.ParseOptions(args);
+            detectCryptographyTool?.ParseOptions(args);
 
             // select output destination and format
-            detectCryptographyTool.SelectOutput((string?)detectCryptographyTool.Options["output-file"]);
-            OutputBuilder? outputBuilder = detectCryptographyTool?.SelectFormat((string?)detectCryptographyTool.Options["format"]);
+            detectCryptographyTool?.SelectOutput((string?)detectCryptographyTool?.Options["output-file"]);
+            OutputBuilder? outputBuilder = detectCryptographyTool?.SelectFormat((string?)detectCryptographyTool?.Options["format"]);
             if (detectCryptographyTool?.Options["target"] is IList<string> targetList && targetList.Count > 0)
             {
                 var sb = new StringBuilder();
@@ -78,13 +78,16 @@ namespace Microsoft.CST.OpenSource
                         if (target.StartsWith("pkg:", StringComparison.InvariantCulture))
                         {
                             var purl = new PackageURL(target);
-                            results = await detectCryptographyTool.AnalyzePackage(purl, 
-                                (string?)detectCryptographyTool.Options["download-directory"], 
-                                (bool?)detectCryptographyTool.Options["use-cache"] == true);
+                            results = await (detectCryptographyTool?.AnalyzePackage(purl, 
+                                (string?)detectCryptographyTool?.Options["download-directory"] ?? string.Empty,
+                                (bool?)detectCryptographyTool?.Options["use-cache"] ?? false == true) ?? 
+                                Task.FromResult(new List<IssueRecord>()));
                         }
                         else if (Directory.Exists(target))
                         {
-                            results = await detectCryptographyTool.AnalyzeDirectory(target);
+                            results = await (detectCryptographyTool?.AnalyzeDirectory(target) ??
+                                                                Task.FromResult(new List<IssueRecord>()));
+
                         }
                         else if (File.Exists(target))
                         {
@@ -99,7 +102,8 @@ namespace Microsoft.CST.OpenSource
                             var path = await projectManager.ExtractArchive("temp", File.ReadAllBytes(target));
                             #pragma warning restore SCS0018 // Path traversal: injection possible in {1} argument passed to '{0}'
                             
-                            results = await detectCryptographyTool.AnalyzeDirectory(path);
+                            results = await (detectCryptographyTool?.AnalyzeDirectory(path) ??
+                                                                Task.FromResult(new List<IssueRecord>())); ;
                             
                             // Clean up after ourselves
                             try
@@ -156,7 +160,7 @@ namespace Microsoft.CST.OpenSource
                                 sb.AppendLine($"[ ] {target} - This software package does NOT contains words that suggest cryptography.");
                             }
                             
-                            if ((bool?)detectCryptographyTool.Options["verbose"] == true)
+                            if ((bool?)detectCryptographyTool?.Options["verbose"] == true)
                             {
                                 var items = results.GroupBy(k => k.Issue.Rule.Name).OrderByDescending(k => k.Count());
                                 foreach (var item in items)

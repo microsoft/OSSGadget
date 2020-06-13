@@ -1,11 +1,8 @@
-﻿using HtmlAgilityPack;
-using Microsoft.CodeAnalysis.Sarif;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.CodeAnalysis.Sarif;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http.Headers;
 using System.Reflection;
 using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
 
@@ -24,7 +21,6 @@ namespace Microsoft.CST.OpenSource.Shared
         // cache variables to avoid reflection
         static readonly string AssemblyName = Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty;
         static readonly string Version = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version.ToString() ?? string.Empty;
-
         static readonly string Company = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyCompanyAttribute>()?.Company ?? string.Empty;
 
         public SarifOutputBuilder(SarifVersion version)
@@ -33,7 +29,7 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// Prints to the currently selected output
+        /// Prints to the sarif output as string
         /// </summary>
         public void PrintOutput()
         {
@@ -41,7 +37,7 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// Overload of AppendOutput to add to text
+        /// Append results to sarif
         /// </summary>
         /// <param name="output"></param>
         public void AppendOutput(object? output)
@@ -82,7 +78,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// Builds a SARIF log object with the stored results
         /// </summary>
         /// <returns></returns>
-        public SarifLog BuildSingleRunSarifLog()
+        public SarifLog? BuildSingleRunSarifLog()
         {
             Tool thisTool = new Tool
             {
@@ -110,20 +106,24 @@ namespace Microsoft.CST.OpenSource.Shared
             return sarifLog;
         }
 
+        /// <summary>
+        /// Gets the string representation of the sarif
+        /// </summary>
+        /// <returns></returns>
         public string? GetOutput()
         {
-            SarifLog completedSarif = BuildSingleRunSarifLog();
-            using (var ms = new MemoryStream())
+            SarifLog? completedSarif = BuildSingleRunSarifLog();
+            using (MemoryStream? ms = new MemoryStream())
             {
-                var sw = new StreamWriter(ms, System.Text.Encoding.UTF8, -1, true);
-                var sr = new StreamReader(ms);
+                StreamWriter? sw = new StreamWriter(ms, System.Text.Encoding.UTF8, -1, true);
+                StreamReader? sr = new StreamReader(ms);
 
-                completedSarif.Save(sw);
+                completedSarif?.Save(sw);
                 ms.Position = 0;
 
                 string text = sr.ReadToEnd();
-                sw.Dispose();
-                sr.Dispose();
+                sw?.Dispose();
+                sr?.Dispose();
                 return text;
             }
         }        
@@ -134,8 +134,8 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <param name="writeStream"></param>
         public void PrintSarifLog(StreamWriter writeStream)
         {
-            SarifLog completedSarif = BuildSingleRunSarifLog();
-            completedSarif.Save(writeStream);
+            SarifLog? completedSarif = BuildSingleRunSarifLog();
+            completedSarif?.Save(writeStream);
         }
     }
 }

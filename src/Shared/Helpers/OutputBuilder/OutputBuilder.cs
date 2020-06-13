@@ -15,8 +15,8 @@ namespace Microsoft.CST.OpenSource.Shared
             text // no sarif, just text
         };
 
-        public OutputFormat currentOutputFormat { get; private set; } = OutputFormat.text; // default = text
-        IOutputBuilder currentBuilder;
+        public OutputFormat? currentOutputFormat { get; private set; } = OutputFormat.text; // default = text
+        IOutputBuilder? currentBuilder;
 
         public OutputBuilder(string format)
         {

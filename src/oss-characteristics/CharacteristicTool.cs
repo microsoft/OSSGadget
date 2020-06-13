@@ -32,25 +32,32 @@ namespace Microsoft.CST.OpenSource
         public class Options
         {
 #pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable - commandlineparser doesnt handle nullable fields
-            [Option('f', "format", Required = false, Default = "text", HelpText = "selct the output format(text|sarifv1|sarifv2)")]
+            [Option('f', "format", Required = false, Default = "text", 
+                HelpText = "selct the output format(text|sarifv1|sarifv2)")]
             public string Format { get; set; }
 
-            [Option('o', "output-file", Required = false, Default = null, HelpText = "send the command output to a file instead of stdout")]
+            [Option('o', "output-file", Required = false, Default = null, 
+                HelpText = "send the command output to a file instead of stdout")]
             public string OutputFile { get; set; }
 
-            [Option('x', "disable-default-rules", Required = false, Default = false, HelpText = "do not load default, built-in rules.")]
+            [Option('x', "disable-default-rules", Required = false, Default = false, 
+                HelpText = "do not load default, built-in rules.")]
             public bool DisableDefaultRules { get; set; }
 
-            [Option('r', "custom-rule-directory", Required = false, Default = null, HelpText = "load rules from the specified directory.")]
+            [Option('r', "custom-rule-directory", Required = false, Default = null, 
+                HelpText = "load rules from the specified directory.")]
             public string CustomRuleDirectory { get; set; }
 
-            [Option('d', "download-directory", Required = false, Default = null, HelpText = "the directory to download the package to.")]
+            [Option('d', "download-directory", Required = false, Default = null, 
+                HelpText = "the directory to download the package to.")]
             public string DownloadDirectory { get; set; }
 
-            [Option('c', "use-cache", Required = false, Default = false, HelpText = "do not download the package if it is already present in the destination directory.")]
+            [Option('c', "use-cache", Required = false, Default = false, 
+                HelpText = "do not download the package if it is already present in the destination directory.")]
             public bool UseCache { get; set; }
 
-            [Value(0, Required = true, HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze
+            [Value(0, Required = true, 
+                HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze
             public IEnumerable<string> Targets { get; set; }
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
 
@@ -60,7 +67,8 @@ namespace Microsoft.CST.OpenSource
                 get
                 {
                     return new List<Example>() {
-                        new Example("Find the characterstics for the given package", new Options { Targets = new List<string>() {"[options]", "package-url..." } })};
+                        new Example("Find the characterstics for the given package", 
+                        new Options { Targets = new List<string>() {"[options]", "package-url..." } })};
                 }
             }
         }

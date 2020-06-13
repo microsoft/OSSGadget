@@ -64,9 +64,9 @@ namespace Microsoft.CST.OpenSource
                     try
                     {
                         var purl = new PackageURL(target);
-                        var results = this.FindSource(purl).Result.ToList();
+                        var results = FindSource(purl).Result.ToList();
                         results.Sort((b, a) => a.Value.CompareTo(b.Value));
-                        this.AppendOutput(outputBuilder, purl, results);
+                        AppendOutput(outputBuilder, purl, results);
                     }
                     catch (Exception ex)
                     {
@@ -130,13 +130,13 @@ namespace Microsoft.CST.OpenSource
         /// <param name="outputBuilder"> </param>
         /// <param name="purl"> </param>
         /// <param name="results"> </param>
-        private void AppendOutput(IOutputBuilder? outputBuilder, PackageURL? purl, List<KeyValuePair<PackageURL, double>>? results)
+        private void AppendOutput(IOutputBuilder outputBuilder, PackageURL purl, List<KeyValuePair<PackageURL, double>> results)
         {
-            switch (this.currentOutputFormat ?? OutputFormat.text)
+            switch (currentOutputFormat)
             {
                 case OutputFormat.text:
                 default:
-                    outputBuilder?.AppendOutput(GetTextResults(results) ?? Array.Empty<string>().ToList());
+                    outputBuilder?.AppendOutput(GetTextResults(results));
                     break;
 
                 case OutputFormat.sarifv1:

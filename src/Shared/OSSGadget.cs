@@ -9,7 +9,7 @@ namespace Microsoft.CST.OpenSource
 {
     public class OSSGadget
     {
-        public OutputFormat? currentOutputFormat = OutputFormat.text;
+        public OutputFormat currentOutputFormat = OutputFormat.text;
 
         public OSSGadget()
         {

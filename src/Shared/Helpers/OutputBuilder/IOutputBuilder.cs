@@ -8,7 +8,9 @@ namespace Microsoft.CST.OpenSource.Shared
     public interface IOutputBuilder
     {
         public void AppendOutput(IEnumerable<object>? output);
-        public string? GetOutput();
+
+        public string GetOutput();
+
         public void PrintOutput();
     }
 }

@@ -97,12 +97,12 @@ namespace Microsoft.CST.OpenSource
             await healthTool.ParseOptions<Options>(args).WithParsedAsync(healthTool.RunAsync);
         }
 
-        private void AppendOutput(IOutputBuilder? outputBuilder, PackageURL purl, HealthMetrics? healthMetrics)
+        private void AppendOutput(IOutputBuilder outputBuilder, PackageURL purl, HealthMetrics? healthMetrics)
         {
-            switch (this.currentOutputFormat ?? OutputFormat.text)
+            switch (currentOutputFormat ?? OutputFormat.text)
             {
                 case OutputFormat.text:
-                    outputBuilder?.AppendOutput(new List<string>() {
+                    outputBuilder.AppendOutput(new List<string>() {
                         $"Health for {purl} (via {purl})",
                         healthMetrics?.ToString() ?? string.Empty
                     });
@@ -110,11 +110,11 @@ namespace Microsoft.CST.OpenSource
 
                 case OutputFormat.sarifv1:
                 case OutputFormat.sarifv2:
-                    outputBuilder?.AppendOutput(healthMetrics?.toSarif() ?? Array.Empty<Result>().ToList());
+                    outputBuilder.AppendOutput(healthMetrics?.toSarif() ?? Array.Empty<Result>().ToList());
                     break;
 
                 default:
-                    outputBuilder?.AppendOutput(new List<string>() {
+                    outputBuilder.AppendOutput(new List<string>() {
                         $"Health for {purl} (via {purl})",
                         healthMetrics?.ToString() ?? string.Empty
                     });
@@ -126,7 +126,7 @@ namespace Microsoft.CST.OpenSource
         {
             // select output destination and format
             SelectOutput(options.OutputFile);
-            IOutputBuilder? outputBuilder = SelectFormat(options.Format);
+            IOutputBuilder outputBuilder = SelectFormat(options.Format);
             if (options.Targets is IList<string> targetList && targetList.Count > 0)
             {
                 foreach (var target in targetList)
@@ -142,7 +142,7 @@ namespace Microsoft.CST.OpenSource
                         Logger.Warn("Error processing {0}: {1}", target, ex.Message);
                     }
                 }
-                outputBuilder?.PrintOutput();
+                outputBuilder.PrintOutput();
             }
             RestoreOutput();
         }

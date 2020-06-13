@@ -9,13 +9,7 @@ namespace Microsoft.CST.OpenSource
 {
     public class OSSGadget
     {
-        /// <summary>
-        /// Logger for this class
-        /// </summary>
-        public static NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
-
         public OutputFormat? currentOutputFormat = OutputFormat.text;
-        bool redirectConsole = false;
 
         public OSSGadget()
         {
@@ -23,14 +17,18 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Formulates the help text for each derived tool
+        ///     Logger for this class
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="result"></param>
-        /// <param name="errs"></param>
+        public static NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
+
+        /// <summary>
+        ///     Formulates the help text for each derived tool
+        /// </summary>
+        /// <typeparam name="T"> </typeparam>
+        /// <param name="result"> </param>
+        /// <param name="errs"> </param>
         protected void DisplayHelp<T>(ParserResult<T> result, IEnumerable<Error> errs)
         {
-
             HelpText helpText = HelpText.AutoBuild(result, h =>
             {
                 h.AddDashesToOption = true;
@@ -44,11 +42,11 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Use the CommandlineParser library to get the cmd line arguments
+        ///     Use the CommandlineParser library to get the cmd line arguments
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="args"></param>
-        /// <returns>The Action object with the parsed options</returns>
+        /// <typeparam name="T"> </typeparam>
+        /// <param name="args"> </param>
+        /// <returns> The Action object with the parsed options </returns>
         protected ParserResult<T> ParseOptions<T>(string[]? args)
         {
             var parser = new Parser();
@@ -58,9 +56,41 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Change the tool output from the existing one to the passed in file
+        ///     Restores the output stream to Console, if it was changed
         /// </summary>
-        /// <param name="outputFile"></param>
+        protected void RestoreOutput()
+        {
+            if (this.redirectConsole)
+            {
+                ConsoleHelper.RestoreConsole();
+            }
+        }
+
+        /// <summary>
+        ///     Use the OutputBuilder to select the given format and return a output builder
+        /// </summary>
+        /// <param name="format"> </param>
+        /// <returns> </returns>
+        protected IOutputBuilder SelectFormat(string? format)
+        {
+            try
+            {
+                currentOutputFormat = OutputBuilderFactory.GetOutputFormat(format);
+                return OutputBuilderFactory.CreateOutputBuilder(this.currentOutputFormat);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                Logger.Error("Invalid output format, selecting text");
+            }
+
+            currentOutputFormat = OutputFormat.text;
+            return OutputBuilderFactory.CreateDefaultOutputBuilder();
+        }
+
+        /// <summary>
+        ///     Change the tool output from the existing one to the passed in file
+        /// </summary>
+        /// <param name="outputFile"> </param>
         protected void SelectOutput(string? outputFile)
         {
             // output to console or file?
@@ -74,37 +104,7 @@ namespace Microsoft.CST.OpenSource
                 }
             }
         }
-        
-        /// <summary>
-        /// Restores the output stream to Console, if it was changed
-        /// </summary>
-        protected void RestoreOutput()
-        {
-            if (this.redirectConsole)
-            {
-                ConsoleHelper.RestoreConsole();
-            }
-        }
 
-        /// <summary>
-        /// Use the OutputBuilder to select the given format and return a output builder
-        /// </summary>
-        /// <param name="format"></param>
-        /// <returns></returns>
-        protected IOutputBuilder? SelectFormat(string? format)
-        {
-            try
-            {
-                this.currentOutputFormat = OutputBuilderFactory.GetOutputFormat(format);
-                return OutputBuilderFactory.CreateOutputBuilder(this.currentOutputFormat);
-            }
-            catch (ArgumentOutOfRangeException)
-            {
-                Logger.Error("Invalid output format, selecting text");
-            }
-
-            this.currentOutputFormat = OutputFormat.text;
-            return OutputBuilderFactory.CreateDefaultOutputBuilder();
-        }
+        private bool redirectConsole = false;
     }
 }

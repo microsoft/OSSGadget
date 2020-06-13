@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using CommandLine;
 using CommandLine.Text;
 using Microsoft.CST.OpenSource.Shared;
-using static Microsoft.CST.OpenSource.Shared.OutputBuilder;
+using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
 
 namespace Microsoft.CST.OpenSource
 {
@@ -14,6 +14,7 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         public static NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
 
+        public OutputFormat? currentOutputFormat = OutputFormat.text;
         bool redirectConsole = false;
 
         public OSSGadget()
@@ -90,18 +91,20 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         /// <param name="format"></param>
         /// <returns></returns>
-        protected OutputBuilder? SelectFormat(string? format)
+        protected IOutputBuilder? SelectFormat(string? format)
         {
             try
             {
-                return new OutputBuilder(format ?? OutputFormat.text.ToString());
+                this.currentOutputFormat = OutputBuilderFactory.GetOutputFormat(format);
+                return OutputBuilderFactory.CreateOutputBuilder(this.currentOutputFormat);
             }
             catch (ArgumentOutOfRangeException)
             {
                 Logger.Error("Invalid output format, selecting text");
             }
 
-            return new OutputBuilder(OutputFormat.text.ToString());
+            this.currentOutputFormat = OutputFormat.text;
+            return OutputBuilderFactory.CreateDefaultOutputBuilder();
         }
     }
 }

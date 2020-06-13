@@ -40,7 +40,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// Append results to sarif
         /// </summary>
         /// <param name="output"></param>
-        public void AppendOutput(object? output)
+        public void AppendOutput(IEnumerable<object>? output)
         {
             var results = (IEnumerable<SarifResult>?)output ?? Array.Empty<SarifResult>().ToList();
             this.sarifResults?.AddRange(results);

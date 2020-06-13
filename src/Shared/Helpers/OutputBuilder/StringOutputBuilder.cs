@@ -25,7 +25,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// Append more text to the result
         /// </summary>
         /// <param name="output"></param>
-        public void AppendOutput(object? output)
+        public void AppendOutput(IEnumerable<object>? output)
         {
             var results = (IEnumerable<string>?)output ?? Array.Empty<String>().ToList();
             foreach (var line in results)

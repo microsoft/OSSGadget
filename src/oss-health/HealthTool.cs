@@ -10,7 +10,7 @@ using Microsoft.CST.OpenSource.Health;
 using Microsoft.CodeAnalysis.Sarif;
 using CommandLine;
 using CommandLine.Text;
-using static Microsoft.CST.OpenSource.Shared.OutputBuilder;
+using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
 
 namespace Microsoft.CST.OpenSource
 {
@@ -64,7 +64,7 @@ namespace Microsoft.CST.OpenSource
         {
             // select output destination and format
             this.SelectOutput(options.OutputFile);
-            OutputBuilder? outputBuilder = this.SelectFormat(options.Format);
+            IOutputBuilder? outputBuilder = this.SelectFormat(options.Format);
             if (options.Targets is IList<string> targetList && targetList.Count > 0)
             {
                 foreach (var target in targetList)
@@ -126,9 +126,9 @@ namespace Microsoft.CST.OpenSource
             return null;
         }
 
-        void AppendOutput(OutputBuilder? outputBuilder, PackageURL purl, HealthMetrics? healthMetrics)
+        void AppendOutput(IOutputBuilder? outputBuilder, PackageURL purl, HealthMetrics? healthMetrics)
         {
-            switch (outputBuilder?.currentOutputFormat ?? OutputFormat.text)
+            switch (this.currentOutputFormat ?? OutputFormat.text)
             {
                 case OutputFormat.text:
                     outputBuilder?.AppendOutput(new List<string>() { 
@@ -143,8 +143,10 @@ namespace Microsoft.CST.OpenSource
                     break;
 
                 default:
-                    outputBuilder?.AppendOutput($"Health for {purl} (via {purl})\n");
-                    outputBuilder?.AppendOutput(healthMetrics?.ToString() ?? string.Empty);
+                    outputBuilder?.AppendOutput(new List<string>() {
+                        $"Health for {purl} (via {purl})",
+                        healthMetrics?.ToString() ?? string.Empty
+                    });
                     break;
             }
         }

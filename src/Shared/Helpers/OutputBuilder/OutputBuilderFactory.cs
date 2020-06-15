@@ -20,7 +20,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
         }
 
-        public static OutputFormat? GetOutputFormat(string? format)
+        public static OutputFormat GetOutputFormat(string format)
         {
             OutputFormat currentOutputFormat = OutputFormat.text;
             if (!Enum.TryParse<OutputFormat>(format, true, out currentOutputFormat))
@@ -32,12 +32,12 @@ namespace Microsoft.CST.OpenSource.Shared
 
         public static IOutputBuilder CreateOutputBuilder(string format)
         {
-            OutputFormat currentOutputFormat = GetOutputFormat(format) ?? OutputFormat.text;
+            OutputFormat currentOutputFormat = GetOutputFormat(format);
             return CreateOutputBuilder(currentOutputFormat);
 
         }
 
-        public static IOutputBuilder CreateOutputBuilder(OutputFormat? format)
+        public static IOutputBuilder CreateOutputBuilder(OutputFormat format)
         {
             switch (format)
             {

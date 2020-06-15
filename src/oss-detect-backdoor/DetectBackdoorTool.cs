@@ -29,7 +29,6 @@ namespace Microsoft.CST.OpenSource
             }
 
             [Option('d', "download-directory", Required = false, Default = null,
-
                             HelpText = "the directory to download the package to.")]
             public string? DownloadDirectory { get; set; }
 
@@ -37,7 +36,8 @@ namespace Microsoft.CST.OpenSource
                 HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze
             public IEnumerable<string>? Targets { get; set; }
 
-            [Option('c', "use-cache", Required = false, Default = false, HelpText = "do not download the package if it is already present in the destination directory.")]
+            [Option('c', "use-cache", Required = false, Default = false, 
+                HelpText = "do not download the package if it is already present in the destination directory.")]
             public bool UseCache { get; set; }
         }
 
@@ -45,21 +45,6 @@ namespace Microsoft.CST.OpenSource
         ///     Location of the backdoor detection rules.
         /// </summary>
         private const string RULE_DIRECTORY = @"Resources\BackdoorRules";
-
-        /// <summary>
-        ///     Name of this tool.
-        /// </summary>
-        private const string TOOL_NAME = "oss-detect-backdoor";
-
-        /// <summary>
-        ///     Holds the version string, from the assembly.
-        /// </summary>
-        private static readonly string VERSION = typeof(DetectBackdoorTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
-
-        /// <summary>
-        ///     Logger for this class
-        /// </summary>
-        private static NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
 
         /// <summary>
         ///     Main entrypoint for the download program.
@@ -90,7 +75,7 @@ namespace Microsoft.CST.OpenSource
                         var purl = new PackageURL(target);
                         characteristicTool.AnalyzePackage(cOptions, purl,
                             (string?)options.DownloadDirectory,
-                            (bool?)options.UseCache == true).Wait();
+                            options.UseCache == true).Wait();
                     }
                     catch (Exception ex)
                     {

@@ -99,7 +99,7 @@ namespace Microsoft.CST.OpenSource
 
         private void AppendOutput(IOutputBuilder outputBuilder, PackageURL purl, HealthMetrics? healthMetrics)
         {
-            switch (currentOutputFormat ?? OutputFormat.text)
+            switch (currentOutputFormat)
             {
                 case OutputFormat.text:
                     outputBuilder.AppendOutput(new List<string>() {

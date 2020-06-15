@@ -52,12 +52,12 @@ namespace Microsoft.CST.OpenSource
             await findSourceTool.ParseOptions<Options>(args).WithParsedAsync(findSourceTool.RunAsync);
         }
 
-        private async Task RunAsync(Options? options)
+        private async Task RunAsync(Options options)
         {
             // select output destination and format
-            this.SelectOutput(options?.OutputFile);
-            IOutputBuilder? outputBuilder = this.SelectFormat(options?.Format);
-            if (options?.Targets is IList<string> targetList && targetList.Count > 0)
+            this.SelectOutput(options.OutputFile);
+            IOutputBuilder outputBuilder = this.SelectFormat(options.Format);
+            if (options.Targets is IList<string> targetList && targetList.Count > 0)
             {
                 foreach (var target in targetList)
                 {
@@ -73,7 +73,7 @@ namespace Microsoft.CST.OpenSource
                         Logger.Warn("Error processing {0}: {1}", target, ex.Message);
                     }
                 }
-                outputBuilder?.PrintOutput();
+                outputBuilder.PrintOutput();
             }
             this.RestoreOutput();
         }
@@ -100,8 +100,8 @@ namespace Microsoft.CST.OpenSource
 
             try
             {
-                RepoSearch? repoSearcher = new RepoSearch();
-                var repos = await (repoSearcher?.ResolvePackageLibraryAsync(purl) ??
+                RepoSearch repoSearcher = new RepoSearch();
+                var repos = await (repoSearcher.ResolvePackageLibraryAsync(purl) ??
                     Task.FromResult(new Dictionary<PackageURL, double>()));
                 if (repos.Any())
                 {
@@ -136,12 +136,12 @@ namespace Microsoft.CST.OpenSource
             {
                 case OutputFormat.text:
                 default:
-                    outputBuilder?.AppendOutput(GetTextResults(results));
+                    outputBuilder.AppendOutput(GetTextResults(results));
                     break;
 
                 case OutputFormat.sarifv1:
                 case OutputFormat.sarifv2:
-                    outputBuilder?.AppendOutput(GetSarifResults(purl, results));
+                    outputBuilder.AppendOutput(GetSarifResults(purl, results));
                     break;
             }
         }
@@ -170,7 +170,7 @@ namespace Microsoft.CST.OpenSource
         /// <param name="purl"> </param>
         /// <param name="results"> </param>
         /// <returns> </returns>
-        private static List<Result> GetSarifResults(PackageURL? purl, List<KeyValuePair<PackageURL, double>>? results)
+        private static List<Result> GetSarifResults(PackageURL purl, List<KeyValuePair<PackageURL, double>>? results)
         {
             List<Result> sarifResults = new List<Result>();
             foreach (var result in results ?? new List<KeyValuePair<PackageURL, double>>())

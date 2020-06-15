@@ -75,7 +75,7 @@ namespace Microsoft.CST.OpenSource
         {
             try
             {
-                currentOutputFormat = OutputBuilderFactory.GetOutputFormat(format);
+                currentOutputFormat = OutputBuilderFactory.GetOutputFormat(format ?? OutputFormat.text.ToString());
                 return OutputBuilderFactory.CreateOutputBuilder(this.currentOutputFormat);
             }
             catch (ArgumentOutOfRangeException)

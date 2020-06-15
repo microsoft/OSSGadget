@@ -227,21 +227,21 @@ namespace Microsoft.CST.OpenSource
         /// <param name="outputBuilder"> </param>
         /// <param name="purl"> </param>
         /// <param name="results"> </param>
-        private void AppendOutput(IOutputBuilder? outputBuilder, PackageURL purl, Dictionary<string, AnalyzeResult?> analysisResults)
+        private void AppendOutput(IOutputBuilder outputBuilder, PackageURL purl, Dictionary<string, AnalyzeResult?> analysisResults)
         {
-            switch (this.currentOutputFormat ?? OutputFormat.text)
+            switch (this.currentOutputFormat)
             {
                 case OutputFormat.text:
-                    outputBuilder?.AppendOutput(GetTextResults(purl, analysisResults));
+                    outputBuilder.AppendOutput(GetTextResults(purl, analysisResults));
                     break;
 
                 case OutputFormat.sarifv1:
                 case OutputFormat.sarifv2:
-                    outputBuilder?.AppendOutput(GetSarifResults(purl, analysisResults));
+                    outputBuilder.AppendOutput(GetSarifResults(purl, analysisResults));
                     break;
 
                 default:
-                    outputBuilder?.AppendOutput(GetTextResults(purl, analysisResults));
+                    outputBuilder.AppendOutput(GetTextResults(purl, analysisResults));
                     break;
             }
         }
@@ -250,7 +250,7 @@ namespace Microsoft.CST.OpenSource
         {
             // select output destination and format
             this.SelectOutput(options.OutputFile);
-            IOutputBuilder? outputBuilder = this.SelectFormat(options.Format);
+            IOutputBuilder outputBuilder = this.SelectFormat(options.Format);
 
             if (options.Targets is IList<string> targetList && targetList.Count > 0)
             {
@@ -270,7 +270,7 @@ namespace Microsoft.CST.OpenSource
                         Logger?.Warn(ex, "Error processing {0}: {1}", target, ex.Message);
                     }
                 }
-                outputBuilder?.PrintOutput();
+                outputBuilder.PrintOutput();
             }
 
             this.RestoreOutput();

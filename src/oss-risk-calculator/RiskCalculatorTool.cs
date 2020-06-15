@@ -42,7 +42,7 @@ namespace Microsoft.CST.OpenSource
         {
             var riskCalculator = new RiskCalculatorTool();
 
-            Logger?.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
+            Logger.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
             riskCalculator.ParseOptions(args);
 
             if (riskCalculator.Options["target"] is IList<string> targetList && targetList.Count > 0)
@@ -56,17 +56,17 @@ namespace Microsoft.CST.OpenSource
                         var riskLevel = riskCalculator.CalculateRisk(purl, 
                             (string?)riskCalculator.Options["download-directory"], 
                             useCache).Result;
-                        Logger?.Info($"Risk Level: {riskLevel}");
+                        Logger.Info($"Risk Level: {riskLevel}");
                     }
                     catch (Exception ex)
                     {
-                        Logger?.Warn("Error processing {0}: {1}", target, ex.Message);
+                        Logger.Warn("Error processing {0}: {1}", target, ex.Message);
                     }
                 }
             }
             else
             {
-                Logger?.Warn("No target provided; nothing to analyze.");
+                Logger.Warn("No target provided; nothing to analyze.");
                 ShowUsage();
                 Environment.Exit(1);
             }
@@ -78,7 +78,7 @@ namespace Microsoft.CST.OpenSource
 
         public async Task<double> CalculateRisk(PackageURL purl, string? targetDirectory, bool doCaching)
         {
-            Logger?.Trace("CalculateRisk({0})", purl.ToString());
+            Logger.Trace("CalculateRisk({0})", purl.ToString());
 
             var characteristicTool = new CharacteristicTool();
             var cOptions = new CharacteristicTool.Options();
@@ -88,7 +88,7 @@ namespace Microsoft.CST.OpenSource
             var healthMetrics = healthTool.CheckHealth(purl).Result;
             if (healthMetrics == null)
             {
-                Logger?.Warn("Unable to determine health metrics, will use a default of 0");
+                Logger.Warn("Unable to determine health metrics, will use a default of 0");
                 healthMetrics = new HealthMetrics(purl)
                 {
                     SecurityIssueHealth = 0,

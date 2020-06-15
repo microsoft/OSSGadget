@@ -33,8 +33,6 @@ namespace Microsoft.CST.OpenSource
                 HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze
             public IEnumerable<string>? Targets { get; set; }
 
-#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
-
             [Usage()]
             public static IEnumerable<Example> Examples
             {
@@ -151,11 +149,11 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         /// <param name="results"> </param>
         /// <returns> </returns>
-        private static List<string> GetTextResults(List<KeyValuePair<PackageURL, double>>? results)
+        private static List<string> GetTextResults(List<KeyValuePair<PackageURL, double>> results)
         {
             //StringBuilder stringOutput = new StringBuilder();
             List<string> stringOutput = new List<string>();
-            foreach (var result in results ?? new List<KeyValuePair<PackageURL, double>>())
+            foreach (var result in results)
             {
                 var confidence = result.Value * 100.0;
                 stringOutput.Add(
@@ -170,10 +168,10 @@ namespace Microsoft.CST.OpenSource
         /// <param name="purl"> </param>
         /// <param name="results"> </param>
         /// <returns> </returns>
-        private static List<Result> GetSarifResults(PackageURL purl, List<KeyValuePair<PackageURL, double>>? results)
+        private static List<Result> GetSarifResults(PackageURL purl, List<KeyValuePair<PackageURL, double>> results)
         {
             List<Result> sarifResults = new List<Result>();
-            foreach (var result in results ?? new List<KeyValuePair<PackageURL, double>>())
+            foreach (var result in results)
             {
                 var confidence = result.Value * 100.0;
                 Result sarifResult = new Result()

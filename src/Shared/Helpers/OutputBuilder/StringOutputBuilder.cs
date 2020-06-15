@@ -10,12 +10,9 @@ namespace Microsoft.CST.OpenSource.Shared
         ///     Append more text to the result
         /// </summary>
         /// <param name="output"> </param>
-        public void AppendOutput(IEnumerable<object>? output)
+        public void AppendOutput(IEnumerable<object> output)
         {
-            if (output is IEnumerable<string> results)
-            {
-                stringResults.Append(string.Join(Environment.NewLine, results));
-            }
+            stringResults.Append(string.Join(Environment.NewLine, (IEnumerable<string>)output));
         }
 
         public string GetOutput()

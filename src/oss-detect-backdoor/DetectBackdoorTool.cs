@@ -79,7 +79,7 @@ namespace Microsoft.CST.OpenSource
                     }
                     catch (Exception ex)
                     {
-                        Logger?.Warn(ex, "Error processing {0}: {1}", target, ex.Message);
+                        Logger.Warn(ex, "Error processing {0}: {1}", target, ex.Message);
                     }
                 }
             }

@@ -40,7 +40,8 @@ namespace Microsoft.CST.OpenSource.Shared
             BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, null);
             if (projectManager == null)
             {
-                Logger?.Error("Cannot determine the package type");
+                Logger.Error("Cannot determine the package type");
+                return new List<Location>();
             }
 
             return new List<Location>() {
@@ -62,12 +63,9 @@ namespace Microsoft.CST.OpenSource.Shared
         ///     Append results to sarif
         /// </summary>
         /// <param name="output"> </param>
-        public void AppendOutput(IEnumerable<object>? output)
+        public void AppendOutput(IEnumerable<object> output)
         {
-            if (output is IEnumerable<SarifResult> results)
-            {
-                sarifResults.AddRange(results);
-            }
+            sarifResults.AddRange((IEnumerable<SarifResult>)output);
         }
 
         /// <summary>
@@ -81,7 +79,6 @@ namespace Microsoft.CST.OpenSource.Shared
                 Driver = new ToolComponent
                 {
                     Name = AssemblyName,
-                    // FullName = toolAssembly.FullName,
                     Version = Version,
                     Organization = Company,
                     Product = "OSSGadget (https://github.com/Microsoft/OSSGadget)",

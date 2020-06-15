@@ -102,6 +102,7 @@ namespace Microsoft.CST.OpenSource
             switch (currentOutputFormat)
             {
                 case OutputFormat.text:
+                default:
                     outputBuilder.AppendOutput(new List<string>() {
                         $"Health for {purl} (via {purl})",
                         healthMetrics?.ToString() ?? string.Empty
@@ -111,13 +112,6 @@ namespace Microsoft.CST.OpenSource
                 case OutputFormat.sarifv1:
                 case OutputFormat.sarifv2:
                     outputBuilder.AppendOutput(healthMetrics?.toSarif() ?? Array.Empty<Result>().ToList());
-                    break;
-
-                default:
-                    outputBuilder.AppendOutput(new List<string>() {
-                        $"Health for {purl} (via {purl})",
-                        healthMetrics?.ToString() ?? string.Empty
-                    });
                     break;
             }
         }

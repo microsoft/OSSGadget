@@ -29,7 +29,7 @@ namespace Microsoft.CST.OpenSource
         /// <returns> List of tags identified </returns>
         public async Task<AnalyzeResult?> AnalyzeDirectory(Options options, string directory)
         {
-            Logger?.Trace("AnalyzeDirectory({0})", directory);
+            Logger.Trace("AnalyzeDirectory({0})", directory);
 
             AnalyzeResult? analysisResult = null;
 
@@ -47,11 +47,11 @@ namespace Microsoft.CST.OpenSource
             {
                 var analyzeCommand = new AnalyzeCommand(analyzeOptions);
                 analysisResult = analyzeCommand.GetResult();
-                Logger?.Debug("Operation Complete: {0} files analyzed.", analysisResult?.Metadata?.TotalFiles);
+                Logger.Debug("Operation Complete: {0} files analyzed.", analysisResult?.Metadata?.TotalFiles);
             }
             catch (Exception ex)
             {
-                Logger?.Warn("Error analyzing {0}: {1}", directory, ex.Message);
+                Logger.Warn("Error analyzing {0}: {1}", directory, ex.Message);
             }
 
             return analysisResult;
@@ -66,7 +66,7 @@ namespace Microsoft.CST.OpenSource
             string? targetDirectoryName,
             bool doCaching)
         {
-            Logger?.Trace("AnalyzePackage({0})", purl.ToString());
+            Logger.Trace("AnalyzePackage({0})", purl.ToString());
 
             var analysisResults = new Dictionary<string, AnalyzeResult?>();
 
@@ -85,7 +85,7 @@ namespace Microsoft.CST.OpenSource
             }
             else
             {
-                Logger?.Warn("Error downloading {0}.", purl.ToString());
+                Logger.Warn("Error downloading {0}.", purl.ToString());
             }
             packageDownloader.ClearPackageLocalCopyIfNoCaching();
             return analysisResults;
@@ -267,7 +267,7 @@ namespace Microsoft.CST.OpenSource
                     }
                     catch (Exception ex)
                     {
-                        Logger?.Warn(ex, "Error processing {0}: {1}", target, ex.Message);
+                        Logger.Warn(ex, "Error processing {0}: {1}", target, ex.Message);
                     }
                 }
                 outputBuilder.PrintOutput();

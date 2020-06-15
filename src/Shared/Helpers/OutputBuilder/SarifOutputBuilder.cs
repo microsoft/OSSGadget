@@ -10,6 +10,20 @@ namespace Microsoft.CST.OpenSource.Shared
 {
     public class SarifOutputBuilder : IOutputBuilder
     {
+        /// <summary>
+        ///     Class logger
+        /// </summary>
+        protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
+        // cache variables to avoid reflection
+        private static readonly string AssemblyName = Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty;
+
+        private static readonly string Company = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyCompanyAttribute>()?.Company ?? string.Empty;
+        private static readonly string Version = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version.ToString() ?? string.Empty;
+        private readonly SarifVersion currentSarifVersion = SarifVersion.Current;
+        private List<Result> sarifResults = new List<Result>();
+        // default = text
+
         public SarifOutputBuilder(SarifVersion version)
         {
             currentSarifVersion = version;
@@ -19,6 +33,7 @@ namespace Microsoft.CST.OpenSource.Shared
         ///     Build a SARIF Result.Location object for the purl package
         /// </summary>
         /// <param name="purl"> </param>
+        /// <returns> Location list with single location object </returns>
         /// <returns> Location list with single location object </returns>
         public static List<Location> BuildPurlLocation(PackageURL purl)
         {
@@ -95,15 +110,18 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             SarifLog completedSarif = BuildSingleRunSarifLog();
 
-            using MemoryStream ms = new MemoryStream();
-            using StreamWriter sw = new StreamWriter(ms, System.Text.Encoding.UTF8, -1, true);
-            using StreamReader sr = new StreamReader(ms);
+            using (MemoryStream ms = new MemoryStream())
+            {
+                StreamWriter sw = new StreamWriter(ms, System.Text.Encoding.UTF8, -1, true);
+                StreamReader sr = new StreamReader(ms);
 
-            completedSarif.Save(sw);
-            ms.Position = 0;
+                completedSarif.Save(sw);
+                ms.Position = 0;
 
-            return sr.ReadToEnd();
+                return sr.ReadToEnd();
+            }
         }
+    
 
         /// <summary>
         ///     Prints to the sarif output as string
@@ -123,18 +141,5 @@ namespace Microsoft.CST.OpenSource.Shared
             completedSarif.Save(writeStream);
         }
 
-        /// <summary>
-        ///     Class logger
-        /// </summary>
-        protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
-
-        // cache variables to avoid reflection
-        private static readonly string AssemblyName = Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty;
-
-        private static readonly string Company = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyCompanyAttribute>()?.Company ?? string.Empty;
-        private static readonly string Version = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version.ToString() ?? string.Empty;
-        private readonly SarifVersion currentSarifVersion = SarifVersion.Current;
-        private List<Result> sarifResults = new List<Result>();
-        // default = text
     }
 }

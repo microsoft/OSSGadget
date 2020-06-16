@@ -61,9 +61,10 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        ///     Append results to sarif
+        /// Adds the sarif results to the the Sarif Log. 
+        /// An incompatible object input will result in InvalidCast exception
         /// </summary>
-        /// <param name="output"> </param>
+        /// <param name="output">An IEnumerable<Result> object of sarif results </param>
         public void AppendOutput(IEnumerable<object> output)
         {
             sarifResults.AddRange((IEnumerable<SarifResult>)output);

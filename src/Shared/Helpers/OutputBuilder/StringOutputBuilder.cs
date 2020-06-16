@@ -8,8 +8,9 @@ namespace Microsoft.CST.OpenSource.Shared
     {
         /// <summary>
         ///     Append more text to the result
+        /// An incompatible object input will result in InvalidCast exception
         /// </summary>
-        /// <param name="output"> </param>
+        /// <param name="output">An IEnumerable<string> object</param>
         public void AppendOutput(IEnumerable<object> output)
         {
             stringResults.Append(string.Join(Environment.NewLine, (IEnumerable<string>)output));

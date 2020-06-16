@@ -63,7 +63,7 @@ namespace Microsoft.CST.OpenSource
             detectCryptographyTool.ParseOptions(args);
 
             // select output destination and format
-            detectCryptographyTool.SelectOutput((string?)detectCryptographyTool.Options["output-file"]);
+            detectCryptographyTool.SelectOutput((string?)detectCryptographyTool.Options["output-file"] ?? "");
             IOutputBuilder outputBuilder = detectCryptographyTool.SelectFormat((string?)detectCryptographyTool.Options["format"] ?? "text");
             if (detectCryptographyTool.Options["target"] is IList<string> targetList && targetList.Count > 0)
             {

@@ -81,16 +81,6 @@ namespace Microsoft.CST.OpenSource
             public IEnumerable<string>? Targets { get; set; }
         }
 
-        /// <summary>
-        ///     Name of this tool.
-        /// </summary>
-        private const string TOOL_NAME = "oss-health";
-
-        /// <summary>
-        ///     Holds the version string, from the assembly.
-        /// </summary>
-        private static readonly string VERSION = typeof(HealthTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
-
         private static async Task Main(string[] args)
         {
             var healthTool = new HealthTool();
@@ -105,7 +95,7 @@ namespace Microsoft.CST.OpenSource
                 default:
                     outputBuilder.AppendOutput(new List<string>() {
                         $"Health for {purl} (via {purl})",
-                        healthMetrics?.ToString() ?? string.Empty
+                        healthMetrics?.ToString() ?? "Could not generate health metrics"
                     });
                     break;
 

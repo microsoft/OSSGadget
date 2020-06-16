@@ -79,7 +79,7 @@ namespace Microsoft.CST.OpenSource
                             var purl = new PackageURL(target);
                             results = await (detectCryptographyTool.AnalyzePackage(purl,
                                 (string?)detectCryptographyTool.Options["download-directory"] ?? string.Empty,
-                                (bool?)detectCryptographyTool.Options["use-cache"] ?? false == true) ??
+                                (bool?)detectCryptographyTool.Options["use-cache"] == true) ??
                                 Task.FromResult(new List<IssueRecord>()));
                         }
                         else if (Directory.Exists(target))

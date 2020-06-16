@@ -118,21 +118,8 @@ namespace Microsoft.CST.OpenSource.Health
                         },
                         Rank = value,
 
-                        Locations = new List<Location>() {
-                            new Location() {
-                                PhysicalLocation = new PhysicalLocation()
-                                {
-                                    Address = new Address()
-                                    {
-                                        FullyQualifiedName = projectManager?.GetPackageAbsoluteUri(purl)?.AbsoluteUri,
-                                        AbsoluteAddress = 1,
-                                        Name = purl.ToString()
-                                    }
-                                }
-                            }
-                        }
+                        Locations = SarifOutputBuilder.BuildPurlLocation(purl)
                     };
-
                     results.Add(healthResult);
                 }
             }

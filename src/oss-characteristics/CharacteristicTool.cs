@@ -134,16 +134,6 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        ///     Name of this tool.
-        /// </summary>
-        private const string TOOL_NAME = "oss-characteristic";
-
-        /// <summary>
-        ///     Holds the version string, from the assembly.
-        /// </summary>
-        private static readonly string VERSION = typeof(CharacteristicTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
-
-        /// <summary>
         ///     Build and return a list of Sarif Result list from the find characterstics results
         /// </summary>
         /// <param name="purl"> </param>
@@ -229,7 +219,7 @@ namespace Microsoft.CST.OpenSource
         /// <param name="results"> </param>
         private void AppendOutput(IOutputBuilder outputBuilder, PackageURL purl, Dictionary<string, AnalyzeResult?> analysisResults)
         {
-            switch (this.currentOutputFormat)
+            switch (currentOutputFormat)
             {
                 case OutputFormat.text:
                     outputBuilder.AppendOutput(GetTextResults(purl, analysisResults));
@@ -249,8 +239,8 @@ namespace Microsoft.CST.OpenSource
         private async Task RunAsync(Options options)
         {
             // select output destination and format
-            this.SelectOutput(options.OutputFile);
-            IOutputBuilder outputBuilder = this.SelectFormat(options.Format);
+            SelectOutput(options.OutputFile);
+            IOutputBuilder outputBuilder = SelectFormat(options.Format);
 
             if (options.Targets is IList<string> targetList && targetList.Count > 0)
             {
@@ -259,11 +249,11 @@ namespace Microsoft.CST.OpenSource
                     try
                     {
                         var purl = new PackageURL(target);
-                        var analysisResult = this.AnalyzePackage(options, purl,
+                        var analysisResult = AnalyzePackage(options, purl,
                             options.DownloadDirectory,
                             options.UseCache == true).Result;
 
-                        this.AppendOutput(outputBuilder, purl, analysisResult);
+                        AppendOutput(outputBuilder, purl, analysisResult);
                     }
                     catch (Exception ex)
                     {
@@ -273,7 +263,7 @@ namespace Microsoft.CST.OpenSource
                 outputBuilder.PrintOutput();
             }
 
-            this.RestoreOutput();
+            RestoreOutput();
         }
     }
 }

@@ -53,8 +53,8 @@ namespace Microsoft.CST.OpenSource
         private async Task RunAsync(Options options)
         {
             // select output destination and format
-            this.SelectOutput(options.OutputFile);
-            IOutputBuilder outputBuilder = this.SelectFormat(options.Format);
+            SelectOutput(options.OutputFile);
+            IOutputBuilder outputBuilder = SelectFormat(options.Format);
             if (options.Targets is IList<string> targetList && targetList.Count > 0)
             {
                 foreach (var target in targetList)
@@ -73,7 +73,7 @@ namespace Microsoft.CST.OpenSource
                 }
                 outputBuilder.PrintOutput();
             }
-            this.RestoreOutput();
+            RestoreOutput();
         }
 
         public FindSourceTool() : base()

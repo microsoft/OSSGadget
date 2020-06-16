@@ -14,6 +14,7 @@ namespace Microsoft.CST.OpenSource.Shared
         ///     Class logger
         /// </summary>
         protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+        private const int PHYSICAL_ADDRESS_FLAG = 1;
 
         // cache variables to avoid reflection
         private static readonly string AssemblyName = Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty;
@@ -51,7 +52,7 @@ namespace Microsoft.CST.OpenSource.Shared
                         Address = new Address()
                         {
                             FullyQualifiedName = projectManager?.GetPackageAbsoluteUri(purl)?.AbsoluteUri,
-                            AbsoluteAddress = 1,
+                            AbsoluteAddress = PHYSICAL_ADDRESS_FLAG, // Sarif format needs non negative integer
                             Name = purl.ToString()
                         }
                     }
@@ -137,6 +138,5 @@ namespace Microsoft.CST.OpenSource.Shared
             SarifLog completedSarif = BuildSingleRunSarifLog();
             completedSarif.Save(writeStream);
         }
-
     }
 }

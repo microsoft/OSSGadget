@@ -104,7 +104,7 @@ namespace Microsoft.CST.OpenSource
         {
             CommonInitialization.Initialize();
 
-            Logger?.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
+            Logger.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
 
             var defoggerTool = new DefoggerTool();
             defoggerTool.ParseOptions(args);
@@ -133,18 +133,18 @@ namespace Microsoft.CST.OpenSource
 
                         foreach (var finding in defoggerTool.Findings)
                         {
-                            Logger?.Info("{0}: {1} -> {2}", finding.Filename, finding.EncodedText, finding.DecodedText);
+                            Logger.Info("{0}: {1} -> {2}", finding.Filename, finding.EncodedText, finding.DecodedText);
                         }
                     }
                     catch (Exception ex)
                     {
-                        Logger?.Warn(ex, "Unable to analyze {0}: {1}", target, ex.Message);
+                        Logger.Warn(ex, "Unable to analyze {0}: {1}", target, ex.Message);
                     }
                 }
             }
             else
             {
-                Logger?.Warn("No target provided; nothing to analyze.");
+                Logger.Warn("No target provided; nothing to analyze.");
                 DefoggerTool.ShowUsage();
                 Environment.Exit(1);
             }
@@ -165,7 +165,7 @@ namespace Microsoft.CST.OpenSource
         /// <returns>n/a</returns>
         public async Task AnalyzePackage(PackageURL purl, string? destinationDirectory, bool doCaching)
         {
-            Logger?.Trace("AnalyzePackage({0})", purl.ToString());
+            Logger.Trace("AnalyzePackage({0})", purl.ToString());
 
             var packageDownloader = new PackageDownloader(purl, destinationDirectory, doCaching);
             foreach (var directory in await packageDownloader.DownloadPackageLocalCopy(purl, false, true))
@@ -182,7 +182,7 @@ namespace Microsoft.CST.OpenSource
         /// <param name="directory">directory to analyze.</param>
         public void AnalyzeDirectory(string directory)
         {
-            Logger?.Trace("AnalyzeDirectory({0})", directory);
+            Logger.Trace("AnalyzeDirectory({0})", directory);
             var fileList = Directory.EnumerateFiles(directory, @"*.*", SearchOption.AllDirectories);
             foreach (var filename in fileList)
             {
@@ -192,7 +192,7 @@ namespace Microsoft.CST.OpenSource
                 }
                 catch (Exception ex)
                 {
-                    Logger?.Warn("Error processing file [{0}]: {1}", filename, ex.Message);
+                    Logger.Warn("Error processing file [{0}]: {1}", filename, ex.Message);
                 }
             }
         }
@@ -203,12 +203,12 @@ namespace Microsoft.CST.OpenSource
         /// <param name="filename">filename to analyze</param>
         public void AnalyzeFile(string filename)
         {
-            Logger?.Trace("AnalyzeFile({0})", filename);
+            Logger.Trace("AnalyzeFile({0})", filename);
 
             var mimeType = MimeTypeMap.GetMimeType(Path.GetExtension(filename));
             if (IGNORE_MIME_REGEX.IsMatch(mimeType))
             {
-                Logger?.Debug("Ignoring {0}; invalid MIME type: {1}", filename, mimeType);
+                Logger.Debug("Ignoring {0}; invalid MIME type: {1}", filename, mimeType);
                 return;
             }
 
@@ -253,7 +253,7 @@ namespace Microsoft.CST.OpenSource
                 catch (Exception ex)
                 {
                     // No action needed
-                    Logger?.Trace("Invalid match for {0}: {1}", match.Value, ex.Message);
+                    Logger.Trace("Invalid match for {0}: {1}", match.Value, ex.Message);
                 }
             }
             
@@ -278,8 +278,6 @@ namespace Microsoft.CST.OpenSource
 
         private static string HexToString(String hex)
         {
-            //Logger?.Trace("HexToString({0})", hex);
-
             hex = hex.Trim();
             var stringLength = hex.Length;
 
@@ -316,7 +314,6 @@ namespace Microsoft.CST.OpenSource
         /// <returns></returns>
         private static bool IsInterestingString(string s)
         {
-            //Logger?.Trace("IsInterestingString({0})", s);
             if (string.IsNullOrWhiteSpace(s))
             {
                 return false;
@@ -330,7 +327,6 @@ namespace Microsoft.CST.OpenSource
                  (s.Contains("ReleaseAsset") && Regex.IsMatch(@"\d+:ReleaseAsset\d+", s)) ||
                  (s.Contains("Release") && Regex.IsMatch(@"\d+:Release\d+", s)))
             {
-                //Logger?.Debug($"No, has tag: [{s}]");
                 return false;
             }
 
@@ -342,7 +338,6 @@ namespace Microsoft.CST.OpenSource
             // Otherwise, if we're too short, we're uninteresting
             if (s.Length < DEFAULT_MINIMUM_STRING_LENGTH)
             {
-                //Logger?.Debug($"No, too short: [{s}]");
                 return false;
             }
             // Otherwise, if we're pretty long, we're interesting
@@ -351,7 +346,6 @@ namespace Microsoft.CST.OpenSource
                 return true;
             }
             // Otherwise, we're uninteresting
-            //Logger?.Debug($"No, fall through: [{s}]");
             return false;
         }
 

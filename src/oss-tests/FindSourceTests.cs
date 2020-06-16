@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Sarif;
 using Microsoft.CST.OpenSource.Shared;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 
 namespace Microsoft.CST.OpenSource.Tests
 {
@@ -62,15 +63,17 @@ namespace Microsoft.CST.OpenSource.Tests
                     Kind = ResultKind.Informational,
                     Level = FailureLevel.None,
                     Rank = confidence,
-                    Locations = OutputBuilder.BuildPurlLocation(new PackageURL(purl))
+                    Locations = SarifOutputBuilder.BuildPurlLocation(new PackageURL(purl))
                 };
 
                 sarifResults.Add(sarifResult);
             }
 
-            OutputBuilder outputBuilder = new OutputBuilder("sarifv2");
+            IOutputBuilder outputBuilder = OutputBuilderFactory.CreateOutputBuilder("sarifv2");
             outputBuilder.AppendOutput(sarifResults);
-            SarifLog sarif = outputBuilder.BuildSingleRunSarifLog();
+            string sarifJSON = outputBuilder.GetOutput();
+            SarifLog sarif = JsonConvert.DeserializeObject<SarifLog>(sarifJSON);
+
             Assert.IsNotNull(sarif);
             Assert.IsNotNull(sarif.Runs.FirstOrDefault().Tool.Driver.Name);
             Assert.AreEqual(sarif.Runs.FirstOrDefault().Results.FirstOrDefault().Message.Text, targetResult);

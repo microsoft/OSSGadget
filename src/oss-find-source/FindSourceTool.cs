@@ -1,78 +1,70 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CommandLine;
+using CommandLine.Text;
 using Microsoft.CodeAnalysis.Sarif;
 using Microsoft.CST.OpenSource.Shared;
+using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
 
 namespace Microsoft.CST.OpenSource
 {
     public class FindSourceTool : OSSGadget
     {
-        /// <summary>
-        /// Name of this tool.
-        /// </summary>
-        private const string TOOL_NAME = "oss-find-source";
-
-        /// <summary>
-        /// Holds the version string, from the assembly.
-        /// </summary>
-        private static readonly string VERSION = typeof(FindSourceTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
-
-        /// <summary>
-        /// Command line options
-        /// </summary>
-        private readonly Dictionary<string, object?> Options = new Dictionary<string, object?>()
+        public class Options
         {
-            { "target", new List<string>() },
-            { "show-all", false },
-            { "format", "text" },
-            { "output-file", null }
-        };
+            [Option('f', "format", Required = false, Default = "text",
+                HelpText = "selct the output format(text|sarifv1|sarifv2)")]
+            public string Format { get; set; } = "text";
 
-        static void Main(string[] args)
-        {
-            var findSourceTool = new FindSourceTool();
-            Logger.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
-            findSourceTool.ParseOptions(args);
+            [Option('o', "output-file", Required = false, Default = "",
+                HelpText = "send the command output to a file instead of stdout")]
+            public string OutputFile { get; set; } = "";
 
-            // output to console or file?
-            bool redirectConsole = !string.IsNullOrEmpty((string?)findSourceTool.Options["output-file"]);
-            if(redirectConsole && findSourceTool.Options["output-file"] is string outputLoc)
+            [Option('s', "show-all", Required = false, Default = false,
+                HelpText = "show all possibilities of the package source repositories")]
+            public bool ShowAll { get; set; }
+
+            [Value(0, Required = true,
+                HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze
+            public IEnumerable<string>? Targets { get; set; }
+
+            [Usage()]
+            public static IEnumerable<Example> Examples
             {
-                if (!ConsoleHelper.RedirectConsole(outputLoc))
+                get
                 {
-                    Logger.Error("Could not switch output from console to file");
-                    // continue with current output
+                    return new List<Example>() {
+                        new Example("Find the source code repository for the given package", new Options { Targets = new List<string>() {"[options]", "package-url..." } })};
                 }
             }
+        }
 
-            // select output format
-            OutputBuilder outputBuilder;
-            try
-            {
-                outputBuilder = new OutputBuilder(((string?)findSourceTool.Options["format"] ?? 
-                    OutputBuilder.OutputFormat.text.ToString()));
-            }
-            catch (ArgumentOutOfRangeException)
-            {
-                Logger.Error("Invalid output format");
-                return;
-            }
+        private static async Task Main(string[] args)
+        {
+            var findSourceTool = new FindSourceTool();
+            await findSourceTool.ParseOptions<Options>(args).WithParsedAsync(findSourceTool.RunAsync);
+        }
 
-            if (findSourceTool.Options["target"] is IList<string> targetList && targetList.Count > 0)            {
+        private async Task RunAsync(Options options)
+        {
+            // select output destination and format
+            SelectOutput(options.OutputFile);
+            IOutputBuilder outputBuilder = SelectFormat(options.Format);
+            if (options.Targets is IList<string> targetList && targetList.Count > 0)
+            {
                 foreach (var target in targetList)
                 {
                     try
                     {
                         var purl = new PackageURL(target);
-                        var results = findSourceTool.FindSource(purl).Result.ToList();
+                        var results = FindSource(purl).Result.ToList();
                         results.Sort((b, a) => a.Value.CompareTo(b.Value));
-                        findSourceTool.AppendOutput(outputBuilder, purl, results);
+                        AppendOutput(outputBuilder, purl, results);
                     }
                     catch (Exception ex)
                     {
@@ -81,16 +73,7 @@ namespace Microsoft.CST.OpenSource
                 }
                 outputBuilder.PrintOutput();
             }
-            else
-            {
-                Logger.Warn("No target provided; nothing to locate source for.");
-                FindSourceTool.ShowUsage();
-                Environment.Exit(1);
-            }
-            if (redirectConsole)
-            {
-                ConsoleHelper.RestoreConsole();
-            }
+            RestoreOutput();
         }
 
         public FindSourceTool() : base()
@@ -102,7 +85,7 @@ namespace Microsoft.CST.OpenSource
             Logger.Trace("FindSource({0})", purl);
 
             var repositoryMap = new Dictionary<PackageURL, double>();
-            
+
             if (purl == null)
             {
                 Logger.Warn("FindSource was passed an invalid purl.");
@@ -115,8 +98,9 @@ namespace Microsoft.CST.OpenSource
 
             try
             {
-                var repoSearcher = new RepoSearch();
-                var repos = await repoSearcher.ResolvePackageLibraryAsync(purl);
+                RepoSearch repoSearcher = new RepoSearch();
+                var repos = await (repoSearcher.ResolvePackageLibraryAsync(purl) ??
+                    Task.FromResult(new Dictionary<PackageURL, double>()));
                 if (repos.Any())
                 {
                     foreach (var key in repos.Keys)
@@ -139,49 +123,52 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Convert findSourceTool results into output format
+        ///     Convert findSourceTool results into output format
         /// </summary>
-        /// <param name="outputBuilder"></param>
-        /// <param name="purl"></param>
-        /// <param name="results"></param>
-        void AppendOutput(OutputBuilder outputBuilder, PackageURL purl, List<KeyValuePair<PackageURL, double>> results)
+        /// <param name="outputBuilder"> </param>
+        /// <param name="purl"> </param>
+        /// <param name="results"> </param>
+        private void AppendOutput(IOutputBuilder outputBuilder, PackageURL purl, List<KeyValuePair<PackageURL, double>> results)
         {
-            if (outputBuilder.isTextFormat())
+            switch (currentOutputFormat)
             {
-                outputBuilder.AppendOutput(GetTextResults(results));
-            }
-            else
-            {
-                outputBuilder.AppendOutput(GetSarifResults(purl, results));
+                case OutputFormat.text:
+                default:
+                    outputBuilder.AppendOutput(GetTextResults(results));
+                    break;
+
+                case OutputFormat.sarifv1:
+                case OutputFormat.sarifv2:
+                    outputBuilder.AppendOutput(GetSarifResults(purl, results));
+                    break;
             }
         }
 
         /// <summary>
-        /// Convert findSourceTool results into text format
+        ///     Convert findSourceTool results into text format
         /// </summary>
-        /// <param name="results"></param>
-        /// <returns></returns>
-        static string GetTextResults(List<KeyValuePair<PackageURL, double>> results)
+        /// <param name="results"> </param>
+        /// <returns> </returns>
+        private static List<string> GetTextResults(List<KeyValuePair<PackageURL, double>> results)
         {
-            StringBuilder stringOutput = new StringBuilder();
+            //StringBuilder stringOutput = new StringBuilder();
+            List<string> stringOutput = new List<string>();
             foreach (var result in results)
             {
                 var confidence = result.Value * 100.0;
-                stringOutput.Append(
+                stringOutput.Add(
                     $"{confidence:0.0}%\thttps://github.com/{result.Key.Namespace}/{result.Key.Name} ({result.Key})");
-                stringOutput.Append(
-                    Environment.NewLine);
             }
-            return stringOutput.ToString();
+            return stringOutput;
         }
 
         /// <summary>
-        /// Build and return a list of Sarif Result list from the find source results
+        ///     Build and return a list of Sarif Result list from the find source results
         /// </summary>
-        /// <param name="purl"></param>
-        /// <param name="results"></param>
-        /// <returns></returns>
-        static List<Result> GetSarifResults(PackageURL purl, List<KeyValuePair<PackageURL, double>> results)
+        /// <param name="purl"> </param>
+        /// <param name="results"> </param>
+        /// <returns> </returns>
+        private static List<Result> GetSarifResults(PackageURL purl, List<KeyValuePair<PackageURL, double>> results)
         {
             List<Result> sarifResults = new List<Result>();
             foreach (var result in results)
@@ -196,93 +183,12 @@ namespace Microsoft.CST.OpenSource
                     Kind = ResultKind.Informational,
                     Level = FailureLevel.None,
                     Rank = confidence,
-                    Locations = OutputBuilder.BuildPurlLocation(purl)
+                    Locations = SarifOutputBuilder.BuildPurlLocation(purl)
                 };
 
                 sarifResults.Add(sarifResult);
             }
             return sarifResults;
-        }
-
-        /// <summary>
-        /// Parses options for this program.
-        /// </summary>
-        /// <param name="args">arguments (passed in from the user)</param>
-        private void ParseOptions(string[] args)
-        {
-            if (args == null)
-            {
-                ShowUsage();
-                Environment.Exit(1);
-            }
-
-            for (int i = 0; i < args.Length; i++)
-            {
-                switch (args[i])
-                {
-                    case "-h":
-                    case "--help":
-                        ShowUsage();
-                        Environment.Exit(1);
-                        break;
-
-                    case "--format":
-                        Options["format"] = args[++i];
-                        break;
-
-                    case "--output-file":
-                        Options["output-file"] = args[++i];
-                        break;
-
-                    case "--show-all":
-                        Options["show-all"] = true;
-                        break;
-
-                    case "-v":
-                    case "--version":
-                        Console.Error.WriteLine($"{TOOL_NAME} {VERSION}");
-                        Environment.Exit(1);
-                        break;
-                    default:
-                        if (Options["target"] is IList<string> innerTargetList)
-                        {
-                            innerTargetList.Add(args[i]);
-                        }
-                        break;
-                }
-            }
-
-            if (Options["target"] is IList<string> targetList && targetList.Count == 0)
-            {
-                Logger.Error("Please enter the package(s) to search for");
-                ShowUsage();
-                Environment.Exit(1);
-            }
-        }
-
-        /// <summary>
-        /// Displays usage information for the program.
-        /// </summary>
-        private static void ShowUsage()
-        {
-            Console.Error.WriteLine($@"
-{TOOL_NAME} {VERSION}
-
-Usage: {TOOL_NAME} [options] package-url...
-
-positional arguments:
-    package-url                 PackgeURL specifier to analyze (required, repeats OK)
-
-{BaseProjectManager.GetCommonSupportedHelpText()}
-
-optional arguments:
-  --show-all                    show all possibilities of the package source repositories
-                                 (default: show only the top result)
-  --format                      selct the output format (text|sarifv1|sarifv2). (default is text)
-  --output-file                 send the command output to a file instead of stdout
-  --help                        show this help message and exit
-  --version                     show version of this tool
-");
         }
     }
 }

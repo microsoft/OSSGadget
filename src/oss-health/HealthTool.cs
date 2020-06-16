@@ -87,7 +87,7 @@ namespace Microsoft.CST.OpenSource
             await healthTool.ParseOptions<Options>(args).WithParsedAsync(healthTool.RunAsync);
         }
 
-        private void AppendOutput(IOutputBuilder outputBuilder, PackageURL purl, HealthMetrics? healthMetrics)
+        private void AppendOutput(IOutputBuilder outputBuilder, PackageURL purl, HealthMetrics healthMetrics)
         {
             switch (currentOutputFormat)
             {
@@ -95,13 +95,13 @@ namespace Microsoft.CST.OpenSource
                 default:
                     outputBuilder.AppendOutput(new List<string>() {
                         $"Health for {purl} (via {purl})",
-                        healthMetrics?.ToString() ?? "Could not generate health metrics"
+                        healthMetrics.ToString()
                     });
                     break;
 
                 case OutputFormat.sarifv1:
                 case OutputFormat.sarifv2:
-                    outputBuilder.AppendOutput(healthMetrics?.toSarif() ?? Array.Empty<Result>().ToList());
+                    outputBuilder.AppendOutput(healthMetrics.toSarif());
                     break;
             }
         }
@@ -119,7 +119,14 @@ namespace Microsoft.CST.OpenSource
                     {
                         var purl = new PackageURL(target);
                         var healthMetrics = CheckHealth(purl).Result;
-                        AppendOutput(outputBuilder, purl, healthMetrics);
+                        if (healthMetrics == null)
+                        {
+                            Logger.Debug($"Cannot compute Health for {purl}");
+                        }
+                        else
+                        {
+                            AppendOutput(outputBuilder, purl, healthMetrics);
+                        }
                     }
                     catch (Exception ex)
                     {

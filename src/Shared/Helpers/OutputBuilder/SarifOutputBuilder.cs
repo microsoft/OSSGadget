@@ -51,7 +51,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     {
                         Address = new Address()
                         {
-                            FullyQualifiedName = projectManager?.GetPackageAbsoluteUri(purl)?.AbsoluteUri,
+                            FullyQualifiedName = projectManager.GetPackageAbsoluteUri(purl)?.AbsoluteUri,
                             AbsoluteAddress = PHYSICAL_ADDRESS_FLAG, // Sarif format needs non negative integer
                             Name = purl.ToString()
                         }

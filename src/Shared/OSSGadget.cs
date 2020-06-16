@@ -91,7 +91,7 @@ namespace Microsoft.CST.OpenSource
         ///     Change the tool output from the existing one to the passed in file
         /// </summary>
         /// <param name="outputFile"> </param>
-        protected void SelectOutput(string? outputFile)
+        protected void SelectOutput(string outputFile)
         {
             // output to console or file?
             this.redirectConsole = !string.IsNullOrEmpty(outputFile);

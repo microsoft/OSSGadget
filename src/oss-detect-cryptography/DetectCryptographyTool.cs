@@ -64,7 +64,7 @@ namespace Microsoft.CST.OpenSource
 
             // select output destination and format
             detectCryptographyTool.SelectOutput((string?)detectCryptographyTool.Options["output-file"]);
-            IOutputBuilder outputBuilder = detectCryptographyTool.SelectFormat((string?)detectCryptographyTool.Options["format"]);
+            IOutputBuilder outputBuilder = detectCryptographyTool.SelectFormat((string?)detectCryptographyTool.Options["format"] ?? "text");
             if (detectCryptographyTool.Options["target"] is IList<string> targetList && targetList.Count > 0)
             {
                 var sb = new StringBuilder();

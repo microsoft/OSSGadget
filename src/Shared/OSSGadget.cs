@@ -71,12 +71,12 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         /// <param name="format"> </param>
         /// <returns> </returns>
-        protected IOutputBuilder SelectFormat(string? format)
+        protected IOutputBuilder SelectFormat(string format)
         {
             try
             {
-                currentOutputFormat = OutputBuilderFactory.GetOutputFormat(format ?? OutputFormat.text.ToString());
-                return OutputBuilderFactory.CreateOutputBuilder(this.currentOutputFormat);
+                currentOutputFormat = GetOutputFormat(format);
+                return CreateOutputBuilder(currentOutputFormat);
             }
             catch (ArgumentOutOfRangeException)
             {
@@ -84,7 +84,7 @@ namespace Microsoft.CST.OpenSource
             }
 
             currentOutputFormat = OutputFormat.text;
-            return OutputBuilderFactory.CreateDefaultOutputBuilder();
+            return CreateDefaultOutputBuilder();
         }
 
         /// <summary>

@@ -149,7 +149,7 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
             {
                 using var fs = new FileStream(filename,FileMode.Open);
                 // We give it a parent so we can give it a shortname. This is useful for Quine detection later.
-                fileEntry = new FileEntry(Path.GetFileName(filename), fs, new FileEntry(filename, new MemoryStream()));
+                fileEntry = new FileEntry(Path.GetFileName(filename), fs, new FileEntry(Path.GetDirectoryName(filename) ?? Directory.GetCurrentDirectory(), new MemoryStream()));
                 ResetResourceGovernor(fs);
             }
             catch (Exception ex)

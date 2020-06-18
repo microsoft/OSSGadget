@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+using F23.StringSimilarity;
+using Microsoft.CST.OpenSource.RecursiveExtractor;
+using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -9,9 +12,6 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using F23.StringSimilarity;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.CST.OpenSource.RecursiveExtractor;
 
 namespace Microsoft.CST.OpenSource.Shared
 {

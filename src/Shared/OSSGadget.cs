@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using CommandLine;
+﻿using CommandLine;
 using CommandLine.Text;
 using Microsoft.CST.OpenSource.Shared;
+using System;
+using System.Collections.Generic;
+using System.IO;
 using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
 
 namespace Microsoft.CST.OpenSource
@@ -68,9 +68,9 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        ///     Use the OutputBuilder to select the given format and return a output builder
-        ///     The format should be compatible with one of the enum entries in OutputFormat
-        ///     text format will be chosen, if the format is invalid
+        ///     Use the OutputBuilder to select the given format and return a output builder The format should
+        ///     be compatible with one of the enum entries in OutputFormat text format will be chosen, if the
+        ///     format is invalid
         /// </summary>
         /// <param name="format"> </param>
         /// <returns> </returns>
@@ -91,14 +91,14 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        ///     Change the tool output from the existing one to the passed in file
-        ///     If the outputFile is not a valid filename, the output will be switched to Console
+        ///     Change the tool output from the existing one to the passed in file If the outputFile is not a
+        ///     valid filename, the output will be switched to Console
         /// </summary>
         /// <param name="outputFile"> </param>
         protected void SelectOutput(string outputFile)
         {
             // output to console or file?
-            this.redirectConsole = !string.IsNullOrEmpty(outputFile) && 
+            this.redirectConsole = !string.IsNullOrEmpty(outputFile) &&
                 outputFile.IndexOfAny(Path.GetInvalidFileNameChars()) < 0;
             if (redirectConsole && outputFile is string outputLoc)
             {
@@ -107,12 +107,11 @@ namespace Microsoft.CST.OpenSource
                     Logger.Error("Could not switch output from console to file");
                     // continue with current output
                 }
-
             }
             else
             {
                 Logger.Error($"Invalid outputFile {outputFile}. Switching to console");
-            }        
+            }
         }
 
         private bool redirectConsole = false;

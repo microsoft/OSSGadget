@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,11 +9,10 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
-    class VSMProjectManager : BaseProjectManager
+    internal class VSMProjectManager : BaseProjectManager
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_VS_MARKETPLACE_ENDPOINT = "https://marketplace.visualstudio.com";
@@ -22,17 +21,11 @@ namespace Microsoft.CST.OpenSource.Shared
         {
         }
 
-        public override Uri GetPackageAbsoluteUri(PackageURL purl)
-        {
-            // there is no version page for marketplace vsix
-            return new Uri($"{ENV_VS_MARKETPLACE_ENDPOINT}/items/itemName={purl?.Name}");
-        }
-
         /// <summary>
-        /// Download one VS Marketplace package and extract it to the target directory.
+        ///     Download one VS Marketplace package and extract it to the target directory.
         /// </summary>
-        /// <param name="purl">Package URL of the package to download.</param>
-        /// <returns>the path or file written.</returns>
+        /// <param name="purl"> Package URL of the package to download. </param>
+        /// <returns> the path or file written. </returns>
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
@@ -86,7 +79,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     {
                         continue;
                     }
-                    
+
                     foreach (var extension in extensions.EnumerateArray())
                     {
                         if (!extension.TryGetProperty("versions", out JsonElement versions))
@@ -145,7 +138,7 @@ namespace Microsoft.CST.OpenSource.Shared
                                         downloadedPaths.Add(targetName);
                                     }
                                 }
-                                catch(Exception ex)
+                                catch (Exception ex)
                                 {
                                     Logger.Warn(ex, "Error downloading {0}: {1}", source.GetString(), ex.Message);
                                 }
@@ -161,29 +154,11 @@ namespace Microsoft.CST.OpenSource.Shared
             return downloadedPaths;
         }
 
-        private static void SetCache(string key, string value)
-        {
-            lock (DataCache)
-            {
-                var mce = new MemoryCacheEntryOptions() { Size = value.Length };
-                DataCache.Set<string>($"vsm__{key}", value, mce);
-            }
-        }
-        private static string? GetCache(string key)
-        {
-            string? result = null;
-            lock(DataCache)
-            {
-                result = DataCache.Get<string>($"vsm__{key}");
-            }
-            return result;
-        }
-
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
-            
-            var versionList = new List<string>(); 
+
+            var versionList = new List<string>();
             if (purl == null || purl.Namespace == null || purl.Name == null)
             {
                 return versionList;
@@ -204,7 +179,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     resultStream = new MemoryStream(Encoding.UTF8.GetBytes(cacheResult));
                 }
                 else
-                { 
+                {
                     using var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{ENV_VS_MARKETPLACE_ENDPOINT}/_apis/public/gallery/extensionquery");
                     requestMessage.Headers.Add("Accept", "application/json;api-version=3.0-preview.1");
                     var postContent = $"{{filters:[{{criteria:[{{filterType:7,value:\"{packageName}\"}}],pageSize:1000,pageNumber:1,sortBy:0}}],flags:131}}";
@@ -271,6 +246,31 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 Logger.Warn(ex, "Error fetching VS Marketplace metadata: {0}", ex.Message);
                 return null;
+            }
+        }
+
+        public override Uri GetPackageAbsoluteUri(PackageURL purl)
+        {
+            // there is no version page for marketplace vsix
+            return new Uri($"{ENV_VS_MARKETPLACE_ENDPOINT}/items/itemName={purl?.Name}");
+        }
+
+        private static string? GetCache(string key)
+        {
+            string? result = null;
+            lock (DataCache)
+            {
+                result = DataCache.Get<string>($"vsm__{key}");
+            }
+            return result;
+        }
+
+        private static void SetCache(string key, string value)
+        {
+            lock (DataCache)
+            {
+                var mce = new MemoryCacheEntryOptions() { Size = value.Length };
+                DataCache.Set<string>($"vsm__{key}", value, mce);
             }
         }
     }

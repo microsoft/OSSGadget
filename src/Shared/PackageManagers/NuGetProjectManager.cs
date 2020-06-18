@@ -1,36 +1,28 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+using HtmlAgilityPack;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using HtmlAgilityPack;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
-    class NuGetProjectManager : BaseProjectManager
+    internal class NuGetProjectManager : BaseProjectManager
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_NUGET_ENDPOINT_API = "https://api.nuget.org";
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        static string ENV_NUGET_HOMEPAGE = "https://www.nuget.org/packages";
 
         public NuGetProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
         }
 
-        public override Uri GetPackageAbsoluteUri(PackageURL purl)
-        {
-            return new Uri($"{ENV_NUGET_HOMEPAGE}/{purl?.Name}");
-        }
-
         /// <summary>
-        /// Download one NuGet package and extract it to the target directory.
+        ///     Download one NuGet package and extract it to the target directory.
         /// </summary>
-        /// <param name="purl">Package URL of the package to download.</param>
-        /// <returns>n/a</returns>
+        /// <param name="purl"> Package URL of the package to download. </param>
+        /// <returns> n/a </returns>
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
@@ -110,6 +102,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 return Array.Empty<string>();
             }
         }
+
         public override async Task<string?> GetMetadata(PackageURL purl)
         {
             try
@@ -125,6 +118,11 @@ namespace Microsoft.CST.OpenSource.Shared
             }
         }
 
+        public override Uri GetPackageAbsoluteUri(PackageURL purl)
+        {
+            return new Uri($"{ENV_NUGET_HOMEPAGE}/{purl?.Name}");
+        }
+
         protected async override Task<Dictionary<PackageURL, double>> PackageMetadataSearch(PackageURL purl, string metadata)
         {
             Dictionary<PackageURL, double> mapping = new Dictionary<PackageURL, double>();
@@ -132,7 +130,8 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 var packageName = purl.Name;
 
-                // nuget doesnt provide repository information in the json metadata; we have to extract it from the html home page
+                // nuget doesnt provide repository information in the json metadata; we have to extract it
+                // from the html home page
                 HtmlWeb web = new HtmlWeb();
                 HtmlDocument doc = web.Load($"{ENV_NUGET_HOMEPAGE}/{packageName}");
 
@@ -162,5 +161,8 @@ namespace Microsoft.CST.OpenSource.Shared
             // if nothing worked, return empty
             return mapping;
         }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
+        private static string ENV_NUGET_HOMEPAGE = "https://www.nuget.org/packages";
     }
 }

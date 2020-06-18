@@ -1,62 +1,61 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+using Microsoft.CST.OpenSource.Shared;
+using MimeTypes;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Text.RegularExpressions;
-using Microsoft.CST.OpenSource.Shared;
-using MimeTypes;
+using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource
 {
-    class DefoggerTool : OSSGadget
+    internal class DefoggerTool : OSSGadget
     {
         /// <summary>
-        /// Name of this tool.
+        ///     Name of this tool.
         /// </summary>
         private const string TOOL_NAME = "oss-defogger";
 
         /// <summary>
-        /// Holds the version string, from the assembly.
+        ///     Holds the version string, from the assembly.
         /// </summary>
         private static readonly string VERSION = typeof(DefoggerTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
 
         /// <summary>
-        /// Regular expression that matches Base64-encoded text.
+        ///     Regular expression that matches Base64-encoded text.
         /// </summary>
-        static readonly Regex BASE64_REGEX = new Regex("(([A-Z0-9+\\/]{4})+([A-Z0-9+\\/]{3}=|[A-Z0-9+\\/]{2}==)?)", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(5000));
+        private static readonly Regex BASE64_REGEX = new Regex("(([A-Z0-9+\\/]{4})+([A-Z0-9+\\/]{3}=|[A-Z0-9+\\/]{2}==)?)", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(5000));
 
         /// <summary>
-        /// Regular expression that matches hex-encoded text.
+        ///     Regular expression that matches hex-encoded text.
         /// </summary>
-        static readonly Regex HEX_REGEX = new Regex(@"(0x)?([A-F0-9]{16,})", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        private static readonly Regex HEX_REGEX = new Regex(@"(0x)?([A-F0-9]{16,})", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
         /// <summary>
-        /// Short strings must match this regular expression to be reported.
+        ///     Short strings must match this regular expression to be reported.
         /// </summary>
-        static readonly Regex SHORT_INTERESTING_STRINGS_REGEX = new Regex(@"^[A-Z0-9\-:]+$", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(5000));
+        private static readonly Regex SHORT_INTERESTING_STRINGS_REGEX = new Regex(@"^[A-Z0-9\-:]+$", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(5000));
 
         /// <summary>
-        /// Do not analyze binary files (those with a MIME type that matches this regular expression).
+        ///     Do not analyze binary files (those with a MIME type that matches this regular expression).
         /// </summary>
-        static readonly Regex IGNORE_MIME_REGEX = new Regex(@"audio|video|x-msdownload", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(5000));
+        private static readonly Regex IGNORE_MIME_REGEX = new Regex(@"audio|video|x-msdownload", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(5000));
 
         /// <summary>
-        /// Only report detected strings this length or longer.
+        ///     Only report detected strings this length or longer.
         /// </summary>
-        const int DEFAULT_MINIMUM_STRING_LENGTH = 8;
+        private const int DEFAULT_MINIMUM_STRING_LENGTH = 8;
 
         /// <summary>
-        /// Strings longer than this are interesting.
+        ///     Strings longer than this are interesting.
         /// </summary>
-        const int INTERESTING_STRINGS_CUTOFF = 24;
+        private const int INTERESTING_STRINGS_CUTOFF = 24;
 
         /// <summary>
-        /// Command line options passed into this tool.
+        ///     Command line options passed into this tool.
         /// </summary>
         private readonly IDictionary<string, object?> Options = new Dictionary<string, object?>()
         {
@@ -66,12 +65,12 @@ namespace Microsoft.CST.OpenSource
         };
 
         /// <summary>
-        /// Identified findings from the analysis.
+        ///     Identified findings from the analysis.
         /// </summary>
         public IList<EncodedString> Findings { get; private set; }
 
         /// <summary>
-        /// The specific type of encoding detected.
+        ///     The specific type of encoding detected.
         /// </summary>
         public enum EncodedStringType
         {
@@ -80,7 +79,7 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// The encoded string and type.
+        ///     The encoded string and type.
         /// </summary>
         public class EncodedString
         {
@@ -96,11 +95,9 @@ namespace Microsoft.CST.OpenSource
                 this.EncodedText = EncodedText;
                 this.DecodedText = DecodedText;
             }
-
-
         }
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             CommonInitialization.Initialize();
 
@@ -118,8 +115,8 @@ namespace Microsoft.CST.OpenSource
                         if (target.StartsWith("pkg:"))
                         {
                             var purl = new PackageURL(target);
-                            defoggerTool.AnalyzePackage(purl, 
-                                (string?)defoggerTool.Options["download-directory"], 
+                            defoggerTool.AnalyzePackage(purl,
+                                (string?)defoggerTool.Options["download-directory"],
                                 (bool?)defoggerTool.Options["use-cache"] == true).Wait();
                         }
                         else if (Directory.Exists(target))
@@ -151,7 +148,7 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Initializes a new DefoggerTool instance.
+        ///     Initializes a new DefoggerTool instance.
         /// </summary>
         public DefoggerTool() : base()
         {
@@ -159,10 +156,10 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Analyze a package by downloading it first.
+        ///     Analyze a package by downloading it first.
         /// </summary>
-        /// <param name="purl">The package-url of the package to analyze.</param>
-        /// <returns>n/a</returns>
+        /// <param name="purl"> The package-url of the package to analyze. </param>
+        /// <returns> n/a </returns>
         public async Task AnalyzePackage(PackageURL purl, string? destinationDirectory, bool doCaching)
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
@@ -177,9 +174,9 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Analyzes a directory of files.
+        ///     Analyzes a directory of files.
         /// </summary>
-        /// <param name="directory">directory to analyze.</param>
+        /// <param name="directory"> directory to analyze. </param>
         public void AnalyzeDirectory(string directory)
         {
             Logger.Trace("AnalyzeDirectory({0})", directory);
@@ -198,9 +195,9 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Analyzes a single file.
+        ///     Analyzes a single file.
         /// </summary>
-        /// <param name="filename">filename to analyze</param>
+        /// <param name="filename"> filename to analyze </param>
         public void AnalyzeFile(string filename)
         {
             Logger.Trace("AnalyzeFile({0})", filename);
@@ -212,9 +209,9 @@ namespace Microsoft.CST.OpenSource
                 return;
             }
 
-            #pragma warning disable SEC0116 // Path Tampering Unvalidated File Path
+#pragma warning disable SEC0116 // Path Tampering Unvalidated File Path
             var fileContents = File.ReadAllText(filename);
-            #pragma warning restore SEC0116 // Path Tampering Unvalidated File Path
+#pragma warning restore SEC0116 // Path Tampering Unvalidated File Path
 
             foreach (Match match in BASE64_REGEX.Matches(fileContents).Where(match => match != null))
             {
@@ -223,9 +220,8 @@ namespace Microsoft.CST.OpenSource
                     continue;
                 }
 
-                // Try to decode and then re-encode. Are we successful, and
-                // do we get the same value we started out with? This will filter out
-                // Base64-encoded binary data, which is what we want.
+                // Try to decode and then re-encode. Are we successful, and do we get the same value we
+                // started out with? This will filter out Base64-encoded binary data, which is what we want.
                 try
                 {
                     var bytes = Convert.FromBase64String(match.Value);
@@ -248,7 +244,6 @@ namespace Microsoft.CST.OpenSource
                             Type: EncodedStringType.Base64
                         ));
                     }
-                    
                 }
                 catch (Exception ex)
                 {
@@ -256,7 +251,7 @@ namespace Microsoft.CST.OpenSource
                     Logger.Trace("Invalid match for {0}: {1}", match.Value, ex.Message);
                 }
             }
-            
+
             foreach (Match match in HEX_REGEX.Matches(fileContents).Where(match => match != null))
             {
                 var decodedText = HexToString(match.Value);
@@ -306,12 +301,11 @@ namespace Microsoft.CST.OpenSource
             return Encoding.UTF8.GetString(bytes);
         }
 
-
         /// <summary>
-        /// Decides whether the given string is interesting or not
+        ///     Decides whether the given string is interesting or not
         /// </summary>
-        /// <param name="s">string to check</param>
-        /// <returns></returns>
+        /// <param name="s"> string to check </param>
+        /// <returns> </returns>
         private static bool IsInterestingString(string s)
         {
             if (string.IsNullOrWhiteSpace(s))
@@ -350,9 +344,9 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Parses options for this program.
+        ///     Parses options for this program.
         /// </summary>
-        /// <param name="args">arguments (passed in from the user)</param>
+        /// <param name="args"> arguments (passed in from the user) </param>
         private void ParseOptions(string[] args)
         {
             if (args == null)
@@ -396,7 +390,7 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Displays usage information for the program.
+        ///     Displays usage information for the program.
         /// </summary>
         private static void ShowUsage()
         {

@@ -1,27 +1,30 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+using Microsoft.CST.OpenSource.Shared;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.CST.OpenSource.Shared;
 
 namespace Microsoft.CST.OpenSource
 {
     public class DownloadTool : OSSGadget
     {
+        public DownloadTool() : base()
+        {
+        }
+
         /// <summary>
-        /// Name of this tool.
+        ///     Name of this tool.
         /// </summary>
         private const string TOOL_NAME = "oss-download";
 
         /// <summary>
-        /// Holds the version string, from the assembly.
+        ///     Holds the version string, from the assembly.
         /// </summary>
         private static readonly string VERSION = typeof(DownloadTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
 
         /// <summary>
-        /// Command line options
+        ///     Command line options
         /// </summary>
         private readonly Dictionary<string, object> Options = new Dictionary<string, object>()
         {
@@ -33,10 +36,10 @@ namespace Microsoft.CST.OpenSource
         };
 
         /// <summary>
-        /// Main entrypoint for the download program.
+        ///     Main entrypoint for the download program.
         /// </summary>
-        /// <param name="args">parameters passed in from the user</param>
-        static async Task Main(string[] args)
+        /// <param name="args"> parameters passed in from the user </param>
+        private static async Task Main(string[] args)
         {
             var downloadTool = new DownloadTool();
             Logger.Info($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
@@ -69,7 +72,7 @@ namespace Microsoft.CST.OpenSource
                                 Logger.Info("Downloaded {0} to {1}", purl.ToString(), downloadPath);
                             }
                         }
-                            packageDownloader.ClearPackageLocalCopyIfNoCaching();
+                        packageDownloader.ClearPackageLocalCopyIfNoCaching();
                     }
                     catch (Exception ex)
                     {
@@ -86,14 +89,35 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        public DownloadTool() : base()
+        /// <summary>
+        ///     Displays usage information for the program.
+        /// </summary>
+        private static void ShowUsage()
         {
+            Console.Error.WriteLine($@"
+{TOOL_NAME} {VERSION}
+
+Usage: {TOOL_NAME} [options] package-url...
+
+positional arguments:
+    package-url                 PackgeURL specifier to download (required, repeats OK)
+
+{BaseProjectManager.GetCommonSupportedHelpText()}
+
+optional arguments:
+  --no-extract                  do not extract package contents
+  --only-metadata               only download metadata, not the package content
+  --download-directory          the location to download the package to (default: current directory)
+  --use-cache                   do not download the package if it is already present in the destination directory
+  --help                        show this help message and exit
+  --version                     show version of this tool
+");
         }
 
         /// <summary>
-        /// Parses options for this program.
+        ///     Parses options for this program.
         /// </summary>
-        /// <param name="args">arguments (passed in from the user)</param>
+        /// <param name="args"> arguments (passed in from the user) </param>
         private void ParseOptions(string[] args)
         {
             if (args == null)
@@ -117,15 +141,15 @@ namespace Microsoft.CST.OpenSource
                         Console.Error.WriteLine($"{TOOL_NAME} {VERSION}");
                         Environment.Exit(1);
                         break;
-                    
+
                     case "--only-metadata":
                         Options["download-metadata-only"] = true;
                         break;
-                    
+
                     case "--download-directory":
                         Options["download-directory"] = args[++i];
                         break;
-                    
+
                     case "--no-extract":
                         Options["extract"] = false;
                         break;
@@ -139,31 +163,6 @@ namespace Microsoft.CST.OpenSource
                         break;
                 }
             }
-        }
-
-        /// <summary>
-        /// Displays usage information for the program.
-        /// </summary>
-        private static void ShowUsage()
-        {
-            Console.Error.WriteLine($@"
-{TOOL_NAME} {VERSION}
-
-Usage: {TOOL_NAME} [options] package-url...
-
-positional arguments:
-    package-url                 PackgeURL specifier to download (required, repeats OK)
-
-{BaseProjectManager.GetCommonSupportedHelpText()}
-
-optional arguments:
-  --no-extract                  do not extract package contents 
-  --only-metadata               only download metadata, not the package content
-  --download-directory          the location to download the package to (default: current directory)
-  --use-cache                   do not download the package if it is already present in the destination directory
-  --help                        show this help message and exit
-  --version                     show version of this tool
-");
         }
     }
 }

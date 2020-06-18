@@ -1,16 +1,16 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+using CommandLine;
+using CommandLine.Text;
+using Microsoft.ApplicationInspector.Commands;
+using Microsoft.CodeAnalysis.Sarif;
+using Microsoft.CST.OpenSource.Shared;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using CommandLine;
-using CommandLine.Text;
-using Microsoft.ApplicationInspector.Commands;
-using Microsoft.CodeAnalysis.Sarif;
-using Microsoft.CST.OpenSource.Shared;
 using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
 using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
 

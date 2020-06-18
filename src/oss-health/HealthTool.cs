@@ -1,14 +1,12 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.CST.OpenSource.Shared;
-using Microsoft.CST.OpenSource.Health;
-using Microsoft.CodeAnalysis.Sarif;
 using CommandLine;
 using CommandLine.Text;
+using Microsoft.CST.OpenSource.Health;
+using Microsoft.CST.OpenSource.Shared;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
 
 namespace Microsoft.CST.OpenSource

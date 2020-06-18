@@ -4,7 +4,7 @@ using System;
 namespace Microsoft.CST.OpenSource.Shared
 {
     /// <summary>
-    /// Factory to build the outputBuilder based on the format specified
+    ///     Factory to build the outputBuilder based on the format specified
     /// </summary>
     public class OutputBuilderFactory
     {
@@ -15,26 +15,15 @@ namespace Microsoft.CST.OpenSource.Shared
             text // no sarif, just text
         };
 
-        private OutputBuilderFactory()
+        public static IOutputBuilder CreateDefaultOutputBuilder()
         {
-
-        }
-
-        public static OutputFormat GetOutputFormat(string format)
-        {
-            OutputFormat currentOutputFormat = OutputFormat.text;
-            if (!Enum.TryParse<OutputFormat>(format, true, out currentOutputFormat))
-            {
-                throw new ArgumentOutOfRangeException("Invalid output format");
-            }
-            return currentOutputFormat;
+            return new StringOutputBuilder();
         }
 
         public static IOutputBuilder CreateOutputBuilder(string format)
         {
             OutputFormat currentOutputFormat = GetOutputFormat(format);
             return CreateOutputBuilder(currentOutputFormat);
-
         }
 
         public static IOutputBuilder CreateOutputBuilder(OutputFormat format)
@@ -52,9 +41,18 @@ namespace Microsoft.CST.OpenSource.Shared
             }
         }
 
-        public static IOutputBuilder CreateDefaultOutputBuilder()
+        public static OutputFormat GetOutputFormat(string format)
         {
-            return new StringOutputBuilder();
+            OutputFormat currentOutputFormat = OutputFormat.text;
+            if (!Enum.TryParse<OutputFormat>(format, true, out currentOutputFormat))
+            {
+                throw new ArgumentOutOfRangeException("Invalid output format");
+            }
+            return currentOutputFormat;
+        }
+
+        private OutputBuilderFactory()
+        {
         }
     }
 }

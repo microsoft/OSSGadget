@@ -1,5 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using System;
 using System.Collections.Generic;
@@ -10,7 +9,7 @@ using System.Xml;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
-    class MavenProjectManager : BaseProjectManager
+    internal class MavenProjectManager : BaseProjectManager
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_MAVEN_ENDPOINT = "https://repo1.maven.org/maven2";
@@ -19,19 +18,11 @@ namespace Microsoft.CST.OpenSource.Shared
         {
         }
 
-        public override Uri GetPackageAbsoluteUri(PackageURL purl)
-        {
-            var packageNamespace = purl?.Namespace?.Replace('.', '/');
-            var packageName = purl?.Name;
-
-            return new Uri($"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}");
-        }
-
         /// <summary>
-        /// Download one Maven package and extract it to the target directory.
+        ///     Download one Maven package and extract it to the target directory.
         /// </summary>
-        /// <param name="purl">Package URL of the package to download.</param>
-        /// <returns>n/a</returns>
+        /// <param name="purl"> Package URL of the package to download. </param>
+        /// <returns> n/a </returns>
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
@@ -116,6 +107,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 return Array.Empty<string>();
             }
         }
+
         public override async Task<string?> GetMetadata(PackageURL purl)
         {
             try
@@ -141,6 +133,14 @@ namespace Microsoft.CST.OpenSource.Shared
                 Logger.Error(ex, $"Error fetching Maven metadata: {ex.Message}");
                 return null;
             }
+        }
+
+        public override Uri GetPackageAbsoluteUri(PackageURL purl)
+        {
+            var packageNamespace = purl?.Namespace?.Replace('.', '/');
+            var packageName = purl?.Name;
+
+            return new Uri($"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}");
         }
     }
 }

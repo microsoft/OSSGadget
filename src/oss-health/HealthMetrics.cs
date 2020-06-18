@@ -1,5 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using Microsoft.CodeAnalysis.Sarif;
 using Microsoft.CST.OpenSource.Shared;
@@ -15,29 +14,70 @@ namespace Microsoft.CST.OpenSource.Health
 {
     public class HealthMetrics
     {
-        private const int MAX_HEALTH = 100;
-        private const int MIN_HEALTH = 0;
-
-        PackageURL purl;
-
-        /// <summary>
-        /// Logger for this class
-        /// </summary>
-        private static NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
-
-        public double CommitHealth { get; set; }
-        public double PullRequestHealth { get; set; }
-        public double IssueHealth { get; set; }
-        public double SecurityIssueHealth { get; set; }
         public double ReleaseHealth;
-        public double ContributorHealth { get; set; }
-        public double RecentActivityHealth { get; set; }
-        public double ProjectSizeHealth { get; set; }
 
         public HealthMetrics(PackageURL purl)
         {
             this.purl = purl;
         }
+
+        public double CommitHealth { get; set; }
+        public double ContributorHealth { get; set; }
+        public double IssueHealth { get; set; }
+        public double ProjectSizeHealth { get; set; }
+        public double PullRequestHealth { get; set; }
+        public double RecentActivityHealth { get; set; }
+        public double SecurityIssueHealth { get; set; }
+
+        public void Normalize()
+        {
+            CommitHealth = NormalizeField(CommitHealth);
+            PullRequestHealth = NormalizeField(PullRequestHealth);
+            IssueHealth = NormalizeField(IssueHealth);
+            SecurityIssueHealth = NormalizeField(SecurityIssueHealth);
+            ReleaseHealth = NormalizeField(ReleaseHealth);
+        }
+
+        public List<Result> toSarif()
+        {
+            BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, null);
+
+            if (projectManager == null)
+            {
+                Logger.Error("Cannot determine the package type");
+                return new List<Result>();
+            }
+
+            Normalize();
+
+            List<Result> results = new List<Result>();
+            var properties = getHealthProperties();
+            foreach (var property in properties.OrderBy(s => s.Name))
+            {
+                if (property.Name.EndsWith("Health"))
+                {
+                    var textualName = Regex.Replace(property.Name, "(\\B[A-Z])", " $1");
+                    var value = Convert.ToDouble(property.GetValue(this));
+
+                    Result healthResult = new Result()
+                    {
+                        Kind = ResultKind.Review,
+                        Level = FailureLevel.None,
+                        Message = new Message()
+                        {
+                            Text = textualName
+                        },
+                        Rank = value,
+
+                        Locations = SarifOutputBuilder.BuildPurlLocation(purl)
+                    };
+                    results.Add(healthResult);
+                }
+            }
+
+            return results;
+        }
+
         public override string ToString()
         {
             Normalize();
@@ -80,69 +120,17 @@ namespace Microsoft.CST.OpenSource.Health
             sb.AppendFormat("{0,25} {1} \n", "", key);
             return sb.ToString();
         }
-        PropertyInfo[] getHealthProperties()
-        {
-            return this.GetType().GetProperties(BindingFlags.NonPublic |
-                                              BindingFlags.Public |
-                                              BindingFlags.Instance);
 
-        }
-        public List<Result> toSarif()
-        {
-            BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, null);
+        private const int MAX_HEALTH = 100;
+        private const int MIN_HEALTH = 0;
 
-            if (projectManager == null)
-            {
-                Logger.Error("Cannot determine the package type");
-                return new List<Result>();
-            }
+        private PackageURL purl;
 
-            Normalize();
+        /// <summary>
+        ///     Logger for this class
+        /// </summary>
+        private static NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
 
-            List<Result> results = new List<Result>();
-            var properties = getHealthProperties();
-            foreach (var property in properties.OrderBy(s => s.Name))
-            {
-                if (property.Name.EndsWith("Health"))
-                {
-                    var textualName = Regex.Replace(property.Name, "(\\B[A-Z])", " $1");
-                    var value = Convert.ToDouble(property.GetValue(this));
-
-                    Result healthResult = new Result()
-                    {
-                        Kind = ResultKind.Review,
-                        Level = FailureLevel.None,
-                        Message = new Message()
-                        {
-                            Text = textualName
-                        },
-                        Rank = value,
-
-                        Locations = SarifOutputBuilder.BuildPurlLocation(purl)
-                    };
-                    results.Add(healthResult);
-                }
-            }
-
-            return results;
-        }
-
-                /**
-                 * Normalizes all fields of this object.
-                 */
-                public void Normalize()
-        {
-            CommitHealth = NormalizeField(CommitHealth);
-            PullRequestHealth = NormalizeField(PullRequestHealth);
-            IssueHealth = NormalizeField(IssueHealth);
-            SecurityIssueHealth = NormalizeField(SecurityIssueHealth);
-            ReleaseHealth = NormalizeField(ReleaseHealth);
-        }
-
-        /**
-         * Clamps a given value to [MIN_HEALTH..MAX_HEALTH] and rounds
-         * to a single decimal point.
-         */
         private static double NormalizeField(double value)
         {
             value = Math.Round(value, 1);
@@ -156,5 +144,20 @@ namespace Microsoft.CST.OpenSource.Health
             }
             return value;
         }
+
+        private PropertyInfo[] getHealthProperties()
+        {
+            return this.GetType().GetProperties(BindingFlags.NonPublic |
+                                              BindingFlags.Public |
+                                              BindingFlags.Instance);
+        }
+
+        /**
+         * Normalizes all fields of this object.
+         */
+        /**
+         * Clamps a given value to [MIN_HEALTH..MAX_HEALTH] and rounds
+         * to a single decimal point.
+         */
     }
 }

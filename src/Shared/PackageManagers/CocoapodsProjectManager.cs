@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+using AngleSharp.Html.Parser;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,11 +8,10 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using AngleSharp.Html.Parser;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
-    class CocoapodsProjectManager : BaseProjectManager
+    internal class CocoapodsProjectManager : BaseProjectManager
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_COCOAPODS_SPECS_ENDPOINT = "https://github.com/CocoaPods/Specs/tree/master";
@@ -33,10 +32,10 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        /// Download one Cocoapods package and extract it to the target directory.
+        ///     Download one Cocoapods package and extract it to the target directory.
         /// </summary>
-        /// <param name="purl">Package URL of the package to download.</param>
-        /// <returns>n/a</returns>
+        /// <param name="purl"> Package URL of the package to download. </param>
+        /// <returns> n/a </returns>
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
@@ -80,7 +79,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     Logger.Debug("Downloading {0}...", purl);
                     var result = await WebClient.GetAsync(url);
                     result.EnsureSuccessStatusCode();
-                    
+
                     var targetName = $"cocoapods-{fileName}";
                     string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                     if (doExtract && Directory.Exists(extractionPath) && cached == true)
@@ -148,17 +147,17 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             var packageNameBytes = Encoding.UTF8.GetBytes(packageName);
 
-            // The Cocoapods standard uses MD5(project name) as a prefix for sharing.
-            // There is no security issue here, but we cannot use another algorithm.
-            #pragma warning disable SCS0006, CA5351, CA1308 // Weak hash, ToLowerInvarant()
+            // The Cocoapods standard uses MD5(project name) as a prefix for sharing. There is no security
+            // issue here, but we cannot use another algorithm.
+#pragma warning disable SCS0006, CA5351, CA1308 // Weak hash, ToLowerInvarant()
             using var hashAlgorithm = MD5.Create();
-            
+
             var prefixMD5 = BitConverter
                                 .ToString(hashAlgorithm.ComputeHash(packageNameBytes))
                                 .Replace("-", "")
                                 .ToLowerInvariant()
                                 .ToCharArray();
-            #pragma warning restore SCS0006, CA5351, CA1308 // Weak hash, ToLowerInvarant()
+#pragma warning restore SCS0006, CA5351, CA1308 // Weak hash, ToLowerInvarant()
 
             var prefix = string.Format("{0}/{1}/{2}", prefixMD5[0], prefixMD5[1], prefixMD5[2]);
             return prefix;
@@ -195,5 +194,3 @@ namespace Microsoft.CST.OpenSource.Shared
         }
     }
 }
-
-

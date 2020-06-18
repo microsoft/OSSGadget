@@ -1,5 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using System;
 using System.Collections.Generic;
@@ -10,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
-    class PyPIProjectManager : BaseProjectManager
+    internal class PyPIProjectManager : BaseProjectManager
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_PYPI_ENDPOINT = "https://pypi.org";
@@ -19,16 +18,11 @@ namespace Microsoft.CST.OpenSource.Shared
         {
         }
 
-        public override Uri GetPackageAbsoluteUri(PackageURL purl)
-        {
-            return new Uri($"{ENV_PYPI_ENDPOINT}/project/{purl?.Name}");
-        }
-
         /// <summary>
-        /// Download one PyPI package and extract it to the target directory.
+        ///     Download one PyPI package and extract it to the target directory.
         /// </summary>
-        /// <param name="purl">Package URL of the package to download.</param>
-        /// <returns>the path or file written.</returns>
+        /// <param name="purl"> Package URL of the package to download. </param>
+        /// <returns> the path or file written. </returns>
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
@@ -132,7 +126,6 @@ namespace Microsoft.CST.OpenSource.Shared
             }
         }
 
-
         public override async Task<string?> GetMetadata(PackageURL purl)
         {
             try
@@ -144,6 +137,11 @@ namespace Microsoft.CST.OpenSource.Shared
                 Logger.Warn(ex, "Error fetching PyPI metadata: {0}", ex.Message);
                 return null;
             }
+        }
+
+        public override Uri GetPackageAbsoluteUri(PackageURL purl)
+        {
+            return new Uri($"{ENV_PYPI_ENDPOINT}/project/{purl?.Name}");
         }
 
         protected async override Task<Dictionary<PackageURL, double>> PackageMetadataSearch(PackageURL purl, string metadata)

@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using CommandLine;
 using CommandLine.Text;
 using Microsoft.CST.OpenSource.Shared;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource
 {
@@ -36,7 +36,7 @@ namespace Microsoft.CST.OpenSource
                 HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze
             public IEnumerable<string>? Targets { get; set; }
 
-            [Option('c', "use-cache", Required = false, Default = false, 
+            [Option('c', "use-cache", Required = false, Default = false,
                 HelpText = "do not download the package if it is already present in the destination directory.")]
             public bool UseCache { get; set; }
         }

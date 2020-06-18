@@ -1,5 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using System;
 using System.Collections.Generic;
@@ -11,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
-    class GemProjectManager : BaseProjectManager
+    internal class GemProjectManager : BaseProjectManager
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_RUBYGEMS_ENDPOINT = "https://rubygems.org";
@@ -23,16 +22,11 @@ namespace Microsoft.CST.OpenSource.Shared
         {
         }
 
-        public override Uri GetPackageAbsoluteUri(PackageURL purl)
-        {
-            return new Uri($"{ENV_RUBYGEMS_ENDPOINT}/gems/{purl?.Name}");
-        }
-
         /// <summary>
-        /// Download one RubyGems package and extract it to the target directory.
+        ///     Download one RubyGems package and extract it to the target directory.
         /// </summary>
-        /// <param name="purl">Package URL of the package to download.</param>
-        /// <returns>n/a</returns>
+        /// <param name="purl"> Package URL of the package to download. </param>
+        /// <returns> n/a </returns>
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
@@ -111,6 +105,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 return Array.Empty<string>();
             }
         }
+
         public override async Task<string?> GetMetadata(PackageURL purl)
         {
             try
@@ -124,6 +119,11 @@ namespace Microsoft.CST.OpenSource.Shared
                 Logger.Error(ex, "Error fetching RubyGems metadata: {0}", ex.Message);
                 return null;
             }
+        }
+
+        public override Uri GetPackageAbsoluteUri(PackageURL purl)
+        {
+            return new Uri($"{ENV_RUBYGEMS_ENDPOINT}/gems/{purl?.Name}");
         }
     }
 }

@@ -1,19 +1,19 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+using ICSharpCode.Decompiler;
+using ICSharpCode.Decompiler.CSharp;
+using Microsoft.CST.OpenSource.Shared;
+using Microsoft.DevSkim;
 using PeNet;
+using SharpDisasm;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CST.OpenSource.Shared;
-using Microsoft.DevSkim;
-using ICSharpCode.Decompiler;
-using ICSharpCode.Decompiler.CSharp;
-using System.Text.RegularExpressions;
 using System.Reflection;
-using SharpDisasm;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using WebAssembly; // Acquire from https://www.nuget.org/packages/WebAssembly
 using WebAssembly.Instructions;
 

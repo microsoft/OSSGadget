@@ -1,16 +1,15 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+using AngleSharp.Html.Parser;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using AngleSharp.Html.Parser;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
-    class HackageProjectManager : BaseProjectManager
+    internal class HackageProjectManager : BaseProjectManager
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_HACKAGE_ENDPOINT = "https://hackage.haskell.org";
@@ -19,16 +18,11 @@ namespace Microsoft.CST.OpenSource.Shared
         {
         }
 
-        public override Uri GetPackageAbsoluteUri(PackageURL purl)
-        {
-            return new Uri($"{ENV_HACKAGE_ENDPOINT}/package/{purl?.Name}");
-        }
-
         /// <summary>
-        /// Download one Hackage (Haskell) package and extract it to the target directory.
+        ///     Download one Hackage (Haskell) package and extract it to the target directory.
         /// </summary>
-        /// <param name="purl">Package URL of the package to download.</param>
-        /// <returns>n/a</returns>
+        /// <param name="purl"> Package URL of the package to download. </param>
+        /// <returns> n/a </returns>
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
@@ -128,6 +122,11 @@ namespace Microsoft.CST.OpenSource.Shared
                 Logger.Error(ex, $"Error fetching Hackage metadata: {ex.Message}");
                 return null;
             }
+        }
+
+        public override Uri GetPackageAbsoluteUri(PackageURL purl)
+        {
+            return new Uri($"{ENV_HACKAGE_ENDPOINT}/package/{purl?.Name}");
         }
     }
 }

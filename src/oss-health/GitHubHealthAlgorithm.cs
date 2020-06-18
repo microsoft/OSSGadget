@@ -1,55 +1,50 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+using Microsoft.CST.OpenSource.Shared;
+using Octokit;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CST.OpenSource.Shared;
-using Octokit;
 
 namespace Microsoft.CST.OpenSource.Health
 {
-
     /// <summary>
-    /// Actual implementation for Github project health
+    ///     Actual implementation for Github project health
     /// </summary>
-    class GitHubHealthAlgorithm : BaseHealthAlgorithm
+    internal class GitHubHealthAlgorithm : BaseHealthAlgorithm
     {
         //private static readonly string API_VERSION = "v2.2";
 
         /// <summary>
-        /// GitHub client access object.
+        ///     GitHub client access object.
         /// </summary>
         private readonly IGitHubClient Client;
 
         /// <summary>
-        /// Maximum wait time per call to the GitHub API.
+        ///     Maximum wait time per call to the GitHub API.
         /// </summary>
         private const int MAX_TIME_WAIT_MS = 1000 * 30;
 
         /// <summary>
-        /// Default options for calls to the GitHub API.
+        ///     Default options for calls to the GitHub API.
         /// </summary>
         private static readonly ApiOptions DEFAULT_API_OPTIONS = new ApiOptions { PageCount = 5, PageSize = 100 };
 
-
         /// <summary>
-        /// Access token used when connecting to GitHub.
-        /// Multiple allowed, separated by a comma.
-        /// Updated automatically during program start.
+        ///     Access token used when connecting to GitHub. Multiple allowed, separated by a comma. Updated
+        ///     automatically during program start.
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         private static string? ENV_GITHUB_ACCESS_TOKEN = null;
 
         /// <summary>
-        /// User Agent used when connecting to GitHub.
-        /// Updated automatically during program start, if needed.
+        ///     User Agent used when connecting to GitHub. Updated automatically during program start, if needed.
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         private static string ENV_HTTPCLIENT_USER_AGENT = "GitHubProjectHealth";
 
         /// <summary>
-        /// PackageURL to analyze
+        ///     PackageURL to analyze
         /// </summary>
         private readonly PackageURL purl;
 
@@ -70,11 +65,11 @@ namespace Microsoft.CST.OpenSource.Health
             // Choose a random token from the list
             var githubAccessTokens = ENV_GITHUB_ACCESS_TOKEN.Split(new char[] { ',' });
 
-            #pragma warning disable SEC0115 // Insecure Random Number Generator
-            #pragma warning disable SCS0005 // Weak random generator
+#pragma warning disable SEC0115 // Insecure Random Number Generator
+#pragma warning disable SCS0005 // Weak random generator
             var githubAccessToken = githubAccessTokens.ElementAt(new Random().Next(githubAccessTokens.Count()));
-            #pragma warning restore SCS0005 // Weak random generator
-            #pragma warning restore SEC0115 // Insecure Random Number Generator
+#pragma warning restore SCS0005 // Weak random generator
+#pragma warning restore SEC0115 // Insecure Random Number Generator
 
             Client = new GitHubClient(new ProductHeaderValue(ENV_HTTPCLIENT_USER_AGENT))
             {
@@ -84,9 +79,9 @@ namespace Microsoft.CST.OpenSource.Health
         }
 
         /// <summary>
-        /// Wrapper for Github calls for each component of the overall health.
+        ///     Wrapper for Github calls for each component of the overall health.
         /// </summary>
-        /// <returns></returns>
+        /// <returns> </returns>
         public override async Task<HealthMetrics> GetHealth()
         {
             Logger.Debug("GetHealth({0}/{1})", purl.Namespace, purl.Name);
@@ -110,18 +105,16 @@ namespace Microsoft.CST.OpenSource.Health
             await GetRecentActivityHealth(health);
             await GetReleaseHealth(health);
             await GetPullRequestHealth(health);
-            
 
             return health;
         }
 
         /// <summary>
-        /// Calculate health based on project size.
-        /// If the size is less than 100, then the health is the size of the
-        /// project. If it's between 100 and 5000, it's 100%. If it's higher
-        /// then it starts to approach zero.
+        ///     Calculate health based on project size. If the size is less than 100, then the health is the
+        ///     size of the project. If it's between 100 and 5000, it's 100%. If it's higher then it starts to
+        ///     approach zero.
         /// </summary>
-        /// <returns></returns>
+        /// <returns> </returns>
         public async Task GetProjectSizeHealth(HealthMetrics metrics)
         {
             var repo = await Client.Repository.Get(purl.Namespace, purl.Name);
@@ -138,9 +131,9 @@ namespace Microsoft.CST.OpenSource.Health
         }
 
         /// <summary>
-        /// Calculates commit health.
+        ///     Calculates commit health.
         /// </summary>
-        /// <returns></returns>
+        /// <returns> </returns>
         public async Task GetCommitHealth(HealthMetrics metrics)
         {
             Logger.Debug($"GetCommitHealth('{purl.Namespace}', '{purl.Name}')");
@@ -165,10 +158,10 @@ namespace Microsoft.CST.OpenSource.Health
         }
 
         /// <summary>
-        /// Calculates pull request health
+        ///     Calculates pull request health
         /// </summary>
-        /// <param name="metrics"></param>
-        /// <returns></returns>
+        /// <param name="metrics"> </param>
+        /// <returns> </returns>
         public async Task GetPullRequestHealth(HealthMetrics metrics)
         {
             Logger.Debug($"GetPullRequestHealth('{purl.Namespace}', '{purl.Name}')");
@@ -205,9 +198,10 @@ namespace Microsoft.CST.OpenSource.Health
 
         /**
          * Calculates contributor health for a Repository.
-         * 
+         *
          * This is defined as 6 * (# contributors, subscribers, forks, stargazers), capped at 100
          */
+
         public async Task GetContributorHealth(HealthMetrics metrics)
         {
             Logger.Trace("GetContributorHealth({0}, {1}", purl.Namespace, purl.Name);
@@ -228,12 +222,13 @@ namespace Microsoft.CST.OpenSource.Health
 
         /**
          * Determine the most recent activity (any type).
-         * 
+         *
          * The API only returns events from the last 90 days
-         * 
+         *
          * Most recent activity.
          * Health calculated as the mean number of seconds in the past 30 activities.
          */
+
         public async Task GetRecentActivityHealth(HealthMetrics metrics)
         {
             Logger.Trace("GetRecentActivityHealth({0}, {1})", purl.Namespace, purl.Name);
@@ -247,6 +242,7 @@ namespace Microsoft.CST.OpenSource.Health
          * Release health is defined as:
          * # releases + # tags
          */
+
         public async Task GetReleaseHealth(HealthMetrics metrics)
         {
             Logger.Trace("GetReleaseHealth({0}, {1})", purl.Namespace, purl.Name);
@@ -260,10 +256,10 @@ namespace Microsoft.CST.OpenSource.Health
         }
 
         /// <summary>
-        /// Retrieves issue and security issue counts (subset) to minimize calls out.  
-        /// Note: Octokit Search API was found earlier to be unreliable
+        ///     Retrieves issue and security issue counts (subset) to minimize calls out.
+        ///     Note: Octokit Search API was found earlier to be unreliable
         /// </summary>
-        /// <returns></returns>
+        /// <returns> </returns>
         public async Task GetIssueHealth(HealthMetrics metrics)
         {
             Logger.Trace("GetIssueHealth({0}, {1})", purl.Namespace, purl.Name);
@@ -346,9 +342,9 @@ namespace Microsoft.CST.OpenSource.Health
             {
                 securityIssueHealth = 60.0;  // Lose a little credit if project never had a security issue
             }
-            
+
             metrics.SecurityIssueHealth = securityIssueHealth;
-            
+
             return;
         }
     }

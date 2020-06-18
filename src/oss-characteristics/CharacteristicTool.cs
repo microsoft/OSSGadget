@@ -222,16 +222,13 @@ namespace Microsoft.CST.OpenSource
             switch (currentOutputFormat)
             {
                 case OutputFormat.text:
+                default:
                     outputBuilder.AppendOutput(GetTextResults(purl, analysisResults));
                     break;
 
                 case OutputFormat.sarifv1:
                 case OutputFormat.sarifv2:
                     outputBuilder.AppendOutput(GetSarifResults(purl, analysisResults));
-                    break;
-
-                default:
-                    outputBuilder.AppendOutput(GetTextResults(purl, analysisResults));
                     break;
             }
         }

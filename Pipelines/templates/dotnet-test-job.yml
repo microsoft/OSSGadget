@@ -8,9 +8,9 @@ parameters:
   type: string
   default: '5.x'
 # List of paths to .csproj
-- name: projectPaths
+- name: projectPath
   type: string
-  default: []
+  default: ''
 
 jobs:
 - job: dotnet_test
@@ -27,15 +27,14 @@ jobs:
     displayName: Install Nuget Tool
     inputs:
       versionSpec: ${{ parameters.nugetVersion }}
-  - ${{ each project in parameters.projectPaths}}:
-    - task: DotNetCoreCLI@2
-      displayName: Dotnet Restore
-      inputs:
-        command: 'restore'
-        projects: ${{ project }}
-        verbosityRestore: 'Normal'
-    - task: DotNetCoreCLI@2
-      displayName: Dotnet Test
-      inputs:
-        command: 'test'
-        projects: ${{ project }}
+  - task: DotNetCoreCLI@2
+    displayName: Dotnet Restore
+    inputs:
+      command: 'restore'
+      projects: ${{ parameters.projectPath }}
+      verbosityRestore: 'Normal'
+  - task: DotNetCoreCLI@2
+    displayName: Dotnet Test
+    inputs:
+      command: 'test'
+      projects: ${{ parameters.projectPath }}

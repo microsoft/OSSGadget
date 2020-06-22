@@ -13,6 +13,7 @@ jobs:
   - task: CodeInspector@2
     inputs:
       ProductId: ${{ parameters.serviceTreeID }}
+    continueOnError: true
   - task: CredScan@3
     inputs:
       verboseOutput: true

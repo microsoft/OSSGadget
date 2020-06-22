@@ -24,11 +24,4 @@ jobs:
     inputs:
       inputType: 'Basic'
       targetType: 'F'
-      targetArgument: '.'
-      result: 'PoliCheck/PoliCheck.xml'
-  - task: PublishBuildArtifacts@1
-    displayName: Pipeline Publish PoliCheck
-    inputs:
-      PathtoPublish: 'PoliCheck'
-      ArtifactName: 'SDL_Tools'
-      publishLocation: 'Container'
+      result: 'PoliCheck.xml'

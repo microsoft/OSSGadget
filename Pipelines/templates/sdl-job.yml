@@ -23,4 +23,4 @@ jobs:
   - task: PoliCheck@1
     inputs:
       inputType: 'CmdLine'
-      cmdLineArgs: '/F:d:\a\1\s /T:9 /O:PoliCheck.xml'
+      cmdLineArgs: '/F:d:\a\1\s /T:9 /O:d:\a\1\s\PoliCheck.xml'

@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+using CommandLine;
+using CommandLine.Text;
+using Microsoft.CodeAnalysis.Sarif;
 using Microsoft.CST.OpenSource.Health;
 using Microsoft.CST.OpenSource.Shared;
 using System;
@@ -7,21 +10,50 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
+using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
 
 namespace Microsoft.CST.OpenSource
 {
     internal class RiskCalculatorTool : OSSGadget
     {
-        /// <summary>
-        ///     Command line options
-        /// </summary>
-        public Dictionary<string, object?> Options = new Dictionary<string, object?>()
+        public class Options
         {
-            { "target", new List<string>() },
-            { "external-risk", 0 },
-            { "download-directory", null },
-            { "use-cache", false }
-        };
+            [Usage()]
+            public static IEnumerable<Example> Examples
+            {
+                get
+                {
+                    return new List<Example>() {
+                        new Example("Calculate a risk metric for the given package",
+                        new Options { Targets = new List<string>() {"[options]", "package-url..." } })};
+                }
+            }
+
+            [Option('r', "external-risk", Required = false, Default = 0,
+                HelpText = "include additional risk in final calculation.")]
+            public int ExternalRisk { get; set; }
+
+            [Option('d', "download-directory", Required = false, Default = null,
+                HelpText = "the directory to download the package to.")]
+            public string? DownloadDirectory { get; set; }
+
+            [Option('f', "format", Required = false, Default = "text",
+                                                                HelpText = "selct the output format(text|sarifv1|sarifv2)")]
+            public string Format { get; set; } = "text";
+
+            [Option('o', "output-file", Required = false, Default = "",
+                HelpText = "send the command output to a file instead of stdout")]
+            public string OutputFile { get; set; } = "";
+
+            [Value(0, Required = true,
+                HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze
+            public IEnumerable<string>? Targets { get; set; }
+
+            [Option('c', "use-cache", Required = false, Default = false,
+                            HelpText = "do not download the package if it is already present in the destination directory.")]
+            public bool UseCache { get; set; }
+        }
 
         public RiskCalculatorTool() : base()
         {
@@ -78,134 +110,86 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        ///     Name of this tool.
-        /// </summary>
-        private const string TOOL_NAME = "oss-risk-calculator";
-
-        /// <summary>
-        ///     Holds the version string, from the assembly.
-        /// </summary>
-        private static readonly string VERSION = typeof(RiskCalculatorTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
-
-        /// <summary>
         ///     Main entrypoint for the download program.
         /// </summary>
         /// <param name="args"> parameters passed in from the user </param>
-        private static void Main(string[] args)
+        private static async Task Main(string[] args)
         {
             var riskCalculator = new RiskCalculatorTool();
+            await riskCalculator.ParseOptions<Options>(args).WithParsedAsync(riskCalculator.RunAsync);
+        }
+        private async Task RunAsync(Options options)
+        {
+            // select output destination and format
+            SelectOutput(options.OutputFile);
+            IOutputBuilder outputBuilder = SelectFormat(options.Format);
 
-            Logger.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
-            riskCalculator.ParseOptions(args);
-
-            if (riskCalculator.Options["target"] is IList<string> targetList && targetList.Count > 0)
+            if (options.Targets is IList<string> targetList && targetList.Count > 0)
             {
                 foreach (var target in targetList)
                 {
                     try
                     {
-                        var useCache = (bool?)riskCalculator.Options["use-cache"] == true;
+                        var useCache = options.UseCache == true;
                         var purl = new PackageURL(target);
-                        var riskLevel = riskCalculator.CalculateRisk(purl,
-                            (string?)riskCalculator.Options["download-directory"],
+                        var riskLevel = CalculateRisk(purl,
+                            options.DownloadDirectory,
                             useCache).Result;
-                        Logger.Info($"Risk Level: {riskLevel}");
+                        AppendOutput(outputBuilder, purl, riskLevel);
+
                     }
                     catch (Exception ex)
                     {
                         Logger.Warn("Error processing {0}: {1}", target, ex.Message);
                     }
+                    outputBuilder.PrintOutput();
                 }
+
+                RestoreOutput();
             }
-            else
+        }
+        /// <summary>
+        ///     Convert charactersticTool results into output format
+        /// </summary>
+        /// <param name="outputBuilder"> </param>
+        /// <param name="purl"> </param>
+        /// <param name="results"> </param>
+        private void AppendOutput(IOutputBuilder outputBuilder, PackageURL purl, double riskLevel)
+        {
+            switch (currentOutputFormat)
             {
-                Logger.Warn("No target provided; nothing to analyze.");
-                ShowUsage();
-                Environment.Exit(1);
+                case OutputFormat.text:
+                default:
+                    outputBuilder.AppendOutput(new string[] { $"Risk Level: {riskLevel}" });
+
+                    break;
+
+                case OutputFormat.sarifv1:
+                case OutputFormat.sarifv2:
+                    outputBuilder.AppendOutput(GetSarifResults(purl, riskLevel));
+                    break;
             }
         }
 
         /// <summary>
-        ///     Displays usage information for the program.
+        ///     Build and return a list of Sarif Result list from the find characterstics results
         /// </summary>
-        private static void ShowUsage()
+        /// <param name="purl"> </param>
+        /// <param name="results"> </param>
+        /// <returns> </returns>
+        private static List<SarifResult> GetSarifResults(PackageURL purl, double riskLevel)
         {
-            Console.Error.WriteLine($@"
-{TOOL_NAME} {VERSION}
-
-Usage: {TOOL_NAME} [options] package-url...
-
-positional arguments:
-    package-url                 PackgeURL specifier to download (required, repeats OK)
-
-{BaseProjectManager.GetCommonSupportedHelpText()}
-
-optional arguments:
-  --external-risk NUMBER        include additional risk in final calculation
-  --download-directory          the directory to download the package to
-  --use-cache                   do not download the package if it is already present in the destination directory
-  --help                        show this help message and exit
-  --version                     show version of this tool
-");
-        }
-
-        /// <summary>
-        ///     Parses options for this program.
-        /// </summary>
-        /// <param name="args"> arguments (passed in from the user) </param>
-        private void ParseOptions(string[] args)
-        {
-            if (args == null)
+            List<SarifResult> sarifResults = new List<SarifResult>();
+            SarifResult sarifResult = new SarifResult()
             {
-                ShowUsage();
-                Environment.Exit(1);
-            }
+                Kind = ResultKind.Informational,
+                Level = FailureLevel.None,
+                Locations = SarifOutputBuilder.BuildPurlLocation(purl),
+                Rank = riskLevel
+            };
 
-            for (int i = 0; i < args.Length; i++)
-            {
-                switch (args[i])
-                {
-                    case "-h":
-                    case "--help":
-                        ShowUsage();
-                        Environment.Exit(1);
-                        break;
-
-                    case "-v":
-                    case "--version":
-                        Console.Error.WriteLine($"{TOOL_NAME} {VERSION}");
-                        Environment.Exit(1);
-                        break;
-
-                    case "--external-risk":
-                        if (double.TryParse(args[++i], out var externalRisk))
-                        {
-                            Options["external-risk"] = externalRisk;
-                        }
-                        else
-                        {
-                            Console.WriteLine("Invalid external-risk value: number expected.");
-                            ShowUsage();
-                            Environment.Exit(1);
-                        }
-                        break;
-
-                    case "--download-directory":
-                        Options["download-directory"] = args[++i];
-                        break;
-
-                    case "--use-cache":
-                        Options["use-cache"] = true;
-                        break;
-
-                    default:
-                        if (Options["target"] is IList<string> targetList)
-                        {
-                            targetList.Add(args[i]);
-                        }
-                        break;
-                }
-            }
+            sarifResults.Add(sarifResult);
+            return sarifResults;
         }
     }
 }

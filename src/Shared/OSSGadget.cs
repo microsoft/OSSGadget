@@ -100,17 +100,20 @@ namespace Microsoft.CST.OpenSource
             // output to console or file?
             this.redirectConsole = !string.IsNullOrEmpty(outputFile) &&
                 outputFile.IndexOfAny(Path.GetInvalidFileNameChars()) < 0;
-            if (redirectConsole && outputFile is string outputLoc)
+            if (redirectConsole)
             {
-                if (!ConsoleHelper.RedirectConsole(outputLoc))
+                if (outputFile is string outputLoc)
                 {
-                    Logger.Error("Could not switch output from console to file");
-                    // continue with current output
+                    if (!ConsoleHelper.RedirectConsole(outputLoc))
+                    {
+                        Logger.Error("Could not switch output from console to file");
+                        // continue with current output
+                    }
                 }
-            }
-            else
-            {
-                Logger.Error($"Invalid outputFile {outputFile}. Switching to console");
+                else
+                {
+                    Logger.Error($"Invalid outputFile {outputFile}. Switching to console");
+                }
             }
         }
 

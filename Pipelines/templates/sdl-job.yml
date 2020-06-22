@@ -22,7 +22,5 @@ jobs:
       outputformat: 'text'
   - task: PoliCheck@1
     inputs:
-      inputType: 'Basic'
-      targetType: "F"
-      targetArgument: "d:\a\1\s"
-      result: "d:\a\1\s\PoliCheck.xml"
+      inputType: 'CmdLine'
+      cmdLineArgs: '/F:"d:\a\1\s" /O:"d:\a\1\s\PoliCheck.xml"'

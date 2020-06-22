@@ -23,6 +23,6 @@ jobs:
   - task: PoliCheck@1
     inputs:
       inputType: 'Basic'
-      targetType: 'FL'
-      targetArgument: 'd:\a\1\s'
-      result: 'd:\a\1\s\PoliCheck.xml'
+      targetType: "F"
+      targetArgument: "d:\a\1\s"
+      result: "d:\a\1\s\PoliCheck.xml"

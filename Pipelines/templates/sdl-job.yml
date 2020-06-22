@@ -20,7 +20,6 @@ jobs:
   - task: notice@0
     inputs:
       outputformat: 'text'
-  - task: PoliCheck@1
+  - task: SdtReport@2
     inputs:
-      inputType: 'CmdLine'
-      cmdLineArgs: '/F:"d:\a\1\s" /O:"d:\a\1\s\PoliCheck.xml"'
+      GdnExportAllTools: true

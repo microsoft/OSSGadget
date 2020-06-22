@@ -24,4 +24,5 @@ jobs:
     inputs:
       inputType: 'Basic'
       targetType: 'F'
+      targetArgument: ''
       result: 'PoliCheck.xml'

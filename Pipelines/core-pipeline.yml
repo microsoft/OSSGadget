@@ -37,7 +37,7 @@ stages:
 - stage: Build
   dependsOn: Test
   jobs:
-  - template: templates/dotnet-publish-nix-job.yml
+  - template: templates/dotnet-publish-linux-mac-job.yml
     parameters:
       dotnetVersion: '3.1.x'
       projectPath: 'src/OSSGadget.sln'

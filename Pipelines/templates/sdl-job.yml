@@ -1,0 +1,33 @@
+parameters:
+# Service Tree ID of application
+- name: serviceTreeID
+  type: string
+  default: ''
+
+jobs:
+- job: sdl_tools
+  displayName: SDL Tools
+  pool:
+    vmImage: 'windows-latest'
+  steps:
+  - task: CodeInspector@2
+    inputs:
+      ProductId: ${{ parameters.serviceTreeID }}
+  - task: CredScan@3
+    inputs:
+      verboseOutput: true
+  - task: notice@0
+    inputs:
+      outputformat: 'text'
+  - task: PoliCheck@1
+    inputs:
+      inputType: 'Basic'
+      targetType: 'F'
+      targetArgument: '.'
+      result: 'PoliCheck/PoliCheck.xml'
+- task: PublishBuildArtifacts@1
+    displayName: Pipeline Publish Archive
+    inputs:
+      PathtoPublish: 'PoliCheck'
+      ArtifactName: 'SDL_Tools'
+      publishLocation: 'Container'

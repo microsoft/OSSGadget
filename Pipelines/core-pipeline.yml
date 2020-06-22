@@ -25,7 +25,7 @@ stages:
   - template: templates/dotnet-test-job.yml
     parameters:
       dotnetVersion: 3.1.x
-      projectPaths: ['src/oss-tests/oss-tests.csproj']
+      projectPath: 'src/oss-tests/oss-tests.csproj'
 
 - stage: SDL
   dependsOn: Test

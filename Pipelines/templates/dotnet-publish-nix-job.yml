@@ -78,7 +78,7 @@ jobs:
       rootFolderOrFile: 'bin'
       includeRootFolder: false
       archiveType: 'zip'
-      archiveFile: 'Archives\${{ parameters.projectName }}_Nix.zip'
+      archiveFile: 'Archives/${{ parameters.projectName }}_Nix.zip'
       replaceExistingArchive: true
   - task: PublishBuildArtifacts@1
     displayName: Pipeline Publish Archive

@@ -9,8 +9,7 @@ trigger:
     - main
   paths:
     include:
-    - src/oss*
-    - src/Shared
+    - src
 pr:
   branches:
     include:
@@ -18,154 +17,49 @@ pr:
   paths:
     include:
     - Pipelines
-    - src/oss*
-    - src/Shared
+    - src
 
 stages:
 - stage: Test
   jobs:
-  - job: build_test
-    displayName: Run OSS Gadget Tests
-    pool:
-      vmImage: 'windows-latest'
-    steps:
-    - task: UseDotNet@2
-      inputs:
-        packageType: 'sdk'
-        version: '3.1.x'
-    - task: NuGetToolInstaller@1
-      displayName: Install Nuget Tool
-      inputs:
-        versionSpec: '5.4.x'
-    - task: DotNetCoreCLI@2
-      displayName: Dotnet Restore
-      inputs:
-        command: 'restore'
-        projects: 'src/oss-tests/oss-tests.csproj'
-        verbosityRestore: 'Normal'
-    - task: DotNetCoreCLI@2
-      displayName: Dotnet Test
-      inputs:
-        command: 'test'
-        projects: 'src/oss-tests/oss-tests.csproj'
+  - template: templates/dotnet-test-job.yml
+    parameters:
+      dotnetVersion: 3.1.x
+      projectPath: 'src/oss-tests/oss-tests.csproj'
+
+- stage: SDL
+  dependsOn: Test
+  jobs:
+  - template: templates/sdl-job.yml
+    parameters:
+      serviceTreeID: 'e6121b8f-ffd8-40b1-981d-a5ea5c121baa'
 
 - stage: Build
+  dependsOn: Test
   jobs:
-  - job: build_nix
-    displayName: Build Linux & Mac
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-    - task: UseDotNet@2
-      inputs:
-        packageType: 'sdk'
-        version: '3.1.x'
-    - script: 'dotnet tool install -g nbgv'
-      displayName: 'Install GitVersioning'
-    - task: PowerShell@2
-      displayName: Set Release Version
-      inputs:
-        targetType: 'inline'
-        script: |
-          $version = (nbgv get-version -v AssemblyInformationalVersion).split('+')[0]
-          Write-Host "##vso[task.setvariable variable=ReleaseVersion;]$version"
-    - template: build-oss-component-mac-linux.yml
-      parameters: 
-        projects: ["oss-characteristics","oss-defog","oss-detect-backdoor","oss-detect-cryptography","oss-download","oss-find-source","oss-health","oss-risk-calculator"]
-    - task: ArchiveFiles@2
-      displayName: Archive Artifact - Linux
-      inputs:
-        rootFolderOrFile: '$(Build.BinariesDirectory)/linux/'
-        includeRootFolder: true
-        archiveType: 'zip'
-        archiveFile: '$(Build.StagingDirectory)/OSSGadget_linux_$(ReleaseVersion).zip'
-        replaceExistingArchive: true
-    - task: ArchiveFiles@2
-      displayName: Archive Artifact - MacOS
-      inputs:
-        rootFolderOrFile: '$(Build.BinariesDirectory)/macos/'
-        includeRootFolder: true
-        archiveType: 'zip'
-        archiveFile: '$(Build.StagingDirectory)/OSSGadget_macos_$(ReleaseVersion).zip'
-        replaceExistingArchive: true
-    - task: PublishBuildArtifacts@1
-      displayName: Store Linux & Mac Archives
-      inputs:
-        PathtoPublish: '$(Build.StagingDirectory)'
-        ArtifactName: 'Unsigned_Nix'
-        publishLocation: 'Container'
+  - template: templates/dotnet-publish-linux-mac-job.yml
+    parameters:
+      dotnetVersion: '3.1.x'
+      projectPath: 'src/OSSGadget.sln'
+      projectName: 'OSSGadget'
+      preBuild:
+      - template: templates/nbgv-set-version-steps.yml
+  - template: templates/dotnet-publish-win-netcore-job.yml
+    parameters:
+      dotnetVersion: '3.1.x'
+      projectPath: 'src/OSSGadget.sln'
+      projectName: 'OSSGadget'
+      preBuild:
+      - template: templates/nbgv-set-version-steps.yml
 
-
-  - job: build_win
-    displayName: Build Windows, NetCoreApp, Nupkg
-    pool:
-      vmImage: 'windows-latest'
-    steps:
-    - task: UseDotNet@2
-      inputs:
-        packageType: 'sdk'
-        version: '3.1.x'
-    - script: 'dotnet tool install -g nbgv'
-      displayName: 'Install GitVersioning'
-    - task: PowerShell@2
-      displayName: Set Release Version
-      inputs:
-        targetType: 'inline'
-        script: |
-          $version = (nbgv get-version -v AssemblyInformationalVersion).split('+')[0]
-          Write-Host "##vso[task.setvariable variable=ReleaseVersion;]$version"
-    - template: build-oss-component-windows-nuget.yml
-      parameters: 
-        projects: ["oss-characteristics","oss-defog","oss-detect-backdoor","oss-detect-cryptography","oss-download","oss-find-source","oss-health","oss-risk-calculator"]
-    - task: AntiMalware@3
-      displayName: Anti-Malware Scan
-      inputs:
-        InputType: 'Basic'
-        ScanType: 'CustomScan'
-        FileDirPath: '$(Build.BinariesDirectory)'
-        EnableServices: true
-        SupportLogOnError: false
-        TreatSignatureUpdateFailureAs: 'Warning'
-        SignatureFreshness: 'UpToDate'
-        TreatStaleSignatureAs: 'Warning'
-    - task: ArchiveFiles@2
-      displayName: Archive Artifact - Windows x64
-      inputs:
-        rootFolderOrFile: '$(Build.BinariesDirectory)\win-x64'
-        includeRootFolder: true
-        archiveType: 'zip'
-        archiveFile: '$(Build.StagingDirectory)\OSSGadget_win-x64_$(ReleaseVersion).zip'
-        replaceExistingArchive: true
-    - task: ArchiveFiles@2
-      displayName: Archive Artifact - .NET Core App
-      inputs:
-        rootFolderOrFile: '$(Build.BinariesDirectory)\netcoreapp'
-        includeRootFolder: true
-        archiveType: 'zip'
-        archiveFile: '$(Build.StagingDirectory)\OSSGadget_netcoreapp_$(ReleaseVersion).zip'
-        replaceExistingArchive: true
-    # - task: ArchiveFiles@2
-    #   displayName: Archive Artifact - Nupkg
-    #   inputs:
-    #     rootFolderOrFile: '$(Build.BinariesDirectory)\nuget'
-    #     includeRootFolder: true
-    #     archiveType: 'zip'
-    #     archiveFile: '$(Build.StagingDirectory)\OSSGadget_nuget_$(ReleaseVersion).zip'
-    #     replaceExistingArchive: true
-    - task: PublishBuildArtifacts@1
-      displayName: Store Windows, NetCoreApp, Nupkg Archives
-      inputs:
-        PathtoPublish: '$(Build.StagingDirectory)'
-        ArtifactName: 'Unsigned_WinNuget'
-        publishLocation: 'Container'
-
-
+- stage: Release
+  dependsOn:
+  - SDL
+  - Build
+  condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI', 'BatchedCI'))
+  jobs:
   - job: sign_hash_release
     displayName: Code Sign, Generate Hashes, Publish Public Releases
-    dependsOn:
-    - build_nix
-    - build_win
-    condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI', 'BatchedCI', 'Manual'))
     pool:
       vmImage: 'windows-latest'
     steps:
@@ -183,18 +77,11 @@ stages:
           $version = (nbgv get-version -v AssemblyInformationalVersion).split('+')[0]
           Write-Host "##vso[task.setvariable variable=ReleaseVersion;]$version"
     - task: DownloadBuildArtifacts@0
-      displayName: Retrieve Linux & Mac Archives
+      displayName: Download Unsigned Archives
       inputs:
         buildType: 'current'
         downloadType: 'specific'
-        itemPattern: 'Unsigned_Nix/*.zip'
-        downloadPath: '$(Build.BinariesDirectory)'
-    - task: DownloadBuildArtifacts@0
-      displayName: Retrieve Windows, NetCoreApp, Nupkg Archives
-      inputs:
-        buildType: 'current'
-        downloadType: 'specific'
-        itemPattern: 'Unsigned_WinNuget/*.zip'
+        itemPattern: 'Unsigned_Binaries/*.zip'
         downloadPath: '$(Build.BinariesDirectory)'
     - task: ExtractFiles@1
       displayName: Extract Artifacts for Signing
@@ -222,7 +109,7 @@ stages:
       inputs:
         ConnectedServiceName: 'OSSGadget_CodeSign'
         FolderPath: '$(Build.BinariesDirectory)/linux/OSSGadget_$(ReleaseVersion)'
-        Pattern: 'oss-characteristic.dll, oss-defog.dll, oss-detect-backdoor.dll, oss-download.dll, oss-find-source.dll, oss-health.dll'
+        Pattern: 'oss-characteristic.dll, oss-defog.dll, oss-detect-backdoor.dll, oss-download.dll, oss-find-source.dll, oss-health.dll, RecursiveExtractor.dll'
         signConfigType: 'inlineSignParams'
         inlineOperation: |
           [
@@ -255,7 +142,7 @@ stages:
       inputs:
         ConnectedServiceName: 'OSSGadget_CodeSign'
         FolderPath: '$(Build.BinariesDirectory)/macos/OSSGadget_$(ReleaseVersion)'
-        Pattern: 'oss-characteristic.dll, oss-defog.dll, oss-detect-backdoor.dll, oss-download.dll, oss-find-source.dll, oss-health.dll'
+        Pattern: 'oss-characteristic.dll, oss-defog.dll, oss-detect-backdoor.dll, oss-download.dll, oss-find-source.dll, oss-health.dll, RecursiveExtractor.dll'
         signConfigType: 'inlineSignParams'
         inlineOperation: |
           [
@@ -288,7 +175,7 @@ stages:
       inputs:
         ConnectedServiceName: 'OSSGadget_CodeSign'
         FolderPath: '$(Build.BinariesDirectory)\win-x64\OSSGadget_$(ReleaseVersion)'
-        Pattern: 'oss-characteristic.exe, oss-characteristic.dll, oss-defog.exe, oss-defog.dll, oss-detect-backdoor.exe, oss-detect-backdoor.dll, oss-download.exe, oss-download.dll, oss-find-source.exe, oss-find-source.dll, oss-health.exe, oss-health.dll'
+        Pattern: 'oss-characteristic.exe, oss-characteristic.dll, oss-defog.exe, oss-defog.dll, oss-detect-backdoor.exe, oss-detect-backdoor.dll, oss-download.exe, oss-download.dll, oss-find-source.exe, oss-find-source.dll, oss-health.exe, oss-health.dll, RecursiveExtractor.dll'
         signConfigType: 'inlineSignParams'
         inlineOperation: |
           [
@@ -321,7 +208,7 @@ stages:
       inputs:
         ConnectedServiceName: 'OSSGadget_CodeSign'
         FolderPath: '$(Build.BinariesDirectory)\netcoreapp\OSSGadget_$(ReleaseVersion)'
-        Pattern: 'oss-characteristic.exe, oss-characteristic.dll, oss-defog.exe, oss-defog.dll, oss-detect-backdoor.exe, oss-detect-backdoor.dll, oss-download.exe, oss-download.dll, oss-find-source.exe, oss-find-source.dll, oss-health.exe, oss-health.dll'
+        Pattern: 'oss-characteristic.exe, oss-characteristic.dll, oss-defog.exe, oss-defog.dll, oss-detect-backdoor.exe, oss-detect-backdoor.dll, oss-download.exe, oss-download.dll, oss-find-source.exe, oss-find-source.dll, oss-health.exe, oss-health.dll, RecursiveExtractor.dll'
         signConfigType: 'inlineSignParams'
         inlineOperation: |
           [
@@ -370,10 +257,10 @@ stages:
     - task: ArchiveFiles@2
       displayName: Archive Artifact - Windows
       inputs:
-        rootFolderOrFile: '$(Build.BinariesDirectory)/win-x64/OSSGadget_$(ReleaseVersion)'
+        rootFolderOrFile: '$(Build.BinariesDirectory)/win/OSSGadget_$(ReleaseVersion)'
         includeRootFolder: true
         archiveType: 'zip'
-        archiveFile: '$(Build.StagingDirectory)/OSSGadget_win-x64_$(ReleaseVersion).zip'
+        archiveFile: '$(Build.StagingDirectory)/OSSGadget_win_$(ReleaseVersion).zip'
         replaceExistingArchive: true
     - task: ArchiveFiles@2
       displayName: Archive Artifact - .NET Core App
@@ -407,17 +294,9 @@ stages:
         target: '$(Build.SourceVersion)'
         tagSource: 'userSpecifiedTag'
         tag: 'v$(ReleaseVersion)'
-        title: 'Release v$(ReleaseVersion) - OSS Gadget'
+        title: 'OSS Gadget v$(ReleaseVersion)'
         assets: |
           $(Build.StagingDirectory)/*.zip
           $(Build.StagingDirectory)/HASHES.txt
         changeLogCompareToRelease: 'lastNonDraftRelease'
         changeLogType: 'commitBased'
-    # - task: NuGetCommand@2
-    #   displayName: Publish NuGet Packages
-    #   inputs:
-    #     command: 'push'
-    #     packagesToPush: '$(Build.StagingDirectory)/*.nupkg'
-    #     nuGetFeedType: 'external'
-    #     publishFeedCredentials: 'CST-E Nuget CI'
-    #     verbosityPush: 'Normal'

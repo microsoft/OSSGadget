@@ -174,7 +174,7 @@ stages:
       displayName: Code Sign Windows
       inputs:
         ConnectedServiceName: 'OSSGadget_CodeSign'
-        FolderPath: '$(Build.BinariesDirectory)\win-x64\OSSGadget_$(ReleaseVersion)'
+        FolderPath: '$(Build.BinariesDirectory)/win/OSSGadget_$(ReleaseVersion)'
         Pattern: 'oss-characteristic.exe, oss-characteristic.dll, oss-defog.exe, oss-defog.dll, oss-detect-backdoor.exe, oss-detect-backdoor.dll, oss-download.exe, oss-download.dll, oss-find-source.exe, oss-find-source.dll, oss-health.exe, oss-health.dll, RecursiveExtractor.dll'
         signConfigType: 'inlineSignParams'
         inlineOperation: |
@@ -207,7 +207,7 @@ stages:
       displayName: Code Sign .NET Core App
       inputs:
         ConnectedServiceName: 'OSSGadget_CodeSign'
-        FolderPath: '$(Build.BinariesDirectory)\netcoreapp\OSSGadget_$(ReleaseVersion)'
+        FolderPath: '$(Build.BinariesDirectory)/netcoreapp/OSSGadget_$(ReleaseVersion)'
         Pattern: 'oss-characteristic.exe, oss-characteristic.dll, oss-defog.exe, oss-defog.dll, oss-detect-backdoor.exe, oss-detect-backdoor.dll, oss-download.exe, oss-download.dll, oss-find-source.exe, oss-find-source.dll, oss-health.exe, oss-health.dll, RecursiveExtractor.dll'
         signConfigType: 'inlineSignParams'
         inlineOperation: |

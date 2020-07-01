@@ -1,0 +1,31 @@
+{
+  "C#": {
+    "beautifiers": [
+      "Pretty Diff"
+    ],
+    "indent_size": 4,
+    "wrap_line_length": 120,
+    "break_chained_methods": true,
+    "end_with_comma": false,
+    "max_preserve_newlines": 1
+  },
+  "JSON": {
+    "beautifiers": [
+      "Prettier",
+      "Pretty Diff",
+      "JS-Beautify"
+    ],
+    "wrap_line_length": 120,
+    "end_with_comma": false,
+    "pragma_require": false,
+    "end_with_newline": false
+  },
+  "Markdown": {
+    "beautifiers": [
+      "Prettier"
+    ],
+    "wrap_line_length": 120,
+    "pragma_require": false,
+    "wrap_prose": "always"
+  }
+}

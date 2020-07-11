@@ -18,7 +18,7 @@
   },
   {
     "name": "LOLBAS: Linux Indicator",
-    "id": "BD000200",
+    "id": "BD000610",
     "description": "Backdoor: LOLBAS: Linux Indicator",
     "tags": [
       "Security.Backdoor.LOLBAS.Linux"

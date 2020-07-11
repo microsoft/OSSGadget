@@ -34,19 +34,9 @@ namespace CryptoGatherer
             }
 
             var realFilename = Path.Combine("CryptoPatterns",$"crypto-patterns-{this.fileName.Text}.txt");
-            var sb = new StringBuilder();
+            var codeSnippet = new CodeSnippet(1, fileName.Text, sourceUrl.Text, packageName.Text, (CodeLanguage)Enum.Parse(typeof(CodeLanguage), language.Text), algorithms.SelectedItems.Cast<CryptoAlgorithm>().ToArray(), isFullFile.Checked, fileContents.Text.Trim());
 
-            sb.AppendLine("version=1");
-            sb.AppendLine(this.fileName.Text);
-            sb.AppendLine(this.sourceUrl.Text);
-            sb.AppendLine(this.packageName.Text);
-            sb.AppendLine(this.language.Text);
-            sb.AppendLine(string.Join(",", this.algorithms.SelectedItems.Cast<string>()));
-            sb.AppendLine(this.isFullFile.Checked ? "checked=true" : "checked=false");
-            sb.AppendLine("--");
-            sb.AppendLine(this.fileContents.Text.Trim());
-
-            File.WriteAllText(realFilename, sb.ToString());
+            File.WriteAllText(realFilename, codeSnippet.ToString());
             RefreshData();
         }
 
@@ -83,30 +73,26 @@ namespace CryptoGatherer
             {
                 MessageBox.Show("Weird.");
             }
-            try
+
+            var lines = File.ReadAllText(filename);
+            var result = CodeSnippet.FromString(lines);
+            if (result is null)
             {
-                var lines = File.ReadAllText(filename).Split(new char[] { '\n' });
-                if (!lines[0].Trim().Equals("version=1"))
-                {
-                    MessageBox.Show("Error, wrong version.");
-                    return;
-                }
-                this.fileName.Text = lines[1].Trim();
-                this.sourceUrl.Text = lines[2].Trim();
-                this.packageName.Text = lines[3].Trim();
-                this.language.Text = lines[4].Trim();
-                this.algorithms.SelectedItems.Clear();
-                foreach (var alg in lines[5].Trim().Split(new[] { ',' }))
-                {
-                    this.algorithms.SelectedItems.Add(alg);
-                }
-                this.isFullFile.Checked = lines[6].Trim().Contains("checked=true");
-                this.fileContents.Text = string.Join("\n", lines.Skip(8));
+                MessageBox.Show(string.Format("Error loading {0}: Could not parse this as a CodeSnippet.", filename), "Error", MessageBoxButtons.OK);
+                return;
             }
-            catch (Exception ex)
+
+            fileName.Text = result.name;
+            sourceUrl.Text = result.sourceUrl;
+            packageName.Text = result.packageName;
+            language.Text = result.language.ToString();
+            algorithms.SelectedItems.Clear();
+            foreach (var alg in result.algorithms)
             {
-                MessageBox.Show(string.Format("Error loading {0}: {1}", filename, ex.Message), "Error", MessageBoxButtons.OK);
+                algorithms.SelectedItems.Add(alg);
             }
+            isFullFile.Checked = result.isFullFile;
+            fileContents.Text = result.content;
         }
 
         private void fileListView_ColumnClick(object sender, ColumnClickEventArgs e)

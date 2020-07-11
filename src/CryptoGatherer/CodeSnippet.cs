@@ -41,7 +41,7 @@ namespace CryptoGatherer
             sb.AppendLine(sourceUrl);
             sb.AppendLine(packageName);
             sb.AppendLine(language.ToString());
-            sb.AppendLine(string.Join(",", algorithms.Cast<string>()));
+            sb.AppendLine(string.Join(",", algorithms));
             sb.AppendLine(isFullFile ? "checked=true" : "checked=false");
             sb.AppendLine("--");
             sb.AppendLine(content);

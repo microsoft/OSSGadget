@@ -34,7 +34,15 @@ namespace CryptoGatherer
             }
 
             var realFilename = Path.Combine("CryptoPatterns",$"crypto-patterns-{this.fileName.Text}.txt");
-            var codeSnippet = new CodeSnippet(1, fileName.Text, sourceUrl.Text, packageName.Text, (CodeLanguage)Enum.Parse(typeof(CodeLanguage), language.Text), algorithms.SelectedItems.Cast<CryptoAlgorithm>().ToArray(), isFullFile.Checked, fileContents.Text.Trim());
+            var codeSnippet = new CodeSnippet(
+                1, 
+                fileName.Text, 
+                sourceUrl.Text, 
+                packageName.Text, 
+                (CodeLanguage)Enum.Parse(typeof(CodeLanguage), language.Text), 
+                algorithms.SelectedItems.Cast<string>().Select(x => (CryptoAlgorithm)Enum.Parse(typeof(CryptoAlgorithm),x)).ToArray(), 
+                isFullFile.Checked, 
+                fileContents.Text.Trim());
 
             File.WriteAllText(realFilename, codeSnippet.ToString());
             RefreshData();
@@ -89,7 +97,7 @@ namespace CryptoGatherer
             algorithms.SelectedItems.Clear();
             foreach (var alg in result.algorithms)
             {
-                algorithms.SelectedItems.Add(alg);
+                algorithms.SelectedItems.Add(alg.ToString());
             }
             isFullFile.Checked = result.isFullFile;
             fileContents.Text = result.content;

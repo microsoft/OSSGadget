@@ -42,7 +42,7 @@ namespace Microsoft.CST.OpenSource
 
             [Option('d', "download-directory", Required = false, Default = ".",
                 HelpText = "the directory to download the package to.")]
-            public string DownloadDirectory { get; set; }
+            public string DownloadDirectory { get; set; } = ".";
 
             [Option('f', "format", Required = false, Default = "text",
                 HelpText = "selct the output format(text|sarifv1|sarifv2)")]

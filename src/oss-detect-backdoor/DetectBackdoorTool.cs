@@ -27,7 +27,7 @@ namespace Microsoft.CST.OpenSource
 
             [Option('d', "download-directory", Required = false, Default = ".",
                             HelpText = "the directory to download the package to.")]
-            public string DownloadDirectory { get; set; }
+            public string DownloadDirectory { get; set; } = ".";
 
             [Value(0, Required = true,
                 HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze

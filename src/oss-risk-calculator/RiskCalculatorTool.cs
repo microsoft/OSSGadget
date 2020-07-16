@@ -33,7 +33,7 @@ namespace Microsoft.CST.OpenSource
 
             [Option('d', "download-directory", Required = false, Default = null,
                 HelpText = "the directory to download the package to.")]
-            public string DownloadDirectory { get; set; }
+            public string DownloadDirectory { get; set; } = ".";
 
             [Option('r', "external-risk", Required = false, Default = 0,
                             HelpText = "include additional risk in final calculation.")]

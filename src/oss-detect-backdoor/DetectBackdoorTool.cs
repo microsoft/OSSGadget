@@ -5,16 +5,13 @@ using CommandLine.Text;
 using Microsoft.CST.OpenSource.Shared;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource
 {
     public class DetectBackdoorTool : OSSGadget
     {
-        public DetectBackdoorTool() : base()
-        {
-        }
-
         public class Options
         {
             [Usage()]
@@ -28,9 +25,9 @@ namespace Microsoft.CST.OpenSource
                 }
             }
 
-            [Option('d', "download-directory", Required = false, Default = null,
+            [Option('d', "download-directory", Required = false, Default = ".",
                             HelpText = "the directory to download the package to.")]
-            public string? DownloadDirectory { get; set; }
+            public string DownloadDirectory { get; set; }
 
             [Value(0, Required = true,
                 HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze
@@ -39,6 +36,10 @@ namespace Microsoft.CST.OpenSource
             [Option('c', "use-cache", Required = false, Default = false,
                 HelpText = "do not download the package if it is already present in the destination directory.")]
             public bool UseCache { get; set; }
+        }
+
+        public DetectBackdoorTool() : base()
+        {
         }
 
         /// <summary>
@@ -73,8 +74,9 @@ namespace Microsoft.CST.OpenSource
                     try
                     {
                         var purl = new PackageURL(target);
+                        string downloadDirectory = options.DownloadDirectory == "." ? Directory.GetCurrentDirectory() : options.DownloadDirectory;
                         characteristicTool.AnalyzePackage(cOptions, purl,
-                            (string?)options.DownloadDirectory,
+                            downloadDirectory,
                             options.UseCache == true).Wait();
                     }
                     catch (Exception ex)

@@ -8,6 +8,7 @@ using Microsoft.CST.OpenSource.Shared;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
@@ -30,13 +31,13 @@ namespace Microsoft.CST.OpenSource
                 }
             }
 
-            [Option('r', "external-risk", Required = false, Default = 0,
-                HelpText = "include additional risk in final calculation.")]
-            public int ExternalRisk { get; set; }
-
             [Option('d', "download-directory", Required = false, Default = null,
                 HelpText = "the directory to download the package to.")]
-            public string? DownloadDirectory { get; set; }
+            public string DownloadDirectory { get; set; }
+
+            [Option('r', "external-risk", Required = false, Default = 0,
+                            HelpText = "include additional risk in final calculation.")]
+            public int ExternalRisk { get; set; }
 
             [Option('f', "format", Required = false, Default = "text",
                                                                 HelpText = "selct the output format(text|sarifv1|sarifv2)")]
@@ -110,6 +111,27 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
+        ///     Build and return a list of Sarif Result list from the find characterstics results
+        /// </summary>
+        /// <param name="purl"> </param>
+        /// <param name="results"> </param>
+        /// <returns> </returns>
+        private static List<SarifResult> GetSarifResults(PackageURL purl, double riskLevel)
+        {
+            List<SarifResult> sarifResults = new List<SarifResult>();
+            SarifResult sarifResult = new SarifResult()
+            {
+                Kind = ResultKind.Informational,
+                Level = FailureLevel.None,
+                Locations = SarifOutputBuilder.BuildPurlLocation(purl),
+                Rank = riskLevel
+            };
+
+            sarifResults.Add(sarifResult);
+            return sarifResults;
+        }
+
+        /// <summary>
         ///     Main entrypoint for the download program.
         /// </summary>
         /// <param name="args"> parameters passed in from the user </param>
@@ -118,36 +140,7 @@ namespace Microsoft.CST.OpenSource
             var riskCalculator = new RiskCalculatorTool();
             await riskCalculator.ParseOptions<Options>(args).WithParsedAsync(riskCalculator.RunAsync);
         }
-        private async Task RunAsync(Options options)
-        {
-            // select output destination and format
-            SelectOutput(options.OutputFile);
-            IOutputBuilder outputBuilder = SelectFormat(options.Format);
 
-            if (options.Targets is IList<string> targetList && targetList.Count > 0)
-            {
-                foreach (var target in targetList)
-                {
-                    try
-                    {
-                        var useCache = options.UseCache == true;
-                        var purl = new PackageURL(target);
-                        var riskLevel = CalculateRisk(purl,
-                            options.DownloadDirectory,
-                            useCache).Result;
-                        AppendOutput(outputBuilder, purl, riskLevel);
-
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Warn("Error processing {0}: {1}", target, ex.Message);
-                    }
-                    outputBuilder.PrintOutput();
-                }
-
-                RestoreOutput();
-            }
-        }
         /// <summary>
         ///     Convert charactersticTool results into output format
         /// </summary>
@@ -171,25 +164,35 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        /// <summary>
-        ///     Build and return a list of Sarif Result list from the find characterstics results
-        /// </summary>
-        /// <param name="purl"> </param>
-        /// <param name="results"> </param>
-        /// <returns> </returns>
-        private static List<SarifResult> GetSarifResults(PackageURL purl, double riskLevel)
+        private async Task RunAsync(Options options)
         {
-            List<SarifResult> sarifResults = new List<SarifResult>();
-            SarifResult sarifResult = new SarifResult()
-            {
-                Kind = ResultKind.Informational,
-                Level = FailureLevel.None,
-                Locations = SarifOutputBuilder.BuildPurlLocation(purl),
-                Rank = riskLevel
-            };
+            // select output destination and format
+            SelectOutput(options.OutputFile);
+            IOutputBuilder outputBuilder = SelectFormat(options.Format);
 
-            sarifResults.Add(sarifResult);
-            return sarifResults;
+            if (options.Targets is IList<string> targetList && targetList.Count > 0)
+            {
+                foreach (var target in targetList)
+                {
+                    try
+                    {
+                        var useCache = options.UseCache == true;
+                        var purl = new PackageURL(target);
+                        string downloadDirectory = options.DownloadDirectory == "." ? Directory.GetCurrentDirectory() : options.DownloadDirectory;
+                        var riskLevel = CalculateRisk(purl,
+                            downloadDirectory,
+                            useCache).Result;
+                        AppendOutput(outputBuilder, purl, riskLevel);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Warn("Error processing {0}: {1}", target, ex.Message);
+                    }
+                    outputBuilder.PrintOutput();
+                }
+
+                RestoreOutput();
+            }
         }
     }
 }

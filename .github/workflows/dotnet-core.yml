@@ -1,0 +1,16 @@
+name: DevSkim
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  devskim:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: microsoft/DevSkim-Action@1
+    - uses: github/codeql-action/upload-sarif@v1
+      with:
+        sarif_file: devskim-results.sarif

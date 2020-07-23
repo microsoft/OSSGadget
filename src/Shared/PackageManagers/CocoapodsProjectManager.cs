@@ -119,10 +119,9 @@ namespace Microsoft.CST.OpenSource.Shared
                 var packageName = purl.Name;
                 var prefix = GetCocoapodsPrefix(packageName ?? string.Empty);
                 var html = await GetHttpStringCache($"{ENV_COCOAPODS_SPECS_ENDPOINT}/Specs/{prefix}/{packageName}");
-
                 var parser = new HtmlParser();
                 var document = await parser.ParseDocumentAsync(html);
-                var navItems = document.QuerySelectorAll("tbody a.js-navigation-open");
+                var navItems = document.QuerySelectorAll("div.Details a.js-navigation-open");
                 var versionList = new List<string>();
 
                 foreach (var navItem in navItems)

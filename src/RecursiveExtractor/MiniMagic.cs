@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace Microsoft.CST.OpenSource.RecursiveExtractor
@@ -100,11 +101,11 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                 return ArchiveFileType.UNKNOWN;
             }
             var initialPosition = fileEntry.Content.Position;
-            Span<byte> buffer = stackalloc byte[9];
+            byte[] buffer = new byte[9];
             if (fileEntry.Content.Length >= 9)
             {
                 fileEntry.Content.Position = 0;
-                fileEntry.Content.Read(buffer);
+                fileEntry.Content.Read(buffer,0,9);
                 fileEntry.Content.Position = initialPosition;
 
                 if (buffer[0] == 0x50 && buffer[1] == 0x4B && buffer[2] == 0x03 && buffer[3] == 0x04)
@@ -134,15 +135,15 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                 {
                     return ArchiveFileType.P7ZIP;
                 }
-                if (Encoding.ASCII.GetString(buffer.Slice(0, 8)) == "MSWIM\0\0\0" || Encoding.ASCII.GetString(buffer.Slice(0, 8)) == "WLPWM\0\0\0")
+                if (Encoding.ASCII.GetString(buffer[0..8]) == "MSWIM\0\0\0" || Encoding.ASCII.GetString(buffer[0..8]) == "WLPWM\0\0\0")
                 {
                     return ArchiveFileType.WIM;
                 }
-                if (Encoding.ASCII.GetString(buffer.Slice(0, 4)) == "KDMV")
+                if (Encoding.ASCII.GetString(buffer[0..4]) == "KDMV")
                 {
                     fileEntry.Content.Position = 512;
-                    Span<byte> secondToken = stackalloc byte[21];
-                    fileEntry.Content.Read(secondToken);
+                    byte[] secondToken = new byte[21];
+                    fileEntry.Content.Read(secondToken,0,21);
                     fileEntry.Content.Position = initialPosition;
 
                     if (Encoding.ASCII.GetString(secondToken) == "# Disk DescriptorFile")
@@ -155,24 +156,24 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                 {
                     // .deb https://manpages.debian.org/unstable/dpkg-dev/deb.5.en.html
                     fileEntry.Content.Position = 68;
-                    fileEntry.Content.Read(buffer.Slice(0, 4));
+                    fileEntry.Content.Read(buffer,0,4);
                     fileEntry.Content.Position = initialPosition;
 
                     var encoding = new ASCIIEncoding();
-                    if (encoding.GetString(buffer.Slice(0, 4)) == "2.0\n")
+                    if (encoding.GetString(buffer[0..4]) == "2.0\n")
                     {
                         return ArchiveFileType.DEB;
                     }
                     else
                     {
-                        Span<byte> headerBuffer = stackalloc byte[60];
+                        byte[] headerBuffer = new byte[60];
 
                         // Created by GNU ar https://en.wikipedia.org/wiki/Ar_(Unix)#System_V_(or_GNU)_variant
                         fileEntry.Content.Position = 8;
-                        fileEntry.Content.Read(headerBuffer);
+                        fileEntry.Content.Read(headerBuffer,0,60);
                         fileEntry.Content.Position = initialPosition;
 
-                        var size = int.Parse(Encoding.ASCII.GetString(headerBuffer.Slice(48, 10))); // header size in bytes
+                        var size = int.Parse(Encoding.ASCII.GetString(headerBuffer[48..58])); // header size in bytes
 
                         if (size > 0)
                         {
@@ -185,7 +186,7 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                     }
                 }
                 // https://winprotocoldoc.blob.core.windows.net/productionwindowsarchives/MS-VHDX/%5bMS-VHDX%5d.pdf
-                if (Encoding.UTF8.GetString(buffer.Slice(0, 8)).Equals("vhdxfile"))
+                if (Encoding.UTF8.GetString(buffer[0..8]).Equals("vhdxfile"))
                 {
                     return ArchiveFileType.VHDX;
                 }
@@ -194,7 +195,7 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
             if (fileEntry.Content.Length >= 262)
             {
                 fileEntry.Content.Position = 257;
-                fileEntry.Content.Read(buffer.Slice(0, 5));
+                fileEntry.Content.Read(buffer,0,5);
                 fileEntry.Content.Position = initialPosition;
 
                 if (buffer[0] == 0x75 && buffer[1] == 0x73 && buffer[2] == 0x74 && buffer[3] == 0x61 && buffer[4] == 0x72)
@@ -207,7 +208,7 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
             if (fileEntry.Content.Length > 32768 + 2048)
             {
                 fileEntry.Content.Position = 32769;
-                fileEntry.Content.Read(buffer.Slice(0, 5));
+                fileEntry.Content.Read(buffer,0,5);
                 fileEntry.Content.Position = initialPosition;
 
                 if (buffer[0] == 'C' && buffer[1] == 'D' && buffer[2] == '0' && buffer[3] == '0' && buffer[4] == '1')
@@ -221,14 +222,22 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
             // The magic string is Magic string "conectix" (63 6F 6E 65 63 74 69 78)
             if (fileEntry.Content.Length > 512)
             {
-                Span<byte> vhdFooterCookie = stackalloc byte[] { 0x63, 0x6F, 0x6E, 0x65, 0x63, 0x74, 0x69, 0x78 };
+                byte[] vhdFooterCookie = new byte[] { 0x63, 0x6F, 0x6E, 0x65, 0x63, 0x74, 0x69, 0x78 };
 
                 fileEntry.Content.Position = fileEntry.Content.Length - 0x200; // Footer position
-                fileEntry.Content.Read(buffer);
+                fileEntry.Content.Read(buffer,0,8);
                 fileEntry.Content.Position = initialPosition;
 
-                if (vhdFooterCookie.SequenceEqual(buffer.Slice(0, 8))
-                       || vhdFooterCookie.SequenceEqual(buffer.Slice(1)))//If created on legacy platform
+                if (vhdFooterCookie.SequenceEqual(buffer[0..8]))
+                {
+                    return ArchiveFileType.VHD;
+                }
+
+                fileEntry.Content.Position = fileEntry.Content.Length - 0x1FF; //If created on legacy platform footer is 511 bytes instead
+                fileEntry.Content.Read(buffer, 0, 8);
+                fileEntry.Content.Position = initialPosition;
+
+                if (vhdFooterCookie.SequenceEqual(buffer[0..8]))
                 {
                     return ArchiveFileType.VHD;
                 }
@@ -237,7 +246,7 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
             // Fall back to file extensions
             string fileExtension = Path.GetExtension(fileEntry.Name.ToUpperInvariant());
 
-            if (fileExtension.StartsWith('.'))
+            if (fileExtension.StartsWith("."))
             {
                 fileExtension = fileExtension.Substring(1);
             }

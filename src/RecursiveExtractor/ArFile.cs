@@ -71,9 +71,9 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                         // We should be positioned right after the header
                         if (int.TryParse(filename.Substring(3), out int nameLength))
                         {
-                            Span<byte> nameSpan = stackalloc byte[nameLength];
+                            byte[] nameSpan = new byte[nameLength];
                             // This should move us right to the file
-                            fileEntry.Content.Read(nameSpan);
+                            fileEntry.Content.Read(nameSpan,0,nameLength);
 
                             var entryStream = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.DeleteOnClose);
 
@@ -89,14 +89,16 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                         // N 32 bit big endian integers representing prositions in archive then N \0
                         // terminated strings "symbol name" (possibly filename)
 
-                        var tableContents = new Span<byte>(new byte[size]);
-                        fileEntry.Content.Read(tableContents);
+                        var tableContents = new byte[size];
+                        fileEntry.Content.Read(tableContents,0,(int)size);
 
-                        var numEntries = IntFromBigEndianBytes(tableContents.Slice(0, 4).ToArray());
+                        var numEntries = IntFromBigEndianBytes(tableContents[0..4]);
                         var filePositions = new int[numEntries];
                         for (int i = 0; i < numEntries; i++)
                         {
-                            filePositions[i] = IntFromBigEndianBytes(tableContents.Slice((i + 1) * 4, 4).ToArray());
+                            var start = (i + 1) * 4;
+                            var end = start + 4;
+                            filePositions[i] = IntFromBigEndianBytes(tableContents[start..end]);
                         }
 
                         var index = 0;
@@ -105,14 +107,14 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
 
                         for (int i = 0; i < tableContents.Length; i++)
                         {
-                            if (tableContents.Slice(i, 1)[0] == '\0')
+                            if (tableContents[i] == '\0')
                             {
                                 fileEntries.Add((filePositions[index++], sb.ToString()));
                                 sb.Clear();
                             }
                             else
                             {
-                                sb.Append(tableContents.Slice(i, 1)[0]);
+                                sb.Append(tableContents[i]);
                             }
                         }
 
@@ -123,7 +125,7 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
 
                             if (long.TryParse(Encoding.ASCII.GetString(headerBuffer[48..58]), out long innerSize))// header size in bytes
                             {
-                                if (filename.StartsWith('/'))
+                                if (filename.StartsWith("/"))
                                 {
                                     if (int.TryParse(filename[1..], out int innerIndex))
                                     {
@@ -194,7 +196,7 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
 
                             if (long.TryParse(Encoding.ASCII.GetString(headerBuffer[48..58]), out long innerSize))// header size in bytes
                             {
-                                if (filename.StartsWith('/'))
+                                if (filename.StartsWith("/"))
                                 {
                                     if (int.TryParse(filename[1..], out int innerIndex))
                                     {
@@ -219,7 +221,7 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                         }
                         fileEntry.Content.Position = fileEntry.Content.Length - 1;
                     }
-                    else if (filename.StartsWith('/'))
+                    else if (filename.StartsWith("/"))
                     {
                         if (int.TryParse(filename[1..], out int index))
                         {
@@ -265,7 +267,7 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                 {
                     Array.Reverse(value);
                 }
-                return BitConverter.ToInt64(value);
+                return BitConverter.ToInt64(value,0);
             }
             return -1;
         }
@@ -278,7 +280,7 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                 {
                     Array.Reverse(value);
                 }
-                return BitConverter.ToInt32(value);
+                return BitConverter.ToInt32(value,0);
             }
             return -1;
         }

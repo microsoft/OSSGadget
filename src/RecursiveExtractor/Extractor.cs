@@ -59,8 +59,9 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                 {
                     if (stream1.CanRead && stream2.CanRead && stream1.Length == stream2.Length && fileEntry1.Name == fileEntry2.Name)
                     {
-                        Span<byte> buffer1 = stackalloc byte[1024];
-                        Span<byte> buffer2 = stackalloc byte[1024];
+                        var bufferSize = 1024;
+                        byte[] buffer1 = new byte[bufferSize];
+                        byte[] buffer2 = new byte[bufferSize];
 
                         var position1 = fileEntry1.Content.Position;
                         var position2 = fileEntry2.Content.Position;
@@ -69,8 +70,8 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                         var bytesRemaining = stream2.Length;
                         while (bytesRemaining > 0)
                         {
-                            stream1.Read(buffer1);
-                            stream2.Read(buffer2);
+                            stream1.Read(buffer1,0, bufferSize);
+                            stream2.Read(buffer2, 0, bufferSize);
                             if (!buffer1.SequenceEqual(buffer2))
                             {
                                 stream1.Position = position1;

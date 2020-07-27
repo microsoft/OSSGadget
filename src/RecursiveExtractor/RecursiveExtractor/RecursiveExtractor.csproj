@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
     <RootNamespace>Microsoft.CST.OpenSource</RootNamespace>
     <Version>0.0.0-placeholder</Version>
     <Company>Microsoft</Company>
@@ -47,7 +47,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="" />
-    <None Include="..\..\icon-128.png" Pack="true" PackagePath="" />
+    <None Include="..\..\..\LICENSE.txt" Pack="true" PackagePath="" />
+    <None Include="..\..\..\icon-128.png" Pack="true" PackagePath="" />
   </ItemGroup>
 </Project>

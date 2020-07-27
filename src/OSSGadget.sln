@@ -26,10 +26,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "oss-detect-cryptography", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "oss-risk-calculator", "oss-risk-calculator\oss-risk-calculator.csproj", "{84189BD7-D6F4-4E84-83A8-4FA1B811CDDD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RecursiveExtractor", "RecursiveExtractor\RecursiveExtractor.csproj", "{AB7A75CB-6FD8-4854-A6EE-0470867CACBB}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RecursiveExtractor.Tests", "RecursiveExtractor.Tests\RecursiveExtractor.Tests.csproj", "{4811485D-2338-4DE5-8A02-428662CE14D4}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "oss-tests", "oss-tests\oss-tests.csproj", "{812DF4A5-057B-4227-A3E8-4DFF67DBE07A}"
 EndProject
 Global
@@ -74,13 +70,6 @@ Global
 		{84189BD7-D6F4-4E84-83A8-4FA1B811CDDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{84189BD7-D6F4-4E84-83A8-4FA1B811CDDD}.Release|Any CPU.ActiveCfg = Debug|Any CPU
 		{84189BD7-D6F4-4E84-83A8-4FA1B811CDDD}.Release|Any CPU.Build.0 = Debug|Any CPU
-		{AB7A75CB-6FD8-4854-A6EE-0470867CACBB}.Debug|Any CPU.ActiveCfg = Release|Any CPU
-		{AB7A75CB-6FD8-4854-A6EE-0470867CACBB}.Debug|Any CPU.Build.0 = Release|Any CPU
-		{AB7A75CB-6FD8-4854-A6EE-0470867CACBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AB7A75CB-6FD8-4854-A6EE-0470867CACBB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4811485D-2338-4DE5-8A02-428662CE14D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4811485D-2338-4DE5-8A02-428662CE14D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4811485D-2338-4DE5-8A02-428662CE14D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{812DF4A5-057B-4227-A3E8-4DFF67DBE07A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{812DF4A5-057B-4227-A3E8-4DFF67DBE07A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{812DF4A5-057B-4227-A3E8-4DFF67DBE07A}.Release|Any CPU.ActiveCfg = Release|Any CPU

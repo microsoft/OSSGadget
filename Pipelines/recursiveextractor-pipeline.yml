@@ -18,7 +18,6 @@ pr:
     include:
     - Pipelines
     - src/RecursiveExtractor
-    - src/RecursiveExtractor.Tests
 
 stages:
 - stage: Test
@@ -26,7 +25,7 @@ stages:
   - template: templates/dotnet-test-job.yml
     parameters:
       dotnetVersion: '3.1.x'
-      projectPath: 'src/RecursiveExtractor.Tests/RecursiveExtractor.Tests.csproj'
+      projectPath: 'src/RecursiveExtractor/RecursiveExtractor.Tests/RecursiveExtractor.Tests.csproj'
 
 - stage: SDL
   dependsOn: Test
@@ -41,7 +40,7 @@ stages:
   - template: templates/nuget-build-job.yml
     parameters:
       dotnetVersion: '3.1.x'
-      projectPath: 'src/RecursiveExtractor/RecursiveExtractor.csproj'
+      projectPath: 'src/RecursiveExtractor/RecursiveExtractor/RecursiveExtractor.csproj'
       projectName: 'RecursiveExtractor'
 
 - stage: Release

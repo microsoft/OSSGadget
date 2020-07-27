@@ -10,6 +10,8 @@ trigger:
   paths:
     include:
     - src
+    exclude:
+    - src/RecursiveExtractor
 pr:
   branches:
     include:
@@ -18,6 +20,8 @@ pr:
     include:
     - Pipelines
     - src
+    exclude:
+    - src/RecursiveExtractor
 
 stages:
 - stage: Test

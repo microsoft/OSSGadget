@@ -22,6 +22,7 @@
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	<IsPublishable>false</IsPublishable >
   </PropertyGroup>
 
   <ItemGroup>

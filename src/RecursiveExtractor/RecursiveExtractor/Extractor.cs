@@ -116,7 +116,6 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
         /// <summary>
         ///     Extracts files from the file 'filename'.
         /// </summary>
-        /// <param name="fileEntry"> FileEntry to extract </param>
         /// <returns> Extracted files </returns>
         public IEnumerable<FileEntry> ExtractFile(string filename, bool parallel = false)
         {
@@ -132,6 +131,45 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                 // We give it a parent so we can give it a shortname. This is useful for Quine detection later.
                 fileEntry = new FileEntry(Path.GetFileName(filename), fs, new FileEntry(Path.GetDirectoryName(filename) ?? Directory.GetCurrentDirectory(), new MemoryStream()));
                 ResetResourceGovernor(fs);
+            }
+            catch (Exception ex)
+            {
+                Logger.Debug(ex, "Failed to extract file {0}", filename);
+            }
+
+            if (fileEntry != null)
+            {
+                foreach (var result in ExtractFile(fileEntry, parallel))
+                {
+                    GovernorStopwatch.Stop();
+                    yield return result;
+                    GovernorStopwatch.Start();
+                }
+            }
+            GovernorStopwatch.Stop();
+        }
+
+        /// <summary>
+        /// Extract a stream into FileEntries
+        /// </summary>
+        /// <param name="filename">The filename (with parent path) to call this root file.</param>
+        /// <param name="stream">The Stream to parse.</param>
+        /// <param name="parallel">Should we operate in parallel?</param>
+        /// <returns></returns>
+        public IEnumerable<FileEntry> ExtractStream(string filename, Stream stream, bool parallel = false)
+        {
+            FileEntry? fileEntry = null;
+            try
+            {
+                var file = Path.GetFileName(filename);
+                var directory = Path.GetDirectoryName(filename);
+                if (file == directory)
+                {
+                    directory = string.Empty;
+                }
+                // We give it a parent so we can give it a shortname. This is useful for Quine detection later.
+                fileEntry = new FileEntry(file, stream, new FileEntry(directory, new MemoryStream()));
+                ResetResourceGovernor(stream);
             }
             catch (Exception ex)
             {

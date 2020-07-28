@@ -48,6 +48,8 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("Shared.wim", true)]
         [DataRow("Empty.vmdk", false, 0)]
         [DataRow("Empty.vmdk", true, 0)]
+        [DataRow("TextFile.md", false, 1)]
+        [DataRow("TextFile.md", true, 1)]
         public void ExtractArchive(string fileName, bool parallel, int expectedNumFiles = 26)
         {
             var extractor = new Extractor();
@@ -91,6 +93,8 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("Shared.wim", true)]
         [DataRow("Empty.vmdk", false, 0)]
         [DataRow("Empty.vmdk", true, 0)]
+        [DataRow("TextFile.md", false, 1)]
+        [DataRow("TextFile.md", true, 1)]
         public void ExtractArchiveFromStream(string fileName, bool parallel, int expectedNumFiles = 26)
         {
             var extractor = new Extractor();
@@ -130,6 +134,7 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("Shared.vhdx", ArchiveFileType.VHDX)]
         [DataRow("Shared.wim", ArchiveFileType.WIM)]
         [DataRow("Empty.vmdk", ArchiveFileType.VMDK)]
+        [DataRow("TextFile.md", ArchiveFileType.UNKNOWN)]
         public void TestMiniMagic(string fileName, ArchiveFileType expectedArchiveFileType)
         {
             var path = Path.Combine(Directory.GetCurrentDirectory(), "TestData", fileName);

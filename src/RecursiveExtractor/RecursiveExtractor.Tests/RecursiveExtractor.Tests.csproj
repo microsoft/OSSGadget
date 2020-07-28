@@ -54,6 +54,9 @@
     <None Update="TestData\Nested.zip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="TestData\TextFile.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="TestData\Shared.7z">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -114,9 +117,6 @@
     <None Update="TestData\zbxl.zip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="TestData\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Update="Nerdbank.GitVersioning" Version="3.1.91" />

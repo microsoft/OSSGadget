@@ -639,7 +639,10 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
             {
                 Logger.Debug(ex, "Error extracting {0}: {1}", fileEntry.FullPath, ex.Message);
                 useRaw = true;
-                result = new[] { fileEntry };   // Default is to not try to extract.
+
+                result = new[] {
+                    new FileEntry(fileEntry.Name,fileEntry.Content,fileEntry.Parent)
+                };
             }
 
             // After we are done with an archive subtract its bytes. Contents have been counted now separately

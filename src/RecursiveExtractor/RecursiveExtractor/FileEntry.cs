@@ -104,6 +104,6 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
             }
         }
 
-        private bool Passthrough { get; }
+        public bool Passthrough { get; }
     }
 }

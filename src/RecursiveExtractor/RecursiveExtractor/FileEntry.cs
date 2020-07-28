@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.RecursiveExtractor
 {
@@ -75,7 +76,18 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                 {
                     inputStream.CopyTo(Content);
                 }
-                catch (Exception e)
+                catch (NotSupportedException)
+                {
+                    try
+                    {
+                        Task.Run(() => inputStream.CopyToAsync(Content).ConfigureAwait(false));
+                    }
+                    catch(Exception f)
+                    {
+                        Logger.Debug("Failed to copy stream from {0} ({1}:{2})", FullPath, f.GetType(), f.Message);
+                    }
+                }
+                catch(Exception e)
                 {
                     Logger.Debug("Failed to copy stream from {0} ({1}:{2})", FullPath, e.GetType(), e.Message);
                 }

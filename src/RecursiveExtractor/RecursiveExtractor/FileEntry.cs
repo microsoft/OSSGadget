@@ -89,11 +89,11 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
             }
         }
 
-        public Stream Content { get; set; }
-        public string FullPath { get; set; }
-        public string Name { get; set; }
-        public FileEntry? Parent { get; set; }
-        public string? ParentPath { get; set; }
+        public Stream Content { get; }
+        public string FullPath { get; }
+        public string Name { get; }
+        public FileEntry? Parent { get; }
+        public string? ParentPath { get; }
         private readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
         ~FileEntry()

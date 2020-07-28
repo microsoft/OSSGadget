@@ -80,9 +80,9 @@ namespace Microsoft.CST.OpenSource.RecursiveExtractor
                 {
                     try
                     {
-                        Task.Run(() => inputStream.CopyToAsync(Content).ConfigureAwait(false));
+                        inputStream.CopyToAsync(Content).RunSynchronously();
                     }
-                    catch(Exception f)
+                    catch (Exception f)
                     {
                         Logger.Debug("Failed to copy stream from {0} ({1}:{2})", FullPath, f.GetType(), f.Message);
                     }

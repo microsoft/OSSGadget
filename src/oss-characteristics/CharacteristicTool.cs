@@ -193,7 +193,7 @@ namespace Microsoft.CST.OpenSource
                     stringOutput.Add(string.Format("Programming Language: {0}",
                         string.Join(", ", metadata?.Languages?.Keys ?? Array.Empty<string>().ToList())));
                     stringOutput.Add("Unique Tags: ");
-                    foreach (var tag in metadata?.UniqueTags ?? new ConcurrentDictionary<string, byte>())
+                    foreach (var tag in metadata?.UniqueTags.Keys ?? new ConcurrentDictionary<string, byte>().Keys)
                     {
                         stringOutput.Add(string.Format($" * {tag}"));
                     }

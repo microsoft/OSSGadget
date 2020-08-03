@@ -19,48 +19,6 @@ namespace Microsoft.CST.OpenSource
 {
     public class CharacteristicTool : OSSGadget
     {
-        public class Options
-        {
-            [Usage()]
-            public static IEnumerable<Example> Examples
-            {
-                get
-                {
-                    return new List<Example>() {
-                        new Example("Find the characterstics for the given package",
-                        new Options { Targets = new List<string>() {"[options]", "package-url..." } })};
-                }
-            }
-
-            [Option('r', "custom-rule-directory", Required = false, Default = null,
-                HelpText = "load rules from the specified directory.")]
-            public string? CustomRuleDirectory { get; set; }
-
-            [Option('x', "disable-default-rules", Required = false, Default = false,
-                HelpText = "do not load default, built-in rules.")]
-            public bool DisableDefaultRules { get; set; }
-
-            [Option('d', "download-directory", Required = false, Default = ".",
-                HelpText = "the directory to download the package to.")]
-            public string DownloadDirectory { get; set; } = ".";
-
-            [Option('f', "format", Required = false, Default = "text",
-                HelpText = "selct the output format(text|sarifv1|sarifv2)")]
-            public string Format { get; set; } = "text";
-
-            [Option('o', "output-file", Required = false, Default = "",
-                HelpText = "send the command output to a file instead of stdout")]
-            public string OutputFile { get; set; } = "";
-
-            [Value(0, Required = true,
-                HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze
-            public IEnumerable<string>? Targets { get; set; }
-
-            [Option('c', "use-cache", Required = false, Default = false,
-                HelpText = "do not download the package if it is already present in the destination directory.")]
-            public bool UseCache { get; set; }
-        }
-
         public CharacteristicTool() : base()
         {
         }
@@ -134,6 +92,48 @@ namespace Microsoft.CST.OpenSource
             return analysisResults;
         }
 
+        public class Options
+        {
+            [Usage()]
+            public static IEnumerable<Example> Examples
+            {
+                get
+                {
+                    return new List<Example>() {
+                        new Example("Find the characterstics for the given package",
+                        new Options { Targets = new List<string>() {"[options]", "package-url..." } })};
+                }
+            }
+
+            [Option('r', "custom-rule-directory", Required = false, Default = null,
+                HelpText = "load rules from the specified directory.")]
+            public string? CustomRuleDirectory { get; set; }
+
+            [Option('x', "disable-default-rules", Required = false, Default = false,
+                HelpText = "do not load default, built-in rules.")]
+            public bool DisableDefaultRules { get; set; }
+
+            [Option('d', "download-directory", Required = false, Default = ".",
+                HelpText = "the directory to download the package to.")]
+            public string DownloadDirectory { get; set; } = ".";
+
+            [Option('f', "format", Required = false, Default = "text",
+                HelpText = "selct the output format(text|sarifv1|sarifv2)")]
+            public string Format { get; set; } = "text";
+
+            [Option('o', "output-file", Required = false, Default = "",
+                HelpText = "send the command output to a file instead of stdout")]
+            public string OutputFile { get; set; } = "";
+
+            [Value(0, Required = true,
+                HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze
+            public IEnumerable<string>? Targets { get; set; }
+
+            [Option('c', "use-cache", Required = false, Default = false,
+                HelpText = "do not download the package if it is already present in the destination directory.")]
+            public bool UseCache { get; set; }
+        }
+
         /// <summary>
         ///     Build and return a list of Sarif Result list from the find characterstics results
         /// </summary>
@@ -191,9 +191,9 @@ namespace Microsoft.CST.OpenSource
                     var metadata = analysisResult?[key]?.Metadata;
 
                     stringOutput.Add(string.Format("Programming Language: {0}",
-                        string.Join(", ", metadata?.Languages?.Keys ?? Array.Empty<string>().ToList())));
+                        string.Join(", ", metadata?.Languages?.Keys ?? Array.Empty<string>())));
                     stringOutput.Add("Unique Tags: ");
-                    foreach (var tag in metadata?.UniqueTags.Keys ?? new ConcurrentDictionary<string, byte>().Keys)
+                    foreach (var tag in metadata?.UniqueTags.Keys ?? Array.Empty<string>())
                     {
                         stringOutput.Add(string.Format($" * {tag}"));
                     }

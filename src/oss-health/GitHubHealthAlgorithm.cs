@@ -208,7 +208,7 @@ namespace Microsoft.CST.OpenSource.Health
 
             var repository = await Client.Repository.Get(purl.Namespace, purl.Name);
             double contributorHealth = 6.0 * repository.StargazersCount +
-                                             repository.SubscribersCount +
+                                             repository.WatchersCount +
                                              repository.ForksCount;
 
             if (contributorHealth < 100.0)

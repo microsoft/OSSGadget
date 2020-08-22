@@ -162,9 +162,9 @@ namespace Microsoft.CST.OpenSource
 
                     if (metadata?.UniqueTags?.HasAtLeastOneNonNullValue() ?? true)
                     {
-                        foreach (var tag in metadata?.UniqueTags ?? new ConcurrentDictionary<string, byte>())
+                        foreach (var tag in metadata?.UniqueTags ?? new List<string>())
                         {
-                            sarifResult?.SetProperty(tag.Key, tag.Value);
+                            sarifResult?.SetProperty(tag, true);
                         }
                     }
                     sarifResults.Add(sarifResult);
@@ -185,15 +185,15 @@ namespace Microsoft.CST.OpenSource
             stringOutput.Add(purl.ToString());
             if (analysisResult.HasAtLeastOneNonNullValue())
             {
-                StringBuilder builder = new StringBuilder();
                 foreach (var key in analysisResult.Keys)
                 {
                     var metadata = analysisResult?[key]?.Metadata;
 
                     stringOutput.Add(string.Format("Programming Language: {0}",
                         string.Join(", ", metadata?.Languages?.Keys ?? Array.Empty<string>().ToList())));
+                    
                     stringOutput.Add("Unique Tags: ");
-                    foreach (var tag in metadata?.UniqueTags ?? new ConcurrentDictionary<string, byte>())
+                    foreach (var tag in metadata?.UniqueTags ?? new List<string>())
                     {
                         stringOutput.Add(string.Format($" * {tag}"));
                     }

@@ -133,7 +133,17 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("pkg:ubuntu/zerofree", "zerofree.c", 4)]
         public async Task Ubuntu_Download_Version_Succeeds(string purl, string targetFilename, int expectedCount)
         {
-            await TestDownload(purl, targetFilename, 4);
+            await TestDownload(purl, targetFilename, expectedCount);
+        }
+
+        [DataTestMethod]
+        [DataRow("pkg:ubuntu/nonexistent12345", "nonexistent.123", 1)]
+        public async Task Ubuntu_Download_Version_NonExistent_Fails(string purl, string targetFilename, int expectedCount)
+        {
+            await Assert.ThrowsExceptionAsync<InternalTestFailureException>(async () =>
+           {
+               await TestDownload(purl, targetFilename, expectedCount);
+           }, "Expected an InternalTestFailureException due to a non-existent package.");
         }
 
         [DataTestMethod]
@@ -212,7 +222,6 @@ namespace Microsoft.CST.OpenSource.Tests
 
             Directory.CreateDirectory(tempDirectoryName);
 
-            var downloadTool = new DownloadTool();
             var packageDownloader = await DownloadPackage(packageUrl, tempDirectoryName);
             var wereFilesDownloaded = Directory.EnumerateFiles(tempDirectoryName, targetFilename, SearchOption.AllDirectories).Any();
             if (!wereFilesDownloaded)

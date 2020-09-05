@@ -108,7 +108,7 @@ namespace Microsoft.CST.OpenSource
         {
             // select output destination and format
             SelectOutput(options.OutputFile);
-            IOutputBuilder outputBuilder = SelectFormat(options.Format);
+            IOutputBuilder outputBuilder = SelectFormat(options.Format ?? OutputFormat.text.ToString());
             if (options.Targets is IList<string> targetList && targetList.Count > 0)
             {
                 foreach (var target in targetList)

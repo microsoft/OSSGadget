@@ -91,7 +91,7 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         [DataTestMethod]
-        [DataRow("pkg:maven/org%2Fapache%2Fxmlgraphics/batik-anim@1.9", "MANIFEST.MF", 1)]
+        [DataRow("pkg:maven/org%2Fapache%2Fxmlgraphics/batik-anim@1.9", "MANIFEST.MF", 3)]
         public async Task Maven_Download_Version_Succeeds(string purl, string targetFilename, int expectedCount)
         {
             await TestDownload(purl, targetFilename, expectedCount);

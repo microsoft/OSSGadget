@@ -95,12 +95,9 @@ namespace Microsoft.CST.OpenSource
             bool isHighRisk = false;
             foreach (var charKey in characteristics.Keys)
             {
-                if (characteristics[charKey]?.Metadata.UniqueTags is ConcurrentDictionary<string, byte> dict)
+                foreach (var tag in characteristics[charKey]?.Metadata?.UniqueTags ?? new List<string>())
                 {
-                    foreach (var tag in dict)
-                    {
-                        isHighRisk |= highRiskTags.Any(t => tag.Key.StartsWith(t));
-                    }
+                    isHighRisk |= highRiskTags.Any(t => tag.StartsWith(t));
                 }
             }
             if (isHighRisk)

@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using F23.StringSimilarity;
-using Microsoft.CST.OpenSource.RecursiveExtractor;
+using Microsoft.CST.RecursiveExtractor;
 using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
@@ -330,9 +330,13 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
                 }
             }
             var extractor = new Extractor();
-            //extractor.MaxExtractedBytes = 1000 * 1000 * 10;  // 10 MB maximum package size
-
-            foreach (var fileEntry in extractor.ExtractFile(directoryName, bytes, false))
+            var extractorOptions = new ExtractorOptions()
+            {
+                ExtractSelfOnFail = true,
+                Parallel = true
+                //MaxExtractedBytes = 1000 * 1000 * 10;  // 10 MB maximum package size
+            };
+            foreach (var fileEntry in extractor.ExtractFile(directoryName, bytes, extractorOptions))
             {
                 var fullPath = fileEntry.FullPath.Replace(':', Path.DirectorySeparatorChar);
 

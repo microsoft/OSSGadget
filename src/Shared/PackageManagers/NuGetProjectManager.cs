@@ -143,7 +143,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
                 foreach (string path in paths)
                 {
-                    string repoCandidate = doc.DocumentNode.SelectSingleNode(path).GetAttributeValue("href", string.Empty);
+                    string? repoCandidate = doc.DocumentNode.SelectSingleNode(path)?.GetAttributeValue("href", string.Empty);
                     if (!string.IsNullOrEmpty(repoCandidate))
                     {
                         PackageURL repoPurl = GitHubProjectManager.ExtractGitHubPackageURLs(repoCandidate).ToList().FirstOrDefault();

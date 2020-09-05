@@ -25,16 +25,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AngleSharp" Version="1.0.0-alpha-822" />
-    <PackageReference Include="CommandLineParser" Version="2.8.0" />
+    <PackageReference Include="AngleSharp" Version="1.0.0-alpha-827" />
+    <PackageReference Include="CommandLineParser" Version="2.9.0-preview1" />
     <PackageReference Include="F23.StringSimilarity" Version="3.1.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.24" />
     <PackageReference Include="LibGit2Sharp" Version="0.27.0-preview-0034" />
     <PackageReference Include="Microsoft.CST.RecursiveExtractor" Version="1.0.36" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="5.0.0-preview.3.20215.2" />
-    <PackageReference Include="NLog" Version="4.7.3" />
-    <PackageReference Include="NLog.Schema" Version="4.7.3" />
-    <PackageReference Include="NuGet.Versioning" Version="5.7.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="5.0.0-preview.8.20407.11" />
+    <PackageReference Include="NLog" Version="4.7.4" />
+    <PackageReference Include="NLog.Schema" Version="4.7.4" />
+    <PackageReference Include="NuGet.Versioning" Version="5.8.0-preview.2.6776" />
     <PackageReference Include="Sarif.Sdk" Version="2.3.4" />
     <PackageReference Include="SemanticVersioning" Version="1.2.2" />
     <PackageReference Include="sharpcompress" Version="0.26.0" />

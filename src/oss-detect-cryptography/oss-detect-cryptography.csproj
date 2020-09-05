@@ -53,13 +53,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommandLineParser" Version="2.8.0" />
+    <PackageReference Include="CommandLineParser" Version="2.9.0-preview1" />
     <PackageReference Include="ELFSharp" Version="2.11.0" />
-    <PackageReference Include="ICSharpCode.Decompiler" Version="6.1.0.5902" />
+    <PackageReference Include="ICSharpCode.Decompiler" Version="6.2.0.6062-preview1" />
     <PackageReference Include="Microsoft.CST.DevSkim" Version="0.4.144" />
     <PackageReference Include="PeNet" Version="2.4.0" />
     <PackageReference Include="SharpDisasm" Version="1.1.11" />
-    <PackageReference Include="WebAssembly" Version="0.8.0-preview" />
+    <PackageReference Include="WebAssembly" Version="0.9.0-preview" />
   </ItemGroup>
 
   <ItemGroup>

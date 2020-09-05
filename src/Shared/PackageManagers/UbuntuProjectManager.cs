@@ -391,7 +391,7 @@ namespace Microsoft.CST.OpenSource.Shared
             var pools = new HashSet<string>();
             try
             {
-                var searchResults = await GetHttpStringCache($"{ENV_UBUNTU_ENDPOINT}/search?keywords={purl.Name}&searchon=names&exact=1&suite=all&section=all");
+                var searchResults = await GetHttpStringCache($"{ENV_UBUNTU_ENDPOINT}/search?keywords={purl.Name}&searchon=names&exact=1&suite=all&section=all", neverThrow: true);
                 var document = await new HtmlParser().ParseDocumentAsync(searchResults);
                 foreach (var anchor in document.QuerySelectorAll("a.resultlink"))
                 {

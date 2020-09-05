@@ -24,7 +24,7 @@ namespace Microsoft.CST.OpenSource
         {
             if (purl == null)
             {
-                throw new ArgumentNullException("purl cannot be null");
+                throw new ArgumentNullException("PackageURL cannot be null");
             }
 
             this.doCache = doCaching;
@@ -204,7 +204,6 @@ namespace Microsoft.CST.OpenSource
                     var versions = await packageManager.EnumerateVersions(purl);
                     if (versions.Count() > 0)
                     {
-                        Logger.Trace(string.Join(",", versions));
                         vPurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, versions.Last(), purl.Qualifiers, purl.Subpath);
                         packageVersions.Add(vPurl);
                     }

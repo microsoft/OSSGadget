@@ -107,7 +107,7 @@ namespace Microsoft.CST.OpenSource
         /// <returns> List of tags identified </returns>
         public async Task<Dictionary<string, AnalyzeResult?>> AnalyzePackage(Options options, PackageURL purl,
             string? targetDirectoryName,
-            bool doCaching)
+            bool doCaching = false)
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
 

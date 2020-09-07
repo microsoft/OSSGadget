@@ -159,7 +159,7 @@ namespace Microsoft.CST.OpenSource
                         Level = FailureLevel.None,
                         Locations = SarifOutputBuilder.BuildPurlLocation(purl),
                     };
-
+                    
                     if (metadata?.UniqueTags?.HasAtLeastOneNonNullValue() ?? true)
                     {
                         foreach (var tag in metadata?.UniqueTags ?? new List<string>())

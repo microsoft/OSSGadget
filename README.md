@@ -47,7 +47,8 @@ example, to download the NPM left-pad module, type:
 $ oss-download pkg:npm/left-pad
 ```
 
-This will download left-pad into a newly-created directory named `npm-left-pad@1.3.0`.
+This will download left-pad into a newly-created directory named `npm-left-pad@1.3.0`. (Because, at the time of this writing, 1.3.0
+was the latest version of [left-pad](https://www.npmjs.com/package/left-pad)).
 
 Each of the programs contains information on command line options (`--help`).
 
@@ -101,6 +102,14 @@ expectations in the future. We can divide this into different areas:
 
 We recognize that the algorithm implemented isn't perfect, and welcome dialogue and contributions on how to improve it.
 
+#### OSS Risk Calculator
+
+OSS Risk Calculator combines two other tools, OSS Health and OSS Characteristics, to calculate a risk score for a project. 
+You can ignore the health aspect by passing in the `--no-health` command line option, and the output will be a risk level
+in a range from 0 (no risk) to 1 (very high risk).
+
+The algorithm we use could definitely be improved ([#150](https://github.com/microsoft/OSSGadget/issues/150)).
+
 ### Building from Source
 
 OSS Gadget was built and tested using .NET Core 3.1, and will generally target the latest version of .NET Core.
@@ -125,6 +134,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.
   oss-health -> D:\OSSGadget-GitHub\src\oss-health\bin\Debug\netcoreapp3.1\oss-health.dll
   oss-defog -> D:\OSSGadget-GitHub\src\oss-defog\bin\Debug\netcoreapp3.1\oss-defog.dll
   oss-detect-backdoor -> D:\OSSGadget-GitHub\src\oss-detect-backdoor\bin\Debug\netcoreapp3.1\oss-detect-backdoor.dll
+  oss-risk-calculator -> D:\OSSGadget-GitHub\src\oss-risk-calculator\bin\Debug\netcoreapp3.1\oss-risk-calculator.dll
 
 Build succeeded.
     0 Warning(s)
@@ -135,7 +145,7 @@ Time Elapsed 00:00:06.62
 
 You can also use any of the normal `dotnet` parameters to target a specific framework, configuration, and runtime.
 
-### Docker image
+### Docker Image
 
 If you don't have the development environment configured or you want to run OSSGadget without additional overhead, you can use Docker. This repository contains a "Dockerfile" which allows us to build an image and use that to run a container with the latest code.
 
@@ -153,6 +163,9 @@ $> docker run -it ossgadget:latest /bin/bash
 # Inside container - run oss-download binary
 root@container:/app/src# ./oss-download/bin/Debug/netcoreapp3.1/oss-download 
 ```
+
+For certain tools, like OSS Health, you'll also need to set the `GITHUB_ACCESS_TOKEN` environment variable when you
+create the container.
 
 ### Advanced Usage
 

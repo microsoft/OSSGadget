@@ -290,7 +290,7 @@
     ],
     "severity": "important",
     "_comment": "",
-    "rule_info": "https://en.wikipedia.org/wiki/MD4_(hash_function)",
+    "rule_info": "https://en.wikipedia.org/wiki/MD5_(hash_function)",
     "patterns": [
       {
         "pattern": "d76aa478|e8c7b756|242070db|c1bdceee ",

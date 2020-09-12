@@ -113,6 +113,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
   pkg:pypi/django@1.11.1        Version 1.11.1 fo Django (via pypi.org)
   pkg:ubuntu/zerofree           The latest version of zerofree from Ubuntu (via packages.ubuntu.com)
   pkg:vsm/MLNET/07              The latest version of MLNET.07 (from marketplace.visualstudio.com)
+  pkg:url/foo@1.0?url=<URL>     The direct URL <URL>
 ";
             return supportedHelpText;
         }
@@ -329,13 +330,16 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
                 {
                     fullPath = fullPath.Replace(c, '-');    // ignore: lgtm [cs/string-concatenation-in-loop]
                 }
+                
                 var filePathToWrite = Path.Combine(TopLevelExtractionDirectory, fullPath);
                 filePathToWrite = filePathToWrite.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
 
                 Directory.CreateDirectory(Path.GetDirectoryName(filePathToWrite));
-
-                using var fs = File.Open(filePathToWrite, FileMode.Append);
-                await fileEntry.Content.CopyToAsync(fs);
+                if (!Directory.Exists(fullPath))
+                {
+                    using var fs = File.Open(filePathToWrite, FileMode.Append);
+                    await fileEntry.Content.CopyToAsync(fs);
+                }
             }
 
             var fullExtractionPath = Path.Combine(TopLevelExtractionDirectory, directoryName);

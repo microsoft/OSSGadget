@@ -48,6 +48,10 @@ namespace Microsoft.CST.OpenSource
                     HelpText = "send the command output to a file instead of stdout")]
             public string OutputFile { get; set; } = "";
 
+            [Option('n', "no-health", Required = false, Default = false,
+                    HelpText = "do not check project health")]
+            public bool NoHealth { get; set; }
+
             [Option(Default = false, HelpText = "Verbose output")]
             public bool Verbose { get; set; }
 
@@ -72,43 +76,47 @@ namespace Microsoft.CST.OpenSource
         /// <param name="targetDirectory">Target directory to download content to (default: temporary location)</param>
         /// <param name="doCaching">Cache the project for later processing (default: false)</param>
         /// <returns></returns>
-        public async Task<double> CalculateRisk(PackageURL purl, string? targetDirectory, bool doCaching = false)
+        public async Task<double> CalculateRisk(PackageURL purl, string? targetDirectory, bool doCaching = false, bool checkHealth = true)
         {
             Logger.Trace("CalculateRisk({0})", purl.ToString());
 
             var characteristicTool = new CharacteristicTool();
             var cOptions = new CharacteristicTool.Options();
             var characteristics = characteristicTool.AnalyzePackage(cOptions, purl, targetDirectory, doCaching).Result;
+            double aggregateRisk = 0.0;
 
-            var healthTool = new HealthTool();
-            var healthMetrics = await healthTool.CheckHealth(purl);
-            if (healthMetrics == null)
+            if (checkHealth)
             {
-                Logger.Warn("Unable to determine health metrics, will use a default of 0.");
-                healthMetrics = new HealthMetrics(purl)
+                var healthTool = new HealthTool();
+                var healthMetrics = await healthTool.CheckHealth(purl);
+                if (healthMetrics == null)
                 {
-                    SecurityIssueHealth = 0,
-                    CommitHealth = 0,
-                    ContributorHealth = 0,
-                    IssueHealth = 0,
-                    ProjectSizeHealth = 0,
-                    PullRequestHealth = 0,
-                    RecentActivityHealth = 0,
-                    ReleaseHealth = 0
-                };
-            }
-            Logger.Trace("Health Metrics:\n{}", healthMetrics);
+                    Logger.Warn("Unable to determine health metrics, will use a default of 0.");
+                    healthMetrics = new HealthMetrics(purl)
+                    {
+                        SecurityIssueHealth = 0,
+                        CommitHealth = 0,
+                        ContributorHealth = 0,
+                        IssueHealth = 0,
+                        ProjectSizeHealth = 0,
+                        PullRequestHealth = 0,
+                        RecentActivityHealth = 0,
+                        ReleaseHealth = 0
+                    };
+                }
+                Logger.Trace("Health Metrics:\n{}", healthMetrics);
 
-            // Risk calculation algorithm: Weight each of the health scores.
-            var aggregateRisk = 1.0 - (
-                5.0 * healthMetrics.SecurityIssueHealth / 100.0 +
-                1.0 * healthMetrics.CommitHealth / 100.0 +
-                3.0 * healthMetrics.IssueHealth / 100.0 +
-                2.0 * healthMetrics.PullRequestHealth / 100.0 +
-                0.25 * healthMetrics.RecentActivityHealth / 100.0 +
-                1.0 * healthMetrics.ContributorHealth / 100.0
-            ) / 12.25;
-            Logger.Trace("Aggregate Health Risk: {}", aggregateRisk);
+                // Risk calculation algorithm: Weight each of the health scores.
+                aggregateRisk = 1.0 - (
+                    5.0 * healthMetrics.SecurityIssueHealth / 100.0 +
+                    1.0 * healthMetrics.CommitHealth / 100.0 +
+                    3.0 * healthMetrics.IssueHealth / 100.0 +
+                    2.0 * healthMetrics.PullRequestHealth / 100.0 +
+                    0.25 * healthMetrics.RecentActivityHealth / 100.0 +
+                    1.0 * healthMetrics.ContributorHealth / 100.0
+                ) / 12.25;
+                Logger.Trace("Aggregate Health Risk: {}", aggregateRisk);
+            }
 
             var highRiskTags = new string[] { "Cryptography.", "Authentication.", "Authorization.", "Data.Deserialization." };
             var highRiskTagsSeen = new Dictionary<string, int>();
@@ -237,7 +245,8 @@ namespace Microsoft.CST.OpenSource
                         string downloadDirectory = options.DownloadDirectory == "." ? Directory.GetCurrentDirectory() : options.DownloadDirectory;
                         var riskLevel = CalculateRisk(purl,
                             downloadDirectory,
-                            useCache).Result;
+                            useCache,
+                            !options.NoHealth).Result;
                         AppendOutput(outputBuilder, purl, riskLevel);
                     }
                     catch (Exception ex)

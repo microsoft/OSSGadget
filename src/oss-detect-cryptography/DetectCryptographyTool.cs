@@ -405,7 +405,7 @@ namespace Microsoft.CST.OpenSource
                 rules.AddDirectory(customDirectory);
             }
 
-            if (rules.Count() == 0)
+            if (!rules.Any())
             {
                 Logger.Error("No rules were specified, unable to continue.");
                 return analysisResults; // empty

@@ -23,7 +23,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         public void PrintOutput()
         {
-            Console.Out.Write(this.GetOutput());
+            Console.Out.WriteLine(this.GetOutput());
         }
 
         private StringBuilder stringResults = new StringBuilder();

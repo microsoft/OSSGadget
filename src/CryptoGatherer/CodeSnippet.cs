@@ -65,7 +65,7 @@ namespace CryptoGatherer
                     lines[2].Trim(),
                     lines[3].Trim(),
                     (CodeLanguage)Enum.Parse(typeof(CodeLanguage),lines[4].Trim()),
-                    lines[5].Trim().Split(new[] { ',' }).Select(x => (CryptoAlgorithm)Enum.Parse(typeof(CryptoAlgorithm), x)).ToArray(),
+                    lines[5].Trim().Split(new[] { ',' }).Where(x => !string.IsNullOrEmpty(x)).Select(x => (CryptoAlgorithm)Enum.Parse(typeof(CryptoAlgorithm), x)).ToArray(),
                     lines[6].Trim().Contains("checked=true"),
                     string.Join("\n", lines.Skip(8)));
                 return obj;

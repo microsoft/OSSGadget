@@ -2,13 +2,16 @@
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
+using System.Web;
 using System.Windows.Forms;
 
 namespace CryptoGatherer
 {
     public partial class Form1 : Form
     {
+        private static readonly HashAlgorithm sha512 = SHA512.Create();
         public Form1()
         {
             InitializeComponent();
@@ -17,6 +20,11 @@ namespace CryptoGatherer
 
         private ListViewColumnSorter columnSorter = new ListViewColumnSorter();
 
+        public static string CreateHash(string input)
+        {
+            return HttpServerUtility.UrlTokenEncode(sha512.ComputeHash(Encoding.UTF8.GetBytes(input)));
+        }
+
         private void button1_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(this.fileName.Text))
@@ -24,16 +32,14 @@ namespace CryptoGatherer
                 this.fileName.Text = Guid.NewGuid().ToString().Substring(0, 8);
             }
 
-            if (string.IsNullOrWhiteSpace(this.fileName.Text) ||
+            if (
                 string.IsNullOrWhiteSpace(this.language.Text) ||
-                this.algorithms.SelectedItems.Count == 0 ||
                 string.IsNullOrWhiteSpace(this.fileContents.Text))
             {
-                MessageBox.Show("Error");
+                MessageBox.Show("Ensure that Language and FileContents are set.");
                 return;
             }
-
-            var realFilename = Path.Combine("CryptoPatterns",$"crypto-patterns-{this.fileName.Text}.txt");
+            var realFilename = Path.Combine("CryptoPatterns",$"crypto-patterns-{CreateHash(fileContents.Text)}.txt");
             var codeSnippet = new CodeSnippet(
                 1, 
                 fileName.Text, 

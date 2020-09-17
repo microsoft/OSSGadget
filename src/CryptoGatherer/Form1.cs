@@ -27,11 +27,6 @@ namespace CryptoGatherer
 
         private void button1_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(this.fileName.Text))
-            {
-                this.fileName.Text = Guid.NewGuid().ToString().Substring(0, 8);
-            }
-
             if (
                 string.IsNullOrWhiteSpace(this.language.Text) ||
                 string.IsNullOrWhiteSpace(this.fileContents.Text))
@@ -45,12 +40,15 @@ namespace CryptoGatherer
                 fileName.Text, 
                 sourceUrl.Text, 
                 packageName.Text, 
-                (CodeLanguage)Enum.Parse(typeof(CodeLanguage), language.Text), 
+                (CodeLanguage)Enum.Parse(typeof(CodeLanguage), language.Text),
                 algorithms.SelectedItems.Cast<string>().Select(x => (CryptoAlgorithm)Enum.Parse(typeof(CryptoAlgorithm),x)).ToArray(), 
                 isFullFile.Checked, 
                 fileContents.Text.Trim());
 
             File.WriteAllText(realFilename, codeSnippet.ToString());
+            this.fileName.Text = "";
+            this.fileContents.Text = "";
+            this.algorithms.SelectedItems.Clear();
             RefreshData();
         }
 

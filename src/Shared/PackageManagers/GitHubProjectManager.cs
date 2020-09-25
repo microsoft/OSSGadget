@@ -178,9 +178,9 @@ namespace Microsoft.CST.OpenSource.Shared
                     @"(?:(?<username>[\w-]+)@)*" +
                     @"(github\.com)" +
                     @"[:/]*" +
-                    @"(?<port>[\d]+){0,1}" +
-                    @"\/(?<user>[\w-]+)" +
-                    @"\/(?<repo>[\w-]+)\/?",
+                    @"(?<port>[\d]+)?" +
+                    @"/(?<user>[\w-\.]+)" +
+                    @"/(?<repo>[\w-\.]+)/?",
                         RegexOptions.Compiled);
 
         /// <summary>
@@ -191,10 +191,10 @@ namespace Microsoft.CST.OpenSource.Shared
             @"(?:(?<user>.+)@)*" +
             @"(?<resource>[a-z0-9_.-]*)" +
             @"[:/]*" +
-            @"(?<port>[\d]+){0,1}" +
-            @"(?<pathname>\/((?<namespace>[\w\-]+)\/)" +
-            @"(?<subpath>[\w\-]+\/)*" +
-            @"((?<name>[\w\-\.]+?)(\.git|\/)?)?)$",
+            @"(?<port>[\d]+)?" +
+            @"(?<pathname>\/((?<namespace>[\w\-\.]+)/)" +
+            @"(?<subpath>[\w\-]+/)*" +
+            @"((?<name>[\w\-\.]+?)(\.git|/)?)?)$",
                 RegexOptions.Singleline | RegexOptions.Compiled);
     }
 }

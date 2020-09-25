@@ -13,6 +13,12 @@ namespace Microsoft.CST.OpenSource.Tests
     [TestClass]
     public class DownloadTests
     {
+        [ClassInitialize()]
+        public static void ClassInit(TestContext context)
+        {
+            CommonInitialization.Initialize();
+        }
+
         [DataTestMethod]
         [DataRow("pkg:cargo/rand@0.7.3", "CARGO.toml", 1)]
         [DataRow("pkg:cargo/rand", "CARGO.toml", 1)]

@@ -1,9 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>Microsoft.CST.OpenSource</RootNamespace>
     <Company>Microsoft Corporation</Company>
     <Description>OSS Gadget - Risk Calculator</Description>
@@ -15,7 +14,6 @@
     <LangVersion>8.0</LangVersion>
     <Nullable>Enable</Nullable>
   </PropertyGroup>
-
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.9.0-preview1" />
@@ -31,5 +29,4 @@
   <ItemGroup>
     <PackageReference Update="Nerdbank.GitVersioning" Version="3.2.31" />
   </ItemGroup>
-
 </Project>

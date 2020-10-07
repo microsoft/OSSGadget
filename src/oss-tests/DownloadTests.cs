@@ -13,6 +13,12 @@ namespace Microsoft.CST.OpenSource.Tests
     [TestClass]
     public class DownloadTests
     {
+        [ClassInitialize()]
+        public static void ClassInit(TestContext context)
+        {
+            CommonInitialization.Initialize();
+        }
+
         [DataTestMethod]
         [DataRow("pkg:cargo/rand@0.7.3", "CARGO.toml", 1)]
         [DataRow("pkg:cargo/rand", "CARGO.toml", 1)]
@@ -107,6 +113,7 @@ namespace Microsoft.CST.OpenSource.Tests
 
         [DataTestMethod]
         [DataRow("pkg:nuget/RandomType@2.0.0", "RandomType.nuspec", 1)]
+        [DataRow("pkg:nuget/d3.TypeScript.DefinitelyTyped", "d3.TypeScript.DefinitelyTyped.nuspec", 1)]
         public async Task NuGet_Download_Version_Succeeds(string purl, string targetFilename, int expectedCount)
         {
             await TestDownload(purl, targetFilename, expectedCount);

@@ -84,6 +84,7 @@ namespace Microsoft.CST.OpenSource
                 SourcePath = directory,
                 IgnoreDefaultRules = options.DisableDefaultRules == true,
                 CustomRulesPath = options.CustomRuleDirectory,
+                
             };
 
             try

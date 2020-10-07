@@ -11,6 +11,12 @@ namespace Microsoft.CST.OpenSource.Tests
     [TestClass]
     public class DetectCryptographyTests
     {
+        [ClassInitialize()]
+        public static void ClassInit(TestContext context)
+        {
+            CommonInitialization.Initialize();
+        }
+
         [DataTestMethod]
         [DataRow("pkg:npm/blake2", "Cryptography.Implementation.Hash.Blake", "Cryptography.Implementation.Hash.Blake2", "Cryptography.Implementation.Hash.JH", "Cryptography.Implementation.Hash.SHA-512")]
         [DataRow("pkg:npm/blake3", "Cryptography.Implementation.Hash.Blake3", "Cryptography.Implementation.Hash.SHA-512")]

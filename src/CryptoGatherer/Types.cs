@@ -54,6 +54,28 @@ namespace CryptoGatherer
         KeyAgreement_Curve25519_X25519,
         PRNG,
         Symmetric_AES,
-        Symmetric_Salsa20_ChaCha
+        Symmetric_Salsa20_ChaCha,
+        SAFER,
+        twofish,
+        anubis,
+        blowfish,
+        camellia,
+        cast5,
+        DES,
+        idea,
+        kasumi,
+        khazad,
+        kseed,
+        multi2,
+        noekeon,
+        rc2,
+        rc5,
+        rc6,
+        serpent,
+        skipjack,
+        tea,
+        xtea
+        // bunch of values added from https://github.com/libtom/libtomcrypt/tree/develop/src/ciphers
+
     }
 }

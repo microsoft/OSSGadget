@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>Microsoft.CST.OpenSource</RootNamespace>
     <Company>Microsoft Corporation</Company>
     <Description>OSS Gadget - Source Code Locator</Description>
@@ -31,5 +31,4 @@
     <PackageReference Include="CommandLineParser" Version="2.9.0-preview1" />
     <PackageReference Include="Sarif.Sdk" Version="2.3.4" />
   </ItemGroup>
-
 </Project>

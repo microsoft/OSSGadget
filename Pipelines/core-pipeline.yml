@@ -28,7 +28,6 @@ stages:
   jobs:
   - template: templates/dotnet-test-job.yml
     parameters:
-      dotnetVersion: 3.1.x
       projectPath: 'src/oss-tests/oss-tests.csproj'
 
 - stage: SDL
@@ -43,14 +42,12 @@ stages:
   jobs:
   - template: templates/dotnet-publish-linux-mac-job.yml
     parameters:
-      dotnetVersion: '3.1.x'
       projectPath: 'src/OSSGadget.sln'
       projectName: 'OSSGadget'
       preBuild:
       - template: templates/nbgv-set-version-steps.yml
   - template: templates/dotnet-publish-win-netcore-job.yml
     parameters:
-      dotnetVersion: '3.1.x'
       projectPath: 'src/OSSGadget.sln'
       projectName: 'OSSGadget'
       preBuild:
@@ -70,7 +67,6 @@ stages:
     - task: UseDotNet@2
       inputs:
         packageType: 'sdk'
-        version: '3.1.x'
     - script: 'dotnet tool install -g nbgv'
       displayName: 'Install GitVersioning'
     - task: PowerShell@2
@@ -90,7 +86,7 @@ stages:
     - task: ExtractFiles@1
       displayName: Extract Artifacts for Signing
       inputs:
-        archiveFilePatterns: '$(Build.BinariesDirectory)\*.zip'
+        archiveFilePatterns: '$(Build.BinariesDirectory)\Unsigned_Binaries\*.zip'
         destinationFolder: '$(Build.BinariesDirectory)'
         cleanDestinationFolder: false
     - task: AntiMalware@3

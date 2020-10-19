@@ -301,7 +301,3 @@ stages:
         changeLogCompareToRelease: 'lastNonDraftRelease'
         changeLogType: 'commitBased'
 
-
-
-
-

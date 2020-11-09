@@ -23,5 +23,13 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             return null;
         }
+
+        public static string GetMaxClippedLength(string str)
+        {
+            int MaxLength = Math.Min(str.Length, MAX_FIELD_LENGTH);
+            return str[0..MaxLength];
+        }
+
+        private const int MAX_FIELD_LENGTH = 65535;
     }
 }

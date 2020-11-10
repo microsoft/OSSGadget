@@ -127,11 +127,11 @@ namespace Microsoft.CST.OpenSource
                         }
                         else
                         {
-                            var shortTags = results.SelectMany(r => r.Issue.Rule.Tags)
+                            var shortTags = results.SelectMany(r => r.Issue.Rule.Tags ?? Array.Empty<string>())
                                                    .Distinct()
                                                    .Where(t => t.StartsWith("Cryptography.Implementation."))
                                                    .Select(t => t.Replace("Cryptography.Implementation.", ""));
-                            var otherTags = results.SelectMany(r => r.Issue.Rule.Tags)
+                            var otherTags = results.SelectMany(r => r.Issue.Rule.Tags ?? Array.Empty<string>())
                                                    .Distinct()
                                                    .Where(t => !t.StartsWith("Cryptography.Implementation."));
 

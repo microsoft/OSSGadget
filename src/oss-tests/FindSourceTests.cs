@@ -13,6 +13,12 @@ namespace Microsoft.CST.OpenSource.Tests
     [TestClass]
     public class FindSourceTests
     {
+        [ClassInitialize()]
+        public static void ClassInit(TestContext context)
+        {
+            CommonInitialization.Initialize();
+        }
+
         [DataTestMethod]
         [DataRow("pkg:npm/md5", "https://github.com/pvorb/node-md5")]
         public async Task Check_Sarif(string purl, string targetResult)

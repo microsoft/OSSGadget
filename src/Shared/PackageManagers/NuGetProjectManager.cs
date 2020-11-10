@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Shared
@@ -86,12 +87,27 @@ namespace Microsoft.CST.OpenSource.Shared
                 var versionList = new List<string>();
                 foreach (var catalogPage in doc.RootElement.GetProperty("items").EnumerateArray())
                 {
-                    foreach (var item in catalogPage.GetProperty("items").EnumerateArray())
+                    if (catalogPage.TryGetProperty("items", out JsonElement itemElement))
                     {
-                        var catalogEntry = item.GetProperty("catalogEntry");
-                        var version = catalogEntry.GetProperty("version").GetString();
-                        Logger.Debug("Identified {0} version {1}.", packageName, version);
-                        versionList.Add(version);
+                        foreach (var item in itemElement.EnumerateArray())
+                        {
+                            var catalogEntry = item.GetProperty("catalogEntry");
+                            var version = catalogEntry.GetProperty("version").GetString();
+                            Logger.Debug("Identified {0} version {1}.", packageName, version);
+                            versionList.Add(version);
+                        }
+                    }
+                    else
+                    {
+                        var subDocUrl = catalogPage.GetProperty("@id");
+                        var subDoc = await GetJsonCache(subDocUrl.GetString());
+                        foreach (var subCatalogPage in subDoc.RootElement.GetProperty("items").EnumerateArray())
+                        {
+                            var catalogEntry = subCatalogPage.GetProperty("catalogEntry");
+                            var version = catalogEntry.GetProperty("version").GetString();
+                            Logger.Debug("Identified {0} version {1}.", packageName, version);
+                            versionList.Add(version);
+                        }
                     }
                 }
                 return SortVersions(versionList.Distinct());

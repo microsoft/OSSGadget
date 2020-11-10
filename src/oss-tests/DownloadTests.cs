@@ -229,6 +229,11 @@ namespace Microsoft.CST.OpenSource.Tests
 
             Directory.CreateDirectory(tempDirectoryName);
 
+            foreach (var entry in Directory.GetDirectories(tempDirectoryName))
+            {
+                Console.WriteLine($"Found directory: {entry}");
+            }
+
             var packageDownloader = await DownloadPackage(packageUrl, tempDirectoryName);
             var wereFilesDownloaded = Directory.EnumerateFiles(tempDirectoryName, targetFilename, SearchOption.AllDirectories).Any();
             if (!wereFilesDownloaded)
@@ -244,6 +249,11 @@ namespace Microsoft.CST.OpenSource.Tests
 
             // do that again with caching, this should not do anything since the cache already has the package
             await DownloadPackage(packageUrl, tempDirectoryName, true);
+
+            foreach (var entry in Directory.GetDirectories(tempDirectoryName))
+            {
+                Console.WriteLine($"Found directory, after cache download: {entry}");
+            }
 
             if (expectedCount != Directory.GetDirectories(tempDirectoryName).Count())
             {

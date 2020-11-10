@@ -144,7 +144,7 @@ namespace Microsoft.CST.OpenSource.Shared
             return new Uri($"{ENV_PYPI_ENDPOINT}/project/{purl?.Name}");
         }
 
-        protected async override Task<Dictionary<PackageURL, double>> PackageMetadataSearch(PackageURL purl, string metadata)
+        protected async override Task<Dictionary<PackageURL, double>> SearchRepoUrlsInPackageMetadata(PackageURL purl, string metadata)
         {
             var mapping = new Dictionary<PackageURL, double>();
             if (purl.Name?.StartsWith('_') ?? false) // TODO: there are internal modules which do not start with _

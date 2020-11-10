@@ -123,7 +123,7 @@ namespace Microsoft.CST.OpenSource.Shared
             return new Uri($"{ENV_NUGET_HOMEPAGE}/{purl?.Name}");
         }
 
-        protected async override Task<Dictionary<PackageURL, double>> PackageMetadataSearch(PackageURL purl, string metadata)
+        protected async override Task<Dictionary<PackageURL, double>> SearchRepoUrlsInPackageMetadata(PackageURL purl, string metadata)
         {
             Dictionary<PackageURL, double> mapping = new Dictionary<PackageURL, double>();
             try

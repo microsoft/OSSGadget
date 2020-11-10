@@ -402,7 +402,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         /// </summary>
         /// <param name="purl"> </param>
         /// <returns> </returns>
-        public virtual Task<PackageMetadata?> GetPackageMetadata(PackageURL purl)
+        public virtual Task<PackageMetadata> GetPackageMetadata(PackageURL purl)
         {
             throw new NotImplementedException("BaseProjectManager does not implement GetPackageMetadata.");
         }
@@ -449,7 +449,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
             // Check the specific PackageManager-specific implementation first
             try
             {
-                foreach (var result in await PackageMetadataSearch(purl, rawMetadataString))
+                foreach (var result in await SearchRepoUrlsInPackageMetadata(purl, rawMetadataString))
                 {
                     sourceRepositoryMap.Add(result.Key, result.Value);
                 }
@@ -543,7 +543,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         ///     result for the package repository, or return a null in case of failure/nothing to do.
         /// </summary>
         /// <returns> </returns>
-        protected virtual Task<Dictionary<PackageURL, double>> PackageMetadataSearch(PackageURL purl, string metadata)
+        protected virtual Task<Dictionary<PackageURL, double>> SearchRepoUrlsInPackageMetadata(PackageURL purl, string metadata)
         {
             return Task.FromResult(new Dictionary<PackageURL, double>());
         }

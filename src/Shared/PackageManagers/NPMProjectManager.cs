@@ -144,12 +144,11 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl"> </param>
         /// <returns> </returns>
-        public override async Task<PackageMetadata?> GetPackageMetadata(PackageURL purl)
+        public override async Task<PackageMetadata> GetPackageMetadata(PackageURL purl)
         {
-            string? content = await GetMetadata(purl);
-            if (string.IsNullOrEmpty(content)) { return null; }
-
             PackageMetadata metadata = new PackageMetadata();
+            string? content = await GetMetadata(purl);
+            if (string.IsNullOrEmpty(content)) { return metadata; }
 
             // convert NPM package data to normalized form
             JsonDocument contentJSON = JsonDocument.Parse(content);
@@ -189,50 +188,48 @@ namespace Microsoft.CST.OpenSource.Shared
                     metadata.VersionDownloadUri = $"{ENV_NPM_API_ENDPOINT}/{metadata.Name}/-/{metadata.Name}-{metadata.PackageVersion}.tgz";
 
                     // author(s)
+                    var authorElement = Utilities.GetJSONPropertyIfExists(versionElement, "author");
+                    User author = new User();
+                    if (authorElement is not null)
                     {
-                        var authorElement = Utilities.GetJSONPropertyIfExists(versionElement, "author");
-                        User author = new User();
-                        if (authorElement is not null)
-                        {
-                            author.Name = Utilities.GetJSONPropertyIfExists(authorElement, "name")?.ToString();
-                            author.Email = Utilities.GetJSONPropertyIfExists(authorElement, "email")?.ToString();
-                            author.Url = Utilities.GetJSONPropertyIfExists(authorElement, "url")?.ToString();
+                        author.Name = Utilities.GetJSONPropertyIfExists(authorElement, "name")?.ToString();
+                        author.Email = Utilities.GetJSONPropertyIfExists(authorElement, "email")?.ToString();
+                        author.Url = Utilities.GetJSONPropertyIfExists(authorElement, "url")?.ToString();
 
-                            metadata.Authors.Add(author);
-                        }
+                        metadata.Authors ??= new List<User>();
+                        metadata.Authors.Add(author);
                     }
 
                     // maintainers
+                    var maintainersElement = Utilities.GetJSONPropertyIfExists(versionElement, "maintainers");
+                    if (maintainersElement?.EnumerateArray() is JsonElement.ArrayEnumerator enumerator)
                     {
-                        var maintainersElement = Utilities.GetJSONPropertyIfExists(versionElement, "maintainers");
-                        if (maintainersElement?.EnumerateArray() is JsonElement.ArrayEnumerator enumerator)
+                        foreach (JsonElement maintainerElement in enumerator)
                         {
-                            foreach (JsonElement maintainerElement in enumerator)
+                            User maintainer = new User
                             {
-                                User maintainer = new User
-                                {
-                                    Name = Utilities.GetJSONPropertyIfExists(maintainerElement, "name").ToString(),
-                                    Email = Utilities.GetJSONPropertyIfExists(maintainerElement, "email").ToString(),
-                                    Url = Utilities.GetJSONPropertyIfExists(maintainerElement, "url").ToString()
-                                };
-
-                                metadata.Maintainers.Add(maintainer);
-                            }
+                                Name = Utilities.GetJSONPropertyIfExists(maintainerElement, "name").ToString(),
+                                Email = Utilities.GetJSONPropertyIfExists(maintainerElement, "email").ToString(),
+                                Url = Utilities.GetJSONPropertyIfExists(maintainerElement, "url").ToString()
+                            };
+                            metadata.Maintainers = new List<User>();
+                            metadata.Maintainers.Add(maintainer);
                         }
                     }
 
-                    // repository - TODO: call oss-find-source lib to get this
-                    var repoElement = Utilities.GetJSONPropertyIfExists(versionElement, "repository");
-                    if (repoElement is not null)
+                    // repository
+                    var repoMappings = await SearchRepoUrlsInPackageMetadata(purl, content);
+                    foreach (var repoMapping in repoMappings)
                     {
-                        Repository repo = new Repository
+                        Repository repository = new Repository
                         {
-                            Rank = 1.0,
-                            Type = Utilities.GetJSONPropertyIfExists(repoElement, "type").ToString(),
-                            Uri = Utilities.GetJSONPropertyIfExists(repoElement, "url").ToString()
+                            Rank = repoMapping.Value,
+                            Type = repoMapping.Key.Type
                         };
+                        await repository.GetGithubRepositoryMetadata(repoMapping.Key);
 
-                        metadata.Repository.Add(repo);
+                        metadata.Repository ??= new List<Repository>();
+                        metadata.Repository.Add(repository);
                     }
 
                     // keywords
@@ -241,24 +238,27 @@ namespace Microsoft.CST.OpenSource.Shared
                     {
                         foreach (var keyword in keywords.Value.EnumerateArray())
                         {
+                            metadata.Keywords ??= new List<string>();
                             if (keyword.ToString() is string s)
-
-                                metadata.Keywords.Add(s);
-                        }
-                    }
-
-                    // licenses
-                    var licenses = Utilities.GetJSONPropertyIfExists(versionElement, "licenses");
-                    if (licenses is not null)
-                    {
-                        // TODO: Convert/append SPIX_ID values?
-                        foreach (var license in licenses.Value.EnumerateArray())
-                        {
-                            metadata.Licenses.Add(new License()
                             {
-                                Type = Utilities.GetJSONPropertyIfExists(license, "type").ToString(),
-                                Url = Utilities.GetJSONPropertyIfExists(license, "url").ToString()
-                            });
+                                metadata.Keywords.Add(s);
+                            }
+                        }
+
+                        // licenses
+                        var licenses = Utilities.GetJSONPropertyIfExists(versionElement, "licenses");
+                        if (licenses is not null)
+                        {
+                            metadata.Licenses ??= new List<License>();
+                            // TODO: Convert/append SPIX_ID values?
+                            foreach (var license in licenses.Value.EnumerateArray())
+                            {
+                                metadata.Licenses.Add(new License()
+                                {
+                                    Name = Utilities.GetJSONPropertyIfExists(license, "type").ToString(),
+                                    Url = Utilities.GetJSONPropertyIfExists(license, "url").ToString()
+                                });
+                            }
                         }
                     }
                 }
@@ -317,8 +317,20 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <returns>
         ///     A dictionary, mapping each possible repo source entry to its probability/empty dictionary
         /// </returns>
-        protected async override Task<Dictionary<PackageURL, double>> PackageMetadataSearch(PackageURL purl,
+
+        protected async override Task<Dictionary<PackageURL, double>> SearchRepoUrlsInPackageMetadata(PackageURL purl,
             string metadata)
+        {
+            if (string.IsNullOrEmpty(metadata))
+            {
+                return new Dictionary<PackageURL, double>();
+            }
+            JsonDocument contentJSON = JsonDocument.Parse(metadata);
+            return await SearchRepoUrlsInPackageMetadata(purl, contentJSON);
+        }
+
+        protected async Task<Dictionary<PackageURL, double>> SearchRepoUrlsInPackageMetadata(PackageURL purl,
+            JsonDocument contentJSON)
         {
             var mapping = new Dictionary<PackageURL, double>();
             if (purl?.Name is string purlName && (purlName.StartsWith('_') || npm_internal_modules.Contains(purlName)))
@@ -329,11 +341,6 @@ namespace Microsoft.CST.OpenSource.Shared
                     null, null, "node/tree/master/lib"), 1.0F);
                 return mapping;
             }
-            if (string.IsNullOrEmpty(metadata))
-            {
-                return mapping;
-            }
-            JsonDocument contentJSON = JsonDocument.Parse(metadata);
 
             // if a version is provided, search that JSONElement, otherwise, just search the latest version,
             // which is more likely best maintained

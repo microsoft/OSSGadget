@@ -40,12 +40,13 @@ namespace Microsoft.CST.OpenSource
 
         public DetectBackdoorTool() : base()
         {
+            RULE_DIRECTORY = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "BackdoorRules");
         }
 
         /// <summary>
         ///     Location of the backdoor detection rules.
         /// </summary>
-        private const string RULE_DIRECTORY = @"Resources\BackdoorRules";
+        private string RULE_DIRECTORY { get; set; }
 
         /// <summary>
         ///     Main entrypoint for the download program.

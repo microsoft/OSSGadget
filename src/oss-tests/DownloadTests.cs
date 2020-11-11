@@ -22,142 +22,142 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataTestMethod]
         [DataRow("pkg:cargo/rand@0.7.3", "CARGO.toml", 1)]
         [DataRow("pkg:cargo/rand", "CARGO.toml", 1)]
-        public async Task Cargo_Download_Version_Succeeds(string purl, string targetFilename, int expectedCount)
+        public async Task Cargo_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
         {
-            await TestDownload(purl, targetFilename, expectedCount);
+            await TestDownload(purl, targetFilename, expectedDirectoryCount);
         }
 
         [DataTestMethod]
         [DataRow("pkg:cocoapods/RandomKit", "RandomKit.podspec", 1)]
-        public async Task Cocoapods_Download_Version_Succeeds(string purl, string targetFilename, int expectedCount)
+        public async Task Cocoapods_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
         {
-            await TestDownload(purl, targetFilename, expectedCount);
+            await TestDownload(purl, targetFilename, expectedDirectoryCount);
         }
 
         [DataTestMethod]
         [DataRow("pkg:composer/ircmaxell/random-lib", "composer.json", 1)]
-        public async Task Composer_Download_Version_Succeeds(string purl, string targetFilename, int expectedCount)
+        public async Task Composer_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
         {
-            await TestDownload(purl, targetFilename, expectedCount);
+            await TestDownload(purl, targetFilename, expectedDirectoryCount);
         }
 
         [DataTestMethod]
         [DataRow("pkg:cpan/Data-Rand", "MANIFEST", 1)]
-        public async Task CPAN_Download_Version_Succeeds(string purl, string targetFilename, int expectedCount)
+        public async Task CPAN_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
         {
-            await TestDownload(purl, targetFilename, expectedCount);
+            await TestDownload(purl, targetFilename, expectedDirectoryCount);
         }
 
         [DataTestMethod]
         [DataRow("pkg:cran/Archive/ACNE", "DESCRIPTION", 1)]
-        public async Task CRAN_Download_Version_Succeeds(string purl, string targetFilename, int expectedCount)
+        public async Task CRAN_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
         {
-            await TestDownload(purl, targetFilename, expectedCount);
+            await TestDownload(purl, targetFilename, expectedDirectoryCount);
         }
 
         [DataTestMethod]
         [DataRow("pkg:gem/zlib@0.1.0", "zlib.gemspec", 1)]
-        public async Task Gem_Download_Version_Succeeds(string purl, string targetFilename, int expectedCount)
+        public async Task Gem_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
         {
-            await TestDownload(purl, targetFilename, expectedCount);
+            await TestDownload(purl, targetFilename, expectedDirectoryCount);
         }
 
         [DataTestMethod]
         [DataRow("pkg:github/ruby/zlib", "zlib.gemspec", 1)]
-        public async Task GitHub_Download_Version_Succeeds(string purl, string targetFilename, int expectedCount)
+        public async Task GitHub_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
         {
-            await TestDownload(purl, targetFilename, expectedCount);
+            await TestDownload(purl, targetFilename, expectedDirectoryCount);
         }
 
         [DataTestMethod]
         [DataRow("pkg:hackage/a50", "a50.cabal", 1)]
-        public async Task Hackage_Download_Version_Succeeds(string purl, string targetFilename, int expectedCount)
+        public async Task Hackage_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
         {
-            await TestDownload(purl, targetFilename, expectedCount);
+            await TestDownload(purl, targetFilename, expectedDirectoryCount);
         }
 
         [DataTestMethod]
         [DataRow("pkg:invalid/invalid", "", 1)]
-        public async Task Invalid_Package_Test_Download(string purl, string targetFilename, int expectedCount)
+        public async Task Invalid_Package_Test_Download(string purl, string targetFilename, int expectedDirectoryCount)
         {
-            await Assert.ThrowsExceptionAsync<ArgumentException>(async () =>
+            await Assert.ThrowsExceptionAsync<InternalTestFailureException>(async () =>
             {
-                await TestDownload(purl, targetFilename, expectedCount);
+                await TestDownload(purl, targetFilename, expectedDirectoryCount);
             }, "Expected a ArgumentException but no exception was thrown.");
         }
 
         [DataTestMethod]
         [DataRow("ckg:invalid@invalid@invalid", "", 0)]
-        public async Task Invalid_Purl_Test_Download(string purl, string targetFilename, int expectedCount)
+        public async Task Invalid_Purl_Test_Download(string purl, string targetFilename, int expectedDirectoryCount)
         {
-            await Assert.ThrowsExceptionAsync<FormatException>(async () =>
+            await Assert.ThrowsExceptionAsync<InternalTestFailureException>(async () =>
             {
-                await TestDownload(purl, targetFilename, expectedCount);
+                await TestDownload(purl, targetFilename, expectedDirectoryCount);
             }, "Expected a FormatException but no exception was thrown.");
         }
 
         [DataTestMethod]
         [DataRow("pkg:maven/org%2Fapache%2Fxmlgraphics/batik-anim@1.9", "MANIFEST.MF", 3)]
-        public async Task Maven_Download_Version_Succeeds(string purl, string targetFilename, int expectedCount)
+        public async Task Maven_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
         {
-            await TestDownload(purl, targetFilename, expectedCount);
+            await TestDownload(purl, targetFilename, expectedDirectoryCount);
         }
 
         [DataTestMethod]
         [DataRow("pkg:npm/left-pad@1.3.0", "package.json", 1)]
         [DataRow("pkg:npm/md5", "package.json", 1)]
-        public async Task NPM_Download_Version_Succeeds(string purl, string targetFilename, int expectedCount)
+        public async Task NPM_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
         {
-            await TestDownload(purl, targetFilename, expectedCount);
+            await TestDownload(purl, targetFilename, expectedDirectoryCount);
         }
 
         [DataTestMethod]
         [DataRow("pkg:nuget/RandomType@2.0.0", "RandomType.nuspec", 1)]
         [DataRow("pkg:nuget/d3.TypeScript.DefinitelyTyped", "d3.TypeScript.DefinitelyTyped.nuspec", 1)]
-        public async Task NuGet_Download_Version_Succeeds(string purl, string targetFilename, int expectedCount)
+        public async Task NuGet_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
         {
-            await TestDownload(purl, targetFilename, expectedCount);
+            await TestDownload(purl, targetFilename, expectedDirectoryCount);
         }
 
         [DataTestMethod]
         [DataRow(null, null, 1)]
-        public async Task Null_Test_Download(string purl, string targetFilename, int expectedCount)
+        public async Task Null_Test_Download(string purl, string targetFilename, int expectedDirectoryCount)
         {
-            await Assert.ThrowsExceptionAsync<FormatException>(async () =>
+            await Assert.ThrowsExceptionAsync<InternalTestFailureException>(async () =>
             {
-                await TestDownload(purl, targetFilename, expectedCount);
+                await TestDownload(purl, targetFilename, expectedDirectoryCount);
             }, "Expected a FormatException but no exception was thrown.");
         }
 
         [DataTestMethod]
         [DataRow("pkg:pypi/bz2file@0.98", "PKG-INFO", 1)]
-        public async Task PyPI_Download_Version_Succeeds(string purl, string targetFilename, int expectedCount)
+        public async Task PyPI_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
         {
-            await TestDownload(purl, targetFilename, expectedCount);
+            await TestDownload(purl, targetFilename, expectedDirectoryCount);
         }
 
         [DataTestMethod]
         [DataRow("pkg:ubuntu/zerofree", "zerofree.c", 4)]
-        public async Task Ubuntu_Download_Version_Succeeds(string purl, string targetFilename, int expectedCount)
+        public async Task Ubuntu_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
         {
-            await TestDownload(purl, targetFilename, expectedCount);
+            await TestDownload(purl, targetFilename, expectedDirectoryCount);
         }
 
         [DataTestMethod]
         [DataRow("pkg:ubuntu/nonexistent12345", "nonexistent.123", 1)]
-        public async Task Ubuntu_Download_Version_NonExistent_Fails(string purl, string targetFilename, int expectedCount)
+        public async Task Ubuntu_Download_Version_NonExistent_Fails(string purl, string targetFilename, int expectedDirectoryCount)
         {
             await Assert.ThrowsExceptionAsync<InternalTestFailureException>(async () =>
            {
-               await TestDownload(purl, targetFilename, expectedCount);
+               await TestDownload(purl, targetFilename, expectedDirectoryCount);
            }, "Expected an InternalTestFailureException due to a non-existent package.");
         }
 
         [DataTestMethod]
-        [DataRow("pkg:vsm/ms-vscode/PowerShell", "extension.vsixmanifest", 1)]
-        public async Task VSM_Download_Version_Succeeds(string purl, string targetFilename, int expectedCount)
+        [DataRow("pkg:vsm/ms-vscode/Theme-1337", "extension.vsixmanifest", 1)]
+        public async Task VSM_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
         {
-            await TestDownload(purl, targetFilename, expectedCount);
+            await TestDownload(purl, targetFilename, expectedDirectoryCount);
         }
 
         /// <summary>
@@ -217,42 +217,56 @@ namespace Microsoft.CST.OpenSource.Tests
             return packageDownloader;
         }
 
-        private async Task TestDownload(string purl, string targetFilename, int expectedCount)
+        private async Task TestDownload(string purl, string targetFilename, int expectedDirectoryCount)
         {
             string? tempDirectoryName = null;
-            while (tempDirectoryName == null || File.Exists(tempDirectoryName))
+            while (tempDirectoryName == null || Directory.Exists(tempDirectoryName) || File.Exists(tempDirectoryName))
             {
                 tempDirectoryName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             }
-
-            var packageUrl = new PackageURL(purl);
-
+            
             Directory.CreateDirectory(tempDirectoryName);
+            string? errorString = null;
 
-            var packageDownloader = await DownloadPackage(packageUrl, tempDirectoryName);
-            var wereFilesDownloaded = Directory.EnumerateFiles(tempDirectoryName, targetFilename, SearchOption.AllDirectories).Any();
-            if (!wereFilesDownloaded)
+            try
             {
-                throw new InternalTestFailureException("No files were downloaded.");
+                var packageUrl = new PackageURL(purl);
+                var packageDownloader = DownloadPackage(packageUrl, tempDirectoryName).Result;
+
+                var targetFileWasDownloaded = Directory.EnumerateFiles(tempDirectoryName, targetFilename, SearchOption.AllDirectories).Any();
+                if (!targetFileWasDownloaded)
+                {
+                    errorString = "Target file was not downloaded.";
+                }
+
+                var topLevelDirectoryCount = Directory.GetDirectories(tempDirectoryName).Length;
+                if (expectedDirectoryCount != topLevelDirectoryCount)
+                {
+                    errorString = string.Format("Directory count {0} does not match expected {1}", topLevelDirectoryCount, expectedDirectoryCount);
+                }
+
+                // Download again (with caching) - TODO, move this to a separate test.
+                await DownloadPackage(packageUrl, tempDirectoryName, true);
+
+                // Re-calculate the top level directories, since in might have changed (it shouldn't).
+                topLevelDirectoryCount = Directory.GetDirectories(tempDirectoryName).Length;
+                if (expectedDirectoryCount != topLevelDirectoryCount)
+                {
+                    errorString = string.Format("Directory count {0} does not match expected {1}", topLevelDirectoryCount, expectedDirectoryCount);
+                }
+
+                // one delete is enough, since its only a single cached copy
+                deleteTempDirs(packageDownloader, tempDirectoryName);
+            }
+            catch(Exception ex)
+            {
+                throw new InternalTestFailureException("Error", ex);
             }
 
-            if (expectedCount != Directory.GetDirectories(tempDirectoryName).Count())
+            if (errorString != null)
             {
-                throw new InternalTestFailureException(string.Format("Directory count {0} does not match expected {1}",
-                    Directory.GetDirectories(tempDirectoryName).Count(), expectedCount));
+                throw new InternalTestFailureException(errorString);
             }
-
-            // do that again with caching, this should not do anything since the cache already has the package
-            await DownloadPackage(packageUrl, tempDirectoryName, true);
-
-            if (expectedCount != Directory.GetDirectories(tempDirectoryName).Count())
-            {
-                throw new InternalTestFailureException(string.Format("Directory count {0} does not match expected {1}",
-                    Directory.GetDirectories(tempDirectoryName).Count(), expectedCount));
-            }
-
-            // one delete is enough, since its only a single cached copy
-            deleteTempDirs(packageDownloader, tempDirectoryName);
         }
     }
 }

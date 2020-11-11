@@ -242,6 +242,7 @@ namespace Microsoft.CST.OpenSource.Tests
                 var topLevelDirectoryCount = Directory.GetDirectories(tempDirectoryName).Length;
                 if (expectedDirectoryCount != topLevelDirectoryCount)
                 {
+                    Console.WriteLine(string.Join(";", Directory.GetDirectories(tempDirectoryName)));
                     errorString = string.Format("Directory count {0} does not match expected {1}", topLevelDirectoryCount, expectedDirectoryCount);
                 }
 
@@ -252,6 +253,7 @@ namespace Microsoft.CST.OpenSource.Tests
                 topLevelDirectoryCount = Directory.GetDirectories(tempDirectoryName).Length;
                 if (expectedDirectoryCount != topLevelDirectoryCount)
                 {
+                    Console.WriteLine(string.Join(";", Directory.GetDirectories(tempDirectoryName)));
                     errorString = string.Format("Directory count {0} does not match expected {1}", topLevelDirectoryCount, expectedDirectoryCount);
                 }
 

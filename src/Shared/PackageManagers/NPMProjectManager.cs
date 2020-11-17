@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Version = SemVer.Version;
@@ -184,7 +185,7 @@ namespace Microsoft.CST.OpenSource.Shared
             string metadata)
         {
             var mapping = new Dictionary<PackageURL, double>();
-            if (purl?.Name is string purlName && (purlName.StartsWith('_') || npm_internal_modules.Contains(purlName)))
+            if (purl?.Name is string purlName && (purlName.StartsWith('_') || NODEJS_INTERNAL_MODULES.Contains(purlName)))
             {
                 // url = 'https://github.com/nodejs/node/tree/master/lib' + package.name,
 
@@ -233,7 +234,10 @@ namespace Microsoft.CST.OpenSource.Shared
             return mapping;
         }
 
-        private static readonly List<string> npm_internal_modules = new List<string>()
+        /// <summary>
+        /// Internal Node.js modules that should be ignored when searching metadata.
+        /// </summary>
+        private static readonly List<string> NODEJS_INTERNAL_MODULES = new List<string>()
         {
             "assert",
             "async_hooks",

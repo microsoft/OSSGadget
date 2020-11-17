@@ -112,6 +112,13 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         [DataTestMethod]
+        [DataRow("pkg:npm/%40angular%2Fanimation@4.0.0-beta.8", "package.json", 1)]
+        public async Task NPM_Download_ScopedVersion_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
+        {
+            await TestDownload(purl, targetFilename, expectedDirectoryCount);
+        }
+
+        [DataTestMethod]
         [DataRow("pkg:nuget/RandomType@2.0.0", "RandomType.nuspec", 1)]
         [DataRow("pkg:nuget/d3.TypeScript.DefinitelyTyped", "d3.TypeScript.DefinitelyTyped.nuspec", 1)]
         public async Task NuGet_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
@@ -154,7 +161,7 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         [DataTestMethod]
-        [DataRow("pkg:vsm/ms-vscode/Theme-1337", "extension.vsixmanifest", 1)]
+        [DataRow("pkg:vsm/ms-vscode/PowerShell", "extension.vsixmanifest", 1)]
         public async Task VSM_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
         {
             await TestDownload(purl, targetFilename, expectedDirectoryCount);
@@ -192,7 +199,7 @@ namespace Microsoft.CST.OpenSource.Tests
         /// <param name="packageUrl"> </param>
         /// <param name="tempDirectoryName"> </param>
         /// <returns> </returns>
-        private async Task<PackageDownloader?> DownloadPackage(PackageURL packageUrl, string tempDirectoryName, bool doCache = false)
+        private PackageDownloader? DownloadPackage(PackageURL packageUrl, string tempDirectoryName, bool doCache = false)
         {
             int numAttempts = 3;
             int numSecondsWait = 10;
@@ -231,7 +238,7 @@ namespace Microsoft.CST.OpenSource.Tests
             try
             {
                 var packageUrl = new PackageURL(purl);
-                var packageDownloader = DownloadPackage(packageUrl, tempDirectoryName).Result;
+                var packageDownloader = DownloadPackage(packageUrl, tempDirectoryName);
 
                 var targetFileWasDownloaded = Directory.EnumerateFiles(tempDirectoryName, targetFilename, SearchOption.AllDirectories).Any();
                 if (!targetFileWasDownloaded)
@@ -242,18 +249,16 @@ namespace Microsoft.CST.OpenSource.Tests
                 var topLevelDirectoryCount = Directory.GetDirectories(tempDirectoryName).Length;
                 if (expectedDirectoryCount != topLevelDirectoryCount)
                 {
-                    Console.WriteLine(string.Join(";", Directory.GetDirectories(tempDirectoryName)));
                     errorString = string.Format("Directory count {0} does not match expected {1}", topLevelDirectoryCount, expectedDirectoryCount);
                 }
 
                 // Download again (with caching) - TODO, move this to a separate test.
-                await DownloadPackage(packageUrl, tempDirectoryName, true);
+                packageDownloader = DownloadPackage(packageUrl, tempDirectoryName, true);
 
                 // Re-calculate the top level directories, since in might have changed (it shouldn't).
                 topLevelDirectoryCount = Directory.GetDirectories(tempDirectoryName).Length;
                 if (expectedDirectoryCount != topLevelDirectoryCount)
                 {
-                    Console.WriteLine(string.Join(";", Directory.GetDirectories(tempDirectoryName)));
                     errorString = string.Format("Directory count {0} does not match expected {1}", topLevelDirectoryCount, expectedDirectoryCount);
                 }
 

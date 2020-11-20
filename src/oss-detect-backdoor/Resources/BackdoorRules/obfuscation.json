@@ -15,5 +15,34 @@
         "modifiers": [ "i" ]
       }
     ]
+  },
+  {
+    "name": "Backdoor: Executing Obfuscated Code",
+    "id": "BD000801",
+    "description": "Backdoor: Executing Obfuscated Code",
+    "tags": [
+      "Security.Backdoor.ExecuteObfuscatedCode"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": "fromhex.+decode",
+        "type": "regex",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ]
+      },
+      {
+        "pattern": "\\.get\\(.*(fromhex|decode)",
+        "type": "regex",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ]
+      },
+      {
+        "pattern": "65786563",
+        "type": "string",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ]
+      }
+    ]
   }
 ]

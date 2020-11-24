@@ -4,6 +4,7 @@ on:
   push:
     paths:
     - src/*
+    - .github/workflows/codeql-analysis.yml
   schedule:
     - cron: '0 5 * * 2'
 

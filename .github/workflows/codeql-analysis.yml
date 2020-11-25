@@ -1,4 +1,4 @@
-name: "Code Scanning - OSS Gadget"
+name: "CodeQL"
 
 on:
   push:

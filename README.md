@@ -1,3 +1,5 @@
+![CodeQL](https://github.com/microsoft/OSSGadget/workflows/CodeQL/badge.svg)
+
 ## OSS Gadget
 
 > **Note:** OSS Gadget is currently in **public preview** and is not ready for production use.

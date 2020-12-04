@@ -56,7 +56,7 @@
     <PackageReference Include="CommandLineParser" Version="2.9.0-preview1" />
     <PackageReference Include="ELFSharp" Version="2.11.0" />
     <PackageReference Include="ICSharpCode.Decompiler" Version="6.2.1.6137" />
-    <PackageReference Include="Microsoft.CST.DevSkim" Version="0.4.200" />
+    <PackageReference Include="Microsoft.CST.DevSkim" Version="0.4.207" />
     <PackageReference Include="PeNet" Version="2.5.1" />
     <PackageReference Include="SharpDisasm" Version="1.1.11" />
     <PackageReference Include="WebAssembly" Version="0.9.0-preview" />

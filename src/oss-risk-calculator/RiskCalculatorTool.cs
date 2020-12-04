@@ -14,6 +14,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
 using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
+using Microsoft.ApplicationInspector.RulesEngine;
 
 namespace Microsoft.CST.OpenSource
 {
@@ -125,7 +126,7 @@ namespace Microsoft.CST.OpenSource
             {
                 foreach (var match in analyzeResult?.Metadata?.Matches ?? new List<MatchRecord>())
                 {
-                    foreach (var tag in match.Tags)
+                    foreach (var tag in match.Tags ?? Array.Empty<string>())
                     {
                         foreach (var highRiskTag in highRiskTags)
                         {

@@ -430,7 +430,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <summary>
         ///     Internal Node.js modules that should be ignored when searching metadata.
         /// </summary>
-        private static readonly List<string> NODEJS_INTERNAL_MODULES = new List<string>()
+        private static readonly List<string> npm_internal_modules = new List<string>()
         {
             "assert",
             "async_hooks",

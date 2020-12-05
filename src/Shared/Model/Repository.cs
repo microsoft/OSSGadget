@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using Microsoft.CST.OpenSource.Shared;
 using System.Threading.Tasks;
 using Octokit;
-using Functional.Maybe;
 
 using CSTRepository = Microsoft.CST.OpenSource.Model.Repository;
 using GHRepository = Octokit.Repository;

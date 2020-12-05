@@ -7,19 +7,19 @@ namespace Microsoft.CST.OpenSource.Model
     public class Downloads
     {
         [JsonProperty(PropertyName = "daily", NullValueHandling = NullValueHandling.Ignore)]
-        public int? Daily { get; set; }
+        public long? Daily { get; set; }
 
         [JsonProperty(PropertyName = "monthly", NullValueHandling = NullValueHandling.Ignore)]
-        public int? Monthly { get; set; }
+        public long? Monthly { get; set; }
 
         [JsonProperty(PropertyName = "overall", NullValueHandling = NullValueHandling.Ignore)]
-        public int? Overall { get; set; }
+        public long? Overall { get; set; }
 
         [JsonProperty(PropertyName = "weekly", NullValueHandling = NullValueHandling.Ignore)]
-        public int? Weekly { get; set; }
+        public long? Weekly { get; set; }
 
         [JsonProperty(PropertyName = "yearly", NullValueHandling = NullValueHandling.Ignore)]
-        public int? Yearly { get; set; }
+        public long? Yearly { get; set; }
     }
 
     public class License
@@ -41,7 +41,7 @@ namespace Microsoft.CST.OpenSource.Model
     public class LinkedData
     {
         // name of the tool (in case of analysis tools), name of the repo (in case of repository) etc the tool
-        // storing this information will know what to do with it
+        // storing and reading this information will know what to do with it
         [JsonProperty(PropertyName = "name", NullValueHandling = NullValueHandling.Ignore)]
         public string? Name { get; set; }
 
@@ -50,7 +50,7 @@ namespace Microsoft.CST.OpenSource.Model
         public string? PointerType { get; set; }
 
         [JsonProperty(PropertyName = "pointer_link", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Rank { get; set; }
+        public string? Pointer_Link { get; set; }
     }
 
     public class PackageMetadata
@@ -73,6 +73,9 @@ namespace Microsoft.CST.OpenSource.Model
         [JsonProperty(PropertyName = "language", NullValueHandling = NullValueHandling.Ignore)]
         public string? Language { get; set; }
 
+        [JsonProperty(PropertyName = "downloads", NullValueHandling = NullValueHandling.Ignore)]
+        public Downloads? Downloads { get; set; }
+
         [JsonProperty(PropertyName = "latest_package_version", NullValueHandling = NullValueHandling.Ignore)]
         public string? LatestPackageVersion { get; set; }
 
@@ -91,11 +94,26 @@ namespace Microsoft.CST.OpenSource.Model
         [JsonProperty(PropertyName = "package_version", NullValueHandling = NullValueHandling.Ignore)]
         public string? PackageVersion { get; set; }
 
+        [JsonProperty(PropertyName = "signature", NullValueHandling = NullValueHandling.Ignore)]
+        public List<Digest>? Signature { get; set; }
+
         [JsonProperty(PropertyName = "platform", NullValueHandling = NullValueHandling.Ignore)]
         public string? Platform { get; set; }
 
+        [JsonProperty(PropertyName = "size", NullValueHandling = NullValueHandling.Ignore)]
+        public long? Size { get; set; }
+
+        [JsonProperty(PropertyName = "upload_time", NullValueHandling = NullValueHandling.Ignore)]
+        public string? UploadTime { get; set; }
+
+        [JsonProperty(PropertyName = "commit_id", NullValueHandling = NullValueHandling.Ignore)]
+        public string? CommitId { get; set; }
+
         [JsonProperty(PropertyName = "repository", NullValueHandling = NullValueHandling.Ignore)]
         public List<Repository>? Repository { get; set; }
+
+        [JsonProperty(PropertyName = "repository_commit_id", NullValueHandling = NullValueHandling.Ignore)]
+        public string? RepositoryCommitID { get; set; }
 
         [JsonProperty(PropertyName = "version_download_uri", NullValueHandling = NullValueHandling.Ignore)]
         public string? VersionDownloadUri { get; set; }
@@ -103,9 +121,18 @@ namespace Microsoft.CST.OpenSource.Model
         [JsonProperty(PropertyName = "version_uri", NullValueHandling = NullValueHandling.Ignore)]
         public string? VersionUri { get; set; }
 
+        [JsonProperty(PropertyName = "active_flag", NullValueHandling = NullValueHandling.Ignore)]
+        public bool? Active { get; set; }
+
         // remote property bag
         [JsonProperty(PropertyName = "extended_data", NullValueHandling = NullValueHandling.Ignore)]
         public List<LinkedData>? ExtendedData { get; set; }
+
+        [JsonProperty(PropertyName = "dependencies", NullValueHandling = NullValueHandling.Ignore)]
+        public List<Dependency>? Dependencies { get; set; }
+
+        [JsonProperty(PropertyName = "install_scripts", NullValueHandling = NullValueHandling.Ignore)]
+        public List<Command>? Scripts { get; set; }
 
         // construct the json format for the metadata
         public override string ToString()
@@ -139,5 +166,29 @@ namespace Microsoft.CST.OpenSource.Model
 
         [JsonProperty(PropertyName = "version", NullValueHandling = NullValueHandling.Ignore)]
         public string? VersionString { get; set; }
+    }
+
+    public class Digest
+    {
+        [JsonProperty(PropertyName = "signature_algorithm", NullValueHandling = NullValueHandling.Ignore)]
+        public string? Algorithm { get; set; }
+
+        [JsonProperty(PropertyName = "signature", NullValueHandling = NullValueHandling.Ignore)]
+        public string? Signature { get; set; }
+    }
+
+    public class Dependency
+    {
+        [JsonProperty(PropertyName = "package", NullValueHandling = NullValueHandling.Ignore)]
+        public string? Package { get; set; }
+    }
+
+    public class Command
+    {
+        [JsonProperty(PropertyName = "command", NullValueHandling = NullValueHandling.Ignore)]
+        public string? CommandLine { get; set; }
+
+        [JsonProperty(PropertyName = "arguments", NullValueHandling = NullValueHandling.Ignore)]
+        public List<string>? Arguments { get; set; }
     }
 }

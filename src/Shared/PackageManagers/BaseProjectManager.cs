@@ -356,7 +356,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         /// </summary>
         /// <param name="metadata"> </param>
         /// <returns> </returns>
-        public Version? GetLatestVersion(JsonDocument metadata)
+        public Version? GetLatestVersion(JsonDocument? metadata)
         {
             List<Version> versions = GetVersions(metadata);
             return GetLatestVersion(versions);
@@ -369,7 +369,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         /// <returns> </returns>
         public Version? GetLatestVersion(List<Version> versions)
         {
-            if (versions != null && versions?.Count > 0)
+            if (versions?.Count > 0)
             {
                 Version? maxVersion = versions.Max();
                 return maxVersion;
@@ -424,7 +424,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         /// <param name="metadata"> </param>
         /// <param name="version"> </param>
         /// <returns> </returns>
-        public virtual List<Version> GetVersions(JsonDocument metadata)
+        public virtual List<Version> GetVersions(JsonDocument? metadata)
         {
             throw new NotImplementedException("BaseProjectManager does not implement GetVersions.");
         }

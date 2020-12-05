@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Microsoft.CST.OpenSource.Shared;
 using System.Threading.Tasks;
 using Octokit;
+using Functional.Maybe;
 
 using CSTRepository = Microsoft.CST.OpenSource.Model.Repository;
 using GHRepository = Octokit.Repository;
@@ -95,16 +96,23 @@ namespace Microsoft.CST.OpenSource.Model
         [JsonProperty(PropertyName = "url", NullValueHandling = NullValueHandling.Ignore)]
         public string? Uri { get; set; }
 
-        public async Task<CSTRepository?> GetGithubRepositoryMetadata(PackageURL purl)
+        public async Task<CSTRepository?> ExtractRepositoryMetadata(PackageURL purl)
         {
-            CSTRepository repository = new CSTRepository();
-            Purl = purl.ToString();
-
-            if (purl.Type != "github")
+            if (purl is not null && purl.ToString() is string purlString && !string.IsNullOrWhiteSpace(purlString))
             {
-                Logger.Warn("Only github repos are handled currently");
-                return repository;
+                if (purl.Type != "github")
+                {
+                    Logger.Warn("Only github repos are handled currently");
+                    return this;
+                }
+
+                return await FetchGithubRepositoryMetadata(purl);
             }
+            return null;
+        }
+
+        private async Task<CSTRepository> FetchGithubRepositoryMetadata(PackageURL purl)
+        {
             try
             {
                 var github = new GitHubClient(new ProductHeaderValue("OSSGadget"));
@@ -151,9 +159,9 @@ namespace Microsoft.CST.OpenSource.Model
             }
             catch (Exception ex)
             {
-                Logger.Warn($"Exception occurred while retrieving repository data: {ex.ToString()}");
+                Logger.Warn($"Exception occurred while retrieving repository data: {ex}");
             }
-            return repository;
+            return this;
         }
     }
 }

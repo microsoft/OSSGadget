@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+using Microsoft.CST.OpenSource.Model;
+using NLog.Targets;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,7 +14,8 @@ namespace Microsoft.CST.OpenSource.Shared
 {
     internal class NPMProjectManager : BaseProjectManager
     {
-        public static string ENV_NPM_ENDPOINT = "https://registry.npmjs.org";
+        public static string ENV_NPM_API_ENDPOINT = "https://registry.npmjs.org";
+        public static string ENV_NPM_ENDPOINT = "https://www.npmjs.com";
 
         public NPMProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
@@ -40,7 +43,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
             try
             {
-                var doc = await GetJsonCache($"{ENV_NPM_ENDPOINT}/{packageName}");
+                var doc = await GetJsonCache($"{ENV_NPM_API_ENDPOINT}/{packageName}");
                 var tarball = doc.RootElement.GetProperty("versions").GetProperty(packageVersion).GetProperty("dist").GetProperty("tarball").GetString();
                 var result = await WebClient.GetAsync(tarball);
                 result.EnsureSuccessStatusCode();
@@ -81,7 +84,7 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 var packageName = purl.Name;
-                var doc = await GetJsonCache($"{ENV_NPM_ENDPOINT}/{packageName}");
+                var doc = await GetJsonCache($"{ENV_NPM_API_ENDPOINT}/{packageName}");
                 var versionList = new List<string>();
 
                 foreach (var versionKey in doc.RootElement.GetProperty("versions").EnumerateObject())
@@ -110,7 +113,8 @@ namespace Microsoft.CST.OpenSource.Shared
         public JsonElement? GetLatestVersionElement(JsonDocument contentJSON)
         {
             List<Version> versions = GetVersions(contentJSON);
-            Version maxVersion = versions.Max();
+            Version? maxVersion = GetLatestVersion(versions);
+            if (maxVersion is null) { return null; }
             return GetVersionElement(contentJSON, maxVersion);
         }
 
@@ -119,7 +123,7 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 var packageName = purl.Name;
-                var content = await GetHttpStringCache($"{ENV_NPM_ENDPOINT}/{packageName}");
+                var content = await GetHttpStringCache($"{ENV_NPM_API_ENDPOINT}/{packageName}");
                 return content;
             }
             catch (Exception ex)
@@ -131,11 +135,191 @@ namespace Microsoft.CST.OpenSource.Shared
 
         public override Uri GetPackageAbsoluteUri(PackageURL purl)
         {
-            return new Uri($"{ENV_NPM_ENDPOINT}/package/{purl?.Name}");
+            return new Uri($"{ENV_NPM_API_ENDPOINT}/package/{purl?.Name}");
         }
 
-        public JsonElement? GetVersionElement(JsonDocument contentJSON, Version version)
+        /// <summary>
+        ///     Gets the structured metadata for the npm package
+        /// </summary>
+        /// <param name="purl"> </param>
+        /// <returns> </returns>
+        public override async Task<PackageMetadata> GetPackageMetadata(PackageURL purl)
         {
+            PackageMetadata metadata = new PackageMetadata();
+            string? content = await GetMetadata(purl);
+            if (string.IsNullOrEmpty(content)) { return metadata; }
+
+            // convert NPM package data to normalized form
+            JsonDocument contentJSON = JsonDocument.Parse(content);
+            JsonElement root = contentJSON.RootElement;
+
+            metadata.Name = root.GetProperty("name").GetString();
+            metadata.Description = root.GetProperty("description").GetString();
+
+            metadata.PackageManagerUri = ENV_NPM_ENDPOINT;
+            metadata.Platform = "NPM";
+            metadata.Language = "JavaScript";
+            metadata.Package_Uri = $"{metadata.PackageManagerUri}/package/{metadata.Name}";
+
+            var versions = GetVersions(contentJSON);
+            var latestVersion = GetLatestVersion(versions);
+
+            if (purl.Version != null)
+            {
+                // find the version object from the collection
+                metadata.PackageVersion = purl.Version;
+            }
+            else
+            {
+                metadata.PackageVersion = latestVersion is null ? purl.Version : latestVersion?.ToString();
+            }
+
+            // if we found any version at all, get the deets
+            if (metadata.PackageVersion is not null)
+            {
+                Version versionToGet = new Version(metadata.PackageVersion);
+                JsonElement? versionElement = GetVersionElement(contentJSON, versionToGet);
+                if (versionElement is not null)
+                {
+                    // redo the generic values to version specific values
+                    metadata.Package_Uri = $"{ENV_NPM_ENDPOINT}/package/{metadata.Name}";
+                    metadata.VersionUri = $"{ENV_NPM_ENDPOINT}/package/{metadata.Name}/v/{metadata.PackageVersion}";
+
+                    var distElement = Utilities.GetJSONPropertyIfExists(versionElement, "dist");
+                    if (distElement?.GetProperty("tarball") is JsonElement tarballElement)
+                    {
+                        metadata.VersionDownloadUri = tarballElement.ToString() ??
+                        $"{ENV_NPM_API_ENDPOINT}/{metadata.Name}/-/{metadata.Name}-{metadata.PackageVersion}.tgz";
+                    }
+
+                    if (distElement?.GetProperty("integrity") is JsonElement integrityElement &&
+                        integrityElement.ToString() is string integrity &&
+                        integrity.Split('-') is string[] pair &&
+                        pair.Length == 2)
+                    {
+                        metadata.Signature ??= new List<Digest>();
+                        metadata.Signature.Add(new Digest()
+                        {
+                            Algorithm = pair[0],
+                            Signature = pair[1]
+                        });
+                    }
+                    // size
+                    if (Utilities.GetJSONPropertyIfExists(distElement, "unpackedSize") is JsonElement sizeElement &&
+                        sizeElement.GetInt64() is long size)
+                    {
+                        metadata.Size = size;
+                    }
+
+                    // commit id
+                    if (Utilities.GetJSONPropertyStringIfExists(versionElement, "gitHead") is string gitHead &&
+                        !string.IsNullOrWhiteSpace(gitHead))
+                    {
+                        metadata.CommitId = gitHead;
+                    }
+
+                    // install scripts
+                    {
+                        if (Utilities.GetJSONEnumerator(Utilities.GetJSONPropertyIfExists(versionElement, "scripts"))
+                            is JsonElement.ArrayEnumerator enumerator &&
+                            enumerator.Any())
+                        {
+                            metadata.Scripts ??= new List<Command>();
+                            enumerator.ToList().ForEach((element) => metadata.Scripts.Add(new Command { CommandLine = element.ToString() }));
+                        }
+                    }
+
+                    // dependencies
+                    var dependencies = Utilities.ConvertJSONToList(Utilities.GetJSONPropertyIfExists(versionElement, "dependencies"));
+                    if (dependencies is not null && dependencies.Count > 0)
+                    {
+                        metadata.Dependencies ??= new List<Dependency>();
+                        dependencies.ForEach((dependency) => metadata.Dependencies.Add(new Dependency() { Package = dependency }));
+                    }
+
+                    // author(s)
+                    var authorElement = Utilities.GetJSONPropertyIfExists(versionElement, "author");
+                    User author = new User();
+                    if (authorElement is not null)
+                    {
+                        author.Name = Utilities.GetJSONPropertyStringIfExists(authorElement, "name");
+                        author.Email = Utilities.GetJSONPropertyStringIfExists(authorElement, "email");
+                        author.Url = Utilities.GetJSONPropertyStringIfExists(authorElement, "url");
+
+                        metadata.Authors ??= new List<User>();
+                        metadata.Authors.Add(author);
+                    }
+
+                    // maintainers
+                    {
+                        var maintainersElement = Utilities.GetJSONPropertyIfExists(versionElement, "maintainers");
+                        if (maintainersElement?.EnumerateArray() is JsonElement.ArrayEnumerator enumerator)
+                        {
+                            metadata.Maintainers ??= new List<User>();
+                            enumerator.ToList().ForEach((element) =>
+                            {
+                                metadata.Maintainers.Add(
+                                    new User
+                                    {
+                                        Name = Utilities.GetJSONPropertyStringIfExists(element, "name"),
+                                        Email = Utilities.GetJSONPropertyStringIfExists(element, "email"),
+                                        Url = Utilities.GetJSONPropertyStringIfExists(element, "url")
+                                    });
+                            });
+                        }
+                    }
+
+                    // repository
+                    var repoMappings = await SearchRepoUrlsInPackageMetadata(purl, content);
+                    foreach (var repoMapping in repoMappings)
+                    {
+                        Repository repository = new Repository
+                        {
+                            Rank = repoMapping.Value,
+                            Type = repoMapping.Key.Type
+                        };
+                        await repository.ExtractRepositoryMetadata(repoMapping.Key);
+
+                        metadata.Repository ??= new List<Repository>();
+                        metadata.Repository.Add(repository);
+                    }
+
+                    // keywords
+                    metadata.Keywords = Utilities.ConvertJSONToList(Utilities.GetJSONPropertyIfExists(versionElement, "keywords"));
+
+                    // licenses
+                    {
+                        if (Utilities.GetJSONEnumerator(Utilities.GetJSONPropertyIfExists(versionElement, "licenses"))
+                                is JsonElement.ArrayEnumerator enumeratorElement &&
+                                enumeratorElement.ToList() is List<JsonElement> enumerator &&
+                                enumerator.Any())
+                        {
+                            metadata.Licenses ??= new List<License>();
+                            // TODO: Convert/append SPIX_ID values?
+                            enumerator.ForEach((license) =>
+                            {
+                                metadata.Licenses.Add(new License()
+                                {
+                                    Name = Utilities.GetJSONPropertyStringIfExists(license, "type"),
+                                    Url = Utilities.GetJSONPropertyStringIfExists(license, "url")
+                                });
+                            });
+                        }
+                    }
+                }
+            }
+
+            if (latestVersion is not null)
+            {
+                metadata.LatestPackageVersion = latestVersion.ToString();
+            }
+
+            return metadata;
+        }
+
+        public override JsonElement? GetVersionElement(JsonDocument? contentJSON, Version version)
+        {
+            if (contentJSON is null) { return null; }
             JsonElement root = contentJSON.RootElement;
 
             try
@@ -155,9 +339,11 @@ namespace Microsoft.CST.OpenSource.Shared
             return null;
         }
 
-        public List<Version> GetVersions(JsonDocument contentJSON)
+        public override List<Version> GetVersions(JsonDocument? contentJSON)
         {
             List<Version> allVersions = new List<Version>();
+            if (contentJSON is null) { return allVersions; }
+
             JsonElement root = contentJSON.RootElement;
             try
             {
@@ -180,11 +366,23 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <returns>
         ///     A dictionary, mapping each possible repo source entry to its probability/empty dictionary
         /// </returns>
-        protected async override Task<Dictionary<PackageURL, double>> PackageMetadataSearch(PackageURL purl,
+
+        protected async override Task<Dictionary<PackageURL, double>> SearchRepoUrlsInPackageMetadata(PackageURL purl,
             string metadata)
         {
+            if (string.IsNullOrEmpty(metadata))
+            {
+                return new Dictionary<PackageURL, double>();
+            }
+            JsonDocument contentJSON = JsonDocument.Parse(metadata);
+            return await SearchRepoUrlsInPackageMetadata(purl, contentJSON);
+        }
+
+        protected async Task<Dictionary<PackageURL, double>> SearchRepoUrlsInPackageMetadata(PackageURL purl,
+            JsonDocument contentJSON)
+        {
             var mapping = new Dictionary<PackageURL, double>();
-            if (purl?.Name is string purlName && (purlName.StartsWith('_') || npm_internal_modules.Contains(purlName)))
+            if (purl.Name is string purlName && (purlName.StartsWith('_') || npm_internal_modules.Contains(purlName)))
             {
                 // url = 'https://github.com/nodejs/node/tree/master/lib' + package.name,
 
@@ -192,11 +390,6 @@ namespace Microsoft.CST.OpenSource.Shared
                     null, null, "node/tree/master/lib"), 1.0F);
                 return mapping;
             }
-            if (string.IsNullOrEmpty(metadata))
-            {
-                return mapping;
-            }
-            JsonDocument contentJSON = JsonDocument.Parse(metadata);
 
             // if a version is provided, search that JSONElement, otherwise, just search the latest version,
             // which is more likely best maintained
@@ -210,11 +403,11 @@ namespace Microsoft.CST.OpenSource.Shared
                 try
                 {
                     JsonElement repositoryJSON = notNullVersionJSON.GetProperty("repository");
-                    string repoType = repositoryJSON.GetProperty("type").ToString().ToLower();
-                    string repoURL = repositoryJSON.GetProperty("url").ToString();
+                    string? repoType = Utilities.GetJSONPropertyStringIfExists(repositoryJSON, "type")?.ToLower();
+                    string? repoURL = Utilities.GetJSONPropertyStringIfExists(repositoryJSON, "url");
 
                     // right now we deal with only github repos
-                    if (repoType == "git")
+                    if (repoType == "git" && repoURL is not null)
                     {
                         PackageURL gitPURL = GitHubProjectManager.ParseUri(new Uri(repoURL));
                         // we got a repository value the author specified in the metadata - so no further

@@ -10,7 +10,7 @@
     <RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>
     <Configurations>Debug;Release</Configurations>
     <AssemblyName>Shared</AssemblyName>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>9.0</LangVersion>
     <Nullable>Enable</Nullable>
   </PropertyGroup>
 
@@ -28,6 +28,7 @@
     <PackageReference Include="AngleSharp" Version="1.0.0-alpha-827" />
     <PackageReference Include="CommandLineParser" Version="2.9.0-preview1" />
     <PackageReference Include="F23.StringSimilarity" Version="3.1.0" />
+    <PackageReference Include="Functional.Maybe" Version="2.0.20" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.24" />
     <PackageReference Include="LibGit2Sharp" Version="0.27.0-preview-0034" />
     <PackageReference Include="Microsoft.CST.RecursiveExtractor" Version="1.0.36" />
@@ -35,6 +36,7 @@
     <PackageReference Include="NLog" Version="4.7.4" />
     <PackageReference Include="NLog.Schema" Version="4.7.4" />
     <PackageReference Include="NuGet.Versioning" Version="5.8.0-preview.2.6776" />
+    <PackageReference Include="Octokit" Version="0.48.0" />
     <PackageReference Include="Sarif.Sdk" Version="2.3.4" />
     <PackageReference Include="SemanticVersioning" Version="1.2.2" />
     <PackageReference Include="sharpcompress" Version="0.26.0" />

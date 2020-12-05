@@ -28,6 +28,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "oss-risk-calculator", "oss-
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "oss-tests", "oss-tests\oss-tests.csproj", "{812DF4A5-057B-4227-A3E8-4DFF67DBE07A}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "oss-metadata", "oss-metadata\oss-metadata.csproj", "{7E9A489A-B502-4622-A34C-EF507E18DFEB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -73,6 +75,10 @@ Global
 		{812DF4A5-057B-4227-A3E8-4DFF67DBE07A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{812DF4A5-057B-4227-A3E8-4DFF67DBE07A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{812DF4A5-057B-4227-A3E8-4DFF67DBE07A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E9A489A-B502-4622-A34C-EF507E18DFEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E9A489A-B502-4622-A34C-EF507E18DFEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E9A489A-B502-4622-A34C-EF507E18DFEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E9A489A-B502-4622-A34C-EF507E18DFEB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

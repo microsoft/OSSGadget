@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using F23.StringSimilarity;
+using Microsoft.CST.OpenSource.Model;
 using Microsoft.CST.RecursiveExtractor;
 using Microsoft.Extensions.Caching.Memory;
 using System;
@@ -12,6 +13,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Version = SemVer.Version;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
@@ -330,7 +332,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
                 {
                     fullPath = fullPath.Replace(c, '-');    // ignore: lgtm [cs/string-concatenation-in-loop]
                 }
-                
+
                 var filePathToWrite = Path.Combine(TopLevelExtractionDirectory, fullPath);
                 filePathToWrite = filePathToWrite.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
 
@@ -347,6 +349,32 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
             Logger.Debug("Archive extracted to {0}", fullExtractionPath);
 
             return fullExtractionPath;
+        }
+
+        /// <summary>
+        ///     Gets the latest version from the package metadata
+        /// </summary>
+        /// <param name="metadata"> </param>
+        /// <returns> </returns>
+        public Version? GetLatestVersion(JsonDocument? metadata)
+        {
+            List<Version> versions = GetVersions(metadata);
+            return GetLatestVersion(versions);
+        }
+
+        /// <summary>
+        ///     overload for getting the latest version
+        /// </summary>
+        /// <param name="versions"> </param>
+        /// <returns> </returns>
+        public Version? GetLatestVersion(List<Version> versions)
+        {
+            if (versions?.Count > 0)
+            {
+                Version? maxVersion = versions.Max();
+                return maxVersion;
+            }
+            return null;
         }
 
         /// <summary>
@@ -370,6 +398,38 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         }
 
         /// <summary>
+        ///     Return a normalized package metadata.
+        /// </summary>
+        /// <param name="purl"> </param>
+        /// <returns> </returns>
+        public virtual Task<PackageMetadata> GetPackageMetadata(PackageURL purl)
+        {
+            throw new NotImplementedException("BaseProjectManager does not implement GetPackageMetadata.");
+        }
+
+        /// <summary>
+        ///     Gets everything contained in a JSON element for the package version
+        /// </summary>
+        /// <param name="metadata"> </param>
+        /// <param name="version"> </param>
+        /// <returns> </returns>
+        public virtual JsonElement? GetVersionElement(JsonDocument contentJSON, Version version)
+        {
+            throw new NotImplementedException("BaseProjectManager does not implement GetVersions.");
+        }
+
+        /// <summary>
+        ///     Gets all the versions of a package
+        /// </summary>
+        /// <param name="metadata"> </param>
+        /// <param name="version"> </param>
+        /// <returns> </returns>
+        public virtual List<Version> GetVersions(JsonDocument? metadata)
+        {
+            throw new NotImplementedException("BaseProjectManager does not implement GetVersions.");
+        }
+
+        /// <summary>
         ///     Tries to find out the package repository from the metadata of the package. Check with the
         ///     specific package manager, if they have any specific extraction to do, w.r.t the metadata. If
         ///     they found some package specific well defined metadata, use that. If that doesn't work, do a
@@ -389,7 +449,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
             // Check the specific PackageManager-specific implementation first
             try
             {
-                foreach (var result in await PackageMetadataSearch(purl, rawMetadataString))
+                foreach (var result in await SearchRepoUrlsInPackageMetadata(purl, rawMetadataString))
                 {
                     sourceRepositoryMap.Add(result.Key, result.Value);
                 }
@@ -483,7 +543,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         ///     result for the package repository, or return a null in case of failure/nothing to do.
         /// </summary>
         /// <returns> </returns>
-        protected virtual Task<Dictionary<PackageURL, double>> PackageMetadataSearch(PackageURL purl, string metadata)
+        protected virtual Task<Dictionary<PackageURL, double>> SearchRepoUrlsInPackageMetadata(PackageURL purl, string metadata)
         {
             return Task.FromResult(new Dictionary<PackageURL, double>());
         }

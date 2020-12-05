@@ -83,8 +83,7 @@ namespace Microsoft.CST.OpenSource
                 LogFileLevel = "Off",
                 SourcePath = directory,
                 IgnoreDefaultRules = options.DisableDefaultRules == true,
-                CustomRulesPath = options.CustomRuleDirectory,
-                
+                CustomRulesPath = options.CustomRuleDirectory
             };
 
             try
@@ -235,7 +234,7 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        private async Task RunAsync(Options options)
+        public async Task RunAsync(Options options)
         {
             // select output destination and format
             SelectOutput(options.OutputFile);

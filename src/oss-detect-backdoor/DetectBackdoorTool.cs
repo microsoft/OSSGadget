@@ -29,6 +29,14 @@ namespace Microsoft.CST.OpenSource
                             HelpText = "the directory to download the package to.")]
             public string DownloadDirectory { get; set; } = ".";
 
+            [Option('f', "format", Required = false, Default = "text",
+                HelpText = "selct the output format(text|sarifv1|sarifv2)")]
+            public string Format { get; set; } = "text";
+
+            [Option('o', "output-file", Required = false, Default = "",
+                HelpText = "send the command output to a file instead of stdout")]
+            public string OutputFile { get; set; } = "";
+
             [Value(0, Required = true,
                 HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze
             public IEnumerable<string>? Targets { get; set; }
@@ -40,12 +48,13 @@ namespace Microsoft.CST.OpenSource
 
         public DetectBackdoorTool() : base()
         {
+            RULE_DIRECTORY = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "BackdoorRules");
         }
 
         /// <summary>
         ///     Location of the backdoor detection rules.
         /// </summary>
-        private const string RULE_DIRECTORY = @"Resources\BackdoorRules";
+        private string RULE_DIRECTORY { get; set; }
 
         /// <summary>
         ///     Main entrypoint for the download program.
@@ -68,22 +77,10 @@ namespace Microsoft.CST.OpenSource
                 cOptions.CustomRuleDirectory = RULE_DIRECTORY;
                 cOptions.DownloadDirectory = options.DownloadDirectory;
                 cOptions.UseCache = options.UseCache;
+                cOptions.Format = options.Format;
+                cOptions.OutputFile = options.OutputFile;
 
-                foreach (var target in targetList)
-                {
-                    try
-                    {
-                        var purl = new PackageURL(target);
-                        string downloadDirectory = options.DownloadDirectory == "." ? Directory.GetCurrentDirectory() : options.DownloadDirectory;
-                        characteristicTool.AnalyzePackage(cOptions, purl,
-                            downloadDirectory,
-                            options.UseCache == true).Wait();
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Warn(ex, "Error processing {0}: {1}", target, ex.Message);
-                    }
-                }
+                characteristicTool.RunAsync(cOptions).Wait();
             }
         }
     }

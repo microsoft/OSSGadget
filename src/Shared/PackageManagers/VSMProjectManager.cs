@@ -58,7 +58,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     var response = await WebClient.SendAsync(requestMessage);
                     resultStream = await response.Content.ReadAsStreamAsync();
 
-                    using var resultStreamReader = new StreamReader(resultStream);
+                    using var resultStreamReader = new StreamReader(resultStream, leaveOpen: true);
                     SetCache(packageName, resultStreamReader.ReadToEnd());
                     resultStream.Seek(0, SeekOrigin.Begin);
                 }
@@ -190,6 +190,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     SetCache(packageName, resultStreamReader.ReadToEnd());
                     resultStream.Seek(0, SeekOrigin.Begin);
                 }
+                
                 var doc = await JsonDocument.ParseAsync(resultStream);
                 await resultStream.DisposeAsync();
 

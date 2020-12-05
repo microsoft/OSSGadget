@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Version = SemVer.Version;
@@ -426,7 +427,10 @@ namespace Microsoft.CST.OpenSource.Shared
             return mapping;
         }
 
-        private static readonly List<string> npm_internal_modules = new List<string>()
+        /// <summary>
+        ///     Internal Node.js modules that should be ignored when searching metadata.
+        /// </summary>
+        private static readonly List<string> NODEJS_INTERNAL_MODULES = new List<string>()
         {
             "assert",
             "async_hooks",

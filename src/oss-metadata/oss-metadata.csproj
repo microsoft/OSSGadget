@@ -4,26 +4,28 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>Microsoft.CST.OpenSource</RootNamespace>
+    <Nullable>warnings</Nullable>
+    <Authors>Suraj Jacob</Authors>
     <Company>Microsoft Corporation</Company>
-    <Description>OSS Gadget - Package Downloader</Description>
-    <Authors>Michael Scovetta</Authors>
-    <RepositoryType>GitHub</RepositoryType>
-    <RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>
-    <StartupObject>Microsoft.CST.OpenSource.DownloadTool</StartupObject>
+    <Description>OSS Gadget - Package Metadata Collector</Description>
     <LangVersion>9.0</LangVersion>
-    <Nullable>Enable</Nullable>
+    <RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>
+    <RepositoryType>Github</RepositoryType>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <NoWarn>1701;1702</NoWarn>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <Optimize>false</Optimize>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.9.0-preview1" />
-    <PackageReference Include="System.Console" Version="4.3.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Shared\Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.2.31" />
   </ItemGroup>
 </Project>

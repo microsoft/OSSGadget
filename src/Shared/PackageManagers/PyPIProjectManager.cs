@@ -1,11 +1,17 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+using Microsoft.CST.OpenSource.Model;
+using Octokit;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using License = Microsoft.CST.OpenSource.Model.License;
+using Repository = Microsoft.CST.OpenSource.Model.Repository;
+using User = Microsoft.CST.OpenSource.Model.User;
+using Version = SemVer.Version;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
@@ -114,7 +120,8 @@ namespace Microsoft.CST.OpenSource.Shared
                     info.TryGetProperty("version", out JsonElement version))
                 {
                     Logger.Debug("Identified {0} version {1}.", packageName, version.GetString());
-                    versionList.Add(version.GetString());
+                    if (version.GetString() is string versionString && !string.IsNullOrWhiteSpace(versionString))
+                        versionList.Add(versionString);
                 }
 
                 return SortVersions(versionList.Distinct());
@@ -139,12 +146,151 @@ namespace Microsoft.CST.OpenSource.Shared
             }
         }
 
+        public override async Task<PackageMetadata> GetPackageMetadata(PackageURL purl)
+        {
+            PackageMetadata metadata = new PackageMetadata();
+            string? content = await GetMetadata(purl);
+            if (string.IsNullOrEmpty(content)) { return metadata; }
+
+            // convert NPM package data to normalized form
+            JsonDocument contentJSON = JsonDocument.Parse(content);
+            JsonElement root = contentJSON.RootElement;
+
+            JsonElement infoElement = root.GetProperty("info");
+
+            metadata.Name = Utilities.GetJSONPropertyStringIfExists(infoElement, "name");
+            metadata.Description = Utilities.GetJSONPropertyStringIfExists(infoElement, "description");
+            string? summary = Utilities.GetJSONPropertyStringIfExists(infoElement, "summary");
+            if (summary?.Length > metadata.Description?.Length)
+            { // longer string might be the actual description
+                metadata.Description = summary;
+            }
+            metadata.PackageManagerUri = ENV_PYPI_ENDPOINT;
+            metadata.Package_Uri = Utilities.GetJSONPropertyStringIfExists(infoElement, "package_url");
+            metadata.Keywords = Utilities.ConvertJSONToList(Utilities.GetJSONPropertyIfExists(infoElement, "keywords"));
+
+            // author
+            User author = new User()
+            {
+                Name = Utilities.GetJSONPropertyStringIfExists(infoElement, "author"),
+                Email = Utilities.GetJSONPropertyStringIfExists(infoElement, "author_email"),
+            };
+            metadata.Authors ??= new List<Model.User>();
+            metadata.Authors.Add(author);
+
+            // maintainers
+            User maintainer = new User()
+            {
+                Name = Utilities.GetJSONPropertyStringIfExists(infoElement, "maintainer"),
+                Email = Utilities.GetJSONPropertyStringIfExists(infoElement, "maintainer_email"),
+            };
+            metadata.Maintainers ??= new List<User>();
+            metadata.Maintainers.Add(maintainer);
+
+            // repository
+            var repoMappings = await SearchRepoUrlsInPackageMetadata(purl, content);
+            foreach (var repoMapping in repoMappings)
+            {
+                Repository repository = new Repository
+                {
+                    Rank = repoMapping.Value,
+                    Type = repoMapping.Key.Type
+                };
+                await repository.ExtractRepositoryMetadata(repoMapping.Key);
+
+                metadata.Repository ??= new List<Repository>();
+                metadata.Repository.Add(repository);
+            }
+
+            // license
+            var licenseType = Utilities.GetJSONPropertyStringIfExists(infoElement, "license");
+            if (!string.IsNullOrWhiteSpace(licenseType))
+            {
+                metadata.Licenses ??= new List<License>();
+                metadata.Licenses.Add(new License()
+                {
+                    Name = licenseType
+                });
+            }
+
+            // get the version
+            var versions = GetVersions(contentJSON);
+            var latestVersion = GetLatestVersion(versions);
+
+            if (purl.Version != null)
+            {
+                // find the version object from the collection
+                metadata.PackageVersion = purl.Version;
+            }
+            else
+            {
+                metadata.PackageVersion = latestVersion is null ? purl.Version : latestVersion?.ToString();
+            }
+
+            // if we found any version at all, get the deets
+            if (metadata.PackageVersion is not null)
+            {
+                Version versionToGet = new Version(metadata.PackageVersion);
+                JsonElement? versionElement = GetVersionElement(contentJSON, versionToGet);
+                if (versionElement is not null)
+                {
+                    // fill the version specific entries
+
+                    // digests
+                    if (Utilities.GetJSONPropertyIfExists(versionElement, "digests")?.EnumerateObject()
+                        is JsonElement.ObjectEnumerator digests)
+                    {
+                        metadata.Signature ??= new List<Digest>();
+                        foreach (var digest in digests)
+                        {
+                            metadata.Signature.Add(new Digest()
+                            {
+                                Algorithm = digest.Name,
+                                Signature = digest.Value.ToString()
+                            });
+                        }
+                    }
+
+                    // downloads
+                    if (Utilities.GetJSONPropertyIfExists(versionElement, "downloads")?.GetInt64() is long downloads
+                        && downloads != -1)
+                    {
+                        metadata.Downloads ??= new Downloads()
+                        {
+                            Overall = downloads
+                        };
+                    }
+
+                    metadata.Size = Utilities.GetJSONPropertyIfExists(versionElement, "size")?.GetInt64();
+                    metadata.UploadTime = Utilities.GetJSONPropertyStringIfExists(versionElement, "upload_time");
+                    metadata.Active = !Utilities.GetJSONPropertyIfExists(versionElement, "yanked")?.GetBoolean();
+                    metadata.VersionUri = $"{ENV_PYPI_ENDPOINT}/project/{purl.Name}/{purl.Version}";
+                    metadata.VersionDownloadUri = Utilities.GetJSONPropertyStringIfExists(versionElement, "url");
+                }
+            }
+
+            return metadata;
+        }
+
+        public override JsonElement? GetVersionElement(JsonDocument contentJSON, Version version)
+        {
+            try
+            {
+                var versionElement = contentJSON.RootElement.GetProperty("releases").GetProperty(version.ToString());
+                return versionElement;
+            }
+            catch (KeyNotFoundException)
+            {
+                return null;
+            }
+        }
+
         public override Uri GetPackageAbsoluteUri(PackageURL purl)
         {
             return new Uri($"{ENV_PYPI_ENDPOINT}/project/{purl?.Name}");
         }
 
-        protected async override Task<Dictionary<PackageURL, double>> PackageMetadataSearch(PackageURL purl, string metadata)
+        protected async override Task<Dictionary<PackageURL, double>> SearchRepoUrlsInPackageMetadata(PackageURL purl, string metadata)
         {
             var mapping = new Dictionary<PackageURL, double>();
             if (purl.Name?.StartsWith('_') ?? false) // TODO: there are internal modules which do not start with _

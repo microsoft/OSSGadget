@@ -94,9 +94,11 @@ namespace Microsoft.CST.OpenSource.Shared
                     versionList.Add(versionKey.Name);
                 }
                 var latestVersion = doc.RootElement.GetProperty("dist-tags").GetProperty("latest").GetString();
-                Logger.Debug("Identified {0} version {1}.", packageName, latestVersion);
-                versionList.Add(latestVersion);
-
+                if (!string.IsNullOrWhiteSpace(latestVersion))
+                {
+                    Logger.Debug("Identified {0} version {1}.", packageName, latestVersion);
+                    versionList.Add(latestVersion);
+                }
                 return SortVersions(versionList.Distinct());
             }
             catch (Exception ex)

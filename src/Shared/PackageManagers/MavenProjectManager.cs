@@ -88,7 +88,10 @@ namespace Microsoft.CST.OpenSource.Shared
                 var packageName = purl?.Name;
                 var content = await GetHttpStringCache($"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/maven-metadata.xml");
                 var versionList = new List<string>();
-
+                if (string.IsNullOrWhiteSpace(content))
+                {
+                    return new List<string>();
+                }
                 var doc = new XmlDocument();
                 doc.LoadXml(content);
                 foreach (XmlNode? versionObject in doc.GetElementsByTagName("version"))

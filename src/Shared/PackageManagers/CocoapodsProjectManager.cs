@@ -63,7 +63,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     var sourceGitString = sourceGit.GetString();
                     var sourceTagString = sourceTag.GetString();
 
-                    if (sourceGitString.EndsWith(".git"))
+                    if (!string.IsNullOrWhiteSpace(sourceGitString) && sourceGitString.EndsWith(".git"))
                     {
                         sourceGitString = sourceGitString[0..^4];
                     }

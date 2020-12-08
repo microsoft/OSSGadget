@@ -93,7 +93,7 @@ namespace Microsoft.CST.OpenSource.Shared
                             {
                                 continue;
                             }
-                            if (!versionString.GetString().Equals(packageVersion))
+                            if (versionString.GetString() is string v && !v.Equals(packageVersion))
                             {
                                 continue;
                             }
@@ -190,7 +190,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     SetCache(packageName, resultStreamReader.ReadToEnd());
                     resultStream.Seek(0, SeekOrigin.Begin);
                 }
-                
+
                 var doc = await JsonDocument.ParseAsync(resultStream);
                 await resultStream.DisposeAsync();
 

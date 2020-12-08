@@ -91,10 +91,13 @@ namespace Microsoft.CST.OpenSource.Shared
                     if (gemObject.TryGetProperty("number", out JsonElement version))
                     {
                         var vString = version.ToString();
-                        // RubyGems is mostly-semver-compliant
-                        vString = Regex.Replace(vString, @"(\d)pre", @"$1-pre");
-                        Logger.Debug("Identified {0} version {1}.", packageName, vString);
-                        versionList.Add(vString);
+                        if (!string.IsNullOrWhiteSpace(vString))
+                        {
+                            // RubyGems is mostly-semver-compliant
+                            vString = Regex.Replace(vString, @"(\d)pre", @"$1-pre");
+                            Logger.Debug("Identified {0} version {1}.", packageName, vString);
+                            versionList.Add(vString);
+                        }
                     }
                 }
                 return SortVersions(versionList.Distinct());

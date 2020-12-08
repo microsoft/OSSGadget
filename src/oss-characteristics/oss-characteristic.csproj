@@ -11,13 +11,13 @@
     <RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>
     <StartupObject>Microsoft.CST.OpenSource.CharacteristicTool</StartupObject>
     <Configurations>Debug;Release</Configurations>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>9.0</LangVersion>
     <Nullable>Enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.9.0-preview1" />
-    <PackageReference Include="Microsoft.CST.ApplicationInspector.Commands" Version="1.2.59" />
+    <PackageReference Include="Microsoft.CST.ApplicationInspector.Commands" Version="1.2.87" />
   </ItemGroup>
 
   <ItemGroup>

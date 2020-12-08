@@ -56,7 +56,16 @@ namespace Microsoft.CST.OpenSource.Tests
 
             Assert.IsNotNull(sarif);
             Assert.IsNotNull(sarif.Runs.FirstOrDefault().Tool.Driver.Name);
-            Assert.AreEqual(sarif.Runs.FirstOrDefault().Results.FirstOrDefault().Message.Text, targetResult);
+            // make sure atleast one of the result repos match the actual one
+            bool found = false;
+            foreach (var result in sarif.Runs.FirstOrDefault().Results)
+            {
+                if (result.Message.Text == targetResult)
+                {
+                    found = true;
+                }
+            }
+            Assert.IsTrue(found);
         }
 
         [DataTestMethod]

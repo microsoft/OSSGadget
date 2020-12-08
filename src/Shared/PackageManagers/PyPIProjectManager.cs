@@ -161,7 +161,7 @@ namespace Microsoft.CST.OpenSource.Shared
             metadata.Name = Utilities.GetJSONPropertyStringIfExists(infoElement, "name");
             metadata.Description = Utilities.GetJSONPropertyStringIfExists(infoElement, "description");
             string? summary = Utilities.GetJSONPropertyStringIfExists(infoElement, "summary");
-            if (summary?.Length > metadata.Description?.Length)
+            if (string.IsNullOrWhiteSpace(metadata.Description))
             { // longer string might be the actual description
                 metadata.Description = summary;
             }

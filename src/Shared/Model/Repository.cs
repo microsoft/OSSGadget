@@ -110,7 +110,7 @@ namespace Microsoft.CST.OpenSource.Model
             return null;
         }
 
-        private async Task<CSTRepository> FetchGithubRepositoryMetadata(PackageURL purl)
+        private async Task<CSTRepository?> FetchGithubRepositoryMetadata(PackageURL purl)
         {
             try
             {

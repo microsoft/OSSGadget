@@ -309,7 +309,7 @@ namespace Microsoft.CST.OpenSource.Shared
                         var candidate = ExtractGitHubPackageURLs(repoCandidate).FirstOrDefault();
                         if (candidate != null)
                         {
-                            mapping.Add((PackageURL)candidate, 1.0F);
+                            mapping.Add(candidate as PackageURL, 1.0F);
                             
                         }
                     }
@@ -319,7 +319,6 @@ namespace Microsoft.CST.OpenSource.Shared
             catch (Exception ex)
             {
                 Logger.Error(ex, $"Error fetching/parsing NuGet homepage: {ex.Message}");
-                return mapping;
             }
 
             // if nothing worked, return empty

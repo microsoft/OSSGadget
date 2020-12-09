@@ -98,7 +98,10 @@ namespace Microsoft.CST.OpenSource.Shared
                     if (versionObject.TryGetProperty("num", out JsonElement version))
                     {
                         Logger.Debug("Identified {0} version {1}.", packageName, version.ToString());
-                        versionList.Add(version.ToString());
+                        if (version.ToString() is string s)
+                        {
+                            versionList.Add(s);
+                        }
                     }
                 }
                 return SortVersions(versionList.Distinct());

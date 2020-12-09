@@ -323,7 +323,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
                 Parallel = true
                 //MaxExtractedBytes = 1000 * 1000 * 10;  // 10 MB maximum package size
             };
-            foreach (var fileEntry in extractor.ExtractFile(directoryName, bytes, extractorOptions))
+            foreach (var fileEntry in extractor.Extract(directoryName, bytes, extractorOptions))
             {
                 var fullPath = fileEntry.FullPath.Replace(':', Path.DirectorySeparatorChar);
 
@@ -336,7 +336,10 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
                 var filePathToWrite = Path.Combine(TopLevelExtractionDirectory, fullPath);
                 filePathToWrite = filePathToWrite.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
 
-                Directory.CreateDirectory(Path.GetDirectoryName(filePathToWrite));
+                if (Path.GetDirectoryName(filePathToWrite) is string dir && !string.IsNullOrWhiteSpace(dir))
+                {
+                    Directory.CreateDirectory(dir);
+                }
                 if (!Directory.Exists(fullPath))
                 {
                     using var fs = File.Open(filePathToWrite, FileMode.Append);

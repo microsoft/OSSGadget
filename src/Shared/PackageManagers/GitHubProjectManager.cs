@@ -88,7 +88,8 @@ namespace Microsoft.CST.OpenSource.Shared
             var packageName = purl?.Name;
             var packageVersion = purl?.Version;
 
-            if (string.IsNullOrWhiteSpace(packageNamespace) || string.IsNullOrWhiteSpace(packageName))
+            if (string.IsNullOrWhiteSpace(packageNamespace) || string.IsNullOrWhiteSpace(packageName)
+                || string.IsNullOrWhiteSpace(packageVersion))
             {
                 Logger.Error("Unable to download [{0} {1}]. Both must be defined.", packageNamespace, packageName);
                 return downloadedPaths;
@@ -116,11 +117,8 @@ namespace Microsoft.CST.OpenSource.Shared
                 Repository.Clone(url, workingDirectory);
 
                 var repo = new Repository(workingDirectory);
-                if (!string.IsNullOrWhiteSpace(packageVersion))
-                {
-                    Commands.Checkout(repo, packageVersion);
-                    downloadedPaths.Add(workingDirectory);
-                }
+                Commands.Checkout(repo, packageVersion);
+                downloadedPaths.Add(workingDirectory);
                 repo.Dispose();
             }
             catch (LibGit2Sharp.NotFoundException ex)

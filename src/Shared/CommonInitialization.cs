@@ -46,6 +46,10 @@ namespace Microsoft.CST.OpenSource.Shared
             };
 #pragma warning restore CA2000
 
+            if (handler.SupportsAutomaticDecompression)
+            {
+                handler.AutomaticDecompression = System.Net.DecompressionMethods.All;
+            }
             WebClient = new HttpClient(handler);
             WebClient.DefaultRequestHeaders.UserAgent.ParseAdd(ENV_HTTPCLIENT_USER_AGENT);
 

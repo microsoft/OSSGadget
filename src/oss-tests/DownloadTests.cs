@@ -121,6 +121,7 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataTestMethod]
         [DataRow("pkg:nuget/RandomType@2.0.0", "RandomType.nuspec", 1)]
         [DataRow("pkg:nuget/d3.TypeScript.DefinitelyTyped", "d3.TypeScript.DefinitelyTyped.nuspec", 1)]
+        [DataRow("pkg:nuget/boxer@0.1.0-preview1", "boxer.nuspec", 1)]
         public async Task NuGet_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
         {
             await TestDownload(purl, targetFilename, expectedDirectoryCount);

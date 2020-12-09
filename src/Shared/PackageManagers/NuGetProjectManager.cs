@@ -66,7 +66,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 Logger.Warn(ex, "Error parsing NuGet API endpoint: {0}", ex.Message);
             }
             RegistrationEndpoint = NUGET_DEFAULT_REGISTRATION_ENDPOINT;
-            return NUGET_DEFAULT_REGISTRATION_ENDPOINT;
+            return RegistrationEndpoint;
         }
 
         /// <summary>

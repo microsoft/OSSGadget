@@ -2,7 +2,7 @@
   {
     "name": "LOLBAS: Windows Indicator",
     "id": "BD000600",
-    "description": "Backdoor: CFDUID",
+    "description": "Backdoor: LOLBAS: Windows Indicator",
     "tags": [
       "Security.Backdoor.LOLBAS.Windows"
     ],

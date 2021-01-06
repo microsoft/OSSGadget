@@ -180,7 +180,8 @@ namespace Microsoft.CST.OpenSource
             { "download-directory", null },
             { "use-cache", false },
             { "save-found-binaries-to", null },
-            { "save-archives-to", null }
+            { "save-archives-to", null },
+            { "save-blobs-to", null }
         };
 
         /// <summary>
@@ -189,6 +190,7 @@ namespace Microsoft.CST.OpenSource
         public IList<EncodedString> Findings { get; private set; }
         public List<EncodedBinary> BinaryFindings { get; }
         public List<EncodedArchive> ArchiveFindings { get; }
+        public List<EncodedBlob> NonTextFindings { get; private set; }
 
 
         /// <summary>
@@ -214,6 +216,23 @@ namespace Microsoft.CST.OpenSource
             public EncodedString(EncodedStringType Type, string Filename, string EncodedText, string DecodedText)
             {
                 this.Type = Type;
+                this.Filename = Filename;
+                this.EncodedText = EncodedText;
+                this.DecodedText = DecodedText;
+            }
+        }
+
+        /// <summary>
+        ///     The encoded string and type.
+        /// </summary>
+        public class EncodedBlob
+        {
+            public string Filename;
+            public string EncodedText;
+            public string DecodedText;
+
+            public EncodedBlob(string Filename, string EncodedText, string DecodedText)
+            {
                 this.Filename = Filename;
                 this.EncodedText = EncodedText;
                 this.DecodedText = DecodedText;
@@ -343,14 +362,14 @@ namespace Microsoft.CST.OpenSource
 
                         foreach (var finding in defoggerTool.Findings)
                         {
-                            Logger.Info("{0}: {1} -> {2}", finding.Filename, finding.EncodedText, finding.DecodedText);
+                            Logger.Info("String: {0}: {1} -> {2}", finding.Filename, finding.EncodedText, finding.DecodedText);
                         }
 
                         var binaryDir = (string?)defoggerTool.Options["save-found-binaries-to"];
                         var binaryNumber = 0;
                         foreach (var binaryFinding in defoggerTool.BinaryFindings)
                         {
-                            Logger.Info("{0}: {1} -> {2}", binaryFinding.Filename, binaryFinding.EncodedText, binaryFinding.Type);
+                            Logger.Info("Binary: {0}: {1} -> {2}", binaryFinding.Filename, binaryFinding.EncodedText, binaryFinding.Type);
                             if (binaryDir is string)
                             {
                                 var path = Path.Combine(binaryDir, binaryFinding.Filename, $"binary-{binaryNumber}");
@@ -364,7 +383,7 @@ namespace Microsoft.CST.OpenSource
                         var archiveNumber = 0;
                         foreach (var archiveFinding in defoggerTool.ArchiveFindings)
                         {
-                            Logger.Info("{0}: {1} -> {2}", archiveFinding.Filename, archiveFinding.EncodedText, archiveFinding.Type);
+                            Logger.Info("Archive: {0}: {1} -> {2}", archiveFinding.Filename, archiveFinding.EncodedText, archiveFinding.Type);
                             if (archiveDir is string)
                             {
                                 var path = Path.Combine(archiveDir, archiveFinding.Filename, $"archive-{archiveNumber++}");
@@ -372,6 +391,24 @@ namespace Microsoft.CST.OpenSource
                                 File.WriteAllBytes(path, ReadToEnd(archiveFinding.DecodedArchive));
                                 archiveNumber++;
                             }
+                        }
+
+                        var blobDir = (string?)defoggerTool.Options["save-blobs-to"];
+                        var blobNumber = 0;
+                        foreach (var blobFinding in defoggerTool.NonTextFindings)
+                        {
+                            Logger.Info("Blob: {0}: {1}", blobFinding.Filename, blobFinding.EncodedText);
+                            if (blobDir is string)
+                            {
+                                var path = Path.Combine(blobDir, blobFinding.Filename, $"archive-{archiveNumber++}");
+                                Logger.Info("Saving to ", path);
+                                File.WriteAllText(path, blobFinding.DecodedText);
+                                blobNumber++;
+                            }
+                        }
+
+                        {
+
                         }
                     }
                     catch (Exception ex)
@@ -458,6 +495,11 @@ namespace Microsoft.CST.OpenSource
             AnalyzeFile(filename, fileContents);
         }
 
+        public bool HasNonTextContent(string content)
+        {
+            return content.Any(ch => char.IsControl(ch) && ch != '\t' && ch != '\r' && ch != '\n');
+        }
+
         public void AnalyzeFile(string filename, string fileContents)
         {
             foreach (Match match in BASE64_REGEX.Matches(fileContents).Where(match => match != null))
@@ -511,6 +553,14 @@ namespace Microsoft.CST.OpenSource
                             }
                             else
                             {
+                                if (HasNonTextContent(decoded))
+                                {
+                                    NonTextFindings.Add(new EncodedBlob(
+                                        Filename: filename,
+                                        EncodedText: match.Value,
+                                        DecodedText: decoded
+                                    ));
+                                }
                                 // Bail out early if the decoded string isn't interesting.
                                 if (!IsInterestingString(decoded))
                                 {
@@ -674,6 +724,10 @@ namespace Microsoft.CST.OpenSource
                         Options["save-archives-to "] = args[++i];
                         break;
 
+                    case "--save-blobs-to":
+                        Options["save-blobs-to "] = args[++i];
+                        break;
+
                     default:
                         if (Options["target"] is IList<string> targetList)
                         {
@@ -701,8 +755,9 @@ positional arguments:
 
 optional arguments:
   --download-directory          the directory to download the package to
-  --save-found-binaries-to      if set, encoded binaries which were found will be extracted to this directory
-  --save-archives-to          if set, encoded compressed files will be extracted to this directory
+  --save-found-binaries-to      if set, encoded binaries which were found will be saved to this directory
+  --save-archives-to            if set, encoded compressed files will be saved to this directory
+  --save-blobs-to               if set, encoded blobs of indeterminate type will be saved to this directory
   --use-cache                   do not download the package if it is already present in the destination directory
   --help                        show this help message and exit
   --version                     show version number

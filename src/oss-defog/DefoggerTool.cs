@@ -179,7 +179,8 @@ namespace Microsoft.CST.OpenSource
             { "target", new List<string>() },
             { "download-directory", null },
             { "use-cache", false },
-            { "extract-found-binaries-to", null },
+            { "save-found-binaries-to", null },
+            { "save-archives-to", null }
         };
 
         /// <summary>
@@ -187,6 +188,8 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         public IList<EncodedString> Findings { get; private set; }
         public List<EncodedBinary> BinaryFindings { get; }
+        public List<EncodedArchive> ArchiveFindings { get; }
+
 
         /// <summary>
         ///     The specific type of encoding detected.
@@ -218,6 +221,25 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
+        ///     The encoded archive and type.
+        /// </summary>
+        public class EncodedArchive
+        {
+            public ArchiveFileType Type;
+            public string Filename;
+            public string EncodedText;
+            public Stream DecodedArchive;
+
+            public EncodedArchive(ArchiveFileType Type, string Filename, string EncodedText, Stream DecodedArchive)
+            {
+                this.Type = Type;
+                this.Filename = Filename;
+                this.EncodedText = EncodedText;
+                this.DecodedArchive = DecodedArchive;
+            }
+        }
+
+        /// <summary>
         ///     The encoded binary and type.
         /// </summary>
         public class EncodedBinary
@@ -233,6 +255,58 @@ namespace Microsoft.CST.OpenSource
                 this.Filename = Filename;
                 this.EncodedText = EncodedText;
                 this.DecodedBinary = DecodedBinary;
+            }
+        }
+
+        public static byte[] ReadToEnd(System.IO.Stream stream)
+        {
+            long originalPosition = 0;
+
+            if (stream.CanSeek)
+            {
+                originalPosition = stream.Position;
+                stream.Position = 0;
+            }
+
+            try
+            {
+                byte[] readBuffer = new byte[4096];
+
+                int totalBytesRead = 0;
+                int bytesRead;
+
+                while ((bytesRead = stream.Read(readBuffer, totalBytesRead, readBuffer.Length - totalBytesRead)) > 0)
+                {
+                    totalBytesRead += bytesRead;
+
+                    if (totalBytesRead == readBuffer.Length)
+                    {
+                        int nextByte = stream.ReadByte();
+                        if (nextByte != -1)
+                        {
+                            byte[] temp = new byte[readBuffer.Length * 2];
+                            Buffer.BlockCopy(readBuffer, 0, temp, 0, readBuffer.Length);
+                            Buffer.SetByte(temp, totalBytesRead, (byte)nextByte);
+                            readBuffer = temp;
+                            totalBytesRead++;
+                        }
+                    }
+                }
+
+                byte[] buffer = readBuffer;
+                if (readBuffer.Length != totalBytesRead)
+                {
+                    buffer = new byte[totalBytesRead];
+                    Buffer.BlockCopy(readBuffer, 0, buffer, 0, totalBytesRead);
+                }
+                return buffer;
+            }
+            finally
+            {
+                if (stream.CanSeek)
+                {
+                    stream.Position = originalPosition;
+                }
             }
         }
 
@@ -272,9 +346,28 @@ namespace Microsoft.CST.OpenSource
                             Logger.Info("{0}: {1} -> {2}", finding.Filename, finding.EncodedText, finding.DecodedText);
                         }
 
-                        foreach(var binaryFinding in defoggerTool.BinaryFindings)
+                        var binaryDir = (string?)defoggerTool.Options["save-found-binaries-to"];
+                        var binaryNumber = 0;
+                        foreach (var binaryFinding in defoggerTool.BinaryFindings)
                         {
                             Logger.Info("{0}: {1} -> {2}", binaryFinding.Filename, binaryFinding.EncodedText, binaryFinding.Type);
+                            if (binaryDir is string)
+                            {
+                                File.WriteAllBytes(Path.Combine(binaryDir, binaryFinding.Filename, $"binary-{binaryNumber}"),ReadToEnd(binaryFinding.DecodedBinary));
+                                binaryNumber++;
+                            }
+                        }
+
+                        var archiveDir = (string?)defoggerTool.Options["save-archives-to"];
+                        var archiveNumber = 0;
+                        foreach (var archiveFinding in defoggerTool.ArchiveFindings)
+                        {
+                            Logger.Info("{0}: {1} -> {2}", archiveFinding.Filename, archiveFinding.EncodedText, archiveFinding.Type);
+                            if (archiveDir is string)
+                            {
+                                File.WriteAllBytes(Path.Combine(archiveDir, archiveFinding.Filename, $"archive-{archiveNumber++}"), ReadToEnd(archiveFinding.DecodedArchive));
+                                archiveNumber++;
+                            }
                         }
                     }
                     catch (Exception ex)
@@ -397,6 +490,7 @@ namespace Microsoft.CST.OpenSource
 
                             if (archiveFileType is not ArchiveFileType.UNKNOWN && archiveFileType is not ArchiveFileType.INVALID)
                             {
+                                ArchiveFindings.Add(new EncodedArchive(archiveFileType, filename, match.Value, entry.Content));
                                 foreach (var extractedEntry in extractor.Extract(entry))
                                 {
                                     exeType = GetExecutableType(extractedEntry.Content);
@@ -418,7 +512,6 @@ namespace Microsoft.CST.OpenSource
                                 {
                                     continue;
                                 }
-
 
                                 Findings.Add(new EncodedString(
                                     Filename: filename,
@@ -569,6 +662,14 @@ namespace Microsoft.CST.OpenSource
                         Options["use-cache"] = true;
                         break;
 
+                    case "--save-found-binaries-to":
+                        Options["save-found-binaries-to"] = args[++i];
+                        break;
+
+                    case "--save-archives-to":
+                        Options["save-archives-to "] = args[++i];
+                        break;
+
                     default:
                         if (Options["target"] is IList<string> targetList)
                         {
@@ -596,6 +697,8 @@ positional arguments:
 
 optional arguments:
   --download-directory          the directory to download the package to
+  --save-found-binaries-to      if set, encoded binaries which were found will be extracted to this directory
+  --save-archives-to          if set, encoded compressed files will be extracted to this directory
   --use-cache                   do not download the package if it is already present in the destination directory
   --help                        show this help message and exit
   --version                     show version number

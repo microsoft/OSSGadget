@@ -353,7 +353,9 @@ namespace Microsoft.CST.OpenSource
                             Logger.Info("{0}: {1} -> {2}", binaryFinding.Filename, binaryFinding.EncodedText, binaryFinding.Type);
                             if (binaryDir is string)
                             {
-                                File.WriteAllBytes(Path.Combine(binaryDir, binaryFinding.Filename, $"binary-{binaryNumber}"),ReadToEnd(binaryFinding.DecodedBinary));
+                                var path = Path.Combine(binaryDir, binaryFinding.Filename, $"binary-{binaryNumber}");
+                                Logger.Info("Saving to ", path);
+                                File.WriteAllBytes(path,ReadToEnd(binaryFinding.DecodedBinary));
                                 binaryNumber++;
                             }
                         }
@@ -365,7 +367,9 @@ namespace Microsoft.CST.OpenSource
                             Logger.Info("{0}: {1} -> {2}", archiveFinding.Filename, archiveFinding.EncodedText, archiveFinding.Type);
                             if (archiveDir is string)
                             {
-                                File.WriteAllBytes(Path.Combine(archiveDir, archiveFinding.Filename, $"archive-{archiveNumber++}"), ReadToEnd(archiveFinding.DecodedArchive));
+                                var path = Path.Combine(archiveDir, archiveFinding.Filename, $"archive-{archiveNumber++}");
+                                Logger.Info("Saving to ", path);
+                                File.WriteAllBytes(path, ReadToEnd(archiveFinding.DecodedArchive));
                                 archiveNumber++;
                             }
                         }

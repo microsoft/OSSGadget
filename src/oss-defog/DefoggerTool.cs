@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using Microsoft.CST.OpenSource.Shared;
+using Microsoft.CST.RecursiveExtractor;
 using MimeTypes;
 using System;
 using System.Collections.Generic;
@@ -55,19 +56,137 @@ namespace Microsoft.CST.OpenSource
         private const int INTERESTING_STRINGS_CUTOFF = 24;
 
         /// <summary>
+        ///     Enum of executable types
+        /// </summary>
+        public enum EXECUTABLE_TYPE
+        {
+            UNKNOWN,
+            WINDOWS,
+            MACOS,
+            LINUX,
+            NONE,
+            JAVA
+        }
+
+        public static byte[] HexStringToBytes(string hex)
+        {
+            try
+            {
+                if (hex is null) { throw new ArgumentNullException(nameof(hex)); }
+
+                var ascii = new byte[hex.Length / 2];
+
+                for (int i = 0; i < hex.Length; i += 2)
+                {
+                    var hs = hex.Substring(i, 2);
+                    uint decval = System.Convert.ToUInt32(hs, 16);
+                    char character = System.Convert.ToChar(decval);
+                    ascii[i / 2] = (byte)character;
+                }
+
+                return ascii;
+            }
+            catch (Exception e) when (
+                e is ArgumentException
+                || e is OverflowException
+                || e is NullReferenceException)
+            {
+                Logger.Debug("Couldn't convert hex string {0} to ascii", hex);
+            }
+            return Array.Empty<byte>();
+        }
+
+        /// <summary>
+        ///     Linux Elf
+        /// </summary>
+        public static readonly byte[] ElfMagicNumber = HexStringToBytes("7F454C46");
+
+        /// <summary>
+        ///     Java Classes
+        /// </summary>
+        public static readonly byte[] JavaMagicNumber = HexStringToBytes("CAFEBEBE");
+
+        /// <summary>
+        ///     Mac Binary Magic numbers
+        /// </summary>
+        public static readonly List<byte[]> MacMagicNumbers = new List<byte[]>()
+        {
+            // 32 Bit Binary
+            HexStringToBytes("FEEDFACE"),
+            // 64 Bit Binary
+            HexStringToBytes("FEEDFACF"),
+            // 32 Bit Binary (reverse byte ordering)
+            HexStringToBytes("CEFAEDFE"),
+            // 64 Bit Binary (reverse byte ordering)
+            HexStringToBytes("CFFAEDFE"),
+            // "Fat Binary"
+            HexStringToBytes("CAFEBEBE")
+        };
+
+        /// <summary>
+        ///     Windows Binary header
+        /// </summary>
+        public static readonly byte[] WindowsMagicNumber = HexStringToBytes("4D5A");
+
+        /// <summary>
+        ///     Gets the executable type of the given stream.
+        /// </summary>
+        /// <param name="input">Stream bytes to check</param>
+        /// <returns>The executable type</returns>
+        public static EXECUTABLE_TYPE GetExecutableType(Stream input)
+        {
+            if (input == null) { return EXECUTABLE_TYPE.UNKNOWN; }
+            if (input.Length < 4) { return EXECUTABLE_TYPE.NONE; }
+
+            var fourBytes = new byte[4];
+            var initialPosition = input.Position;
+
+            try
+            {
+                input.Read(fourBytes);
+                input.Position = initialPosition;
+            }
+            catch (Exception e)
+            {
+                Logger.Debug("Couldn't chomp 4 bytes ({1}:{2})", e.GetType().ToString(), e.Message);
+                return EXECUTABLE_TYPE.UNKNOWN;
+            }
+
+            switch (fourBytes)
+            {
+                case var span when span.SequenceEqual(ElfMagicNumber):
+                    return EXECUTABLE_TYPE.LINUX;
+
+                case var span when span.SequenceEqual(JavaMagicNumber):
+                    return EXECUTABLE_TYPE.JAVA;
+
+                case var span when MacMagicNumbers.Contains(span):
+                    return EXECUTABLE_TYPE.MACOS;
+
+                case var span when span[0..2].SequenceEqual(WindowsMagicNumber):
+                    return EXECUTABLE_TYPE.WINDOWS;
+
+                default:
+                    return EXECUTABLE_TYPE.NONE;
+            }
+        }
+
+        /// <summary>
         ///     Command line options passed into this tool.
         /// </summary>
         private readonly IDictionary<string, object?> Options = new Dictionary<string, object?>()
         {
             { "target", new List<string>() },
             { "download-directory", null },
-            { "use-cache", false }
+            { "use-cache", false },
+            { "extract-found-binaries-to", null },
         };
 
         /// <summary>
         ///     Identified findings from the analysis.
         /// </summary>
         public IList<EncodedString> Findings { get; private set; }
+        public List<EncodedBinary> BinaryFindings { get; }
 
         /// <summary>
         ///     The specific type of encoding detected.
@@ -75,7 +194,8 @@ namespace Microsoft.CST.OpenSource
         public enum EncodedStringType
         {
             Base64,
-            Hex
+            Hex,
+            Compressed
         }
 
         /// <summary>
@@ -94,6 +214,25 @@ namespace Microsoft.CST.OpenSource
                 this.Filename = Filename;
                 this.EncodedText = EncodedText;
                 this.DecodedText = DecodedText;
+            }
+        }
+
+        /// <summary>
+        ///     The encoded binary and type.
+        /// </summary>
+        public class EncodedBinary
+        {
+            public EXECUTABLE_TYPE Type;
+            public string Filename;
+            public string EncodedText;
+            public Stream DecodedBinary;
+
+            public EncodedBinary(EXECUTABLE_TYPE Type, string Filename, string EncodedText, Stream DecodedBinary)
+            {
+                this.Type = Type;
+                this.Filename = Filename;
+                this.EncodedText = EncodedText;
+                this.DecodedBinary = DecodedBinary;
             }
         }
 
@@ -132,6 +271,11 @@ namespace Microsoft.CST.OpenSource
                         {
                             Logger.Info("{0}: {1} -> {2}", finding.Filename, finding.EncodedText, finding.DecodedText);
                         }
+
+                        foreach(var binaryFinding in defoggerTool.BinaryFindings)
+                        {
+                            Logger.Info("{0}: {1} -> {2}", binaryFinding.Filename, binaryFinding.EncodedText, binaryFinding.Type);
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -153,6 +297,7 @@ namespace Microsoft.CST.OpenSource
         public DefoggerTool() : base()
         {
             Findings = new List<EncodedString>();
+            BinaryFindings = new List<EncodedBinary>();
         }
 
         /// <summary>
@@ -213,6 +358,11 @@ namespace Microsoft.CST.OpenSource
             var fileContents = File.ReadAllText(filename);
 #pragma warning restore SEC0116 // Path Tampering Unvalidated File Path
 
+            AnalyzeFile(filename, fileContents);
+        }
+
+        public void AnalyzeFile(string filename, string fileContents)
+        {
             foreach (Match match in BASE64_REGEX.Matches(fileContents).Where(match => match != null))
             {
                 if (!match.Success)
@@ -226,23 +376,58 @@ namespace Microsoft.CST.OpenSource
                 {
                     var bytes = Convert.FromBase64String(match.Value);
                     var decoded = Encoding.UTF8.GetString(bytes);
-
-                    // Bail out early if the decoded string isn't interesting.
-                    if (!IsInterestingString(decoded))
-                    {
-                        continue;
-                    }
-
                     // Does the re-encoded string match?
                     var reencoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(decoded));
+
                     if (match.Value.Equals(reencoded))
                     {
-                        Findings.Add(new EncodedString(
-                            Filename: filename,
-                            EncodedText: match.Value,
-                            DecodedText: decoded,
-                            Type: EncodedStringType.Base64
-                        ));
+                        var entry = new FileEntry("bytes", new MemoryStream(bytes),new FileEntry(filename,new MemoryStream()));
+
+                        var exeType = GetExecutableType(entry.Content);
+
+                        if (exeType is not EXECUTABLE_TYPE.NONE && exeType is not EXECUTABLE_TYPE.UNKNOWN)
+                        {
+                            BinaryFindings.Add(new EncodedBinary(exeType, filename, match.Value, entry.Content));
+                        }
+                        else
+                        {
+                            var archiveFileType = MiniMagic.DetectFileType(entry);
+
+                            var extractor = new Extractor();
+
+                            if (archiveFileType is not ArchiveFileType.UNKNOWN && archiveFileType is not ArchiveFileType.INVALID)
+                            {
+                                foreach (var extractedEntry in extractor.Extract(entry))
+                                {
+                                    exeType = GetExecutableType(extractedEntry.Content);
+                                    if (exeType is not EXECUTABLE_TYPE.NONE && exeType is not EXECUTABLE_TYPE.UNKNOWN)
+                                    {
+                                        BinaryFindings.Add(new EncodedBinary(exeType, filename, match.Value, entry.Content));
+                                    }
+                                    else
+                                    {
+                                        var zippedString = new StreamReader(extractedEntry.Content).ReadToEnd();
+                                        AnalyzeFile(extractedEntry.FullPath, zippedString);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                // Bail out early if the decoded string isn't interesting.
+                                if (!IsInterestingString(decoded))
+                                {
+                                    continue;
+                                }
+
+
+                                Findings.Add(new EncodedString(
+                                    Filename: filename,
+                                    EncodedText: match.Value,
+                                    DecodedText: decoded,
+                                    Type: EncodedStringType.Base64
+                                ));
+                            }
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -271,7 +456,12 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        private static string HexToString(String hex)
+        /// <summary>
+        ///     Converts hex data to a string
+        /// </summary>
+        /// <param name="hex">The Hex data to decode</param>
+        /// <returns>The decoded string</returns>
+        private static string HexToString(string hex)
         {
             hex = hex.Trim();
             var stringLength = hex.Length;

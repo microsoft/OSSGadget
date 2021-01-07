@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource
 {
-    internal class DefoggerTool : OSSGadget
+    public class DefoggerTool : OSSGadget
     {
         /// <summary>
         ///     Name of this tool.

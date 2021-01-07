@@ -32,4 +32,12 @@
     <ProjectReference Include="..\oss-health\oss-health.csproj" />
     <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="TestData\Base64Zip.zip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\oss-defog.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

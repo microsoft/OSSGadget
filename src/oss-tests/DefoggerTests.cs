@@ -82,7 +82,7 @@ namespace osstests
 
             var tool = new DefoggerTool();
             tool.AnalyzeFile("DetectBinaryTest", base64);
-            Assert.AreEqual(tool.BinaryFindings.Count, 1);
+            Assert.AreEqual(1, tool.BinaryFindings.Count);
         }
     }
 }

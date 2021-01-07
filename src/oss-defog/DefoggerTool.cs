@@ -70,30 +70,9 @@ namespace Microsoft.CST.OpenSource
 
         public static byte[] HexStringToBytes(string hex)
         {
-            try
-            {
-                if (hex is null) { throw new ArgumentNullException(nameof(hex)); }
-
-                var ascii = new byte[hex.Length / 2];
-
-                for (int i = 0; i < hex.Length; i += 2)
-                {
-                    var hs = hex.Substring(i, 2);
-                    uint decval = System.Convert.ToUInt32(hs, 16);
-                    char character = System.Convert.ToChar(decval);
-                    ascii[i / 2] = (byte)character;
-                }
-
-                return ascii;
-            }
-            catch (Exception e) when (
-                e is ArgumentException
-                || e is OverflowException
-                || e is NullReferenceException)
-            {
-                Logger.Debug("Couldn't convert hex string {0} to ascii", hex);
-            }
-            return Array.Empty<byte>();
+            return Enumerable.Range(0, hex.Length / 2)
+                             .Select(x => Convert.ToByte(hex.Substring(x * 2, 2), 16))
+                             .ToArray();
         }
 
         /// <summary>
@@ -277,55 +256,20 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        public static byte[] ReadToEnd(System.IO.Stream stream)
+        public static byte[] GetStreamBytes(Stream stream)
         {
-            long originalPosition = 0;
-
-            if (stream.CanSeek)
+            switch (stream)
             {
-                originalPosition = stream.Position;
-                stream.Position = 0;
-            }
-
-            try
-            {
-                byte[] readBuffer = new byte[4096];
-
-                int totalBytesRead = 0;
-                int bytesRead;
-
-                while ((bytesRead = stream.Read(readBuffer, totalBytesRead, readBuffer.Length - totalBytesRead)) > 0)
-                {
-                    totalBytesRead += bytesRead;
-
-                    if (totalBytesRead == readBuffer.Length)
-                    {
-                        int nextByte = stream.ReadByte();
-                        if (nextByte != -1)
-                        {
-                            byte[] temp = new byte[readBuffer.Length * 2];
-                            Buffer.BlockCopy(readBuffer, 0, temp, 0, readBuffer.Length);
-                            Buffer.SetByte(temp, totalBytesRead, (byte)nextByte);
-                            readBuffer = temp;
-                            totalBytesRead++;
-                        }
-                    }
-                }
-
-                byte[] buffer = readBuffer;
-                if (readBuffer.Length != totalBytesRead)
-                {
-                    buffer = new byte[totalBytesRead];
-                    Buffer.BlockCopy(readBuffer, 0, buffer, 0, totalBytesRead);
-                }
-                return buffer;
-            }
-            finally
-            {
-                if (stream.CanSeek)
-                {
-                    stream.Position = originalPosition;
-                }
+                case MemoryStream m:
+                    return m.ToArray();
+                case FileStream f:
+                    var b = new byte[f.Length];
+                    stream.Read(b, 0, (int)f.Length);
+                    return b;
+                default:
+                    var mstream = new MemoryStream();
+                    stream.CopyTo(mstream);
+                    return mstream.ToArray();
             }
         }
 
@@ -362,19 +306,20 @@ namespace Microsoft.CST.OpenSource
 
                         foreach (var finding in defoggerTool.Findings)
                         {
-                            Logger.Info("String: {0}: {1} -> {2}", finding.Filename, finding.EncodedText, finding.DecodedText);
+                            Logger.Info("[String] {0}: {1} -> {2}", finding.Filename, finding.EncodedText, finding.DecodedText);
                         }
 
                         var binaryDir = (string?)defoggerTool.Options["save-found-binaries-to"];
                         var binaryNumber = 0;
                         foreach (var binaryFinding in defoggerTool.BinaryFindings)
                         {
-                            Logger.Info("Binary: {0}: {1} -> {2}", binaryFinding.Filename, binaryFinding.EncodedText, binaryFinding.Type);
+                            Logger.Info("[Binary] {0}: {1} -> {2}", binaryFinding.Filename, binaryFinding.EncodedText, binaryFinding.Type);
                             if (binaryDir is string)
                             {
+                                Directory.CreateDirectory(binaryDir);
                                 var path = Path.Combine(binaryDir, binaryFinding.Filename, $"binary-{binaryNumber}");
                                 Logger.Info("Saving to ", path);
-                                File.WriteAllBytes(path,ReadToEnd(binaryFinding.DecodedBinary));
+                                File.WriteAllBytes(path,GetStreamBytes(binaryFinding.DecodedBinary));
                                 binaryNumber++;
                             }
                         }
@@ -383,12 +328,13 @@ namespace Microsoft.CST.OpenSource
                         var archiveNumber = 0;
                         foreach (var archiveFinding in defoggerTool.ArchiveFindings)
                         {
-                            Logger.Info("Archive: {0}: {1} -> {2}", archiveFinding.Filename, archiveFinding.EncodedText, archiveFinding.Type);
+                            Logger.Info("[Archive] {0}: {1} -> {2}", archiveFinding.Filename, archiveFinding.EncodedText, archiveFinding.Type);
                             if (archiveDir is string)
                             {
+                                Directory.CreateDirectory(archiveDir);
                                 var path = Path.Combine(archiveDir, archiveFinding.Filename, $"archive-{archiveNumber++}");
                                 Logger.Info("Saving to ", path);
-                                File.WriteAllBytes(path, ReadToEnd(archiveFinding.DecodedArchive));
+                                File.WriteAllBytes(path, GetStreamBytes(archiveFinding.DecodedArchive));
                                 archiveNumber++;
                             }
                         }
@@ -397,7 +343,7 @@ namespace Microsoft.CST.OpenSource
                         var blobNumber = 0;
                         foreach (var blobFinding in defoggerTool.NonTextFindings)
                         {
-                            Logger.Info("Blob: {0}: {1}", blobFinding.Filename, blobFinding.EncodedText);
+                            Logger.Info("[Blob] {0}: {1}", blobFinding.Filename, blobFinding.EncodedText);
                             if (blobDir is string)
                             {
                                 var path = Path.Combine(blobDir, blobFinding.Filename, $"archive-{archiveNumber++}");
@@ -405,10 +351,6 @@ namespace Microsoft.CST.OpenSource
                                 File.WriteAllText(path, blobFinding.DecodedText);
                                 blobNumber++;
                             }
-                        }
-
-                        {
-
                         }
                     }
                     catch (Exception ex)
@@ -721,11 +663,11 @@ namespace Microsoft.CST.OpenSource
                         break;
 
                     case "--save-archives-to":
-                        Options["save-archives-to "] = args[++i];
+                        Options["save-archives-to"] = args[++i];
                         break;
 
                     case "--save-blobs-to":
-                        Options["save-blobs-to "] = args[++i];
+                        Options["save-blobs-to"] = args[++i];
                         break;
 
                     default:

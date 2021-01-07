@@ -256,23 +256,6 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        public static byte[] GetStreamBytes(Stream stream)
-        {
-            switch (stream)
-            {
-                case MemoryStream m:
-                    return m.ToArray();
-                case FileStream f:
-                    var b = new byte[f.Length];
-                    stream.Read(b, 0, (int)f.Length);
-                    return b;
-                default:
-                    var mstream = new MemoryStream();
-                    stream.CopyTo(mstream);
-                    return mstream.ToArray();
-            }
-        }
-
         private static void Main(string[] args)
         {
             CommonInitialization.Initialize();
@@ -319,7 +302,8 @@ namespace Microsoft.CST.OpenSource
                                 Directory.CreateDirectory(binaryDir);
                                 var path = Path.Combine(binaryDir, binaryFinding.Filename, $"binary-{binaryNumber}");
                                 Logger.Info("Saving to ", path);
-                                File.WriteAllBytes(path,GetStreamBytes(binaryFinding.DecodedBinary));
+                                var fs = new FileStream(path,FileMode.OpenOrCreate);
+                                binaryFinding.DecodedBinary.CopyTo(fs);
                                 binaryNumber++;
                             }
                         }
@@ -334,7 +318,8 @@ namespace Microsoft.CST.OpenSource
                                 Directory.CreateDirectory(archiveDir);
                                 var path = Path.Combine(archiveDir, archiveFinding.Filename, $"archive-{archiveNumber++}");
                                 Logger.Info("Saving to ", path);
-                                File.WriteAllBytes(path, GetStreamBytes(archiveFinding.DecodedArchive));
+                                var fs = new FileStream(path, FileMode.OpenOrCreate);
+                                archiveFinding.DecodedArchive.CopyTo(fs);
                                 archiveNumber++;
                             }
                         }

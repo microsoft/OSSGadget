@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Windows.Markup;
 
@@ -24,14 +25,8 @@ namespace osstests
 
             var tool = new DefoggerTool();
             tool.AnalyzeFile("DetectHexTest", encoded);
-            if (tool.Findings.Count != 1)
-            {
-                Assert.Fail("Only expecting one finding.");
-            }
-            if (!tool.Findings.Any(x => x.EncodedText == encoded && x.DecodedText == decoded))
-            {
-                Assert.Fail("Did not detect and decode properly.");
-            }
+            Assert.AreEqual(1, tool.Findings.Count);
+            Assert.IsTrue(tool.Findings.Any(x => x.EncodedText == encoded && x.DecodedText == decoded));
 
         }
 
@@ -42,14 +37,8 @@ namespace osstests
 
             var tool = new DefoggerTool();
             tool.AnalyzeFile("DetectHexTest", encodedWithDash);
-            if (tool.Findings.Count != 1)
-            {
-                Assert.Fail("Only expecting one finding.");
-            }
-            if (!tool.Findings.Any(x => x.EncodedText == encodedWithDash && x.DecodedText == decoded))
-            {
-                Assert.Fail("Did not detect and decode properly.");
-            }
+            Assert.AreEqual(1, tool.Findings.Count);
+            Assert.IsTrue(tool.Findings.Any(x => x.EncodedText == encodedWithDash && x.DecodedText == decoded));
         }
 
         [TestMethod]
@@ -59,20 +48,14 @@ namespace osstests
 
             var tool = new DefoggerTool();
             tool.AnalyzeFile("DetectBase64Test", base64);
-            if (tool.Findings.Count != 1)
-            {
-                Assert.Fail("Only expecting one finding.");
-            }
-            if (!tool.Findings.Any(x => x.EncodedText == base64 && x.DecodedText == decoded))
-            {
-                Assert.Fail("Did not detect and decode properly.");
-            }
+            Assert.AreEqual(1, tool.Findings.Count);
+            Assert.IsTrue(tool.Findings.Any(x => x.EncodedText == base64 && x.DecodedText == decoded));
         }
 
         [TestMethod]
         public void DetectZip()
         {
-            var zip = new FileStream(Path.Combine("TestData", "Base64Zip.zip"), FileMode.Open);
+            var zip = new FileStream(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),"TestData", "Base64Zip.zip"), FileMode.Open);
             var ms = new MemoryStream();
             zip.CopyTo(ms);
             var base64 = Convert.ToBase64String(ms.ToArray());
@@ -80,19 +63,19 @@ namespace osstests
             var tool = new DefoggerTool();
             tool.AnalyzeFile("DetectZipTest", base64);
 
-            Assert.AreEqual(tool.Findings.Count, 2);
+            Assert.AreEqual(2, tool.Findings.Count);
             Assert.IsTrue(tool.Findings.All(x => x.DecodedText.Equals(decoded)),"Expected all findings to be decoded properly.");
             Assert.AreEqual(tool.Findings.Count(x => x.Type == DefoggerTool.EncodedStringType.Base64),1);
             Assert.AreEqual(tool.Findings.Count(x => x.Type == DefoggerTool.EncodedStringType.Hex), 1);
 
-            Assert.AreEqual(tool.ArchiveFindings.Count, 1);
-            Assert.AreEqual(tool.BinaryFindings.Count, 1);
+            Assert.AreEqual(1, tool.ArchiveFindings.Count);
+            Assert.AreEqual(1, tool.BinaryFindings.Count);
         }
 
         [TestMethod]
         public void DetectBinaryTest()
         {
-            var bin = new FileStream(Path.Combine("TestData","oss-defog.dll"),FileMode.Open);
+            var bin = new FileStream(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "TestData","oss-defog.dll"),FileMode.Open);
             var ms = new MemoryStream();
             bin.CopyTo(ms);
             var base64 = Convert.ToBase64String(ms.ToArray());

@@ -33,7 +33,7 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         ///     Regular expression that matches hex-encoded text.
         /// </summary>
-        private static readonly Regex HEX_REGEX = new Regex(@"(0x)?([A-F0-9]{16,})", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        private static readonly Regex HEX_REGEX = new Regex(@"(0x)?(([A-F0-9]{16,})|(([A-F0-9][A-F0-9]-){7,}[A-F0-9][A-F0-9]))", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
         /// <summary>
         ///     Short strings must match this regular expression to be reported.
@@ -359,6 +359,8 @@ namespace Microsoft.CST.OpenSource
         {
             Findings = new List<EncodedString>();
             BinaryFindings = new List<EncodedBinary>();
+            ArchiveFindings = new List<EncodedArchive>();
+            NonTextFindings = new List<EncodedBlob>();
         }
 
         /// <summary>
@@ -441,9 +443,8 @@ namespace Microsoft.CST.OpenSource
                 try
                 {
                     var bytes = Convert.FromBase64String(match.Value);
-                    var decoded = Encoding.UTF8.GetString(bytes);
                     // Does the re-encoded string match?
-                    var reencoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(decoded));
+                    var reencoded = Convert.ToBase64String(bytes);
 
                     if (match.Value.Equals(reencoded))
                     {
@@ -480,6 +481,7 @@ namespace Microsoft.CST.OpenSource
                             }
                             else
                             {
+                                var decoded = Encoding.Default.GetString(bytes);
                                 if (HasNonTextContent(decoded))
                                 {
                                     NonTextFindings.Add(new EncodedBlob(
@@ -521,7 +523,7 @@ namespace Microsoft.CST.OpenSource
                     continue;
                 }
                 // We don't need to do the dance we did above because all hex strings are valid encodings.
-                Findings.Append(new EncodedString(
+                Findings.Add(new EncodedString(
                     Filename: filename,
                     EncodedText: match.Value,
                     DecodedText: decodedText,
@@ -538,14 +540,8 @@ namespace Microsoft.CST.OpenSource
         private static string HexToString(string hex)
         {
             hex = hex.Trim();
+            hex = hex.Replace("-", "");
             var stringLength = hex.Length;
-
-            // If we have an odd string length, like ABC, then we really mean 0ABC.
-            if (stringLength % 2 == 1)
-            {
-                hex = "0" + hex;
-                stringLength++;
-            }
 
             // Remove an initial '0x' prefix
             if (hex.StartsWith("0x", StringComparison.InvariantCultureIgnoreCase))
@@ -554,6 +550,12 @@ namespace Microsoft.CST.OpenSource
                 stringLength -= 2;
             }
 
+            // If we have an odd string length, like ABC, then we really mean 0ABC.
+            if (stringLength % 2 == 1)
+            {
+                hex = "0" + hex;
+                stringLength++;
+            }
             // Store enough bytes for half the length (hex digits are 4 bits)
             byte[] bytes = new byte[stringLength / 2];
             for (var i = 0; i < stringLength; i += 2)

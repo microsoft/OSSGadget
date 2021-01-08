@@ -505,6 +505,8 @@ namespace Microsoft.CST.OpenSource
                                         EncodedText: match.Value,
                                         DecodedText: decoded
                                     ));
+
+                                    AnalyzeFile(Path.Combine(filename,match.Value), decoded);
                                 }
                                 // Bail out early if the decoded string isn't interesting.
                                 if (!IsInterestingString(decoded))
@@ -518,6 +520,8 @@ namespace Microsoft.CST.OpenSource
                                     DecodedText: decoded,
                                     Type: EncodedStringType.Base64
                                 ));
+
+                                AnalyzeFile(Path.Combine(filename, match.Value), decoded);
                             }
                         }
                     }

@@ -25,7 +25,7 @@ namespace osstests
 
             var tool = new DefoggerTool();
             tool.AnalyzeFile("DetectHexTest", encoded);
-            Assert.AreEqual(1, tool.Findings.Count);
+            Assert.AreEqual(2, tool.Findings.Count);
             Assert.IsTrue(tool.Findings.Any(x => x.EncodedText == encoded && x.DecodedText == decoded));
 
         }
@@ -53,6 +53,19 @@ namespace osstests
         }
 
         [TestMethod]
+        public void DetectNested()
+        {
+            var nested = Convert.ToHexString(Encoding.Default.GetBytes(Convert.ToBase64String(Encoding.Default.GetBytes(decoded))));
+
+            var tool = new DefoggerTool();
+            tool.AnalyzeFile("DetectNestedTest", nested);
+            Assert.AreEqual(3, tool.Findings.Count);
+            Assert.AreEqual(2, tool.Findings.Count(x => x.Type == DefoggerTool.EncodedStringType.Base64));
+            Assert.AreEqual(1, tool.Findings.Count(x => x.Type == DefoggerTool.EncodedStringType.Hex));
+            Assert.IsTrue(tool.Findings.Any(x => x.EncodedText == nested && x.DecodedText == decoded));
+        }
+
+        [TestMethod]
         public void DetectZip()
         {
             var zip = new FileStream(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "TestData", "Base64Zip.zip"), FileMode.Open);
@@ -63,7 +76,7 @@ namespace osstests
             var tool = new DefoggerTool();
             tool.AnalyzeFile("DetectZipTest", base64);
 
-            Assert.AreEqual(2, tool.Findings.Count);
+            Assert.AreEqual(3, tool.Findings.Count);
             Assert.AreEqual(2,tool.Findings.Count(x => x.DecodedText.Equals(decoded)));
             Assert.AreEqual(2, tool.Findings.Count(x => x.Type == DefoggerTool.EncodedStringType.Base64));
             Assert.AreEqual(1, tool.Findings.Count(x => x.Type == DefoggerTool.EncodedStringType.Hex));

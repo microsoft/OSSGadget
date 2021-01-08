@@ -59,8 +59,8 @@ namespace osstests
 
             var tool = new DefoggerTool();
             tool.AnalyzeFile("DetectNestedTest", nested);
-            Assert.AreEqual(3, tool.Findings.Count);
-            Assert.AreEqual(2, tool.Findings.Count(x => x.Type == DefoggerTool.EncodedStringType.Base64));
+            Assert.AreEqual(2, tool.Findings.Count);
+            Assert.AreEqual(1, tool.Findings.Count(x => x.Type == DefoggerTool.EncodedStringType.Base64));
             Assert.AreEqual(1, tool.Findings.Count(x => x.Type == DefoggerTool.EncodedStringType.Hex));
             Assert.IsTrue(tool.Findings.Any(x => x.EncodedText == nested && x.DecodedText == decoded));
         }
@@ -81,6 +81,7 @@ namespace osstests
             Assert.AreEqual(1, tool.ArchiveFindings.Count);
             Assert.AreEqual(1, tool.BinaryFindings.Count);
             Assert.IsTrue(tool.Findings.Any(x => x.DecodedText == decoded));
+            zip.Close();
         }
 
         [TestMethod]
@@ -101,6 +102,7 @@ namespace osstests
 
             Assert.AreEqual(1, tool.ArchiveFindings.Count);
             Assert.AreEqual(1, tool.BinaryFindings.Count);
+            zip.Close();
         }
 
         [TestMethod]

@@ -464,7 +464,7 @@ namespace Microsoft.CST.OpenSource
                             if (archiveFileType is not ArchiveFileType.UNKNOWN && archiveFileType is not ArchiveFileType.INVALID)
                             {
                                 ArchiveFindings.Add(new EncodedArchive(archiveFileType, filename, match.Value, entry.Content));
-                                foreach (var extractedEntry in extractor.Extract(entry))
+                                foreach (var extractedEntry in extractor.Extract(entry, new ExtractorOptions() { MemoryStreamCutoff = int.MaxValue }))
                                 {
                                     exeType = GetExecutableType(extractedEntry.Content);
                                     if (exeType is not EXECUTABLE_TYPE.NONE && exeType is not EXECUTABLE_TYPE.UNKNOWN)

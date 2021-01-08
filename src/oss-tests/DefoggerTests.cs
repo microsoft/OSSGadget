@@ -55,7 +55,7 @@ namespace osstests
         [TestMethod]
         public void DetectZip()
         {
-            var zip = new FileStream(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),"TestData", "Base64Zip.zip"), FileMode.Open);
+            var zip = new FileStream(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "TestData", "Base64Zip.zip"), FileMode.Open);
             var ms = new MemoryStream();
             zip.CopyTo(ms);
             var base64 = Convert.ToBase64String(ms.ToArray());
@@ -75,7 +75,7 @@ namespace osstests
         [TestMethod]
         public void DetectBinaryTest()
         {
-            var bin = new FileStream(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "TestData","oss-defog.dll"),FileMode.Open);
+            var bin = new FileStream(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "TestData","oss-defog.dll"),FileMode.Open);
             var ms = new MemoryStream();
             bin.CopyTo(ms);
             var base64 = Convert.ToBase64String(ms.ToArray());

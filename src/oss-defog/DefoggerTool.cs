@@ -331,7 +331,7 @@ namespace Microsoft.CST.OpenSource
                             Logger.Info("[Blob] {0}: {1}", blobFinding.Filename, blobFinding.EncodedText);
                             if (blobDir is string)
                             {
-                                var path = Path.Combine(blobDir, blobFinding.Filename, $"archive-{archiveNumber++}");
+                                var path = Path.Combine(blobDir, blobFinding.Filename, $"blob-{blobNumber++}");
                                 Logger.Info("Saving to ", path);
                                 File.WriteAllText(path, blobFinding.DecodedText);
                                 blobNumber++;

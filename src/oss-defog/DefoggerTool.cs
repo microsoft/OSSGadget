@@ -549,6 +549,8 @@ namespace Microsoft.CST.OpenSource
                     DecodedText: decodedText,
                     Type: EncodedStringType.Hex
                 ));
+
+                AnalyzeFile(Path.Combine(filename, match.Value), decodedText);
             }
         }
 

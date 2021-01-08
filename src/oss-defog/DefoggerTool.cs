@@ -28,7 +28,7 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         ///     Regular expression that matches Base64-encoded text.
         /// </summary>
-        private static readonly Regex BASE64_REGEX = new Regex("(([A-Z0-9+\\/]{4})+([A-Z0-9+\\/]{3}=|[A-Z0-9+\\/]{2}==)?)", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(5000));
+        private static readonly Regex BASE64_REGEX = new Regex("(([A-Z0-9+\\/]{8,})(=|==)?)", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(5000));
 
         /// <summary>
         ///     Regular expression that matches hex-encoded text.
@@ -160,7 +160,9 @@ namespace Microsoft.CST.OpenSource
             { "use-cache", false },
             { "save-found-binaries-to", null },
             { "save-archives-to", null },
-            { "save-blobs-to", null }
+            { "save-blobs-to", null },
+            { "report-blobs", null }
+
         };
 
         /// <summary>
@@ -328,7 +330,10 @@ namespace Microsoft.CST.OpenSource
                         var blobNumber = 0;
                         foreach (var blobFinding in defoggerTool.NonTextFindings)
                         {
-                            Logger.Info("[Blob] {0}: {1}", blobFinding.Filename, blobFinding.EncodedText);
+                            if (defoggerTool.Options["report-blobs"] is bool x && x is true)
+                            {
+                                Logger.Info("[Blob] {0}: {1}", blobFinding.Filename, blobFinding.EncodedText);
+                            }
                             if (blobDir is string)
                             {
                                 var path = Path.Combine(blobDir, blobFinding.Filename, $"blob-{blobNumber++}");
@@ -657,6 +662,10 @@ namespace Microsoft.CST.OpenSource
                         Options["save-blobs-to"] = args[++i];
                         break;
 
+                    case "--report-blobs":
+                        Options["report-blobs"] = true;
+                        break;
+
                     default:
                         if (Options["target"] is IList<string> targetList)
                         {
@@ -684,12 +693,14 @@ positional arguments:
 
 optional arguments:
   --download-directory          the directory to download the package to
+  --report-blobs                if set, blobs which cannot be determined to be strings, archives or binaries will be reported on (noisy)
   --save-found-binaries-to      if set, encoded binaries which were found will be saved to this directory
   --save-archives-to            if set, encoded compressed files will be saved to this directory
   --save-blobs-to               if set, encoded blobs of indeterminate type will be saved to this directory
   --use-cache                   do not download the package if it is already present in the destination directory
   --help                        show this help message and exit
   --version                     show version number
+  
 ");
         }
     }

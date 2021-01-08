@@ -25,7 +25,7 @@ namespace osstests
 
             var tool = new DefoggerTool();
             tool.AnalyzeFile("DetectHexTest", encoded);
-            Assert.AreEqual(2, tool.Findings.Count); //Hex can be misinterpreted as base64
+            Assert.AreEqual(1, tool.Findings.Count);
             Assert.IsTrue(tool.Findings.Any(x => x.EncodedText == encoded && x.DecodedText == decoded));
 
         }
@@ -63,7 +63,7 @@ namespace osstests
             var tool = new DefoggerTool();
             tool.AnalyzeFile("DetectZipTest", base64);
 
-            Assert.AreEqual(3, tool.Findings.Count); // Hex can be misinterpreted as Base64
+            Assert.AreEqual(2, tool.Findings.Count);
             Assert.AreEqual(2,tool.Findings.Count(x => x.DecodedText.Equals(decoded)));
             Assert.AreEqual(2, tool.Findings.Count(x => x.Type == DefoggerTool.EncodedStringType.Base64));
             Assert.AreEqual(1, tool.Findings.Count(x => x.Type == DefoggerTool.EncodedStringType.Hex));

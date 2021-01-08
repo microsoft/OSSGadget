@@ -66,6 +66,24 @@ namespace osstests
         }
 
         [TestMethod]
+        public void DetectNestedZip()
+        {
+            var zip = new FileStream(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "TestData", "Base64Zip.zip"), FileMode.Open);
+            var ms = new MemoryStream();
+            zip.CopyTo(ms);
+            var nested = Convert.ToHexString(Encoding.Default.GetBytes(Convert.ToBase64String(ms.ToArray())));
+
+            var tool = new DefoggerTool();
+            tool.AnalyzeFile("DetectNestedZipTest", nested);
+            Assert.AreEqual(6, tool.Findings.Count);
+            Assert.AreEqual(4, tool.Findings.Count(x => x.Type == DefoggerTool.EncodedStringType.Base64));
+            Assert.AreEqual(2, tool.Findings.Count(x => x.Type == DefoggerTool.EncodedStringType.Hex));
+            Assert.AreEqual(1, tool.ArchiveFindings.Count);
+            Assert.AreEqual(1, tool.BinaryFindings.Count);
+            Assert.IsTrue(tool.Findings.Any(x => x.DecodedText == decoded));
+        }
+
+        [TestMethod]
         public void DetectZip()
         {
             var zip = new FileStream(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "TestData", "Base64Zip.zip"), FileMode.Open);

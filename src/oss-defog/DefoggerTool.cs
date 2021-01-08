@@ -58,14 +58,14 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         ///     Enum of executable types
         /// </summary>
-        public enum EXECUTABLE_TYPE
+        public enum ExecutableType
         {
-            UNKNOWN,
-            WINDOWS,
-            MACOS,
-            LINUX,
-            NONE,
-            JAVA
+            Unknown,
+            Windows,
+            MacOS,
+            Linux,
+            None,
+            Java
         }
 
         public static byte[] HexStringToBytes(string hex)
@@ -112,10 +112,10 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         /// <param name="input">Stream bytes to check</param>
         /// <returns>The executable type</returns>
-        public static EXECUTABLE_TYPE GetExecutableType(Stream input)
+        public static ExecutableType GetExecutableType(Stream input)
         {
-            if (input == null) { return EXECUTABLE_TYPE.UNKNOWN; }
-            if (input.Length < 4) { return EXECUTABLE_TYPE.NONE; }
+            if (input == null) { return ExecutableType.Unknown; }
+            if (input.Length < 4) { return ExecutableType.None; }
 
             var fourBytes = new byte[4];
             var initialPosition = input.Position;
@@ -128,25 +128,25 @@ namespace Microsoft.CST.OpenSource
             catch (Exception e)
             {
                 Logger.Debug("Couldn't chomp 4 bytes ({1}:{2})", e.GetType().ToString(), e.Message);
-                return EXECUTABLE_TYPE.UNKNOWN;
+                return ExecutableType.Unknown;
             }
 
             switch (fourBytes)
             {
                 case var span when span.SequenceEqual(ElfMagicNumber):
-                    return EXECUTABLE_TYPE.LINUX;
+                    return ExecutableType.Linux;
 
                 case var span when span.SequenceEqual(JavaMagicNumber):
-                    return EXECUTABLE_TYPE.JAVA;
+                    return ExecutableType.Java;
 
                 case var span when MacMagicNumbers.Contains(span):
-                    return EXECUTABLE_TYPE.MACOS;
+                    return ExecutableType.MacOS;
 
                 case var span when span[0..2].SequenceEqual(WindowsMagicNumber):
-                    return EXECUTABLE_TYPE.WINDOWS;
+                    return ExecutableType.Windows;
 
                 default:
-                    return EXECUTABLE_TYPE.NONE;
+                    return ExecutableType.None;
             }
         }
 
@@ -242,12 +242,12 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         public class EncodedBinary
         {
-            public EXECUTABLE_TYPE Type;
+            public ExecutableType Type;
             public string Filename;
             public string EncodedText;
             public Stream DecodedBinary;
 
-            public EncodedBinary(EXECUTABLE_TYPE Type, string Filename, string EncodedText, Stream DecodedBinary)
+            public EncodedBinary(ExecutableType Type, string Filename, string EncodedText, Stream DecodedBinary)
             {
                 this.Type = Type;
                 this.Filename = Filename;
@@ -301,7 +301,7 @@ namespace Microsoft.CST.OpenSource
                             {
                                 Directory.CreateDirectory(binaryDir);
                                 var path = Path.Combine(binaryDir, binaryFinding.Filename, $"binary-{binaryNumber}");
-                                Logger.Info("Saving to ", path);
+                                Logger.Info("Saving to {0}", path);
                                 var fs = new FileStream(path,FileMode.OpenOrCreate);
                                 binaryFinding.DecodedBinary.CopyTo(fs);
                                 binaryNumber++;
@@ -317,7 +317,7 @@ namespace Microsoft.CST.OpenSource
                             {
                                 Directory.CreateDirectory(archiveDir);
                                 var path = Path.Combine(archiveDir, archiveFinding.Filename, $"archive-{archiveNumber++}");
-                                Logger.Info("Saving to ", path);
+                                Logger.Info("Saving to {0}", path);
                                 var fs = new FileStream(path, FileMode.OpenOrCreate);
                                 archiveFinding.DecodedArchive.CopyTo(fs);
                                 archiveNumber++;
@@ -332,7 +332,7 @@ namespace Microsoft.CST.OpenSource
                             if (blobDir is string)
                             {
                                 var path = Path.Combine(blobDir, blobFinding.Filename, $"blob-{blobNumber++}");
-                                Logger.Info("Saving to ", path);
+                                Logger.Info("Saving to {0}", path);
                                 File.WriteAllText(path, blobFinding.DecodedText);
                                 blobNumber++;
                             }
@@ -452,7 +452,7 @@ namespace Microsoft.CST.OpenSource
 
                         var exeType = GetExecutableType(entry.Content);
 
-                        if (exeType is not EXECUTABLE_TYPE.NONE && exeType is not EXECUTABLE_TYPE.UNKNOWN)
+                        if (exeType is not ExecutableType.None && exeType is not ExecutableType.Unknown)
                         {
                             BinaryFindings.Add(new EncodedBinary(exeType, filename, match.Value, entry.Content));
                         }
@@ -468,7 +468,7 @@ namespace Microsoft.CST.OpenSource
                                 foreach (var extractedEntry in extractor.Extract(entry, new ExtractorOptions() { MemoryStreamCutoff = int.MaxValue }))
                                 {
                                     exeType = GetExecutableType(extractedEntry.Content);
-                                    if (exeType is not EXECUTABLE_TYPE.NONE && exeType is not EXECUTABLE_TYPE.UNKNOWN)
+                                    if (exeType is not ExecutableType.None && exeType is not ExecutableType.Unknown)
                                     {
                                         BinaryFindings.Add(new EncodedBinary(exeType, filename, match.Value, entry.Content));
                                     }

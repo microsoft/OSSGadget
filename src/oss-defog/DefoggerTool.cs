@@ -28,7 +28,7 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         ///     String with placeholders that matches Base64-encoded text.
         /// </summary>
-        private static readonly string BASE64_REGEX_STRING = "(([A-Z0-9+\\/]{B})+(([A-Z0-9+\\/]{C}=)|([A-Z0-9+\\/]{D}==))?)";
+        private static readonly string BASE64_REGEX_STRING = "(([A-Z0-9+\\/]{B})+(([A-Z0-9+\\/]{3}=)|([A-Z0-9+\\/]{2}==))?)";
 
         /// <summary>
         ///     String with placeholders that matches hex-encoded text.
@@ -38,7 +38,7 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         ///     Regular expression that matches Base64-encoded text.
         /// </summary>
-        private static Regex BASE64_REGEX = new Regex(BASE64_REGEX_STRING.Replace("B","4").Replace("C","3").Replace("D","2"), RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(5000));
+        private static Regex BASE64_REGEX = new Regex(BASE64_REGEX_STRING.Replace("B","4"), RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(5000));
 
         /// <summary>
         ///     Regular expression that matches hex-encoded text.
@@ -688,7 +688,7 @@ namespace Microsoft.CST.OpenSource
                         int.TryParse(args[++i], out int base64);
                         base64 = (base64 < 1) ? 1 : base64;
                         base64 = base64 * 4;
-                        BASE64_REGEX = new Regex(BASE64_REGEX_STRING.Replace("B", base64.ToString()).Replace("C", (base64 - 1).ToString()).Replace("D",(base64 - 2).ToString()), RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(5000));
+                        BASE64_REGEX = new Regex(BASE64_REGEX_STRING.Replace("B", base64.ToString()), RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(5000));
                         break;
 
                     default:

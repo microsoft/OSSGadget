@@ -426,7 +426,7 @@ namespace Microsoft.CST.OpenSource
 
         public bool HasNonTextContent(string content)
         {
-            return content.Any(ch => char.IsControl(ch) && ch != '\t' && ch != '\r' && ch != '\n');
+            return content.Any(ch => char.IsControl(ch) && !char.IsWhiteSpace(ch));
         }
 
         public void AnalyzeFile(string filename, string fileContents)

@@ -26,14 +26,24 @@ namespace Microsoft.CST.OpenSource
         private static readonly string VERSION = typeof(DefoggerTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
 
         /// <summary>
+        ///     String with placeholders that matches Base64-encoded text.
+        /// </summary>
+        private static readonly string BASE64_REGEX_STRING = "(([A-Z0-9+\\/]{B})+(([A-Z0-9+\\/]{C}=)|([A-Z0-9+\\/]{D}==))?)";
+
+        /// <summary>
+        ///     String with placeholders that matches hex-encoded text.
+        /// </summary>
+        private static readonly string HEX_REGEX_STRING = "(0x)?(([A-F0-9][A-F0-9]{B,})|(([A-F0-9][A-F0-9]-){C,}[A-F0-9][A-F0-9]))";
+
+        /// <summary>
         ///     Regular expression that matches Base64-encoded text.
         /// </summary>
-        private static readonly Regex BASE64_REGEX = new Regex("(([A-Z0-9+\\/]{8,})(=|==)?)", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(5000));
+        private static Regex BASE64_REGEX = new Regex(BASE64_REGEX_STRING.Replace("B","4").Replace("C","3").Replace("D","2"), RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(5000));
 
         /// <summary>
         ///     Regular expression that matches hex-encoded text.
         /// </summary>
-        private static readonly Regex HEX_REGEX = new Regex(@"(0x)?(([A-F0-9]{16,})|(([A-F0-9][A-F0-9]-){7,}[A-F0-9][A-F0-9]))", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        private static Regex HEX_REGEX = new Regex(HEX_REGEX_STRING.Replace("B","8").Replace("C","7"), RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
         /// <summary>
         ///     Short strings must match this regular expression to be reported.
@@ -161,8 +171,9 @@ namespace Microsoft.CST.OpenSource
             { "save-found-binaries-to", null },
             { "save-archives-to", null },
             { "save-blobs-to", null },
-            { "report-blobs", null }
-
+            { "report-blobs", null },
+            { "minimum-base64-length", 1 },
+            { "minimum-hex-length", 8 }
         };
 
         /// <summary>
@@ -304,7 +315,7 @@ namespace Microsoft.CST.OpenSource
                                 Directory.CreateDirectory(binaryDir);
                                 var path = Path.Combine(binaryDir, binaryFinding.Filename, $"binary-{binaryNumber}");
                                 Logger.Info("Saving to {0}", path);
-                                var fs = new FileStream(path,FileMode.OpenOrCreate);
+                                var fs = new FileStream(path,System.IO.FileMode.OpenOrCreate);
                                 binaryFinding.DecodedBinary.CopyTo(fs);
                                 binaryNumber++;
                             }
@@ -320,7 +331,7 @@ namespace Microsoft.CST.OpenSource
                                 Directory.CreateDirectory(archiveDir);
                                 var path = Path.Combine(archiveDir, archiveFinding.Filename, $"archive-{archiveNumber++}");
                                 Logger.Info("Saving to {0}", path);
-                                var fs = new FileStream(path, FileMode.OpenOrCreate);
+                                var fs = new FileStream(path, System.IO.FileMode.OpenOrCreate);
                                 archiveFinding.DecodedArchive.CopyTo(fs);
                                 archiveNumber++;
                             }
@@ -666,6 +677,20 @@ namespace Microsoft.CST.OpenSource
                         Options["report-blobs"] = true;
                         break;
 
+                    case "--minimum-hex-length":
+                        int.TryParse(args[++i], out int hex);
+                        hex = (hex < 1) ? 1 : hex;
+                        hex = hex * 2;
+                        HEX_REGEX = new Regex(HEX_REGEX_STRING.Replace("B", hex.ToString()).Replace("C", (hex - 1).ToString()), RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(5000));
+                        break;
+
+                    case "--minimum-base64-length":
+                        int.TryParse(args[++i], out int base64);
+                        base64 = (base64 < 1) ? 1 : base64;
+                        base64 = base64 * 4;
+                        BASE64_REGEX = new Regex(BASE64_REGEX_STRING.Replace("B", base64.ToString()).Replace("C", (base64 - 1).ToString()).Replace("D",(base64 - 2).ToString()), RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(5000));
+                        break;
+
                     default:
                         if (Options["target"] is IList<string> targetList)
                         {
@@ -694,6 +719,8 @@ positional arguments:
 optional arguments:
   --download-directory          the directory to download the package to
   --report-blobs                if set, blobs which cannot be determined to be strings, archives or binaries will be reported on (noisy)
+  --minimum-hex-length          if set, overrides the default hex string detection length (default 8 pairs)
+  --minimum-base64-length       if set, overrides the default base64 minimum string length (default 1 quad)
   --save-found-binaries-to      if set, encoded binaries which were found will be saved to this directory
   --save-archives-to            if set, encoded compressed files will be saved to this directory
   --save-blobs-to               if set, encoded blobs of indeterminate type will be saved to this directory

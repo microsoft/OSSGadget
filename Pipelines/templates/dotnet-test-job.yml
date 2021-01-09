@@ -10,11 +10,7 @@ parameters:
 # Should Dotnet SDK install preview versions?
 - name: includePreviewVersions
   type: boolean
-  default: true
-# Version of NuGet Tool to use
-- name: nugetVersion
-  type: string
-  default: '5.x'
+  default: false
 # List of paths to .csproj
 - name: projectPath
   type: string
@@ -32,10 +28,6 @@ jobs:
       packageType: 'sdk'
       version: ${{ parameters.dotnetVersion }}
       includePreviewVersions: ${{ parameters.includePreviewVersions }}
-  - task: NuGetToolInstaller@1
-    displayName: Install Nuget Tool
-    inputs:
-      versionSpec: ${{ parameters.nugetVersion }}
   - task: DotNetCoreCLI@2
     displayName: Dotnet Restore
     inputs:

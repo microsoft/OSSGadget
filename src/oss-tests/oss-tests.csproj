@@ -20,6 +20,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.3.37" />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,5 +32,13 @@
     <ProjectReference Include="..\oss-find-source\oss-find-source.csproj" />
     <ProjectReference Include="..\oss-health\oss-health.csproj" />
     <ProjectReference Include="..\Shared\Shared.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="TestData\Base64Zip.zip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\oss-defog.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

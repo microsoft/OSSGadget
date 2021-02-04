@@ -3,6 +3,7 @@
 using CommandLine;
 using CommandLine.Text;
 using Microsoft.ApplicationInspector.Commands;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Sarif;
 using Microsoft.CST.OpenSource.Shared;
 using System;
@@ -11,6 +12,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
 using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
@@ -246,13 +248,34 @@ namespace Microsoft.CST.OpenSource
                 {
                     try
                     {
-                        var purl = new PackageURL(target);
-                        string downloadDirectory = options.DownloadDirectory == "." ? Directory.GetCurrentDirectory() : options.DownloadDirectory;
-                        var analysisResult = AnalyzePackage(options, purl,
-                            downloadDirectory,
-                            options.UseCache == true).Result;
+                        if (target.StartsWith("pkg:"))
+                        {
+                            var purl = new PackageURL(target);
+                            string downloadDirectory = options.DownloadDirectory == "." ? Directory.GetCurrentDirectory() : options.DownloadDirectory;
+                            var analysisResult = AnalyzePackage(options, purl,
+                                downloadDirectory,
+                                options.UseCache == true).Result;
 
-                        AppendOutput(outputBuilder, purl, analysisResult);
+                            AppendOutput(outputBuilder, purl, analysisResult);
+                        }
+                        else if (Directory.Exists(target))
+                        {
+                            var analysisResult = await AnalyzeDirectory(options, target);
+                            if (analysisResult != null)
+                            {
+                                var analysisResults = new Dictionary<string, Microsoft.ApplicationInspector.Commands.AnalyzeResult?>()
+                                {
+                                    { target, analysisResult }
+                                };
+                                var encodedName = Uri.EscapeUriString(Path.GetDirectoryName(target) ?? "unknown");
+                                var purl = new PackageURL("generic", encodedName);
+                                AppendOutput(outputBuilder, purl, analysisResults);
+                            }
+                        }
+                        else
+                        {
+                            Logger.Warn("Target was neither a Package URL nor a directory.");
+                        }
                     }
                     catch (Exception ex)
                     {

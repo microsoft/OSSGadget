@@ -53,16 +53,21 @@ namespace Microsoft.CST.OpenSource.Tests
             outputBuilder.AppendOutput(sarifResults);
             string sarifJSON = outputBuilder.GetOutput();
             SarifLog sarif = JsonConvert.DeserializeObject<SarifLog>(sarifJSON);
-
             Assert.IsNotNull(sarif);
-            Assert.IsNotNull(sarif.Runs.FirstOrDefault().Tool.Driver.Name);
+
+            var sarifRun = sarif.Runs.FirstOrDefault();
+            Assert.IsNotNull(sarifRun?.Tool.Driver.Name);
+
             // make sure atleast one of the result repos match the actual one
             bool found = false;
-            foreach (var result in sarif.Runs.FirstOrDefault().Results)
+            if (sarifRun != null)
             {
-                if (result.Message.Text == targetResult)
+                foreach (var result in sarifRun.Results)
                 {
-                    found = true;
+                    if (result.Message.Text == targetResult)
+                    {
+                        found = true;
+                    }
                 }
             }
             Assert.IsTrue(found);

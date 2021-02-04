@@ -391,7 +391,18 @@ namespace Microsoft.CST.OpenSource
             var packageDownloader = new PackageDownloader(purl, destinationDirectory, doCaching);
             foreach (var directory in await packageDownloader.DownloadPackageLocalCopy(purl, false, true))
             {
-                AnalyzeDirectory(directory);
+                if (Directory.Exists(directory))
+                {
+                    AnalyzeDirectory(directory);
+                }
+                else if (File.Exists(directory))
+                {
+                    AnalyzeFile(directory);
+                }
+                else
+                {
+                    Logger.Warn("{0} is neither a directory nor a file.", directory);
+                }
             }
 
             packageDownloader.ClearPackageLocalCopyIfNoCaching();
@@ -718,7 +729,7 @@ namespace Microsoft.CST.OpenSource
 Usage: {TOOL_NAME} [options] package-url...
 
 positional arguments:
-  package-url                   package url to analyze (required, multiple allowed)
+  package-url                   package url to analyze (required, multiple allowed), or directory.
 
 {BaseProjectManager.GetCommonSupportedHelpText()}
 

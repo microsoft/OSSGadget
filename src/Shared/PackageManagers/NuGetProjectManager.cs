@@ -309,8 +309,7 @@ namespace Microsoft.CST.OpenSource.Shared
                         var candidate = ExtractGitHubPackageURLs(repoCandidate).FirstOrDefault();
                         if (candidate != null)
                         {
-                            mapping.Add(candidate as PackageURL, 1.0F);
-                            
+                            mapping[candidate as PackageURL] = 1.0F;
                         }
                     }
                 }

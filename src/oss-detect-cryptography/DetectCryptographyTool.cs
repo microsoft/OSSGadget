@@ -135,7 +135,7 @@ namespace Microsoft.CST.OpenSource
                                                    .Distinct()
                                                    .Where(t => !t.StartsWith("Cryptography.Implementation."));
 
-                            if (shortTags.Count() > 0)
+                            if (shortTags.Any())
                             {
                                 sb.AppendLine($"[X] {target} - This software package appears to implement {string.Join(", ", shortTags)}.");
                             }
@@ -248,10 +248,17 @@ namespace Microsoft.CST.OpenSource
                         analysisResults.AddRange(singleResult);
                     }
 
-                    Logger.Trace("Removing directory {0}", directoryName);
+                    Logger.Trace("Removing {0}", directoryName);
                     try
                     {
-                        Directory.Delete(directoryName, true);
+                        if (Directory.Exists(directoryName))
+                        {
+                            Directory.Delete(directoryName, true);
+                        }
+                        else if (File.Exists(directoryName))
+                        {
+                            File.Delete(directoryName);
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -322,6 +329,7 @@ namespace Microsoft.CST.OpenSource
                 {
                     // Maybe it's WebAseembly -- @TODO Make this less random.
                     using var webAssemblyByteStream = new MemoryStream(buffer);
+                    
                     var m = WebAssembly.Module.ReadFromBinary(webAssemblyByteStream);
 
                     foreach (var data in m.Data)
@@ -350,7 +358,11 @@ namespace Microsoft.CST.OpenSource
                     }
                     return string.Join('\n', resultStrings);
                 }
-                catch (Exception ex)
+                catch(WebAssembly.ModuleLoadException)
+                {
+                    // OK to ignore
+                }
+                catch (Exception ex) 
                 {
                     Logger.Warn("Unable to analyze WebAssembly {0}: {1}", filename, ex.Message);
                 }
@@ -417,7 +429,23 @@ namespace Microsoft.CST.OpenSource
                 SeverityLevel = (Severity)31
             };
 
-            foreach (var filename in Directory.GetFiles(directory, "*", SearchOption.AllDirectories))
+            string[] fileList;
+
+            if (Directory.Exists(directory))
+            {
+                fileList = Directory.GetFiles(directory, "*", SearchOption.AllDirectories);
+            }
+            else if (File.Exists(directory))
+            {
+                fileList = new string[] { directory };
+            }
+            else
+            {
+                Logger.Warn("{0} is neither a directory nor a file.", directory);
+                return analysisResults; // empty
+            }
+            
+            foreach (var filename in fileList)
             {
                 Logger.Trace($"Processing {filename}");
 
@@ -653,7 +681,7 @@ namespace Microsoft.CST.OpenSource
 Usage: {TOOL_NAME} [options] package-url...
 
 positional arguments:
-    package-url                 PackgeURL specifier to download (required, repeats OK)
+    package-url                 PackgeURL specifier to download (required, repeats OK), or directory.
 
 {BaseProjectManager.GetCommonSupportedHelpText()}
 

@@ -9,7 +9,7 @@
     "severity": "important",
     "patterns": [
       {
-        "pattern": "\b\\.(request|post|get)\\(\b",
+        "pattern": "\\.(request|post|get)\\(",
         "type": "regex",
         "scopes": [ "code", "comment" ],
         "modifiers": [ "i" ]
@@ -53,6 +53,23 @@
         "type": "regex",
         "scopes": [ "code", "comment" ],
         "modifiers": [ "i" ]
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Data Exfiltration (Environment)",
+    "id": "BD000703",
+    "description": "Backdoor: Data Exfiltration (Environment)",
+    "tags": [
+      "Security.Backdoor.DataExfiltration.Environment"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": ".userInfo()",
+        "type": "string",
+        "scopes": [ "code" ],
+        "modifiers": []
       }
     ]
   }

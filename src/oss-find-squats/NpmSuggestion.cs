@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.CST.OpenSource
+namespace Microsoft.CST.OpenSource.FindSquats
 {
     public class NpmSuggestion
     {

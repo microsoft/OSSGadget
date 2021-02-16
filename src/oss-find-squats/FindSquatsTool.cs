@@ -10,6 +10,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.CST.OpenSource.FindSquats;
 
 namespace Microsoft.CST.OpenSource
 {
@@ -78,9 +79,15 @@ namespace Microsoft.CST.OpenSource
                         switch (purl.Type)
                         {
                             case "npm":
-                                if (await DoesCandidateExistInNpm(mutation) is string uri)
+                                if (await DoesCandidateExistInNpm(mutation) is string npmUri)
                                 {
-                                    results.Add(uri);
+                                    results.Add(npmUri);
+                                }
+                                break;
+                            case "nuget":
+                                if (await DoesCandidateExistInNuget(mutation) is string nugetUri)
+                                {
+                                    results.Add(nugetUri);
                                 }
                                 break;
                             default:
@@ -162,6 +169,19 @@ namespace Microsoft.CST.OpenSource
                     }
                 }
             }
+            return null;
+        }
+
+        private async Task<string?> DoesCandidateExistInNuget(string mutation)
+        {
+            var output = new List<string>();
+            var candidate = $"https://www.nuget.org/packages/{mutation}";
+            var result = await client.GetAsync(candidate);
+            if (result.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                return candidate;
+            }
+
             return null;
         }
     }

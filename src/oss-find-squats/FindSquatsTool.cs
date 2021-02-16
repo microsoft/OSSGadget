@@ -18,7 +18,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
         /// <summary>
         ///     Name of this tool.
         /// </summary>
-        private const string TOOL_NAME = "oss-detect-cryptography";
+        private const string TOOL_NAME = "oss-find-squats";
 
         /// <summary>
         ///     Holds the version string, from the assembly.
@@ -49,7 +49,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
 
         }
 
-        public FindSquatsTool()
+        public FindSquatsTool() : base()
         {
             gen = new Generative();
             client = new HttpClient();

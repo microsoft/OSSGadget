@@ -11,7 +11,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace Microsoft.CST.OpenSource.FindSquats
+namespace Microsoft.CST.OpenSource
 {
     public class FindSquatsTool : OSSGadget
     {
@@ -72,7 +72,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
                 {
                     var mutationsDict = gen.Mutate(purl.Name);
                     // Flatten results
-                    var mutationsList = mutationsDict.SelectMany(x => x.Value);
+                    var mutationsList = mutationsDict.Keys;
                     foreach(var mutation in mutationsList)
                     {
                         switch (purl.Type)
@@ -94,12 +94,14 @@ namespace Microsoft.CST.OpenSource.FindSquats
             foreach(var result in results)
             {
                 Result res = new Result();
+                res.Locations = new List<Location>();
                 Location loc = new Location();
                 loc.LogicalLocation = new LogicalLocation()
                 {
                     FullyQualifiedName = result
                 };
                 res.Locations.Add(loc);
+                sarifResults.Add(res);
             }
 
             SarifLog sarifLog = new SarifLog();

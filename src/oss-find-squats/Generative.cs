@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata;
 
-namespace Microsoft.CST.OpenSource.FindSquats
+namespace Microsoft.CST.OpenSource
 {
     public class Generative
     {
@@ -165,7 +165,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
             {
                 if (_uh[arg[i]] != null)
                 {
-                    foreach (var c in _uh[i])
+                    foreach (var c in _uh[arg[i]])
                     {
                         yield return (string.Join(arg.Substring(0, i), c, arg.Substring(i)), "unicode homoglyph");
                     }

@@ -124,7 +124,7 @@ namespace Microsoft.CST.OpenSource
 
                                 loc.LogicalLocation = new LogicalLocation()
                                 {
-                                    FullyQualifiedName = manager.GetPackageAbsoluteUri(innerPurl)?.AbsoluteUri ?? purl.ToString()
+                                    FullyQualifiedName = purl.ToString()
                                 };
                                 res.Locations.Add(loc);
                                 var rls = string.Join(',', rules);

@@ -11,6 +11,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.CST.OpenSource.FindSquats;
+using Microsoft.CST.OpenSource.Shared;
 
 namespace Microsoft.CST.OpenSource
 {
@@ -65,33 +66,29 @@ namespace Microsoft.CST.OpenSource
 
         public async Task RunAsync(Options opts)
         {
-            var results = new List<string>();
+            var results = new List<(string rule, PackageURL purl)>();
             foreach(var target in opts.Targets ?? Array.Empty<string>())
             {
                 var purl = new PackageURL(target);
-                if (purl.Name is not null)
+                if (purl.Name is not null && purl.Type is not null)
                 {
-                    var mutationsDict = gen.Mutate(purl.Name);
-                    // Flatten results
-                    var mutationsList = mutationsDict.Keys;
-                    foreach(var mutation in mutationsList)
+                    var manager = ProjectManagerFactory.CreateProjectManager(purl, null);
+                    if (manager is not null)
                     {
-                        switch (purl.Type)
+                        var mutationsDict = gen.Mutate(purl.Name);
+
+                        foreach((var rule, var list) in mutationsDict)
                         {
-                            case "npm":
-                                if (await DoesCandidateExistInNpm(mutation) is string npmUri)
+                            foreach (var mutation in list)
+                            {
+                                var innerPurl = new PackageURL(purl.Type, mutation);
+                                var versions = await manager.EnumerateVersions(innerPurl);
+
+                                if (versions.Any())
                                 {
-                                    results.Add(npmUri);
+                                    results.Add((rule,purl));
                                 }
-                                break;
-                            case "nuget":
-                                if (await DoesCandidateExistInNuget(mutation) is string nugetUri)
-                                {
-                                    results.Add(nugetUri);
-                                }
-                                break;
-                            default:
-                                break;
+                            }
                         }
                     }
                 }
@@ -105,9 +102,11 @@ namespace Microsoft.CST.OpenSource
                 Location loc = new Location();
                 loc.LogicalLocation = new LogicalLocation()
                 {
-                    FullyQualifiedName = result
+                    FullyQualifiedName = result.purl.ToString()
                 };
                 res.Locations.Add(loc);
+                res.Message = new Message(result.rule, result.rule, result.rule, null, null);
+                res.Kind = ResultKind.Review;
                 sarifResults.Add(res);
             }
 
@@ -115,7 +114,6 @@ namespace Microsoft.CST.OpenSource
             sarifLog.Version = SarifVersion.Current;
             Run runItem = new Run();
             runItem.Tool = new Tool();
-
 
             runItem.Tool.Driver = new ToolComponent();
             if (Assembly.GetEntryAssembly() is Assembly entryAssembly)
@@ -144,45 +142,6 @@ namespace Microsoft.CST.OpenSource
             sarifLog.Runs = new List<Run>();
             sarifLog.Runs.Add(runItem);
             sarifLog.Save(opts.OutputFileName);
-        }
-
-        private async Task<string?> DoesCandidateExistInNpm(string mutation)
-        {
-            var output = new List<string>();
-            var json = await client.GetAsync($"https://npmjs.com/search/suggestions?q={mutation}");
-            var suggestions = JsonConvert.DeserializeObject<List<NpmSuggestion>>(await json.Content.ReadAsStringAsync());
-            foreach(NpmSuggestion suggestion in suggestions)
-            {
-                var splits = suggestion.Name?.Split('/') ?? Array.Empty<string>();
-                if (splits.Length == 2)
-                {
-                    if (splits[1].Equals(mutation, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return suggestion.Links?["npm"];
-                    }
-                }
-                else if (splits.Length == 1)
-                {
-                    if (splits[0].Equals(mutation, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return suggestion.Links?["npm"];
-                    }
-                }
-            }
-            return null;
-        }
-
-        private async Task<string?> DoesCandidateExistInNuget(string mutation)
-        {
-            var output = new List<string>();
-            var candidate = $"https://www.nuget.org/packages/{mutation}";
-            var result = await client.GetAsync(candidate);
-            if (result.StatusCode == System.Net.HttpStatusCode.OK)
-            {
-                return candidate;
-            }
-
-            return null;
         }
     }
 }

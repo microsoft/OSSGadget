@@ -1,9 +1,7 @@
 ﻿using CommandLine;
 using CommandLine.Text;
 using Microsoft.CodeAnalysis.Sarif;
-using Microsoft.CodeAnalysis.Sarif.Baseline.ResultMatching;
 using Microsoft.CST.OpenSource.Shared;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +9,6 @@ using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.CST.OpenSource.FindSquats;
-using Microsoft.CST.OpenSource.Shared;
 
 namespace Microsoft.CST.OpenSource
 {

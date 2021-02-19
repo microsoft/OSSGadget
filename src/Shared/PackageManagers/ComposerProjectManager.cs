@@ -120,7 +120,6 @@ namespace Microsoft.CST.OpenSource.Shared
                 Logger.Debug(ex, $"Error enumerating Composer package: {ex.Message}");
                 throw;
             }
-            return versionList;
         }
 
         public override async Task<string?> GetMetadata(PackageURL purl)

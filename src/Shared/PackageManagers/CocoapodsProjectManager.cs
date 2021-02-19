@@ -103,7 +103,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     Logger.Debug("Unable to find download location for {0}@{1}", packageName, packageVersion);
                 }
             }
-            return downloadedPaths;nu
+            return downloadedPaths;
         }
 
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)

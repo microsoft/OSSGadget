@@ -71,7 +71,7 @@ namespace Microsoft.CST.OpenSource
             }
             catch (Exception ex)
             {
-                Logger.Warn("Error removing {0}: {1}", destinationDirectory, ex.Message);
+                Logger.Trace("Error removing {0}: {1}", destinationDirectory, ex.Message);
             }
 
             this.downloadPaths.Clear();
@@ -92,7 +92,7 @@ namespace Microsoft.CST.OpenSource
             }
             catch (Exception ex)
             {
-                Logger.Warn("Error removing {0}: {1}", destinationDirectory, ex.Message);
+                Logger.Trace("Error removing {0}: {1}", destinationDirectory, ex.Message);
             }
         }
 
@@ -170,7 +170,7 @@ namespace Microsoft.CST.OpenSource
         {
             if (purl == null)
             {
-                Logger.Warn("Invalid PackageURL (null)");
+                Logger.Debug("Invalid PackageURL (null)");
                 return new List<string>();
             }
 
@@ -209,7 +209,7 @@ namespace Microsoft.CST.OpenSource
                     }
                     else
                     {
-                        Logger.Warn("Unable to enumerate versions, so cannot identify the latest.");
+                        Logger.Debug("Unable to enumerate versions, so cannot identify the latest.");
                         // package list will remain empty
                     }
                 }

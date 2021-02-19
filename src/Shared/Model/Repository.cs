@@ -101,7 +101,7 @@ namespace Microsoft.CST.OpenSource.Model
             {
                 if (purl.Type != "github")
                 {
-                    Logger.Warn("Only github repos are handled currently");
+                    Logger.Debug("Only github repos are handled currently");
                     return this;
                 }
 
@@ -158,7 +158,7 @@ namespace Microsoft.CST.OpenSource.Model
             }
             catch (Exception ex)
             {
-                Logger.Warn($"Exception occurred while retrieving repository data: {ex}");
+                Logger.Debug($"Exception occurred while retrieving repository data: {ex}");
             }
             return this;
         }

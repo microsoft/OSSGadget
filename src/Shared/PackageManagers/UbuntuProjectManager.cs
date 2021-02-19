@@ -162,7 +162,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
                 catch (Exception ex)
                 {
-                    Logger.Warn("Error downloading binary for {0}: {1}", purl.ToString(), ex.Message);
+                    Logger.Debug("Error downloading binary for {0}: {1}", purl.ToString(), ex.Message);
                 }
             }
 
@@ -227,7 +227,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
                 catch (Exception ex)
                 {
-                    Logger.Warn(ex, "Error enumerating Ubuntu package versions: {0}", ex.Message);
+                    Logger.Debug(ex, "Error enumerating Ubuntu package versions: {0}", ex.Message);
                     return Array.Empty<string>();
                 }
             }
@@ -271,7 +271,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
                 catch (Exception ex)
                 {
-                    Logger.Warn("Error obtaining .dsc file for {0}: {1}", purl.ToString(), ex.Message);
+                    Logger.Debug("Error obtaining .dsc file for {0}: {1}", purl.ToString(), ex.Message);
                 }
 
                 // Fallback to packages.ubuntu.com if we haven't seen any .dsc files
@@ -292,7 +292,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     }
                     catch (Exception ex)
                     {
-                        Logger.Warn(ex, "Error fetching Ubuntu metadata: {0}", ex.Message);
+                        Logger.Debug(ex, "Error fetching Ubuntu metadata: {0}", ex.Message);
                     }
                 }
             }
@@ -345,7 +345,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Warn(ex, "Error fetching Ubuntu archive base URL for {0}: {1}", purl.ToString(), ex.Message);
+                Logger.Debug(ex, "Error fetching Ubuntu archive base URL for {0}: {1}", purl.ToString(), ex.Message);
             }
             return null;
         }
@@ -410,7 +410,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Warn(ex, "Error fetching Ubuntu pools for {0}: {1}", purl.ToString(), ex.Message);
+                Logger.Debug(ex, "Error fetching Ubuntu pools for {0}: {1}", purl.ToString(), ex.Message);
             }
             return pools;
         }

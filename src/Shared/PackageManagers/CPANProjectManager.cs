@@ -37,7 +37,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
             if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
             {
-                Logger.Error("Unable to download [{0} {1}]. Both must be defined.", packageName, packageVersion);
+                Logger.Debug("Unable to download [{0} {1}]. Both must be defined.", packageName, packageVersion);
                 return downloadedPaths;
             }
 
@@ -68,7 +68,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
             if (packageVersionUrl == null)
             {
-                Logger.Warn($"Unable to find CPAN package {packageName}@{packageVersion}.");
+                Logger.Debug($"Unable to find CPAN package {packageName}@{packageVersion}.");
                 return downloadedPaths;
             }
 
@@ -147,7 +147,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error enumerating CPAN package: {0}", ex.Message);
+                Logger.Debug(ex, "Error enumerating CPAN package: {0}", ex.Message);
                 return Array.Empty<string>();
             }
         }
@@ -162,7 +162,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error fetching CPAN metadata: {0}", ex.Message);
+                Logger.Debug(ex, "Error fetching CPAN metadata: {0}", ex.Message);
                 return null;
             }
         }

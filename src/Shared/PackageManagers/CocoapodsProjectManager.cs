@@ -47,7 +47,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
             if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion) || string.IsNullOrWhiteSpace(fileName))
             {
-                Logger.Error("Error with 'purl' argument. Unable to download [{0} {1}] @ {2}. Both must be defined.", packageName, packageVersion, fileName);
+                Logger.Debug("Error with 'purl' argument. Unable to download [{0} {1}] @ {2}. Both must be defined.", packageName, packageVersion, fileName);
                 return downloadedPaths;
             }
 
@@ -100,7 +100,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
                 else
                 {
-                    Logger.Warn("Unable to find download location for {0}@{1}", packageName, packageVersion);
+                    Logger.Debug("Unable to find download location for {0}@{1}", packageName, packageVersion);
                 }
             }
             return downloadedPaths;
@@ -137,7 +137,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"Error enumerating Cocoapods packages: {ex.Message}");
+                Logger.Debug(ex, $"Error enumerating Cocoapods packages: {ex.Message}");
                 return Array.Empty<string>();
             }
         }
@@ -187,7 +187,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"Error fetching Cocoapods metadata: {ex.Message}");
+                Logger.Debug(ex, $"Error fetching Cocoapods metadata: {ex.Message}");
                 return null;
             }
         }

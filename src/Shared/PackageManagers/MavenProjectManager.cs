@@ -35,7 +35,7 @@ namespace Microsoft.CST.OpenSource.Shared
             if (string.IsNullOrWhiteSpace(packageNamespace) || string.IsNullOrWhiteSpace(packageName) ||
                 string.IsNullOrWhiteSpace(packageVersion))
             {
-                Logger.Error("Unable to download [{0} {1} {2}]. Both must be defined.", packageNamespace, packageName, packageVersion);
+                Logger.Debug("Unable to download [{0} {1} {2}]. Both must be defined.", packageNamespace, packageName, packageVersion);
                 return downloadedPaths;
             }
 
@@ -70,7 +70,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error downloading Maven package: {0}", ex.Message);
+                Logger.Debug(ex, "Error downloading Maven package: {0}", ex.Message);
             }
             return downloadedPaths;
         }
@@ -106,7 +106,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"Error enumerating Maven packages: {ex.Message}");
+                Logger.Debug(ex, $"Error enumerating Maven packages: {ex.Message}");
                 return Array.Empty<string>();
             }
         }
@@ -133,7 +133,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"Error fetching Maven metadata: {ex.Message}");
+                Logger.Debug(ex, $"Error fetching Maven metadata: {ex.Message}");
                 return null;
             }
         }

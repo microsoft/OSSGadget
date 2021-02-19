@@ -37,7 +37,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
             if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
             {
-                Logger.Error("Unable to download [{0} {1}]. Both must be defined.", packageName, packageVersion);
+                Logger.Debug("Unable to download [{0} {1}]. Both must be defined.", packageName, packageVersion);
                 return downloadedPaths;
             }
 
@@ -68,7 +68,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error downloading RubyGems package: {0}", ex.Message);
+                Logger.Debug(ex, "Error downloading RubyGems package: {0}", ex.Message);
             }
             return downloadedPaths;
         }
@@ -104,7 +104,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error enumerating RubyGems package: {0}", ex.Message);
+                Logger.Debug(ex, "Error enumerating RubyGems package: {0}", ex.Message);
                 return Array.Empty<string>();
             }
         }
@@ -119,7 +119,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error fetching RubyGems metadata: {0}", ex.Message);
+                Logger.Debug(ex, "Error fetching RubyGems metadata: {0}", ex.Message);
                 return null;
             }
         }

@@ -34,7 +34,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
             if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
             {
-                Logger.Error("Unable to download [{0} {1}]. All must be defined.", packageName, packageVersion);
+                Logger.Debug("Unable to download [{0} {1}]. All must be defined.", packageName, packageVersion);
                 return downloadedPaths;
             }
 
@@ -95,7 +95,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Warn(ex, "Error downloading CRAN package: {0}", ex.Message);
+                Logger.Debug(ex, "Error downloading CRAN package: {0}", ex.Message);
             }
             return downloadedPaths;
         }
@@ -152,7 +152,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"Error enumerating CRAN package: {ex.Message}");
+                Logger.Debug(ex, $"Error enumerating CRAN package: {ex.Message}");
                 return Array.Empty<string>();
             }
         }
@@ -167,7 +167,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"Error fetching CRAN metadata: {ex.Message}");
+                Logger.Debug(ex, $"Error fetching CRAN metadata: {ex.Message}");
                 return null;
             }
         }

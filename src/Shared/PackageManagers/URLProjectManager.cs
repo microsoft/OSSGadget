@@ -37,7 +37,7 @@ namespace Microsoft.CST.OpenSource.Shared
             var url = purl?.Qualifiers?.GetValueOrDefault("url", null);
             if (url == null)
             {
-                Logger.Error("URL not found, {0}", purl);
+                Logger.Debug("URL not found, {0}", purl);
                 return downloadedPaths;
             }
             Uri uri = new Uri(url);

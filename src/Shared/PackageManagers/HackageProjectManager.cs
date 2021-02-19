@@ -105,7 +105,7 @@ namespace Microsoft.CST.OpenSource.Shared
             catch (Exception ex)
             {
                 Logger.Debug(ex, $"Error enumerating Hackage package: {ex.Message}");
-                return Array.Empty<string>();
+                throw;
             }
         }
 

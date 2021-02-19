@@ -118,6 +118,7 @@ namespace Microsoft.CST.OpenSource.Shared
             catch (Exception ex)
             {
                 Logger.Debug(ex, $"Error enumerating Composer package: {ex.Message}");
+                throw;
             }
             return versionList;
         }

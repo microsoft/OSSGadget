@@ -103,7 +103,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     Logger.Debug("Unable to find download location for {0}@{1}", packageName, packageVersion);
                 }
             }
-            return downloadedPaths;
+            return downloadedPaths;nu
         }
 
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
@@ -138,7 +138,7 @@ namespace Microsoft.CST.OpenSource.Shared
             catch (Exception ex)
             {
                 Logger.Debug(ex, $"Error enumerating Cocoapods packages: {ex.Message}");
-                return Array.Empty<string>();
+                throw;
             }
         }
 

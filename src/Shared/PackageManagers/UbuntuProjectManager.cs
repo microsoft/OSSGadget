@@ -228,7 +228,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 catch (Exception ex)
                 {
                     Logger.Debug(ex, "Error enumerating Ubuntu package versions: {0}", ex.Message);
-                    return Array.Empty<string>();
+                    throw;
                 }
             }
             return SortVersions(versionList.Distinct());

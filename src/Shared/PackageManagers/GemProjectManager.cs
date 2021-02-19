@@ -105,7 +105,7 @@ namespace Microsoft.CST.OpenSource.Shared
             catch (Exception ex)
             {
                 Logger.Debug(ex, "Error enumerating RubyGems package: {0}", ex.Message);
-                return Array.Empty<string>();
+                throw;
             }
         }
 

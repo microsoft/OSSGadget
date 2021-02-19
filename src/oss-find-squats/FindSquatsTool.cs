@@ -70,14 +70,36 @@ namespace Microsoft.CST.OpenSource
         static async Task Main(string[] args)
         {
             var findSquatsTool = new FindSquatsTool();
-            await findSquatsTool.ParseOptions<Options>(args).WithParsedAsync(findSquatsTool.RunAsync);
+            (string output, int numSquats) = (string.Empty, 0);
+            findSquatsTool.ParseOptions<Options>(args).WithParsed<Options>(options =>
+            {
+                (output, numSquats) = findSquatsTool.RunAsync(options).Result;
+                if (string.IsNullOrEmpty(options.OutputFile))
+                {
+                    options.OutputFile = $"oss-find-squat.{options.Format}";
+                }
+                if (!options.Quiet)
+                {
+                    if (numSquats > 0)
+                    {
+                        Logger.Warn($"Found {numSquats} potential squats.");
+                    }
+                    else
+                    {
+                        Logger.Info($"No squats detected.");
+                    }
+                }
+                using var fw = new StreamWriter(options.OutputFile);
+                fw.WriteLine(output);
+                fw.Close();
+
+            });
         }
 
-        public async Task RunAsync(Options options)
+        public async Task<(string output, int numSquats)> RunAsync(Options options)
         {
-            var results = new List<(IEnumerable<string> rule, PackageURL purl)>();
             IOutputBuilder outputBuilder = SelectFormat(options.Format);
-
+            var foundSquats = 0;
             foreach (var target in options.Targets ?? Array.Empty<string>())
             {
                 var purl = new PackageURL(target);
@@ -90,6 +112,18 @@ namespace Microsoft.CST.OpenSource
 
                         foreach ((var candidate, var rules) in mutationsDict)
                         {
+                            // Nuget will match "microsoft.cst.oat." against "Microsoft.CST.OAT" but these are the same package
+                            // For nuget in particular we filter out this case
+                            if (manager is NuGetProjectManager)
+                            {
+                                if (candidate.EndsWith('.'))
+                                {
+                                    if (candidate.Equals(purl.Name, StringComparison.InvariantCultureIgnoreCase))
+                                    {
+                                        continue;
+                                    }
+                                }
+                            }
                             var candidatePurl = new PackageURL(purl.Type, candidate);
                             try
                             {
@@ -97,6 +131,7 @@ namespace Microsoft.CST.OpenSource
 
                                 if (versions.Any())
                                 {
+                                    foundSquats++;
                                     if (!options.Quiet)
                                     {
                                         Logger.Info($"{candidate} package exists. Potential squat.");
@@ -114,6 +149,10 @@ namespace Microsoft.CST.OpenSource
                                             Level = FailureLevel.None,
                                             Locations = SarifOutputBuilder.BuildPurlLocation(purl),
                                         };
+                                        foreach(var tag in rules)
+                                        {
+                                            sarifResult.Tags.Add(tag);
+                                        }
                                         sarob.AppendOutput(new SarifResult[] { sarifResult });
                                     }
                                     else if (outputBuilder is StringOutputBuilder strob)
@@ -133,21 +172,14 @@ namespace Microsoft.CST.OpenSource
                             }
                             catch (Exception e) 
                             {
-                                Logger.Trace($"Error enumerating versions. {e.Message}:{e.StackTrace}");
+                                Logger.Trace($"Could not enumerate versions. Package {candidate} likely doesn't exist. {e.Message}:{e.StackTrace}");
                             }
                         }
                     }
                 }
             }
 
-            if (string.IsNullOrEmpty(options.OutputFile))
-            {
-                options.OutputFile = $"oss-find-squat.{options.Format}";
-            }
-
-            using var fw = new StreamWriter(options.OutputFile);
-            fw.WriteLine(outputBuilder.GetOutput());
-            fw.Close();
+            return (outputBuilder.GetOutput(),foundSquats);
         }
     }
 }

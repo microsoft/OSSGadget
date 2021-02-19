@@ -11,7 +11,7 @@ using System.Xml.Linq;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
-    internal class NuGetProjectManager : BaseProjectManager
+    public class NuGetProjectManager : BaseProjectManager
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_NUGET_ENDPOINT_API = "https://api.nuget.org";

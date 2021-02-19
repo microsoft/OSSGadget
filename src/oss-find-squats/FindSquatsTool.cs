@@ -118,7 +118,7 @@ namespace Microsoft.CST.OpenSource
                             {
                                 if (candidate.EndsWith('.'))
                                 {
-                                    if (candidate.Equals(purl.Name, StringComparison.InvariantCultureIgnoreCase))
+                                    if (candidate.Equals($"{purl.Name}.", StringComparison.InvariantCultureIgnoreCase))
                                     {
                                         continue;
                                     }

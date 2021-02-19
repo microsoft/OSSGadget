@@ -147,7 +147,7 @@ namespace Microsoft.CST.OpenSource
                                             },
                                             Kind = ResultKind.Review,
                                             Level = FailureLevel.None,
-                                            Locations = SarifOutputBuilder.BuildPurlLocation(purl),
+                                            Locations = SarifOutputBuilder.BuildPurlLocation(candidatePurl),
                                         };
                                         foreach(var tag in rules)
                                         {

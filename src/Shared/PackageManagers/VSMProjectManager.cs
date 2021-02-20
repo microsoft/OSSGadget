@@ -36,7 +36,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
             if (string.IsNullOrWhiteSpace(purl?.Namespace) || string.IsNullOrWhiteSpace(purl?.Name) || string.IsNullOrWhiteSpace(packageVersion))
             {
-                Logger.Error("Unable to download [{0} {1} {2}]. All must be defined.", purl?.Namespace, packageName, packageVersion);
+                Logger.Debug("Unable to download [{0} {1} {2}]. All must be defined.", purl?.Namespace, packageName, packageVersion);
                 return downloadedPaths;
             }
 
@@ -140,7 +140,7 @@ namespace Microsoft.CST.OpenSource.Shared
                                 }
                                 catch (Exception ex)
                                 {
-                                    Logger.Warn(ex, "Error downloading {0}: {1}", source.GetString(), ex.Message);
+                                    Logger.Debug(ex, "Error downloading {0}: {1}", source.GetString(), ex.Message);
                                 }
                             }
                         }
@@ -149,7 +149,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Warn(ex, "Error downloading VS Marketplace package: {0}", ex.Message);
+                Logger.Debug(ex, "Error downloading VS Marketplace package: {0}", ex.Message);
             }
             return downloadedPaths;
         }
@@ -232,8 +232,8 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Warn(ex, "Error enumerating VS Marketplace packages: {0}", ex.Message);
-                return Array.Empty<string>();
+                Logger.Debug(ex, "Error enumerating VS Marketplace packages: {0}", ex.Message);
+                throw;
             }
         }
 
@@ -245,7 +245,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Warn(ex, "Error fetching VS Marketplace metadata: {0}", ex.Message);
+                Logger.Debug(ex, "Error fetching VS Marketplace metadata: {0}", ex.Message);
                 return null;
             }
         }

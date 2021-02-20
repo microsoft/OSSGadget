@@ -83,7 +83,7 @@ namespace Microsoft.CST.OpenSource
             }
             catch (ArgumentOutOfRangeException)
             {
-                Logger.Error("Invalid output format, selecting text");
+                Logger.Debug("Invalid output format, selecting text");
             }
 
             currentOutputFormat = OutputFormat.text;
@@ -106,13 +106,13 @@ namespace Microsoft.CST.OpenSource
                 {
                     if (!ConsoleHelper.RedirectConsole(outputLoc))
                     {
-                        Logger.Error("Could not switch output from console to file");
+                        Logger.Debug("Could not switch output from console to file");
                         // continue with current output
                     }
                 }
                 else
                 {
-                    Logger.Error($"Invalid outputFile {outputFile}. Switching to console");
+                    Logger.Debug($"Invalid outputFile {outputFile}. Switching to console");
                 }
             }
         }

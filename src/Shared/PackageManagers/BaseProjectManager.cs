@@ -465,7 +465,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
             }
             catch (Exception ex)
             {
-                Logger.Warn(ex, "Error searching package metadata for {0}: {1}", purl, ex.Message);
+                Logger.Trace(ex, "Error searching package metadata for {0}: {1}", purl, ex.Message);
             }
 
             // Fall back to searching the metadata string for all possible GitHub URLs.

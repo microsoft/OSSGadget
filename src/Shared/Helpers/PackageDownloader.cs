@@ -71,7 +71,7 @@ namespace Microsoft.CST.OpenSource
             }
             catch (Exception ex)
             {
-                Logger.Warn("Error removing {0}: {1}", destinationDirectory, ex.Message);
+                Logger.Trace("Error removing {0}: {1}", destinationDirectory, ex.Message);
             }
 
             this.downloadPaths.Clear();
@@ -92,7 +92,7 @@ namespace Microsoft.CST.OpenSource
             }
             catch (Exception ex)
             {
-                Logger.Warn("Error removing {0}: {1}", destinationDirectory, ex.Message);
+                Logger.Trace("Error removing {0}: {1}", destinationDirectory, ex.Message);
             }
         }
 
@@ -170,7 +170,7 @@ namespace Microsoft.CST.OpenSource
         {
             if (purl == null)
             {
-                Logger.Warn("Invalid PackageURL (null)");
+                Logger.Debug("Invalid PackageURL (null)");
                 return new List<string>();
             }
 
@@ -201,24 +201,36 @@ namespace Microsoft.CST.OpenSource
                 PackageURL vPurl;
                 if (purl.Version == null)
                 {
-                    var versions = await packageManager.EnumerateVersions(purl);
-                    if (versions.Count() > 0)
+                    try
                     {
-                        vPurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, versions.Last(), purl.Qualifiers, purl.Subpath);
-                        packageVersions.Add(vPurl);
+                        var versions = await packageManager.EnumerateVersions(purl);
+                        if (versions.Count() > 0)
+                        {
+                            vPurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, versions.Last(), purl.Qualifiers, purl.Subpath);
+                            packageVersions.Add(vPurl);
+                        }
                     }
-                    else
+                    catch (Exception e)
                     {
-                        Logger.Warn("Unable to enumerate versions, so cannot identify the latest.");
+                        Logger.Debug($"Unable to enumerate versions, so cannot identify the latest. {e.Message}:{e.StackTrace}");
                         // package list will remain empty
                     }
                 }
                 else if (purl.Version.Equals("*"))
                 {
-                    foreach (var version in await packageManager.EnumerateVersions(purl))
+                    try
                     {
-                        vPurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, version, purl.Qualifiers, purl.Subpath);
-                        packageVersions.Add(vPurl);
+
+                        foreach (var version in await packageManager.EnumerateVersions(purl))
+                        {
+                            vPurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, version, purl.Qualifiers, purl.Subpath);
+                            packageVersions.Add(vPurl);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Debug($"Unable to enumerate versions, so cannot identify the latest. {e.Message}:{e.StackTrace}");
+                        // package list will remain empty
                     }
                 }
             }

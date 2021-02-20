@@ -11,7 +11,7 @@ using System.Xml.Linq;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
-    internal class NuGetProjectManager : BaseProjectManager
+    public class NuGetProjectManager : BaseProjectManager
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_NUGET_ENDPOINT_API = "https://api.nuget.org";
@@ -57,13 +57,13 @@ namespace Microsoft.CST.OpenSource.Shared
                     }
                     catch (Exception ex)
                     {
-                        Logger.Warn(ex, "Error parsing NuGet API endpoint: {0}", ex.Message);
+                        Logger.Debug(ex, "Error parsing NuGet API endpoint: {0}", ex.Message);
                     }
                 }
             }
             catch(Exception ex)
             {
-                Logger.Warn(ex, "Error parsing NuGet API endpoint: {0}", ex.Message);
+                Logger.Debug(ex, "Error parsing NuGet API endpoint: {0}", ex.Message);
             }
             RegistrationEndpoint = NUGET_DEFAULT_REGISTRATION_ENDPOINT;
             return RegistrationEndpoint;
@@ -84,7 +84,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
             if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
             {
-                Logger.Error("Unable to download [{0} {1}]. Both must be defined.", packageName, packageVersion);
+                Logger.Debug("Unable to download [{0} {1}]. Both must be defined.", packageName, packageVersion);
                 return downloadedPaths;
             }
 
@@ -179,7 +179,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error downloading NuGet package: {0}", ex.Message);
+                Logger.Debug(ex, "Error downloading NuGet package: {0}", ex.Message);
             }
             return downloadedPaths;
         }
@@ -218,7 +218,7 @@ namespace Microsoft.CST.OpenSource.Shared
                             }
                             else
                             {
-                                Logger.Warn("Identified {0} version NULL. This might indicate a parsing error.", packageName);
+                                Logger.Debug("Identified {0} version NULL. This might indicate a parsing error.", packageName);
                             }
                         }
                     }
@@ -240,7 +240,7 @@ namespace Microsoft.CST.OpenSource.Shared
                                 }
                                 else
                                 {
-                                    Logger.Warn("Identified {0} version NULL. This might indicate a parsing error.", packageName);
+                                    Logger.Debug("Identified {0} version NULL. This might indicate a parsing error.", packageName);
                                 }
                             }
                         }
@@ -254,8 +254,8 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"Error enumerating NuGet packages: {ex.Message}");
-                return Array.Empty<string>();
+                Logger.Debug(ex, $"Error enumerating NuGet packages: {ex.Message}");
+                throw;
             }
         }
 
@@ -273,7 +273,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"Error fetching NuGet metadata: {ex.Message}");
+                Logger.Debug(ex, $"Error fetching NuGet metadata: {ex.Message}");
                 return null;
             }
         }
@@ -317,7 +317,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"Error fetching/parsing NuGet homepage: {ex.Message}");
+                Logger.Debug(ex, $"Error fetching/parsing NuGet homepage: {ex.Message}");
             }
 
             // if nothing worked, return empty

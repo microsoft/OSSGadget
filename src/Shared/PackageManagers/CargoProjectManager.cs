@@ -37,7 +37,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
             if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion) || string.IsNullOrWhiteSpace(fileName))
             {
-                Logger.Error("Error with 'purl' argument. Unable to download [{0} {1}] @ {2}. Both must be defined.", packageName, packageVersion, fileName);
+                Logger.Debug("Error with 'purl' argument. Unable to download [{0} {1}] @ {2}. Both must be defined.", packageName, packageVersion, fileName);
                 return downloadedPaths;
             }
 
@@ -70,7 +70,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error downloading Cargo package: {0}", ex.Message);
+                Logger.Debug(ex, "Error downloading Cargo package: {0}", ex.Message);
             }
             return downloadedPaths;
         }
@@ -108,8 +108,8 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error enumerating Cargo package versions: {0}", ex.Message);
-                return Array.Empty<string>();
+                Logger.Debug(ex, "Error enumerating Cargo package versions: {0}", ex.Message);
+                throw;
             }
         }
 
@@ -128,8 +128,8 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error fetching Cargo metadata: {0}", ex.Message);
-                return null;
+                Logger.Debug(ex, "Error fetching Cargo metadata: {0}", ex.Message);
+                throw;
             }
         }
 

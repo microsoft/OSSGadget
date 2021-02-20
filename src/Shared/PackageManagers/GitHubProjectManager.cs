@@ -42,7 +42,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (UriFormatException ex)
             {
-                Logger.Warn(ex, "Error matching regular expression: {0}", ex.Message);
+                Logger.Debug(ex, "Error matching regular expression: {0}", ex.Message);
                 /* that was an invalid url, ignore */
             }
             return repositoryList;
@@ -73,7 +73,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
             if (purl == null)
             {
-                Logger.Error("'purl' argument must not be null.");
+                Logger.Debug("'purl' argument must not be null.");
                 return downloadedPaths;
             }
 
@@ -91,7 +91,7 @@ namespace Microsoft.CST.OpenSource.Shared
             if (string.IsNullOrWhiteSpace(packageNamespace) || string.IsNullOrWhiteSpace(packageName)
                 || string.IsNullOrWhiteSpace(packageVersion))
             {
-                Logger.Error("Unable to download [{0} {1}]. Both must be defined.", packageNamespace, packageName);
+                Logger.Debug("Unable to download [{0} {1}]. Both must be defined.", packageNamespace, packageName);
                 return downloadedPaths;
             }
 
@@ -123,11 +123,11 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (LibGit2Sharp.NotFoundException ex)
             {
-                Logger.Warn(ex, "The version {0} is not a valid git reference: {1}", packageVersion, ex.Message);
+                Logger.Debug(ex, "The version {0} is not a valid git reference: {1}", packageVersion, ex.Message);
             }
             catch (Exception ex)
             {
-                Logger.Warn(ex, "Error downloading GitHub package: {0}", ex.Message);
+                Logger.Debug(ex, "Error downloading GitHub package: {0}", ex.Message);
             }
             return downloadedPaths;
         }
@@ -155,8 +155,8 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"Error enumerating GitHub repository references: {ex.Message}");
-                return Array.Empty<string>();
+                Logger.Debug(ex, $"Error enumerating GitHub repository references: {ex.Message}");
+                throw;
             }
         }
 

@@ -33,7 +33,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
             if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
             {
-                Logger.Error("Unable to download [{0} {1}]. Both must be defined.", packageName, packageVersion);
+                Logger.Debug("Unable to download [{0} {1}]. Both must be defined.", packageName, packageVersion);
                 return downloadedPaths;
             }
             try
@@ -63,7 +63,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error downloading Hackage package: {0}", ex.Message);
+                Logger.Debug(ex, "Error downloading Hackage package: {0}", ex.Message);
             }
             return downloadedPaths;
         }
@@ -104,8 +104,8 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"Error enumerating Hackage package: {ex.Message}");
-                return Array.Empty<string>();
+                Logger.Debug(ex, $"Error enumerating Hackage package: {ex.Message}");
+                throw;
             }
         }
 
@@ -119,7 +119,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"Error fetching Hackage metadata: {ex.Message}");
+                Logger.Debug(ex, $"Error fetching Hackage metadata: {ex.Message}");
                 return null;
             }
         }

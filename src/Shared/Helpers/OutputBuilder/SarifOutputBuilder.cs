@@ -25,7 +25,7 @@ namespace Microsoft.CST.OpenSource.Shared
             BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, null);
             if (projectManager == null)
             {
-                Logger.Error("Cannot determine the package type");
+                Logger.Debug("Cannot determine the package type");
                 return new List<Location>();
             }
 

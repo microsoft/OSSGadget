@@ -33,7 +33,7 @@ namespace Microsoft.CST.OpenSource.Shared
             if (string.IsNullOrWhiteSpace(purl?.Namespace) || string.IsNullOrWhiteSpace(purl?.Name) ||
                 string.IsNullOrWhiteSpace(packageVersion))
             {
-                Logger.Error("Unable to download [{0} {1}]. Both must be defined.", packageName, packageVersion);
+                Logger.Debug("Unable to download [{0} {1}]. Both must be defined.", packageName, packageVersion);
                 return downloadedPaths;
             }
 
@@ -74,12 +74,12 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
                 if (downloadedPaths.Count == 0)
                 {
-                    Logger.Warn("Unable to find version {0} to download.", packageVersion);
+                    Logger.Debug("Unable to find version {0} to download.", packageVersion);
                 }
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error downloading Composer package: {0}", ex.Message);
+                Logger.Debug(ex, "Error downloading Composer package: {0}", ex.Message);
             }
             return downloadedPaths;
         }
@@ -117,9 +117,9 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"Error enumerating Composer package: {ex.Message}");
+                Logger.Debug(ex, $"Error enumerating Composer package: {ex.Message}");
+                throw;
             }
-            return versionList;
         }
 
         public override async Task<string?> GetMetadata(PackageURL purl)
@@ -132,7 +132,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error fetching Composer metadata: {0}", ex.Message);
+                Logger.Debug(ex, "Error fetching Composer metadata: {0}", ex.Message);
                 return null;
             }
         }

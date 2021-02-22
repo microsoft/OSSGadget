@@ -55,7 +55,7 @@ namespace Microsoft.CST.OpenSource
                 HelpText = "Suppress console output.")]
             public bool Quiet { get; set; } = false;
 
-            [Option('s', 'sleep', Required = false, Default = 0, HelpText = "Number of ms to sleep between checks.")]
+            [Option('s', "sleep-delay", Required = false, Default = 0, HelpText = "Number of ms to sleep between checks.")]
             public int SleepDelay { get; set; }
 
             [Value(0, Required = true,

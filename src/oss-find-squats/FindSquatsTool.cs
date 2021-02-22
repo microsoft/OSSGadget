@@ -12,6 +12,7 @@ using Microsoft.CST.OpenSource.FindSquats;
 using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
 using Scriban.Runtime;
 using System.IO;
+using System.Threading;
 
 namespace Microsoft.CST.OpenSource
 {
@@ -53,6 +54,9 @@ namespace Microsoft.CST.OpenSource
             [Option('q', "quiet", Required = false, Default = false,
                 HelpText = "Suppress console output.")]
             public bool Quiet { get; set; } = false;
+
+            [Option('s', 'sleep', Required = false, Default = 0, HelpText = "Number of ms to sleep between checks.")]
+            public int SleepDelay { get; set; }
 
             [Value(0, Required = true,
                 HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze
@@ -112,6 +116,10 @@ namespace Microsoft.CST.OpenSource
 
                         foreach ((var candidate, var rules) in mutationsDict)
                         {
+                            if (options.SleepDelay > 0)
+                            {
+                                Thread.Sleep(options.SleepDelay);
+                            }
                             // Nuget will match "microsoft.cst.oat." against "Microsoft.CST.OAT" but these are the same package
                             // For nuget in particular we filter out this case
                             if (manager is NuGetProjectManager)

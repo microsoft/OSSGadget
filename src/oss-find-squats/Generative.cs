@@ -289,7 +289,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
 
         private IEnumerable<(string, string)> _sufixes(string arg)
         {
-            var suffixes = new string[] { "s", "2", "3", "ng", "-ng", ".", "x", "-", "_", "js" };
+            var suffixes = new string[] { "s", "1", "2", "3", "4", "5", "ng", "-ng", ".", "x", "-", "_", "js" };
             return suffixes.Select(s => (string.Concat(arg, s), "suffix added"));
         }
 

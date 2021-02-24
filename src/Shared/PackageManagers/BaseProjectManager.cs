@@ -344,6 +344,9 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
                 {
                     using var fs = File.Open(filePathToWrite, FileMode.Append);
                     await fileEntry.Content.CopyToAsync(fs);
+                    File.SetCreationTime(filePathToWrite, fileEntry.CreateTime > DateTime.MinValue ? fileEntry.CreateTime : DateTime.Now);
+                    File.SetLastWriteTime(filePathToWrite, fileEntry.ModifyTime > DateTime.MinValue ? fileEntry.ModifyTime : DateTime.Now);
+                    File.SetLastAccessTime(filePathToWrite, fileEntry.AccessTime > DateTime.MinValue ? fileEntry.AccessTime : DateTime.Now);
                 }
             }
 

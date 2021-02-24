@@ -38,7 +38,7 @@ namespace Microsoft.CST.OpenSource
         {
         }
 
-        private static async Task<PackageMetadata> GetPackageMetadata(PackageURL purl)
+        public static async Task<PackageMetadata> GetPackageMetadata(PackageURL purl)
         {
             PackageMetadata metadata = null;
             try

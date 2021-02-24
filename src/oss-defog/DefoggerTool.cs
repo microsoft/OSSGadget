@@ -78,7 +78,7 @@ namespace Microsoft.CST.OpenSource
             Java
         }
 
-        public static byte[] HexStringToBytes(string hex)
+        internal static byte[] HexStringToBytes(string hex)
         {
             return Enumerable.Range(0, hex.Length / 2)
                              .Select(x => Convert.ToByte(hex.Substring(x * 2, 2), 16))
@@ -88,17 +88,17 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         ///     Linux Elf
         /// </summary>
-        public static readonly byte[] ElfMagicNumber = HexStringToBytes("7F454C46");
+        internal static readonly byte[] ElfMagicNumber = HexStringToBytes("7F454C46");
 
         /// <summary>
         ///     Java Classes
         /// </summary>
-        public static readonly byte[] JavaMagicNumber = HexStringToBytes("CAFEBEBE");
+        internal static readonly byte[] JavaMagicNumber = HexStringToBytes("CAFEBEBE");
 
         /// <summary>
         ///     Mac Binary Magic numbers
         /// </summary>
-        public static readonly List<byte[]> MacMagicNumbers = new List<byte[]>()
+        internal static readonly List<byte[]> MacMagicNumbers = new List<byte[]>()
         {
             // 32 Bit Binary
             HexStringToBytes("FEEDFACE"),
@@ -115,14 +115,14 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         ///     Windows Binary header
         /// </summary>
-        public static readonly byte[] WindowsMagicNumber = HexStringToBytes("4D5A");
+        internal static readonly byte[] WindowsMagicNumber = HexStringToBytes("4D5A");
 
         /// <summary>
         ///     Gets the executable type of the given stream.
         /// </summary>
         /// <param name="input">Stream bytes to check</param>
         /// <returns>The executable type</returns>
-        public static ExecutableType GetExecutableType(Stream input)
+        internal static ExecutableType GetExecutableType(Stream input)
         {
             if (input == null) { return ExecutableType.Unknown; }
             if (input.Length < 4) { return ExecutableType.None; }
@@ -451,7 +451,7 @@ namespace Microsoft.CST.OpenSource
             AnalyzeFile(filename, fileContents);
         }
 
-        public bool HasNonTextContent(string content)
+        internal bool HasNonTextContent(string content)
         {
             return content.Any(ch => char.IsControl(ch) && !char.IsWhiteSpace(ch));
         }

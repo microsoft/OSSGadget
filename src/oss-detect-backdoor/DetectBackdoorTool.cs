@@ -66,7 +66,7 @@ namespace Microsoft.CST.OpenSource
             await detectBackdoorTool.ParseOptions<Options>(args).WithParsedAsync(detectBackdoorTool.RunAsync);
         }
 
-        private async Task RunAsync(Options options)
+        public async Task RunAsync(Options options)
         {
             if (options.Targets is IList<string> targetList && targetList.Count > 0)
             {

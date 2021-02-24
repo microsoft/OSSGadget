@@ -275,7 +275,13 @@ namespace Microsoft.CST.OpenSource
             return analysisResults.ToList();
         }
 
-        private string NormalizeFileContent(string filename, byte[] buffer)
+        /// <summary>
+        /// Normalize the contents of a file
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public string NormalizeFileContent(string filename, byte[] buffer)
         {
             Logger.Trace("NormalizeFileContent({0}, {1}", filename, buffer?.Length);
 
@@ -550,7 +556,7 @@ namespace Microsoft.CST.OpenSource
         /// <param name="buffer"> Buffer to analyze </param>
         /// <param name="windowSize"> Size of the window to use </param>
         /// <returns> Ratio (0-1) of the most dense windowSize characters of the buffer. </returns>
-        private double CalculateCryptoOpDensity(string buffer, int windowSize = 50)
+        public double CalculateCryptoOpDensity(string buffer, int windowSize = 50)
         {
             Logger.Trace("CalculateCryptoOpDensity()");
 
@@ -699,13 +705,35 @@ optional arguments:
         }
     }
 
+    /// <summary>
+    /// The data for an issue
+    /// </summary>
     public class IssueRecord
     {
+        /// <summary>
+        /// The filename the issue was found in
+        /// </summary>
         public string Filename { get; }
+        /// <summary>
+        /// The size of the file the issue was found in
+        /// </summary>
         public int Filesize { get; }
+        /// <summary>
+        /// A sample of the text which was found
+        /// </summary>
         public string TextSample { get; }
+        /// <summary>
+        /// The Issue which was found
+        /// </summary>
         public Issue Issue { get; }
 
+        /// <summary>
+        /// Constructor for IssueRecord
+        /// </summary>
+        /// <param name="Filename"></param>
+        /// <param name="Filesize"></param>
+        /// <param name="TextSample"></param>
+        /// <param name="Issue"></param>
         public IssueRecord(string Filename, int Filesize, string TextSample, Issue Issue)
         {
             this.Filename = Filename;

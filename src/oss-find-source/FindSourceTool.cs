@@ -18,6 +18,11 @@ namespace Microsoft.CST.OpenSource
         {
         }
 
+        /// <summary>
+        /// Find the source for a Purl
+        /// </summary>
+        /// <param name="purl"></param>
+        /// <returns></returns>
         public async Task<Dictionary<PackageURL, double>> FindSource(PackageURL purl)
         {
             Logger.Trace("FindSource({0})", purl);
@@ -164,7 +169,12 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        private async Task RunAsync(Options options)
+        /// <summary>
+        /// Entrypoint to run FindSourceTool
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        internal async Task RunAsync(Options options)
         {
             // select output destination and format
             SelectOutput(options.OutputFile);

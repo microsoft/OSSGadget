@@ -12,6 +12,9 @@ using System.Text.RegularExpressions;
 
 namespace Microsoft.CST.OpenSource.Health
 {
+    /// <summary>
+    /// Results object for health tool
+    /// </summary>
     public class HealthMetrics
     {
         public double ReleaseHealth;
@@ -29,6 +32,9 @@ namespace Microsoft.CST.OpenSource.Health
         public double RecentActivityHealth { get; set; }
         public double SecurityIssueHealth { get; set; }
 
+        /// <summary>
+        /// Normalize results
+        /// </summary>
         public void Normalize()
         {
             CommitHealth = NormalizeField(CommitHealth);
@@ -38,6 +44,10 @@ namespace Microsoft.CST.OpenSource.Health
             ReleaseHealth = NormalizeField(ReleaseHealth);
         }
 
+        /// <summary>
+        /// Turn into sarif results
+        /// </summary>
+        /// <returns></returns>
         public List<Result> toSarif()
         {
             BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, null);
@@ -78,6 +88,10 @@ namespace Microsoft.CST.OpenSource.Health
             return results;
         }
 
+        /// <summary>
+        /// Returns string representation
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             Normalize();

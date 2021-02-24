@@ -456,6 +456,11 @@ namespace Microsoft.CST.OpenSource
             return content.Any(ch => char.IsControl(ch) && !char.IsWhiteSpace(ch));
         }
 
+        /// <summary>
+        ///     Analyze contents of a string with filename as metadata.
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <param name="fileContents"></param>
         public void AnalyzeFile(string filename, string fileContents)
         {
             foreach (Match match in BASE64_REGEX.Matches(fileContents).Where(match => match != null))

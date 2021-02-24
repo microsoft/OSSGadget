@@ -236,6 +236,11 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
+        /// <summary>
+        ///     Entrypoint to run characteristic tool
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
         public async Task RunAsync(Options options)
         {
             // select output destination and format

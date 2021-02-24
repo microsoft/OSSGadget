@@ -71,7 +71,7 @@ namespace Microsoft.CST.OpenSource
         }
 
         HttpClient client;
-        static async Task Main(string[] args)
+        internal static async Task Main(string[] args)
         {
             var findSquatsTool = new FindSquatsTool();
             (string output, int numSquats) = (string.Empty, 0);
@@ -99,7 +99,12 @@ namespace Microsoft.CST.OpenSource
 
             });
         }
-
+        
+        /// <summary>
+        /// The entrypoint to run the FindSquatsTool
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
         public async Task<(string output, int numSquats)> RunAsync(Options options)
         {
             IOutputBuilder outputBuilder = SelectFormat(options.Format);

@@ -38,6 +38,11 @@ namespace Microsoft.CST.OpenSource
         {
         }
 
+        /// <summary>
+        /// Get metadata for a package
+        /// </summary>
+        /// <param name="purl"></param>
+        /// <returns></returns>
         public static async Task<PackageMetadata> GetPackageMetadata(PackageURL purl)
         {
             PackageMetadata metadata = null;
@@ -68,10 +73,14 @@ namespace Microsoft.CST.OpenSource
             await metadataTool.ParseOptions<Options>(args).WithParsedAsync(metadataTool.RunAsync);
         }
 
-        private async Task RunAsync(Options options)
+        /// <summary>
+        /// Entrypoint to run Metadata Tool
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        internal async Task RunAsync(Options options)
         {
             // select output destination and format
-            SelectOutput(options.OutputFile);
             PackageMetadata metadata = null;
             if (options.Targets is IList<string> targetList && targetList.Count > 0)
             {

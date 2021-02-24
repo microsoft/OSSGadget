@@ -17,6 +17,11 @@ namespace Microsoft.CST.OpenSource
         {
         }
 
+        /// <summary>
+        /// Check health for a given PackageURL
+        /// </summary>
+        /// <param name="purl"></param>
+        /// <returns></returns>
         public async Task<HealthMetrics?> CheckHealth(PackageURL purl)
         {
             var packageManager = ProjectManagerFactory.CreateProjectManager(purl, null);
@@ -104,7 +109,12 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        private async Task RunAsync(Options options)
+        /// <summary>
+        /// Entrypoint to run HealthTool
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        public async Task RunAsync(Options options)
         {
             // select output destination and format
             SelectOutput(options.OutputFile);

@@ -8,6 +8,9 @@ namespace Microsoft.CST.OpenSource.Shared
     /// </summary>
     public class OutputBuilderFactory
     {
+        /// <summary>
+        /// The output formats you can pass
+        /// </summary>
         public enum OutputFormat
         {
             sarifv1,
@@ -15,17 +18,31 @@ namespace Microsoft.CST.OpenSource.Shared
             text // no sarif, just text
         };
 
+        /// <summary>
+        /// Create a StringOutputBuilder
+        /// </summary>
+        /// <returns></returns>
         public static IOutputBuilder CreateDefaultOutputBuilder()
         {
             return new StringOutputBuilder();
         }
 
+        /// <summary>
+        /// Create an output builder based on the given format
+        /// </summary>
+        /// <param name="format"></param>
+        /// <returns></returns>
         public static IOutputBuilder CreateOutputBuilder(string format)
         {
             OutputFormat currentOutputFormat = GetOutputFormat(format);
             return CreateOutputBuilder(currentOutputFormat);
         }
 
+        /// <summary>
+        /// Create an output builder based on the given format
+        /// </summary>
+        /// <param name="format"></param>
+        /// <returns></returns>
         public static IOutputBuilder CreateOutputBuilder(OutputFormat format)
         {
             switch (format)
@@ -41,6 +58,11 @@ namespace Microsoft.CST.OpenSource.Shared
             }
         }
 
+        /// <summary>
+        /// Convert a string to an OutputFormat
+        /// </summary>
+        /// <param name="format"></param>
+        /// <returns></returns>
         public static OutputFormat GetOutputFormat(string format)
         {
             OutputFormat currentOutputFormat = OutputFormat.text;

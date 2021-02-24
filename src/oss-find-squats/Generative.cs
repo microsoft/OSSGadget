@@ -15,8 +15,14 @@ namespace Microsoft.CST.OpenSource.FindSquats
         private string[] _keymap = new string[4];
         private HashSet<char> seprators = new HashSet<char> { '.', '-', '_' };
 
+        /// <summary>
+        /// The mutations to apply
+        /// </summary>
         public IList<Func<string, IEnumerable<(string, string)>>> Mutations { get; } = new List<Func<string, IEnumerable<(string, string)>>>();
 
+        /// <summary>
+        /// Construct a Generative instance
+        /// </summary>
         public Generative()
         {
             _uh['a'] = "αа⍺ａ𝐚𝑎𝒂𝒶𝓪𝔞𝕒𝖆𝖺𝗮𝘢𝙖𝚊𝛂𝛼𝜶𝝰𝞪";
@@ -139,6 +145,11 @@ namespace Microsoft.CST.OpenSource.FindSquats
             _locations['/'] = 309;
         }
 
+        /// <summary>
+        /// Generate mutations for the input string
+        /// </summary>
+        /// <param name="arg">The string to mutate</param>
+        /// <returns></returns>
         public Dictionary<string, IEnumerable<string>> Mutate(string arg)
         {
             var mutations = Mutations.SelectMany(m => m(arg));

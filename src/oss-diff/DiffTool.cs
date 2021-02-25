@@ -60,68 +60,71 @@ namespace Microsoft.CST.OpenSource
             }
             (PackageURL purl1, PackageURL purl2) = (new PackageURL(options.Targets.First()), new PackageURL(options.Targets.Last()));
             var manager = ProjectManagerFactory.CreateProjectManager(purl1,options.DownloadDirectory);
-            var locations = await manager.DownloadVersion(purl1, true, options.UseCache);
-
             var manager2 = ProjectManagerFactory.CreateProjectManager(purl2, options.DownloadDirectory);
-            var locations2 = await manager2.DownloadVersion(purl2, true, options.UseCache);
 
-            Dictionary<string, (string, string)> files = new Dictionary<string, (string, string)>();
-            foreach(var directory in locations)
+            if (manager is not null && manager2 is not null)
             {
-                foreach (var file in Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories))
-                {
-                    var contents = File.ReadAllText(file);
-                    files.Add(file.Substring(directory.Length), (contents, string.Empty));
-                }
-            }
+                var locations = await manager.DownloadVersion(purl1, true, options.UseCache);
 
-            foreach (var directory in locations2)
-            {
-                foreach (var file in Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories))
-                {
-                    var contents = File.ReadAllText(file);
-                    var key = file.Substring(directory.Length);
+                var locations2 = await manager2.DownloadVersion(purl2, true, options.UseCache);
 
-                    if (files.ContainsKey(key))
+                Dictionary<string, (string, string)> files = new Dictionary<string, (string, string)>();
+                foreach (var directory in locations)
+                {
+                    foreach (var file in Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories))
                     {
-                        var existing = files[key];
-                        existing.Item2 = contents;
-                        files[key] = existing;
-                    }
-                    else
-                    {
-                        files[key] = (string.Empty, contents);
+                        var contents = File.ReadAllText(file);
+                        files.Add(file.Substring(directory.Length), (contents, string.Empty));
                     }
                 }
-            }
 
-            foreach (var filePair in files)
-            {
-                var diff = InlineDiffBuilder.Diff(filePair.Value.Item1, filePair.Value.Item2);
-                Console.WriteLine(filePair.Key);
-                var savedColor = Console.ForegroundColor;
-                foreach (var line in diff.Lines)
+                foreach (var directory in locations2)
                 {
-                    switch (line.Type)
+                    foreach (var file in Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories))
                     {
-                        case ChangeType.Inserted:
-                            Console.ForegroundColor = ConsoleColor.Green;
-                            Console.Write("+ ");
-                            break;
-                        case ChangeType.Deleted:
-                            Console.ForegroundColor = ConsoleColor.Red;
-                            Console.Write("- ");
-                            break;
-                        default:
-                            Console.ForegroundColor = ConsoleColor.Gray; // compromise for dark or light background
-                            Console.Write("  ");
-                            break;
+                        var contents = File.ReadAllText(file);
+                        var key = file.Substring(directory.Length);
+
+                        if (files.ContainsKey(key))
+                        {
+                            var existing = files[key];
+                            existing.Item2 = contents;
+                            files[key] = existing;
+                        }
+                        else
+                        {
+                            files[key] = (string.Empty, contents);
+                        }
                     }
-
-                    Console.WriteLine(line.Text);
                 }
-                Console.ForegroundColor = savedColor;
 
+                foreach (var filePair in files)
+                {
+                    var diff = InlineDiffBuilder.Diff(filePair.Value.Item1, filePair.Value.Item2);
+                    Console.WriteLine(filePair.Key);
+                    var savedColor = Console.ForegroundColor;
+                    foreach (var line in diff.Lines)
+                    {
+                        switch (line.Type)
+                        {
+                            case ChangeType.Inserted:
+                                Console.ForegroundColor = ConsoleColor.Green;
+                                Console.Write("+ ");
+                                break;
+                            case ChangeType.Deleted:
+                                Console.ForegroundColor = ConsoleColor.Red;
+                                Console.Write("- ");
+                                break;
+                            default:
+                                Console.ForegroundColor = ConsoleColor.Gray; // compromise for dark or light background
+                                Console.Write("  ");
+                                break;
+                        }
+
+                        Console.WriteLine(line.Text);
+                    }
+                    Console.ForegroundColor = savedColor;
+                }
             }
         }
     }

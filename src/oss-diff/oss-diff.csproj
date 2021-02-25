@@ -3,7 +3,9 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
-    <RootNamespace>oss_diff</RootNamespace>
+    <RootNamespace>Microsoft.CST.OpenSource.OSSGadget</RootNamespace>
+    <Nullable>enable</Nullable>
+    <LangVersion>9.0</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

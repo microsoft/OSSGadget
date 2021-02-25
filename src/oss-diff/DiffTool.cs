@@ -41,7 +41,7 @@ namespace Microsoft.CST.OpenSource
 
             [Value(0, Required = true,
                 HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze
-            public IEnumerable<string>? Targets { get; set; }
+            public IEnumerable<string> Targets { get; set; } = Array.Empty<string>();
 
             
         }

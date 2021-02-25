@@ -33,35 +33,38 @@ namespace Microsoft.CST.OpenSource.Shared
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
             
             var downloadedPaths = new List<string>();
+            string? url = null;
+            var foundValue = purl?.Qualifiers?.TryGetValue("url", out url) ?? false;
+            if (foundValue && url is not null)
+            {
+                Uri uri = new Uri(url);
+                Logger.Debug("Downloading {0} ({1})...", purl, uri);
+                var result = await WebClient.GetAsync(uri);
+                result.EnsureSuccessStatusCode();
 
-            var url = purl?.Qualifiers?.GetValueOrDefault("url", null);
-            if (url == null)
+                var targetName = Path.GetFileName(uri.LocalPath);
+                string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
+                if (doExtract && Directory.Exists(extractionPath) && cached == true)
+                {
+                    downloadedPaths.Add(extractionPath);
+                    return downloadedPaths;
+                }
+                if (doExtract)
+                {
+                    downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync(), cached));
+                }
+                else
+                {
+                    await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
+                    downloadedPaths.Add(targetName);
+                }
+                return downloadedPaths;
+            }
+            else
             {
                 Logger.Debug("URL not found, {0}", purl);
                 return downloadedPaths;
             }
-            Uri uri = new Uri(url);
-            Logger.Debug("Downloading {0} ({1})...", purl, uri);
-            var result = await WebClient.GetAsync(uri);
-            result.EnsureSuccessStatusCode();
-
-            var targetName = Path.GetFileName(uri.LocalPath);
-            string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
-            if (doExtract && Directory.Exists(extractionPath) && cached == true)
-            {
-                downloadedPaths.Add(extractionPath);
-                return downloadedPaths;
-            }
-            if (doExtract)
-            {
-                downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync(), cached));
-            }
-            else
-            {
-                await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
-                downloadedPaths.Add(targetName);
-            }
-            return downloadedPaths;
         }
 
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)

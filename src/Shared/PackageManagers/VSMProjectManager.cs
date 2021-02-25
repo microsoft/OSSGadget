@@ -223,7 +223,7 @@ namespace Microsoft.CST.OpenSource.Shared
                                 continue;
                             }
                             Logger.Debug("Identified {0} version {1}.", packageName, versionString.GetString());
-                            versionList.Add(versionString.GetString());
+                            versionList.Add(versionString.GetString() ?? string.Empty);
                         }
                     }
                 }

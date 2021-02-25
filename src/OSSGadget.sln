@@ -30,7 +30,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "oss-tests", "oss-tests\oss-
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "oss-metadata", "oss-metadata\oss-metadata.csproj", "{7E9A489A-B502-4622-A34C-EF507E18DFEB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "oss-find-squats", "oss-find-squats\oss-find-squats.csproj", "{23D17E08-9E95-4448-B75D-BABAF1F3C854}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "oss-find-squats", "oss-find-squats\oss-find-squats.csproj", "{23D17E08-9E95-4448-B75D-BABAF1F3C854}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "oss-diff", "oss-diff\oss-diff.csproj", "{17C9F321-8A49-4140-B009-AD476F959D42}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -85,6 +87,10 @@ Global
 		{23D17E08-9E95-4448-B75D-BABAF1F3C854}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{23D17E08-9E95-4448-B75D-BABAF1F3C854}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{23D17E08-9E95-4448-B75D-BABAF1F3C854}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17C9F321-8A49-4140-B009-AD476F959D42}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17C9F321-8A49-4140-B009-AD476F959D42}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17C9F321-8A49-4140-B009-AD476F959D42}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17C9F321-8A49-4140-B009-AD476F959D42}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

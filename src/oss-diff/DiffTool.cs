@@ -39,6 +39,18 @@ namespace Microsoft.CST.OpenSource
                 HelpText = "delete the packages after diffing them.")]
             public bool DeleteAfterDiff { get; set; }
 
+            [Option('B', "context-before", Required = false, Default = 0,
+                HelpText = "Number of previous lines to give as context.")]
+            public int Before { get; set; } = 0;
+
+            [Option('A', "context-after", Required = false, Default = 0,
+                HelpText = "Number of subsequent lines to give as context.")]
+            public int After { get; set; } = 0;
+
+            [Option('C', "context", Required = false, Default = 0,
+                HelpText = "Number of lines to give as context. Overwrites Before and After options.")]
+            public int Context { get; set; } = 0;
+
             [Value(0, Required = true,
                 HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze
             public IEnumerable<string> Targets { get; set; } = Array.Empty<string>();
@@ -58,9 +70,16 @@ namespace Microsoft.CST.OpenSource
                 Logger.Error("Must provide exactly two packages to diff.");
                 return;
             }
+
+            if (options.Context > 0)
+            {
+                options.Before = options.Context;
+                options.After = options.Context;
+            }
+
             (PackageURL purl1, PackageURL purl2) = (new PackageURL(options.Targets.First()), new PackageURL(options.Targets.Last()));
-            var manager = ProjectManagerFactory.CreateProjectManager(purl1,options.DownloadDirectory);
-            var manager2 = ProjectManagerFactory.CreateProjectManager(purl2, options.DownloadDirectory);
+            var manager = ProjectManagerFactory.CreateProjectManager(purl1, options.DownloadDirectory ?? Path.GetTempPath());
+            var manager2 = ProjectManagerFactory.CreateProjectManager(purl2, options.DownloadDirectory ?? Path.GetTempPath());
 
             if (manager is not null && manager2 is not null)
             {
@@ -74,7 +93,7 @@ namespace Microsoft.CST.OpenSource
                     foreach (var file in Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories))
                     {
                         var contents = File.ReadAllText(file);
-                        files.Add(file.Substring(directory.Length), (contents, string.Empty));
+                        files.Add(string.Join(Path.DirectorySeparatorChar,file.Substring(directory.Length).Split(Path.DirectorySeparatorChar)[2..]), (contents, string.Empty));
                     }
                 }
 
@@ -83,7 +102,7 @@ namespace Microsoft.CST.OpenSource
                     foreach (var file in Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories))
                     {
                         var contents = File.ReadAllText(file);
-                        var key = file.Substring(directory.Length);
+                        var key = string.Join(Path.DirectorySeparatorChar, file.Substring(directory.Length).Split(Path.DirectorySeparatorChar)[2..]);
 
                         if (files.ContainsKey(key))
                         {
@@ -103,25 +122,62 @@ namespace Microsoft.CST.OpenSource
                     var diff = InlineDiffBuilder.Diff(filePair.Value.Item1, filePair.Value.Item2);
                     Console.WriteLine(filePair.Key);
                     var savedColor = Console.ForegroundColor;
+                    List<string> beforeBuffer = new List<string>();
+                    int afterCount = 0;
                     foreach (var line in diff.Lines)
                     {
                         switch (line.Type)
                         {
                             case ChangeType.Inserted:
+                                if (beforeBuffer.Any())
+                                {
+                                    foreach(var buffered in beforeBuffer)
+                                    {
+                                        Console.ForegroundColor = ConsoleColor.Gray; // compromise for dark or light background
+                                        Console.Write("  ");
+                                        Console.WriteLine(buffered);
+                                    }
+                                    beforeBuffer.Clear();
+                                }
+                                afterCount = options.After;
                                 Console.ForegroundColor = ConsoleColor.Green;
                                 Console.Write("+ ");
+                                Console.WriteLine(line.Text);
                                 break;
                             case ChangeType.Deleted:
+                                if (beforeBuffer.Any())
+                                {
+                                    foreach (var buffered in beforeBuffer)
+                                    {
+                                        Console.ForegroundColor = ConsoleColor.Gray; // compromise for dark or light background
+                                        Console.Write("  ");
+                                        Console.WriteLine(buffered);
+                                    }
+                                    beforeBuffer.Clear();
+                                }
+                                afterCount = options.After;
                                 Console.ForegroundColor = ConsoleColor.Red;
                                 Console.Write("- ");
+                                Console.WriteLine(line.Text);
                                 break;
                             default:
-                                Console.ForegroundColor = ConsoleColor.Gray; // compromise for dark or light background
-                                Console.Write("  ");
+                                if (afterCount-- > 0)
+                                {
+                                    Console.ForegroundColor = ConsoleColor.Gray; // compromise for dark or light background
+                                    Console.Write("  ");
+                                    Console.WriteLine(line.Text);
+                                }
+                                else
+                                {
+                                    beforeBuffer.Add(line.Text);
+                                    while(beforeBuffer.Count > options.Before)
+                                    {
+                                        beforeBuffer.RemoveAt(0);
+                                    }
+                                }
+
                                 break;
                         }
-
-                        Console.WriteLine(line.Text);
                     }
                     Console.ForegroundColor = savedColor;
                 }

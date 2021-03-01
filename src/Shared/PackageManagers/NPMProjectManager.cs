@@ -50,7 +50,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 result.EnsureSuccessStatusCode();
                 Logger.Debug("Downloading {0}...", purl?.ToString());
                 var targetName = $"npm-{packageName}@{packageVersion}";
-                string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
+                string extractionPath = Path.Combine(TopLevelExtractionDirectory ?? string.Empty, targetName);
                 if (doExtract && Directory.Exists(extractionPath) && cached == true)
                 {
                     downloadedPaths.Add(extractionPath);

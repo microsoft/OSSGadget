@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using CommandLine.Text;
 using DiffPlex.DiffBuilder;
 using DiffPlex.DiffBuilder.Model;
 using Microsoft.CST.OpenSource.Shared;
+using Pastel;
 
 namespace Microsoft.CST.OpenSource
     {
@@ -121,7 +123,6 @@ namespace Microsoft.CST.OpenSource
                 {
                     var diff = InlineDiffBuilder.Diff(filePair.Value.Item1, filePair.Value.Item2);
                     Console.WriteLine(filePair.Key);
-                    var savedColor = Console.ForegroundColor;
                     List<string> beforeBuffer = new List<string>();
                     int afterCount = 0;
                     foreach (var line in diff.Lines)
@@ -133,39 +134,29 @@ namespace Microsoft.CST.OpenSource
                                 {
                                     foreach(var buffered in beforeBuffer)
                                     {
-                                        Console.ForegroundColor = ConsoleColor.Gray; // compromise for dark or light background
-                                        Console.Write("  ");
-                                        Console.WriteLine(buffered);
+                                        Console.WriteLine($"  {buffered.Pastel(Color.Gray)}");
                                     }
                                     beforeBuffer.Clear();
                                 }
                                 afterCount = options.After;
-                                Console.ForegroundColor = ConsoleColor.Green;
-                                Console.Write("+ ");
-                                Console.WriteLine(line.Text);
+                                Console.WriteLine($"+ {line.Text}".Pastel(Color.Green));
                                 break;
                             case ChangeType.Deleted:
                                 if (beforeBuffer.Any())
                                 {
                                     foreach (var buffered in beforeBuffer)
                                     {
-                                        Console.ForegroundColor = ConsoleColor.Gray; // compromise for dark or light background
-                                        Console.Write("  ");
-                                        Console.WriteLine(buffered);
+                                        Console.WriteLine($"  {buffered.Pastel(Color.Gray)}");
                                     }
                                     beforeBuffer.Clear();
                                 }
                                 afterCount = options.After;
-                                Console.ForegroundColor = ConsoleColor.Red;
-                                Console.Write("- ");
-                                Console.WriteLine(line.Text);
+                                Console.WriteLine($"- {line.Text}".Pastel(Color.Red));
                                 break;
                             default:
                                 if (afterCount-- > 0)
                                 {
-                                    Console.ForegroundColor = ConsoleColor.Gray; // compromise for dark or light background
-                                    Console.Write("  ");
-                                    Console.WriteLine(line.Text);
+                                    Console.WriteLine($"  {line.Text.Pastel(Color.Gray)}");
                                 }
                                 else
                                 {
@@ -179,7 +170,6 @@ namespace Microsoft.CST.OpenSource
                                 break;
                         }
                     }
-                    Console.ForegroundColor = savedColor;
                 }
             }
         }

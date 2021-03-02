@@ -50,7 +50,7 @@ namespace Microsoft.CST.OpenSource
             public int After { get; set; } = 0;
 
             [Option('C', "context", Required = false, Default = 0,
-                HelpText = "Number of lines to give as context. Overwrites Before and After options.")]
+                HelpText = "Number of lines to give as context. Overwrites Before and After options. -1 to print all.")]
             public int Context { get; set; } = 0;
 
             [Option('a', "added-only", Required = false, Default = false,
@@ -168,7 +168,11 @@ namespace Microsoft.CST.OpenSource
                                 }
                                 break;
                             default:
-                                if (afterCount-- > 0)
+                                if (options.Context == -1)
+                                {
+                                    Console.WriteLine($"  {line.Text.Pastel(Color.Gray)}");
+                                }
+                                else if (afterCount-- > 0)
                                 {
                                     Console.WriteLine($"  {line.Text.Pastel(Color.Gray)}");
                                 }

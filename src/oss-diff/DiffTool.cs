@@ -34,12 +34,8 @@ namespace Microsoft.CST.OpenSource
             public string? DownloadDirectory { get; set; } = null;
 
             [Option('c', "use-cache", Required = false, Default = false,
-                HelpText = "do not download the package if it is already present in the destination directory.")]
+                HelpText = "Do not download the package if it is already present in the destination directory and do not delete the package after processing.")]
             public bool UseCache { get; set; }
-
-            [Option('d', "delete-after-diff", Required = false, Default = false,
-                HelpText = "Delete the packages after diffing them.")]
-            public bool DeleteAfterDiff { get; set; }
 
             [Option('B', "context-before", Required = false, Default = 0,
                 HelpText = "Number of previous lines to give as context.")]
@@ -102,8 +98,7 @@ namespace Microsoft.CST.OpenSource
                 {
                     foreach (var file in Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories))
                     {
-                        var contents = File.ReadAllText(file);
-                        files.Add(string.Join(Path.DirectorySeparatorChar,file.Substring(directory.Length).Split(Path.DirectorySeparatorChar)[2..]), (contents, string.Empty));
+                        files.Add(string.Join(Path.DirectorySeparatorChar, file.Substring(directory.Length).Split(Path.DirectorySeparatorChar)[2..]), (file, string.Empty));
                     }
                 }
 
@@ -111,25 +106,35 @@ namespace Microsoft.CST.OpenSource
                 {
                     foreach (var file in Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories))
                     {
-                        var contents = File.ReadAllText(file);
                         var key = string.Join(Path.DirectorySeparatorChar, file.Substring(directory.Length).Split(Path.DirectorySeparatorChar)[2..]);
 
                         if (files.ContainsKey(key))
                         {
                             var existing = files[key];
-                            existing.Item2 = contents;
+                            existing.Item2 = file;
                             files[key] = existing;
                         }
                         else
                         {
-                            files[key] = (string.Empty, contents);
+                            files[key] = (string.Empty, file);
                         }
                     }
                 }
 
                 foreach (var filePair in files)
                 {
-                    var diff = InlineDiffBuilder.Diff(filePair.Value.Item1, filePair.Value.Item2);
+                    var file1 = string.Empty;
+                    if (!string.IsNullOrEmpty(filePair.Value.Item1))
+                    {
+                        File.ReadAllText(filePair.Value.Item1);
+                    }
+                    var file2 = string.Empty;
+                    if (!string.IsNullOrEmpty(filePair.Value.Item2))
+                    {
+                        File.ReadAllText(filePair.Value.Item2);
+                    }
+
+                    var diff = InlineDiffBuilder.Diff(file1, file2);
                     Console.WriteLine(filePair.Key);
                     List<string> beforeBuffer = new List<string>();
                     int afterCount = 0;
@@ -190,7 +195,7 @@ namespace Microsoft.CST.OpenSource
                     }
                 }
 
-                if (options.DeleteAfterDiff)
+                if (!options.UseCache)
                 {
                     foreach(var directory in locations)
                     {

@@ -126,12 +126,12 @@ namespace Microsoft.CST.OpenSource
                     var file1 = string.Empty;
                     if (!string.IsNullOrEmpty(filePair.Value.Item1))
                     {
-                        File.ReadAllText(filePair.Value.Item1);
+                        file1 = File.ReadAllText(filePair.Value.Item1);
                     }
                     var file2 = string.Empty;
                     if (!string.IsNullOrEmpty(filePair.Value.Item2))
                     {
-                        File.ReadAllText(filePair.Value.Item2);
+                        file2 = File.ReadAllText(filePair.Value.Item2);
                     }
 
                     var diff = InlineDiffBuilder.Diff(file1, file2);

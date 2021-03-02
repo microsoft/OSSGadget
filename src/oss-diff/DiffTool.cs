@@ -38,7 +38,7 @@ namespace Microsoft.CST.OpenSource
             public bool UseCache { get; set; }
 
             [Option('d', "delete-after-diff", Required = false, Default = false,
-                HelpText = "delete the packages after diffing them.")]
+                HelpText = "Delete the packages after diffing them.")]
             public bool DeleteAfterDiff { get; set; }
 
             [Option('B', "context-before", Required = false, Default = 0,
@@ -169,6 +169,18 @@ namespace Microsoft.CST.OpenSource
 
                                 break;
                         }
+                    }
+                }
+
+                if (options.DeleteAfterDiff)
+                {
+                    foreach(var directory in locations)
+                    {
+                        Directory.Delete(directory, true);
+                    }
+                    foreach (var directory in locations2)
+                    {
+                        Directory.Delete(directory, true);
                     }
                 }
             }

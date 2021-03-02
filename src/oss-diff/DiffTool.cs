@@ -53,6 +53,14 @@ namespace Microsoft.CST.OpenSource
                 HelpText = "Number of lines to give as context. Overwrites Before and After options.")]
             public int Context { get; set; } = 0;
 
+            [Option('a', "added-only", Required = false, Default = false,
+                HelpText = "Only show added lines (and requested context).")]
+            public bool AddedOnly { get; set; } = false;
+
+            [Option('r', "removed-only", Required = false, Default = false,
+                HelpText = "Only show removed lines (and requested context).")]
+            public bool RemovedOnly { get; set; } = false;
+
             [Value(0, Required = true,
                 HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze
             public IEnumerable<string> Targets { get; set; } = Array.Empty<string>();
@@ -130,28 +138,34 @@ namespace Microsoft.CST.OpenSource
                         switch (line.Type)
                         {
                             case ChangeType.Inserted:
-                                if (beforeBuffer.Any())
+                                if (!options.RemovedOnly || options.AddedOnly)
                                 {
-                                    foreach(var buffered in beforeBuffer)
+                                    if (beforeBuffer.Any())
                                     {
-                                        Console.WriteLine($"  {buffered.Pastel(Color.Gray)}");
+                                        foreach (var buffered in beforeBuffer)
+                                        {
+                                            Console.WriteLine($"  {buffered.Pastel(Color.Gray)}");
+                                        }
+                                        beforeBuffer.Clear();
                                     }
-                                    beforeBuffer.Clear();
+                                    afterCount = options.After;
+                                    Console.WriteLine($"+ {line.Text}".Pastel(Color.Green));
                                 }
-                                afterCount = options.After;
-                                Console.WriteLine($"+ {line.Text}".Pastel(Color.Green));
                                 break;
                             case ChangeType.Deleted:
-                                if (beforeBuffer.Any())
+                                if (!options.AddedOnly || options.RemovedOnly)
                                 {
-                                    foreach (var buffered in beforeBuffer)
+                                    if (beforeBuffer.Any())
                                     {
-                                        Console.WriteLine($"  {buffered.Pastel(Color.Gray)}");
+                                        foreach (var buffered in beforeBuffer)
+                                        {
+                                            Console.WriteLine($"  {buffered.Pastel(Color.Gray)}");
+                                        }
+                                        beforeBuffer.Clear();
                                     }
-                                    beforeBuffer.Clear();
+                                    afterCount = options.After;
+                                    Console.WriteLine($"- {line.Text}".Pastel(Color.Red));
                                 }
-                                afterCount = options.After;
-                                Console.WriteLine($"- {line.Text}".Pastel(Color.Red));
                                 break;
                             default:
                                 if (afterCount-- > 0)

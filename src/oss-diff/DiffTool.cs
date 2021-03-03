@@ -309,19 +309,23 @@ namespace Microsoft.CST.OpenSource
                             {
                                 case ChangeType.Inserted:
                                     lineNumber2++;
+
                                     if (diffObj.lastLineType == Diff.LineType.Context || (diffObj.endLine2 != -1 && lineNumber2 - diffObj.endLine2 > 1 && diffObj.lastLineType != Diff.LineType.Added))
                                     {
                                         diffObjs.Add(diffObj);
                                         diffObj = new Diff() { startLine1 = lineNumber1 };
                                     }
+
                                     if (diffObj.startLine2 == -1)
                                     {
                                         diffObj.startLine2 = lineNumber2;
                                     }
+
                                     if(diffObj.startLine1 == -1)
                                     {
                                         diffObj.startLine1 = lineNumber1;
                                     }
+
                                     if (beforeBuffer.Any())
                                     {
                                         beforeBuffer.ForEach(x => diffObj.AddBeforeContext(x));

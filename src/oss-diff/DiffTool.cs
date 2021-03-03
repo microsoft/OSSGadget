@@ -252,6 +252,30 @@ namespace Microsoft.CST.OpenSource
                                 sb.AppendLine("---");
                                 diff.text2.ForEach(x => sb.AppendLine(options.DownloadDirectory is not null ? $"> {x}" : $"> {x}".Pastel(Color.Green)));
                             }
+                            else if (diff.text1.Any())
+                            {
+                                sb.Append(diff.startLine1);
+                                if (diff.endLine1 != diff.startLine1)
+                                {
+                                    sb.Append($",{diff.endLine1}");
+                                }
+                                sb.Append("d");
+                                sb.Append(diff.endLine2);
+                                sb.Append(Environment.NewLine);
+                                diff.text1.ForEach(x => sb.AppendLine(options.DownloadDirectory is not null ? $"< {x}" : $"< {x}".Pastel(Color.Red)));
+                            }
+                            else if (diff.text2.Any())
+                            {
+                                sb.Append(diff.startLine1);
+                                sb.Append('a');
+                                sb.Append(diff.startLine2);
+                                if (diff.endLine2 != diff.startLine2)
+                                {
+                                    sb.Append($",{diff.endLine2}");
+                                }
+                                sb.Append(Environment.NewLine);
+                                diff.text2.ForEach(x => sb.AppendLine(options.DownloadDirectory is not null ? $"> {x}" : $"> {x}".Pastel(Color.Green)));
+                            }
                         }
 
                         switch (outputBuilder)
@@ -313,8 +337,9 @@ namespace Microsoft.CST.OpenSource
                                     if (diffObj.lastLineType == Diff.LineType.Context || (diffObj.endLine1 != -1 && lineNumber1 - diffObj.endLine1 > 1 && diffObj.lastLineType != Diff.LineType.Removed))
                                     {
                                         diffObjs.Add(diffObj);
-                                        diffObj = new Diff();
+                                        diffObj = new Diff() { startLine2 = lineNumber2 };
                                     }
+
                                     if (diffObj.startLine1 == -1)
                                     {
                                         diffObj.startLine1 = lineNumber1;

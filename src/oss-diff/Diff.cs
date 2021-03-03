@@ -16,9 +16,9 @@ namespace Microsoft.CST.OpenSource
             Context
         }
         public int startLine1 { get; set; } = -1;
-        public int endLine1 { get { return startLine1 == -1 ? -1 : startLine1 + text1.Count - 1; } }
+        public int endLine1 { get { return startLine1 == -1 ? -1 : Math.Max(startLine1, startLine1 + text1.Count - 1); } }
         public int startLine2 { get; set; } = -1;
-        public int endLine2 { get { return startLine2 == -1 ? -1 : startLine2 + text2.Count - 1; } }
+        public int endLine2 { get { return startLine2 == -1 ? -1 : Math.Max(startLine2, startLine2 + text2.Count - 1); } }
         public List<string> beforeContext { get; private set; } = new List<string>();
         public List<string> text1 { get; private set; } = new List<string>();
         public List<string> text2 { get; private set; } = new List<string>();

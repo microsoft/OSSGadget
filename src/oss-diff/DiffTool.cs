@@ -87,6 +87,11 @@ namespace Microsoft.CST.OpenSource
         public async Task<string> DiffProjects(Options options)
         {
             var outputBuilder = OutputBuilderFactory.CreateOutputBuilder(options.Format);
+            if (outputBuilder is null)
+            {
+                Logger.Error($"Format {options.Format} is not supported.");
+                return string.Empty;
+            }
             (PackageURL purl1, PackageURL purl2) = (new PackageURL(options.Targets.First()), new PackageURL(options.Targets.Last()));
             var manager = ProjectManagerFactory.CreateProjectManager(purl1, options.DownloadDirectory ?? Path.GetTempPath());
             var manager2 = ProjectManagerFactory.CreateProjectManager(purl2, options.DownloadDirectory ?? Path.GetTempPath());
@@ -189,7 +194,7 @@ namespace Microsoft.CST.OpenSource
                         // If we are writing text write the file name
                         if (options.Format == "text")
                         {
-                            outputBuilder?.AppendOutput(new string[] { path });
+                            outputBuilder.AppendOutput(new string[] { path });
                         }
 
                         var diff = InlineDiffBuilder.Diff(file1, file2);

@@ -10,6 +10,7 @@ using DiffPlex.DiffBuilder;
 using DiffPlex.DiffBuilder.Model;
 using Microsoft.CodeAnalysis.Sarif;
 using Microsoft.CST.OpenSource.Shared;
+using Microsoft.CST.RecursiveExtractor;
 using Pastel;
 using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
 
@@ -38,6 +39,10 @@ namespace Microsoft.CST.OpenSource
             [Option('c', "use-cache", Required = false, Default = false,
                 HelpText = "Do not download the package if it is already present in the destination directory and do not delete the package after processing.")]
             public bool UseCache { get; set; }
+
+            [Option('w', "crawl-archives", Required = false, Default = false,
+                HelpText = "Crawl into archives found in packages.")]
+            public bool CrawlArchives { get; set; }
 
             [Option('B', "context-before", Required = false, Default = 0,
                 HelpText = "Number of previous lines to give as context.")]
@@ -123,130 +128,168 @@ namespace Microsoft.CST.OpenSource
 
                 foreach (var filePair in files)
                 {
-                    // If we are writing text write the file name
-                    if (options.Format == "text")
+                    if (options.CrawlArchives)
                     {
-                        outputBuilder.AppendOutput(new string[] { filePair.Key });
-                    }
-
-                    var file1 = string.Empty;
-                    if (!string.IsNullOrEmpty(filePair.Value.Item1))
-                    {
-                        file1 = File.ReadAllText(filePair.Value.Item1);
-                    }
-
-                    var file2 = string.Empty;
-                    if (!string.IsNullOrEmpty(filePair.Value.Item2))
-                    {
-                        file2 = File.ReadAllText(filePair.Value.Item2);
-                    }
-
-                    var diff = InlineDiffBuilder.Diff(file1, file2);
-
-                    List<string> beforeBuffer = new List<string>();
-
-                    int afterCount = 0;
-
-                    foreach (var line in diff.Lines)
-                    {
-                        switch (line.Type)
+                        var extractor = new Extractor();
+                        using Stream fs1 = !string.IsNullOrEmpty(filePair.Value.Item1) ? File.OpenRead(filePair.Value.Item1) : new MemoryStream();
+                        using Stream fs2 = !string.IsNullOrEmpty(filePair.Value.Item2) ? File.OpenRead(filePair.Value.Item2) : new MemoryStream();
+                        var entries1 = extractor.Extract(new FileEntry(filePair.Key, fs1));
+                        var entries2 = extractor.Extract(new FileEntry(filePair.Key, fs2));
+                        var entryPairs = new Dictionary<string, (FileEntry?, FileEntry?)>();
+                        foreach (var entry in entries1)
                         {
-                            case ChangeType.Inserted:
-                                if (!options.RemovedOnly || options.AddedOnly)
-                                {
-                                    if (beforeBuffer.Any())
-                                    {
-                                        foreach (var buffered in beforeBuffer)
-                                        {
-                                            switch (outputBuilder)
-                                            {
-                                                case StringOutputBuilder stringOutputBuilder:
-                                                    var outString = options.OutputLocation is null ? $"  {buffered.Pastel(Color.Gray)}" : $"  {buffered}";
-                                                    outputBuilder.AppendOutput(new string[] { outString });
-                                                    break;
-                                            }
-                                        }
-                                        beforeBuffer.Clear();
-                                    }
-                                    afterCount = options.After;
+                            entryPairs.Add(entry.FullPath, (entry, null));
+                        }
+                        foreach(var entry in entries2)
+                        {
+                            if (entryPairs.ContainsKey(entry.FullPath))
+                            {
+                                entryPairs[entry.FullPath] = (entryPairs[entry.FullPath].Item1, entry);
+                            }
+                            else
+                            {
+                                entryPairs.Add(entry.FullPath, (null, entry));
+                            }
+                        }
 
-                                    switch (outputBuilder)
-                                    {
-                                        case StringOutputBuilder stringOutputBuilder:
-                                            var outString = options.OutputLocation is null ? $"+ {line.Text}".Pastel(Color.Green) : $"+ {line.Text}";
-                                            outputBuilder.AppendOutput(new string[] { outString });
-                                            break;
-                                        case SarifOutputBuilder sarifOutputBuilder:
-                                            var sr = new SarifResult();
-                                            sr.Locations = new Location[] { new Location() { LogicalLocation = new LogicalLocation() { FullyQualifiedName = filePair.Key } } };
-                                            sr.AnalysisTarget = new ArtifactLocation() { Uri = new Uri(purl2.ToString()) };
-                                            sr.Message = new Message() { Text = line.Text };
-                                            sr.Tags.Add("added");
-                                            sarifOutputBuilder.AppendOutput(new SarifResult[] { sr });
-                                            break;
-                                    }
-                                }
-                                break;
-                            case ChangeType.Deleted:
-                                if (!options.AddedOnly || options.RemovedOnly)
-                                {
-                                    if (beforeBuffer.Any())
-                                    {
-                                        foreach (var buffered in beforeBuffer)
-                                        {
-                                            switch (outputBuilder)
-                                            {
-                                                case StringOutputBuilder stringOutputBuilder:
-                                                    var outString = options.OutputLocation is null ? $"  {buffered.Pastel(Color.Gray)}" : $" {buffered}";
-                                                    outputBuilder.AppendOutput(new string[] { outString });
-                                                    break;
-                                            }
-                                        }
-                                        beforeBuffer.Clear();
-                                    }
-                                    afterCount = options.After;
-                                    switch (outputBuilder)
-                                    {
-                                        case StringOutputBuilder stringOutputBuilder:
-                                            outputBuilder.AppendOutput(new string[] { $"- {line.Text}".Pastel(Color.Red) });
-                                            break;
-                                        case SarifOutputBuilder sarifOutputBuilder:
-                                            var sr = new SarifResult();
-                                            sr.Locations = new Location[] { new Location() { LogicalLocation = new LogicalLocation() { FullyQualifiedName = filePair.Key } } };
-                                            sr.AnalysisTarget = new ArtifactLocation() { Uri = new Uri(purl1.ToString()) };
-                                            sr.Message = new Message() { Text = line.Text };
-                                            sr.Tags.Add("removed");
-                                            sarifOutputBuilder.AppendOutput(new SarifResult[] { sr });
-                                            break;
-                                    }
-                                }
-                                break;
-                            default:
-                                if (outputBuilder is StringOutputBuilder stringOutputBuilder2)
-                                {
-                                    if (options.Context == -1)
-                                    {
-                                        var outString = options.OutputLocation is null ? $"  {line.Text.Pastel(Color.Gray)}" : $"  {line.Text}";
-                                        stringOutputBuilder2.AppendOutput(new string[] { outString });
-                                    }
-                                    else if (afterCount-- > 0)
-                                    {
-                                        var outString = options.OutputLocation is null ? $"  {line.Text.Pastel(Color.Gray)}" : $"  {line.Text}";
-                                        stringOutputBuilder2.AppendOutput(new string[] { outString });
-                                    }
-                                    else if (options.Before > 0)
-                                    {
-                                        beforeBuffer.Add(line.Text);
-                                        while (options.Before < beforeBuffer.Count)
-                                        {
-                                            beforeBuffer.RemoveAt(0);
-                                        }
-                                    }
-                                }
-
-                                break;
+                        foreach(var entryPair in entryPairs)
+                        {
+                            var text1 = string.Empty;
+                            var text2 = string.Empty;
+                            if (entryPair.Value.Item1 is not null)
+                            {
+                                using var sr = new StreamReader(entryPair.Value.Item1.Content);
+                                text1 = sr.ReadToEnd();
+                            }
+                            if (entryPair.Value.Item2 is not null)
+                            {
+                                using var sr = new StreamReader(entryPair.Value.Item2.Content);
+                                text1 = sr.ReadToEnd();
+                            }
+                            WriteIssue(entryPair.Key, text1, text2);
                         }
                     }
+                    else
+                    {
+                        WriteIssue(filePair.Key, filePair.Value.Item1, filePair.Value.Item2);
+                    }
+
+                    void WriteIssue(string path, string file1, string file2)
+                    {
+                        // If we are writing text write the file name
+                        if (options.Format == "text")
+                        {
+                            outputBuilder?.AppendOutput(new string[] { path });
+                        }
+
+                        var diff = InlineDiffBuilder.Diff(file1, file2);
+
+                        List<string> beforeBuffer = new List<string>();
+
+                        int afterCount = 0;
+
+                        foreach (var line in diff.Lines)
+                        {
+                            switch (line.Type)
+                            {
+                                case ChangeType.Inserted:
+                                    if (!options.RemovedOnly || options.AddedOnly)
+                                    {
+                                        if (beforeBuffer.Any())
+                                        {
+                                            foreach (var buffered in beforeBuffer)
+                                            {
+                                                switch (outputBuilder)
+                                                {
+                                                    case StringOutputBuilder stringOutputBuilder:
+                                                        var outString = options.OutputLocation is null ? $"  {buffered.Pastel(Color.Gray)}" : $"  {buffered}";
+                                                        outputBuilder.AppendOutput(new string[] { outString });
+                                                        break;
+                                                }
+                                            }
+                                            beforeBuffer.Clear();
+                                        }
+                                        afterCount = options.After;
+
+                                        switch (outputBuilder)
+                                        {
+                                            case StringOutputBuilder stringOutputBuilder:
+                                                var outString = options.OutputLocation is null ? $"+ {line.Text}".Pastel(Color.Green) : $"+ {line.Text}";
+                                                outputBuilder.AppendOutput(new string[] { outString });
+                                                break;
+                                            case SarifOutputBuilder sarifOutputBuilder:
+                                                var sr = new SarifResult();
+                                                sr.Locations = new Location[] { new Location() { LogicalLocation = new LogicalLocation() { FullyQualifiedName = filePair.Key } } };
+                                                sr.AnalysisTarget = new ArtifactLocation() { Uri = new Uri(purl2.ToString()) };
+                                                sr.Message = new Message() { Text = line.Text };
+                                                sr.Tags.Add("added");
+                                                sarifOutputBuilder.AppendOutput(new SarifResult[] { sr });
+                                                break;
+                                        }
+                                    }
+                                    break;
+                                case ChangeType.Deleted:
+                                    if (!options.AddedOnly || options.RemovedOnly)
+                                    {
+                                        if (beforeBuffer.Any())
+                                        {
+                                            foreach (var buffered in beforeBuffer)
+                                            {
+                                                switch (outputBuilder)
+                                                {
+                                                    case StringOutputBuilder stringOutputBuilder:
+                                                        var outString = options.OutputLocation is null ? $"  {buffered.Pastel(Color.Gray)}" : $" {buffered}";
+                                                        outputBuilder.AppendOutput(new string[] { outString });
+                                                        break;
+                                                }
+                                            }
+                                            beforeBuffer.Clear();
+                                        }
+                                        afterCount = options.After;
+                                        switch (outputBuilder)
+                                        {
+                                            case StringOutputBuilder stringOutputBuilder:
+                                                outputBuilder.AppendOutput(new string[] { $"- {line.Text}".Pastel(Color.Red) });
+                                                break;
+                                            case SarifOutputBuilder sarifOutputBuilder:
+                                                var sr = new SarifResult();
+                                                sr.Locations = new Location[] { new Location() { LogicalLocation = new LogicalLocation() { FullyQualifiedName = filePair.Key } } };
+                                                sr.AnalysisTarget = new ArtifactLocation() { Uri = new Uri(purl1.ToString()) };
+                                                sr.Message = new Message() { Text = line.Text };
+                                                sr.Tags.Add("removed");
+                                                sarifOutputBuilder.AppendOutput(new SarifResult[] { sr });
+                                                break;
+                                        }
+                                    }
+                                    break;
+                                default:
+                                    if (outputBuilder is StringOutputBuilder stringOutputBuilder2)
+                                    {
+                                        if (options.Context == -1)
+                                        {
+                                            var outString = options.OutputLocation is null ? $"  {line.Text.Pastel(Color.Gray)}" : $"  {line.Text}";
+                                            stringOutputBuilder2.AppendOutput(new string[] { outString });
+                                        }
+                                        else if (afterCount-- > 0)
+                                        {
+                                            var outString = options.OutputLocation is null ? $"  {line.Text.Pastel(Color.Gray)}" : $"  {line.Text}";
+                                            stringOutputBuilder2.AppendOutput(new string[] { outString });
+                                        }
+                                        else if (options.Before > 0)
+                                        {
+                                            beforeBuffer.Add(line.Text);
+                                            while (options.Before < beforeBuffer.Count)
+                                            {
+                                                beforeBuffer.RemoveAt(0);
+                                            }
+                                        }
+                                    }
+
+                                    break;
+                            }
+                        }
+                    }
+                    
                 }
 
                 if (!options.UseCache)

@@ -8,8 +8,10 @@ using CommandLine;
 using CommandLine.Text;
 using DiffPlex.DiffBuilder;
 using DiffPlex.DiffBuilder.Model;
+using Microsoft.CodeAnalysis.Sarif;
 using Microsoft.CST.OpenSource.Shared;
 using Pastel;
+using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
 
 namespace Microsoft.CST.OpenSource
     {
@@ -57,6 +59,14 @@ namespace Microsoft.CST.OpenSource
                 HelpText = "Only show removed lines (and requested context).")]
             public bool RemovedOnly { get; set; } = false;
 
+            [Option('f', "format", Required = false, Default = "text",
+                HelpText = "Choose output format. (text|sarifv1|sarifv2)")]
+            public string Format { get; set; } = "text";
+
+            [Option('O', "output-location", Required = false, Default = null,
+                HelpText = "Output location. Don't specify for console output.")]
+            public string? OutputLocation { get; set; } = null;
+
             [Value(0, Required = true,
                 HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze
             public IEnumerable<string> Targets { get; set; } = Array.Empty<string>();
@@ -69,20 +79,9 @@ namespace Microsoft.CST.OpenSource
             await diffTool.ParseOptions<Options>(args).WithParsedAsync<Options>(diffTool.RunAsync);
         }
 
-        public async Task RunAsync(Options options)
+        public async Task<string> DiffProjects(Options options)
         {
-            if (options.Targets.Count() != 2)
-            {
-                Logger.Error("Must provide exactly two packages to diff.");
-                return;
-            }
-
-            if (options.Context > 0)
-            {
-                options.Before = options.Context;
-                options.After = options.Context;
-            }
-
+            var outputBuilder = OutputBuilderFactory.CreateOutputBuilder(options.Format);
             (PackageURL purl1, PackageURL purl2) = (new PackageURL(options.Targets.First()), new PackageURL(options.Targets.Last()));
             var manager = ProjectManagerFactory.CreateProjectManager(purl1, options.DownloadDirectory ?? Path.GetTempPath());
             var manager2 = ProjectManagerFactory.CreateProjectManager(purl2, options.DownloadDirectory ?? Path.GetTempPath());
@@ -90,10 +89,11 @@ namespace Microsoft.CST.OpenSource
             if (manager is not null && manager2 is not null)
             {
                 var locations = await manager.DownloadVersion(purl1, true, options.UseCache);
-
                 var locations2 = await manager2.DownloadVersion(purl2, true, options.UseCache);
 
+                // Map relative location in package to actual location on disk
                 Dictionary<string, (string, string)> files = new Dictionary<string, (string, string)>();
+
                 foreach (var directory in locations)
                 {
                     foreach (var file in Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories))
@@ -123,11 +123,18 @@ namespace Microsoft.CST.OpenSource
 
                 foreach (var filePair in files)
                 {
+                    // If we are writing text write the file name
+                    if (options.Format == "text")
+                    {
+                        outputBuilder.AppendOutput(new string[] { filePair.Key });
+                    }
+
                     var file1 = string.Empty;
                     if (!string.IsNullOrEmpty(filePair.Value.Item1))
                     {
                         file1 = File.ReadAllText(filePair.Value.Item1);
                     }
+
                     var file2 = string.Empty;
                     if (!string.IsNullOrEmpty(filePair.Value.Item2))
                     {
@@ -135,9 +142,11 @@ namespace Microsoft.CST.OpenSource
                     }
 
                     var diff = InlineDiffBuilder.Diff(file1, file2);
-                    Console.WriteLine(filePair.Key);
+
                     List<string> beforeBuffer = new List<string>();
+
                     int afterCount = 0;
+
                     foreach (var line in diff.Lines)
                     {
                         switch (line.Type)
@@ -149,12 +158,33 @@ namespace Microsoft.CST.OpenSource
                                     {
                                         foreach (var buffered in beforeBuffer)
                                         {
-                                            Console.WriteLine($"  {buffered.Pastel(Color.Gray)}");
+                                            switch (outputBuilder)
+                                            {
+                                                case StringOutputBuilder stringOutputBuilder:
+                                                    var outString = options.OutputLocation is null ? $"  {buffered.Pastel(Color.Gray)}" : $"  {buffered}";
+                                                    outputBuilder.AppendOutput(new string[] { outString });
+                                                    break;
+                                            }
                                         }
                                         beforeBuffer.Clear();
                                     }
                                     afterCount = options.After;
-                                    Console.WriteLine($"+ {line.Text}".Pastel(Color.Green));
+
+                                    switch (outputBuilder)
+                                    {
+                                        case StringOutputBuilder stringOutputBuilder:
+                                            var outString = options.OutputLocation is null ? $"+ {line.Text}".Pastel(Color.Green) : $"+ {line.Text}";
+                                            outputBuilder.AppendOutput(new string[] { outString });
+                                            break;
+                                        case SarifOutputBuilder sarifOutputBuilder:
+                                            var sr = new SarifResult();
+                                            sr.Locations = new Location[] { new Location() { LogicalLocation = new LogicalLocation() { FullyQualifiedName = filePair.Key } } };
+                                            sr.AnalysisTarget = new ArtifactLocation() { Uri = new Uri(purl2.ToString()) };
+                                            sr.Message = new Message() { Text = line.Text };
+                                            sr.Tags.Add("added");
+                                            sarifOutputBuilder.AppendOutput(new SarifResult[] { sr });
+                                            break;
+                                    }
                                 }
                                 break;
                             case ChangeType.Deleted:
@@ -164,29 +194,53 @@ namespace Microsoft.CST.OpenSource
                                     {
                                         foreach (var buffered in beforeBuffer)
                                         {
-                                            Console.WriteLine($"  {buffered.Pastel(Color.Gray)}");
+                                            switch (outputBuilder)
+                                            {
+                                                case StringOutputBuilder stringOutputBuilder:
+                                                    var outString = options.OutputLocation is null ? $"  {buffered.Pastel(Color.Gray)}" : $" {buffered}";
+                                                    outputBuilder.AppendOutput(new string[] { outString });
+                                                    break;
+                                            }
                                         }
                                         beforeBuffer.Clear();
                                     }
                                     afterCount = options.After;
-                                    Console.WriteLine($"- {line.Text}".Pastel(Color.Red));
+                                    switch (outputBuilder)
+                                    {
+                                        case StringOutputBuilder stringOutputBuilder:
+                                            outputBuilder.AppendOutput(new string[] { $"- {line.Text}".Pastel(Color.Red) });
+                                            break;
+                                        case SarifOutputBuilder sarifOutputBuilder:
+                                            var sr = new SarifResult();
+                                            sr.Locations = new Location[] { new Location() { LogicalLocation = new LogicalLocation() { FullyQualifiedName = filePair.Key } } };
+                                            sr.AnalysisTarget = new ArtifactLocation() { Uri = new Uri(purl1.ToString()) };
+                                            sr.Message = new Message() { Text = line.Text };
+                                            sr.Tags.Add("removed");
+                                            sarifOutputBuilder.AppendOutput(new SarifResult[] { sr });
+                                            break;
+                                    }
                                 }
                                 break;
                             default:
-                                if (options.Context == -1)
+                                if (outputBuilder is StringOutputBuilder stringOutputBuilder2)
                                 {
-                                    Console.WriteLine($"  {line.Text.Pastel(Color.Gray)}");
-                                }
-                                else if (afterCount-- > 0)
-                                {
-                                    Console.WriteLine($"  {line.Text.Pastel(Color.Gray)}");
-                                }
-                                else if (options.Before > 0)
-                                {
-                                    beforeBuffer.Add(line.Text);
-                                    while (options.Before < beforeBuffer.Count)
+                                    if (options.Context == -1)
                                     {
-                                        beforeBuffer.RemoveAt(0);
+                                        var outString = options.OutputLocation is null ? $"  {line.Text.Pastel(Color.Gray)}" : $"  {line.Text}";
+                                        stringOutputBuilder2.AppendOutput(new string[] { outString });
+                                    }
+                                    else if (afterCount-- > 0)
+                                    {
+                                        var outString = options.OutputLocation is null ? $"  {line.Text.Pastel(Color.Gray)}" : $"  {line.Text}";
+                                        stringOutputBuilder2.AppendOutput(new string[] { outString });
+                                    }
+                                    else if (options.Before > 0)
+                                    {
+                                        beforeBuffer.Add(line.Text);
+                                        while (options.Before < beforeBuffer.Count)
+                                        {
+                                            beforeBuffer.RemoveAt(0);
+                                        }
                                     }
                                 }
 
@@ -197,7 +251,7 @@ namespace Microsoft.CST.OpenSource
 
                 if (!options.UseCache)
                 {
-                    foreach(var directory in locations)
+                    foreach (var directory in locations)
                     {
                         Directory.Delete(directory, true);
                     }
@@ -206,6 +260,33 @@ namespace Microsoft.CST.OpenSource
                         Directory.Delete(directory, true);
                     }
                 }
+            }
+            return outputBuilder.GetOutput();
+        }
+
+        public async Task RunAsync(Options options)
+        {
+            if (options.Targets.Count() != 2)
+            {
+                Logger.Error("Must provide exactly two packages to diff.");
+                return;
+            }
+
+            if (options.Context > 0)
+            {
+                options.Before = options.Context;
+                options.After = options.Context;
+            }
+            
+            var result = await DiffProjects(options);
+
+            if (options.OutputLocation is null)
+            {
+                Console.Write(result);
+            }
+            else
+            {
+                File.WriteAllText(options.OutputLocation, result);
             }
         }
     }

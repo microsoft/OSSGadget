@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using CommandLine;
 using CommandLine.Text;
@@ -18,6 +19,7 @@ namespace Microsoft.CST.OpenSource
     {
     class DiffTool : OSSGadget
     {
+        private List<Diff> diffObjs = new List<Diff>();
 
         public class Options
         {
@@ -40,7 +42,7 @@ namespace Microsoft.CST.OpenSource
                 HelpText = "Do not download the package if it is already present in the destination directory and do not delete the package after processing.")]
             public bool UseCache { get; set; }
 
-            [Option('w', "crawl-archives", Required = false, Default = false,
+            [Option('w', "crawl-archives", Required = false, Default = true,
                 HelpText = "Crawl into archives found in packages.")]
             public bool CrawlArchives { get; set; }
 
@@ -169,9 +171,9 @@ namespace Microsoft.CST.OpenSource
                             if (entryPair.Value.Item2 is not null)
                             {
                                 using var sr = new StreamReader(entryPair.Value.Item2.Content);
-                                text1 = sr.ReadToEnd();
+                                text2 = sr.ReadToEnd();
                             }
-                            WriteIssue(entryPair.Key, text1, text2);
+                            WriteFileIssues(entryPair.Key, text1, text2);
                         }
                     }
                     else
@@ -186,125 +188,182 @@ namespace Microsoft.CST.OpenSource
                         {
                             file2 = File.ReadAllText(filePair.Value.Item2);
                         }
-                        WriteIssue(filePair.Key, file1, file2);
+                        WriteFileIssues(filePair.Key, file1, file2);
                     }
 
-                    void WriteIssue(string path, string file1, string file2)
+                    // If we are writing text write the file name
+                    if (options.Format == "text")
                     {
-                        // If we are writing text write the file name
-                        if (options.Format == "text")
+                        if (options.Context > 0 || options.After > 0 || options.Before > 0)
                         {
-                            outputBuilder.AppendOutput(new string[] { path });
+                            outputBuilder.AppendOutput(new string[] { $"*** {filePair.Key}", $"--- {filePair.Key}", "***************" });
+                        }
+                        else
+                        {
+                            outputBuilder.AppendOutput(new string[] { filePair.Key });
+                        }
+                    }
+
+                    foreach (var diff in diffObjs)
+                    {
+                        var sb = new StringBuilder();
+                        // Write Context Format
+                        if(options.Context > 0 || options.After > 0 || options.Before > 0)
+                        {
+                            sb.AppendLine($"*** {diff.startLine1 - diff.beforeContext.Count},{diff.endLine1 + diff.afterContext.Count} ****");
+                            
+                            diff.beforeContext.ForEach(x => sb.AppendLine($"  {x}"));
+                            diff.text1.ForEach(x => sb.AppendLine($"- {x}".Pastel(Color.Red)));
+                            diff.afterContext.ForEach(x => sb.AppendLine($"  {x}"));
+                            
+                            if (diff.startLine2 > -1)
+                            {
+                                sb.AppendLine($"--- {diff.startLine2 - diff.beforeContext.Count},{diff.endLine2 + diff.afterContext.Count} ----");
+
+                                diff.beforeContext.ForEach(x => sb.AppendLine($"  {x}"));
+                                diff.text2.ForEach(x => sb.AppendLine($"+ {x}".Pastel(Color.Green)));
+                                diff.afterContext.ForEach(x => sb.AppendLine($"  {x}"));
+                            }
+                            else
+                            {
+                                sb.AppendLine($"--- 0,0 ----");
+                            }
+                            
+                        }
+                        // Write diff "Normal Format"
+                        else
+                        {
+                            if (diff.text1.Any() && diff.text2.Any())
+                            {
+                                sb.Append(diff.startLine1);
+                                if (diff.endLine1 != diff.startLine1)
+                                {
+                                    sb.Append($",{diff.endLine1}");
+                                }
+                                sb.Append("c");
+                                sb.Append(diff.startLine2);
+                                if (diff.endLine2 != diff.startLine2)
+                                {
+                                    sb.Append($",{diff.endLine2}");
+                                }
+                                sb.Append(Environment.NewLine);
+                                diff.text1.ForEach(x => sb.AppendLine($"< {x}".Pastel(Color.Red)));
+                                sb.AppendLine("---");
+                                diff.text2.ForEach(x => sb.AppendLine($"> {x}".Pastel(Color.Green)));
+                            }
                         }
 
-                        var diff = InlineDiffBuilder.Diff(file1, file2);
+                        switch (outputBuilder)
+                        {
+                            case StringOutputBuilder stringOutputBuilder:
+                                stringOutputBuilder.AppendOutput(new string[] { sb.ToString().TrimEnd() });
+                                break;
+                            case SarifOutputBuilder sarifOutputBuilder:
+                                var sr = new SarifResult();
+                                sr.Locations = new Location[] { new Location() { LogicalLocation = new LogicalLocation() { FullyQualifiedName = filePair.Key } } };
+                                sr.AnalysisTarget = new ArtifactLocation() { Uri = new Uri(purl1.ToString()) };
+                                sr.Message = new Message() { Text = sb.ToString() };
+                                sarifOutputBuilder.AppendOutput(new SarifResult[] { sr });
+                                break;
+                        }
+                    }
 
+                    void WriteFileIssues(string path, string file1, string file2)
+                    {
+                        var diff = InlineDiffBuilder.Diff(file1, file2);
                         List<string> beforeBuffer = new List<string>();
 
                         int afterCount = 0;
+                        int lineNumber1 = 0;
+                        int lineNumber2 = 0;
+                        var diffObj = new Diff();
 
                         foreach (var line in diff.Lines)
                         {
                             switch (line.Type)
                             {
                                 case ChangeType.Inserted:
-                                    if (!options.RemovedOnly || options.AddedOnly)
+                                    lineNumber2++;
+                                    if (diffObj.lastLineType == Diff.LineType.Context || (diffObj.endLine2 != -1 && lineNumber2 - diffObj.endLine2 > 1 && diffObj.lastLineType != Diff.LineType.Added))
                                     {
-                                        if (beforeBuffer.Any())
-                                        {
-                                            foreach (var buffered in beforeBuffer)
-                                            {
-                                                switch (outputBuilder)
-                                                {
-                                                    case StringOutputBuilder stringOutputBuilder:
-                                                        var outString = options.OutputLocation is null ? $"  {buffered.Pastel(Color.Gray)}" : $"  {buffered}";
-                                                        outputBuilder.AppendOutput(new string[] { outString });
-                                                        break;
-                                                }
-                                            }
-                                            beforeBuffer.Clear();
-                                        }
-                                        afterCount = options.After;
-
-                                        switch (outputBuilder)
-                                        {
-                                            case StringOutputBuilder stringOutputBuilder:
-                                                var outString = options.OutputLocation is null ? $"+ {line.Text}".Pastel(Color.Green) : $"+ {line.Text}";
-                                                outputBuilder.AppendOutput(new string[] { outString });
-                                                break;
-                                            case SarifOutputBuilder sarifOutputBuilder:
-                                                var sr = new SarifResult();
-                                                sr.Locations = new Location[] { new Location() { LogicalLocation = new LogicalLocation() { FullyQualifiedName = filePair.Key } } };
-                                                sr.AnalysisTarget = new ArtifactLocation() { Uri = new Uri(purl2.ToString()) };
-                                                sr.Message = new Message() { Text = line.Text };
-                                                sr.Tags.Add("added");
-                                                sarifOutputBuilder.AppendOutput(new SarifResult[] { sr });
-                                                break;
-                                        }
+                                        diffObjs.Add(diffObj);
+                                        diffObj = new Diff() { startLine1 = lineNumber1 };
                                     }
+                                    if (diffObj.startLine2 == -1)
+                                    {
+                                        diffObj.startLine2 = lineNumber2;
+                                    }
+                                    if(diffObj.startLine1 == -1)
+                                    {
+                                        diffObj.startLine1 = lineNumber1;
+                                    }
+                                    if (beforeBuffer.Any())
+                                    {
+                                        beforeBuffer.ForEach(x => diffObj.AddBeforeContext(x));
+                                        beforeBuffer.Clear();
+                                    }
+
+                                    afterCount = options.After;
+
+                                    diffObj.AddText2(line.Text);
                                     break;
                                 case ChangeType.Deleted:
-                                    if (!options.AddedOnly || options.RemovedOnly)
+                                    lineNumber1++;
+                                    if (diffObj.lastLineType == Diff.LineType.Context || (diffObj.endLine1 != -1 && lineNumber1 - diffObj.endLine1 > 1 && diffObj.lastLineType != Diff.LineType.Removed))
                                     {
-                                        if (beforeBuffer.Any())
-                                        {
-                                            foreach (var buffered in beforeBuffer)
-                                            {
-                                                switch (outputBuilder)
-                                                {
-                                                    case StringOutputBuilder stringOutputBuilder:
-                                                        var outString = options.OutputLocation is null ? $"  {buffered.Pastel(Color.Gray)}" : $" {buffered}";
-                                                        outputBuilder.AppendOutput(new string[] { outString });
-                                                        break;
-                                                }
-                                            }
-                                            beforeBuffer.Clear();
-                                        }
-                                        afterCount = options.After;
-                                        switch (outputBuilder)
-                                        {
-                                            case StringOutputBuilder stringOutputBuilder:
-                                                outputBuilder.AppendOutput(new string[] { $"- {line.Text}".Pastel(Color.Red) });
-                                                break;
-                                            case SarifOutputBuilder sarifOutputBuilder:
-                                                var sr = new SarifResult();
-                                                sr.Locations = new Location[] { new Location() { LogicalLocation = new LogicalLocation() { FullyQualifiedName = filePair.Key } } };
-                                                sr.AnalysisTarget = new ArtifactLocation() { Uri = new Uri(purl1.ToString()) };
-                                                sr.Message = new Message() { Text = line.Text };
-                                                sr.Tags.Add("removed");
-                                                sarifOutputBuilder.AppendOutput(new SarifResult[] { sr });
-                                                break;
-                                        }
+                                        diffObjs.Add(diffObj);
+                                        diffObj = new Diff();
                                     }
-                                    break;
-                                default:
-                                    if (outputBuilder is StringOutputBuilder stringOutputBuilder2)
+                                    if (diffObj.startLine1 == -1)
                                     {
-                                        if (options.Context == -1)
-                                        {
-                                            var outString = options.OutputLocation is null ? $"  {line.Text.Pastel(Color.Gray)}" : $"  {line.Text}";
-                                            stringOutputBuilder2.AppendOutput(new string[] { outString });
-                                        }
-                                        else if (afterCount-- > 0)
-                                        {
-                                            var outString = options.OutputLocation is null ? $"  {line.Text.Pastel(Color.Gray)}" : $"  {line.Text}";
-                                            stringOutputBuilder2.AppendOutput(new string[] { outString });
-                                        }
-                                        else if (options.Before > 0)
-                                        {
-                                            beforeBuffer.Add(line.Text);
-                                            while (options.Before < beforeBuffer.Count)
-                                            {
-                                                beforeBuffer.RemoveAt(0);
-                                            }
-                                        }
+                                        diffObj.startLine1 = lineNumber1;
                                     }
 
+                                    if (beforeBuffer.Any())
+                                    {
+                                        beforeBuffer.ForEach(x => diffObj.AddBeforeContext(x));
+                                        beforeBuffer.Clear();
+                                    }
+
+                                    afterCount = options.After;
+
+                                    diffObj.AddText1(line.Text);
+                                    break;
+                                default:
+                                    lineNumber1++;
+                                    lineNumber2++;
+                                    
+                                    if (options.Context == -1)
+                                    {
+                                        diffObj.AddAfterContext(line.Text);
+                                        beforeBuffer.Add(line.Text);
+                                    }
+                                    else if (afterCount-- > 0)
+                                    {
+                                        diffObj.AddAfterContext(line.Text);
+                                        if (afterCount == 0)
+                                        {
+                                            diffObjs.Add(diffObj);
+                                            diffObj = new Diff();
+                                        }
+                                    }
+                                    else if (options.Before > 0)
+                                    {
+                                        beforeBuffer.Add(line.Text);
+                                        while (options.Before < beforeBuffer.Count)
+                                        {
+                                            beforeBuffer.RemoveAt(0);
+                                        }
+                                    }
                                     break;
                             }
                         }
+
+                        if (diffObj.startLine1 != -1 || diffObj.startLine2 != -1)
+                        {
+                            diffObjs.Add(diffObj);
+                        }
                     }
-                    
                 }
 
                 if (!options.UseCache)

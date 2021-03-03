@@ -171,7 +171,17 @@ namespace Microsoft.CST.OpenSource
                     }
                     else
                     {
-                        WriteIssue(filePair.Key, filePair.Value.Item1, filePair.Value.Item2);
+                        var file1 = string.Empty;
+                        var file2 = string.Empty;
+                        if (!string.IsNullOrEmpty(filePair.Value.Item1))
+                        {
+                            file1 = File.ReadAllText(filePair.Value.Item1);
+                        }
+                        if (!string.IsNullOrEmpty(filePair.Value.Item2))
+                        {
+                            file2 = File.ReadAllText(filePair.Value.Item2);
+                        }
+                        WriteIssue(filePair.Key, file1, file2);
                     }
 
                     void WriteIssue(string path, string file1, string file2)

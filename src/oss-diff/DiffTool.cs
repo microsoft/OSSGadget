@@ -213,17 +213,17 @@ namespace Microsoft.CST.OpenSource
                         {
                             sb.AppendLine($"*** {diff.startLine1 - diff.beforeContext.Count},{diff.endLine1 + diff.afterContext.Count} ****");
                             
-                            diff.beforeContext.ForEach(x => sb.AppendLine($"  {x}"));
-                            diff.text1.ForEach(x => sb.AppendLine($"- {x}".Pastel(Color.Red)));
-                            diff.afterContext.ForEach(x => sb.AppendLine($"  {x}"));
+                            diff.beforeContext.ForEach(x => sb.AppendLine(options.DownloadDirectory is not null ? $"  {x}" : $"  {x}".Pastel(Color.Gray)));
+                            diff.text1.ForEach(x => sb.AppendLine(options.DownloadDirectory is not null ? $"- {x}" : $"- {x}".Pastel(Color.Red)));
+                            diff.afterContext.ForEach(x => sb.AppendLine(options.DownloadDirectory is not null ? $"  {x}" : $"  {x}".Pastel(Color.Gray)));
                             
                             if (diff.startLine2 > -1)
                             {
                                 sb.AppendLine($"--- {diff.startLine2 - diff.beforeContext.Count},{diff.endLine2 + diff.afterContext.Count} ----");
 
-                                diff.beforeContext.ForEach(x => sb.AppendLine($"  {x}"));
-                                diff.text2.ForEach(x => sb.AppendLine($"+ {x}".Pastel(Color.Green)));
-                                diff.afterContext.ForEach(x => sb.AppendLine($"  {x}"));
+                                diff.beforeContext.ForEach(x => sb.AppendLine(options.DownloadDirectory is not null ? $"  {x}" : $"  {x}".Pastel(Color.Gray)));
+                                diff.text2.ForEach(x => sb.AppendLine(options.DownloadDirectory is not null ? $"+ {x}" : $"+ {x}".Pastel(Color.Green)));
+                                diff.afterContext.ForEach(x => sb.AppendLine(options.DownloadDirectory is not null ? $"  {x}" : $"  {x}".Pastel(Color.Gray)));
                             }
                             else
                             {
@@ -248,9 +248,9 @@ namespace Microsoft.CST.OpenSource
                                     sb.Append($",{diff.endLine2}");
                                 }
                                 sb.Append(Environment.NewLine);
-                                diff.text1.ForEach(x => sb.AppendLine($"< {x}".Pastel(Color.Red)));
+                                diff.text1.ForEach(x => sb.AppendLine(options.DownloadDirectory is not null ? $"< {x}" : $"< {x}".Pastel(Color.Red)));
                                 sb.AppendLine("---");
-                                diff.text2.ForEach(x => sb.AppendLine($"> {x}".Pastel(Color.Green)));
+                                diff.text2.ForEach(x => sb.AppendLine(options.DownloadDirectory is not null ? $"> {x}" : $"> {x}".Pastel(Color.Green)));
                             }
                         }
 

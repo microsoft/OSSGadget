@@ -181,10 +181,10 @@ namespace Microsoft.CST.OpenSource
                                 {
                                     Console.WriteLine($"  {line.Text.Pastel(Color.Gray)}");
                                 }
-                                else
+                                else if (options.Before > 0)
                                 {
                                     beforeBuffer.Add(line.Text);
-                                    while(beforeBuffer.Count > options.Before)
+                                    while (options.Before < beforeBuffer.Count)
                                     {
                                         beforeBuffer.RemoveAt(0);
                                     }

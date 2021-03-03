@@ -204,6 +204,7 @@ namespace Microsoft.CST.OpenSource
                         }
                     }
 
+                    diffObjs.Sort((x,y) => x.startLine1.CompareTo(y.startLine1));
                     foreach (var diff in diffObjs)
                     {
                         var sb = new StringBuilder();

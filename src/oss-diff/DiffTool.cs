@@ -224,11 +224,6 @@ namespace Microsoft.CST.OpenSource.DiffTool
                                 diff.text2.ForEach(x => sb.AppendLine(options.DownloadDirectory is not null ? $"+ {x}" : $"+ {x}".Pastel(Color.Green)));
                                 diff.afterContext.ForEach(x => sb.AppendLine(options.DownloadDirectory is not null ? $"  {x}" : $"  {x}".Pastel(Color.Gray)));
                             }
-                            else
-                            {
-                                sb.AppendLine($"--- 0,0 ----");
-                            }
-                            
                         }
                         // Write diff "Normal Format"
                         else
@@ -240,7 +235,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
                                 {
                                     sb.Append($",{diff.endLine1}");
                                 }
-                                sb.Append("c");
+                                sb.Append('c');
                                 sb.Append(diff.startLine2);
                                 if (diff.endLine2 != diff.startLine2)
                                 {
@@ -258,7 +253,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
                                 {
                                     sb.Append($",{diff.endLine1}");
                                 }
-                                sb.Append("d");
+                                sb.Append('d');
                                 sb.Append(diff.endLine2);
                                 sb.Append(Environment.NewLine);
                                 diff.text1.ForEach(x => sb.AppendLine(options.DownloadDirectory is not null ? $"< {x}" : $"< {x}".Pastel(Color.Red)));

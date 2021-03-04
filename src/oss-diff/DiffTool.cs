@@ -98,26 +98,37 @@ namespace Microsoft.CST.OpenSource.DiffTool
                 Logger.Error($"Format {options.Format} is not supported.");
                 return string.Empty;
             }
-            PackageURL purl1 = new PackageURL(options.Targets.First());
-            PackageURL purl2 = new PackageURL(options.Targets.Last());
-            var manager = ProjectManagerFactory.CreateProjectManager(purl1, options.DownloadDirectory ?? Path.GetTempPath());
-            var manager2 = ProjectManagerFactory.CreateProjectManager(purl2, options.DownloadDirectory ?? Path.GetTempPath());
+
 
             // Map relative location in package to actual location on disk
             Dictionary<string, (string, string)> files = new Dictionary<string, (string, string)>();
             IEnumerable<string> locations = Array.Empty<string>();
             IEnumerable<string> locations2 = Array.Empty<string>();
 
-            if (manager is not null)
+            try
             {
-                locations = await manager.DownloadVersion(purl1, true, options.UseCache);
+                PackageURL purl1 = new PackageURL(options.Targets.First());
+                var manager = ProjectManagerFactory.CreateProjectManager(purl1, options.DownloadDirectory ?? Path.GetTempPath());
+
+                if (manager is not null)
+                {
+                    locations = await manager.DownloadVersion(purl1, true, options.UseCache);
+                }
             }
-            else
+            catch(Exception)
             {
                 var tmpDir = Path.GetTempFileName();
                 File.Delete(tmpDir);
-                extractor.ExtractToDirectory(tmpDir, options.Targets.First());
-                locations = new string[] { tmpDir };
+                try
+                {
+                    extractor.ExtractToDirectory(tmpDir, options.Targets.First());
+                    locations = new string[] { tmpDir };
+                }
+                catch (Exception e)
+                {
+                    Logger.Error($"{e.Message}:{e.StackTrace}");
+                    Environment.Exit(-1);
+                }
             }
 
             foreach (var directory in locations)
@@ -128,37 +139,37 @@ namespace Microsoft.CST.OpenSource.DiffTool
                 }
             }
 
-            if (manager2 is not null)
+            try
             {
-                locations2 = await manager2.DownloadVersion(purl2, true, options.UseCache);
-                foreach (var directory in locations2)
-                {
-                    foreach (var file in Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories))
-                    {
-                        var key = string.Join(Path.DirectorySeparatorChar, file.Substring(directory.Length).Split(Path.DirectorySeparatorChar)[2..]);
+                PackageURL purl2 = new PackageURL(options.Targets.Last());
+                var manager2 = ProjectManagerFactory.CreateProjectManager(purl2, options.DownloadDirectory ?? Path.GetTempPath());
 
-                        if (files.ContainsKey(key))
-                        {
-                            var existing = files[key];
-                            existing.Item2 = file;
-                            files[key] = existing;
-                        }
-                        else
-                        {
-                            files[key] = (string.Empty, file);
-                        }
-                    }
+                if (manager2 is not null)
+                {
+                    locations2 = await manager2.DownloadVersion(purl2, true, options.UseCache);
                 }
             }
-            else
+            catch(Exception)
             {
                 var tmpDir = Path.GetTempFileName();
                 File.Delete(tmpDir);
-                extractor.ExtractToDirectory(tmpDir, options.Targets.First());
-
-                foreach (var file in Directory.EnumerateFiles(tmpDir, "*", SearchOption.AllDirectories))
+                try
                 {
-                    var key = string.Join(Path.DirectorySeparatorChar, file[tmpDir.Length..].Split(Path.DirectorySeparatorChar)[2..]);
+                    extractor.ExtractToDirectory(tmpDir, options.Targets.Last());
+                    locations2 = new string[] { tmpDir };
+                }
+                catch (Exception e)
+                {
+                    Logger.Error($"{e.Message}:{e.StackTrace}");
+                    Environment.Exit(-1);
+                }
+            }
+            foreach (var directory in locations2)
+            {
+                foreach (var file in Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories))
+                {
+                    var key = string.Join(Path.DirectorySeparatorChar, file[directory.Length..].Split(Path.DirectorySeparatorChar)[2..]);
+
                     if (files.ContainsKey(key))
                     {
                         var existing = files[key];
@@ -169,7 +180,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
                     {
                         files[key] = (string.Empty, file);
                     }
-                }   
+                }
             }
 
             foreach (var filePair in files)
@@ -269,13 +280,13 @@ namespace Microsoft.CST.OpenSource.DiffTool
                     {
                         if (diff.text1.Any() && diff.text2.Any())
                         {
-                            sb.Append(diff.startLine1);
+                            sb.Append(Math.Max(diff.startLine1,0));
                             if (diff.endLine1 != diff.startLine1)
                             {
                                 sb.Append($",{diff.endLine1}");
                             }
                             sb.Append('c');
-                            sb.Append(diff.startLine2);
+                            sb.Append(Math.Max(diff.startLine2,0));
                             if (diff.endLine2 != diff.startLine2)
                             {
                                 sb.Append($",{diff.endLine2}");
@@ -287,21 +298,21 @@ namespace Microsoft.CST.OpenSource.DiffTool
                         }
                         else if (diff.text1.Any())
                         {
-                            sb.Append(diff.startLine1);
+                            sb.Append(Math.Max(diff.startLine1,0));
                             if (diff.endLine1 != diff.startLine1)
                             {
                                 sb.Append($",{diff.endLine1}");
                             }
                             sb.Append('d');
-                            sb.Append(diff.endLine2);
+                            sb.Append(Math.Max(diff.endLine2,0));
                             sb.Append(Environment.NewLine);
                             diff.text1.ForEach(x => sb.AppendLine(options.DownloadDirectory is not null ? $"< {x}" : $"< {x}".Pastel(Color.Red)));
                         }
                         else if (diff.text2.Any())
                         {
-                            sb.Append(diff.startLine1);
+                            sb.Append(Math.Max(diff.startLine1,0));
                             sb.Append('a');
-                            sb.Append(diff.startLine2);
+                            sb.Append(Math.Max(diff.startLine2,0));
                             if (diff.endLine2 != diff.startLine2)
                             {
                                 sb.Append($",{diff.endLine2}");
@@ -320,7 +331,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
                             var sr = new SarifResult
                             {
                                 Locations = new Location[] { new Location() { LogicalLocation = new LogicalLocation() { FullyQualifiedName = filePair.Key } } },
-                                AnalysisTarget = new ArtifactLocation() { Uri = new Uri(purl1.ToString()) },
+                                AnalysisTarget = new ArtifactLocation() { Uri = new Uri(options.Targets.First()) },
                                 Message = new Message() { Text = sb.ToString() }
                             };
                             sarifOutputBuilder.AppendOutput(new SarifResult[] { sr });

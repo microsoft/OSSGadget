@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.CST.OpenSource
+namespace Microsoft.CST.OpenSource.DiffTool
 {
     public class Diff
     {

@@ -15,12 +15,10 @@ using Microsoft.CST.RecursiveExtractor;
 using Pastel;
 using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
 
-namespace Microsoft.CST.OpenSource
+namespace Microsoft.CST.OpenSource.DiffTool
     {
     class DiffTool : OSSGadget
     {
-        private List<Diff> diffObjs = new List<Diff>();
-
         public class Options
         {
             [Usage()]
@@ -88,6 +86,7 @@ namespace Microsoft.CST.OpenSource
 
         public async Task<string> DiffProjects(Options options)
         {
+            var diffObjs = new List<Diff>();
             var outputBuilder = OutputBuilderFactory.CreateOutputBuilder(options.Format);
             if (outputBuilder is null)
             {
@@ -284,10 +283,12 @@ namespace Microsoft.CST.OpenSource
                                 stringOutputBuilder.AppendOutput(new string[] { sb.ToString().TrimEnd() });
                                 break;
                             case SarifOutputBuilder sarifOutputBuilder:
-                                var sr = new SarifResult();
-                                sr.Locations = new Location[] { new Location() { LogicalLocation = new LogicalLocation() { FullyQualifiedName = filePair.Key } } };
-                                sr.AnalysisTarget = new ArtifactLocation() { Uri = new Uri(purl1.ToString()) };
-                                sr.Message = new Message() { Text = sb.ToString() };
+                                var sr = new SarifResult
+                                {
+                                    Locations = new Location[] { new Location() { LogicalLocation = new LogicalLocation() { FullyQualifiedName = filePair.Key } } },
+                                    AnalysisTarget = new ArtifactLocation() { Uri = new Uri(purl1.ToString()) },
+                                    Message = new Message() { Text = sb.ToString() }
+                                };
                                 sarifOutputBuilder.AppendOutput(new SarifResult[] { sr });
                                 break;
                         }
@@ -321,11 +322,6 @@ namespace Microsoft.CST.OpenSource
                                         diffObj.startLine2 = lineNumber2;
                                     }
 
-                                    if(diffObj.startLine1 == -1)
-                                    {
-                                        diffObj.startLine1 = lineNumber1;
-                                    }
-
                                     if (beforeBuffer.Any())
                                     {
                                         beforeBuffer.ForEach(x => diffObj.AddBeforeContext(x));
@@ -333,11 +329,12 @@ namespace Microsoft.CST.OpenSource
                                     }
 
                                     afterCount = options.After;
-
                                     diffObj.AddText2(line.Text);
+
                                     break;
                                 case ChangeType.Deleted:
                                     lineNumber1++;
+                                    
                                     if (diffObj.lastLineType == Diff.LineType.Context || (diffObj.endLine1 != -1 && lineNumber1 - diffObj.endLine1 > 1 && diffObj.lastLineType != Diff.LineType.Removed))
                                     {
                                         diffObjs.Add(diffObj);
@@ -356,8 +353,8 @@ namespace Microsoft.CST.OpenSource
                                     }
 
                                     afterCount = options.After;
-
                                     diffObj.AddText1(line.Text);
+                                    
                                     break;
                                 default:
                                     lineNumber1++;

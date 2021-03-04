@@ -10,7 +10,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// exception </summary> <param name="output">An IEnumerable<string> object</param>
         public void AppendOutput(IEnumerable<object> output)
         {
-            stringResults.Append(string.Join(Environment.NewLine, (IEnumerable<string>)output));
+            stringResults.Append($"{string.Join(Environment.NewLine, (IEnumerable<string>)output)}{Environment.NewLine}");
         }
 
         public string GetOutput()

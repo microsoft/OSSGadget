@@ -322,12 +322,12 @@ namespace Microsoft.CST.OpenSource.Shared
                 {
                     if (possibleProperties.Contains(property.Name.ToLower()))
                     {
-                        string homepage = property.Value.ToString();
+                        string homepage = property.Value.ToString() ?? string.Empty;
                         var packageUrls = GitHubProjectManager.ExtractGitHubPackageURLs(homepage);
                         // if we were able to extract a github url, return
                         if (packageUrls != null && packageUrls.Count() > 0)
                         {
-                            mapping.Add(packageUrls.FirstOrDefault(), 1.0F);
+                            mapping.Add(packageUrls.First(), 1.0F);
                             return mapping;
                         }
                     }

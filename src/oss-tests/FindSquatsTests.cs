@@ -1,4 +1,5 @@
 ﻿using Microsoft.CST.OpenSource;
+using Microsoft.CST.OpenSource.FindSquats;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;

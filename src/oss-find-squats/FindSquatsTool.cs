@@ -13,6 +13,7 @@ using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
 using Scriban.Runtime;
 using System.IO;
 using System.Threading;
+using Newtonsoft.Json;
 
 namespace Microsoft.CST.OpenSource
 {
@@ -142,7 +143,7 @@ namespace Microsoft.CST.OpenSource
                                     foundSquats++;
                                     if (!options.Quiet)
                                     {
-                                        Logger.Info($"{candidate} package exists. Potential squat.");
+                                        Logger.Info($"{candidate} package exists. Potential squat. {JsonConvert.SerializeObject(rules)}");
                                     }
                                     if (outputBuilder is SarifOutputBuilder sarob)
                                     {

@@ -6,8 +6,6 @@ namespace Microsoft.CST.OpenSource.Tests
     [TestClass]
     public class FindSquatsTest
     {
-        string decoded = "The quick brown fox jumped over the lazy dog.";
-
         public FindSquatsTest()
         {
         }

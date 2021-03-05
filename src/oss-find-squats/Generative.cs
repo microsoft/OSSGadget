@@ -388,21 +388,38 @@ namespace Microsoft.CST.OpenSource.FindSquats
 
         private IEnumerable<(string, string)> _vowelSwap(string arg)
         {
-            char[] vowels = { 'a', 'e', 'i', 'o', 'u', 'y', 'A', 'E', 'I', 'O', 'U', 'Y'};
+            var vowels = new Dictionary<char, char[]>
+            { 
+                { 'a' , new char[]{ 'e', 'i', 'o', 'u', 'y' } },
+                { 'A' , new char[]{ 'e', 'i', 'o', 'u', 'y' } },
+                { 'e' , new char[]{ 'a', 'i', 'o', 'u', 'y' } },
+                { 'E' , new char[]{ 'a', 'i', 'o', 'u', 'y' } },
+                { 'i' , new char[]{ 'a', 'e', 'o', 'u', 'y' } },
+                { 'I' , new char[]{ 'a', 'e', 'o', 'u', 'y' } },
+                { 'o' , new char[]{ 'a', 'e', 'i', 'u', 'y' } },
+                { 'O' , new char[]{ 'a', 'e', 'i', 'u', 'y' } },
+                { 'u' , new char[]{ 'a', 'e', 'i', 'o', 'y' } },
+                { 'U' , new char[]{ 'a', 'e', 'i', 'o', 'y' } },
+                { 'y' , new char[]{ 'a', 'e', 'i', 'o', 'u' } },
+                { 'Y' , new char[]{ 'a', 'e', 'i', 'o', 'u' } }
+            };
             char[] chars = Encoding.UTF8.GetChars(Encoding.UTF8.GetBytes(arg));
             for(var i = 0; i < chars.Length; i++)
             {
                 char old = chars[i];
-                if (vowels.Contains(old))
+                if (vowels.ContainsKey(old))
                 {
-                    for (var j = 0; j < vowels.Length; j++)
+                    foreach(var character in vowels[old])
                     {
-                        if (vowels[j] != old)
+                        if (character != old)
                         {
-                            chars[i] = vowels[j];
+                            chars[i] = character;
                             if (Encoding.UTF8.GetString(Encoding.UTF8.GetBytes(chars)) is string s)
                             {
-                                yield return (s, "Vowel Swap");
+                                if (s.Equals(arg, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    yield return (s, "Vowel Swap");
+                                }
                             }
                         }
                     }

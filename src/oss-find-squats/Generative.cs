@@ -79,6 +79,9 @@ namespace Microsoft.CST.OpenSource.FindSquats
             Mutations.Add(_substituteKnown);
             Mutations.Add(_unicodeHomoglphs);
             Mutations.Add(_bitFlips);
+            Mutations.Add(_removeSome);
+            Mutations.Add(_vowelSwap);
+            Mutations.Add(_doubleHit);
 
             for (int i = 0; i < _locations.Length; i++)
             {
@@ -224,7 +227,6 @@ namespace Microsoft.CST.OpenSource.FindSquats
 
         private IEnumerable<(string, string)> _closeLetters(string arg)
         {
-            var x = _getNeighbors('i', _keymap, _locations).ToList();
             for (int i = 0; i < arg.Length; i++)
             {
                 var n = _getNeighbors(arg[i], _keymap, _locations).ToList();
@@ -232,6 +234,19 @@ namespace Microsoft.CST.OpenSource.FindSquats
                 foreach (var c in n)
                 {
                     yield return (string.Concat(arg.Substring(0, i), c, arg.Substring(i + 1)), "close letters on keymap");
+                }
+            }
+        }
+
+        private IEnumerable<(string, string)> _doubleHit(string arg)
+        {
+            for (int i = 0; i < arg.Length; i++)
+            {
+                var n = _getNeighbors(arg[i], _keymap, _locations).ToList();
+
+                foreach (var c in n)
+                {
+                    yield return (string.Concat(arg.Substring(0, i), c, arg.Substring(i)), "double hit close letters on keymap");
                 }
             }
         }
@@ -365,7 +380,35 @@ namespace Microsoft.CST.OpenSource.FindSquats
 
         private IEnumerable<(string, string)> _removeSome(string arg)
         {
-            throw new NotImplementedException();
+            for(var i = 1; i < arg.Length; i++)
+            {
+                yield return ($"{arg[0..i]}{arg[(i + 1)..]}", "Remove Character");
+            }
+        }
+
+        private IEnumerable<(string, string)> _vowelSwap(string arg)
+        {
+            char[] vowels = { 'a', 'e', 'i', 'o', 'u', 'y', 'A', 'E', 'I', 'O', 'U', 'Y'};
+            char[] chars = Encoding.UTF8.GetChars(Encoding.UTF8.GetBytes(arg));
+            for(var i = 0; i < arg.Length; i++)
+            {
+                char old = chars[i];
+                if (vowels.Contains(old))
+                {
+                    for (var j = 0; j < vowels.Length; i++)
+                    {
+                        if (vowels[j] != old)
+                        {
+                            chars[i] = vowels[j];
+                            if (Encoding.UTF8.GetString(Encoding.UTF8.GetBytes(chars)) is string s)
+                            {
+                                yield return (s, "Vowel Swap");
+                            }
+                        }
+                    }
+                    chars[i] = old;
+                }
+            }
         }
 
         private IEnumerable<(string, string)> _capitalize(string arg)

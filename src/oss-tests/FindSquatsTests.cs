@@ -1,30 +1,19 @@
-﻿using Microsoft.CST.OpenSource;
-using Microsoft.CST.OpenSource.FindSquats;
+﻿using Microsoft.CST.OpenSource.FindSquats;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Markup;
 
 namespace Microsoft.CST.OpenSource.Tests
 {
     [TestClass]
     public class FindSquatsTest
     {
-        string decoded = "The quick brown fox jumped over the lazy dog.";
-
         public FindSquatsTest()
         {
         }
 
         [DataTestMethod]
-        [DataRow("pkg:nuget/Microsoft.CST.OAT", false)]
         [DataRow("pkg:npm/microsoft/microsoft-graph-library", false)]
         [DataRow("pkg:npm/foo", true)]
-
         public async Task DetectSquats(string packageUrl, bool expectedToHaveSquats)
         {
             var fst = new FindSquatsTool();

@@ -109,6 +109,7 @@ namespace Microsoft.CST.OpenSource.DomainSquats
 
                         try
                         {
+                            Thread.Sleep(options.SleepDelay);
                             var response = await whois.LookupAsync(url);
                             if (response.Registered is DateTime)
                             {

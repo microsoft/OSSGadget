@@ -390,12 +390,12 @@ namespace Microsoft.CST.OpenSource.FindSquats
         {
             char[] vowels = { 'a', 'e', 'i', 'o', 'u', 'y', 'A', 'E', 'I', 'O', 'U', 'Y'};
             char[] chars = Encoding.UTF8.GetChars(Encoding.UTF8.GetBytes(arg));
-            for(var i = 0; i < arg.Length; i++)
+            for(var i = 0; i < chars.Length; i++)
             {
                 char old = chars[i];
                 if (vowels.Contains(old))
                 {
-                    for (var j = 0; j < vowels.Length; i++)
+                    for (var j = 0; j < vowels.Length; j++)
                     {
                         if (vowels[j] != old)
                         {

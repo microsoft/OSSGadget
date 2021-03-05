@@ -97,7 +97,8 @@ namespace Microsoft.CST.OpenSource.DomainSquats
                 var potentials = gen.Mutate(splits[0]);
                 foreach (var potential in potentials)
                 {
-                    if (Uri.IsWellFormedUriString(potential.Key, UriKind.Relative){
+                    if (Uri.IsWellFormedUriString(potential.Key, UriKind.Relative))
+                    {
                         var urlBuilder = new StringBuilder();
                         urlBuilder.Append(potential.Key);
                         for (int i = 1; i < splits.Length; i++)

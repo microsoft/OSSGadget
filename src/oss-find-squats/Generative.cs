@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata;
+using System.Text;
 
 namespace Microsoft.CST.OpenSource.FindSquats
 {
@@ -77,6 +78,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
             Mutations.Add(_afterSeparator);
             Mutations.Add(_substituteKnown);
             Mutations.Add(_unicodeHomoglphs);
+            Mutations.Add(_bitFlips);
 
             for (int i = 0; i < _locations.Length; i++)
             {
@@ -327,6 +329,32 @@ namespace Microsoft.CST.OpenSource.FindSquats
             for (int i = 0; i < arg.Length - 2; i++)
             {
                 yield return (arg.Substring(0, i + 1) + arg[i].ToString() + arg.Substring(i + 2), "letter duplicated");
+            }
+        }
+
+        private IEnumerable<(string, string)> _bitFlips(string arg)
+        {
+            var byteArray = Encoding.UTF8.GetBytes(arg);
+            for (int i = 0; i < byteArray.Length; i++)
+            {
+                for(int j = 0; j < 8; j++)
+                {
+                    byte mask = (byte)(1 << j);
+                    byteArray[i] = (byte)(byteArray[i] ^ mask);
+                    var newString = Encoding.UTF8.GetString(byteArray);
+                    var valid = true;
+                    
+                    for(int k = 0; k < newString.Length && valid; k++){
+                        if (!Uri.IsWellFormedUriString(newString, UriKind.Relative))
+                        {
+                            valid = false;
+                        }
+                    }
+                    if (valid)
+                    {
+                        yield return (newString, "Bit Flips");
+                    }
+                }
             }
         }
 

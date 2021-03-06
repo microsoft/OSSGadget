@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata;
+using System.Text;
 
 namespace Microsoft.CST.OpenSource.FindSquats
 {
@@ -77,6 +78,10 @@ namespace Microsoft.CST.OpenSource.FindSquats
             Mutations.Add(_afterSeparator);
             Mutations.Add(_substituteKnown);
             Mutations.Add(_unicodeHomoglphs);
+            Mutations.Add(_bitFlips);
+            Mutations.Add(_removeSome);
+            Mutations.Add(_vowelSwap);
+            Mutations.Add(_doubleHit);
 
             for (int i = 0; i < _locations.Length; i++)
             {
@@ -222,7 +227,6 @@ namespace Microsoft.CST.OpenSource.FindSquats
 
         private IEnumerable<(string, string)> _closeLetters(string arg)
         {
-            var x = _getNeighbors('i', _keymap, _locations).ToList();
             for (int i = 0; i < arg.Length; i++)
             {
                 var n = _getNeighbors(arg[i], _keymap, _locations).ToList();
@@ -230,6 +234,19 @@ namespace Microsoft.CST.OpenSource.FindSquats
                 foreach (var c in n)
                 {
                     yield return (string.Concat(arg.Substring(0, i), c, arg.Substring(i + 1)), "close letters on keymap");
+                }
+            }
+        }
+
+        private IEnumerable<(string, string)> _doubleHit(string arg)
+        {
+            for (int i = 0; i < arg.Length; i++)
+            {
+                var n = _getNeighbors(arg[i], _keymap, _locations).ToList();
+
+                foreach (var c in n)
+                {
+                    yield return (string.Concat(arg.Substring(0, i), c, arg.Substring(i)), "double hit close letters on keymap");
                 }
             }
         }
@@ -330,6 +347,32 @@ namespace Microsoft.CST.OpenSource.FindSquats
             }
         }
 
+        private IEnumerable<(string, string)> _bitFlips(string arg)
+        {
+            var byteArray = Encoding.UTF8.GetBytes(arg);
+            for (int i = 0; i < byteArray.Length; i++)
+            {
+                for(int j = 0; j < 8; j++)
+                {
+                    byte mask = (byte)(1 << j);
+                    byteArray[i] = (byte)(byteArray[i] ^ mask);
+                    var newString = Encoding.UTF8.GetString(byteArray);
+                    var valid = true;
+                    
+                    for(int k = 0; k < newString.Length && valid; k++){
+                        if (!Uri.IsWellFormedUriString(newString, UriKind.Relative))
+                        {
+                            valid = false;
+                        }
+                    }
+                    if (valid)
+                    {
+                        yield return (newString, "Bit Flips");
+                    }
+                }
+            }
+        }
+
         private IEnumerable<(string, string)> _numbers(string arg)
         {
             throw new NotImplementedException();
@@ -337,7 +380,52 @@ namespace Microsoft.CST.OpenSource.FindSquats
 
         private IEnumerable<(string, string)> _removeSome(string arg)
         {
-            throw new NotImplementedException();
+            for(var i = 1; i < arg.Length; i++)
+            {
+                yield return ($"{arg[0..i]}{arg[(i + 1)..]}", "Remove Character");
+            }
+        }
+
+        private IEnumerable<(string, string)> _vowelSwap(string arg)
+        {
+            var vowels = new Dictionary<char, char[]>
+            { 
+                { 'a' , new char[]{ 'e', 'i', 'o', 'u', 'y' } },
+                { 'A' , new char[]{ 'e', 'i', 'o', 'u', 'y' } },
+                { 'e' , new char[]{ 'a', 'i', 'o', 'u', 'y' } },
+                { 'E' , new char[]{ 'a', 'i', 'o', 'u', 'y' } },
+                { 'i' , new char[]{ 'a', 'e', 'o', 'u', 'y' } },
+                { 'I' , new char[]{ 'a', 'e', 'o', 'u', 'y' } },
+                { 'o' , new char[]{ 'a', 'e', 'i', 'u', 'y' } },
+                { 'O' , new char[]{ 'a', 'e', 'i', 'u', 'y' } },
+                { 'u' , new char[]{ 'a', 'e', 'i', 'o', 'y' } },
+                { 'U' , new char[]{ 'a', 'e', 'i', 'o', 'y' } },
+                { 'y' , new char[]{ 'a', 'e', 'i', 'o', 'u' } },
+                { 'Y' , new char[]{ 'a', 'e', 'i', 'o', 'u' } }
+            };
+            char[] chars = Encoding.UTF8.GetChars(Encoding.UTF8.GetBytes(arg));
+            for(var i = 0; i < chars.Length; i++)
+            {
+                char old = chars[i];
+                if (vowels.ContainsKey(old))
+                {
+                    foreach(var character in vowels[old])
+                    {
+                        if (character != old)
+                        {
+                            chars[i] = character;
+                            if (Encoding.UTF8.GetString(Encoding.UTF8.GetBytes(chars)) is string s)
+                            {
+                                if (s.Equals(arg, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    yield return (s, "Vowel Swap");
+                                }
+                            }
+                        }
+                    }
+                    chars[i] = old;
+                }
+            }
         }
 
         private IEnumerable<(string, string)> _capitalize(string arg)

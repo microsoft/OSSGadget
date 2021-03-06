@@ -1,5 +1,6 @@
 ﻿using Microsoft.CST.OpenSource.FindSquats;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Tests

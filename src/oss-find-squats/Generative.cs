@@ -246,7 +246,8 @@ namespace Microsoft.CST.OpenSource.FindSquats
 
                 foreach (var c in n)
                 {
-                    yield return (string.Concat(arg.Substring(0, i), c, arg.Substring(i)), "double hit close letters on keymap");
+                    yield return (string.Concat(arg[0..i], c, arg[i..]), "double hit close letters on keyboard.");
+                    yield return (string.Concat(arg[0..(i+1)], c, arg[(i+1)..]), "double hit close letters on keyboard");
                 }
             }
         }

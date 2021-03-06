@@ -1,20 +1,11 @@
-﻿using Microsoft.CST.OpenSource;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading.Tasks;
-using System.Windows.Markup;
 
 namespace Microsoft.CST.OpenSource.Tests
 {
     [TestClass]
     public class FindSquatsTest
     {
-        string decoded = "The quick brown fox jumped over the lazy dog.";
-
         public FindSquatsTest()
         {
         }

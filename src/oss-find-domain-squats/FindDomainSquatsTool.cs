@@ -17,6 +17,7 @@ using System.Drawing;
 using System.Text;
 using Whois;
 using System.Text.RegularExpressions;
+using NLog;
 
 namespace Microsoft.CST.OpenSource.DomainSquats
 {
@@ -132,15 +133,16 @@ namespace Microsoft.CST.OpenSource.DomainSquats
                         }
                         catch (Exception e)
                         {
-                            if (retries < 5)
+                            Logger.Debug(e, $"{e.Message}:{e.StackTrace}");
+
+                            if (retries++ < 5)
                             {
                                 Thread.Sleep(1000);
-                                await CheckPotential(potential, retries++);
+                                await CheckPotential(potential, retries);
                             }
                             else
                             {
                                 failedSquats.Add((url, potential));
-                                Logger.Debug(e, $"{e.Message}:{e.StackTrace}");
                             }
                         }
                     }
@@ -158,7 +160,6 @@ namespace Microsoft.CST.OpenSource.DomainSquats
                 }
                 foreach (var potential in registeredSquats)
                 {
-                    var list = potential.Item2.Value.ToList();
                     var output = $"Registered: {potential.Item1} (rules: {string.Join(',', potential.Item2.Value)})";
                     if (!options.Quiet)
                     {
@@ -180,6 +181,7 @@ namespace Microsoft.CST.OpenSource.DomainSquats
                                 Kind = ResultKind.Review,
                                 Level = FailureLevel.None,
                             };
+                            sarifResult.Tags.Add("Registered");
                             foreach (var tag in potential.Item2.Value)
                             {
                                 sarifResult.Tags.Add(tag);
@@ -196,7 +198,6 @@ namespace Microsoft.CST.OpenSource.DomainSquats
                     Logger.Warn($"Found {unregisteredSquats.Count} unregistered potential squats.");
                     foreach (var potential in unregisteredSquats)
                     {
-                        var list = potential.Item2.Value.ToList();
                         var output = $"Unregistered: {potential.Item1} (rules: {string.Join(',', potential.Item2.Value)})";
                         if (!options.Quiet)
                         {
@@ -218,6 +219,7 @@ namespace Microsoft.CST.OpenSource.DomainSquats
                                     Kind = ResultKind.Review,
                                     Level = FailureLevel.None,
                                 };
+                                sarifResult.Tags.Add("Unregistered");
                                 foreach (var tag in potential.Item2.Value)
                                 {
                                     sarifResult.Tags.Add(tag);
@@ -230,12 +232,12 @@ namespace Microsoft.CST.OpenSource.DomainSquats
             }
             if (failedSquats.Any())
             {
-                Logger.Error($"{failedSquats.Count} potential squats hit an exception when querying.  Try increasing the sleep setting and trying again.");
+                Logger.Error($"{failedSquats.Count} potential squats hit an exception when querying.  Try increasing the sleep setting and trying again or check these manually.");
                 if (!options.Quiet)
                 {
                     foreach (var fail in failedSquats)
                     {
-                        Logger.Info($"Failed: {fail.Item1} (rules: {string.Join(',', fail.Item2.Value)}");
+                        Logger.Info($"Failed: {fail.Item1} (rules: {string.Join(',', fail.Item2.Value)})");
                     }
                 }
 
@@ -244,7 +246,7 @@ namespace Microsoft.CST.OpenSource.DomainSquats
 
             using var fw = new StreamWriter(options.OutputFile);
             var outString = outputBuilder.GetOutput();
-            fw.WriteLine();
+            fw.WriteLine(outString);
             fw.Close();
             return (outString, registeredSquats.Count, unregisteredSquats.Count);
         }

@@ -16,6 +16,7 @@ using Pastel;
 using System.Drawing;
 using System.Text;
 using Whois;
+using System.Text.RegularExpressions;
 
 namespace Microsoft.CST.OpenSource.DomainSquats
 {
@@ -77,7 +78,6 @@ namespace Microsoft.CST.OpenSource.DomainSquats
             gen = new Generative();
         }
 
-        HttpClient client;
         static async Task Main(string[] args)
         {
             var findSquatsTool = new FindDomainSquatsTool();
@@ -85,11 +85,14 @@ namespace Microsoft.CST.OpenSource.DomainSquats
             await findSquatsTool.ParseOptions<Options>(args).WithParsedAsync<Options>(findSquatsTool.RunAsync);
         }
 
+        private readonly Regex ValidDomainRegex = new("^[0-9a-z]+[0-9a-z\\-]*[0-9a-z]+$", RegexOptions.Compiled);
+
         public async Task<(string output, int registeredSquats, int unregisteredSquats)> RunAsync(Options options)
         {
             IOutputBuilder outputBuilder = SelectFormat(options.Format);
-            var registeredSquats = 0;
-            var unregisteredSquats = 0;
+            var registeredSquats = new List<(string, KeyValuePair<string, IEnumerable<string>>)>();
+            var unregisteredSquats = new List<(string, KeyValuePair<string, IEnumerable<string>>)>();
+            var failedSquats = new List<(string, KeyValuePair<string, IEnumerable<string>>)>();
             var whois = new WhoisLookup();
             foreach (var target in options.Targets ?? Array.Empty<string>())
             {
@@ -97,119 +100,47 @@ namespace Microsoft.CST.OpenSource.DomainSquats
                 var potentials = gen.Mutate(splits[0]);
                 foreach (var potential in potentials)
                 {
+                    await CheckPotential(potential);
+                }
+                async Task CheckPotential(KeyValuePair<string, IEnumerable<string>> potential, int retries = 0)
+                {
+                    // Not a valid domain
+                    if (!ValidDomainRegex.IsMatch(potential.Key))
+                    {
+                        return;
+                    }
                     if (Uri.IsWellFormedUriString(potential.Key, UriKind.Relative))
                     {
-                        var urlBuilder = new StringBuilder();
-                        urlBuilder.Append(potential.Key);
-                        for (int i = 1; i < splits.Length; i++)
-                        {
-                            urlBuilder.Append($".{splits[i]}");
-                        }
-
-                        var url = urlBuilder.ToString();
+                        var url = string.Join('.',potential.Key, string.Join('.',splits[1..]));
 
                         try
                         {
                             Thread.Sleep(options.SleepDelay);
                             var response = await whois.LookupAsync(url);
-                            if (response.Registered is DateTime)
+                            if (response.Status == WhoisStatus.Found)
                             {
-                                registeredSquats++;
-
-                                if (!options.Unregistered)
-                                {
-                                    Logger.Info($"Found {url} as a registered domain.".Pastel(Color.MediumAquamarine));
-                                    switch (outputBuilder)
-                                    {
-                                        case StringOutputBuilder s:
-                                            s.AppendOutput(new string[] { $"{url} is registered." });
-                                            break;
-                                        case SarifOutputBuilder sarif:
-                                            SarifResult sarifResult = new SarifResult()
-                                            {
-                                                Message = new Message()
-                                                {
-                                                    Text = $"Potential Squat candidate { url }.",
-                                                    Id = "oss-find-domain-squats"
-                                                },
-                                                Kind = ResultKind.Review,
-                                                Level = FailureLevel.None,
-                                            };
-                                            foreach (var tag in potential.Value)
-                                            {
-                                                sarifResult.Tags.Add(tag);
-                                            }
-                                            sarif.AppendOutput(new SarifResult[] { sarifResult });
-                                            break;
-                                    }
-                                }
+                                registeredSquats.Add((url, potential));
+                            }
+                            else if (response.Status == WhoisStatus.NotFound)
+                            {
+                                unregisteredSquats.Add((url, potential));
                             }
                             else
                             {
-                                unregisteredSquats++;
-
-                                if (!options.Registered)
-                                {
-                                    Logger.Info($"Found {url} as an unregistered domain.".Pastel(Color.LightGoldenrodYellow));
-
-                                    switch (outputBuilder)
-                                    {
-                                        case StringOutputBuilder s:
-
-                                            s.AppendOutput(new string[] { $"{url} is not registered." });
-                                            break;
-                                        case SarifOutputBuilder sarif:
-                                            SarifResult sarifResult = new SarifResult()
-                                            {
-                                                Message = new Message()
-                                                {
-                                                    Text = $"Squat candidate { url } is not registered.",
-                                                    Id = "oss-find-domain-squats"
-                                                },
-                                                Kind = ResultKind.Review,
-                                                Level = FailureLevel.None,
-                                            };
-                                            foreach (var tag in potential.Value)
-                                            {
-                                                sarifResult.Tags.Add(tag);
-                                            }
-                                            sarif.AppendOutput(new SarifResult[] { sarifResult });
-                                            break;
-                                    }
-                                }
+                                failedSquats.Add((url, potential));
                             }
                         }
                         catch (Exception e)
                         {
-
-                            unregisteredSquats++;
-                            if (!options.Registered)
+                            if (retries < 5)
                             {
-                                Logger.Info($"Found {url} as an unregistered domain.".Pastel(Color.LightGoldenrodYellow));
-
-                                switch (outputBuilder)
-                                {
-                                    case StringOutputBuilder s:
-                                        s.AppendOutput(new string[] { $"{url} is not registered." });
-                                        break;
-                                    case SarifOutputBuilder sarif:
-                                        SarifResult sarifResult = new SarifResult()
-                                        {
-                                            Message = new Message()
-                                            {
-                                                Text = $"Squat candidate { url } is not registered.",
-                                                Id = "oss-find-domain-squats"
-                                            },
-                                            Kind = ResultKind.Review,
-                                            Level = FailureLevel.None,
-                                        };
-                                        foreach (var tag in potential.Value)
-                                        {
-                                            sarifResult.Tags.Add(tag);
-                                        }
-                                        sarif.AppendOutput(new SarifResult[] { sarifResult });
-                                        break;
-                                }
+                                Thread.Sleep(1000);
+                                await CheckPotential(potential, retries++);
+                            }
+                            else
+                            {
+                                failedSquats.Add((url, potential));
+                                Logger.Debug(e, $"{e.Message}:{e.StackTrace}");
                             }
                         }
                     }
@@ -219,22 +150,103 @@ namespace Microsoft.CST.OpenSource.DomainSquats
             {
                 options.OutputFile = $"oss-find-domain-squat.{options.Format}";
             }
-            if (!options.Quiet)
+            if (!options.Unregistered)
             {
-                if (registeredSquats > 0 || unregisteredSquats > 0)
+                if (registeredSquats.Any())
                 {
-                    Logger.Warn($"Found {registeredSquats} registered potential squats amd {unregisteredSquats} unregistered potential squats.");
+                    Logger.Warn($"Found {registeredSquats.Count} registered potential squats.");
                 }
-                else
+                foreach (var potential in registeredSquats)
                 {
-                    Logger.Info($"No squats detected.");
+                    var list = potential.Item2.Value.ToList();
+                    var output = $"Registered: {potential.Item1} (rules: {string.Join(',', potential.Item2.Value)})";
+                    if (!options.Quiet)
+                    {
+                        Logger.Info(output);
+                    }
+                    switch (outputBuilder)
+                    {
+                        case StringOutputBuilder s:
+                            s.AppendOutput(new string[] { output });
+                            break;
+                        case SarifOutputBuilder sarif:
+                            SarifResult sarifResult = new SarifResult()
+                            {
+                                Message = new Message()
+                                {
+                                    Text = $"Potential Squat candidate { potential.Item1 } is Registered.",
+                                    Id = "oss-find-domain-squats"
+                                },
+                                Kind = ResultKind.Review,
+                                Level = FailureLevel.None,
+                            };
+                            foreach (var tag in potential.Item2.Value)
+                            {
+                                sarifResult.Tags.Add(tag);
+                            }
+                            sarif.AppendOutput(new SarifResult[] { sarifResult });
+                            break;
+                    }
                 }
             }
+            if (!options.Registered)
+            {
+                if (unregisteredSquats.Any())
+                {
+                    Logger.Warn($"Found {unregisteredSquats.Count} unregistered potential squats.");
+                    foreach (var potential in unregisteredSquats)
+                    {
+                        var list = potential.Item2.Value.ToList();
+                        var output = $"Unregistered: {potential.Item1} (rules: {string.Join(',', potential.Item2.Value)})";
+                        if (!options.Quiet)
+                        {
+                            Logger.Info(output);
+                        }
+                        switch (outputBuilder)
+                        {
+                            case StringOutputBuilder s:
+                                s.AppendOutput(new string[] { output });
+                                break;
+                            case SarifOutputBuilder sarif:
+                                SarifResult sarifResult = new SarifResult()
+                                {
+                                    Message = new Message()
+                                    {
+                                        Text = $"Potential Squat candidate { potential.Item1 } is Unregistered.",
+                                        Id = "oss-find-domain-squats"
+                                    },
+                                    Kind = ResultKind.Review,
+                                    Level = FailureLevel.None,
+                                };
+                                foreach (var tag in potential.Item2.Value)
+                                {
+                                    sarifResult.Tags.Add(tag);
+                                }
+                                sarif.AppendOutput(new SarifResult[] { sarifResult });
+                                break;
+                        }
+                    }
+                }
+            }
+            if (failedSquats.Any())
+            {
+                Logger.Error($"{failedSquats.Count} potential squats hit an exception when querying.  Try increasing the sleep setting and trying again.");
+                if (!options.Quiet)
+                {
+                    foreach (var fail in failedSquats)
+                    {
+                        Logger.Info($"Failed: {fail.Item1} (rules: {string.Join(',', fail.Item2.Value)}");
+                    }
+                }
+
+            }
+            
+
             using var fw = new StreamWriter(options.OutputFile);
             var outString = outputBuilder.GetOutput();
             fw.WriteLine();
             fw.Close();
-            return (outString, registeredSquats, unregisteredSquats);
+            return (outString, registeredSquats.Count, unregisteredSquats.Count);
         }
     }
 }

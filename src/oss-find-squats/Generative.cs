@@ -246,7 +246,8 @@ namespace Microsoft.CST.OpenSource.FindSquats
 
                 foreach (var c in n)
                 {
-                    yield return (string.Concat(arg.Substring(0, i), c, arg.Substring(i)), "double hit close letters on keymap");
+                    yield return (string.Concat(arg[0..i], c, arg[i..]), "double hit close letters on keyboard");
+                    yield return (string.Concat(arg[0..(i + 1)], c, arg[(i + 1)..]), "double hit close letters on keyboard");
                 }
             }
         }
@@ -341,10 +342,17 @@ namespace Microsoft.CST.OpenSource.FindSquats
 
         private IEnumerable<(string, string)> _duplicateEach(string arg)
         {
+            for(int i = 0; i < arg.Length; i++)
+            {
+                yield return (string.Concat(arg[0..i], arg[i], arg[i..]), "letter duplicated");
+            }
+
             for (int i = 0; i < arg.Length - 2; i++)
             {
-                yield return (arg.Substring(0, i + 1) + arg[i].ToString() + arg.Substring(i + 2), "letter duplicated");
+                yield return (string.Concat(arg[0..(i+1)], arg[i], arg[(i+2)..]), "letter duplicated and replaced");
             }
+
+            yield return (string.Concat(arg[0..arg.Length], arg[arg.Length-1]), "letter duplicated and replaced");
         }
 
         private IEnumerable<(string, string)> _bitFlips(string arg)

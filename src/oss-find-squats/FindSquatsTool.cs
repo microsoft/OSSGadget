@@ -6,16 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Reflection;
 using System.Threading.Tasks;
-using Microsoft.CST.OpenSource.FindSquats;
 using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
-using Scriban.Runtime;
 using System.IO;
 using System.Threading;
 using Newtonsoft.Json;
 
-namespace Microsoft.CST.OpenSource
+namespace Microsoft.CST.OpenSource.FindSquats
 {
     public class FindSquatsTool : OSSGadget
     {

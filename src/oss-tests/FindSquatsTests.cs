@@ -1,4 +1,6 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.CST.OpenSource.FindSquats;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Tests
@@ -14,7 +16,6 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("pkg:nuget/Microsoft.CST.OAT", false)]
         [DataRow("pkg:npm/microsoft/microsoft-graph-library", false)]
         [DataRow("pkg:npm/foo", true)]
-
         public async Task DetectSquats(string packageUrl, bool expectedToHaveSquats)
         {
             var fst = new FindSquatsTool();

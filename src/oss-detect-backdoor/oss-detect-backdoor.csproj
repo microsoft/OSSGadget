@@ -20,7 +20,7 @@
     <None Remove="Resources\BackdoorRules\backdoor_signatures.json" />
     <None Remove="Resources\BackdoorRules\code_execution.json" />
     <None Remove="Resources\BackdoorRules\crypto_currency.json" />
-    <None Remove="Resources\BackdoorRules\data_exfilatration.json" />
+    <None Remove="Resources\BackdoorRules\data_exfiltration.json" />
     <None Remove="Resources\BackdoorRules\ioc.json" />
     <None Remove="Resources\BackdoorRules\lolbas.json" />
     <None Remove="Resources\BackdoorRules\obfuscation.json" />
@@ -31,7 +31,7 @@
     <Content Include="Resources\BackdoorRules\obfuscation.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Resources\BackdoorRules\data_exfilatration.json">
+    <Content Include="Resources\BackdoorRules\data_exfiltration.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Resources\BackdoorRules\lolbas.json">

@@ -267,7 +267,7 @@ namespace Microsoft.CST.OpenSource
                                 {
                                     { target, analysisResult }
                                 };
-                                var encodedName = Uri.EscapeUriString(Path.GetDirectoryName(target) ?? "unknown");
+                                var encodedName = Uri.EscapeUriString(target ?? "unknown");
                                 var purl = new PackageURL("generic", encodedName);
                                 AppendOutput(outputBuilder, purl, analysisResults);
                             }

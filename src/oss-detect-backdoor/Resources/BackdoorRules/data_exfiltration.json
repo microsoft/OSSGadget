@@ -193,7 +193,6 @@
       }
     ]
   },
-  ,
   {
     "name": "Backdoor: Data Exfiltration (Network Interfaces)",
     "id": "BD000709",
@@ -227,5 +226,5 @@
         "modifiers": [ "i" ]
       }
     ]
-  },
+  }
 ]

@@ -3,6 +3,7 @@
 using CommandLine;
 using CommandLine.Text;
 using Microsoft.ApplicationInspector.Commands;
+using Microsoft.ApplicationInspector.RulesEngine;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Sarif;
 using Microsoft.CST.OpenSource.Shared;
@@ -161,14 +162,28 @@ namespace Microsoft.CST.OpenSource
                         Level = FailureLevel.None,
                         Locations = SarifOutputBuilder.BuildPurlLocation(purl),
                     };
-                    
-                    if (metadata?.UniqueTags?.HasAtLeastOneNonNullValue() ?? true)
+
+                    var dict = new Dictionary<string, List<Confidence>>();
+                    foreach((var tags, var confidence) in metadata?.Matches?.Select(x => (x.Tags, x.Confidence)) ?? Array.Empty<(string[], Confidence)>())
                     {
-                        foreach (var tag in metadata?.UniqueTags ?? new List<string>())
+                        foreach(var tag in tags)
                         {
-                            sarifResult?.SetProperty(tag, true);
+                            if (dict.ContainsKey(tag))
+                            {
+                                dict[tag].Add(confidence);
+                            }
+                            else
+                            {
+                                dict[tag] = new List<Confidence>() { confidence };
+                            }
                         }
+                    } 
+                    
+                    foreach((var k, var v) in dict)
+                    {
+                        sarifResult?.SetProperty(k, v.Max());
                     }
+
                     sarifResults.Add(sarifResult);
                 }
             }
@@ -185,6 +200,7 @@ namespace Microsoft.CST.OpenSource
             List<string> stringOutput = new List<string>();
 
             stringOutput.Add(purl.ToString());
+
             if (analysisResult.HasAtLeastOneNonNullValue())
             {
                 foreach (var key in analysisResult.Keys)
@@ -194,10 +210,34 @@ namespace Microsoft.CST.OpenSource
                     stringOutput.Add(string.Format("Programming Language: {0}",
                         string.Join(", ", metadata?.Languages?.Keys ?? Array.Empty<string>().ToList())));
                     
-                    stringOutput.Add("Unique Tags: ");
-                    foreach (var tag in metadata?.UniqueTags ?? new List<string>())
+                    stringOutput.Add("Unique Tags (Confidence): ");
+                    var dict = new Dictionary<string, List<Confidence>>();
+                    foreach ((var tags, var confidence) in metadata?.Matches?.Select(x => (x.Tags, x.Confidence)) ?? Array.Empty<(string[], Confidence)>())
                     {
-                        stringOutput.Add(string.Format($" * {tag}"));
+                        foreach (var tag in tags)
+                        {
+                            if (dict.ContainsKey(tag))
+                            {
+                                dict[tag].Add(confidence);
+                            }
+                            else
+                            {
+                                dict[tag] = new List<Confidence>() { confidence };
+                            }
+                        }
+                    }
+
+                    foreach ((var k, var v) in dict)
+                    {
+                        var confidence = v.Max();
+                        if (confidence > 0)
+                        {
+                            stringOutput.Add(string.Format($" * {k} ({v.Max()})"));
+                        }
+                        else
+                        {
+                            stringOutput.Add(string.Format($" * {k}"));
+                        }
                     }
                 }
             }

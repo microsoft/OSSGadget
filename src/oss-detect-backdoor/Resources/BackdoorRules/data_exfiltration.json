@@ -7,6 +7,7 @@
       "Security.Backdoor.DataExfiltration"
     ],
     "severity": "important",
+    "confidence": "low",
     "patterns": [
       {
         "pattern": "\\.(request|post|get)\\(",
@@ -24,6 +25,7 @@
       "Security.Backdoor.DataExfiltration.Token"
     ],
     "severity": "important",
+    "confidence": "high",
     "patterns": [
       {
         "pattern": "(npm owner|password|htpasswd|auth_?token|secret_?key|private_?key|authorized_keys?|npmrc|\\.ssh|usersecrets?|api_?keys|nuget\\.config|\\.identityservice)",
@@ -41,6 +43,7 @@
       "Security.Backdoor.DataExfiltration.Environment"
     ],
     "severity": "important",
+    "confidence": "high",
     "patterns": [
       {
         "pattern": "(env|environment){1,50}(get|post|curl|nc|invoke-restmethod)",
@@ -53,7 +56,19 @@
         "type": "regex",
         "scopes": [ "code", "comment" ],
         "modifiers": [ "i" ]
-      },
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Data Exfiltration (Environment)",
+    "id": "BD000702",
+    "description": "Backdoor: Data Exfiltration (Environment)",
+    "tags": [
+      "Security.Backdoor.DataExfiltration.Environment"
+    ],
+    "severity": "important",
+    "confidence": "low",
+    "patterns": [
       {
         "pattern": "process.env",
         "type": "regex",
@@ -69,6 +84,7 @@
       "Security.Backdoor.DataExfiltration.Username"
     ],
     "severity": "important",
+    "confidence": "low",
     "patterns": [
       {
         "pattern": ".userInfo",
@@ -92,6 +108,7 @@
       "Security.Backdoor.DataExfiltration.Hostname"
     ],
     "severity": "important",
+    "confidence": "low",
     "patterns": [
       {
         "pattern": ".hostname",
@@ -115,18 +132,19 @@
       "Security.Backdoor.DataExfiltration.DNS"
     ],
     "severity": "important",
+    "confidence": "low",
     "patterns": [
       {
         "pattern": "dns.lookup",
         "type": "string",
         "scopes": [ "code" ],
-        "modifiers": ["i"]
+        "modifiers": [ "i" ]
       },
       {
         "pattern": "dns.resolve",
         "type": "string",
         "scopes": [ "code" ],
-        "modifiers": ["i"]
+        "modifiers": [ "i" ]
       },
       {
         "pattern": "dns.setServers",
@@ -150,6 +168,7 @@
       "Security.Backdoor.DataExfiltration.HomeDir"
     ],
     "severity": "important",
+    "confidence": "low",
     "patterns": [
       {
         "pattern": ".homedir",
@@ -167,6 +186,7 @@
       "Security.Backdoor.DataExfiltration.Platform"
     ],
     "severity": "important",
+    "confidence": "low",
     "patterns": [
       {
         "pattern": ".platform",
@@ -184,12 +204,13 @@
       "Security.Backdoor.DataExfiltration.OSType"
     ],
     "severity": "important",
+    "confidence": "low",
     "patterns": [
       {
         "pattern": "os.type",
         "type": "string",
         "scopes": [ "code" ],
-        "modifiers": ["i"]
+        "modifiers": [ "i" ]
       }
     ]
   },
@@ -201,6 +222,7 @@
       "Security.Backdoor.DataExfiltration.NetworkInterfaces"
     ],
     "severity": "important",
+    "confidence": "low",
     "patterns": [
       {
         "pattern": ".networkInterfaces",
@@ -218,6 +240,7 @@
       "Security.Backdoor.DataExfiltration.DNSSettings"
     ],
     "severity": "important",
+    "confidence": "low",
     "patterns": [
       {
         "pattern": "dns.getServers",

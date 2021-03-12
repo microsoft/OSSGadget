@@ -12,7 +12,8 @@
         "pattern": "pastebin|zerobin|ghostbin|hastebin",
         "type": "regex",
         "scopes": [ "code", "comment" ],
-        "modifiers": [ "i" ]
+        "modifiers": [ "i" ],
+        "confidence": "high"
       }
     ]
   }

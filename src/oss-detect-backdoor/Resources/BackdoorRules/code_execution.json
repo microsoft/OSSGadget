@@ -12,7 +12,8 @@
         "pattern": "\b(eval|exec).{1,15}(decode|base64|decrypt|unencode)\b",
         "type": "regex",
         "scopes": [ "code", "comment" ],
-        "modifiers": [ "i" ]
+        "modifiers": [ "i" ],
+        "confidence": "high"
       }
     ]
   },
@@ -30,13 +31,15 @@
         "pattern": "(iex|invoke-expression) .*(webclient|openread|downloaddata|downloadfile|downloadstring)",
         "type": "regex",
         "scopes": [ "code" ],
-        "modifiers": [ "i" ]
+        "modifiers": [ "i" ],
+        "confidence": "high"
       },
       {
         "pattern": "(webclient|openread|downloaddata|downloadfile|downloadstring).{1,50}start-process",
         "type": "regex",
         "scopes": [ "code" ],
-        "modifiers": [ "i" ]
+        "modifiers": [ "i" ],
+        "confidence": "high"
       }
     ]
   }

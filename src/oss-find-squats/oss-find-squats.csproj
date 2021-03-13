@@ -15,7 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Sarif.Sdk" Version="2.4.4" />
+    <PackageReference Include="Sarif.Sdk" Version="2.4.5" />
     <PackageReference Include="Scriban" Version="3.5.0" />
   </ItemGroup>
 

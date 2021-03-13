@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DiffPlex" Version="1.6.3" />
+    <PackageReference Include="DiffPlex" Version="1.7.0" />
     <PackageReference Include="Pastel" Version="2.1.0" />
   </ItemGroup>
 

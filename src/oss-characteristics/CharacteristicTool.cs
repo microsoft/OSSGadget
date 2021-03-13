@@ -68,6 +68,12 @@ namespace Microsoft.CST.OpenSource
         {
         }
 
+        public async Task<AnalyzeResult?> AnalyzeFile(Options options, string file)
+        {
+            Logger.Trace("AnalyzeFile({0})", file);
+            return await AnalyzeDirectory(options, file);
+        }
+
         /// <summary>
         ///     Analyzes a directory of files.
         /// </summary>
@@ -307,14 +313,26 @@ namespace Microsoft.CST.OpenSource
                                 {
                                     { target, analysisResult }
                                 };
-                                var encodedName = Uri.EscapeUriString(target ?? "unknown");
-                                var purl = new PackageURL("generic", encodedName);
+                                var purl = new PackageURL("generic", target);
+                                AppendOutput(outputBuilder, purl, analysisResults);
+                            }
+                        }
+                        else if (File.Exists(target))
+                        {
+                            var analysisResult = await AnalyzeFile(options, target);
+                            if (analysisResult != null)
+                            {
+                                var analysisResults = new Dictionary<string, Microsoft.ApplicationInspector.Commands.AnalyzeResult?>()
+                                {
+                                    { target, analysisResult }
+                                };
+                                var purl = new PackageURL("generic", target);
                                 AppendOutput(outputBuilder, purl, analysisResults);
                             }
                         }
                         else
                         {
-                            Logger.Warn("Target was neither a Package URL nor a directory.");
+                            Logger.Warn("Package or file identifier was invalid.");
                         }
                     }
                     catch (Exception ex)

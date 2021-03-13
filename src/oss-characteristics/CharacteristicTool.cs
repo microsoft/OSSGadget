@@ -14,6 +14,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.CST.RecursiveExtractor;
 using System.Threading.Tasks;
 using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
 using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
@@ -62,6 +63,14 @@ namespace Microsoft.CST.OpenSource
             [Option('c', "use-cache", Required = false, Default = false,
                 HelpText = "do not download the package if it is already present in the destination directory.")]
             public bool UseCache { get; set; }
+
+            [Option('x', "exclude", Required = false, Default = false,
+                HelpText = "exclude specific files or paths.")]
+            public string FilePathExclusions { get; set; } = "";
+
+            public bool TreatEverythingAsCode { get; set; }
+
+            public bool AllowDupTags { get; set; } = false;
         }
 
         public CharacteristicTool() : base()
@@ -86,7 +95,11 @@ namespace Microsoft.CST.OpenSource
                 LogFileLevel = "Off",
                 SourcePath = directory,
                 IgnoreDefaultRules = options.DisableDefaultRules == true,
-                CustomRulesPath = options.CustomRuleDirectory
+                CustomRulesPath = options.CustomRuleDirectory,
+                TreatEverythingAsCode = options.TreatEverythingAsCode,
+                SingleThread = true,
+                FilePathExclusions = options.FilePathExclusions,
+                AllowDupTags = options.AllowDupTags
             };
 
             try
@@ -276,11 +289,13 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        public async Task RunAsync(Options options)
+        public async Task<List<Dictionary<string, AnalyzeResult?>>> RunAsync(Options options)
         {
             // select output destination and format
             SelectOutput(options.OutputFile);
             IOutputBuilder outputBuilder = SelectFormat(options.Format);
+
+            var finalResults = new List<Dictionary<string, AnalyzeResult?>>();
 
             if (options.Targets is IList<string> targetList && targetList.Count > 0)
             {
@@ -295,6 +310,7 @@ namespace Microsoft.CST.OpenSource
                             var analysisResult = AnalyzePackage(options, purl,
                                 downloadDirectory,
                                 options.UseCache == true).Result;
+                            finalResults.Append(analysisResult);
 
                             AppendOutput(outputBuilder, purl, analysisResult);
                         }
@@ -310,6 +326,42 @@ namespace Microsoft.CST.OpenSource
                                 var encodedName = Uri.EscapeUriString(target ?? "unknown");
                                 var purl = new PackageURL("generic", encodedName);
                                 AppendOutput(outputBuilder, purl, analysisResults);
+                                finalResults.Add(analysisResults);
+                            }
+                        }
+                        else if (File.Exists(target))
+                        {
+                            Extractor e = new Extractor();
+                            var tempDirectory = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString());
+                            var extractorOptions = new ExtractorOptions()
+                            {
+                                ExtractSelfOnFail = true,
+                                Parallel = true
+                            };
+                            var result = await e.ExtractToDirectoryAsync(tempDirectory, target, extractorOptions);
+                            if (result == ExtractionStatusCode.Ok)
+                            {
+                                var analysisResult = await AnalyzeDirectory(options, tempDirectory);
+                                if (analysisResult != null)
+                                {
+                                    var analysisResults = new Dictionary<string, Microsoft.ApplicationInspector.Commands.AnalyzeResult?>()
+                                    {
+                                        { target, analysisResult }
+                                    };
+                                    var encodedName = Uri.EscapeUriString(target ?? "unknown");
+                                    var purl = new PackageURL("generic", encodedName);
+                                    AppendOutput(outputBuilder, purl, analysisResults);
+                                    finalResults.Add(analysisResults);
+                                }
+                            }
+
+                            try
+                            {
+                                Directory.Delete(tempDirectory, true);
+                            }
+                            catch(Exception)
+                            {
+                                Logger.Warn("Unable to delete temporary directory: {0}", tempDirectory);
                             }
                         }
                         else
@@ -326,6 +378,7 @@ namespace Microsoft.CST.OpenSource
             }
 
             RestoreOutput();
+            return finalResults;
         }
     }
 }

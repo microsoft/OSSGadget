@@ -12,7 +12,8 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             sarifv1,
             sarifv2,
-            text // no sarif, just text
+            text, // no sarif, just text
+            none
         };
 
         public static IOutputBuilder CreateDefaultOutputBuilder()
@@ -30,6 +31,9 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             switch (format)
             {
+                case OutputFormat.none:
+                    return new NoneOutputBuilder();
+
                 case OutputFormat.text:
                 default:
                     return new StringOutputBuilder();

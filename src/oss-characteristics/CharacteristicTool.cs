@@ -309,7 +309,7 @@ namespace Microsoft.CST.OpenSource
                             var analysisResult = await AnalyzeDirectory(options, target);
                             if (analysisResult != null)
                             {
-                                var analysisResults = new Dictionary<string, Microsoft.ApplicationInspector.Commands.AnalyzeResult?>()
+                                var analysisResults = new Dictionary<string, AnalyzeResult?>()
                                 {
                                     { target, analysisResult }
                                 };
@@ -322,7 +322,7 @@ namespace Microsoft.CST.OpenSource
                             var analysisResult = await AnalyzeFile(options, target);
                             if (analysisResult != null)
                             {
-                                var analysisResults = new Dictionary<string, Microsoft.ApplicationInspector.Commands.AnalyzeResult?>()
+                                var analysisResults = new Dictionary<string, AnalyzeResult?>()
                                 {
                                     { target, analysisResult }
                                 };

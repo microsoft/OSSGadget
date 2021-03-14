@@ -201,29 +201,9 @@ namespace Microsoft.CST.OpenSource
 
                     sarifResults.Add(sarifResult);
 
+
                     foreach (var result in metadata?.Matches ?? new List<MatchRecord>())
                     {
-                        var locations = SarifOutputBuilder.BuildPurlLocation(purl);
-                        var loc = new CodeAnalysis.Sarif.Location();
-                        loc.PhysicalLocation = new PhysicalLocation()
-                        {
-                            Address = new Address() { FullyQualifiedName = result.FileName },
-                            Region = new Region() 
-                            { 
-                                StartLine = result.StartLocationLine, 
-                                EndLine = result.EndLocationLine, 
-                                StartColumn = result.StartLocationColumn, 
-                                EndColumn = result.EndLocationColumn,
-                                SourceLanguage = result.Language,
-                                Snippet = new ArtifactContent()
-                                {
-                                    Text = result.Excerpt,
-                                    Rendered = new MultiformatMessageString(result.Excerpt, $"`{result.Excerpt}`", null)
-
-                                }
-                            }
-                        };
-                        locations.Add(loc);
                         sarifResult = new SarifResult()
                         {
                             Message = new Message()
@@ -233,11 +213,30 @@ namespace Microsoft.CST.OpenSource
                             },
                             Kind = SeverityToResultKind(result.Severity),
                             Level = FailureLevel.None,
-                            Locations =
+                            Locations = SarifOutputBuilder.BuildPurlLocation(purl),
                             Rule = new ReportingDescriptorReference() { Id = result.RuleId },
                         };
-                        sarifResult.Locations.Add(new CodeAnalysis.Sarif.Location() { LogicalLocation = new LogicalLocation() { FullyQualifiedName = result.FileName } });
-                        sarifResult.SetProperty("Severity",result.Rule.Severity.ToString());
+                        sarifResult.Locations.Add(new CodeAnalysis.Sarif.Location()
+                        {
+                            PhysicalLocation = new PhysicalLocation()
+                            {
+                                Address = new Address() { FullyQualifiedName = result.FileName },
+                                Region = new Region()
+                                {
+                                    StartLine = result.StartLocationLine,
+                                    EndLine = result.EndLocationLine,
+                                    StartColumn = result.StartLocationColumn,
+                                    EndColumn = result.EndLocationColumn,
+                                    SourceLanguage = result.Language,
+                                    Snippet = new ArtifactContent()
+                                    {
+                                        Text = result.Excerpt,
+                                        Rendered = new MultiformatMessageString(result.Excerpt, $"`{result.Excerpt}`", null)
+                                    }
+                                }
+                            }
+                        });
+                        sarifResult.SetProperty("Severity", result.Rule.Severity.ToString());
                         sarifResult.SetProperty("Confidence", result.Rule.Patterns.Select(x => x.Confidence).Max().ToString());
                         sarifResults.Add(sarifResult);
                     }

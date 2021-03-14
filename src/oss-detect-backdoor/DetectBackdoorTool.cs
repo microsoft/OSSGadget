@@ -65,9 +65,10 @@ namespace Microsoft.CST.OpenSource
         private static async Task Main(string[] args)
         {
             var detectBackdoorTool = new DetectBackdoorTool();
-            var c = detectBackdoorTool.ParseOptions<Options>(args);
-            var d = detectBackdoorTool.RunAsync(c.Value).Result;
-            foreach (var result in d)
+            var parsedOptions = detectBackdoorTool.ParseOptions<Options>(args).Value;
+            var detectionResults = await detectBackdoorTool.RunAsync(parsedOptions);
+
+            foreach (var result in detectionResults)
             {
                 foreach (var entry in result)
                 {
@@ -91,7 +92,7 @@ namespace Microsoft.CST.OpenSource
                                 filename = filename[sourcePathLength.Value..];
                             }
                         }
-                        if (c.Value.Format == "text")
+                        if (parsedOptions.Format == "text")
                         {
                             Console.WriteLine($"{match.Tags?.First()} - {filename}:{match.StartLocationLine} - {match.RuleName}");
                         }

@@ -210,7 +210,6 @@ namespace Microsoft.CST.OpenSource
                     }
                 }
             }
-            
             return sarifResults;
         }
 
@@ -318,9 +317,9 @@ namespace Microsoft.CST.OpenSource
                         {
                             var purl = new PackageURL(target);
                             string downloadDirectory = options.DownloadDirectory == "." ? Directory.GetCurrentDirectory() : options.DownloadDirectory;
-                            var analysisResult = AnalyzePackage(options, purl,
+                            var analysisResult = await AnalyzePackage(options, purl,
                                 downloadDirectory,
-                                options.UseCache == true).Result;
+                                options.UseCache == true);
 
                             AppendOutput(outputBuilder, purl, analysisResult);
                             finalResults.Add(analysisResult);

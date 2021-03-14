@@ -211,7 +211,7 @@ namespace Microsoft.CST.OpenSource
                                 Text = result.RuleDescription,
                                 Id = result.RuleId
                             },
-                            Kind = SeverityToResultKind(result.Severity),
+                            Kind = ResultKind.Informational,
                             Level = FailureLevel.None,
                             Locations = SarifOutputBuilder.BuildPurlLocation(purl),
                             Rule = new ReportingDescriptorReference() { Id = result.RuleId },
@@ -243,19 +243,6 @@ namespace Microsoft.CST.OpenSource
                 }
             }
             return sarifResults;
-        }
-
-        private static ResultKind SeverityToResultKind(Severity severity)
-        {
-            return severity switch
-            {
-                Severity.BestPractice => ResultKind.Informational,
-                Severity.Critical => ResultKind.Review,
-                Severity.Important => ResultKind.Review,
-                Severity.ManualReview => ResultKind.Review,
-                Severity.Moderate => ResultKind.Review,
-                _ => ResultKind.None
-            };
         }
 
         /// <summary>

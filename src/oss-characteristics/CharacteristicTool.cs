@@ -166,7 +166,7 @@ namespace Microsoft.CST.OpenSource
                 {
                     var metadata = analysisResult?[key]?.Metadata;
 
-                    SarifResult sarifResult = new SarifResult()
+                    SarifResult overallResult = new SarifResult()
                     {
                         Message = new Message()
                         {
@@ -196,15 +196,15 @@ namespace Microsoft.CST.OpenSource
 
                     foreach ((var k, var v) in dict)
                     {
-                        sarifResult?.SetProperty(k, v.Select(x => x.Item1).Max());
+                        overallResult?.SetProperty(k, v.Select(x => x.Item1).Max());
                     }
 
-                    sarifResults.Add(sarifResult);
+                    sarifResults.Add(overallResult);
 
 
                     foreach (var result in metadata?.Matches ?? new List<MatchRecord>())
                     {
-                        sarifResult = new SarifResult()
+                        var individualResult = new SarifResult()
                         {
                             Message = new Message()
                             {
@@ -216,7 +216,7 @@ namespace Microsoft.CST.OpenSource
                             Locations = SarifOutputBuilder.BuildPurlLocation(purl),
                             Rule = new ReportingDescriptorReference() { Id = result.RuleId },
                         };
-                        sarifResult.Locations.Add(new CodeAnalysis.Sarif.Location()
+                        individualResult.Locations.Add(new CodeAnalysis.Sarif.Location()
                         {
                             PhysicalLocation = new PhysicalLocation()
                             {
@@ -236,9 +236,9 @@ namespace Microsoft.CST.OpenSource
                                 }
                             }
                         });
-                        sarifResult.SetProperty("Severity", result.Rule.Severity.ToString());
-                        sarifResult.SetProperty("Confidence", result.Rule.Patterns.Select(x => x.Confidence).Max().ToString());
-                        sarifResults.Add(sarifResult);
+                        individualResult.SetProperty("Severity", result.Rule.Severity.ToString());
+                        individualResult.SetProperty("Confidence", result.Rule.Patterns.Select(x => x.Confidence).Max().ToString());
+                        sarifResults.Add(individualResult);
                     }
                 }
             }

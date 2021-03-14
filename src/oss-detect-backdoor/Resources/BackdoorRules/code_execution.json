@@ -42,5 +42,43 @@
         "confidence": "high"
       }
     ]
+  },
+  {
+    "name": "Backdoor: Web Request in Setup",
+    "id": "BD000102",
+    "description": "Backdoor: Web Request in Setup",
+    "tags": [
+      "Security.Backdoor.Setup.WebRequest"
+    ],
+    "applies_to": [ "setup.py" ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": "requests.get",
+        "type": "regex",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Installation Script",
+    "id": "BD000103",
+    "description": "Backdoor: Installation Script",
+    "tags": [
+      "Security.Backdoor.Setup.Script"
+    ],
+    "applies_to": [ "package.json" ],
+    "severity": "moderate",
+    "patterns": [
+      {
+        "pattern": "node [^\\s]+\\.js",
+        "type": "regex",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      }
+    ]
   }
 ]

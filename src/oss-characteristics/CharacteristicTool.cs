@@ -62,6 +62,14 @@ namespace Microsoft.CST.OpenSource
             [Option('c', "use-cache", Required = false, Default = false,
                 HelpText = "do not download the package if it is already present in the destination directory.")]
             public bool UseCache { get; set; }
+
+            [Option('x', "exclude", Required = false, Default = false,
+                HelpText = "exclude specific files or paths.")]
+            public string FilePathExclusions { get; set; } = "";
+
+            public bool TreatEverythingAsCode { get; set; }
+
+            public bool AllowDupTags { get; set; } = false;
         }
 
         public CharacteristicTool() : base()
@@ -157,6 +165,7 @@ namespace Microsoft.CST.OpenSource
                 foreach (var key in analysisResult.Keys)
                 {
                     var metadata = analysisResult?[key]?.Metadata;
+
                     SarifResult sarifResult = new SarifResult()
                     {
                         Message = new Message()
@@ -169,31 +178,64 @@ namespace Microsoft.CST.OpenSource
                         Locations = SarifOutputBuilder.BuildPurlLocation(purl),
                     };
 
-                    var dict = new Dictionary<string, List<Confidence>>();
-                    foreach((var tags, var confidence) in metadata?.Matches?.Select(x => (x.Tags, x.Confidence)) ?? Array.Empty<(string[], Confidence)>())
+                    var dict = new Dictionary<string, List<(Confidence, Severity)>>();
+                    foreach ((var tags, var confidence, var severity) in metadata?.Matches?.Select(x => (x.Tags, x.Confidence, x.Severity)) ?? Array.Empty<(string[], Confidence, Severity)>())
                     {
-                        foreach(var tag in tags)
+                        foreach (var tag in tags)
                         {
                             if (dict.ContainsKey(tag))
                             {
-                                dict[tag].Add(confidence);
+                                dict[tag].Add((confidence, severity));
                             }
                             else
                             {
-                                dict[tag] = new List<Confidence>() { confidence };
+                                dict[tag] = new List<(Confidence, Severity)>() { (confidence, severity) };
                             }
                         }
-                    } 
-                    
-                    foreach((var k, var v) in dict)
+                    }
+
+                    foreach ((var k, var v) in dict)
                     {
-                        sarifResult?.SetProperty(k, v.Max());
+                        sarifResult?.SetProperty(k, v.Select(x => x.Item1).Max());
                     }
 
                     sarifResults.Add(sarifResult);
+
+                    foreach (var result in metadata?.Matches ?? new List<MatchRecord>())
+                    {
+                        sarifResult = new SarifResult()
+                        {
+                            Message = new Message()
+                            {
+                                Text = result.RuleDescription,
+                                Id = result.RuleId
+                            },
+                            Kind = SeverityToResultKind(result.Severity),
+                            Level = FailureLevel.None,
+                            Locations = SarifOutputBuilder.BuildPurlLocation(purl),
+                            Rule = new ReportingDescriptorReference() { Id = result.RuleId }
+                        };
+                        sarifResult.Locations.Add(new CodeAnalysis.Sarif.Location() { LogicalLocation = new LogicalLocation() { FullyQualifiedName = result.FileName } });
+                        sarifResult.SetProperty("Severity",result.Rule.Severity.ToString());
+                        sarifResult.SetProperty("Confidence", result.Rule.Patterns.Select(x => x.Confidence).Max().ToString());
+                        sarifResults.Add(sarifResult);
+                    }
                 }
             }
             return sarifResults;
+        }
+
+        private static ResultKind SeverityToResultKind(Severity severity)
+        {
+            return severity switch
+            {
+                Severity.BestPractice => ResultKind.Informational,
+                Severity.Critical => ResultKind.Review,
+                Severity.Important => ResultKind.Review,
+                Severity.ManualReview => ResultKind.Review,
+                Severity.Moderate => ResultKind.Review,
+                _ => ResultKind.None
+            };
         }
 
         /// <summary>
@@ -218,7 +260,7 @@ namespace Microsoft.CST.OpenSource
                     
                     stringOutput.Add("Unique Tags (Confidence): ");
                     var dict = new Dictionary<string, List<Confidence>>();
-                    foreach ((var tags, var confidence) in metadata?.Matches?.Select(x => (x.Tags, x.Confidence)) ?? Array.Empty<(string[], Confidence)>())
+                    foreach ((var tags, var confidence) in metadata?.Matches?.Where(x => x is not null).Select(x => (x.Tags, x.Confidence)) ?? Array.Empty<(string[], Confidence)>())
                     {
                         foreach (var tag in tags)
                         {
@@ -282,11 +324,13 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        public async Task RunAsync(Options options)
+        public async Task<List<Dictionary<string, AnalyzeResult?>>> RunAsync(Options options)
         {
             // select output destination and format
             SelectOutput(options.OutputFile);
             IOutputBuilder outputBuilder = SelectFormat(options.Format);
+            
+            var finalResults = new List<Dictionary<string, AnalyzeResult?>>();
 
             if (options.Targets is IList<string> targetList && targetList.Count > 0)
             {
@@ -303,6 +347,7 @@ namespace Microsoft.CST.OpenSource
                                 options.UseCache == true).Result;
 
                             AppendOutput(outputBuilder, purl, analysisResult);
+                            finalResults.Add(analysisResult);
                         }
                         else if (Directory.Exists(target))
                         {
@@ -316,6 +361,8 @@ namespace Microsoft.CST.OpenSource
                                 var purl = new PackageURL("generic", target);
                                 AppendOutput(outputBuilder, purl, analysisResults);
                             }
+                            finalResults.Add(new Dictionary<string, AnalyzeResult?>() { { target, analysisResult } });
+
                         }
                         else if (File.Exists(target))
                         {
@@ -329,6 +376,7 @@ namespace Microsoft.CST.OpenSource
                                 var purl = new PackageURL("generic", target);
                                 AppendOutput(outputBuilder, purl, analysisResults);
                             }
+                            finalResults.Add(new Dictionary<string, AnalyzeResult?>() { { target, analysisResult } });
                         }
                         else
                         {
@@ -344,6 +392,7 @@ namespace Microsoft.CST.OpenSource
             }
 
             RestoreOutput();
+            return finalResults;
         }
     }
 }

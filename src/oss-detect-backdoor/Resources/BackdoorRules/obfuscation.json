@@ -48,5 +48,23 @@
         "confidence": "high"
       }
     ]
+  },
+  {
+    "name": "Backdoor: Obfuscated String via Single Characters",
+    "id": "BD000802",
+    "description": "Backdoor: Obfuscated String via Single Characters",
+    "tags": [
+      "Security.Backdoor.Obfuscation"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": "([\\\"\\'].[\\\"\\']\\+){6,}",
+        "type": "regex",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      }
+    ]
   }
 ]

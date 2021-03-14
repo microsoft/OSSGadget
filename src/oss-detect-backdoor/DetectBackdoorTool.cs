@@ -2,10 +2,12 @@
 
 using CommandLine;
 using CommandLine.Text;
+using Microsoft.ApplicationInspector.Commands;
 using Microsoft.CST.OpenSource.Shared;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource
@@ -63,12 +65,44 @@ namespace Microsoft.CST.OpenSource
         private static async Task Main(string[] args)
         {
             var detectBackdoorTool = new DetectBackdoorTool();
-            await detectBackdoorTool.ParseOptions<Options>(args).WithParsedAsync(detectBackdoorTool.RunAsync);
+            var c = detectBackdoorTool.ParseOptions<Options>(args);
+            var d = detectBackdoorTool.RunAsync(c.Value).Result;
+            foreach (var result in d)
+            {
+                foreach (var entry in result)
+                {
+                    if (entry.Value == null || entry.Value.Metadata == null || entry.Value.Metadata.Matches == null)
+                    {
+                        continue;
+                    }
+
+                    foreach (var match in entry.Value.Metadata.Matches)
+                    {
+                        var filename = match.FileName;
+                        if (filename == null)
+                        {
+                            continue;
+                        }
+                        var sourcePathLength = entry.Value.Metadata.SourcePath?.Length;
+                        if (sourcePathLength.HasValue)
+                        {
+                            if (entry.Value.Metadata.SourcePath != null && filename.StartsWith(entry.Value.Metadata.SourcePath))
+                            {
+                                filename = filename[sourcePathLength.Value..];
+                            }
+                        }
+                        if (c.Value.Format == "text")
+                        {
+                            Console.WriteLine($"{match.Tags?.First()} - {filename}:{match.StartLocationLine} - {match.RuleName}");
+                        }
+                    }
+                }
+            }
         }
 
-        private async Task RunAsync(Options options)
+        private async Task<List<Dictionary<string, AnalyzeResult?>>> RunAsync(Options options)
         {
-            if (options.Targets is IList<string> targetList && targetList.Count > 0)
+            if (options != null && options.Targets is IList<string> targetList && targetList.Count > 0)
             {
                 var characteristicTool = new CharacteristicTool();
                 CharacteristicTool.Options cOptions = new CharacteristicTool.Options();
@@ -77,10 +111,17 @@ namespace Microsoft.CST.OpenSource
                 cOptions.CustomRuleDirectory = RULE_DIRECTORY;
                 cOptions.DownloadDirectory = options.DownloadDirectory;
                 cOptions.UseCache = options.UseCache;
-                cOptions.Format = options.Format;
+                cOptions.Format = options.Format == "text" ? "none" : options.Format;
                 cOptions.OutputFile = options.OutputFile;
+                cOptions.TreatEverythingAsCode = true;
+                cOptions.FilePathExclusions = ".md,LICENSE,.txt";
+                cOptions.AllowDupTags = true;
 
-                characteristicTool.RunAsync(cOptions).Wait();
+                return await characteristicTool.RunAsync(cOptions);
+            }
+            else
+            {
+                return new List<Dictionary<string, AnalyzeResult?>>();
             }
         }
     }

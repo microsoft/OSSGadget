@@ -244,5 +244,72 @@
         "confidence": "low"
       }
     ]
+  },
+  {
+    "name": "Backdoor: Data Exfiltration (Whoami)",
+    "id": "BD000710",
+    "description": "Backdoor: Data Exfiltration (Whoami)",
+    "tags": [
+      "Security.Backdoor.DataExfiltration.Whoami"
+    ],
+    "severity": "important",
+    "applies_to": [ "package.json" ],
+    "patterns": [
+      {
+        "pattern": "curl\\s+.*whoami",
+        "type": "regex",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Data Exfiltration (Dep Confusion Test)",
+    "id": "BD000711",
+    "description": "Backdoor: Data Exfiltration (Dep Confusion Test)",
+    "tags": [
+      "Security.Backdoor.DataExfiltration.DepConfusionTest"
+    ],
+    "severity": "important",
+    "applies_to": [ "javascript" ],
+    "patterns": [
+      {
+        "pattern": ".userInfo()",
+        "type": "substring",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      }
+    ],
+    "conditions": [
+      {
+        "pattern": {
+          "pattern": "dns",
+          "type": "string",
+          "scopes": [ "code" ],
+          "modifiers": [ "i" ]
+        },
+        "search_in": "finding-region(-30,30)"
+      },
+      {
+        "pattern": {
+          "pattern": "https",
+          "type": "string",
+          "scopes": [ "code" ],
+          "modifiers": [ "i" ]
+        },
+        "search_in": "finding-region(-30,30)"
+      },
+      {
+        "pattern": {
+          "pattern": ".request",
+          "type": "string",
+          "scopes": [ "code" ],
+          "modifiers": [ "i" ]
+        },
+        "search_in": "finding-region(-30,30)"
+      }
+    ]
   }
 ]

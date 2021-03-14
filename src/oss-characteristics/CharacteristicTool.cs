@@ -100,7 +100,8 @@ namespace Microsoft.CST.OpenSource
                 LogFileLevel = "Off",
                 SourcePath = directory,
                 IgnoreDefaultRules = options.DisableDefaultRules == true,
-                CustomRulesPath = options.CustomRuleDirectory
+                CustomRulesPath = options.CustomRuleDirectory,
+                ConfidenceFilters = "high,medium,low"
             };
 
             try

@@ -70,6 +70,8 @@ namespace Microsoft.CST.OpenSource
             public bool TreatEverythingAsCode { get; set; }
 
             public bool AllowDupTags { get; set; } = false;
+
+            public FailureLevel SarifLevel { get; set; } = FailureLevel.Note;
         }
 
         public CharacteristicTool() : base()
@@ -158,7 +160,7 @@ namespace Microsoft.CST.OpenSource
         /// <param name="purl"> </param>
         /// <param name="results"> </param>
         /// <returns> </returns>
-        private static List<SarifResult> GetSarifResults(PackageURL purl, Dictionary<string, AnalyzeResult?> analysisResult)
+        private static List<SarifResult> GetSarifResults(PackageURL purl, Dictionary<string, AnalyzeResult?> analysisResult, Options opts)
         {
             List<SarifResult> sarifResults = new List<SarifResult>();
             
@@ -178,7 +180,7 @@ namespace Microsoft.CST.OpenSource
                                 Id = result.RuleId
                             },
                             Kind = ResultKind.Informational,
-                            Level = FailureLevel.None,
+                            Level = opts.SarifLevel,
                             Locations = SarifOutputBuilder.BuildPurlLocation(purl),
                             Rule = new ReportingDescriptorReference() { Id = result.RuleId },
                         };
@@ -284,7 +286,7 @@ namespace Microsoft.CST.OpenSource
         /// <param name="outputBuilder"> </param>
         /// <param name="purl"> </param>
         /// <param name="results"> </param>
-        private void AppendOutput(IOutputBuilder outputBuilder, PackageURL purl, Dictionary<string, AnalyzeResult?> analysisResults)
+        private void AppendOutput(IOutputBuilder outputBuilder, PackageURL purl, Dictionary<string, AnalyzeResult?> analysisResults, Options opts)
         {
             switch (currentOutputFormat)
             {
@@ -295,7 +297,7 @@ namespace Microsoft.CST.OpenSource
 
                 case OutputFormat.sarifv1:
                 case OutputFormat.sarifv2:
-                    outputBuilder.AppendOutput(GetSarifResults(purl, analysisResults));
+                    outputBuilder.AppendOutput(GetSarifResults(purl, analysisResults,opts));
                     break;
             }
         }
@@ -322,7 +324,7 @@ namespace Microsoft.CST.OpenSource
                                 downloadDirectory,
                                 options.UseCache == true);
 
-                            AppendOutput(outputBuilder, purl, analysisResult);
+                            AppendOutput(outputBuilder, purl, analysisResult, options);
                             finalResults.Add(analysisResult);
                         }
                         else if (Directory.Exists(target))
@@ -335,7 +337,7 @@ namespace Microsoft.CST.OpenSource
                                     { target, analysisResult }
                                 };
                                 var purl = new PackageURL("generic", target);
-                                AppendOutput(outputBuilder, purl, analysisResults);
+                                AppendOutput(outputBuilder, purl, analysisResults, options);
                             }
                             finalResults.Add(new Dictionary<string, AnalyzeResult?>() { { target, analysisResult } });
 
@@ -350,7 +352,7 @@ namespace Microsoft.CST.OpenSource
                                     { target, analysisResult }
                                 };
                                 var purl = new PackageURL("generic", target);
-                                AppendOutput(outputBuilder, purl, analysisResults);
+                                AppendOutput(outputBuilder, purl, analysisResults, options);
                             }
                             finalResults.Add(new Dictionary<string, AnalyzeResult?>() { { target, analysisResult } });
                         }

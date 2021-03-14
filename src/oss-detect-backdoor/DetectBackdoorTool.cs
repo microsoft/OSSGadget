@@ -117,6 +117,7 @@ namespace Microsoft.CST.OpenSource
                 cOptions.TreatEverythingAsCode = true;
                 cOptions.FilePathExclusions = ".md,LICENSE,.txt";
                 cOptions.AllowDupTags = true;
+                cOptions.SarifLevel = CodeAnalysis.Sarif.FailureLevel.Warning;
 
                 return await characteristicTool.RunAsync(cOptions);
             }

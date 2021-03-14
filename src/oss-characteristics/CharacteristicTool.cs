@@ -160,47 +160,12 @@ namespace Microsoft.CST.OpenSource
         private static List<SarifResult> GetSarifResults(PackageURL purl, Dictionary<string, AnalyzeResult?> analysisResult)
         {
             List<SarifResult> sarifResults = new List<SarifResult>();
+            
             if (analysisResult.HasAtLeastOneNonNullValue())
             {
                 foreach (var key in analysisResult.Keys)
                 {
                     var metadata = analysisResult?[key]?.Metadata;
-
-                    SarifResult overallResult = new SarifResult()
-                    {
-                        Message = new Message()
-                        {
-                            Text = string.Join(", ", metadata?.Languages?.Keys ?? Array.Empty<string>()),
-                            Id = "languages"
-                        },
-                        Kind = ResultKind.Informational,
-                        Level = FailureLevel.None,
-                        Locations = SarifOutputBuilder.BuildPurlLocation(purl),
-                    };
-
-                    var dict = new Dictionary<string, List<(Confidence, Severity)>>();
-                    foreach ((var tags, var confidence, var severity) in metadata?.Matches?.Select(x => (x.Tags, x.Confidence, x.Severity)) ?? Array.Empty<(string[], Confidence, Severity)>())
-                    {
-                        foreach (var tag in tags)
-                        {
-                            if (dict.ContainsKey(tag))
-                            {
-                                dict[tag].Add((confidence, severity));
-                            }
-                            else
-                            {
-                                dict[tag] = new List<(Confidence, Severity)>() { (confidence, severity) };
-                            }
-                        }
-                    }
-
-                    foreach ((var k, var v) in dict)
-                    {
-                        overallResult?.SetProperty(k, v.Select(x => x.Item1).Max());
-                    }
-
-                    sarifResults.Add(overallResult);
-
 
                     foreach (var result in metadata?.Matches ?? new List<MatchRecord>())
                     {
@@ -216,6 +181,10 @@ namespace Microsoft.CST.OpenSource
                             Locations = SarifOutputBuilder.BuildPurlLocation(purl),
                             Rule = new ReportingDescriptorReference() { Id = result.RuleId },
                         };
+
+                        individualResult.SetProperty("Severity", result.Severity);
+                        individualResult.SetProperty("Confidence", result.Confidence);
+
                         individualResult.Locations.Add(new CodeAnalysis.Sarif.Location()
                         {
                             PhysicalLocation = new PhysicalLocation()
@@ -236,12 +205,12 @@ namespace Microsoft.CST.OpenSource
                                 }
                             }
                         });
-                        individualResult.SetProperty("Severity", result.Rule.Severity.ToString());
-                        individualResult.SetProperty("Confidence", result.Rule.Patterns.Select(x => x.Confidence).Max().ToString());
+                        
                         sarifResults.Add(individualResult);
                     }
                 }
             }
+            
             return sarifResults;
         }
 

@@ -103,7 +103,8 @@ namespace Microsoft.CST.OpenSource
                 SourcePath = directory,
                 IgnoreDefaultRules = options.DisableDefaultRules == true,
                 CustomRulesPath = options.CustomRuleDirectory,
-                ConfidenceFilters = "high,medium,low"
+                ConfidenceFilters = "high,medium,low",
+                TreatEverythingAsCode = options.TreatEverythingAsCode
             };
 
             try

@@ -84,6 +84,7 @@ namespace Microsoft.CST.OpenSource
                         {
                             WriteMatch(match);
                         }
+                        Console.WriteLine($"{entry.Value.Metadata.TotalMatchesCount} matches found.");
                     }
 
                     void WriteMatch(MatchRecord match)

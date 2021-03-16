@@ -3,6 +3,7 @@
 using CommandLine;
 using CommandLine.Text;
 using Microsoft.ApplicationInspector.Commands;
+using Microsoft.ApplicationInspector.RulesEngine;
 using Microsoft.CST.OpenSource.Shared;
 using System;
 using System.Collections.Generic;
@@ -77,12 +78,20 @@ namespace Microsoft.CST.OpenSource
                         continue;
                     }
 
-                    foreach (var match in entry.Value.Metadata.Matches)
+                    if (parsedOptions.Format == "text")
+                    {
+                        foreach (var match in entry.Value.Metadata.Matches.OrderByDescending(x => x.Confidence))
+                        {
+                            WriteMatch(match);
+                        }
+                    }
+
+                    void WriteMatch(MatchRecord match)
                     {
                         var filename = match.FileName;
                         if (filename == null)
                         {
-                            continue;
+                            return;
                         }
                         var sourcePathLength = entry.Value.Metadata.SourcePath?.Length;
                         if (sourcePathLength.HasValue)
@@ -92,10 +101,7 @@ namespace Microsoft.CST.OpenSource
                                 filename = filename[sourcePathLength.Value..];
                             }
                         }
-                        if (parsedOptions.Format == "text")
-                        {
-                            Console.WriteLine($"{match.Tags?.First()} - {filename}:{match.StartLocationLine} - {match.RuleName}");
-                        }
+                        Console.WriteLine($"{match.Tags?.First()} - {filename}:{match.StartLocationLine} - {match.RuleName} ({match.Severity} - {match.Confidence})");
                     }
                 }
             }

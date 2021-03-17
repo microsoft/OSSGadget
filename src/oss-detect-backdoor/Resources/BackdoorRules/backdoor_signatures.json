@@ -12,7 +12,8 @@
         "pattern": "___cfduid",
         "type": "string",
         "scopes": [ "code", "comment" ],
-        "modifiers": [ "i" ]
+        "modifiers": [ "i" ],
+        "confidence": "high"
       }
     ]
   },
@@ -29,7 +30,8 @@
         "pattern": "ZAUTHSS",
         "type": "string",
         "scopes": [ "code", "comment" ],
-        "modifiers": [ "i" ]
+        "modifiers": [ "i" ],
+        "confidence": "high"
       }
     ]
   }

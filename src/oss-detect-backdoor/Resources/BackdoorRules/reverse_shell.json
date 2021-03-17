@@ -12,7 +12,8 @@
         "pattern": "(shell\\.now\\.sh|tcp\\.ngrok\\.io|reverse shell)",
         "type": "regex-word",
         "scopes": [ "code", "comment" ],
-        "modifiers": [ "i" ]
+        "modifiers": [ "i" ],
+        "confidence": "high"
       }
     ]
   }

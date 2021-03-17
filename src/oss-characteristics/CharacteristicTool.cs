@@ -3,6 +3,7 @@
 using CommandLine;
 using CommandLine.Text;
 using Microsoft.ApplicationInspector.Commands;
+using Microsoft.ApplicationInspector.RulesEngine;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Sarif;
 using Microsoft.CST.OpenSource.Shared;
@@ -61,10 +62,26 @@ namespace Microsoft.CST.OpenSource
             [Option('c', "use-cache", Required = false, Default = false,
                 HelpText = "do not download the package if it is already present in the destination directory.")]
             public bool UseCache { get; set; }
+
+            [Option('x', "exclude", Required = false, Default = false,
+                HelpText = "exclude specific files or paths.")]
+            public string FilePathExclusions { get; set; } = "";
+
+            public bool TreatEverythingAsCode { get; set; }
+
+            public bool AllowDupTags { get; set; } = false;
+
+            public FailureLevel SarifLevel { get; set; } = FailureLevel.Note;
         }
 
         public CharacteristicTool() : base()
         {
+        }
+
+        public async Task<AnalyzeResult?> AnalyzeFile(Options options, string file)
+        {
+            Logger.Trace("AnalyzeFile({0})", file);
+            return await AnalyzeDirectory(options, file);
         }
 
         /// <summary>
@@ -85,7 +102,9 @@ namespace Microsoft.CST.OpenSource
                 LogFileLevel = "Off",
                 SourcePath = directory,
                 IgnoreDefaultRules = options.DisableDefaultRules == true,
-                CustomRulesPath = options.CustomRuleDirectory
+                CustomRulesPath = options.CustomRuleDirectory,
+                ConfidenceFilters = "high,medium,low",
+                TreatEverythingAsCode = options.TreatEverythingAsCode
             };
 
             try
@@ -142,34 +161,57 @@ namespace Microsoft.CST.OpenSource
         /// <param name="purl"> </param>
         /// <param name="results"> </param>
         /// <returns> </returns>
-        private static List<SarifResult> GetSarifResults(PackageURL purl, Dictionary<string, AnalyzeResult?> analysisResult)
+        private static List<SarifResult> GetSarifResults(PackageURL purl, Dictionary<string, AnalyzeResult?> analysisResult, Options opts)
         {
             List<SarifResult> sarifResults = new List<SarifResult>();
+            
             if (analysisResult.HasAtLeastOneNonNullValue())
             {
                 foreach (var key in analysisResult.Keys)
                 {
                     var metadata = analysisResult?[key]?.Metadata;
-                    SarifResult sarifResult = new SarifResult()
+
+                    foreach (var result in metadata?.Matches ?? new List<MatchRecord>())
                     {
-                        Message = new Message()
+                        var individualResult = new SarifResult()
                         {
-                            Text = string.Join(", ", metadata?.Languages?.Keys ?? Array.Empty<string>()),
-                            Id = "languages"
-                        },
-                        Kind = ResultKind.Informational,
-                        Level = FailureLevel.None,
-                        Locations = SarifOutputBuilder.BuildPurlLocation(purl),
-                    };
-                    
-                    if (metadata?.UniqueTags?.HasAtLeastOneNonNullValue() ?? true)
-                    {
-                        foreach (var tag in metadata?.UniqueTags ?? new List<string>())
+                            Message = new Message()
+                            {
+                                Text = result.RuleDescription,
+                                Id = result.RuleId
+                            },
+                            Kind = ResultKind.Informational,
+                            Level = opts.SarifLevel,
+                            Locations = SarifOutputBuilder.BuildPurlLocation(purl),
+                            Rule = new ReportingDescriptorReference() { Id = result.RuleId },
+                        };
+
+                        individualResult.SetProperty("Severity", result.Severity);
+                        individualResult.SetProperty("Confidence", result.Confidence);
+
+                        individualResult.Locations.Add(new CodeAnalysis.Sarif.Location()
                         {
-                            sarifResult?.SetProperty(tag, true);
-                        }
+                            PhysicalLocation = new PhysicalLocation()
+                            {
+                                Address = new Address() { FullyQualifiedName = result.FileName },
+                                Region = new Region()
+                                {
+                                    StartLine = result.StartLocationLine,
+                                    EndLine = result.EndLocationLine,
+                                    StartColumn = result.StartLocationColumn,
+                                    EndColumn = result.EndLocationColumn,
+                                    SourceLanguage = result.Language,
+                                    Snippet = new ArtifactContent()
+                                    {
+                                        Text = result.Excerpt,
+                                        Rendered = new MultiformatMessageString(result.Excerpt, $"`{result.Excerpt}`", null)
+                                    }
+                                }
+                            }
+                        });
+                        
+                        sarifResults.Add(individualResult);
                     }
-                    sarifResults.Add(sarifResult);
                 }
             }
             return sarifResults;
@@ -185,6 +227,7 @@ namespace Microsoft.CST.OpenSource
             List<string> stringOutput = new List<string>();
 
             stringOutput.Add(purl.ToString());
+
             if (analysisResult.HasAtLeastOneNonNullValue())
             {
                 foreach (var key in analysisResult.Keys)
@@ -194,10 +237,34 @@ namespace Microsoft.CST.OpenSource
                     stringOutput.Add(string.Format("Programming Language: {0}",
                         string.Join(", ", metadata?.Languages?.Keys ?? Array.Empty<string>().ToList())));
                     
-                    stringOutput.Add("Unique Tags: ");
-                    foreach (var tag in metadata?.UniqueTags ?? new List<string>())
+                    stringOutput.Add("Unique Tags (Confidence): ");
+                    var dict = new Dictionary<string, List<Confidence>>();
+                    foreach ((var tags, var confidence) in metadata?.Matches?.Where(x => x is not null).Select(x => (x.Tags, x.Confidence)) ?? Array.Empty<(string[], Confidence)>())
                     {
-                        stringOutput.Add(string.Format($" * {tag}"));
+                        foreach (var tag in tags)
+                        {
+                            if (dict.ContainsKey(tag))
+                            {
+                                dict[tag].Add(confidence);
+                            }
+                            else
+                            {
+                                dict[tag] = new List<Confidence>() { confidence };
+                            }
+                        }
+                    }
+
+                    foreach ((var k, var v) in dict)
+                    {
+                        var confidence = v.Max();
+                        if (confidence > 0)
+                        {
+                            stringOutput.Add(string.Format($" * {k} ({v.Max()})"));
+                        }
+                        else
+                        {
+                            stringOutput.Add(string.Format($" * {k}"));
+                        }
                     }
                 }
             }
@@ -220,7 +287,7 @@ namespace Microsoft.CST.OpenSource
         /// <param name="outputBuilder"> </param>
         /// <param name="purl"> </param>
         /// <param name="results"> </param>
-        private void AppendOutput(IOutputBuilder outputBuilder, PackageURL purl, Dictionary<string, AnalyzeResult?> analysisResults)
+        private void AppendOutput(IOutputBuilder outputBuilder, PackageURL purl, Dictionary<string, AnalyzeResult?> analysisResults, Options opts)
         {
             switch (currentOutputFormat)
             {
@@ -231,16 +298,18 @@ namespace Microsoft.CST.OpenSource
 
                 case OutputFormat.sarifv1:
                 case OutputFormat.sarifv2:
-                    outputBuilder.AppendOutput(GetSarifResults(purl, analysisResults));
+                    outputBuilder.AppendOutput(GetSarifResults(purl, analysisResults,opts));
                     break;
             }
         }
 
-        public async Task RunAsync(Options options)
+        public async Task<List<Dictionary<string, AnalyzeResult?>>> RunAsync(Options options)
         {
             // select output destination and format
             SelectOutput(options.OutputFile);
             IOutputBuilder outputBuilder = SelectFormat(options.Format);
+            
+            var finalResults = new List<Dictionary<string, AnalyzeResult?>>();
 
             if (options.Targets is IList<string> targetList && targetList.Count > 0)
             {
@@ -252,29 +321,45 @@ namespace Microsoft.CST.OpenSource
                         {
                             var purl = new PackageURL(target);
                             string downloadDirectory = options.DownloadDirectory == "." ? Directory.GetCurrentDirectory() : options.DownloadDirectory;
-                            var analysisResult = AnalyzePackage(options, purl,
+                            var analysisResult = await AnalyzePackage(options, purl,
                                 downloadDirectory,
-                                options.UseCache == true).Result;
+                                options.UseCache == true);
 
-                            AppendOutput(outputBuilder, purl, analysisResult);
+                            AppendOutput(outputBuilder, purl, analysisResult, options);
+                            finalResults.Add(analysisResult);
                         }
                         else if (Directory.Exists(target))
                         {
                             var analysisResult = await AnalyzeDirectory(options, target);
                             if (analysisResult != null)
                             {
-                                var analysisResults = new Dictionary<string, Microsoft.ApplicationInspector.Commands.AnalyzeResult?>()
+                                var analysisResults = new Dictionary<string, AnalyzeResult?>()
                                 {
                                     { target, analysisResult }
                                 };
-                                var encodedName = Uri.EscapeUriString(Path.GetDirectoryName(target) ?? "unknown");
-                                var purl = new PackageURL("generic", encodedName);
-                                AppendOutput(outputBuilder, purl, analysisResults);
+                                var purl = new PackageURL("generic", target);
+                                AppendOutput(outputBuilder, purl, analysisResults, options);
                             }
+                            finalResults.Add(new Dictionary<string, AnalyzeResult?>() { { target, analysisResult } });
+
+                        }
+                        else if (File.Exists(target))
+                        {
+                            var analysisResult = await AnalyzeFile(options, target);
+                            if (analysisResult != null)
+                            {
+                                var analysisResults = new Dictionary<string, AnalyzeResult?>()
+                                {
+                                    { target, analysisResult }
+                                };
+                                var purl = new PackageURL("generic", target);
+                                AppendOutput(outputBuilder, purl, analysisResults, options);
+                            }
+                            finalResults.Add(new Dictionary<string, AnalyzeResult?>() { { target, analysisResult } });
                         }
                         else
                         {
-                            Logger.Warn("Target was neither a Package URL nor a directory.");
+                            Logger.Warn("Package or file identifier was invalid.");
                         }
                     }
                     catch (Exception ex)
@@ -286,6 +371,7 @@ namespace Microsoft.CST.OpenSource
             }
 
             RestoreOutput();
+            return finalResults;
         }
     }
 }

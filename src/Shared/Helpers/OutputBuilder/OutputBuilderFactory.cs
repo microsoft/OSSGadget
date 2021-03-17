@@ -12,7 +12,8 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             sarifv1,
             sarifv2,
-            text // no sarif, just text
+            text, // no sarif, just text
+            none
         };
 
         public static IOutputBuilder CreateDefaultOutputBuilder()
@@ -30,14 +31,17 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             switch (format)
             {
-                case OutputFormat.text:
-                default:
-                    return new StringOutputBuilder();
+                case OutputFormat.none:
+                    return new NoneOutputBuilder();
 
                 case OutputFormat.sarifv1:
                 case OutputFormat.sarifv2:
                     SarifVersion version = format == OutputFormat.sarifv1 ? SarifVersion.OneZeroZero : SarifVersion.Current;
                     return new SarifOutputBuilder(version);
+
+                case OutputFormat.text:
+                default:
+                    return new StringOutputBuilder();
             }
         }
 

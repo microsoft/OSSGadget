@@ -13,7 +13,8 @@
         "pattern": "(\\-bxor|cpassword|getnetworkcredential|securestringtobstr|shellexecute|processtartinfo|activexobject|regsvr32|mimikatz|new-scheduledtask|loadlibrary|ptrtostructure|getdelegateforfunctionpointer|unsafenativemethods|structuretoptr|virtualprotect)",
         "type": "regex-word",
         "scopes": [ "code" ],
-        "modifiers": [ "i" ]
+        "modifiers": [ "i" ],
+        "confidence": "medium"
       }
     ]
   }

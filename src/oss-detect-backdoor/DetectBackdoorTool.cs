@@ -2,10 +2,13 @@
 
 using CommandLine;
 using CommandLine.Text;
+using Microsoft.ApplicationInspector.Commands;
+using Microsoft.ApplicationInspector.RulesEngine;
 using Microsoft.CST.OpenSource.Shared;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource
@@ -63,12 +66,51 @@ namespace Microsoft.CST.OpenSource
         private static async Task Main(string[] args)
         {
             var detectBackdoorTool = new DetectBackdoorTool();
-            await detectBackdoorTool.ParseOptions<Options>(args).WithParsedAsync(detectBackdoorTool.RunAsync);
+            var parsedOptions = detectBackdoorTool.ParseOptions<Options>(args).Value;
+            var detectionResults = await detectBackdoorTool.RunAsync(parsedOptions);
+
+            foreach (var result in detectionResults)
+            {
+                foreach (var entry in result)
+                {
+                    if (entry.Value == null || entry.Value.Metadata == null || entry.Value.Metadata.Matches == null)
+                    {
+                        continue;
+                    }
+
+                    if (parsedOptions.Format == "text")
+                    {
+                        foreach (var match in entry.Value.Metadata.Matches.OrderByDescending(x => x.Confidence))
+                        {
+                            WriteMatch(match);
+                        }
+                        Console.WriteLine($"{entry.Value.Metadata.TotalMatchesCount} matches found.");
+                    }
+
+                    void WriteMatch(MatchRecord match)
+                    {
+                        var filename = match.FileName;
+                        if (filename == null)
+                        {
+                            return;
+                        }
+                        var sourcePathLength = entry.Value.Metadata.SourcePath?.Length;
+                        if (sourcePathLength.HasValue)
+                        {
+                            if (entry.Value.Metadata.SourcePath != null && filename.StartsWith(entry.Value.Metadata.SourcePath))
+                            {
+                                filename = filename[sourcePathLength.Value..];
+                            }
+                        }
+                        Console.WriteLine($"{match.Tags?.First()} - {filename}:{match.StartLocationLine} - {match.RuleName} ({match.Severity} - {match.Confidence})");
+                    }
+                }
+            }
         }
 
-        private async Task RunAsync(Options options)
+        private async Task<List<Dictionary<string, AnalyzeResult?>>> RunAsync(Options options)
         {
-            if (options.Targets is IList<string> targetList && targetList.Count > 0)
+            if (options != null && options.Targets is IList<string> targetList && targetList.Count > 0)
             {
                 var characteristicTool = new CharacteristicTool();
                 CharacteristicTool.Options cOptions = new CharacteristicTool.Options();
@@ -77,10 +119,18 @@ namespace Microsoft.CST.OpenSource
                 cOptions.CustomRuleDirectory = RULE_DIRECTORY;
                 cOptions.DownloadDirectory = options.DownloadDirectory;
                 cOptions.UseCache = options.UseCache;
-                cOptions.Format = options.Format;
+                cOptions.Format = options.Format == "text" ? "none" : options.Format;
                 cOptions.OutputFile = options.OutputFile;
+                cOptions.TreatEverythingAsCode = true;
+                cOptions.FilePathExclusions = ".md,LICENSE,.txt";
+                cOptions.AllowDupTags = true;
+                cOptions.SarifLevel = CodeAnalysis.Sarif.FailureLevel.Warning;
 
-                characteristicTool.RunAsync(cOptions).Wait();
+                return await characteristicTool.RunAsync(cOptions);
+            }
+            else
+            {
+                return new List<Dictionary<string, AnalyzeResult?>>();
             }
         }
     }

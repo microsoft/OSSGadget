@@ -66,5 +66,23 @@
         "confidence": "high"
       }
     ]
+  },
+  {
+    "name": "Backdoor: Setting DNS Server",
+    "id": "BD000803",
+    "description": "Backdoor: Setting DNS Server",
+    "tags": [
+      "Security.Backdoor.Obfuscation.DNS"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": "dns.setServers",
+        "type": "string",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      }
+    ]
   }
 ]

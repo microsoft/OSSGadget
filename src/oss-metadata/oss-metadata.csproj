@@ -11,6 +11,7 @@
     <LangVersion>9.0</LangVersion>
     <RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>
     <RepositoryType>Github</RepositoryType>
+    <RuntimeIdentifiers>win-x64;osx-x64;linux-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

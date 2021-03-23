@@ -6,6 +6,7 @@
     <RootNamespace>Microsoft.CST.OpenSource</RootNamespace>
     <Nullable>enable</Nullable>
     <LangVersion>9.0</LangVersion>
+    <RuntimeIdentifiers>win-x64;osx-x64;linux-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
   <ItemGroup>

@@ -14,7 +14,7 @@ parameters:
 # Should Dotnet SDK use Preview versions?
 - name: includePreviewVersions
   type: boolean
-  default: true
+  default: false
 # Version of NuGet Tool to use
 - name: nugetVersion
   type: string
@@ -67,7 +67,7 @@ jobs:
     displayName: Publish Win x64
     inputs:
       command: 'publish'
-      arguments: '${{ parameters.projectPath }} -c ${{ parameters.buildConfiguration }} -o bin/win/${{ parameters.projectName }}_win_$(ReleaseVersion) -r win-x64'
+      arguments: '${{ parameters.projectPath }} -c ${{ parameters.buildConfiguration }} -o bin/win/${{ parameters.projectName }}_win_$(ReleaseVersion) -r win-x64 -p:PublishSingleFile=true --self-contained true'
       publishWebProjects: false
       zipAfterPublish: false
   - task: DotNetCoreCLI@2

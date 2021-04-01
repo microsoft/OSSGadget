@@ -104,7 +104,8 @@ namespace Microsoft.CST.OpenSource
                 IgnoreDefaultRules = options.DisableDefaultRules == true,
                 CustomRulesPath = options.CustomRuleDirectory,
                 ConfidenceFilters = "high,medium,low",
-                TreatEverythingAsCode = options.TreatEverythingAsCode
+                TreatEverythingAsCode = options.TreatEverythingAsCode,
+                SingleThread = true
             };
 
             try

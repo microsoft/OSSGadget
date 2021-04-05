@@ -53,6 +53,7 @@ stages:
       projectName: 'OSSGadget'
       preBuild:
       - template: templates/nbgv-set-version-steps.yml
+      buildArguments: '-p:SelfContained=false -p:PublishSingleFile=false'
 
 - stage: Release
   dependsOn:

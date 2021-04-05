@@ -29,7 +29,7 @@ stages:
   - template: templates/dotnet-test-job.yml
     parameters:
       projectPath: 'src/oss-tests/oss-tests.csproj'
-      arguments: '--runtime linux-x64'
+      arguments: '--runtime win-x64'
 
 - stage: SDL
   dependsOn: Test

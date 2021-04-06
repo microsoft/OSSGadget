@@ -12,6 +12,8 @@
     <StartupObject>Microsoft.CST.OpenSource.DetectCryptographyTool</StartupObject>
     <LangVersion>9.0</LangVersion>
     <Nullable>Enable</Nullable>
+    <RuntimeIdentifiers>win-x64;osx-x64;linux-x64</RuntimeIdentifiers>
+    <SelfContained>true</SelfContained>
   </PropertyGroup>
 
   <ItemGroup>

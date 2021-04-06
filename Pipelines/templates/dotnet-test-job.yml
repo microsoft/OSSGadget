@@ -15,6 +15,10 @@ parameters:
 - name: projectPath
   type: string
   default: ''
+# Additional 'dotnet test' arguments
+- name: arguments
+  type: string
+  default: ''
 
 jobs:
 - job: ${{ parameters.jobName }}
@@ -39,3 +43,4 @@ jobs:
     inputs:
       command: 'test'
       projects: ${{ parameters.projectPath }}
+      arguments: ${{ parameters.arguments }}

@@ -29,6 +29,7 @@ stages:
   - template: templates/dotnet-test-job.yml
     parameters:
       projectPath: 'src/oss-tests/oss-tests.csproj'
+      arguments: '--runtime win-x64'
 
 - stage: SDL
   dependsOn: Test
@@ -52,6 +53,7 @@ stages:
       projectName: 'OSSGadget'
       preBuild:
       - template: templates/nbgv-set-version-steps.yml
+      buildArguments: '-p:SelfContained=false -p:PublishSingleFile=false'
 
 - stage: Release
   dependsOn:
@@ -62,7 +64,7 @@ stages:
   - job: sign_hash_release
     displayName: Code Sign, Generate Hashes, Publish Public Releases
     pool:
-      vmImage: 'windows-latest'
+      vmImage: 'ubuntu-latest'
     steps:
     - task: UseDotNet@2
       inputs:
@@ -77,16 +79,29 @@ stages:
           $version = (nbgv get-version -v AssemblyInformationalVersion).split('+')[0]
           Write-Host "##vso[task.setvariable variable=ReleaseVersion;]$version"
     - task: DownloadBuildArtifacts@0
-      displayName: Download Unsigned Archives
+      displayName: Download Unsigned Win/Netcoreapp Archives
       inputs:
         buildType: 'current'
         downloadType: 'specific'
         itemPattern: 'Unsigned_Binaries/*.zip'
         downloadPath: '$(Build.BinariesDirectory)'
+    - task: DownloadBuildArtifacts@0
+      displayName: Download Unsigned Nix Archives
+      inputs:
+        buildType: 'current'
+        downloadType: 'specific'
+        itemPattern: 'Unsigned_Binaries/*.tar.gz'
+        downloadPath: '$(Build.BinariesDirectory)'
     - task: ExtractFiles@1
-      displayName: Extract Artifacts for Signing
+      displayName: Extract Win/Netcoreapp Artifacts for Signing
       inputs:
         archiveFilePatterns: '$(Build.BinariesDirectory)\Unsigned_Binaries\*.zip'
+        destinationFolder: '$(Build.BinariesDirectory)'
+        cleanDestinationFolder: false
+    - task: ExtractFiles@1
+      displayName: Extract Nix Artifacts for Signing
+      inputs:
+        archiveFilePatterns: '$(Build.BinariesDirectory)\Unsigned_Binaries\*.tar.gz'
         destinationFolder: '$(Build.BinariesDirectory)'
         cleanDestinationFolder: false
     - task: AntiMalware@3
@@ -109,7 +124,7 @@ stages:
       inputs:
         ConnectedServiceName: 'OSSGadget_CodeSign'
         FolderPath: '$(Build.BinariesDirectory)/linux/OSSGadget_linux_$(ReleaseVersion)'
-        Pattern: 'oss-characteristic.dll, oss-defog.dll, oss-detect-backdoor.dll, oss-download.dll, oss-find-source.dll, oss-health.dll, RecursiveExtractor.dll'
+        Pattern: 'oss-characteristic.dll, oss-defog.dll, oss-detect-backdoor.dll, oss-detect-cryptography.dll, oss-diff.dll, oss-download.dll, oss-find-domain-squats.dll, oss-find-source.dll, oss-find-squats.dll, oss-health.dll, oss-metadata.dll, oss-risk-calculator.dll, Shared.dll'
         signConfigType: 'inlineSignParams'
         inlineOperation: |
           [
@@ -142,7 +157,7 @@ stages:
       inputs:
         ConnectedServiceName: 'OSSGadget_CodeSign'
         FolderPath: '$(Build.BinariesDirectory)/macos/OSSGadget_macos_$(ReleaseVersion)'
-        Pattern: 'oss-characteristic.dll, oss-defog.dll, oss-detect-backdoor.dll, oss-download.dll, oss-find-source.dll, oss-health.dll, RecursiveExtractor.dll'
+        Pattern: 'oss-characteristic.dll, oss-defog.dll, oss-detect-backdoor.dll, oss-detect-cryptography.dll, oss-diff.dll, oss-download.dll, oss-find-domain-squats.dll, oss-find-source.dll, oss-find-squats.dll, oss-health.dll, oss-metadata.dll, oss-risk-calculator.dll, Shared.dll'
         signConfigType: 'inlineSignParams'
         inlineOperation: |
           [
@@ -175,7 +190,7 @@ stages:
       inputs:
         ConnectedServiceName: 'OSSGadget_CodeSign'
         FolderPath: '$(Build.BinariesDirectory)/win/OSSGadget_win_$(ReleaseVersion)'
-        Pattern: 'oss-characteristic.exe, oss-characteristic.dll, oss-defog.exe, oss-defog.dll, oss-detect-backdoor.exe, oss-detect-backdoor.dll, oss-download.exe, oss-download.dll, oss-find-source.exe, oss-find-source.dll, oss-health.exe, oss-health.dll, RecursiveExtractor.dll'
+        Pattern: 'oss-characteristic.dll, oss-defog.dll, oss-detect-backdoor.dll, oss-detect-cryptography.dll, oss-diff.dll, oss-download.dll, oss-find-domain-squats.dll, oss-find-source.dll, oss-find-squats.dll, oss-health.dll, oss-metadata.dll, oss-risk-calculator.dll, Shared.dll'
         signConfigType: 'inlineSignParams'
         inlineOperation: |
           [
@@ -208,7 +223,7 @@ stages:
       inputs:
         ConnectedServiceName: 'OSSGadget_CodeSign'
         FolderPath: '$(Build.BinariesDirectory)/netcoreapp/OSSGadget_netcoreapp_$(ReleaseVersion)'
-        Pattern: 'oss-characteristic.exe, oss-characteristic.dll, oss-defog.exe, oss-defog.dll, oss-detect-backdoor.exe, oss-detect-backdoor.dll, oss-download.exe, oss-download.dll, oss-find-source.exe, oss-find-source.dll, oss-health.exe, oss-health.dll, RecursiveExtractor.dll'
+        Pattern: 'oss-characteristic.dll, oss-defog.dll, oss-detect-backdoor.dll, oss-detect-cryptography.dll, oss-diff.dll, oss-download.dll, oss-find-domain-squats.dll, oss-find-source.dll, oss-find-squats.dll, oss-health.dll, oss-metadata.dll, oss-risk-calculator.dll, Shared.dll'
         signConfigType: 'inlineSignParams'
         inlineOperation: |
           [
@@ -243,16 +258,16 @@ stages:
       inputs:
         rootFolderOrFile: '$(Build.BinariesDirectory)/linux/OSSGadget_linux_$(ReleaseVersion)'
         includeRootFolder: true
-        archiveType: 'zip'
-        archiveFile: '$(Build.StagingDirectory)/OSSGadget_linux_$(ReleaseVersion).zip'
+        archiveType: 'tar'
+        archiveFile: '$(Build.StagingDirectory)/OSSGadget_linux_$(ReleaseVersion).tar.gz'
         replaceExistingArchive: true
     - task: ArchiveFiles@2
       displayName: Archive Artifact - MacOS
       inputs:
         rootFolderOrFile: '$(Build.BinariesDirectory)/macos/OSSGadget_macos_$(ReleaseVersion)'
         includeRootFolder: true
-        archiveType: 'zip'
-        archiveFile: '$(Build.StagingDirectory)/OSSGadget_macos_$(ReleaseVersion).zip'
+        archiveType: 'tar'
+        archiveFile: '$(Build.StagingDirectory)/OSSGadget_macos_$(ReleaseVersion).tar.gz'
         replaceExistingArchive: true
     - task: ArchiveFiles@2
       displayName: Archive Artifact - Windows
@@ -296,6 +311,7 @@ stages:
         tag: 'v$(ReleaseVersion)'
         title: 'OSS Gadget v$(ReleaseVersion)'
         assets: |
+          $(Build.StagingDirectory)/*.tar.gz
           $(Build.StagingDirectory)/*.zip
           $(Build.StagingDirectory)/HASHES.txt
         changeLogCompareToRelease: 'lastNonDraftRelease'

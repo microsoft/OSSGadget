@@ -12,6 +12,8 @@
     <AssemblyName>Shared</AssemblyName>
     <LangVersion>9.0</LangVersion>
     <Nullable>Enable</Nullable>
+    <RuntimeIdentifiers>win-x64;osx-x64;linux-x64</RuntimeIdentifiers>
+    <SelfContained>true</SelfContained>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

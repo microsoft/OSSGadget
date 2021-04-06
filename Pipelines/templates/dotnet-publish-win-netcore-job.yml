@@ -85,17 +85,6 @@ jobs:
       arguments: '${{ parameters.projectPath }} -c ${{ parameters.buildConfiguration }} -o bin/netcoreapp/${{ parameters.projectName }}_netcoreapp_$(ReleaseVersion) ${{ parameters.buildArguments }}'
       publishWebProjects: false
       zipAfterPublish: false
-  - task: AntiMalware@3
-    displayName: Anti-Malware Scan
-    inputs:
-      InputType: 'Basic'
-      ScanType: 'CustomScan'
-      FileDirPath: 'bin'
-      EnableServices: true
-      SupportLogOnError: true
-      TreatSignatureUpdateFailureAs: 'Warning'
-      SignatureFreshness: 'UpToDate'
-      TreatStaleSignatureAs: 'Warning'
   - task: ArchiveFiles@2
     displayName: Archive Builds
     inputs:

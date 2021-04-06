@@ -11,10 +11,10 @@ parameters:
 - name: dotnetVersion
   type: string
   default: '5.0.x'
-# Should Dotnet SDK use Preview versions?
+# Include preview versions of Dotnet SDK
 - name: includePreviewVersions
   type: boolean
-  default: true
+  default: false
 # Version of NuGet Tool to use
 - name: nugetVersion
   type: string

@@ -11,9 +11,10 @@ parameters:
 - name: dotnetVersion
   type: string
   default: '5.0.x'
+# Include preview versions of Dotnet SDK
 - name: includePreviewVersions
   type: boolean
-  default: true
+  default: false
 # Version of NuGet Tool to use
 - name: nugetVersion
   type: string
@@ -38,6 +39,14 @@ parameters:
 - name: artifactName
   type: string
   default: 'Unsigned_Binaries'
+# Additional 'dotnet publish' arguments
+- name: publishArguments
+  type: string
+  default: ''
+# Additional 'dotnet build' arguments
+- name: buildArguments
+  type: string
+  default: ''
 
 jobs:
 - job: ${{ parameters.jobName }}

@@ -10,8 +10,6 @@ trigger:
   paths:
     include:
     - src
-    exclude:
-    - src/RecursiveExtractor
 pr:
   branches:
     include:
@@ -20,8 +18,6 @@ pr:
     include:
     - Pipelines
     - src
-    exclude:
-    - src/RecursiveExtractor
 
 stages:
 - stage: Test
@@ -34,19 +30,13 @@ stages:
 - stage: Build
   dependsOn: Test
   jobs:
-  - template: templates/dotnet-publish-linux-mac-job.yml
+  - template: templates/dotnet-build-publish-all-platforms-job.yml
     parameters:
       projectPath: 'src/OSSGadget.sln'
       projectName: 'OSSGadget'
+      buildArguments: '-p:SelfContained=false'
       preBuild:
       - template: templates/nbgv-set-version-steps.yml
-  - template: templates/dotnet-publish-win-netcore-job.yml
-    parameters:
-      projectPath: 'src/OSSGadget.sln'
-      projectName: 'OSSGadget'
-      preBuild:
-      - template: templates/nbgv-set-version-steps.yml
-      buildArguments: '-p:SelfContained=false -p:PublishSingleFile=false'
 
 - stage: SDL
   dependsOn: Build
@@ -78,27 +68,14 @@ stages:
           $version = (nbgv get-version -v AssemblyInformationalVersion).split('+')[0]
           Write-Host "##vso[task.setvariable variable=ReleaseVersion;]$version"
     - task: DownloadBuildArtifacts@0
-      displayName: Download Unsigned Win/Netcoreapp Archives
-      inputs:
-        buildType: 'current'
-        downloadType: 'specific'
-        itemPattern: 'Unsigned_Binaries/*.zip'
-        downloadPath: '$(Build.BinariesDirectory)'
-    - task: DownloadBuildArtifacts@0
-      displayName: Download Unsigned Nix Archives
+      displayName: Download Unsigned Binary Archives
       inputs:
         buildType: 'current'
         downloadType: 'specific'
         itemPattern: 'Unsigned_Binaries/*.tar.gz'
         downloadPath: '$(Build.BinariesDirectory)'
     - task: ExtractFiles@1
-      displayName: Extract Win/Netcoreapp Artifacts for Signing
-      inputs:
-        archiveFilePatterns: '$(Build.BinariesDirectory)\Unsigned_Binaries\*.zip'
-        destinationFolder: '$(Build.BinariesDirectory)'
-        cleanDestinationFolder: false
-    - task: ExtractFiles@1
-      displayName: Extract Nix Artifacts for Signing
+      displayName: Extract Binaries for Signing
       inputs:
         archiveFilePatterns: '$(Build.BinariesDirectory)\Unsigned_Binaries\*.tar.gz'
         destinationFolder: '$(Build.BinariesDirectory)'

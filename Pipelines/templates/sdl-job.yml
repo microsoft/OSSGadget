@@ -11,27 +11,14 @@ jobs:
     vmImage: 'windows-latest'
   steps:
   - task: DownloadBuildArtifacts@0
-    displayName: Download Unsigned Win/Netcoreapp Archives
-    inputs:
-      buildType: 'current'
-      downloadType: 'specific'
-      itemPattern: 'Unsigned_Binaries/*.zip'
-      downloadPath: '$(Build.BinariesDirectory)'
-  - task: DownloadBuildArtifacts@0
-    displayName: Download Unsigned Nix Archives
+    displayName: Download Unsigned Binary Archives
     inputs:
       buildType: 'current'
       downloadType: 'specific'
       itemPattern: 'Unsigned_Binaries/*.tar.gz'
       downloadPath: '$(Build.BinariesDirectory)'
   - task: ExtractFiles@1
-    displayName: Extract Win/Netcoreapp Artifacts
-    inputs:
-      archiveFilePatterns: '$(Build.BinariesDirectory)\Unsigned_Binaries\*.zip'
-      destinationFolder: '$(Build.BinariesDirectory)'
-      cleanDestinationFolder: false
-  - task: ExtractFiles@1
-    displayName: Extract Nix Artifacts
+    displayName: Extract Unsigned Binaries
     inputs:
       archiveFilePatterns: '$(Build.BinariesDirectory)\Unsigned_Binaries\*.tar.gz'
       destinationFolder: '$(Build.BinariesDirectory)'

@@ -10,8 +10,6 @@ trigger:
   paths:
     include:
     - src
-    exclude:
-    - src/RecursiveExtractor
 pr:
   branches:
     include:
@@ -20,8 +18,6 @@ pr:
     include:
     - Pipelines
     - src
-    exclude:
-    - src/RecursiveExtractor
 
 stages:
 - stage: Test
@@ -31,34 +27,27 @@ stages:
       projectPath: 'src/oss-tests/oss-tests.csproj'
       arguments: '--runtime win-x64'
 
-- stage: SDL
+- stage: Build
   dependsOn: Test
+  jobs:
+  - template: templates/dotnet-build-publish-all-platforms-job.yml
+    parameters:
+      projectPath: 'src/OSSGadget.sln'
+      projectName: 'OSSGadget'
+      buildArguments: '-p:SelfContained=false'
+      preBuild:
+      - template: templates/nbgv-set-version-steps.yml
+
+- stage: SDL
+  dependsOn: Build
   jobs:
   - template: templates/sdl-job.yml
     parameters:
       serviceTreeID: 'e6121b8f-ffd8-40b1-981d-a5ea5c121baa'
 
-- stage: Build
-  dependsOn: Test
-  jobs:
-  - template: templates/dotnet-publish-linux-mac-job.yml
-    parameters:
-      projectPath: 'src/OSSGadget.sln'
-      projectName: 'OSSGadget'
-      preBuild:
-      - template: templates/nbgv-set-version-steps.yml
-  - template: templates/dotnet-publish-win-netcore-job.yml
-    parameters:
-      projectPath: 'src/OSSGadget.sln'
-      projectName: 'OSSGadget'
-      preBuild:
-      - template: templates/nbgv-set-version-steps.yml
-      buildArguments: '-p:SelfContained=false -p:PublishSingleFile=false'
-
 - stage: Release
   dependsOn:
   - SDL
-  - Build
   condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI', 'BatchedCI'))
   jobs:
   - job: sign_hash_release
@@ -79,42 +68,18 @@ stages:
           $version = (nbgv get-version -v AssemblyInformationalVersion).split('+')[0]
           Write-Host "##vso[task.setvariable variable=ReleaseVersion;]$version"
     - task: DownloadBuildArtifacts@0
-      displayName: Download Unsigned Win/Netcoreapp Archives
-      inputs:
-        buildType: 'current'
-        downloadType: 'specific'
-        itemPattern: 'Unsigned_Binaries/*.zip'
-        downloadPath: '$(Build.BinariesDirectory)'
-    - task: DownloadBuildArtifacts@0
-      displayName: Download Unsigned Nix Archives
+      displayName: Download Unsigned Binary Archives
       inputs:
         buildType: 'current'
         downloadType: 'specific'
         itemPattern: 'Unsigned_Binaries/*.tar.gz'
         downloadPath: '$(Build.BinariesDirectory)'
     - task: ExtractFiles@1
-      displayName: Extract Win/Netcoreapp Artifacts for Signing
-      inputs:
-        archiveFilePatterns: '$(Build.BinariesDirectory)\Unsigned_Binaries\*.zip'
-        destinationFolder: '$(Build.BinariesDirectory)'
-        cleanDestinationFolder: false
-    - task: ExtractFiles@1
-      displayName: Extract Nix Artifacts for Signing
+      displayName: Extract Binaries for Signing
       inputs:
         archiveFilePatterns: '$(Build.BinariesDirectory)\Unsigned_Binaries\*.tar.gz'
         destinationFolder: '$(Build.BinariesDirectory)'
         cleanDestinationFolder: false
-    - task: AntiMalware@3
-      displayName: Anti-Malware Scan
-      inputs:
-        InputType: 'Basic'
-        ScanType: 'CustomScan'
-        FileDirPath: '$(Build.BinariesDirectory)'
-        EnableServices: true
-        SupportLogOnError: true
-        TreatSignatureUpdateFailureAs: 'Warning'
-        SignatureFreshness: 'UpToDate'
-        TreatStaleSignatureAs: 'Warning'
     - task: UseDotNet@2
       inputs:
         packageType: 'sdk'

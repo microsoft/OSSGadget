@@ -2,7 +2,7 @@ parameters:
 # Job Name
 - name: jobName
   type: string
-  default: 'publish_linux_mac'
+  default: 'publish_all_platforms'
 # Optional Pre-Build Steps
 - name: 'preBuild'
   type: stepList
@@ -11,9 +11,10 @@ parameters:
 - name: dotnetVersion
   type: string
   default: '5.0.x'
+# Include preview versions of Dotnet SDK
 - name: includePreviewVersions
   type: boolean
-  default: true
+  default: false
 # Version of NuGet Tool to use
 - name: nugetVersion
   type: string
@@ -38,10 +39,18 @@ parameters:
 - name: artifactName
   type: string
   default: 'Unsigned_Binaries'
+# Additional 'dotnet publish' arguments
+- name: publishArguments
+  type: string
+  default: ''
+# Additional 'dotnet build' arguments
+- name: buildArguments
+  type: string
+  default: ''
 
 jobs:
 - job: ${{ parameters.jobName }}
-  displayName: Dotnet Publish Linux/Mac
+  displayName: Build and Publish All Platforms
   pool:
     vmImage: 'ubuntu-latest'
   steps:
@@ -76,13 +85,27 @@ jobs:
       arguments: '${{ parameters.projectPath }} -c ${{ parameters.buildConfiguration }} -o bin/macos/${{ parameters.projectName }}_macos_$(ReleaseVersion) -r osx-x64'
       publishWebProjects: false
       zipAfterPublish: false
+  - task: DotNetCoreCLI@2
+    displayName: Publish Win x64
+    inputs:
+      command: 'publish'
+      arguments: '${{ parameters.projectPath }} -c ${{ parameters.buildConfiguration }} -o bin/win/${{ parameters.projectName }}_win_$(ReleaseVersion) -r win-x64 ${{ parameters.publishArguments }}'
+      publishWebProjects: false
+      zipAfterPublish: false
+  - task: DotNetCoreCLI@2
+    displayName: Build .NET Core App
+    inputs:
+      command: 'build'
+      arguments: '${{ parameters.projectPath }} -c ${{ parameters.buildConfiguration }} -o bin/netcoreapp/${{ parameters.projectName }}_netcoreapp_$(ReleaseVersion) ${{ parameters.buildArguments }}'
+      publishWebProjects: false
+      zipAfterPublish: false
   - task: ArchiveFiles@2
     displayName: Archive Builds
     inputs:
       rootFolderOrFile: 'bin'
       includeRootFolder: false
       archiveType: 'tar'
-      archiveFile: 'Archives/${{ parameters.projectName }}_Nix.tar.gz'
+      archiveFile: 'Archives/${{ parameters.projectName }}_Unsigned.tar.gz'
       replaceExistingArchive: true
   - task: PublishBuildArtifacts@1
     displayName: Pipeline Publish Archive

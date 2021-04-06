@@ -51,7 +51,7 @@ jobs:
     inputs:
       InputType: 'Basic'
       Function: 'analyze'
-      AnalyzeTarget: '$(Build.BinariesDirectory)\**\*.dll;$(Build.BinariesDirectory)\**\*.exe'
+      AnalyzeTarget: '$(Build.BinariesDirectory)\*.dll;$(Build.BinariesDirectory)\*.exe'
   - task: PoliCheck@1
     continueOnError: true
     inputs:

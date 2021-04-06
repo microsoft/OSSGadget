@@ -31,13 +31,6 @@ stages:
       projectPath: 'src/oss-tests/oss-tests.csproj'
       arguments: '--runtime win-x64'
 
-- stage: SDL
-  dependsOn: Test
-  jobs:
-  - template: templates/sdl-job.yml
-    parameters:
-      serviceTreeID: 'e6121b8f-ffd8-40b1-981d-a5ea5c121baa'
-
 - stage: Build
   dependsOn: Test
   jobs:
@@ -55,10 +48,16 @@ stages:
       - template: templates/nbgv-set-version-steps.yml
       buildArguments: '-p:SelfContained=false -p:PublishSingleFile=false'
 
+- stage: SDL
+  dependsOn: Build
+  jobs:
+  - template: templates/sdl-job.yml
+    parameters:
+      serviceTreeID: 'e6121b8f-ffd8-40b1-981d-a5ea5c121baa'
+
 - stage: Release
   dependsOn:
   - SDL
-  - Build
   condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI', 'BatchedCI'))
   jobs:
   - job: sign_hash_release
@@ -104,17 +103,6 @@ stages:
         archiveFilePatterns: '$(Build.BinariesDirectory)\Unsigned_Binaries\*.tar.gz'
         destinationFolder: '$(Build.BinariesDirectory)'
         cleanDestinationFolder: false
-    - task: AntiMalware@3
-      displayName: Anti-Malware Scan
-      inputs:
-        InputType: 'Basic'
-        ScanType: 'CustomScan'
-        FileDirPath: '$(Build.BinariesDirectory)'
-        EnableServices: true
-        SupportLogOnError: true
-        TreatSignatureUpdateFailureAs: 'Warning'
-        SignatureFreshness: 'UpToDate'
-        TreatStaleSignatureAs: 'Warning'
     - task: UseDotNet@2
       inputs:
         packageType: 'sdk'

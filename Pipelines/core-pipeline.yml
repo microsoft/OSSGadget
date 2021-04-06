@@ -111,7 +111,7 @@ stages:
       inputs:
         ConnectedServiceName: 'OSSGadget_CodeSign'
         FolderPath: '$(Build.BinariesDirectory)/linux/OSSGadget_linux_$(ReleaseVersion)'
-        Pattern: 'oss-characteristic.dll, oss-defog.dll, oss-detect-backdoor.dll, oss-download.dll, oss-find-source.dll, oss-health.dll, RecursiveExtractor.dll'
+        Pattern: 'oss-characteristic.dll, oss-defog.dll, oss-detect-backdoor.dll, oss-detect-cryptography.dll, oss-diff.dll, oss-download.dll, oss-find-domain-squats.dll, oss-find-source.dll, oss-find-squats.dll, oss-health.dll, oss-metadata.dll, oss-risk-calculator.dll, Shared.dll'
         signConfigType: 'inlineSignParams'
         inlineOperation: |
           [
@@ -144,7 +144,7 @@ stages:
       inputs:
         ConnectedServiceName: 'OSSGadget_CodeSign'
         FolderPath: '$(Build.BinariesDirectory)/macos/OSSGadget_macos_$(ReleaseVersion)'
-        Pattern: 'oss-characteristic.dll, oss-defog.dll, oss-detect-backdoor.dll, oss-download.dll, oss-find-source.dll, oss-health.dll, RecursiveExtractor.dll'
+        Pattern: 'oss-characteristic.dll, oss-defog.dll, oss-detect-backdoor.dll, oss-detect-cryptography.dll, oss-diff.dll, oss-download.dll, oss-find-domain-squats.dll, oss-find-source.dll, oss-find-squats.dll, oss-health.dll, oss-metadata.dll, oss-risk-calculator.dll, Shared.dll'
         signConfigType: 'inlineSignParams'
         inlineOperation: |
           [
@@ -177,7 +177,7 @@ stages:
       inputs:
         ConnectedServiceName: 'OSSGadget_CodeSign'
         FolderPath: '$(Build.BinariesDirectory)/win/OSSGadget_win_$(ReleaseVersion)'
-        Pattern: 'oss-characteristic.exe, oss-characteristic.dll, oss-defog.exe, oss-defog.dll, oss-detect-backdoor.exe, oss-detect-backdoor.dll, oss-download.exe, oss-download.dll, oss-find-source.exe, oss-find-source.dll, oss-health.exe, oss-health.dll, RecursiveExtractor.dll'
+        Pattern: 'oss-characteristic.dll, oss-defog.dll, oss-detect-backdoor.dll, oss-detect-cryptography.dll, oss-diff.dll, oss-download.dll, oss-find-domain-squats.dll, oss-find-source.dll, oss-find-squats.dll, oss-health.dll, oss-metadata.dll, oss-risk-calculator.dll, Shared.dll'
         signConfigType: 'inlineSignParams'
         inlineOperation: |
           [
@@ -210,7 +210,7 @@ stages:
       inputs:
         ConnectedServiceName: 'OSSGadget_CodeSign'
         FolderPath: '$(Build.BinariesDirectory)/netcoreapp/OSSGadget_netcoreapp_$(ReleaseVersion)'
-        Pattern: 'oss-characteristic.exe, oss-characteristic.dll, oss-defog.exe, oss-defog.dll, oss-detect-backdoor.exe, oss-detect-backdoor.dll, oss-download.exe, oss-download.dll, oss-find-source.exe, oss-find-source.dll, oss-health.exe, oss-health.dll, RecursiveExtractor.dll'
+        Pattern: 'oss-characteristic.dll, oss-defog.dll, oss-detect-backdoor.dll, oss-detect-cryptography.dll, oss-diff.dll, oss-download.dll, oss-find-domain-squats.dll, oss-find-source.dll, oss-find-squats.dll, oss-health.dll, oss-metadata.dll, oss-risk-calculator.dll, Shared.dll'
         signConfigType: 'inlineSignParams'
         inlineOperation: |
           [

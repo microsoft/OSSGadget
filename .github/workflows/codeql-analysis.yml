@@ -37,7 +37,7 @@ jobs:
     - name: Build OSS Gadget
       run: |
          dotnet restore OSSGadget.sln
-         dotnet build -c Release
+         dotnet build -c Release -p:SelfContained=false
       working-directory: ./src
 
     - name: Perform CodeQL Analysis

@@ -77,7 +77,7 @@ stages:
     - task: ExtractFiles@1
       displayName: Extract Binaries for Signing
       inputs:
-        archiveFilePatterns: '$(Build.BinariesDirectory)\Unsigned_Binaries\*.tar.gz'
+        archiveFilePatterns: '$(Build.BinariesDirectory)/Unsigned_Binaries/*.tar.gz'
         destinationFolder: '$(Build.BinariesDirectory)'
         cleanDestinationFolder: false
     - task: UseDotNet@2
@@ -257,8 +257,8 @@ stages:
         script: |
           Get-ChildItem $(Build.StagingDirectory) | Foreach-Object {
             $name = $_.Name
-            $tmp = (Get-FileHash "$(Build.StagingDirectory)\$name").Hash
-            Add-Content $(Build.StagingDirectory)\HASHES.txt "$tmp`t$name"
+            $tmp = (Get-FileHash "$(Build.StagingDirectory)/$name").Hash
+            Add-Content $(Build.StagingDirectory)/HASHES.txt "$tmp`t$name"
           }
     - task: PublishPipelineArtifact@1
       displayName: Publish Signed Artifacts to Pipeline

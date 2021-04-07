@@ -78,7 +78,7 @@ jobs:
       rootFolderOrFile: 'Packages'
       includeRootFolder: false
       archiveType: 'zip'
-      archiveFile: 'Archives\${{ parameters.projectName }}_NuGet.zip'
+      archiveFile: 'Archives/${{ parameters.projectName }}_NuGet.zip'
       replaceExistingArchive: true
   - task: PublishBuildArtifacts@1
     displayName: Pipeline Publish Archive

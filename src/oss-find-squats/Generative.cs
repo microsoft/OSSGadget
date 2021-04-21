@@ -221,7 +221,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
 
             for (int i = 1; i < arg.Length - 1; i++)
             {
-                yield return (string.Concat(arg.Substring(0, i - 1), arg[i + 1], arg[i], arg.Substring(i + 2, arg.Length - (i + 2))), "letter swapped");
+                yield return (string.Concat(arg.Substring(0, i), arg[i + 1], arg[i], arg.Substring(i + 2, arg.Length - (i + 2))), "letter swapped");
             }
         }
 

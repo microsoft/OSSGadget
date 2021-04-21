@@ -14,7 +14,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
         private string[] _ah = new string[255];
         private int[] _locations = new int[255];
         private string[] _keymap = new string[4];
-        private HashSet<char> seprators = new HashSet<char> { '.', '-', '_' };
+        private HashSet<char> seperators = new HashSet<char> { '.', '-', '_' };
 
         public IList<Func<string, IEnumerable<(string, string)>>> Mutations { get; } = new List<Func<string, IEnumerable<(string, string)>>>();
 
@@ -195,11 +195,11 @@ namespace Microsoft.CST.OpenSource.FindSquats
 
         private IEnumerable<(string, string)> _separators(string arg)
         {
-            foreach (var s in seprators)
+            foreach (var s in seperators)
             {
                 if (arg.Contains(s))
                 {
-                    var rest = seprators.Except(new char[] { s });
+                    var rest = seperators.Except(new char[] { s });
                     foreach (var r in rest)
                     {
                         yield return (arg.Replace(s, r), "separator chanaged");
@@ -326,7 +326,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
 
         private IEnumerable<(string, string)> _afterSeparator(string arg)
         {
-            foreach (var s in seprators)
+            foreach (var s in seperators)
             {
                 var splits = arg.Split(s, StringSplitOptions.RemoveEmptyEntries);
 
@@ -334,7 +334,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
                 {
                     for (var c = 'a'; c <= 'z'; c++)
                     {
-                        yield return (splits[0] + s + c + splits[1].Substring(1), "letter change after seprator");
+                        yield return (splits[0] + s + c + splits[1].Substring(1), "letter change after seperator");
                     }
                 }
             }

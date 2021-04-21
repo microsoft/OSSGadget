@@ -77,7 +77,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
             Mutations.Add(_duplicateEach);
             Mutations.Add(_afterSeparator);
             Mutations.Add(_substituteKnown);
-            Mutations.Add(_unicodeHomoglphs);
+            Mutations.Add(_unicodeHomoglyphs);
             Mutations.Add(_bitFlips);
             Mutations.Add(_removeSome);
             Mutations.Add(_vowelSwap);
@@ -163,7 +163,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
             return result;
         }
 
-        private IEnumerable<(string, string)> _unicodeHomoglphs(string arg)
+        private IEnumerable<(string, string)> _unicodeHomoglyphs(string arg)
         {
             // assumption is that attacker is making just one change
             for (int i = 0; i < arg.Length; i++)
@@ -202,7 +202,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
                     var rest = seperators.Except(new char[] { s });
                     foreach (var r in rest)
                     {
-                        yield return (arg.Replace(s, r), "separator chanaged");
+                        yield return (arg.Replace(s, r), "separator changed");
                     }
 
                     // lastly remove separator

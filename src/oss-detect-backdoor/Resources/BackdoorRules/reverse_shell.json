@@ -9,12 +9,31 @@
     "severity": "moderate",
     "patterns": [
       {
-        "pattern": "(shell\\.now\\.sh|tcp\\.ngrok\\.io|reverse shell)",
+        "pattern": "(shell\\.now\\.sh|tcp\\.ngrok\\.io|reverse shell|reverse-shell\\.sh)",
         "type": "regex-word",
         "scopes": [ "code", "comment" ],
         "modifiers": [ "i" ],
         "confidence": "high"
       }
     ]
-  }
+  },
+  {
+    "name": "Backdoor: Reverse Shell",
+    "id": "BD000301",
+    "description": "Backdoor: Reverse Shell",
+    "tags": [
+      "Security.Backdoor.ReverseShell"
+    ],
+    "severity": "moderate",
+    "applies_to": ["package.json"],
+    "patterns": [
+      {
+        "pattern": "ncat.*-e /bin/(ba)?sh",
+        "type": "regex",
+        "scopes": [ "code", "comment" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      }
+    ]
+  }  
 ]

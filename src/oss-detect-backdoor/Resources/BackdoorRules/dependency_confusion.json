@@ -1,0 +1,55 @@
+[
+  {
+    "name": "Dependency Confusion: Attack Pattern (Dependency)",
+    "id": "BD001001",
+    "description": "Dependency Confusion: Attack Pattern (Dependency)",
+    "tags": [
+      "Security.DependencyConfusion.AttackPattern.Dependency"
+    ],
+    "severity": "critical",
+    "applies_to": ["package.json"],
+    "patterns": [
+      {
+        "pattern": "daemonsec637",
+        "type": "string",
+        "scopes": [ "code", "comment" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      },
+      {
+        "pattern": "infosecgirl",
+        "type": "string",
+        "scopes": [ "code", "comment" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      },
+      {
+        "pattern": "bountyrecon/most-secure-package",
+        "type": "string",
+        "scopes": [ "code", "comment" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      }   
+    ]
+  },
+  {
+    "name": "Dependency Confusion: Attack Pattern (Suspicious Hostname)",
+    "id": "BD001001",
+    "description": "Dependency Confusion: Attack Pattern (Suspicious Hostname)",
+    "tags": [
+      "Security.DependencyConfusion.AttackPattern.SuspiciousHostname"
+    ],
+    "applies_to": ["javascript", "package.json"],
+    "severity": "critical",
+    "applies_to": ["package.json"],
+    "patterns": [
+      {
+        "pattern": ".{1,45}\\.(pipedream\\.net|ceye\\.io|burpcollaborator\\.net|requestbin\\.net",
+        "type": "regex",
+        "scopes": [ "code", "comment" ],
+        "modifiers": [ "i" ],
+        "confidence": "low"
+      }
+    ]
+  }  
+]

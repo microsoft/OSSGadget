@@ -55,7 +55,7 @@
     "patterns": [
       {
         "pattern": "requests.get",
-        "type": "regex",
+        "type": "string",
         "scopes": [ "code" ],
         "modifiers": [ "i" ],
         "confidence": "high"
@@ -78,6 +78,24 @@
         "scopes": [ "code" ],
         "modifiers": [ "i" ],
         "confidence": "high"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Curl Bashing",
+    "id": "BD000104",
+    "description": "Backdoor: Curl Bashing",
+    "tags": [
+      "Security.Backdoor.CurlBashing"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": "(curl|wget).{1,50}\\|\\s*(sh|bash)",
+        "type": "regex",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "medium"
       }
     ]
   }

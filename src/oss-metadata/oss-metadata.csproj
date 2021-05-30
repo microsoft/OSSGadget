@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>Microsoft.CST.OpenSource</RootNamespace>
-    <Nullable>warnings</Nullable>
+    <Nullable>enable</Nullable>
     <Authors>Suraj Jacob</Authors>
     <Company>Microsoft Corporation</Company>
     <Description>OSS Gadget - Package Metadata Collector</Description>
@@ -12,7 +12,7 @@
     <RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>
     <RepositoryType>Github</RepositoryType>
     <RuntimeIdentifiers>win-x64;osx-x64;linux-x64</RuntimeIdentifiers>
-    <SelfContained>true</SelfContained>
+    <SelfContained>false</SelfContained>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

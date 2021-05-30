@@ -1,0 +1,24 @@
+[
+  {
+    "name": "OpenSSL",
+    "id": "DS802600",
+    "description": "A reference to OpenSSL",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.OpenSSL"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "openssl",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "OpenSSL is a common cryptographic library."
+      }
+    ]
+
+  }
+]

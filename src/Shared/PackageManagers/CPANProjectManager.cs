@@ -40,7 +40,6 @@ namespace Microsoft.CST.OpenSource.Shared
                 Logger.Debug("Unable to download [{0} {1}]. Both must be defined.", packageName, packageVersion);
                 return downloadedPaths;
             }
-
             // Locate the URL
             string? packageVersionUrl = null;
             var html = await GetHttpStringCache($"{ENV_CPAN_ENDPOINT}/release/{packageName}");
@@ -62,7 +61,9 @@ namespace Microsoft.CST.OpenSource.Shared
 
                 if (version == packageVersion)
                 {
-                    packageVersionUrl = $"{ENV_CPAN_ENDPOINT}{value}";
+                    // Now load the actual page so we can get the download URL
+                    packageVersionUrl = $"{ENV_CPAN_ENDPOINT}/release/{value}";
+                    break;
                 }
             }
 

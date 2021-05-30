@@ -206,10 +206,7 @@ namespace Microsoft.CST.OpenSource
                         var versions = await packageManager.EnumerateVersions(purl);
                         if (versions.Any())
                         {
-                            var versionList = versions.Select(s => VersionComparer.Parse(s)).ToList();
-                            versionList.Sort(new VersionComparer());
-                            var latestVersion = string.Join("", versionList.First());
-                            vPurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, latestVersion, purl.Qualifiers, purl.Subpath);
+                            vPurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, versions.First(), purl.Qualifiers, purl.Subpath);
                             packageVersions.Add(vPurl);
                         }
                         else

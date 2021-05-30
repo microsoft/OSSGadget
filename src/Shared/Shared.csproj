@@ -13,7 +13,7 @@
     <LangVersion>9.0</LangVersion>
     <Nullable>enable</Nullable>
     <RuntimeIdentifiers>win-x64;osx-x64;linux-x64</RuntimeIdentifiers>
-    <SelfContained>true</SelfContained>
+    <SelfContained>false</SelfContained>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -36,7 +36,7 @@
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="5.0.0" />
     <PackageReference Include="NLog" Version="4.7.8" />
     <PackageReference Include="NLog.Schema" Version="4.7.8" />
-    <PackageReference Include="NuGet.Versioning" Version="5.9.0" />
+    <PackageReference Include="NuGet.Versioning" Version="5.9.1" />
     <PackageReference Include="Octokit" Version="0.50.0" />
     <PackageReference Include="Sarif.Sdk" Version="2.4.5" />
     <PackageReference Include="SemanticVersioning" Version="1.3.0" />

@@ -272,6 +272,29 @@ namespace Microsoft.CST.OpenSource.Shared
             return metadata;
         }
 
+
+        public override List<Version> GetVersions(JsonDocument? contentJSON)
+        {
+            List<Version> allVersions = new List<Version>();
+            if (contentJSON is null) { return allVersions; }
+
+            Console.WriteLine(JsonSerializer.Serialize(contentJSON));
+            JsonElement root = contentJSON.RootElement;
+            try
+            {
+                JsonElement versions = root.GetProperty("versions");
+                foreach (var version in versions.EnumerateObject())
+                {
+                    allVersions.Add(new Version(version.Name));
+                }
+            }
+            catch (KeyNotFoundException) { return allVersions; }
+            catch (InvalidOperationException) { return allVersions; }
+
+            return allVersions;
+        }
+
+
         public override JsonElement? GetVersionElement(JsonDocument contentJSON, Version version)
         {
             try

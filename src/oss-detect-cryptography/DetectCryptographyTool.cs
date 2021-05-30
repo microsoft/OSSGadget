@@ -16,6 +16,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using WebAssembly; // Acquire from https://www.nuget.org/packages/WebAssembly
 using WebAssembly.Instructions;
+using Microsoft.ApplicationInspector.Commands;
 
 namespace Microsoft.CST.OpenSource
 {
@@ -156,6 +157,14 @@ namespace Microsoft.CST.OpenSource
                             else
                             {
                                 sb.AppendLine($"[ ] {target} - This software package does NOT contains words that suggest cryptography.");
+                            }
+
+                            foreach (var t in otherTags)
+                            {
+                                if (t.Contains("cryptography", StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    sb.AppendLine($"[X] {target} - This software references [{t}].");
+                                }
                             }
 
                             if ((bool?)detectCryptographyTool.Options["verbose"] == true)
@@ -394,6 +403,26 @@ namespace Microsoft.CST.OpenSource
             if (Options["disable-default-rules"] is bool disableDefaultRules && !disableDefaultRules)
             {
                 var assembly = Assembly.GetExecutingAssembly();
+                foreach (var resourceName in assembly.GetManifestResourceNames())
+                {
+                    Console.WriteLine(resourceName);
+                    if (resourceName.EndsWith(".json"))
+                    {
+                        try
+                        {
+                            var stream = assembly.GetManifestResourceStream(resourceName);
+                            using var resourceStream = new StreamReader(stream ?? new MemoryStream());
+                            rules.AddString(resourceStream.ReadToEnd(), resourceName);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Warn(ex, "Error loading {0}: {1}", resourceName, ex.Message);
+                        }
+                    }
+                }
+
+                // Add Appliation Inspector cryptography rules
+                assembly = typeof(ApplicationInspector.Commands.AnalyzeCommand).Assembly;
                 foreach (var resourceName in assembly.GetManifestResourceNames())
                 {
                     if (resourceName.EndsWith(".json"))

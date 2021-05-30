@@ -209,74 +209,17 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
             return doc;
         }
 
-        /// <summary>
-        ///     Sort a collection of version strings, trying multiple ways.
-        /// </summary>
-        /// <param name="versionList"> list of version strings </param>
-        /// <returns> list of version strings, in sorted order </returns>
         public static IEnumerable<string> SortVersions(IEnumerable<string> versionList)
         {
-            // Scrub the version list
-            versionList = versionList.Select((v) =>
+            if (versionList == null || !versionList.Any())
             {
-                if (v.StartsWith("v", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    return v.Substring(1).Trim();
-                }
-                else
-                {
-                    return v.Trim();
-                }
-            });
-
-            // Attempt to sort using different methods
-            List<Func<string, object>> methods = new List<Func<string, object>>
-            {
-                (s) => new Version(s),
-                (s) => new SemVer.Version(s, loose: true),
-                (s) => s
-            };
-
-            // Iterate through each method we defined above.
-            foreach (var method in methods)
-            {
-                var objList = new List<object>();
-                try
-                {
-                    foreach (var version in versionList)
-                    {
-                        var verResult = method(version);
-                        // Make sure the method doesn't mangle the version This is due to System.Version
-                        // normalizalizing "0.01" to "0.1".
-                        if (verResult != null && (verResult.ToString() ?? string.Empty).Equals(version))
-                        {
-                            objList.Add(verResult);
-                        }
-                        else
-                        {
-                            Logger.Debug("Mangled version [{0}] => [{1}]", version, verResult);
-                        }
-                    }
-                    objList.Sort();  // Sort using the built-in sort, delegating to the type's comparator
-                }
-                catch (Exception)
-                {
-                    objList = null;
-                }
-
-                // If we have a successful result (right size), then we should be good.
-                if (objList != null && objList.Count() == versionList.Count())
-                {
-                    return objList.Select(o => o.ToString() ?? string.Empty);
-                }
+                return Array.Empty<string>();
             }
 
-            // Fallback, leaving it alone
-            if (Logger.IsDebugEnabled)  // expensive string join, avoid unless necessary
-            {
-                Logger.Debug("List is not sortable, returning as-is: {0}", string.Join(", ", versionList));
-            }
-            return versionList;
+            // Split Versions
+            var versionPartsList = versionList.Select(s => VersionComparer.Parse(s)).ToList();
+            versionPartsList.Sort(new VersionComparer());
+            return versionPartsList.Select(s => string.Join("", s));
         }
 
         /// <summary>

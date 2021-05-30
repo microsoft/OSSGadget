@@ -93,12 +93,10 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 var url = $"{ENV_GITHUB_ENDPOINT}/{packageNamespace}/{packageName}";
-                var invalidChars = Path.GetInvalidFileNameChars();
-                
-                // TODO: Externalize this normalization
-                var fsNamespace = new string((packageNamespace.Select(ch => invalidChars.Contains(ch) ? '_' : ch) ?? Array.Empty<char>()).ToArray());
-                var fsName = new string((packageName.Select(ch => invalidChars.Contains(ch) ? '_' : ch) ?? Array.Empty<char>()).ToArray());
-                var fsVersion = new string((packageVersion.Select(ch => invalidChars.Contains(ch) ? '_' : ch) ?? Array.Empty<char>()).ToArray());
+                var fsNamespace = Utilities.NormalizeStringForFileSystem(packageNamespace);
+                var fsName = Utilities.NormalizeStringForFileSystem(packageName);
+                var fsVersion = Utilities.NormalizeStringForFileSystem(packageVersion);
+
                 var workingDirectory = string.IsNullOrWhiteSpace(packageVersion) ?
                                         Path.Join(TopLevelExtractionDirectory, $"github-{fsNamespace}-{fsName}") :
                                         Path.Join(TopLevelExtractionDirectory, $"github-{fsNamespace}-{fsName}-{fsVersion}");

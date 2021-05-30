@@ -26,20 +26,21 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
-            var packageName = $"{purl?.Namespace}/{purl?.Name}";
+            var packageNamespace = purl?.Namespace;
+            var packageName = purl?.Name;
             var packageVersion = purl?.Version;
             var downloadedPaths = new List<string>();
 
-            if (string.IsNullOrWhiteSpace(purl?.Namespace) || string.IsNullOrWhiteSpace(purl?.Name) ||
+            if (string.IsNullOrWhiteSpace(packageNamespace) || string.IsNullOrWhiteSpace(packageName) ||
                 string.IsNullOrWhiteSpace(packageVersion))
             {
-                Logger.Debug("Unable to download [{0} {1}]. Both must be defined.", packageName, packageVersion);
+                Logger.Debug("Unable to download [{0} {1} {2}]. All three must be defined.", packageNamespace, packageName, packageVersion);
                 return downloadedPaths;
             }
 
             try
             {
-                var doc = await GetJsonCache($"{ENV_COMPOSER_ENDPOINT}/p/{packageName}.json");
+                var doc = await GetJsonCache($"{ENV_COMPOSER_ENDPOINT}/p/{packageNamespace}/{packageName}.json");
                 foreach (var topObject in doc.RootElement.GetProperty("packages").EnumerateObject())
                 {
                     foreach (var versionObject in topObject.Value.EnumerateObject())
@@ -53,7 +54,11 @@ namespace Microsoft.CST.OpenSource.Shared
                         result.EnsureSuccessStatusCode();
                         Logger.Debug("Downloading {0}...", purl);
 
-                        var targetName = $"composer-{packageName}@{packageVersion}";
+                        var fsNamespace = Utilities.NormalizeStringForFileSystem(packageNamespace);
+                        var fsName = Utilities.NormalizeStringForFileSystem(packageName);
+                        var fsVersion = Utilities.NormalizeStringForFileSystem(packageVersion);
+
+                        var targetName = $"composer-{fsNamespace}-{fsName}@{fsVersion}";
                         string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                         if (doExtract && Directory.Exists(extractionPath) && cached == true)
                         {
@@ -66,7 +71,7 @@ namespace Microsoft.CST.OpenSource.Shared
                         }
                         else
                         {
-                            targetName += Path.GetExtension(url) ?? "";
+                            targetName += ".zip";
                             await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
                             downloadedPaths.Add(targetName);
                         }
@@ -113,7 +118,8 @@ namespace Microsoft.CST.OpenSource.Shared
                         versionList.Add(versionObject.Name);
                     }
                 }
-                return SortVersions(versionList.Distinct());
+                return versionList.Distinct();
+                //return SortVersions(versionList.Distinct());
             }
             catch (Exception ex)
             {

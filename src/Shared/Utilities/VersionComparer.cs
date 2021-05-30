@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
-    internal class VersionComparer : IComparer<List<string>>
+    public class VersionComparer : IComparer<List<string>>
     {
 
         /// <summary>
@@ -17,18 +17,6 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <param name="version"></param>
         public static List<string> Parse(string version)
         {
-            /*
-             * version = version.ToLowerInvariant();
-            if (version.StartsWith("v."))
-            {
-                version = version[2..];
-            }
-            if (Regex.IsMatch(version, "^v\\d"))
-            {
-                version = version[1..];
-            }
-            */
-
             var parts = new List<string>();
             var inNumber = false;
             var curStr = "";

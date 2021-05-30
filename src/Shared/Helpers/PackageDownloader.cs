@@ -56,7 +56,7 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         ///     Clears the cache directory
         /// </summary>
-        public async void ClearPackageLocalCopy()
+        public void ClearPackageLocalCopy()
         {
             try
             {
@@ -80,7 +80,7 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         ///     Clears the cache directory, if the cache argument was false, keep it for future processing otherwise
         /// </summary>
-        public async void ClearPackageLocalCopyIfNoCaching()
+        public void ClearPackageLocalCopyIfNoCaching()
         {
             try
             {
@@ -204,15 +204,22 @@ namespace Microsoft.CST.OpenSource
                     try
                     {
                         var versions = await packageManager.EnumerateVersions(purl);
-                        if (versions.Count() > 0)
+                        if (versions.Any())
                         {
-                            vPurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, versions.Last(), purl.Qualifiers, purl.Subpath);
+                            var versionList = versions.Select(s => VersionComparer.Parse(s)).ToList();
+                            versionList.Sort(new VersionComparer());
+                            var latestVersion = string.Join("", versionList.First());
+                            vPurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, latestVersion, purl.Qualifiers, purl.Subpath);
                             packageVersions.Add(vPurl);
+                        }
+                        else
+                        {
+                            throw new InvalidDataException("No versions were returned from EnumerateVersions.");
                         }
                     }
                     catch (Exception e)
                     {
-                        Logger.Debug($"Unable to enumerate versions, so cannot identify the latest. {e.Message}:{e.StackTrace}");
+                        Logger.Debug(e, "Unable to enumerate versions, so cannot identify the latest. {0}", e.Message);
                         // package list will remain empty
                     }
                 }
@@ -225,6 +232,10 @@ namespace Microsoft.CST.OpenSource
                         {
                             vPurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, version, purl.Qualifiers, purl.Subpath);
                             packageVersions.Add(vPurl);
+                        }
+                        if (!packageVersions.Any())
+                        {
+                            throw new InvalidDataException("No versions were returned from EnumerateVersions.");
                         }
                     }
                     catch (Exception e)

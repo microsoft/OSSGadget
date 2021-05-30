@@ -387,7 +387,8 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         /// <returns> a string containing metadata. </returns>
         public virtual Task<string?> GetMetadata(PackageURL purl)
         {
-            throw new NotImplementedException("BaseProjectManager does not implement GetMetadata.");
+            var typeName = GetType().Name;
+            throw new NotImplementedException($"{typeName} does not implement GetMetadata.");
         }
 
         /// <summary>
@@ -397,7 +398,8 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         /// <returns> </returns>
         public virtual Uri? GetPackageAbsoluteUri(PackageURL purl)
         {
-            throw new NotImplementedException("BaseProjectManager does not implement GetPackageAbsoluteUri.");
+            var typeName = GetType().Name;
+            throw new NotImplementedException($"{typeName} does not implement GetPackageAbsoluteUri.");
         }
 
         /// <summary>
@@ -407,7 +409,8 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         /// <returns> </returns>
         public virtual Task<PackageMetadata> GetPackageMetadata(PackageURL purl)
         {
-            throw new NotImplementedException("BaseProjectManager does not implement GetPackageMetadata.");
+            var typeName = GetType().Name;
+            throw new NotImplementedException($"{typeName} does not implement GetPackageMetadata.");
         }
 
         /// <summary>
@@ -418,7 +421,8 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         /// <returns> </returns>
         public virtual JsonElement? GetVersionElement(JsonDocument contentJSON, Version version)
         {
-            throw new NotImplementedException("BaseProjectManager does not implement GetVersions.");
+            var typeName = GetType().Name;
+            throw new NotImplementedException($"{typeName} does not implement GetVersions.");
         }
 
         /// <summary>
@@ -429,7 +433,8 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         /// <returns> </returns>
         public virtual List<Version> GetVersions(JsonDocument? metadata)
         {
-            throw new NotImplementedException("BaseProjectManager does not implement GetVersions.");
+            var typeName = GetType().Name;
+            throw new NotImplementedException($"{typeName} does not implement GetVersions.");
         }
 
         /// <summary>

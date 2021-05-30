@@ -79,11 +79,6 @@ namespace Microsoft.CST.OpenSource.Shared
 
             Logger.Trace("DownloadVersion {0}", purl.ToString());
 
-            if (doExtract == false)
-            {
-                throw new NotImplementedException("GitHub does not support binary downloads yet.");
-            }
-
             var packageNamespace = purl?.Namespace;
             var packageName = purl?.Name;
             var packageVersion = purl?.Version;
@@ -99,7 +94,7 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 var url = $"{ENV_GITHUB_ENDPOINT}/{packageNamespace}/{packageName}";
                 var invalidChars = Path.GetInvalidFileNameChars();
-
+                
                 // TODO: Externalize this normalization
                 var fsNamespace = new string((packageNamespace.Select(ch => invalidChars.Contains(ch) ? '_' : ch) ?? Array.Empty<char>()).ToArray());
                 var fsName = new string((packageName.Select(ch => invalidChars.Contains(ch) ? '_' : ch) ?? Array.Empty<char>()).ToArray());
@@ -114,16 +109,32 @@ namespace Microsoft.CST.OpenSource.Shared
                     return downloadedPaths;
                 }
 
-                Repository.Clone(url, workingDirectory);
-
-                var repo = new Repository(workingDirectory);
-                Commands.Checkout(repo, packageVersion);
-                downloadedPaths.Add(workingDirectory);
-                repo.Dispose();
-            }
-            catch (LibGit2Sharp.NotFoundException ex)
-            {
-                Logger.Debug(ex, "The version {0} is not a valid git reference: {1}", packageVersion, ex.Message);
+                // First, try a tag (most likely what we're looking for)
+                var archiveUrls = new string[]
+                {
+                    $"{url}/archive/refs/tags/{packageVersion}.zip",
+                    $"{url}/archive/{packageVersion}.zip",
+                    $"{url}/archive/refs/heads/{packageVersion}.zip",
+                };
+                foreach (var archiveUrl in archiveUrls)
+                {
+                    var result = await WebClient.GetAsync(archiveUrl);
+                    if (result.IsSuccessStatusCode)
+                    {
+                        if (doExtract)
+                        {
+                            downloadedPaths.Add(await ExtractArchive(extractionPath, await result.Content.ReadAsByteArrayAsync(), cached));
+                        }
+                        else
+                        {
+                            Directory.CreateDirectory(extractionPath);
+                            var targetName = Path.Join(extractionPath, $"{fsVersion}.zip");
+                            await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
+                            downloadedPaths.Add(targetName);
+                        }
+                        break;
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -146,7 +157,11 @@ namespace Microsoft.CST.OpenSource.Shared
                         if (reference.IsTag)
                         {
                             var tagName = reference.ToString().Replace("refs/tags/", "");
-                            versionList.Add(tagName);
+                            // TODO: Investigate why we sometimes get doubles, eg. madler/zlib.
+                            if (!tagName.EndsWith("^{}"))
+                            {
+                                versionList.Add(tagName);
+                            }
                         }
                     }
                 });
@@ -162,7 +177,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
         public override async Task<string?> GetMetadata(PackageURL purl)
         {
-            await Task.Run(() => { });  // Avoid async warning -- @HACK
+            await Task.CompletedTask;
             return $"https://github.com/{purl.Namespace}/{purl.Name}";
         }
 

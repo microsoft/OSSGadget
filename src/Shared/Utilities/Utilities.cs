@@ -12,7 +12,7 @@ namespace Microsoft.CST.OpenSource.Shared
     {
         public static JsonElement? GetJSONPropertyIfExists(JsonElement? element, string keyName)
         {
-            if (element is JsonElement elem && string.IsNullOrWhiteSpace(keyName))
+            if (element is JsonElement elem && !string.IsNullOrWhiteSpace(keyName))
             {
                 try
                 {

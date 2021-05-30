@@ -41,7 +41,6 @@
     ],
     "applies_to": ["javascript", "package.json"],
     "severity": "critical",
-    "applies_to": ["package.json"],
     "patterns": [
       {
         "pattern": ".{1,45}\\.(pipedream\\.net|ceye\\.io|burpcollaborator\\.net|requestbin\\.net",

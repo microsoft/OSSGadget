@@ -271,9 +271,8 @@ namespace Microsoft.CST.OpenSource
 
         private static void Main(string[] args)
         {
+            Logger.Info($"OSS Gadget - {TOOL_NAME} v{VERSION} - github.com/Microsoft/OSSGadget");
             CommonInitialization.Initialize();
-
-            Logger.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
 
             var defoggerTool = new DefoggerTool();
             defoggerTool.ParseOptions(args);

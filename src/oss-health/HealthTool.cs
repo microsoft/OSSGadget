@@ -13,6 +13,16 @@ namespace Microsoft.CST.OpenSource
 {
     public class HealthTool : OSSGadget
     {
+        /// <summary>
+        ///     Name of this tool.
+        /// </summary>
+        private const string TOOL_NAME = "oss-health";
+
+        /// <summary>
+        ///     Holds the version string, from the assembly.
+        /// </summary>
+        private static readonly string VERSION = typeof(HealthTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
+
         public HealthTool() : base()
         {
         }
@@ -81,6 +91,8 @@ namespace Microsoft.CST.OpenSource
 
         private static async Task Main(string[] args)
         {
+            Logger.Info($"OSS Gadget - {TOOL_NAME} v{VERSION} - github.com/Microsoft/OSSGadget");
+
             var healthTool = new HealthTool();
             await healthTool.ParseOptions<Options>(args).WithParsedAsync(healthTool.RunAsync);
         }

@@ -14,6 +14,16 @@ namespace Microsoft.CST.OpenSource
 {
     public class FindSourceTool : OSSGadget
     {
+        /// <summary>
+        ///     Name of this tool.
+        /// </summary>
+        private const string TOOL_NAME = "oss-find-source";
+
+        /// <summary>
+        ///     Holds the version string, from the assembly.
+        /// </summary>
+        private static readonly string VERSION = typeof(FindSourceTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
+
         public FindSourceTool() : base()
         {
         }
@@ -125,7 +135,6 @@ namespace Microsoft.CST.OpenSource
         /// <returns> </returns>
         private static List<string> GetTextResults(List<KeyValuePair<PackageURL, double>> results)
         {
-            //StringBuilder stringOutput = new StringBuilder();
             List<string> stringOutput = new List<string>();
             foreach (var result in results)
             {
@@ -138,6 +147,8 @@ namespace Microsoft.CST.OpenSource
 
         private static async Task Main(string[] args)
         {
+            Logger.Info($"OSS Gadget - {TOOL_NAME} v{VERSION} - github.com/Microsoft/OSSGadget");
+
             var findSourceTool = new FindSourceTool();
             await findSourceTool.ParseOptions<Options>(args).WithParsedAsync(findSourceTool.RunAsync);
         }

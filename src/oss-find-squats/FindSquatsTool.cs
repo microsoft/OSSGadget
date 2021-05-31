@@ -71,6 +71,8 @@ namespace Microsoft.CST.OpenSource.FindSquats
         HttpClient client;
         static async Task Main(string[] args)
         {
+            Logger.Info($"OSS Gadget - {TOOL_NAME} v{VERSION} - github.com/Microsoft/OSSGadget");
+
             var findSquatsTool = new FindSquatsTool();
             (string output, int numSquats) = (string.Empty, 0);
             findSquatsTool.ParseOptions<Options>(args).WithParsed<Options>(options =>

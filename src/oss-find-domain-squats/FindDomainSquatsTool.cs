@@ -81,6 +81,8 @@ namespace Microsoft.CST.OpenSource.DomainSquats
 
         static async Task Main(string[] args)
         {
+            Logger.Info($"OSS Gadget - {TOOL_NAME} v{VERSION} - github.com/Microsoft/OSSGadget");
+
             var findSquatsTool = new FindDomainSquatsTool();
             (string output, int numRegisteredSquats, int numUnregisteredSquats) = (string.Empty, 0, 0);
             await findSquatsTool.ParseOptions<Options>(args).WithParsedAsync<Options>(findSquatsTool.RunAsync);

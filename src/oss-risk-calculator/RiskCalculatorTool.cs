@@ -18,8 +18,18 @@ using Microsoft.ApplicationInspector.RulesEngine;
 
 namespace Microsoft.CST.OpenSource
 {
-    internal class RiskCalculatorTool : OSSGadget
+    public class RiskCalculatorTool : OSSGadget
     {
+        /// <summary>
+        ///     Name of this tool.
+        /// </summary>
+        private const string TOOL_NAME = "oss-metadata";
+
+        /// <summary>
+        ///     Holds the version string, from the assembly.
+        /// </summary>
+        private static readonly string VERSION = typeof(RiskCalculatorTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
+
         public class Options
         {
             [Usage()]
@@ -191,6 +201,8 @@ namespace Microsoft.CST.OpenSource
         /// <param name="args"> parameters passed in from the user </param>
         private static async Task Main(string[] args)
         {
+            Logger.Info($"OSS Gadget - {TOOL_NAME} v{VERSION} - github.com/Microsoft/OSSGadget");
+
             var riskCalculator = new RiskCalculatorTool();
             await riskCalculator.ParseOptions<Options>(args).WithParsedAsync(riskCalculator.RunAsync);
         }

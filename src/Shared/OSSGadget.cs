@@ -4,6 +4,10 @@ using Microsoft.CST.OpenSource.Shared;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text.Json;
+using System.Threading.Tasks;
 using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
 
 namespace Microsoft.CST.OpenSource
@@ -11,6 +15,9 @@ namespace Microsoft.CST.OpenSource
     public class OSSGadget
     {
         public OutputFormat currentOutputFormat = OutputFormat.text;
+
+        public static string ToolName { get => GetToolName() ?? ""; }
+        public static string ToolVersion { get => GetToolVersion().Result ?? ""; }
 
         public OSSGadget()
         {
@@ -115,6 +122,57 @@ namespace Microsoft.CST.OpenSource
                     Logger.Debug($"Invalid outputFile {outputFile}. Switching to console");
                 }
             }
+        }
+
+        public static async Task ShowToolBanner()
+        {
+            var toolName = GetToolName();
+            if (toolName != null)
+            {
+                var toolVersion = await GetToolVersion(toolName);
+                Logger.Info($"OSS Gadget - {toolName} {toolVersion} - github.com/Microsoft/OSSGadget");
+            }
+        }
+
+        public static string? GetToolName()
+        {
+            var entryAssembly = Assembly.GetEntryAssembly()?.Location;
+            if (entryAssembly != null)
+            {
+                var toolName = Path.GetFileNameWithoutExtension(entryAssembly);
+                if (toolName != null)
+                {
+                    return toolName;
+                }
+            }
+            return null;
+        }
+
+        public static async Task<string> GetToolVersion(string? toolName = null)
+        {
+            if (toolName == null)
+            {
+                toolName = GetToolName();
+            }
+            if (toolName == null)
+            {
+                return "1.0.0.0";
+            }
+
+            var currentAssemblyName = Assembly.GetEntryAssembly()?.Location;
+            var dependencyFile = currentAssemblyName?.Replace(".dll", ".deps.json");
+            if (dependencyFile != null && File.Exists(dependencyFile))
+            {
+                var doc = JsonDocument.Parse(await File.ReadAllTextAsync(dependencyFile)).RootElement;
+                foreach (var library in doc.GetProperty("libraries").EnumerateObject())
+                {
+                    if (library.Name.StartsWith(toolName))
+                    {
+                        return library.Name.Split('/').Last();
+                    }
+                }
+            }
+            return "1.0.0.0";
         }
 
         private bool redirectConsole = false;

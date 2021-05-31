@@ -16,16 +16,6 @@ namespace Microsoft.CST.OpenSource.FindSquats
 {
     public class FindSquatsTool : OSSGadget
     {
-        /// <summary>
-        ///     Name of this tool.
-        /// </summary>
-        private const string TOOL_NAME = "oss-find-squats";
-
-        /// <summary>
-        ///     Holds the version string, from the assembly.
-        /// </summary>
-        private static readonly string VERSION = typeof(FindSquatsTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
-
         Generative gen { get; set; }
 
         public class Options
@@ -71,8 +61,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
         HttpClient client;
         static async Task Main(string[] args)
         {
-            Logger.Info($"OSS Gadget - {TOOL_NAME} v{VERSION} - github.com/Microsoft/OSSGadget");
-
+            await ShowToolBanner();
             var findSquatsTool = new FindSquatsTool();
             (string output, int numSquats) = (string.Empty, 0);
             findSquatsTool.ParseOptions<Options>(args).WithParsed<Options>(options =>

@@ -77,20 +77,9 @@ namespace Microsoft.CST.OpenSource.DiffTool
             public IEnumerable<string> Targets { get; set; } = Array.Empty<string>();
         }
 
-        /// <summary>
-        ///     Name of this tool.
-        /// </summary>
-        private const string TOOL_NAME = "oss-diff";
-
-        /// <summary>
-        ///     Holds the version string, from the assembly.
-        /// </summary>
-        private static readonly string VERSION = typeof(DiffTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
-
         static async Task Main(string[] args)
         {
-            Logger.Info($"OSS Gadget - {TOOL_NAME} v{VERSION} - github.com/Microsoft/OSSGadget");
-
+            await ShowToolBanner();
             var originalColor = Console.ForegroundColor;
             Console.CancelKeyPress += delegate {
                 Console.ForegroundColor = originalColor;

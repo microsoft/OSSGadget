@@ -69,6 +69,24 @@ namespace Microsoft.CST.OpenSource.Tests
             await TestDownload(purl, targetFilename, expectedDirectoryCount);
         }
 
+
+        [DataTestMethod]
+        [DataRow("pkg:golang/sigs.k8s.io/yaml", "yaml.go", 1)]
+        public async Task Golang_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
+        {
+            await TestDownload(purl, targetFilename, expectedDirectoryCount);
+        }
+        
+        [DataTestMethod]
+        [DataRow("pkg:golang/sigs.k8s.io/yaml", "does-not-exist", 37)]
+        public async Task Golang_Download_Version_Fails(string purl, string targetFilename, int expectedDirectoryCount)
+        {
+            await Assert.ThrowsExceptionAsync<InternalTestFailureException>(async () =>
+            {
+                await TestDownload(purl, targetFilename, expectedDirectoryCount);
+            }, "Expected a test failure but one did not occur.");
+        }
+
         [DataTestMethod]
         [DataRow("pkg:hackage/a50", "a50.cabal", 1)]
         public async Task Hackage_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)

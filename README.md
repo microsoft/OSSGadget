@@ -35,6 +35,7 @@ OSS Gadget supports packages provided by these sources:
 * CPAN - `pkg:cpan/...`
 * CRAN - `pkg:cran/...`
 * GitHub - `pkg:github/...`
+* Go - `pkg:golang/...`
 * Hackage - `pkg:hackage/...`
 * Maven - `pkg:maven/...`
 * NPM - `pkg:npm/...`
@@ -87,6 +88,9 @@ OSS Download takes a Package URL and calls a module specific to the package mana
 code will run to query the NPM registry for the project, searching for the correct binary. Once found, it downloads it, and
 by default, extracts it into a new directory.
 
+Note that for GitHub projects, the `git ls-remote` command is currently needed to enumerate tags, which means that you
+need to have git installed and available on the path.
+
 #### OSS Find Source
 
 It's often useful to locate the source code to a given package. OSS Find Source works by searching through package metadata
@@ -123,10 +127,10 @@ The algorithm we use could definitely be improved ([#150](https://github.com/mic
 ### Building from Source
 
 OSS Gadget was built and tested using .NET Core 5, and will generally target the latest version of .NET Core.
-To build OSS Gadget, simply clone the project and run `dotnet build -p:SelfContained=false` from the `src` directory.
+To build OSS Gadget, simply clone the project and run `dotnet build` from the `src` directory.
 
 ```
-PS C:\OSSGadget\src> dotnet build -p:SelfContained=false
+PS C:\OSSGadget\src> dotnet build
 Microsoft (R) Build Engine version 16.9.0+57a23d249 for .NET
 Copyright (C) Microsoft Corporation. All rights reserved.
 
@@ -183,7 +187,7 @@ $> docker build -t ossgadget:latest .
 $> docker run -it ossgadget:latest /bin/bash
 
 # Inside container - run oss-download binary
-root@container:/app/src# ./oss-download/bin/Debug/netcoreapp3.1/oss-download 
+root@container:/app/src# ./oss-download/bin/Debug/net50/oss-download 
 ```
 
 For certain tools, like OSS Health, you'll also need to set the `GITHUB_ACCESS_TOKEN` environment variable when you
@@ -201,7 +205,7 @@ Certain packages must be encoded when described as a Package URL. For more infor
 If you're using an alternate endpoint, such as a corporate NPM mirror, you can set certain environment variables to
 redirect traffic to that location instead of the default one. These environment variables include:
 
-* `GITHUB_ACCESS_TOKEN`: When connecting to GitHub, this environment variable must be defined.
+* `GITHUB_ACCESS_TOKEN`: When connecting to GitHub, this environment variable must be defined (only used for OSS Health).
 * `CARGO_ENDPOINT`: Connect to Cargo (Rust), default value is https://crates.io.
 * `CARGO_ENDPOINT_STATIC`: Connect to Cargo (Rust), default value is https://static.crates.io.
 * `COCOAPODS_SPECS_ENDPOINT`: Connect to Cocoapods (MacOS / iOS), default value is https://github.com/Cocoapods/Specs/tree/master.
@@ -211,13 +215,20 @@ redirect traffic to that location instead of the default one. These environment 
 * `CPAN_ENDPOINT`: Connect to CPAN (Perl), default value is https://metacpan.org.
 * `CPAN_BINARY_ENDPOINT`: Connect to CPAN (Perl), default value is https://cpan.metacpan.org.
 * `CRAN_ENDPOINT`: Connect to CRAN (R), default value is https://cran.r-project.org.
-* `RUBYGEMS_ENDPOINT`: Connect to RubyGems (Ruby), default value is https://rubygems.org.
-* `RUBYGEMS_ENDPOINT_API`: Connect to RubyGems (Ruby), default value is https://api.rubygems.org.
+* `GO_PROXY_ENDPOINT`: Connect to a Go Proxy, default value is https://proxy.golang.org.
+* `GO_PKG_ENDPOINT`: Connect to the Go Package Repository, default value is https://pkg.go.dev.
 * `HACKAGE_ENDPOINT`: Connect to Hackage (Haskell), default value is https://hackage.haskell.org.
+
 * `MAVEN_ENDPOINT`: Connect to Maven (Java), default value is https://repo1.maven.org/maven2.
 * `NPM_ENDPOINT`: Connect to NPM (JavaScript), default value is https://registry.npmjs.org.
 * `NUGET_ENDPOINT_API`: Connect to NuGet (.NET), default value is https://api.nuget.org.
 * `PYPI_ENDPOINT`: Connect to PyPI (Python), default value is https://pypi.org.
+* `RUBYGEMS_ENDPOINT`: Connect to RubyGems (Ruby), default value is https://rubygems.org.
+* `RUBYGEMS_ENDPOINT_API`: Connect to RubyGems (Ruby), default value is https://api.rubygems.org.
+* `UBUNTU_ARCHIVE_MIRROR`: Ubuntu archive mirror, default value is https://mirror.math.princeton.edu/pub.
+* `UBUNTU_ENDPOINT`: Ubuntu package repository, default value is https://packages.ubuntu.com.
+* `UBUTNU_POOL_NAMES`: Ubuntu pools to query, default value is main,universe,multiverse,restricted.
+* `VS_MARKETPLACE_ENDPOINT`: Connect to Visual Studio Marketplace, default value is https://marketplace.visualstudio.com.
 
 Please note that for some systems, like Cocoapods, if you change one value, you'll very likely need to change the others.
 

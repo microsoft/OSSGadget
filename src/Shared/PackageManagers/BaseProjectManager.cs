@@ -107,6 +107,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
   pkg:cpan/Apache-ACEProxy      The latest version of Apache::ACEProxy (via cpan.org)
   pkg:cran/ACNE@0.8.0           Version 0.8.0 of ACNE (via cran.r-project.org)
   pkg:gem/rubytree@*            All versions of RubyTree (via rubygems.org)
+  pkg:golang/sigs.k8s.io/yaml   The latest version of sigs.k8s.io/yaml (via proxy.golang.org)
   pkg:github/Microsoft/DevSkim  The latest release of DevSkim (via GitHub)
   pkg:hackage/a50@*             All versions of a50 (via hackage.haskell.org)
   pkg:maven/org.apdplat/deep-qa The latest version of org.apdplat.deep-qa (via repo1.maven.org)

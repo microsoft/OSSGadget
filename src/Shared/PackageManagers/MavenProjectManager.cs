@@ -106,7 +106,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Warn(ex, $"Error enumerating Maven packages: {ex.Message}");
+                Logger.Warn("Unable to enumerate versions: {0}", ex.Message);
                 throw;
             }
         }

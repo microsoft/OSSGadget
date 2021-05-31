@@ -123,7 +123,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Debug(ex, $"Error enumerating Composer package: {ex.Message}");
+                Logger.Warn("Unable to enumerate versions: {0}", ex.Message);
                 throw;
             }
         }

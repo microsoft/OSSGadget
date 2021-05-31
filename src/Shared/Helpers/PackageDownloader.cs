@@ -211,20 +211,18 @@ namespace Microsoft.CST.OpenSource
                         }
                         else
                         {
-                            throw new InvalidDataException("No versions were returned from EnumerateVersions.");
+                            Logger.Warn("No versions were found.");
                         }
                     }
-                    catch (Exception e)
+                    catch (Exception ex)
                     {
-                        Logger.Debug(e, "Unable to enumerate versions, so cannot identify the latest. {0}", e.Message);
-                        // package list will remain empty
+                        Logger.Debug(ex, "Unable to enumerate versions: {0}", ex.Message);
                     }
                 }
                 else if (purl.Version.Equals("*"))
                 {
                     try
                     {
-
                         foreach (var version in await packageManager.EnumerateVersions(purl))
                         {
                             vPurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, version, purl.Qualifiers, purl.Subpath);
@@ -237,7 +235,7 @@ namespace Microsoft.CST.OpenSource
                     }
                     catch (Exception e)
                     {
-                        Logger.Debug($"Unable to enumerate versions, so cannot identify the latest. {e.Message}:{e.StackTrace}");
+                        Logger.Warn("Unable to enumerate versions, so cannot identify the latest: {0}", e.Message);
                         // package list will remain empty
                     }
                 }

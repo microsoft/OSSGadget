@@ -15,6 +15,17 @@ namespace Microsoft.CST.OpenSource
 {
     public class DetectBackdoorTool : OSSGadget
     {
+        /// <summary>
+        ///     Name of this tool.
+        /// </summary>
+        private const string TOOL_NAME = "oss-detect-backdoor";
+
+        /// <summary>
+        ///     Holds the version string, from the assembly.
+        /// </summary>
+        private static readonly string VERSION = typeof(DetectBackdoorTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
+
+
         public class Options
         {
             [Usage()]
@@ -65,6 +76,8 @@ namespace Microsoft.CST.OpenSource
         /// <param name="args"> parameters passed in from the user </param>
         private static async Task Main(string[] args)
         {
+            Logger.Info($"OSS Gadget - {TOOL_NAME} v{VERSION} - github.com/Microsoft/OSSGadget");
+
             var detectBackdoorTool = new DetectBackdoorTool();
             var parsedOptions = detectBackdoorTool.ParseOptions<Options>(args).Value;
             var detectionResults = await detectBackdoorTool.RunAsync(parsedOptions);

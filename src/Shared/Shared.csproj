@@ -31,7 +31,6 @@
     <PackageReference Include="CommandLineParser" Version="2.9.0-preview1" />
     <PackageReference Include="F23.StringSimilarity" Version="4.0.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.31" />
-    <PackageReference Include="LibGit2Sharp" Version="0.27.0-preview-0034" />
     <PackageReference Include="Microsoft.CST.RecursiveExtractor" Version="1.0.58" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="5.0.0" />
     <PackageReference Include="NLog" Version="4.7.8" />

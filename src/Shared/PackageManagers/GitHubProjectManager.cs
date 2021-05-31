@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using LibGit2Sharp;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -147,28 +147,50 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 var versionList = new List<string>();
                 var githubUrl = $"https://github.com/{purl.Namespace}/{purl.Name}";
-                // TODO: Document why we're wrapping this in a task
-                await Task.Run(() =>
+
+                var gitLsRemoteStartInfo = new ProcessStartInfo()
                 {
-                    foreach (var reference in Repository.ListRemoteReferences(githubUrl))
+                    FileName = "git",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+                gitLsRemoteStartInfo.ArgumentList.Add("ls-remote");
+                gitLsRemoteStartInfo.ArgumentList.Add("--tags");
+                gitLsRemoteStartInfo.ArgumentList.Add("--ref");
+                gitLsRemoteStartInfo.ArgumentList.Add(githubUrl);
+
+                var gitLsRemoteProcess = Process.Start(gitLsRemoteStartInfo);
+                if (gitLsRemoteProcess != null)
+                {
+                    var stdout = gitLsRemoteProcess.StandardOutput;
+                    string? outputLine;
+                    while ((outputLine = await gitLsRemoteProcess.StandardOutput.ReadLineAsync()) != null)
                     {
-                        if (reference.IsTag)
+                        var match = Regex.Match(outputLine, "^.+refs/tags/(.*)$");
+                        if (match.Success)
                         {
-                            var tagName = reference.ToString().Replace("refs/tags/", "");
-                            // TODO: Investigate why we sometimes get doubles, eg. madler/zlib.
-                            if (!tagName.EndsWith("^{}"))
-                            {
-                                versionList.Add(tagName);
-                            }
+                            var tagName = match.Groups[1].Value;
+                            Logger.Debug("Adding tag: {0}", tagName);
+                            versionList.Add(tagName);
                         }
                     }
-                });
-                versionList.Sort();
-                return versionList.Select(v => v.ToString());
+                    var stderr = await gitLsRemoteProcess.StandardError.ReadToEndAsync();
+                    if (!String.IsNullOrWhiteSpace(stderr))
+                    {
+                        Logger.Warn("Error running 'git', error: {0}", stderr);
+                    }
+                }
+                else
+                {
+                    Logger.Warn("Unable to run 'git'. Is it installed?");
+                }
+                return SortVersions(versionList);
             }
             catch (Exception ex)
             {
-                Logger.Debug(ex, $"Error enumerating GitHub repository references: {ex.Message}");
+                Logger.Warn("Unable to enumerate versions: {0}", ex.Message);
                 throw;
             }
         }

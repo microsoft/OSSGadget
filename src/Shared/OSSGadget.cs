@@ -153,8 +153,8 @@ namespace Microsoft.CST.OpenSource
         public static string GetToolVersion()
         {
             var assembly = Assembly.GetExecutingAssembly();
-            var vesionAttributes = assembly.GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false) as AssemblyInformationalVersionAttribute[];
-            var version = vesionAttributes?[0].InformationalVersion;
+            var versionAttributes = assembly.GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false) as AssemblyInformationalVersionAttribute[];
+            var version = versionAttributes?[0].InformationalVersion;
             return version ?? "Unknown";
         }
 

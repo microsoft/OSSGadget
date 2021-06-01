@@ -126,7 +126,7 @@ The algorithm we use could definitely be improved ([#150](https://github.com/mic
 
 ### Building from Source
 
-OSS Gadget was built and tested using .NET Core 5, and will generally target the latest version of .NET Core.
+OSS Gadget was built and tested using .NET Core 5.0, and will generally target the latest version of .NET Core.
 To build OSS Gadget, simply clone the project and run `dotnet build` from the `src` directory.
 
 ```
@@ -187,7 +187,7 @@ $> docker build -t ossgadget:latest .
 $> docker run -it ossgadget:latest /bin/bash
 
 # Inside container - run oss-download binary
-root@container:/app/src# ./oss-download/bin/Debug/net50/oss-download 
+root@container:/app/src# ./oss-download/bin/Debug/net5.0/oss-download 
 ```
 
 For certain tools, like OSS Health, you'll also need to set the `GITHUB_ACCESS_TOKEN` environment variable when you

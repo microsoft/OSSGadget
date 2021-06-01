@@ -17,7 +17,7 @@ namespace Microsoft.CST.OpenSource
         public OutputFormat currentOutputFormat = OutputFormat.text;
 
         public static string ToolName { get => GetToolName() ?? ""; }
-        public static string ToolVersion { get => GetToolVersion().Result ?? ""; }
+        public static string ToolVersion { get => GetToolVersion() ?? ""; }
 
         public OSSGadget()
         {
@@ -124,55 +124,38 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        public static async Task ShowToolBanner()
+        public static void ShowToolBanner()
         {
             var toolName = GetToolName();
-            if (toolName != null)
-            {
-                var toolVersion = await GetToolVersion(toolName);
-                Logger.Info($"OSS Gadget - {toolName} {toolVersion} - github.com/Microsoft/OSSGadget");
-            }
+            var toolVersion = GetToolVersion();
+            Logger.Info($"OSS Gadget - {toolName} {toolVersion} - github.com/Microsoft/OSSGadget");
         }
 
+
+        /// <summary>
+        /// Calculates the tool name from the entry assembly.
+        /// </summary>
+        /// <returns></returns>
         public static string? GetToolName()
         {
             var entryAssembly = Assembly.GetEntryAssembly()?.Location;
             if (entryAssembly != null)
             {
-                var toolName = Path.GetFileNameWithoutExtension(entryAssembly);
-                if (toolName != null)
-                {
-                    return toolName;
-                }
+                return Path.GetFileNameWithoutExtension(entryAssembly) ?? "Unknown";
             }
-            return null;
+            return "Unknown";
         }
 
-        public static async Task<string> GetToolVersion(string? toolName = null)
+        /// <summary>
+        /// Calculates the tool version from the executing assembly.
+        /// </summary>
+        /// <returns></returns>
+        public static string GetToolVersion()
         {
-            if (toolName == null)
-            {
-                toolName = GetToolName();
-            }
-            if (toolName == null)
-            {
-                return "1.0.0.0";
-            }
-
-            var currentAssemblyName = Assembly.GetEntryAssembly()?.Location;
-            var dependencyFile = currentAssemblyName?.Replace(".dll", ".deps.json");
-            if (dependencyFile != null && File.Exists(dependencyFile))
-            {
-                var doc = JsonDocument.Parse(await File.ReadAllTextAsync(dependencyFile)).RootElement;
-                foreach (var library in doc.GetProperty("libraries").EnumerateObject())
-                {
-                    if (library.Name.StartsWith(toolName))
-                    {
-                        return library.Name.Split('/').Last();
-                    }
-                }
-            }
-            return "1.0.0.0";
+            var assembly = Assembly.GetExecutingAssembly();
+            var vesionAttributes = assembly.GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false) as AssemblyInformationalVersionAttribute[];
+            var version = vesionAttributes?[0].InformationalVersion;
+            return version ?? "Unknown";
         }
 
         private bool redirectConsole = false;

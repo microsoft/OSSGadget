@@ -118,8 +118,7 @@ namespace Microsoft.CST.OpenSource.Shared
                         versionList.Add(versionObject.Name);
                     }
                 }
-                return versionList.Distinct();
-                //return SortVersions(versionList.Distinct());
+                return SortVersions(versionList.Distinct());
             }
             catch (Exception ex)
             {

@@ -64,7 +64,7 @@ namespace Microsoft.CST.OpenSource
         /// <param name="args"> parameters passed in from the user </param>
         private static async Task Main(string[] args)
         {
-            await ShowToolBanner();
+            ShowToolBanner();
             var metadataTool = new MetadataTool();
             await metadataTool.ParseOptions<Options>(args).WithParsedAsync(metadataTool.RunAsync);
         }

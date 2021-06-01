@@ -56,7 +56,7 @@ namespace Microsoft.CST.OpenSource
         /// <param name="args"> parameters passed in from the user </param>
         private static async Task Main(string[] args)
         {
-            await ShowToolBanner();
+            ShowToolBanner();
             var downloadTool = new DownloadTool();
             await downloadTool.ParseOptions<Options>(args).WithParsedAsync(downloadTool.RunAsync);
         }

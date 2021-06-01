@@ -65,7 +65,7 @@ namespace Microsoft.CST.OpenSource
         /// <param name="args"> parameters passed in from the user </param>
         private static async Task Main(string[] args)
         {
-            await ShowToolBanner();
+            ShowToolBanner();
             var detectBackdoorTool = new DetectBackdoorTool();
             var parsedOptions = detectBackdoorTool.ParseOptions<Options>(args).Value;
             var detectionResults = await detectBackdoorTool.RunAsync(parsedOptions);

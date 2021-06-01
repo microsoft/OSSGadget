@@ -261,7 +261,7 @@ namespace Microsoft.CST.OpenSource
 
         private static async Task Main(string[] args)
         {
-            await ShowToolBanner();
+            ShowToolBanner();
             CommonInitialization.Initialize();
 
             var defoggerTool = new DefoggerTool();

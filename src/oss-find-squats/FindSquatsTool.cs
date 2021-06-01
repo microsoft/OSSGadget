@@ -61,7 +61,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
         HttpClient client;
         static async Task Main(string[] args)
         {
-            await ShowToolBanner();
+            ShowToolBanner();
             var findSquatsTool = new FindSquatsTool();
             (string output, int numSquats) = (string.Empty, 0);
             findSquatsTool.ParseOptions<Options>(args).WithParsed<Options>(options =>

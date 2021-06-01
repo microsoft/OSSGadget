@@ -79,7 +79,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
 
         static async Task Main(string[] args)
         {
-            await ShowToolBanner();
+            ShowToolBanner();
             var originalColor = Console.ForegroundColor;
             Console.CancelKeyPress += delegate {
                 Console.ForegroundColor = originalColor;

@@ -71,7 +71,7 @@ namespace Microsoft.CST.OpenSource.DomainSquats
 
         static async Task Main(string[] args)
         {
-            await ShowToolBanner();
+            ShowToolBanner();
 
             var findSquatsTool = new FindDomainSquatsTool();
             (string output, int numRegisteredSquats, int numUnregisteredSquats) = (string.Empty, 0, 0);

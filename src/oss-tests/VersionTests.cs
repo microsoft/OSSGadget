@@ -26,6 +26,8 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("foo", "foo")]
         [DataRow("v1,v3,v2", "v3,v2,v1")]
         [DataRow("v1-rc1,v3-rc3,v2-rc2", "v3-rc3,v2-rc2,v1-rc1")]
+        [DataRow("234,73", "234,73")]
+        [DataRow("73,234", "234,73")]
         public async Task TestVersionSort(string preSortS, string postSortS)
         {
             var preSort = preSortS.Split(new[] { ',' });

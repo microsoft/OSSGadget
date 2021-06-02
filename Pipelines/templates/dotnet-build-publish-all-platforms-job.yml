@@ -68,21 +68,21 @@ jobs:
       projects: ${{ parameters.solutionPath }}
       verbosityRestore: 'Normal'
   - task: DotNetCoreCLI@2
-    displayName: Recursive Build Csproj Linux x64
+    displayName: Recursive Publish Csproj Linux x64
     inputs:
-      command: 'build'
+      command: 'publish'
       projects: '${{ parameters.csprojPath }}'
       arguments: '-c ${{ parameters.buildConfiguration }} -r linux-x64'
   - task: DotNetCoreCLI@2
-    displayName: Recursive Build Csproj MacOS x64
+    displayName: Recursive Publish Csproj MacOS x64
     inputs:
-      command: 'build'
+      command: 'publish'
       projects: '${{ parameters.csprojPath }}'
       arguments: '-c ${{ parameters.buildConfiguration }} -r osx-x64'
   - task: DotNetCoreCLI@2
-    displayName: Recursive Build Csproj Win x64
+    displayName: Recursive Publish Csproj Win x64
     inputs:
-      command: 'build'
+      command: 'publish'
       projects: '${{ parameters.csprojPath }}'
       arguments: '-c ${{ parameters.buildConfiguration }} -r win-x64'
   - task: DotNetCoreCLI@2

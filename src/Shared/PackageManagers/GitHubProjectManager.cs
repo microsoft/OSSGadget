@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using LibGit2Sharp;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -79,11 +79,6 @@ namespace Microsoft.CST.OpenSource.Shared
 
             Logger.Trace("DownloadVersion {0}", purl.ToString());
 
-            if (doExtract == false)
-            {
-                throw new NotImplementedException("GitHub does not support binary downloads yet.");
-            }
-
             var packageNamespace = purl?.Namespace;
             var packageName = purl?.Name;
             var packageVersion = purl?.Version;
@@ -98,12 +93,10 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 var url = $"{ENV_GITHUB_ENDPOINT}/{packageNamespace}/{packageName}";
-                var invalidChars = Path.GetInvalidFileNameChars();
+                var fsNamespace = Utilities.NormalizeStringForFileSystem(packageNamespace);
+                var fsName = Utilities.NormalizeStringForFileSystem(packageName);
+                var fsVersion = Utilities.NormalizeStringForFileSystem(packageVersion);
 
-                // TODO: Externalize this normalization
-                var fsNamespace = new string((packageNamespace.Select(ch => invalidChars.Contains(ch) ? '_' : ch) ?? Array.Empty<char>()).ToArray());
-                var fsName = new string((packageName.Select(ch => invalidChars.Contains(ch) ? '_' : ch) ?? Array.Empty<char>()).ToArray());
-                var fsVersion = new string((packageVersion.Select(ch => invalidChars.Contains(ch) ? '_' : ch) ?? Array.Empty<char>()).ToArray());
                 var workingDirectory = string.IsNullOrWhiteSpace(packageVersion) ?
                                         Path.Join(TopLevelExtractionDirectory, $"github-{fsNamespace}-{fsName}") :
                                         Path.Join(TopLevelExtractionDirectory, $"github-{fsNamespace}-{fsName}-{fsVersion}");
@@ -114,16 +107,32 @@ namespace Microsoft.CST.OpenSource.Shared
                     return downloadedPaths;
                 }
 
-                Repository.Clone(url, workingDirectory);
-
-                var repo = new Repository(workingDirectory);
-                Commands.Checkout(repo, packageVersion);
-                downloadedPaths.Add(workingDirectory);
-                repo.Dispose();
-            }
-            catch (LibGit2Sharp.NotFoundException ex)
-            {
-                Logger.Debug(ex, "The version {0} is not a valid git reference: {1}", packageVersion, ex.Message);
+                // First, try a tag (most likely what we're looking for)
+                var archiveUrls = new string[]
+                {
+                    $"{url}/archive/refs/tags/{packageVersion}.zip",
+                    $"{url}/archive/{packageVersion}.zip",
+                    $"{url}/archive/refs/heads/{packageVersion}.zip",
+                };
+                foreach (var archiveUrl in archiveUrls)
+                {
+                    var result = await WebClient.GetAsync(archiveUrl);
+                    if (result.IsSuccessStatusCode)
+                    {
+                        if (doExtract)
+                        {
+                            downloadedPaths.Add(await ExtractArchive(extractionPath, await result.Content.ReadAsByteArrayAsync(), cached));
+                        }
+                        else
+                        {
+                            Directory.CreateDirectory(extractionPath);
+                            var targetName = Path.Join(extractionPath, $"{fsVersion}.zip");
+                            await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
+                            downloadedPaths.Add(targetName);
+                        }
+                        break;
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -138,31 +147,57 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 var versionList = new List<string>();
                 var githubUrl = $"https://github.com/{purl.Namespace}/{purl.Name}";
-                // TODO: Document why we're wrapping this in a task
-                await Task.Run(() =>
+
+                var gitLsRemoteStartInfo = new ProcessStartInfo()
                 {
-                    foreach (var reference in Repository.ListRemoteReferences(githubUrl))
+                    FileName = "git",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+                gitLsRemoteStartInfo.ArgumentList.Add("ls-remote");
+                gitLsRemoteStartInfo.ArgumentList.Add("--tags");
+                gitLsRemoteStartInfo.ArgumentList.Add("--ref");
+                gitLsRemoteStartInfo.ArgumentList.Add(githubUrl);
+
+                var gitLsRemoteProcess = Process.Start(gitLsRemoteStartInfo);
+                if (gitLsRemoteProcess != null)
+                {
+                    var stdout = gitLsRemoteProcess.StandardOutput;
+                    string? outputLine;
+                    while ((outputLine = await gitLsRemoteProcess.StandardOutput.ReadLineAsync()) != null)
                     {
-                        if (reference.IsTag)
+                        var match = Regex.Match(outputLine, "^.+refs/tags/(.*)$");
+                        if (match.Success)
                         {
-                            var tagName = reference.ToString().Replace("refs/tags/", "");
+                            var tagName = match.Groups[1].Value;
+                            Logger.Debug("Adding tag: {0}", tagName);
                             versionList.Add(tagName);
                         }
                     }
-                });
-                versionList.Sort();
-                return versionList.Select(v => v.ToString());
+                    var stderr = await gitLsRemoteProcess.StandardError.ReadToEndAsync();
+                    if (!String.IsNullOrWhiteSpace(stderr))
+                    {
+                        Logger.Warn("Error running 'git', error: {0}", stderr);
+                    }
+                }
+                else
+                {
+                    Logger.Warn("Unable to run 'git'. Is it installed?");
+                }
+                return SortVersions(versionList);
             }
             catch (Exception ex)
             {
-                Logger.Debug(ex, $"Error enumerating GitHub repository references: {ex.Message}");
+                Logger.Warn("Unable to enumerate versions: {0}", ex.Message);
                 throw;
             }
         }
 
         public override async Task<string?> GetMetadata(PackageURL purl)
         {
-            await Task.Run(() => { });  // Avoid async warning -- @HACK
+            await Task.CompletedTask;
             return $"https://github.com/{purl.Namespace}/{purl.Name}";
         }
 

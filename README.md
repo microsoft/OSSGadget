@@ -13,9 +13,14 @@ it, or estimating its health. The tools included in OSS Gadget will grow over ti
 * *oss-defog*: Searches a package for obfuscated strings (Base-64).
 * *oss-detect-backdoor*: Identifies *potential* backdoors and malicious code within a package. Currently has a high
   false-positive rate.
+* *oss-detect-cryptography*: Identifies cryptographic implementations within a package.
+* *oss-diff*: Compares two packages using a standard diff/patch view.
 * *oss-download*: Downloads a package and extracts it locally.
+* *oss-find-domain-squats*: Identifies potential typo-squatting for a given domain name.
 * *oss-find-source*: Attempts to locate the source code (on GitHub, currently) of a given package.
+* *oss-find-squats*: Identifies potential typo-squatting for a given package.
 * *oss-health*: Calculates health metrics for a given package.
+* *oss-metadata*: Normalizes metadata about a package into a common schema.
 
 All OSS Gadget tools accept one or more [Package URLs](https://github.com/package-url/purl-spec) as a way to uniquely
 identify a package. Package URLs look like `pkg:npm/express` or `pkg:gem/azure@0.7.10`. If you leave the
@@ -30,14 +35,18 @@ OSS Gadget supports packages provided by these sources:
 * CPAN - `pkg:cpan/...`
 * CRAN - `pkg:cran/...`
 * GitHub - `pkg:github/...`
+* Go - `pkg:golang/...`
 * Hackage - `pkg:hackage/...`
 * Maven - `pkg:maven/...`
 * NPM - `pkg:npm/...`
 * NuGet - `pkg:nuget/...`
 * RubyGems - `pkg:gem/...`
 * PyPI - `pkg:pypi/...`
+* Ubuntu - `pkg:ubuntu/...`
+* Visual Studio Marketplace - `pkg:vsm/...`
+* Generic - `pkg:url/...?url=URL`
 
-We shall continue expanding this list to cover additional package management systems and would be happy to accept
+We will continue expanding this list to cover additional package management systems and would be happy to accept
 contributions from the community.
 
 ### Basic Usage
@@ -79,6 +88,9 @@ OSS Download takes a Package URL and calls a module specific to the package mana
 code will run to query the NPM registry for the project, searching for the correct binary. Once found, it downloads it, and
 by default, extracts it into a new directory.
 
+Note that for GitHub projects, the `git ls-remote` command is currently needed to enumerate tags, which means that you
+need to have git installed and available on the path.
+
 #### OSS Find Source
 
 It's often useful to locate the source code to a given package. OSS Find Source works by searching through package metadata
@@ -114,35 +126,47 @@ The algorithm we use could definitely be improved ([#150](https://github.com/mic
 
 ### Building from Source
 
-OSS Gadget was built and tested using .NET Core 3.1, and will generally target the latest version of .NET Core.
+OSS Gadget was built and tested using .NET Core 5.0, and will generally target the latest version of .NET Core.
 To build OSS Gadget, simply clone the project and run `dotnet build` from the `src` directory.
 
 ```
-PS D:\OSSGadget-GitHub\src> dotnet build
-Microsoft (R) Build Engine version 16.4.0+e901037fe for .NET Core
+PS C:\OSSGadget\src> dotnet build
+Microsoft (R) Build Engine version 16.9.0+57a23d249 for .NET
 Copyright (C) Microsoft Corporation. All rights reserved.
 
-  Restore completed in 50.64 ms for D:\OSSGadget-GitHub\src\Shared\Shared.csproj.
-  Restore completed in 50.61 ms for D:\OSSGadget-GitHub\src\oss-health\oss-health.csproj.
-  Restore completed in 50.65 ms for D:\OSSGadget-GitHub\src\oss-download\oss-download.csproj.
-  Restore completed in 51.71 ms for D:\OSSGadget-GitHub\src\oss-defog\oss-defog.csproj.
-  Restore completed in 50.64 ms for D:\OSSGadget-GitHub\src\oss-find-source\oss-find-source.csproj.
-  Restore completed in 50.65 ms for D:\OSSGadget-GitHub\src\oss-characteristics\oss-characteristic.csproj.
-  Restore completed in 50.66 ms for D:\OSSGadget-GitHub\src\oss-detect-backdoor\oss-detect-backdoor.csproj.
-  Shared -> D:\OSSGadget-GitHub\src\Shared\bin\Debug\netcoreapp3.1\Shared.dll
-  oss-find-source -> D:\OSSGadget-GitHub\src\oss-find-source\bin\Debug\netcoreapp3.1\oss-find-source.dll
-  oss-download -> D:\OSSGadget-GitHub\src\oss-download\bin\Debug\netcoreapp3.1\oss-download.dll
-  oss-characteristic -> D:\OSSGadget-GitHub\src\oss-characteristics\bin\Debug\netcoreapp3.1\oss-characteristic.dll
-  oss-health -> D:\OSSGadget-GitHub\src\oss-health\bin\Debug\netcoreapp3.1\oss-health.dll
-  oss-defog -> D:\OSSGadget-GitHub\src\oss-defog\bin\Debug\netcoreapp3.1\oss-defog.dll
-  oss-detect-backdoor -> D:\OSSGadget-GitHub\src\oss-detect-backdoor\bin\Debug\netcoreapp3.1\oss-detect-backdoor.dll
-  oss-risk-calculator -> D:\OSSGadget-GitHub\src\oss-risk-calculator\bin\Debug\netcoreapp3.1\oss-risk-calculator.dll
+  Determining projects to restore...
+  Restored C:\OSSGadget\src\oss-diff\oss-diff.csproj (in 1.37 sec).
+  Restored C:\OSSGadget\src\oss-metadata\oss-metadata.csproj (in 1.37 sec).
+  Restored C:\OSSGadget\src\Shared\Shared.csproj (in 1.37 sec).
+  Restored C:\OSSGadget\src\oss-defog\oss-defog.csproj (in 1.37 sec).
+  Restored C:\OSSGadget\src\oss-detect-cryptography\oss-detect-cryptography.csproj (in 1.42 sec).
+  Restored C:\OSSGadget\src\oss-find-source\oss-find-source.csproj (in 1.37 sec).
+  Restored C:\OSSGadget\src\oss-risk-calculator\oss-risk-calculator.csproj (in 1.51 sec).
+  Restored C:\OSSGadget\src\oss-tests\oss-tests.csproj (in 1.61 sec).
+  Restored C:\OSSGadget\src\oss-find-domain-squats\oss-find-domain-squats.csproj (in 764 ms).
+  Restored C:\OSSGadget\src\oss-download\oss-download.csproj (in 777 ms).
+  Restored C:\OSSGadget\src\oss-health\oss-health.csproj (in 778 ms).
+  Restored C:\OSSGadget\src\oss-find-squats\oss-find-squats.csproj (in 765 ms).
+  Restored C:\OSSGadget\src\oss-characteristics\oss-characteristic.csproj (in 836 ms).
+  Restored C:\OSSGadget\src\oss-detect-backdoor\oss-detect-backdoor.csproj (in 853 ms).
+  Shared -> C:\OSSGadget\src\Shared\bin\Debug\net5.0\Shared.dll
+  oss-find-source -> C:\OSSGadget\src\oss-find-source\bin\Debug\net5.0\oss-find-source.dll
+  oss-download -> C:\OSSGadget\src\oss-download\bin\Debug\net5.0\oss-download.dll
+  oss-metadata -> C:\OSSGadget\src\oss-metadata\bin\Debug\net5.0\oss-metadata.dll
+  oss-find-squats -> C:\OSSGadget\src\oss-find-squats\bin\Debug\net5.0\oss-find-squats.dll
+  oss-diff -> C:\OSSGadget\src\oss-diff\bin\Debug\net5.0\oss-diff.dll
+  oss-find-domain-squats -> C:\OSSGadget\src\oss-find-domain-squats\bin\Debug\net5.0\oss-find-domain-squats.dll
+  oss-defog -> C:\OSSGadget\src\oss-defog\bin\Debug\net5.0\oss-defog.dll
+  oss-health -> C:\OSSGadget\src\oss-health\bin\Debug\net5.0\oss-health.dll
+  oss-characteristic -> C:\OSSGadget\src\oss-characteristics\bin\Debug\net5.0\oss-characteristic.dll
+  oss-detect-cryptography -> C:\OSSGadget\src\oss-detect-cryptography\bin\Debug\net5.0\oss-detect-cryptography.dll
+  oss-detect-backdoor -> C:\OSSGadget\src\oss-detect-backdoor\bin\Debug\net5.0\oss-detect-backdoor.dll
+  oss-risk-calculator -> C:\OSSGadget\src\oss-risk-calculator\bin\Debug\net5.0\oss-risk-calculator.dll
 
 Build succeeded.
+
     0 Warning(s)
     0 Error(s)
-
-Time Elapsed 00:00:06.62
 ```
 
 You can also use any of the normal `dotnet` parameters to target a specific framework, configuration, and runtime.
@@ -163,7 +187,7 @@ $> docker build -t ossgadget:latest .
 $> docker run -it ossgadget:latest /bin/bash
 
 # Inside container - run oss-download binary
-root@container:/app/src# ./oss-download/bin/Debug/netcoreapp3.1/oss-download 
+root@container:/app/src# ./oss-download/bin/Debug/net5.0/oss-download 
 ```
 
 For certain tools, like OSS Health, you'll also need to set the `GITHUB_ACCESS_TOKEN` environment variable when you
@@ -181,7 +205,7 @@ Certain packages must be encoded when described as a Package URL. For more infor
 If you're using an alternate endpoint, such as a corporate NPM mirror, you can set certain environment variables to
 redirect traffic to that location instead of the default one. These environment variables include:
 
-* `GITHUB_ACCESS_TOKEN`: When connecting to GitHub, this environment variable must be defined.
+* `GITHUB_ACCESS_TOKEN`: When connecting to GitHub, this environment variable must be defined (only used for OSS Health).
 * `CARGO_ENDPOINT`: Connect to Cargo (Rust), default value is https://crates.io.
 * `CARGO_ENDPOINT_STATIC`: Connect to Cargo (Rust), default value is https://static.crates.io.
 * `COCOAPODS_SPECS_ENDPOINT`: Connect to Cocoapods (MacOS / iOS), default value is https://github.com/Cocoapods/Specs/tree/master.
@@ -191,13 +215,20 @@ redirect traffic to that location instead of the default one. These environment 
 * `CPAN_ENDPOINT`: Connect to CPAN (Perl), default value is https://metacpan.org.
 * `CPAN_BINARY_ENDPOINT`: Connect to CPAN (Perl), default value is https://cpan.metacpan.org.
 * `CRAN_ENDPOINT`: Connect to CRAN (R), default value is https://cran.r-project.org.
-* `RUBYGEMS_ENDPOINT`: Connect to RubyGems (Ruby), default value is https://rubygems.org.
-* `RUBYGEMS_ENDPOINT_API`: Connect to RubyGems (Ruby), default value is https://api.rubygems.org.
+* `GO_PROXY_ENDPOINT`: Connect to a Go Proxy, default value is https://proxy.golang.org.
+* `GO_PKG_ENDPOINT`: Connect to the Go Package Repository, default value is https://pkg.go.dev.
 * `HACKAGE_ENDPOINT`: Connect to Hackage (Haskell), default value is https://hackage.haskell.org.
+
 * `MAVEN_ENDPOINT`: Connect to Maven (Java), default value is https://repo1.maven.org/maven2.
 * `NPM_ENDPOINT`: Connect to NPM (JavaScript), default value is https://registry.npmjs.org.
 * `NUGET_ENDPOINT_API`: Connect to NuGet (.NET), default value is https://api.nuget.org.
 * `PYPI_ENDPOINT`: Connect to PyPI (Python), default value is https://pypi.org.
+* `RUBYGEMS_ENDPOINT`: Connect to RubyGems (Ruby), default value is https://rubygems.org.
+* `RUBYGEMS_ENDPOINT_API`: Connect to RubyGems (Ruby), default value is https://api.rubygems.org.
+* `UBUNTU_ARCHIVE_MIRROR`: Ubuntu archive mirror, default value is https://mirror.math.princeton.edu/pub.
+* `UBUNTU_ENDPOINT`: Ubuntu package repository, default value is https://packages.ubuntu.com.
+* `UBUTNU_POOL_NAMES`: Ubuntu pools to query, default value is main,universe,multiverse,restricted.
+* `VS_MARKETPLACE_ENDPOINT`: Connect to Visual Studio Marketplace, default value is https://marketplace.visualstudio.com.
 
 Please note that for some systems, like Cocoapods, if you change one value, you'll very likely need to change the others.
 

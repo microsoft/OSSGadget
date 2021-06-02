@@ -107,6 +107,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
   pkg:cpan/Apache-ACEProxy      The latest version of Apache::ACEProxy (via cpan.org)
   pkg:cran/ACNE@0.8.0           Version 0.8.0 of ACNE (via cran.r-project.org)
   pkg:gem/rubytree@*            All versions of RubyTree (via rubygems.org)
+  pkg:golang/sigs.k8s.io/yaml   The latest version of sigs.k8s.io/yaml (via proxy.golang.org)
   pkg:github/Microsoft/DevSkim  The latest release of DevSkim (via GitHub)
   pkg:hackage/a50@*             All versions of a50 (via hackage.haskell.org)
   pkg:maven/org.apdplat/deep-qa The latest version of org.apdplat.deep-qa (via repo1.maven.org)
@@ -209,74 +210,17 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
             return doc;
         }
 
-        /// <summary>
-        ///     Sort a collection of version strings, trying multiple ways.
-        /// </summary>
-        /// <param name="versionList"> list of version strings </param>
-        /// <returns> list of version strings, in sorted order </returns>
         public static IEnumerable<string> SortVersions(IEnumerable<string> versionList)
         {
-            // Scrub the version list
-            versionList = versionList.Select((v) =>
+            if (versionList == null || !versionList.Any())
             {
-                if (v.StartsWith("v", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    return v.Substring(1).Trim();
-                }
-                else
-                {
-                    return v.Trim();
-                }
-            });
-
-            // Attempt to sort using different methods
-            List<Func<string, object>> methods = new List<Func<string, object>>
-            {
-                (s) => new Version(s),
-                (s) => new SemVer.Version(s, loose: true),
-                (s) => s
-            };
-
-            // Iterate through each method we defined above.
-            foreach (var method in methods)
-            {
-                var objList = new List<object>();
-                try
-                {
-                    foreach (var version in versionList)
-                    {
-                        var verResult = method(version);
-                        // Make sure the method doesn't mangle the version This is due to System.Version
-                        // normalizalizing "0.01" to "0.1".
-                        if (verResult != null && (verResult.ToString() ?? string.Empty).Equals(version))
-                        {
-                            objList.Add(verResult);
-                        }
-                        else
-                        {
-                            Logger.Debug("Mangled version [{0}] => [{1}]", version, verResult);
-                        }
-                    }
-                    objList.Sort();  // Sort using the built-in sort, delegating to the type's comparator
-                }
-                catch (Exception)
-                {
-                    objList = null;
-                }
-
-                // If we have a successful result (right size), then we should be good.
-                if (objList != null && objList.Count() == versionList.Count())
-                {
-                    return objList.Select(o => o.ToString() ?? string.Empty);
-                }
+                return Array.Empty<string>();
             }
 
-            // Fallback, leaving it alone
-            if (Logger.IsDebugEnabled)  // expensive string join, avoid unless necessary
-            {
-                Logger.Debug("List is not sortable, returning as-is: {0}", string.Join(", ", versionList));
-            }
-            return versionList;
+            // Split Versions
+            var versionPartsList = versionList.Select(s => VersionComparer.Parse(s)).ToList();
+            versionPartsList.Sort(new VersionComparer());
+            return versionPartsList.Select(s => string.Join("", s));
         }
 
         /// <summary>
@@ -387,7 +331,8 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         /// <returns> a string containing metadata. </returns>
         public virtual Task<string?> GetMetadata(PackageURL purl)
         {
-            throw new NotImplementedException("BaseProjectManager does not implement GetMetadata.");
+            var typeName = GetType().Name;
+            throw new NotImplementedException($"{typeName} does not implement GetMetadata.");
         }
 
         /// <summary>
@@ -397,7 +342,8 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         /// <returns> </returns>
         public virtual Uri? GetPackageAbsoluteUri(PackageURL purl)
         {
-            throw new NotImplementedException("BaseProjectManager does not implement GetPackageAbsoluteUri.");
+            var typeName = GetType().Name;
+            throw new NotImplementedException($"{typeName} does not implement GetPackageAbsoluteUri.");
         }
 
         /// <summary>
@@ -407,7 +353,8 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         /// <returns> </returns>
         public virtual Task<PackageMetadata> GetPackageMetadata(PackageURL purl)
         {
-            throw new NotImplementedException("BaseProjectManager does not implement GetPackageMetadata.");
+            var typeName = GetType().Name;
+            throw new NotImplementedException($"{typeName} does not implement GetPackageMetadata.");
         }
 
         /// <summary>
@@ -418,7 +365,8 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         /// <returns> </returns>
         public virtual JsonElement? GetVersionElement(JsonDocument contentJSON, Version version)
         {
-            throw new NotImplementedException("BaseProjectManager does not implement GetVersions.");
+            var typeName = GetType().Name;
+            throw new NotImplementedException($"{typeName} does not implement GetVersions.");
         }
 
         /// <summary>
@@ -429,7 +377,8 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         /// <returns> </returns>
         public virtual List<Version> GetVersions(JsonDocument? metadata)
         {
-            throw new NotImplementedException("BaseProjectManager does not implement GetVersions.");
+            var typeName = GetType().Name;
+            throw new NotImplementedException($"{typeName} does not implement GetVersions.");
         }
 
         /// <summary>

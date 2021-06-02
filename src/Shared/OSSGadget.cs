@@ -4,6 +4,10 @@ using Microsoft.CST.OpenSource.Shared;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text.Json;
+using System.Threading.Tasks;
 using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
 
 namespace Microsoft.CST.OpenSource
@@ -11,6 +15,9 @@ namespace Microsoft.CST.OpenSource
     public class OSSGadget
     {
         public OutputFormat currentOutputFormat = OutputFormat.text;
+
+        public static string ToolName { get => GetToolName() ?? ""; }
+        public static string ToolVersion { get => GetToolVersion() ?? ""; }
 
         public OSSGadget()
         {
@@ -115,6 +122,40 @@ namespace Microsoft.CST.OpenSource
                     Logger.Debug($"Invalid outputFile {outputFile}. Switching to console");
                 }
             }
+        }
+
+        public static void ShowToolBanner()
+        {
+            var toolName = GetToolName();
+            var toolVersion = GetToolVersion();
+            Logger.Info($"OSS Gadget - {toolName} {toolVersion} - github.com/Microsoft/OSSGadget");
+        }
+
+
+        /// <summary>
+        /// Calculates the tool name from the entry assembly.
+        /// </summary>
+        /// <returns></returns>
+        public static string? GetToolName()
+        {
+            var entryAssembly = Assembly.GetEntryAssembly()?.Location;
+            if (entryAssembly != null)
+            {
+                return Path.GetFileNameWithoutExtension(entryAssembly) ?? "Unknown";
+            }
+            return "Unknown";
+        }
+
+        /// <summary>
+        /// Calculates the tool version from the executing assembly.
+        /// </summary>
+        /// <returns></returns>
+        public static string GetToolVersion()
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            var versionAttributes = assembly.GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false) as AssemblyInformationalVersionAttribute[];
+            var version = versionAttributes?[0].InformationalVersion;
+            return version ?? "Unknown";
         }
 
         private bool redirectConsole = false;

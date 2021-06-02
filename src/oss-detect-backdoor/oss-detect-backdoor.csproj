@@ -12,9 +12,9 @@
     <StartupObject>Microsoft.CST.OpenSource.DetectBackdoorTool</StartupObject>
     <Configurations>Debug;Release</Configurations>
     <LangVersion>9.0</LangVersion>
-    <Nullable>Enable</Nullable>
+    <Nullable>enable</Nullable>
     <RuntimeIdentifiers>win-x64;osx-x64;linux-x64</RuntimeIdentifiers>
-    <SelfContained>true</SelfContained>
+    <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,6 +23,7 @@
     <None Remove="Resources\BackdoorRules\code_execution.json" />
     <None Remove="Resources\BackdoorRules\crypto_currency.json" />
     <None Remove="Resources\BackdoorRules\data_exfiltration.json" />
+    <None Remove="Resources\BackdoorRules\dependency_confusion.json" />
     <None Remove="Resources\BackdoorRules\ioc.json" />
     <None Remove="Resources\BackdoorRules\lolbas.json" />
     <None Remove="Resources\BackdoorRules\obfuscation.json" />
@@ -30,6 +31,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Resources\BackdoorRules\dependency_confusion.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\BackdoorRules\obfuscation.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

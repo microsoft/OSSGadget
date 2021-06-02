@@ -16,16 +16,6 @@ namespace Microsoft.CST.OpenSource
     public class DefoggerTool : OSSGadget
     {
         /// <summary>
-        ///     Name of this tool.
-        /// </summary>
-        private const string TOOL_NAME = "oss-defogger";
-
-        /// <summary>
-        ///     Holds the version string, from the assembly.
-        /// </summary>
-        private static readonly string VERSION = typeof(DefoggerTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
-
-        /// <summary>
         ///     String with placeholders that matches Base64-encoded text.
         /// </summary>
         private static readonly string BASE64_REGEX_STRING = "(([A-Z0-9+\\/]{B})+(([A-Z0-9+\\/]{3}=)|([A-Z0-9+\\/]{2}==))?)";
@@ -269,11 +259,10 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        private static void Main(string[] args)
+        private static async Task Main(string[] args)
         {
+            ShowToolBanner();
             CommonInitialization.Initialize();
-
-            Logger.Debug($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
 
             var defoggerTool = new DefoggerTool();
             defoggerTool.ParseOptions(args);
@@ -666,7 +655,7 @@ namespace Microsoft.CST.OpenSource
 
                     case "-v":
                     case "--version":
-                        Console.Error.WriteLine($"{TOOL_NAME} {VERSION}");
+                        Console.Error.WriteLine($"{GetToolName()} {GetToolVersion()}");
                         Environment.Exit(1);
                         break;
 
@@ -724,9 +713,9 @@ namespace Microsoft.CST.OpenSource
         private static void ShowUsage()
         {
             Console.Error.WriteLine($@"
-{TOOL_NAME} {VERSION}
+{ToolName} {ToolVersion}
 
-Usage: {TOOL_NAME} [options] package-url...
+Usage: {ToolName} [options] package-url...
 
 positional arguments:
   package-url                   package url to analyze (required, multiple allowed), or directory.

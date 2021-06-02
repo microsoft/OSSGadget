@@ -1,6 +1,7 @@
 ﻿using Microsoft.CST.OpenSource.Model;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -12,7 +13,7 @@ namespace Microsoft.CST.OpenSource.Shared
     {
         public static JsonElement? GetJSONPropertyIfExists(JsonElement? element, string keyName)
         {
-            if (element is JsonElement elem && string.IsNullOrWhiteSpace(keyName))
+            if (element is JsonElement elem && !string.IsNullOrWhiteSpace(keyName))
             {
                 try
                 {
@@ -100,6 +101,17 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             retItem = default(T) ?? new T();
             return false;
+        }
+
+        public static string NormalizeStringForFileSystem(string s)
+        {
+            if (string.IsNullOrWhiteSpace(s))
+            {
+                return s;
+            }
+            var invalidChars = Path.GetInvalidFileNameChars();
+            var result = new string((s.Select(ch => invalidChars.Contains(ch) ? '_' : ch) ?? Array.Empty<char>()).ToArray());
+            return result;
         }
 
         private const int MAX_FIELD_LENGTH = 65535;

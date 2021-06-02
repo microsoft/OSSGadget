@@ -31,16 +31,16 @@ namespace Microsoft.CST.OpenSource
                 HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze
             public IEnumerable<string> Targets { get => targets; set => targets = value; }
 
-            private IEnumerable<string> targets;
+            private IEnumerable<string> targets = Array.Empty<string>();
         }
 
         public MetadataTool() : base()
         {
         }
 
-        private static async Task<PackageMetadata> GetPackageMetadata(PackageURL purl)
+        private static async Task<PackageMetadata?> GetPackageMetadata(PackageURL purl)
         {
-            PackageMetadata metadata = null;
+            PackageMetadata? metadata = null;
             try
             {
                 // Use reflection to find the correct downloader class
@@ -64,6 +64,7 @@ namespace Microsoft.CST.OpenSource
         /// <param name="args"> parameters passed in from the user </param>
         private static async Task Main(string[] args)
         {
+            ShowToolBanner();
             var metadataTool = new MetadataTool();
             await metadataTool.ParseOptions<Options>(args).WithParsedAsync(metadataTool.RunAsync);
         }
@@ -72,7 +73,7 @@ namespace Microsoft.CST.OpenSource
         {
             // select output destination and format
             SelectOutput(options.OutputFile);
-            PackageMetadata metadata = null;
+            PackageMetadata? metadata = null;
             if (options.Targets is IList<string> targetList && targetList.Count > 0)
             {
                 foreach (var target in targetList)

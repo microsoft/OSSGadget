@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Shared
@@ -126,7 +127,8 @@ namespace Microsoft.CST.OpenSource.Shared
 
                 foreach (var navItem in navItems)
                 {
-                    if (navItem.TextContent == "..")
+                    Console.WriteLine("[" + navItem.TextContent + "]");
+                    if (string.IsNullOrWhiteSpace(Regex.Replace(navItem.TextContent, @"\s", "").Replace(".", "")))
                     {
                         continue;
                     }
@@ -137,7 +139,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Debug(ex, $"Error enumerating Cocoapods packages: {ex.Message}");
+                Logger.Warn("Unable to enumerate versions: {0}", ex.Message);
                 throw;
             }
         }

@@ -16,21 +16,12 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using WebAssembly; // Acquire from https://www.nuget.org/packages/WebAssembly
 using WebAssembly.Instructions;
+using Microsoft.ApplicationInspector.Commands;
 
 namespace Microsoft.CST.OpenSource
 {
     public class DetectCryptographyTool : OSSGadget
     {
-        /// <summary>
-        ///     Name of this tool.
-        /// </summary>
-        private const string TOOL_NAME = "oss-detect-cryptography";
-
-        /// <summary>
-        ///     Holds the version string, from the assembly.
-        /// </summary>
-        private static readonly string VERSION = typeof(DetectCryptographyTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
-
         /// <summary>
         ///     Command line options
         /// </summary>
@@ -57,8 +48,8 @@ namespace Microsoft.CST.OpenSource
         /// <param name="args"> parameters passed in from the user </param>
         private static async Task Main(string[] args)
         {
+            ShowToolBanner();
             DetectCryptographyTool detectCryptographyTool = new DetectCryptographyTool();
-            Logger.Info($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
 
             detectCryptographyTool.ParseOptions(args);
 
@@ -156,6 +147,14 @@ namespace Microsoft.CST.OpenSource
                             else
                             {
                                 sb.AppendLine($"[ ] {target} - This software package does NOT contains words that suggest cryptography.");
+                            }
+
+                            foreach (var t in otherTags)
+                            {
+                                if (t.Contains("cryptography", StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    sb.AppendLine($"[X] {target} - This software references [{t}].");
+                                }
                             }
 
                             if ((bool?)detectCryptographyTool.Options["verbose"] == true)
@@ -394,6 +393,26 @@ namespace Microsoft.CST.OpenSource
             if (Options["disable-default-rules"] is bool disableDefaultRules && !disableDefaultRules)
             {
                 var assembly = Assembly.GetExecutingAssembly();
+                foreach (var resourceName in assembly.GetManifestResourceNames())
+                {
+                    Console.WriteLine(resourceName);
+                    if (resourceName.EndsWith(".json"))
+                    {
+                        try
+                        {
+                            var stream = assembly.GetManifestResourceStream(resourceName);
+                            using var resourceStream = new StreamReader(stream ?? new MemoryStream());
+                            rules.AddString(resourceStream.ReadToEnd(), resourceName);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Warn(ex, "Error loading {0}: {1}", resourceName, ex.Message);
+                        }
+                    }
+                }
+
+                // Add Appliation Inspector cryptography rules
+                assembly = typeof(ApplicationInspector.Commands.AnalyzeCommand).Assembly;
                 foreach (var resourceName in assembly.GetManifestResourceNames())
                 {
                     if (resourceName.EndsWith(".json"))
@@ -636,7 +655,7 @@ namespace Microsoft.CST.OpenSource
 
                     case "-v":
                     case "--version":
-                        Console.Error.WriteLine($"{TOOL_NAME} {VERSION}");
+                        Console.Error.WriteLine($"{ToolName} {ToolVersion}");
                         Environment.Exit(1);
                         break;
 
@@ -676,9 +695,9 @@ namespace Microsoft.CST.OpenSource
         private static void ShowUsage()
         {
             Console.Error.WriteLine($@"
-{TOOL_NAME} {VERSION}
+{ToolName} {ToolVersion}
 
-Usage: {TOOL_NAME} [options] package-url...
+Usage: {ToolName} [options] package-url...
 
 positional arguments:
     package-url                 PackgeURL specifier to download (required, repeats OK), or directory.

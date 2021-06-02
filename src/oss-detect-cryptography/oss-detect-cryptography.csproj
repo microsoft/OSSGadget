@@ -11,9 +11,9 @@
     <RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>
     <StartupObject>Microsoft.CST.OpenSource.DetectCryptographyTool</StartupObject>
     <LangVersion>9.0</LangVersion>
-    <Nullable>Enable</Nullable>
+    <Nullable>enable</Nullable>
     <RuntimeIdentifiers>win-x64;osx-x64;linux-x64</RuntimeIdentifiers>
-    <SelfContained>true</SelfContained>
+    <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,9 +25,13 @@
     <None Remove="Resources\CryptographyRules\implementation-signature.json" />
     <None Remove="Resources\CryptographyRules\implementation-stream-cipher.json" />
     <None Remove="Resources\CryptographyRules\implementation-symmetric.json" />
+    <None Remove="Resources\CryptographyRules\reference-common.json" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Resources\CryptographyRules\reference-common.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
     <EmbeddedResource Include="Resources\CryptographyRules\implementation-block-cipher.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
@@ -58,7 +62,8 @@
     <PackageReference Include="CommandLineParser" Version="2.9.0-preview1" />
     <PackageReference Include="ELFSharp" Version="2.12.0" />
     <PackageReference Include="ICSharpCode.Decompiler" Version="6.2.1.6137" />
-    <PackageReference Include="Microsoft.CST.DevSkim" Version="0.4.218" />
+    <PackageReference Include="Microsoft.CST.ApplicationInspector.Commands" Version="1.2.100" />
+    <PackageReference Include="Microsoft.CST.DevSkim" Version="0.4.234" />
     <PackageReference Include="PeNet" Version="2.6.2" />
     <PackageReference Include="SharpDisasm" Version="1.1.11" />
     <PackageReference Include="WebAssembly" Version="0.11.0" />

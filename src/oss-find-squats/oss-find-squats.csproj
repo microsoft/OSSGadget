@@ -5,15 +5,15 @@
     <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>Microsoft.CST.OpenSource</RootNamespace>
     <Company>Microsoft Corporation</Company>
-    <Description>OSS Gadget - Source Code Locator</Description>
+    <Description>OSS Gadget - Package Typosquatting Detector</Description>
     <Authors>Gabe Stocco</Authors>
     <RepositoryType>GitHub</RepositoryType>
     <RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>
     <Configurations>Debug;Release</Configurations>
     <LangVersion>9.0</LangVersion>
-    <Nullable>Enable</Nullable>
+    <Nullable>enable</Nullable>
     <RuntimeIdentifiers>win-x64;osx-x64;linux-x64</RuntimeIdentifiers>
-    <SelfContained>true</SelfContained>
+    <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
   </PropertyGroup>
 
   <ItemGroup>

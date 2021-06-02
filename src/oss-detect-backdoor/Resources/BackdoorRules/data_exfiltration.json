@@ -45,7 +45,7 @@
     "severity": "important",
     "patterns": [
       {
-        "pattern": "(env|environment){1,50}(get|post|curl|nc|invoke-restmethod)",
+        "pattern": "(env|environment).{1,50}(get|post|curl|nc|invoke-restmethod)",
         "type": "regex",
         "scopes": [ "code", "comment" ],
         "modifiers": [ "i" ],
@@ -60,7 +60,7 @@
       },
       {
         "pattern": "process.env",
-        "type": "regex",
+        "type": "string",
         "scopes": [ "code" ],
         "confidence": "low"
       }

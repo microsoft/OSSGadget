@@ -103,7 +103,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Debug(ex, $"Error enumerating NPM package: {ex.Message}");
+                Logger.Warn("Unable to enumerate versions: {0}", ex.Message);
                 throw;
             }
         }
@@ -144,7 +144,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <summary>
         ///     Gets the structured metadata for the npm package
         /// </summary>
-        /// <param name="purl"> </param>
+        /// <param name="purl">PackageURL to retrieve metadata for</param>
         /// <returns> </returns>
         public override async Task<PackageMetadata> GetPackageMetadata(PackageURL purl)
         {
@@ -178,11 +178,11 @@ namespace Microsoft.CST.OpenSource.Shared
             }
 
             // if we found any version at all, get the deets
-            if (metadata.PackageVersion is not null)
+            if (metadata.PackageVersion != null)
             {
                 Version versionToGet = new Version(metadata.PackageVersion);
                 JsonElement? versionElement = GetVersionElement(contentJSON, versionToGet);
-                if (versionElement is not null)
+                if (versionElement != null)
                 {
                     // redo the generic values to version specific values
                     metadata.Package_Uri = $"{ENV_NPM_ENDPOINT}/package/{metadata.Name}";
@@ -330,7 +330,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 JsonElement versionsJSON = root.GetProperty("versions");
                 foreach (JsonProperty versionProperty in versionsJSON.EnumerateObject())
                 {
-                    if (versionProperty.Name == version.ToString())
+                    if (string.Equals(versionProperty.Name, version.ToString(), StringComparison.InvariantCultureIgnoreCase))
                     {
                         return versionsJSON.GetProperty(version.ToString());
                     }

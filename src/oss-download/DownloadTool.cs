@@ -51,21 +51,12 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        ///     Name of this tool.
-        /// </summary>
-        private const string TOOL_NAME = "oss-download";
-
-        /// <summary>
-        ///     Holds the version string, from the assembly.
-        /// </summary>
-        private static readonly string VERSION = typeof(DownloadTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
-
-        /// <summary>
         ///     Main entrypoint for the download program.
         /// </summary>
         /// <param name="args"> parameters passed in from the user </param>
         private static async Task Main(string[] args)
         {
+            ShowToolBanner();
             var downloadTool = new DownloadTool();
             await downloadTool.ParseOptions<Options>(args).WithParsedAsync(downloadTool.RunAsync);
         }

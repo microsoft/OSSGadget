@@ -278,6 +278,7 @@ namespace Microsoft.CST.OpenSource
         /// <param name="args"> parameters passed in from the user </param>
         private static async Task Main(string[] args)
         {
+            ShowToolBanner();
             var characteristicTool = new CharacteristicTool();
             await characteristicTool.ParseOptions<Options>(args).WithParsedAsync(characteristicTool.RunAsync);
         }

@@ -75,11 +75,11 @@ namespace Microsoft.CST.OpenSource.DiffTool
             [Value(0, Required = true,
                 HelpText = "Exactly two Filenames or PackgeURL specifiers to analyze.", Hidden = true)] // capture all targets to analyze
             public IEnumerable<string> Targets { get; set; } = Array.Empty<string>();
-
-            
         }
+
         static async Task Main(string[] args)
         {
+            ShowToolBanner();
             var originalColor = Console.ForegroundColor;
             Console.CancelKeyPress += delegate {
                 Console.ForegroundColor = originalColor;

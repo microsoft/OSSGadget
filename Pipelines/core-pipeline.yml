@@ -25,16 +25,15 @@ stages:
   - template: templates/dotnet-test-job.yml
     parameters:
       projectPath: 'src/oss-tests/oss-tests.csproj'
-      arguments: '--runtime win-x64'
 
 - stage: Build
   dependsOn: Test
   jobs:
   - template: templates/dotnet-build-publish-all-platforms-job.yml
     parameters:
-      projectPath: 'src/OSSGadget.sln'
+      solutionPath: 'src/OSSGadget.sln'
+      csprojPath: 'src/**/!(CryptoGatherer)/*.csproj'
       projectName: 'OSSGadget'
-      buildArguments: '-p:SelfContained=false'
       preBuild:
       - template: templates/nbgv-set-version-steps.yml
 

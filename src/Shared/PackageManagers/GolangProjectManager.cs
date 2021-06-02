@@ -1,25 +1,29 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using AngleSharp.Html.Parser;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
-    internal class HackageProjectManager : BaseProjectManager
+    internal class GolangProjectManager : BaseProjectManager
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        public static string ENV_HACKAGE_ENDPOINT = "https://hackage.haskell.org";
+        public static string ENV_GO_PROXY_ENDPOINT = "https://proxy.golang.org";
 
-        public HackageProjectManager(string destinationDirectory) : base(destinationDirectory)
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
+        public static string ENV_GO_PKG_ENDPOINT = "https://pkg.go.dev";
+
+        public GolangProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
         }
 
         /// <summary>
-        ///     Download one Hackage (Haskell) package and extract it to the target directory.
+        ///     Download one RubyGems package and extract it to the target directory.
         /// </summary>
         /// <param name="purl"> Package URL of the package to download. </param>
         /// <returns> n/a </returns>
@@ -27,23 +31,25 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
+            var packageNamespace = purl?.Namespace;
             var packageName = purl?.Name;
             var packageVersion = purl?.Version;
             var downloadedPaths = new List<string>();
 
-            if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
+            if (string.IsNullOrWhiteSpace(packageNamespace) || string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
             {
-                Logger.Debug("Unable to download [{0} {1}]. Both must be defined.", packageName, packageVersion);
+                Logger.Debug("Unable to download [{0} {1} {2}]. All three must be defined.", packageNamespace, packageName, packageVersion);
                 return downloadedPaths;
             }
+
             try
             {
-                var url = $"{ENV_HACKAGE_ENDPOINT}/package/{packageName}-{packageVersion}/{packageName}-{packageVersion}.tar.gz";
+                var url = $"{ENV_GO_PROXY_ENDPOINT}/{packageNamespace.ToLowerInvariant()}/{packageName.ToLowerInvariant()}/@v/{packageVersion}.zip";
                 var result = await WebClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
-                Logger.Debug("Downloading {0}...", purl?.ToString());
+                Logger.Debug("Downloading {0}...", purl);
 
-                var targetName = $"hackage-{packageName}@{packageVersion}";
+                var targetName = $"golang-{packageNamespace}-{packageName}@{packageVersion}";
                 string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                 if (doExtract && Directory.Exists(extractionPath) && cached == true)
                 {
@@ -63,7 +69,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Debug(ex, "Error downloading Hackage package: {0}", ex.Message);
+                Logger.Debug(ex, "Error downloading Go package: {0}", ex.Message);
             }
             return downloadedPaths;
         }
@@ -78,34 +84,32 @@ namespace Microsoft.CST.OpenSource.Shared
 
             try
             {
-                var packageName = purl.Name;
-                var html = await WebClient.GetAsync($"{ENV_HACKAGE_ENDPOINT}/package/{packageName}");
-                html.EnsureSuccessStatusCode();
-                var parser = new HtmlParser();
-                var document = await parser.ParseDocumentAsync(await html.Content.ReadAsStringAsync());
-                var ths = document.QuerySelectorAll("th");
+                var packageNamespaceLower = purl?.Namespace?.ToLowerInvariant();
+                var packageNameLower = purl?.Name?.ToLowerInvariant();
                 var versionList = new List<string>();
-                foreach (var th in ths)
+                var doc = await GetHttpStringCache($"{ENV_GO_PROXY_ENDPOINT}/{packageNamespaceLower}/{packageNameLower}/@v/list");
+                if (doc != null)
                 {
-                    if (th.TextContent.StartsWith("Versions"))
+                    foreach (var line in doc.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
                     {
-                        var td = th.NextElementSibling;
-                        foreach (var version in td.QuerySelectorAll("a,strong"))
+                        var lineTrim = line.Trim();
+                        if (!string.IsNullOrEmpty(lineTrim))
                         {
-                            var versionString = version.TextContent.ToLower().Trim();
-                            Logger.Debug("Identified {0} version {1}.", packageName, versionString);
-                            versionList.Add(versionString);
+                            Logger.Debug("Identified {0}/{1} version {2}.", purl?.Namespace, purl?.Name, lineTrim);
+                            versionList.Add(line);
                         }
-                        break;
                     }
                 }
-
+                else
+                {
+                    throw new Exception("Invalid response from Go Proxy.");
+                }
                 return SortVersions(versionList.Distinct());
             }
             catch (Exception ex)
             {
                 Logger.Warn("Unable to enumerate versions: {0}", ex.Message);
-                throw;
+                return Array.Empty<string>();
             }
         }
 
@@ -113,20 +117,30 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             try
             {
-                var packageName = purl.Name;
-                var content = await GetHttpStringCache($"{ENV_HACKAGE_ENDPOINT}/package/{packageName}");
-                return content;
+                var versions = await EnumerateVersions(purl);
+                if (versions.Any())
+                {
+                    var latestVersion = versions.Last();
+                    var packageNamespaceLower = purl?.Namespace?.ToLowerInvariant();
+                    var packageNameLower = purl?.Name?.ToLowerInvariant();
+                    var content = await GetHttpStringCache($"{ENV_GO_PROXY_ENDPOINT}/{packageNamespaceLower}/{packageNameLower}/@v/{latestVersion}.mod");
+                    return content;
+                }
+                else
+                {
+                    throw new Exception("Unable to enumerate verisons.");
+                }
             }
             catch (Exception ex)
             {
-                Logger.Debug(ex, $"Error fetching Hackage metadata: {ex.Message}");
+                Logger.Debug(ex, "Error fetching metadata: {0}", ex.Message);
                 return null;
             }
         }
 
         public override Uri GetPackageAbsoluteUri(PackageURL purl)
         {
-            return new Uri($"{ENV_HACKAGE_ENDPOINT}/package/{purl?.Name}");
+            return new Uri($"{ENV_GO_PKG_ENDPOINT}/{purl?.Namespace}/{purl?.Name}");
         }
     }
 }

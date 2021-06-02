@@ -81,6 +81,7 @@ namespace Microsoft.CST.OpenSource
 
         private static async Task Main(string[] args)
         {
+            ShowToolBanner();
             var healthTool = new HealthTool();
             await healthTool.ParseOptions<Options>(args).WithParsedAsync(healthTool.RunAsync);
         }

@@ -18,7 +18,7 @@ using Microsoft.ApplicationInspector.RulesEngine;
 
 namespace Microsoft.CST.OpenSource
 {
-    internal class RiskCalculatorTool : OSSGadget
+    public class RiskCalculatorTool : OSSGadget
     {
         public class Options
         {
@@ -191,6 +191,7 @@ namespace Microsoft.CST.OpenSource
         /// <param name="args"> parameters passed in from the user </param>
         private static async Task Main(string[] args)
         {
+            ShowToolBanner();
             var riskCalculator = new RiskCalculatorTool();
             await riskCalculator.ParseOptions<Options>(args).WithParsedAsync(riskCalculator.RunAsync);
         }

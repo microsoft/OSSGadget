@@ -23,16 +23,6 @@ namespace Microsoft.CST.OpenSource.DomainSquats
 {
     public class FindDomainSquatsTool : OSSGadget
     {
-        /// <summary>
-        ///     Name of this tool.
-        /// </summary>
-        private const string TOOL_NAME = "oss-find-domain-squats";
-
-        /// <summary>
-        ///     Holds the version string, from the assembly.
-        /// </summary>
-        private static readonly string VERSION = typeof(FindSquats.FindSquatsTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
-
         Generative gen { get; set; }
 
         public class Options
@@ -81,6 +71,8 @@ namespace Microsoft.CST.OpenSource.DomainSquats
 
         static async Task Main(string[] args)
         {
+            ShowToolBanner();
+
             var findSquatsTool = new FindDomainSquatsTool();
             (string output, int numRegisteredSquats, int numUnregisteredSquats) = (string.Empty, 0, 0);
             await findSquatsTool.ParseOptions<Options>(args).WithParsedAsync<Options>(findSquatsTool.RunAsync);

@@ -32,7 +32,7 @@ stages:
   - template: templates/dotnet-build-publish-all-platforms-job.yml
     parameters:
       solutionPath: 'src/OSSGadget.sln'
-      csprojPath: 'src/**/*.csproj'
+      csprojPath: 'src/**/!(CryptoGatherer)/*.csproj'
       projectName: 'OSSGadget'
       preBuild:
       - template: templates/nbgv-set-version-steps.yml

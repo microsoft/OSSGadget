@@ -73,18 +73,24 @@ jobs:
       command: 'publish'
       projects: '${{ parameters.csprojPath }}'
       arguments: '-c ${{ parameters.buildConfiguration }} -r linux-x64'
+      publishWebProjects: false
+      zipAfterPublish: false
   - task: DotNetCoreCLI@2
     displayName: Recursive Publish Csproj MacOS x64
     inputs:
       command: 'publish'
       projects: '${{ parameters.csprojPath }}'
       arguments: '-c ${{ parameters.buildConfiguration }} -r osx-x64'
+      publishWebProjects: false
+      zipAfterPublish: false
   - task: DotNetCoreCLI@2
     displayName: Recursive Publish Csproj Win x64
     inputs:
       command: 'publish'
       projects: '${{ parameters.csprojPath }}'
       arguments: '-c ${{ parameters.buildConfiguration }} -r win-x64'
+      publishWebProjects: false
+      zipAfterPublish: false
   - task: DotNetCoreCLI@2
     displayName: Publish Linux x64
     inputs:

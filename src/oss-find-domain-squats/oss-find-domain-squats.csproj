@@ -13,6 +13,7 @@
     <LangVersion>9.0</LangVersion>
     <Nullable>enable</Nullable>
     <RuntimeIdentifiers>win-x64;osx-x64;linux-x64</RuntimeIdentifiers>
+    <ValidateExecutableReferencesMatchSelfContained>false<ValidateExecutableReferencesMatchSelfContained>
   </PropertyGroup>
 
   <ItemGroup>

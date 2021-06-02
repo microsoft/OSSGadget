@@ -31,7 +31,8 @@ stages:
   jobs:
   - template: templates/dotnet-build-publish-all-platforms-job.yml
     parameters:
-      projectPath: 'src/OSSGadget.sln'
+      solutionPath: 'src/OSSGadget.sln'
+      csprojPath: 'src/**/*.csproj'
       projectName: 'OSSGadget'
       preBuild:
       - template: templates/nbgv-set-version-steps.yml

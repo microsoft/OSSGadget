@@ -25,7 +25,6 @@ stages:
   - template: templates/dotnet-test-job.yml
     parameters:
       projectPath: 'src/oss-tests/oss-tests.csproj'
-      arguments: '--runtime win-x64'
 
 - stage: Build
   dependsOn: Test
@@ -34,7 +33,6 @@ stages:
     parameters:
       projectPath: 'src/OSSGadget.sln'
       projectName: 'OSSGadget'
-      buildArguments: '-p:SelfContained=false'
       preBuild:
       - template: templates/nbgv-set-version-steps.yml
 

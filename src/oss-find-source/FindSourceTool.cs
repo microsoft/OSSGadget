@@ -188,6 +188,7 @@ namespace Microsoft.CST.OpenSource
 
         private async Task RunAsync(Options options)
         {
+            // Save the console logger to restore it later if we are in single mode
             var oldConfig = LogManager.Configuration.FindTargetByName("consoleLog");
             if (!options.Single)
             {
@@ -195,6 +196,7 @@ namespace Microsoft.CST.OpenSource
             }
             else
             {
+                // Suppress console logging for single mode
                 LogManager.Configuration.RemoveTarget("consoleLog");
             }
             // select output destination and format
@@ -226,7 +228,8 @@ namespace Microsoft.CST.OpenSource
                 outputBuilder.PrintOutput();
             }
             RestoreOutput();
-            if (!options.Single)
+            // Restore console logging if we were in single mode
+            if (options.Single)
             {
                 LogManager.Configuration.AddTarget(oldConfig);
             }

@@ -22,10 +22,12 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("0.1,0.3,0.2", "0.3,0.2,0.1")]
         [DataRow("0.04,0.03,0.02", "0.04,0.03,0.02")]
         [DataRow("1,23,99,0,0", "99,23,1,0,0")]
+        [DataRow("1.2.3,1.2.3.4,1.2.4", "1.2.4,1.2.3.4,1.2.3")]
         [DataRow("1.0.1pre-1,1.0.1pre-2,1.2,1.0", "1.2,1.0.1pre-2,1.0.1pre-1,1.0")]
         [DataRow("foo", "foo")]
         [DataRow("v1,v3,v2", "v3,v2,v1")]
         [DataRow("v1-rc1,v3-rc3,v2-rc2", "v3-rc3,v2-rc2,v1-rc1")]
+        [DataRow("v1-rc1,v1-rc3,v1-rc2", "v1-rc3,v1-rc2,v1-rc1")]
         [DataRow("234,73", "234,73")]
         [DataRow("73,234", "234,73")]
         public async Task TestVersionSort(string preSortS, string postSortS)

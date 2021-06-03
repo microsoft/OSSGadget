@@ -443,10 +443,9 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
 
         /// <summary>
         ///     Static HttpClient for use in all HTTP connections.
+        ///      Class throws a NullExceptionError in the constructor if this is null.
         /// </summary>
 #nullable disable
-
-        /// Class throws a NullExceptionError in the constructor if this is null.
         protected static HttpClient WebClient;
 
 #nullable enable

@@ -80,9 +80,9 @@ namespace Microsoft.CST.OpenSource
                 HelpText = "send the command output to a file instead of stdout")]
             public string OutputFile { get; set; } = "";
 
-            [Option('s', "show-all", Required = false, Default = false,
-                HelpText = "show all possibilities of the package source repositories")]
-            public bool ShowAll { get; set; }
+            [Option('S', "single", Required = false, Default = false,
+                HelpText = "show only top possibility of the package source repositories")]
+            public bool Single { get; set; }
 
             [Value(0, Required = true,
                 HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze
@@ -178,7 +178,14 @@ namespace Microsoft.CST.OpenSource
                         var purl = new PackageURL(target);
                         var results = FindSource(purl).Result.ToList();
                         results.Sort((b, a) => a.Value.CompareTo(b.Value));
-                        AppendOutput(outputBuilder, purl, results);
+                        if (options.Single)
+                        {
+                            AppendOutput(outputBuilder, purl, new List<KeyValuePair<PackageURL, double>>() { results[0] });
+                        }
+                        else
+                        {
+                            AppendOutput(outputBuilder, purl, results);
+                        }
                     }
                     catch (Exception ex)
                     {

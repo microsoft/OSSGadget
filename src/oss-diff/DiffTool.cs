@@ -134,7 +134,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
             {
                 foreach (var file in Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories))
                 {
-                    files.TryAdd(string.Join(Path.DirectorySeparatorChar, file[directory.Length..].Split(Path.DirectorySeparatorChar)[2..]), (file, string.Empty));
+                    files[string.Join(Path.DirectorySeparatorChar, file[directory.Length..].Split(Path.DirectorySeparatorChar)[2..])] = (file, string.Empty);
                 }
             }
 

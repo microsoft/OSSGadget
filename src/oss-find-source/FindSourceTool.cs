@@ -4,6 +4,7 @@ using CommandLine;
 using CommandLine.Text;
 using Microsoft.CodeAnalysis.Sarif;
 using Microsoft.CST.OpenSource.Shared;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -81,7 +82,7 @@ namespace Microsoft.CST.OpenSource
             public string OutputFile { get; set; } = "";
 
             [Option('S', "single", Required = false, Default = false,
-                HelpText = "show only top possibility of the package source repositories")]
+                HelpText = "Show only top possibility of the package source repositories. When using text format the *only* output will be the URL or empty string if error or not found.")]
             public bool Single { get; set; }
 
             [Value(0, Required = true,
@@ -137,7 +138,6 @@ namespace Microsoft.CST.OpenSource
 
         private static async Task Main(string[] args)
         {
-            ShowToolBanner();
             var findSourceTool = new FindSourceTool();
             await findSourceTool.ParseOptions<Options>(args).WithParsedAsync(findSourceTool.RunAsync);
         }
@@ -164,8 +164,39 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
+        /// <summary>
+        ///     Convert findSourceTool results into output format
+        /// </summary>
+        /// <param name="outputBuilder"> </param>
+        /// <param name="purl"> </param>
+        /// <param name="results"> </param>
+        private void AppendSingleOutput(IOutputBuilder outputBuilder, PackageURL purl, KeyValuePair<PackageURL, double> result)
+        {
+            switch (currentOutputFormat)
+            {
+                case OutputFormat.text:
+                default:
+                    outputBuilder.AppendOutput(new string[] { $"https://github.com/{result.Key.Namespace}/{result.Key.Name}" });
+                    break;
+
+                case OutputFormat.sarifv1:
+                case OutputFormat.sarifv2:
+                    outputBuilder.AppendOutput(GetSarifResults(purl, new List<KeyValuePair<PackageURL, double>>() { result }));
+                    break;
+            }
+        }
+
         private async Task RunAsync(Options options)
         {
+            var oldConfig = LogManager.Configuration.FindTargetByName("consoleLog");
+            if (!options.Single)
+            {
+                ShowToolBanner();
+            }
+            else
+            {
+                LogManager.Configuration.RemoveTarget("consoleLog");
+            }
             // select output destination and format
             SelectOutput(options.OutputFile);
             IOutputBuilder outputBuilder = SelectFormat(options.Format);
@@ -180,7 +211,7 @@ namespace Microsoft.CST.OpenSource
                         results.Sort((b, a) => a.Value.CompareTo(b.Value));
                         if (options.Single)
                         {
-                            AppendOutput(outputBuilder, purl, new List<KeyValuePair<PackageURL, double>>() { results[0] });
+                            AppendSingleOutput(outputBuilder, purl, results[0]);
                         }
                         else
                         {
@@ -195,6 +226,10 @@ namespace Microsoft.CST.OpenSource
                 outputBuilder.PrintOutput();
             }
             RestoreOutput();
+            if (!options.Single)
+            {
+                LogManager.Configuration.AddTarget(oldConfig);
+            }
         }
     }
 }

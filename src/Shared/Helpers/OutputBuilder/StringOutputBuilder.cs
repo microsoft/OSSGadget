@@ -14,12 +14,13 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             lock (stringResults)
             {
-                foreach (var entry in output)
+                if (output is IEnumerable<string> strings)
                 {
-                    if (entry is string stringEntry)
-                    {
-                        stringResults.Add(stringEntry);
-                    }
+                    stringResults.AddRange(strings);
+                }
+                else
+                {
+                    throw new ArgumentException("output must be of type IEnumerable<string> when calling this OutputBuilder.");
                 }
             }
         }

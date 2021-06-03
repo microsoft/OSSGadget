@@ -73,7 +73,7 @@
     "severity": "moderate",
     "patterns": [
       {
-        "pattern": "node [^\\s]+\\.js",
+        "pattern": "(pre|post|)install\"\\s*:\\s*\"node [^\\s]+\\.js",
         "type": "regex",
         "scopes": [ "code" ],
         "modifiers": [ "i" ],

@@ -34,5 +34,23 @@
         "confidence": "high"
       }
     ]
+  },
+  {
+    "name": "Backdoor: gohack.xyz",
+    "id": "BD000201",
+    "description": "Backdoor: gohack.xyz",
+    "tags": [
+      "Security.Backdoor.Signature.gohackxyz"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": "gohack.xyz",
+        "type": "string",
+        "scopes": [ "code", "comment" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      }
+    ]
   }
 ]

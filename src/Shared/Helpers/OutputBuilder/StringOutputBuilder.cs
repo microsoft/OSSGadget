@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -11,11 +12,14 @@ namespace Microsoft.CST.OpenSource.Shared
         /// exception </summary> <param name="output">An IEnumerable<string> object</param>
         public void AppendOutput(IEnumerable<object> output)
         {
-            foreach(var entry in output)
+            lock (stringResults)
             {
-                if (entry is string stringEntry)
+                foreach (var entry in output)
                 {
-                    stringResults.Add(stringEntry);
+                    if (entry is string stringEntry)
+                    {
+                        stringResults.Add(stringEntry);
+                    }
                 }
             }
         }
@@ -49,6 +53,6 @@ namespace Microsoft.CST.OpenSource.Shared
             }
         }
 
-        private List<string> stringResults = new List<string>();
+        private List<string> stringResults = new();
     }
 }

@@ -1,15 +1,16 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
     public class StringOutputBuilder : IOutputBuilder
     {
-        /// <summary> Append more text to the result An incompatible object input will result in InvalidCast
-        /// exception </summary> <param name="output">An IEnumerable<string> object</param>
+        /// <summary> 
+        /// Append more text to the result An incompatible object input will result in ArgumentException
+        /// exception 
+        /// </summary> 
+        /// <param name="output">An IEnumerable<string> object</param>
         public void AppendOutput(IEnumerable<object> output)
         {
             lock (stringResults)
@@ -31,7 +32,7 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        ///     Prints to the currently selected output
+        ///     Prints to the console
         /// </summary>
         public void PrintOutput()
         {
@@ -54,6 +55,6 @@ namespace Microsoft.CST.OpenSource.Shared
             }
         }
 
-        private List<string> stringResults = new();
+        private readonly List<string> stringResults = new();
     }
 }

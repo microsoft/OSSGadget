@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
-    public class ProjectManagerFactory
+    public static class ProjectManagerFactory
     {
         public static BaseProjectManager CreateBaseProjectManager(string destinationDirectory)
         {

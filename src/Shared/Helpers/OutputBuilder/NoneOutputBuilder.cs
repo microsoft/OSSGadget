@@ -25,5 +25,7 @@ namespace Microsoft.CST.OpenSource.Shared
         public void PrintOutput()
         {
         }
+
+        public void WriteOutput(string fileName) { }
     }
 }

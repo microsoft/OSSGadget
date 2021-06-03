@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -88,20 +89,18 @@ namespace Microsoft.CST.OpenSource.DiffTool
             await diffTool.ParseOptions<Options>(args).WithParsedAsync<Options>(diffTool.RunAsync);
         }
 
-        public async Task<string> DiffProjects(Options options)
+        public async Task<IOutputBuilder> DiffProjects(Options options)
         {
             var extractor = new Extractor();
-            var diffObjs = new List<Diff>();
             var outputBuilder = OutputBuilderFactory.CreateOutputBuilder(options.Format);
             if (outputBuilder is null)
             {
                 Logger.Error($"Format {options.Format} is not supported.");
-                return string.Empty;
+                throw new ArgumentOutOfRangeException("options.Format", $"Format {options.Format} is not supported.");
             }
 
-
             // Map relative location in package to actual location on disk
-            Dictionary<string, (string, string)> files = new Dictionary<string, (string, string)>();
+            ConcurrentDictionary<string, (string, string)> files = new ConcurrentDictionary<string, (string, string)>();
             IEnumerable<string> locations = Array.Empty<string>();
             IEnumerable<string> locations2 = Array.Empty<string>();
 
@@ -115,7 +114,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
                     locations = await manager.DownloadVersion(purl1, true, options.UseCache);
                 }
             }
-            catch(Exception)
+            catch (Exception)
             {
                 var tmpDir = Path.GetTempFileName();
                 File.Delete(tmpDir);
@@ -135,7 +134,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
             {
                 foreach (var file in Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories))
                 {
-                    files.Add(string.Join(Path.DirectorySeparatorChar, file[directory.Length..].Split(Path.DirectorySeparatorChar)[2..]), (file, string.Empty));
+                    files.TryAdd(string.Join(Path.DirectorySeparatorChar, file[directory.Length..].Split(Path.DirectorySeparatorChar)[2..]), (file, string.Empty));
                 }
             }
 
@@ -149,7 +148,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
                     locations2 = await manager2.DownloadVersion(purl2, true, options.UseCache);
                 }
             }
-            catch(Exception)
+            catch (Exception)
             {
                 var tmpDir = Path.GetTempFileName();
                 File.Delete(tmpDir);
@@ -183,20 +182,22 @@ namespace Microsoft.CST.OpenSource.DiffTool
                 }
             }
 
-            foreach (var filePair in files)
+            Parallel.ForEach(files, filePair =>
             {
+                var diffObjs = new ConcurrentBag<Diff>();
+
                 if (options.CrawlArchives)
                 {
                     using Stream fs1 = !string.IsNullOrEmpty(filePair.Value.Item1) ? File.OpenRead(filePair.Value.Item1) : new MemoryStream();
                     using Stream fs2 = !string.IsNullOrEmpty(filePair.Value.Item2) ? File.OpenRead(filePair.Value.Item2) : new MemoryStream();
-                    var entries1 = extractor.Extract(new FileEntry(filePair.Key, fs1));
-                    var entries2 = extractor.Extract(new FileEntry(filePair.Key, fs2));
-                    var entryPairs = new Dictionary<string, (FileEntry?, FileEntry?)>();
+                    var entries1 = extractor.Extract(new FileEntry(filePair.Key, fs1), new ExtractorOptions() { Parallel = false, MemoryStreamCutoff = 1 });
+                    var entries2 = extractor.Extract(new FileEntry(filePair.Key, fs2), new ExtractorOptions() { Parallel = false, MemoryStreamCutoff = 1 });
+                    var entryPairs = new ConcurrentDictionary<string, (FileEntry?, FileEntry?)>();
                     foreach (var entry in entries1)
                     {
-                        entryPairs.Add(entry.FullPath, (entry, null));
+                        entryPairs[entry.FullPath] = (entry, null);
                     }
-                    foreach(var entry in entries2)
+                    foreach (var entry in entries2)
                     {
                         if (entryPairs.ContainsKey(entry.FullPath))
                         {
@@ -204,11 +205,11 @@ namespace Microsoft.CST.OpenSource.DiffTool
                         }
                         else
                         {
-                            entryPairs.Add(entry.FullPath, (null, entry));
+                            entryPairs[entry.FullPath] = (null, entry);
                         }
                     }
 
-                    foreach(var entryPair in entryPairs)
+                    foreach (var entryPair in entryPairs)
                     {
                         var text1 = string.Empty;
                         var text2 = string.Empty;
@@ -252,20 +253,22 @@ namespace Microsoft.CST.OpenSource.DiffTool
                         outputBuilder.AppendOutput(new string[] { filePair.Key });
                     }
                 }
+                var diffObjList = diffObjs.ToList();
+                // Arrange the diffs in line order
+                diffObjList.Sort((x, y) => x.startLine1.CompareTo(y.startLine1));
 
-                diffObjs.Sort((x,y) => x.startLine1.CompareTo(y.startLine1));
-                foreach (var diff in diffObjs)
+                foreach (var diff in diffObjList)
                 {
                     var sb = new StringBuilder();
                     // Write Context Format
-                    if(options.Context > 0 || options.After > 0 || options.Before > 0)
+                    if (options.Context > 0 || options.After > 0 || options.Before > 0)
                     {
                         sb.AppendLine($"*** {diff.startLine1 - diff.beforeContext.Count},{diff.endLine1 + diff.afterContext.Count} ****");
-                            
+
                         diff.beforeContext.ForEach(x => sb.AppendLine(options.DownloadDirectory is not null ? $"  {x}" : $"  {x}".Pastel(Color.Gray)));
                         diff.text1.ForEach(x => sb.AppendLine(options.DownloadDirectory is not null ? $"- {x}" : $"- {x}".Pastel(Color.Red)));
                         diff.afterContext.ForEach(x => sb.AppendLine(options.DownloadDirectory is not null ? $"  {x}" : $"  {x}".Pastel(Color.Gray)));
-                            
+
                         if (diff.startLine2 > -1)
                         {
                             sb.AppendLine($"--- {diff.startLine2 - diff.beforeContext.Count},{diff.endLine2 + diff.afterContext.Count} ----");
@@ -280,13 +283,13 @@ namespace Microsoft.CST.OpenSource.DiffTool
                     {
                         if (diff.text1.Any() && diff.text2.Any())
                         {
-                            sb.Append(Math.Max(diff.startLine1,0));
+                            sb.Append(Math.Max(diff.startLine1, 0));
                             if (diff.endLine1 != diff.startLine1)
                             {
                                 sb.Append($",{diff.endLine1}");
                             }
                             sb.Append('c');
-                            sb.Append(Math.Max(diff.startLine2,0));
+                            sb.Append(Math.Max(diff.startLine2, 0));
                             if (diff.endLine2 != diff.startLine2)
                             {
                                 sb.Append($",{diff.endLine2}");
@@ -298,21 +301,21 @@ namespace Microsoft.CST.OpenSource.DiffTool
                         }
                         else if (diff.text1.Any())
                         {
-                            sb.Append(Math.Max(diff.startLine1,0));
+                            sb.Append(Math.Max(diff.startLine1, 0));
                             if (diff.endLine1 != diff.startLine1)
                             {
                                 sb.Append($",{diff.endLine1}");
                             }
                             sb.Append('d');
-                            sb.Append(Math.Max(diff.endLine2,0));
+                            sb.Append(Math.Max(diff.endLine2, 0));
                             sb.Append(Environment.NewLine);
                             diff.text1.ForEach(x => sb.AppendLine(options.DownloadDirectory is not null ? $"< {x}" : $"< {x}".Pastel(Color.Red)));
                         }
                         else if (diff.text2.Any())
                         {
-                            sb.Append(Math.Max(diff.startLine1,0));
+                            sb.Append(Math.Max(diff.startLine1, 0));
                             sb.Append('a');
-                            sb.Append(Math.Max(diff.startLine2,0));
+                            sb.Append(Math.Max(diff.startLine2, 0));
                             if (diff.endLine2 != diff.startLine2)
                             {
                                 sb.Append($",{diff.endLine2}");
@@ -379,7 +382,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
                                 break;
                             case ChangeType.Deleted:
                                 lineNumber1++;
-                                    
+
                                 if (diffObj.lastLineType == Diff.LineType.Context || (diffObj.endLine1 != -1 && lineNumber1 - diffObj.endLine1 > 1 && diffObj.lastLineType != Diff.LineType.Removed))
                                 {
                                     diffObjs.Add(diffObj);
@@ -399,12 +402,12 @@ namespace Microsoft.CST.OpenSource.DiffTool
 
                                 afterCount = options.After;
                                 diffObj.AddText1(line.Text);
-                                    
+
                                 break;
                             default:
                                 lineNumber1++;
                                 lineNumber2++;
-                                    
+
                                 if (options.Context == -1)
                                 {
                                     diffObj.AddAfterContext(line.Text);
@@ -436,7 +439,8 @@ namespace Microsoft.CST.OpenSource.DiffTool
                         diffObjs.Add(diffObj);
                     }
                 }
-            }
+            });
+            
 
             if (!options.UseCache)
             {
@@ -450,7 +454,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
                 }
             }
             
-            return outputBuilder.GetOutput();
+            return outputBuilder;
         }
 
         public async Task RunAsync(Options options)
@@ -471,12 +475,11 @@ namespace Microsoft.CST.OpenSource.DiffTool
 
             if (options.OutputLocation is null)
             {
-                Console.Write(result);
+                result.PrintOutput();
             }
             else
             {
-                Directory.CreateDirectory(options.OutputLocation);
-                File.WriteAllText(options.OutputLocation, result);
+                result.WriteOutput(options.OutputLocation);
             }
         }
     }

@@ -88,7 +88,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
             await diffTool.ParseOptions<Options>(args).WithParsedAsync<Options>(diffTool.RunAsync);
         }
 
-        public async Task<string> DiffProjects(Options options)
+        public async Task<IOutputBuilder> DiffProjects(Options options)
         {
             var extractor = new Extractor();
             var diffObjs = new List<Diff>();
@@ -96,9 +96,8 @@ namespace Microsoft.CST.OpenSource.DiffTool
             if (outputBuilder is null)
             {
                 Logger.Error($"Format {options.Format} is not supported.");
-                return string.Empty;
+                throw new ArgumentOutOfRangeException("options.Format", $"Format {options.Format} is not supported.");
             }
-
 
             // Map relative location in package to actual location on disk
             Dictionary<string, (string, string)> files = new Dictionary<string, (string, string)>();
@@ -450,7 +449,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
                 }
             }
             
-            return outputBuilder.GetOutput();
+            return outputBuilder;
         }
 
         public async Task RunAsync(Options options)
@@ -471,12 +470,11 @@ namespace Microsoft.CST.OpenSource.DiffTool
 
             if (options.OutputLocation is null)
             {
-                Console.Write(result);
+                result.PrintOutput();
             }
             else
             {
-                Directory.CreateDirectory(options.OutputLocation);
-                File.WriteAllText(options.OutputLocation, result);
+                result.WriteOutput(options.OutputLocation);
             }
         }
     }

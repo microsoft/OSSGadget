@@ -24,5 +24,10 @@ namespace Microsoft.CST.OpenSource.Shared
         ///     Print the format string representation to the currently selected output
         /// </summary>
         public void PrintOutput();
+
+        /// <summary>
+        ///     Write the output to the given file. Creating directory if needed.
+        /// </summary>
+        public void WriteOutput(string fileName);
     }
 }

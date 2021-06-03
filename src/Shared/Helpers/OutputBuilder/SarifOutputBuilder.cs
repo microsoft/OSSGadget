@@ -112,6 +112,16 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
+        ///     Write the output to the given file. Creating directory if needed.
+        /// </summary>
+        public void WriteOutput(string fileName)
+        {
+            using var fs = new FileStream(fileName, FileMode.Create, FileAccess.ReadWrite);
+            using var sw = new StreamWriter(fs);
+            PrintSarifLog(sw);
+        }
+
+        /// <summary>
         ///     Print the whole SARIF log to the stream
         /// </summary>
         /// <param name="writeStream"> </param>

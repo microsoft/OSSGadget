@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace Microsoft.CST.OpenSource.Shared
@@ -10,12 +11,18 @@ namespace Microsoft.CST.OpenSource.Shared
         /// exception </summary> <param name="output">An IEnumerable<string> object</param>
         public void AppendOutput(IEnumerable<object> output)
         {
-            stringResults.Append($"{string.Join(Environment.NewLine, (IEnumerable<string>)output)}{Environment.NewLine}");
+            foreach(var entry in output)
+            {
+                if (entry is string stringEntry)
+                {
+                    stringResults.Add(stringEntry);
+                }
+            }
         }
 
         public string GetOutput()
         {
-            return stringResults.ToString();
+            return string.Join(Environment.NewLine, stringResults);
         }
 
         /// <summary>
@@ -23,9 +30,25 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         public void PrintOutput()
         {
-            Console.Out.Write(this.GetOutput());
+            foreach(var result in stringResults)
+            {
+                Console.Out.WriteLine(result);
+            }
         }
 
-        private StringBuilder stringResults = new StringBuilder();
+        /// <summary>
+        ///     Write the output to the given file. Creating directory if needed.
+        /// </summary>
+        public void WriteOutput(string fileName)
+        {
+            using var fs = new FileStream(fileName, FileMode.Create, FileAccess.ReadWrite);
+            using var sw = new StreamWriter(fs);
+            foreach(var result in stringResults)
+            {
+                sw.WriteLine(result);
+            }
+        }
+
+        private List<string> stringResults = new List<string>();
     }
 }

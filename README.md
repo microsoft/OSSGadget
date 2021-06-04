@@ -6,6 +6,7 @@
 
 OSS Gadget is a collection of tools that can help analyze open source projects. These are intended to make it simple to perform low-level tasks, like locating the source code of a given package, downloading it, performing basic analyses on it, or estimating its health. The tools included in OSS Gadget will grow over time.
 
+### Included Tools
 A list of tools included is below.  Click on the name of a tool to go to the wiki for usage information.
 
 * [oss-characteristic](https://github.com/microsoft/OSSGadget/wiki/OSS-Characteristics): Identify a package's notable characteristics and features. Uses
@@ -24,8 +25,7 @@ A list of tools included is below.  Click on the name of a tool to go to the wik
 
 All OSS Gadget tools accept one or more [Package URLs](https://github.com/package-url/purl-spec) as a way to uniquely identify a package. Package URLs look like `pkg:npm/express` or `pkg:gem/azure@0.7.10`. If you leave the version number off, it implicitly means, "attempt to find the latest version". Using an asterisk (`pkg:npm/express@*`) means "perform the action on all available versions".
 
-More detailed descriptions of the tools are in the wiki under [Detailed Tool Information]( https://github.com/microsoft/OSSGadget/wiki/Detailed-Tool-Information).
-
+### Package Sources
 OSS Gadget supports packages provided by these sources:
 
 * Cargo - `pkg:cargo/...`
@@ -47,7 +47,7 @@ OSS Gadget supports packages provided by these sources:
 
 We will continue expanding this list to cover additional package management systems and would be happy to accept contributions from the community.
 
-### Basic Usage
+## Basic Usage
 
 All OSS Gadget tools are command line programs. When installed globally, they can be accessed from your path. For example, to download the NPM left-pad module, type:
 
@@ -70,11 +70,11 @@ See [Docker Image](https://github.com/microsoft/OSSGadget/wiki/Docker-Image) in 
 ### Advanced Usage
 See [Advanced Usage](https://github.com/microsoft/OSSGadget/wiki/Advanced-Usage) in the wiki for advanced usage information like changing API endpoints.
 
-## Reporting Security Vulnerabilities
+### Reporting Security Vulnerabilities
 
 To report a security vulnerability, please see [SECURITY.md](SECURITY.md).
 
-## Contributing to OSS Gadget
+### Contributing to OSS Gadget
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us

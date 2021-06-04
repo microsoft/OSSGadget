@@ -11,15 +11,15 @@ A list of tools included is below.  Click on the name of a tool to go to the wik
 * [oss-characteristic](https://github.com/microsoft/OSSGadget/wiki/OSS-Characteristics): Identify a package's notable characteristics and features. Uses
   [Application Inspector](https://github.com/Microsoft/ApplicationInspector).
 * [oss-defog](https://github.com/microsoft/OSSGadget/wiki/OSS-Defog): Searches a package for obfuscated strings (Base-64).
-* *oss-detect-backdoor*: Identifies *potential* backdoors and malicious code within a package. Currently has a high false-positive rate.
-* *oss-detect-cryptography*: Identifies cryptographic implementations within a package.
-* *oss-diff*: Compares two packages using a standard diff/patch view.
+* [oss-detect-backdoor](https://github.com/microsoft/OSSGadget/wiki/OSS-Detect-Backdoor): Identifies *potential* backdoors and malicious code within a package. Currently has a high false-positive rate.
+* [oss-detect-cryptography](https://github.com/microsoft/OSSGadget/wiki/OSS-Detect-Cryptography): Identifies cryptographic implementations within a package.
+* [oss-diff](https://github.com/microsoft/OSSGadget/wiki/OSS-Diff): Compares two packages using a standard diff/patch view.
 * [oss-download](https://github.com/microsoft/OSSGadget/wiki/OSS-Download): Downloads a package and extracts it locally.
-* *oss-find-domain-squats*: Identifies potential typo-squatting for a given domain name.
+* [oss-find-domain-squats](https://github.com/microsoft/OSSGadget/wiki/OSS-Find-Domain-Squats): Identifies potential typo-squatting for a given domain name.
 * [oss-find-source](https://github.com/microsoft/OSSGadget/wiki/OSS-Find-Source): Attempts to locate the source code (on GitHub, currently) of a given package.
-* *oss-find-squats*: Identifies potential typo-squatting for a given package.
+* [oss-find-squats](https://github.com/microsoft/OSSGadget/wiki/OSS-Find-Squats): Identifies potential typo-squatting for a given package.
 * [oss-health](https://github.com/microsoft/OSSGadget/wiki/OSS-Health): Calculates health metrics for a given package.
-* *oss-metadata*: Normalizes metadata about a package into a common schema.
+* [oss-metadata](https://github.com/microsoft/OSSGadget/wiki/OSS-Metadata): Normalizes metadata about a package into a common schema.
 * [oss-risk-calculator](https://github.com/microsoft/OSSGadget/wiki/OSS-Risk-Calculator): Calculates a metric for risk of using a package.
 
 All OSS Gadget tools accept one or more [Package URLs](https://github.com/package-url/purl-spec) as a way to uniquely identify a package. Package URLs look like `pkg:npm/express` or `pkg:gem/azure@0.7.10`. If you leave the version number off, it implicitly means, "attempt to find the latest version". Using an asterisk (`pkg:npm/express@*`) means "perform the action on all available versions".

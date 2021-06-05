@@ -83,7 +83,7 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         ///     Java Classes
         /// </summary>
-        public static readonly byte[] JavaMagicNumber = HexStringToBytes("CAFEBEBE");
+        public static readonly byte[] JavaMagicNumber = HexStringToBytes("CAFEBABE");
 
         /// <summary>
         ///     Mac Binary Magic numbers
@@ -99,7 +99,7 @@ namespace Microsoft.CST.OpenSource
             // 64 Bit Binary (reverse byte ordering)
             HexStringToBytes("CFFAEDFE"),
             // "Fat Binary"
-            HexStringToBytes("CAFEBEBE")
+            HexStringToBytes("CAFEBABE")
         };
 
         /// <summary>

@@ -1,0 +1,12 @@
+/.github/
+/.vs/
+/Pipelines/
+/.gitattributes
+/.gitignore
+/version.json
+/CodeMaid.config
+/*.md
+/*.png
+/*.svg
+/*.txt
+.editorconfig

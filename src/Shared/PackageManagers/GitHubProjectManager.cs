@@ -113,12 +113,17 @@ namespace Microsoft.CST.OpenSource.Shared
                     $"{url}/archive/refs/tags/{packageVersion}.zip",
                     $"{url}/archive/{packageVersion}.zip",
                     $"{url}/archive/refs/heads/{packageVersion}.zip",
+                    $"{url}/archive/refs/tags/v{packageVersion}.zip",
+                    $"{url}/archive/v{packageVersion}.zip",
+                    $"{url}/archive/refs/heads/v{packageVersion}.zip",
                 };
                 foreach (var archiveUrl in archiveUrls)
                 {
+                    Logger.Debug("Attemping to download {0}", archiveUrl);
                     var result = await WebClient.GetAsync(archiveUrl);
                     if (result.IsSuccessStatusCode)
                     {
+                        Logger.Debug("Download successful.");
                         if (doExtract)
                         {
                             downloadedPaths.Add(await ExtractArchive(extractionPath, await result.Content.ReadAsByteArrayAsync(), cached));

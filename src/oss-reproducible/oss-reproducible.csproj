@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>oss_reproducible</RootNamespace>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="BuildHelperScripts\gem\autobuild.sh" />
+    <None Remove="BuildHelperScripts\npm-1.sh" />
+    <None Remove="BuildHelperScripts\npm\bluebird.build" />
+    <None Remove="BuildHelperScripts\npm\bluebird.prebuild" />
+    <None Remove="Strategies\PackageIgnoreList.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="BuildHelperScripts\gem\autobuild.sh">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="BuildHelperScripts\npm\bluebird.build">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="BuildHelperScripts\npm\bluebird.prebuild">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="BuildHelperScripts\npm\autobuild.sh">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Strategies\PackageIgnoreList.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SharpCompress" Version="0.28.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\oss-download\oss-download.csproj" />
+    <ProjectReference Include="..\oss-find-source\oss-find-source.csproj" />
+    <ProjectReference Include="..\Shared\Shared.csproj" />
+  </ItemGroup>
+
+</Project>

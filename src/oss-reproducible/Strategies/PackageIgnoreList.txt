@@ -1,0 +1,12 @@
+﻿# All files
+*:*:^.*\.txt$
+*:*:^.*\.md$
+*:*:^.*changelog(\.[a-z]+)?$
+
+# NPM
+# Oryx performs a full build, which puts a lot of content in node_modules, which isn't useful.
+npm:OryxBuildStrategy:^.*/node_modules/.*$
+
+# RubyGems
+gem:*:^.*metadata\.gz/metadata$
+gem:*:^.*checksums\.yaml\.gz/checksums\.yaml$

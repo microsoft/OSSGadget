@@ -114,8 +114,9 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 var packageName = purl.Name;
-                var content = await GetHttpStringCache($"{ENV_RUBYGEMS_ENDPOINT_API}/api/v1/versions/{packageName}.json");
-                return content;
+                var contentVersion = await GetHttpStringCache($"{ENV_RUBYGEMS_ENDPOINT_API}/api/v1/versions/{packageName}.json") ?? "";
+                var contentGem = await GetHttpStringCache($"{ENV_RUBYGEMS_ENDPOINT_API}/api/v1/gems/{packageName}.json") ?? "";
+                return contentVersion + contentGem;
             }
             catch (Exception ex)
             {

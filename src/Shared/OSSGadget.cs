@@ -63,6 +63,7 @@ namespace Microsoft.CST.OpenSource
             return parserResult;
         }
 
+
         /// <summary>
         ///     Restores the output stream to Console, if it was changed to something else
         /// </summary>
@@ -126,9 +127,10 @@ namespace Microsoft.CST.OpenSource
 
         public static void ShowToolBanner()
         {
+            Console.WriteLine(OSSGadget.GetBanner());
             var toolName = GetToolName();
             var toolVersion = GetToolVersion();
-            Logger.Info($"OSS Gadget - {toolName} {toolVersion} - github.com/Microsoft/OSSGadget");
+            Console.WriteLine($"OSS Gadget - {toolName} {toolVersion} - github.com/Microsoft/OSSGadget");
         }
 
 
@@ -156,6 +158,19 @@ namespace Microsoft.CST.OpenSource
             var versionAttributes = assembly.GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false) as AssemblyInformationalVersionAttribute[];
             var version = versionAttributes?[0].InformationalVersion;
             return version ?? "Unknown";
+        }
+
+        public static string GetBanner()
+        {
+            return @"
+   ____   _____ _____    _____           _            _   
+  / __ \ / ____/ ____|  / ____|         | |          | |  
+ | |  | | (___| (___   | |  __  __ _  __| | __ _  ___| |_ 
+ | |  | |\___ \\___ \  | | |_ |/ _` |/ _` |/ _` |/ _ \ __|
+ | |__| |____) |___) | | |__| | (_| | (_| | (_| |  __/ |_ 
+  \____/|_____/_____/   \_____|\__,_|\__,_|\__, |\___|\__|
+                                            __/ |         
+                                           |___/          ";
         }
 
         private bool redirectConsole = false;

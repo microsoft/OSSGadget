@@ -136,7 +136,7 @@ namespace Microsoft.CST.OpenSource
             return stringOutput;
         }
 
-        private static async Task Main(string[] args)
+        static async Task Main(string[] args)
         {
             var findSourceTool = new FindSourceTool();
             await findSourceTool.ParseOptions<Options>(args).WithParsedAsync(findSourceTool.RunAsync);

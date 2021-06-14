@@ -158,8 +158,17 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 var packageName = purl.Name;
-                var content = await GetHttpStringCache($"{ENV_CPAN_ENDPOINT}/release/{packageName}");
-                return content;
+                if (packageName != null)
+                {
+                    var contentRelease = await GetHttpStringCache($"{ENV_CPAN_ENDPOINT}/release/{packageName}");
+                    var contentPod = await GetHttpStringCache($"{ENV_CPAN_ENDPOINT}/pod/{packageName.Replace("-", "::")}");
+                    return contentRelease + "\n" + contentPod;
+                }
+                else
+                {
+                    return "";
+                }
+
             }
             catch (Exception ex)
             {

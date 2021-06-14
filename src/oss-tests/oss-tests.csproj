@@ -35,6 +35,7 @@
     <ProjectReference Include="..\oss-find-source\oss-find-source.csproj" />
     <ProjectReference Include="..\oss-find-squats\oss-find-squats.csproj" />
     <ProjectReference Include="..\oss-health\oss-health.csproj" />
+    <ProjectReference Include="..\oss-reproducible\oss-reproducible.csproj" />
     <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>
   <ItemGroup>

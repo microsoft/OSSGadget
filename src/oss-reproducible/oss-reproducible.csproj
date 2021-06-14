@@ -17,6 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="BuildHelperScripts\cpan\autobuild.sh" />
     <None Remove="BuildHelperScripts\gem\autobuild.sh" />
     <None Remove="BuildHelperScripts\npm-1.sh" />
     <None Remove="BuildHelperScripts\npm\bluebird.build" />
@@ -25,6 +26,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="BuildHelperScripts\cpan\autobuild.sh">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="BuildHelperScripts\gem\autobuild.sh">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

@@ -59,16 +59,18 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         public virtual StrategyPriority PRIORITY => StrategyPriority.None;
 
         /// <summary>
-        ///     Logger for each of the subclasses
+        /// Logger for each of the subclasses
         /// </summary>
         protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
+        public abstract bool StrategyApplies();
+        public abstract StrategyResult? Execute();
+
 
         public BaseStrategy(StrategyOptions options)
         {
             this.Options = options;
         }
-
-        //public static string ReadableName { get => Regex.Replace(Regex.Replace(this.GetType().Name, @"(\P{Ll})(\P{Ll}\p{Ll})", "$1 $2"), @"(\p{Ll})(\P{Ll})", "$1 $2"); }
 
         /// <summary>
         /// Locates all strategies (meaning, classes derived from BaseStrategy).
@@ -103,13 +105,8 @@ namespace Microsoft.CST.OpenSource.Reproducibility
             return strategies;
         }
 
-        public abstract bool StrategyApplies();
-        public abstract StrategyResult? Execute();
-
         protected static string? GetPathToCommand(IEnumerable<string> commands)
         {
-            var results = new List<string>();
-
             foreach (var command in commands)
             {
                 string[]? pathParts = null;
@@ -134,7 +131,6 @@ namespace Microsoft.CST.OpenSource.Reproducibility
             }
             return null;
         }
-        public string? GetPathToCommand(string command) => GetPathToCommand(new[] { command });
 
         /// <summary>
         /// This is a failure-resistent version of .CreateFromDirectory or .AddDirectory, both of which fail under various
@@ -143,7 +139,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         /// <param name="directoryName">Directory to zip</param>
         /// <param name="archiveName">File to write to.</param>
         /// <returns>true iff no errors occur</returns>
-        protected bool CreateZipFromDirectory(string directoryName, string archiveName)
+        protected static bool CreateZipFromDirectory(string directoryName, string archiveName)
         {
             var result = true;
             // Note that we're not using something like .CreateFromDirectory, or .AddDirectory, since both of these had problems
@@ -170,7 +166,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
             }
             return result;
         }
-        public bool RunCommand(string workingDirectory, string filename, IEnumerable<string> args, out string? stdout, out string? stderr)
+        public static bool RunCommand(string workingDirectory, string filename, IEnumerable<string> args, out string? stdout, out string? stderr)
         {
             Logger.Debug("RunCommand({0})", filename);
 
@@ -217,51 +213,22 @@ namespace Microsoft.CST.OpenSource.Reproducibility
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
 
-            process.WaitForExit();
+            // Apply a timeout 
+            var timeout = 1000 * 60 * 15; // 15 minute default timeout
+            var envTimeout = Environment.GetEnvironmentVariable("OSS_REPRODUCIBLE_COMMAND_TIMEOUT");
+            if (envTimeout != null)
+            {
+                if (int.TryParse(envTimeout, out var envTimeoutInt))
+                {
+                    timeout = envTimeoutInt;
+                }
+            }
+            process.WaitForExit(timeout);
             
             stdout = sbStdout.ToString();
             stderr = sbStderr.ToString();
 
             return process.ExitCode == 0;
         }
-
-
-       
-
-        /*
-        public bool IsDirectorySubset2(PackageURL packageUrl, string? fullDirectory, string? partialDirectory)
-        {
-            Logger.Debug("IsDirectorySubset({0}, {1})", fullDirectory, partialDirectory);
-
-            if (fullDirectory == null || partialDirectory == null || 
-                !Directory.Exists(fullDirectory) || !Directory.Exists(partialDirectory))
-            {
-                Logger.Warn("Directory does not exist.");
-                throw new DirectoryNotFoundException("Directory does not exist.");
-            }
-
-            var result = true;
-            var fullHashSet = new HashSet<string>();
-            foreach (var fileHash in GenerateDirectoryHashes(packageUrl, fullDirectory))
-            {
-                fullHashSet.Add(fileHash.Value);
-            }
-            Logger.Debug("Full directory has {0} entries.", fullHashSet.Count);
-
-            foreach (var fileHash in GenerateDirectoryHashes(packageUrl, partialDirectory))
-            {
-                if (!fullHashSet.Contains(fileHash.Value))
-                {
-                    Logger.Debug($"File: [{fileHash.Key}] with hash [{fileHash.Value}] does not exist in source directory.");
-                    result = false;
-                }
-            }
-            return result;
-        }
-        */
-
-
-
-       
     }
 }

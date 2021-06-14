@@ -56,6 +56,10 @@ namespace Microsoft.CST.OpenSource
             [Option('o', "output-file", Required = false, Default = "", HelpText = "Send the command output to a file instead of standard output")]
             public string OutputFile { get; set; } = "";
 
+            [Option('l', "leave-intermediate", Required = false, Default = false,
+                HelpText = "Do not clean up intermediate files (useful for debugging).")]
+            public bool LeaveIntermediateFiles { get; set; }
+
         }
 
         public ReproducibleTool() : base()
@@ -110,10 +114,10 @@ namespace Microsoft.CST.OpenSource
                         // Locate the source
                         Console.WriteLine("Locating source...");
                         var findSourceTool = new FindSourceTool();
-                        var sourceMap = await findSourceTool.FindSource(purl);
+                        var sourceMap = await findSourceTool.FindSourceAsync(purl);
                         if (!sourceMap.Any())
                         {
-                            Logger.Warn("Unable to locate source.");
+                            Logger.Warn("Unable to locate source. Trying 'master'");
                             continue;
                         }
                         var sourceMapList = sourceMap.ToList();
@@ -129,14 +133,20 @@ namespace Microsoft.CST.OpenSource
 
                         // Download the source
                         Console.WriteLine("Downloading source...");
-                        packageDownloader = new PackageDownloader(bestSourcePurl, Path.Join(tempDirectoryName, "src"));
-                        downloadResults = await packageDownloader.DownloadPackageLocalCopy(bestSourcePurl, false, true);
-                        if (!downloadResults.Any() && !string.IsNullOrWhiteSpace(options.OverrideSourceReference))
+                        foreach (var reference in new[] { bestSourcePurl.Version, options.OverrideSourceReference, "master", "main" })
                         {
-                            Logger.Debug("Unable to download package, trying with commit {0}", options.OverrideSourceReference);
-                            var purlCommit = new PackageURL(bestSourcePurl.Type, bestSourcePurl.Namespace, bestSourcePurl.Name, options.OverrideSourceReference, bestSourcePurl.Qualifiers, bestSourcePurl.Subpath);
-                            packageDownloader = new PackageDownloader(purlCommit, Path.Join(tempDirectoryName, "src"));
-                            downloadResults = await packageDownloader.DownloadPackageLocalCopy(purlCommit, false, true);
+                            if (string.IsNullOrWhiteSpace(reference))
+                            {
+                                continue;
+                            }
+                            Logger.Debug("Trying to download package, version/reference [{0}].", reference);
+                            var purlRef = new PackageURL(bestSourcePurl.Type, bestSourcePurl.Namespace, bestSourcePurl.Name, reference, bestSourcePurl.Qualifiers, bestSourcePurl.Subpath);
+                            packageDownloader = new PackageDownloader(purlRef, Path.Join(tempDirectoryName, "src"));
+                            downloadResults = await packageDownloader.DownloadPackageLocalCopy(purlRef, false, true);
+                            if (downloadResults.Any())
+                            {
+                                break;
+                            }
                         }
                         if (!downloadResults.Any())
                         {
@@ -278,27 +288,34 @@ namespace Microsoft.CST.OpenSource
                             catch(Exception ex)
                             {
                                 Logger.Warn(ex, "Unable to write to {0}. Writing to console instead.", options.OutputFile);
-                                Console.WriteLine(jsonResults);
+                                Console.Error.WriteLine(jsonResults);
                             }
                         }
                         else if (string.Equals(options.OutputFile, "-", StringComparison.InvariantCultureIgnoreCase))
                         {
-                            Console.WriteLine(jsonResults);
+                            Console.Error.WriteLine(jsonResults);
                         }
 
-                        // Clean up our temporary directory
-                        int numCleanTries = 3;
-                        while (numCleanTries-- > 0)
+                        if (options.LeaveIntermediateFiles)
                         {
-                            try
+                            Console.WriteLine($"Intermediate files are located in [{tempDirectoryName}].");
+                        }
+                        else
+                        {
+                            // Clean up our temporary directory
+                            int numCleanTries = 2;
+                            while (numCleanTries-- >= 0)
                             {
-                                Directory.Delete(tempDirectoryName, true);
-                                break;
-                            }
-                            catch (Exception ex)
-                            {
-                                Logger.Debug("Error deleting {0}, sleeping for 5 seconds.", tempDirectoryName);
-                                Thread.Sleep(5000);
+                                try
+                                {
+                                    Directory.Delete(tempDirectoryName, true);
+                                    break;
+                                }
+                                catch (Exception)
+                                {
+                                    Logger.Debug("Error deleting {0}, sleeping for 5 seconds.", tempDirectoryName);
+                                    Thread.Sleep(5000);
+                                }
                             }
                         }
                     }

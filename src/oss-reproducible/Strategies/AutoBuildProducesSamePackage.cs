@@ -22,7 +22,8 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         private static readonly Dictionary<string, string> DOCKER_CONTAINERS = new Dictionary<string, string>()
         {
             {"npm", "node:latest" },
-            {"gem", "ruby:latest" }
+            {"gem", "ruby:latest" },
+            {"cpan", "perl:latest" }
         };
 
         public override StrategyPriority PRIORITY => StrategyPriority.Medium;
@@ -45,10 +46,16 @@ namespace Microsoft.CST.OpenSource.Reproducibility
 
             if (!File.Exists(Path.Join("BuildHelperScripts", Options.PackageUrl?.Type, "autobuild.sh")))
             {
-                Logger.Trace("Strategy {0} does not apply because no autobuilder script could be found.");
+                Logger.Trace("Strategy {0} does not apply because no autobuilder script could be found.", this.GetType().Name);
                 return false;
             }
-            
+
+            if (GetPathToCommand(new[] { "docker" }) == null)
+            {
+                Logger.Debug("Strategy {0} cannot be used, as Docker does not appear to be installed.", this.GetType().Name);
+                return false;
+            }
+
             if (!DOCKER_CONTAINERS.TryGetValue(Options.PackageUrl?.Type!, out string? dockerContainerName))
             {
                 Logger.Debug("Strategy {0} does not apply because no docker container is known for type: {0}", Options.PackageUrl?.Type);

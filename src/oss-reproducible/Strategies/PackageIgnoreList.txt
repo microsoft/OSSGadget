@@ -10,3 +10,8 @@ npm:OryxBuildStrategy:^.*/node_modules/.*$
 # RubyGems
 gem:*:^.*metadata\.gz/metadata$
 gem:*:^.*checksums\.yaml\.gz/checksums\.yaml$
+
+# CPAN
+cpan:*:(^|.*/)META\.json$
+cpan:*:(^|.*/)META\.yml$
+cpan:*:(^|.*/)MANIFEST$

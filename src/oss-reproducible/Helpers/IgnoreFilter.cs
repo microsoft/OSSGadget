@@ -14,7 +14,12 @@ namespace Microsoft.CST.OpenSource.Reproducibility
     class IgnoreFilter
     {
         private static readonly List<string> FilterText;
+        
+        protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
+        /// <summary>
+        /// Initialiizes the ignore filter using the embedded resource.
+        /// </summary>
         static IgnoreFilter()
         {
             var assembly = Assembly.GetExecutingAssembly();
@@ -34,19 +39,30 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                     {
                         continue;  // Not a valid pattern
                     }
-
+                    Logger.Trace("Adding {0} to filter.", line);
                     FilterText.Add(line);
                 }
             }
+            else
+            {
+                Logger.Warn("Unable to find PackageIgnoreList.txt.");
+            }
         }
 
+        /// <summary>
+        /// Checks to see if a given file should be ignored when making a comparison.
+        /// </summary>
+        /// <param name="packageUrl"></param>
+        /// <param name="strategyName"></param>
+        /// <param name="filePath"></param>
+        /// <returns></returns>
         internal static bool IsIgnored(PackageURL? packageUrl, string strategyName, string filePath)
         {
+            var shouldIgnore = false;
             filePath = filePath.Replace("\\", "/").Trim();
-
             foreach (var filter in FilterText)
             {
-                var parts = filePath.Split(':', 3);
+                var parts = filter.Split(':', 3);
                 if (parts.Length != 3)
                 {
                     continue;   // Invalid line
@@ -58,14 +74,19 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 if (string.Equals(_packageManager, "*", StringComparison.InvariantCultureIgnoreCase) ||
                     string.Equals(_packageManager, packageUrl?.Type ?? "*", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    if (string.Equals(strategyName, "*", StringComparison.InvariantCultureIgnoreCase) || 
+                    if (string.Equals(_strategy, "*", StringComparison.InvariantCultureIgnoreCase) || 
                         string.Equals(strategyName, _strategy, StringComparison.InvariantCultureIgnoreCase))
                     {
-                        return Regex.IsMatch(filePath, _regex, RegexOptions.IgnoreCase);
+                        if (Regex.IsMatch(filePath, _regex, RegexOptions.IgnoreCase))
+                        {
+                            shouldIgnore = true;
+                            break;
+                        }
                     }
                 }
             }
-            return false;
+            Logger.Trace("IsIgnored({0}, {1}, {2} => {3}", packageUrl, strategyName, filePath, shouldIgnore);
+            return shouldIgnore;
         }
     }
 }

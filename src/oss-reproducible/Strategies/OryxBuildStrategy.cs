@@ -41,7 +41,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 Logger.Debug("Strategy {0} does not apply, as both source and package directories are required.", this.GetType().Name);
                 return false;
             }
-            if (GetPathToCommand("docker") == null)
+            if (GetPathToCommand(new[] { "docker" }) == null)
             {
                 Logger.Debug("Strategy {0} cannot be used, as Docker does not appear to be installed.", this.GetType().Name);
                 return false;

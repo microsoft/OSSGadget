@@ -31,7 +31,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         {
 
         }
-        internal IEnumerable<KeyValuePair<string, string>> GenerateDirectoryHashes(string directory)
+        internal static IEnumerable<KeyValuePair<string, string>> GenerateDirectoryHashes(string directory)
         {
             var results = new List<KeyValuePair<string, string>>();
             var hashFunction = SHA256.Create();

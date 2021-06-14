@@ -21,6 +21,12 @@ using System.Threading;
 
 namespace Microsoft.CST.OpenSource
 {
+    public class ReproducibleToolResult
+    {
+        public bool IsReproducible { get; set; } = false;
+        public List<StrategyResult>? Results { get; set; }
+    }
+
     public class ReproducibleTool : OSSGadget
     {
         public class Options
@@ -60,7 +66,7 @@ namespace Microsoft.CST.OpenSource
         ///     Main entrypoint for the download program.
         /// </summary>
         /// <param name="args"> parameters passed in from the user </param>
-        private static async Task Main(string[] args)
+        public static async Task Main(string[] args)
         {
             ShowToolBanner();
             Console.WriteLine();
@@ -254,8 +260,14 @@ namespace Microsoft.CST.OpenSource
                             Console.WriteLine($"  [✗] No, this package is not reproducible.");
                         }
 
+                        var finalResult = new ReproducibleToolResult
+                        {
+                            IsReproducible = overallStrategyResult,
+                            Results = strategyResults
+                        };
+
                         // Write the output somewhere
-                        var jsonResults = JsonSerializer.Serialize<List<StrategyResult>>(strategyResults, new JsonSerializerOptions { WriteIndented = true });
+                        var jsonResults = JsonSerializer.Serialize<ReproducibleToolResult>(finalResult, new JsonSerializerOptions { WriteIndented = true });
                         if (!string.IsNullOrWhiteSpace(options.OutputFile) && !string.Equals(options.OutputFile, "-", StringComparison.InvariantCultureIgnoreCase))
                         {
                             try

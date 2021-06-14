@@ -16,7 +16,6 @@ namespace Microsoft.CST.OpenSource.Tests
 
         [DataTestMethod]
         [DataRow("pkg:npm/left-pad@1.3.0", true)]
-        [DataRow("pkg:npm/bluebird@3.7.2", true)]
         [DataRow("pkg:npm/non-existent1267461827467@12421", null)]
         [DataRow("pkg:error/error", null)]
         public async Task CheckReproducibility(string packageUrl, bool? expectedToBeReproducible)

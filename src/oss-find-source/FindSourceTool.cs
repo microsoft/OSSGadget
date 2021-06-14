@@ -15,19 +15,24 @@ namespace Microsoft.CST.OpenSource
 {
     public class FindSourceTool : OSSGadget
     {
+        private static readonly HashSet<string> IGNORE_PURLS = new()
+        {
+            "pkg:github/metacpan/metacpan-web"
+        };
+
         public FindSourceTool() : base()
         {
         }
 
-        public async Task<Dictionary<PackageURL, double>> FindSource(PackageURL purl)
+        public async Task<Dictionary<PackageURL, double>> FindSourceAsync(PackageURL purl)
         {
-            Logger.Trace("FindSource({0})", purl);
+            Logger.Trace("FindSourceAsync({0})", purl);
 
             var repositoryMap = new Dictionary<PackageURL, double>();
 
             if (purl == null)
             {
-                Logger.Warn("FindSource was passed an invalid purl.");
+                Logger.Warn("FindSourceAsync was passed an invalid purl.");
                 return repositoryMap;
             }
 
@@ -40,6 +45,12 @@ namespace Microsoft.CST.OpenSource
                 RepoSearch repoSearcher = new RepoSearch();
                 var repos = await (repoSearcher.ResolvePackageLibraryAsync(purl) ??
                     Task.FromResult(new Dictionary<PackageURL, double>()));
+
+                foreach (var ignorePurl in IGNORE_PURLS)
+                {
+                    repos.Remove(new PackageURL(ignorePurl));
+                }
+
                 if (repos.Any())
                 {
                     foreach (var key in repos.Keys)
@@ -209,7 +220,7 @@ namespace Microsoft.CST.OpenSource
                     try
                     {
                         var purl = new PackageURL(target);
-                        var results = FindSource(purl).Result.ToList();
+                        var results = FindSourceAsync(purl).Result.ToList();
                         results.Sort((b, a) => a.Value.CompareTo(b.Value));
                         if (options.Single)
                         {

@@ -1,6 +1,7 @@
 ﻿# All files
 *:*:^.*\.txt$
 *:*:^.*\.md$
+*:*:^.*\.rst$
 *:*:^.*changelog(\.[a-z]+)?$
 
 # NPM
@@ -10,6 +11,13 @@ npm:OryxBuildStrategy:^.*/node_modules/.*$
 # RubyGems
 gem:*:^.*metadata\.gz/metadata$
 gem:*:^.*checksums\.yaml\.gz/checksums\.yaml$
+
+# PyPI
+pypi:*:(^|.*/)METADATA$
+pypi:*:(^|.*/)RECORD$
+pypi:*:(^|.*/)WHEEL$
+pypi:*:(^|.*/)PKG-INFO$
+pypi:*:(^|.*/)LICENSE$
 
 # CPAN
 cpan:*:(^|.*/)META\.json$

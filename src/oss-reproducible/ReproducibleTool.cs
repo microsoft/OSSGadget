@@ -18,6 +18,7 @@ using System.Text.RegularExpressions;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
 using System.Threading;
+using DiffPlex.DiffBuilder.Model;
 
 namespace Microsoft.CST.OpenSource
 {
@@ -48,6 +49,9 @@ namespace Microsoft.CST.OpenSource
             [Option('a', "all-strategies", Required = false, Default = false,
                 HelpText = "Execute all strategies, even after a successful one is identified.")]
             public bool AllStrategies { get; set; }
+            
+            [Option("specific-strategies", Required  = false)]
+            public string? SpecificStrategies { get; set; }
 
             [Option('s', "source-ref", Required = false, Default = "",
                 HelpText = "If a source version cannot be identified, use the specified git reference (tag, commit, etc.).")]
@@ -55,6 +59,10 @@ namespace Microsoft.CST.OpenSource
 
             [Option('o', "output-file", Required = false, Default = "", HelpText = "Send the command output to a file instead of standard output")]
             public string OutputFile { get; set; } = "";
+
+            [Option('d', "show-differences", Required = false, Default = false,
+                HelpText = "Output the differences between the package and the reference content.")]
+            public bool ShowDifferences { get; set; }
 
             [Option('l', "leave-intermediate", Required = false, Default = false,
                 HelpText = "Do not clean up intermediate files (useful for debugging).")]
@@ -80,6 +88,30 @@ namespace Microsoft.CST.OpenSource
 
         private async Task RunAsync(Options options)
         {
+            // Validate strategies (before we do any other processing
+            IEnumerable<Type>? runSpecificStrategies = null;
+            if (options.SpecificStrategies != null)
+            {
+                var requestedStrategies = options.SpecificStrategies.Split(',').Select(s => s.Trim().ToLowerInvariant()).Distinct();
+                runSpecificStrategies = typeof(BaseStrategy).Assembly.GetTypes()
+                    .Where(t => t.IsSubclassOf(typeof(BaseStrategy)))
+                    .Where(t => requestedStrategies.Contains(t.Name.ToLowerInvariant()));
+                Logger.Debug("Specific strategies requested: {0}", string.Join(", ", runSpecificStrategies.Select(t => t.Name)));
+
+                if (requestedStrategies.Count() != runSpecificStrategies.Count())
+                {
+                    Logger.Debug("Invalid strategies.");
+                    Console.WriteLine("Invalid strategy, available options are:");
+                    var allStrategies = typeof(BaseStrategy).Assembly.GetTypes().Where(t => t.IsSubclassOf(typeof(BaseStrategy)));
+                    foreach (var s in allStrategies)
+                    {
+                        Console.WriteLine($" * {s.Name}");
+                    }
+                    Console.WriteLine("Example: oss-reproducible --specific-strategies AutoBuildProducesSamePackage,PackageMatchesSourceStrategy pkg:npm/left-pad@1.3.0");
+                    return;
+                }
+            }
+
             if (options.Targets is IList<string> targetList && targetList.Count > 0)
             {
                 foreach (var target in targetList)
@@ -164,7 +196,11 @@ namespace Microsoft.CST.OpenSource
                         };
 
                         // First, check to see how many strategies apply
-                        var strategies = BaseStrategy.GetStrategies(strategyOptions) ?? Array.Empty<Type>();
+                        var strategies = runSpecificStrategies;
+                        if (strategies == null || !strategies.Any())
+                        {
+                            strategies = BaseStrategy.GetStrategies(strategyOptions) ?? Array.Empty<Type>();
+                        }
 
                         int numStrategiesApplies = 0;
                         foreach (var strategy in strategies)
@@ -226,6 +262,7 @@ namespace Microsoft.CST.OpenSource
                                 {
                                     var strategyObject = (BaseStrategy)(ctor.Invoke(new object?[] { tempStrategyOptions }));
                                     StrategyResult? strategyResult = strategyObject.Execute();
+                                    
                                     if (strategyResult != null)
                                     {
                                         strategyResults.Add(strategyResult);
@@ -239,12 +276,48 @@ namespace Microsoft.CST.OpenSource
                                             Console.WriteLine($"  [✓] {strategy.Name}");
                                             if (!options.AllStrategies)
                                             {
-                                                break;
+                                                break;   // TODO need to move this down or we won't see diffs
                                             }
                                         }
                                         else
                                         {
                                             Console.WriteLine($"  [✗] {strategy.Name}");
+                                        }
+
+                                        if (options.ShowDifferences)
+                                        {
+                                            foreach (var resultMessage in strategyResult.Messages)
+                                            {
+                                                
+                                                if (resultMessage.CompareFilename != null)
+                                                {
+                                                    Console.WriteLine($"      [PKG]: {resultMessage.Filename}");
+                                                    Console.WriteLine($"      [GEN]: {resultMessage.CompareFilename}");
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine($"      [PKG]: {resultMessage.Filename}");
+                                                }
+                                                var differences = resultMessage.Differences ?? Array.Empty<DiffPiece>();
+                                                foreach (var diff in differences)
+                                                {
+                                                    switch (diff.Type)
+                                                    {
+                                                        case ChangeType.Inserted:
+                                                            Console.WriteLine("      + " + diff.Text); break;
+                                                        case ChangeType.Deleted:
+                                                            Console.WriteLine("      - " + diff.Text); break;
+                                                        case ChangeType.Modified:
+                                                            Console.WriteLine("      * " + diff.Text); break;
+                                                        default:
+                                                            break;
+                                                    }
+                                                }
+                                                if (differences.Any())
+                                                {
+                                                    Console.WriteLine();
+                                                }
+                                            }
                                         }
                                     }
                                     else

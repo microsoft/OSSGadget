@@ -46,7 +46,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 Logger.Debug("Strategy {0} cannot be used, as Docker does not appear to be installed.", this.GetType().Name);
                 return false;
             }
-            return false;  // disabled
+            return true;
         }
 
         public override StrategyResult? Execute()
@@ -98,35 +98,10 @@ namespace Microsoft.CST.OpenSource.Reproducibility
             var targetPackageDirectory = Helpers.GetFirstNonSingularDirectory(Options.PackageDirectory);
             var targetPackedDirectory = Helpers.GetFirstNonSingularDirectory(unpackedDirectory);
 
-            var diffResults = Helpers.GetDirectoryDifferenceByFilename(targetPackageDirectory, targetPackedDirectory, Options.PackageUrl, this.GetType().Name);
-            if (!diffResults.Any())
-            {
-                strategyResult.Summary = "Successfully reproduced package.";
-                strategyResult.IsSuccess = true;
-                Logger.Debug("Strategy {0} succeeded. When running 'oryx build' on the source code repository, the results match the package contents.", this.GetType().Name);
-            }
-            else
-            {
-                strategyResult.Summary = "Failed to reproduce the package.";
-                strategyResult.IsSuccess = false;
+            var diffResults = Helpers.DirectoryDifference(Options.PackageDirectory!, unpackedDirectory);
+            diffResults = diffResults.Where(d => !IgnoreFilter.IsIgnored(Options.PackageUrl, this.GetType().Name, d.Filename));
+            Helpers.AddDifferencesToStrategyResult(strategyResult, diffResults);
 
-                foreach (var diffResult in diffResults)
-                {
-                    // We only care about files added to the package or modified from the repo. It's OK
-                    // that there are files in the repo that aren't in the package.
-                    if (diffResult.Operation == DirectoryDifferenceOperation.Added)
-                    {
-                        strategyResult.Messages.Add($"File [{diffResult.Filename}] exists in the package but was not produced during a build.");
-                        Logger.Debug("  [+] {0}", diffResult.Filename);
-                    }
-                    else if (diffResult.Operation == DirectoryDifferenceOperation.Modified)
-                    {
-                        strategyResult.Messages.Add($"File [{diffResult.Filename}] has different contents between the package and the build.");
-                        Logger.Debug("  [*] {0}", diffResult.Filename);
-                    }
-                }
-                Logger.Debug("Strategy {0} failed. The 'oryx build' command did not generate the same package contents.", this.GetType().Name);
-            }
             return strategyResult;
         }
     }

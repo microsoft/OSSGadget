@@ -1,4 +1,7 @@
-﻿using Microsoft.CST.OpenSource.Shared;
+﻿using DiffPlex.Chunkers;
+using DiffPlex.DiffBuilder;
+using DiffPlex.DiffBuilder.Model;
+using Microsoft.CST.OpenSource.Shared;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,6 +24,8 @@ namespace Microsoft.CST.OpenSource.Reproducibility
     {
         public string Filename { get; set; } = "";
         public DirectoryDifferenceOperation Operation { get; set; }
+        public string? ComparisonFile { get; set; }
+        public IEnumerable<DiffPiece>? Difference { get; set; } 
     }
 
     class Helpers
@@ -132,6 +137,129 @@ namespace Microsoft.CST.OpenSource.Reproducibility
             return resultsWithFilter;
         }
 
+        public static IEnumerable<DirectoryDifference> GetDirectoryDifferenceByContentSmarter(PackageURL packageUrl, string? leftDirectory, string? rightDirectory, string strategyName)
+        {
+            var results = new List<DirectoryDifference>();
+
+            Logger.Debug("GetDirectoryDifferenceByContent({0}, {1})", leftDirectory, rightDirectory);
+            if (leftDirectory == null || !Directory.Exists(leftDirectory))
+            {
+                throw new DirectoryNotFoundException($"Directory {leftDirectory} does not exist.");
+            }
+            if (rightDirectory == null || !Directory.Exists(rightDirectory))
+            {
+                throw new DirectoryNotFoundException($"Directory {rightDirectory} does not exist.");
+            }
+
+
+            var leftContent = GenerateDirectoryHashes2(packageUrl, strategyName, leftDirectory);
+            var rightContent = GenerateDirectoryHashes2(packageUrl, strategyName, rightDirectory);
+            
+            var onlyInLeft = leftContent.Keys.Except(rightContent.Keys);
+            var onlyInRight = rightContent.Keys.Except(leftContent.Keys);
+
+            results.AddRange(rightContent.Keys.Except(leftContent.Keys).Select(f => new DirectoryDifference { Filename = string.Join(',', rightContent[f]), Operation = DirectoryDifferenceOperation.Added }));
+            results.AddRange(leftContent.Keys.Except(rightContent.Keys).Select(f => new DirectoryDifference { Filename = string.Join(',', leftContent[f]), Operation = DirectoryDifferenceOperation.Removed }));
+
+            return results;
+        }
+
+        /// <summary>
+        /// Identifies all elements in leftDirectory that either don't exist in rightDirectory or exist with different content.
+        /// This function is "smart" in that it is resilient to changes in directory names, meaning:
+        ///   leftDirectory, file  = /foo/bar/quux/baz.txt
+        ///   rightDirectory, file = /bing/quux/baz.txt
+        /// These would be correctly classified as the same file.
+        /// If there was another file in rightDirectory:
+        ///   rightDirectory, file = /qwerty/bing/quux/baz.txt
+        /// Then that one would match better, since it has a longer suffix in common with the leftDirectory file.
+        /// </summary>
+        /// <param name="leftDirectory">Typically the existing package</param>
+        /// <param name="rightDirectory">Source repo, or built package, etc.</param>
+        /// <returns></returns>
+        public static IEnumerable<DirectoryDifference> DirectoryDifference(string leftDirectory, string rightDirectory)
+        {
+            var results = new List<DirectoryDifference>();
+
+            // left = built package, right = source repo
+            var leftFiles = Directory.EnumerateFiles(leftDirectory, "*", SearchOption.AllDirectories);
+            var rightFiles = Directory.EnumerateFiles(rightDirectory, "*", SearchOption.AllDirectories);
+
+            foreach (var leftFile in leftFiles)
+            {
+                var closestMatches = GetClosestFileMatch(leftFile, rightFiles);
+                var closestMatch = closestMatches.FirstOrDefault();
+                if (closestMatch == null)
+                {
+                    results.Add(new DirectoryDifference() { 
+                        Filename = leftFile[leftDirectory.Length..].Replace("\\", "/"),
+                        ComparisonFile = null,
+                        Operation = DirectoryDifferenceOperation.Added
+                    });
+                }
+                else
+                {
+                    var filenameContent = File.ReadAllText(leftFile);
+                    var closestMatchContent = File.ReadAllText(closestMatch);
+                    
+                    var diff = InlineDiffBuilder.Diff(filenameContent, closestMatchContent, ignoreWhiteSpace: true, ignoreCase: false);
+                    if (diff.HasDifferences)
+                    {
+                        results.Add(new DirectoryDifference() {
+                            Filename = leftFile[leftDirectory.Length..].Replace("\\", "/"),
+                            ComparisonFile = closestMatch[rightDirectory.Length..].Replace("\\", "/"),
+                            Operation = DirectoryDifferenceOperation.Modified,
+                            Difference = diff.Lines
+                        });
+                    }
+                }
+            }
+            return results;
+        }
+
+        /// <summary>
+        /// Identifes the closest filename match to the target filename.
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="filenames"></param>
+        /// <returns></returns>
+        public static IEnumerable<string> GetClosestFileMatch(string target, IEnumerable<string> filenames)
+        {
+            target = target.Replace("\\", "/");
+            var candidate = "";
+            
+            var bestCandidates = new HashSet<string>();
+            var bestCandidateScore = 0;
+            filenames = filenames.Select(f => f.Replace("\\", "/").Trim());
+            var targetNumDirs = target.Count(ch => ch == '/') + 1;
+
+            foreach (var part in target.Split('/').Reverse())
+            {
+                candidate = Path.Join("/" + part, candidate);
+                foreach (var filename in filenames)
+                {
+                    if (filename.EndsWith(candidate, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        var candidateScore = candidate.Count(ch => ch == '/');
+                        if (candidateScore > bestCandidateScore)
+                        {
+                            bestCandidateScore = candidateScore;
+                            bestCandidates.Clear();
+                            bestCandidates.Add(filename);
+                        }
+                        else if (candidateScore == bestCandidateScore &&
+                                 (targetNumDirs < 2 || (targetNumDirs >= 2 && candidateScore > 1)))
+                        {
+                            bestCandidates.Add(filename);
+                        }
+                    }
+                }
+            }
+            var resultList = bestCandidates.ToList();
+            resultList.Sort((a, b) => a.Length.CompareTo(b.Length));
+            resultList.Reverse();
+            return resultList;
+        }
 
         public static IEnumerable<DirectoryDifference> GetDirectoryDifferenceByContent(PackageURL packageUrl, string? leftDirectory, string? rightDirectory, string strategyName)
         {
@@ -214,6 +342,43 @@ namespace Microsoft.CST.OpenSource.Reproducibility
             else
             {
                 return directory;
+            }
+        }
+
+        internal static void AddDifferencesToStrategyResult(StrategyResult strategyResult, IEnumerable<DirectoryDifference> directoryDifferences)
+        {
+            if (!directoryDifferences.Any())
+            {
+                strategyResult.Summary = "Successfully reproduced package.";
+                strategyResult.IsSuccess = true;
+                Logger.Debug("Strategy succeeded. The results match the package contents.");
+            }
+            else
+            {
+                strategyResult.Summary = "Strategy failed. The results do not match the package contents.";
+                strategyResult.IsSuccess = false;
+
+                foreach (var dirDiff in directoryDifferences)
+                {
+                    var message = new StrategyResultMessage()
+                    {
+                        Filename = dirDiff.Filename,
+                        CompareFilename = dirDiff.ComparisonFile,
+                        Differences = dirDiff.Difference,
+                    };
+                    switch (dirDiff.Operation)
+                    {
+                        case DirectoryDifferenceOperation.Added:
+                            message.Text = "File added"; break;
+                        case DirectoryDifferenceOperation.Modified:
+                            message.Text = "File modified"; break;
+                        case DirectoryDifferenceOperation.Removed:
+                            message.Text = "File removed"; break;
+                        default:
+                            break;
+                    }
+                    strategyResult.Messages.Add(message);
+                }
             }
         }
 

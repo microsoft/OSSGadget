@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
 	  <OutputType>Exe</OutputType>
@@ -22,6 +22,7 @@
     <None Remove="BuildHelperScripts\npm-1.sh" />
     <None Remove="BuildHelperScripts\npm\bluebird.build" />
     <None Remove="BuildHelperScripts\npm\bluebird.prebuild" />
+    <None Remove="BuildHelperScripts\pypi\autobuild.sh" />
     <None Remove="Strategies\PackageIgnoreList.txt" />
   </ItemGroup>
 
@@ -41,6 +42,9 @@
     <Content Include="BuildHelperScripts\npm\autobuild.sh">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="BuildHelperScripts\pypi\autobuild.sh">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -50,6 +54,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="DiffPlex" Version="1.7.0" />
     <PackageReference Include="SharpCompress" Version="0.28.1" />
   </ItemGroup>
 

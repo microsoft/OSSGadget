@@ -44,38 +44,11 @@ namespace Microsoft.CST.OpenSource.Reproducibility
             };
 
             var numPackageFiles = Directory.EnumerateFiles(Options.PackageDirectory!, "*", SearchOption.AllDirectories).Count();
-            var diffResults = Helpers.GetDirectoryDifferenceByContent(Options.PackageUrl!, Options.SourceDirectory, Options.PackageDirectory, this.GetType().Name);
-            var numDifferences = diffResults.Count(s => s.Operation == DirectoryDifferenceOperation.Added);
-            if (diffResults.Any(s => s.Operation == DirectoryDifferenceOperation.Added))
-            {
-                var alignment = 100 * (numPackageFiles - numDifferences) / numPackageFiles;
 
-                strategyResult.Summary = $"Failed to reproduce package ({alignment}% aligned).";
-                strategyResult.IsSuccess = false;
-                Logger.Debug("Strategy [{0}] failed to reproduce package ({1}% alignment)", this.GetType().Name, alignment);
-                
-                foreach (var diffResult in diffResults)
-                {
-                    
-                    // Since the strategy is based on hash matching, there's no 'modification' possible, we only care about adds.
-                    if (diffResult.Operation == DirectoryDifferenceOperation.Added)
-                    {
-                        foreach (var f in diffResult.Filename.Split(','))
-                        {
-                            var fRelative = f[(1 + Options.TemporaryDirectory!.Length)..].Replace("\\", "/");
-                            strategyResult.Messages.Add($"File [{fRelative}] exists in package but not in source directory (or has different contents).");
-                            Logger.Debug("  [+] {0}", fRelative);
-                        }
-                    }
-                }
-            }
-            else
-            {
-                strategyResult.Summary = "Successfully reproduced the package.";
-                strategyResult.IsSuccess = true;
-                Logger.Debug("Strategy [{0}] successfully reproduced the package.", this.GetType().Name);
-            }
-          
+            var diffResults = Helpers.DirectoryDifference(Options.PackageDirectory!, Options.SourceDirectory!);
+            diffResults = diffResults.Where(d => !IgnoreFilter.IsIgnored(Options.PackageUrl, this.GetType().Name, d.Filename));
+            Helpers.AddDifferencesToStrategyResult(strategyResult, diffResults);
+
             return strategyResult;
         }
     }

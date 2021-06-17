@@ -16,6 +16,7 @@ using SharpCompress.Archives.Zip;
 using SharpCompress.Archives;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using DiffPlex.DiffBuilder.Model;
 
 namespace Microsoft.CST.OpenSource.Reproducibility
 {
@@ -34,20 +35,33 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         public string? PackageDirectory { get; set; }
         public string? TemporaryDirectory { get; set; }
     }
+    public class StrategyResultMessage
+    {
+        public StrategyResultMessage()
+        {
+            this.Text = "";
+            this.Filename = "";
+            this.Differences = Array.Empty<DiffPiece>();
+        }
+
+        public string Text { get; set; }
+        public string Filename { get; set; }
+        public string? CompareFilename { get; set; }
+        public IEnumerable<DiffPiece>? Differences { get; set; }
+    }
 
     public class StrategyResult
     {
         public StrategyResult()
         {
-            Messages = new List<string>();
+            Messages = new HashSet<StrategyResultMessage>();
         }
 
         [JsonIgnore]
         public Type? Strategy { get; set; }
-
         public string? StrategyName { get => Strategy?.Name; }
         public string? Summary { get; set; }
-        public List<string> Messages { get; set; }
+        public HashSet<StrategyResultMessage> Messages;
         public bool IsSuccess { get; set; } = false;
         public bool IsError { get; set; } = false;
     }

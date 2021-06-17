@@ -1,4 +1,5 @@
-﻿using Microsoft.CST.OpenSource.Shared;
+﻿using DiffPlex.DiffBuilder.Model;
+using Microsoft.CST.OpenSource.Shared;
 using Microsoft.CST.RecursiveExtractor;
 using NLog;
 using System;
@@ -23,7 +24,8 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         {
             {"npm", "node:latest" },
             {"gem", "ruby:latest" },
-            {"cpan", "perl:latest" }
+            {"cpan", "perl:latest" },
+            {"pypi", "python:latest" }
         };
 
         public override StrategyPriority PRIORITY => StrategyPriority.Medium;
@@ -128,38 +130,9 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 var packedDirectory = Path.Join(Options.TemporaryDirectory, "src_packed");
                 extractor.ExtractToDirectoryAsync(packedDirectory, packedFilenamePath).Wait();
 
-                var targetPackageDirectory = Helpers.GetFirstNonSingularDirectory(Options.PackageDirectory);
-                var targetPackedDirectory = Helpers.GetFirstNonSingularDirectory(packedDirectory);
-
-                var diffResults = Helpers.GetDirectoryDifferenceByFilename(targetPackageDirectory, targetPackedDirectory, Options.PackageUrl, this.GetType().Name);
-                if (!diffResults.Any(dd => dd.Operation == DirectoryDifferenceOperation.Added || dd.Operation == DirectoryDifferenceOperation.Modified))
-                {
-                    strategyResult.Summary = "Successfully reproduced package.";
-                    strategyResult.IsSuccess = true;
-                    Logger.Debug("Strategy {0} succeeded. When running AutoBuilder on the source code repository, the results match the package contents.", this.GetType().Name);
-                }
-                else
-                {
-                    strategyResult.Summary = "Failed to reproduce the package.";
-                    strategyResult.IsSuccess = false;
-
-                    foreach (var diffResult in diffResults)
-                    {
-                        // We only care about files added to the package or modified from the repo. It's OK
-                        // that there are files in the repo that aren't in the package.
-                        if (diffResult.Operation == DirectoryDifferenceOperation.Added)
-                        {
-                            strategyResult.Messages.Add($"File [{diffResult.Filename}] exists in the package but was not produced during a build.");
-                            Logger.Debug("  [+] {0}", diffResult.Filename);
-                        }
-                        else if (diffResult.Operation == DirectoryDifferenceOperation.Modified)
-                        {
-                            strategyResult.Messages.Add($"File [{diffResult.Filename}] has different contents between the package and the build.");
-                            Logger.Debug("  [*] {0}", diffResult.Filename);
-                        }
-                    }
-                    Logger.Debug("Strategy {0} failed. The AutoBuilder did not generate the same package contents.", this.GetType().Name);
-                }
+                var diffResults = Helpers.DirectoryDifference(Options.PackageDirectory!, packedDirectory);
+                diffResults = diffResults.Where(d => !IgnoreFilter.IsIgnored(Options.PackageUrl, this.GetType().Name, d.Filename));
+                Helpers.AddDifferencesToStrategyResult(strategyResult, diffResults);
             }
             else
             {

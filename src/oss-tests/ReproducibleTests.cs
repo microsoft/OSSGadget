@@ -1,5 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.CST.OpenSource;
+using Microsoft.CST.OpenSource.Reproducibility;
 using System.Threading.Tasks;
 using System.IO;
 using System;

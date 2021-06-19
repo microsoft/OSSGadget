@@ -1,32 +1,27 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using CommandLine;
-using System.Security.Cryptography;
 using CommandLine.Text;
+using DiffPlex.DiffBuilder.Model;
+using Microsoft.CST.OpenSource.Reproducibility;
 using Microsoft.CST.OpenSource.Shared;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading.Tasks;
 using System.Linq;
 using System.Text.Json;
-using System.Diagnostics;
-using Microsoft.CST.RecursiveExtractor;
-using System.Runtime.InteropServices;
-using Microsoft.CST.OpenSource.Reproducibility;
-using System.Text.RegularExpressions;
-using System.Text.Encodings.Web;
-using System.Text.Unicode;
 using System.Threading;
-using DiffPlex.DiffBuilder.Model;
+using System.Threading.Tasks;
+using static Crayon.Output;
+
 
 namespace Microsoft.CST.OpenSource
 {
-    public class ReproducibleToolResult
+    public enum DiffTechnique
     {
-        public bool IsReproducible { get; set; } = false;
-        public List<StrategyResult>? Results { get; set; }
-    }
+        Strict,
+        Normalized
+    };
 
     public class ReproducibleTool : OSSGadget
     {
@@ -39,7 +34,8 @@ namespace Microsoft.CST.OpenSource
                 {
                     return new List<Example>() {
                         new Example("Checks reproducibility of the given package",
-                        new Options { Targets = new List<string>() {"[options]", "package-url..." } })};
+                            new Options { Targets = new List<string>() {"[options]", "package-url..." } })
+                    };
                 }
             }
 
@@ -49,13 +45,17 @@ namespace Microsoft.CST.OpenSource
             [Option('a', "all-strategies", Required = false, Default = false,
                 HelpText = "Execute all strategies, even after a successful one is identified.")]
             public bool AllStrategies { get; set; }
-            
-            [Option("specific-strategies", Required  = false)]
+
+            [Option("specific-strategies", Required = false,
+                HelpText = "Execute specific strategies, comma-separated.")]
             public string? SpecificStrategies { get; set; }
 
             [Option('s', "source-ref", Required = false, Default = "",
                 HelpText = "If a source version cannot be identified, use the specified git reference (tag, commit, etc.).")]
             public string OverrideSourceReference { get; set; } = "";
+
+            [Option("diff-technique", Required = false, Default = DiffTechnique.Normalized, HelpText = "Configure diff technique.")]
+            public DiffTechnique DiffTechnique { get; set; } = DiffTechnique.Normalized;
 
             [Option('o', "output-file", Required = false, Default = "", HelpText = "Send the command output to a file instead of standard output")]
             public string OutputFile { get; set; } = "";
@@ -67,7 +67,6 @@ namespace Microsoft.CST.OpenSource
             [Option('l', "leave-intermediate", Required = false, Default = false,
                 HelpText = "Do not clean up intermediate files (useful for debugging).")]
             public bool LeaveIntermediateFiles { get; set; }
-
         }
 
         public ReproducibleTool() : base()
@@ -75,9 +74,9 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        ///     Main entrypoint for the download program.
+        /// Main entrypoint for the download program.
         /// </summary>
-        /// <param name="args"> parameters passed in from the user </param>
+        /// <param name="args">parameters passed in from the user</param>
         public static async Task Main(string[] args)
         {
             ShowToolBanner();
@@ -112,292 +111,292 @@ namespace Microsoft.CST.OpenSource
                 }
             }
 
-            if (options.Targets is IList<string> targetList && targetList.Count > 0)
+            // Expand targets
+            var targets = new List<string>();
+            foreach (var target in options.Targets ?? Array.Empty<string>())
             {
-                foreach (var target in targetList)
+                var purl = new PackageURL(target);
+                var downloader = new PackageDownloader(purl, "temp");
+                foreach (var version in downloader.PackageVersions)
                 {
-                    try
+                    targets.Add(version.ToString());
+                }
+            }
+            var finalResults = new List<ReproducibleToolResult>();
+
+            foreach (var target in targets)
+            {
+                try
+                {
+                    Console.WriteLine("------------------------------------------------------------------------");
+                    Console.WriteLine($"Analyzing: {target}...");
+                    Logger.Debug("Processing: {0}", target);
+
+                    var purl = new PackageURL(target);
+                    if (purl.Version == null)
                     {
-                        Console.WriteLine($"Analyzing: {target}...");
-                        Logger.Debug("Processing: {0}", target);
+                        Logger.Error("Package is missing a version, which is required for this tool.");
+                        continue;
+                    }
+                    var tempDirectoryName = Guid.NewGuid().ToString();
+                    if (Directory.Exists(tempDirectoryName))
+                    {
+                        Directory.Delete(tempDirectoryName, true);  // Just in case
+                    }
+                    // Download the package
+                    Console.WriteLine("Downloading...");
+                    var packageDownloader = new PackageDownloader(purl, Path.Join(tempDirectoryName, "package"));
+                    var downloadResults = await packageDownloader.DownloadPackageLocalCopy(purl, false, true);
 
-                        var purl = new PackageURL(target);
-                        if (purl.Version == null)
+                    if (!downloadResults.Any())
+                    {
+                        Logger.Error("Unable to download package.");
+                        continue;
+                    }
+                    
+                    // Locate the source
+                    Console.WriteLine("Locating source...");
+                    var findSourceTool = new FindSourceTool();
+                    var sourceMap = await findSourceTool.FindSourceAsync(purl);
+                    if (!sourceMap.Any())
+                    {
+                        Logger.Error("Unable to locate source repository.");
+                        continue;
+                    }
+                    var sourceMapList = sourceMap.ToList();
+                    sourceMapList.Sort((a, b) => a.Value.CompareTo(b.Value));
+                    var bestSourcePurl = sourceMapList.Last().Key;
+                    if (string.IsNullOrEmpty(bestSourcePurl.Version))
+                    {
+                        // Tie back the original version to the new PackageURL
+                        bestSourcePurl = new PackageURL(bestSourcePurl.Type, bestSourcePurl.Namespace, bestSourcePurl.Name,
+                                                        purl.Version, bestSourcePurl.Qualifiers, bestSourcePurl.Subpath);
+                    }
+                    Logger.Debug("Identified best source code repository: {0}", bestSourcePurl);
+
+                    // Download the source
+                    Console.WriteLine("Downloading source...");
+                    foreach (var reference in new[] { bestSourcePurl.Version, options.OverrideSourceReference, "master", "main" })
+                    {
+                        if (string.IsNullOrWhiteSpace(reference))
                         {
-                            Logger.Error("Package is missing a version, which is required for this tool.");
                             continue;
                         }
-                        var tempDirectoryName = Guid.NewGuid().ToString();
-                        if (Directory.Exists(tempDirectoryName))
+                        Logger.Debug("Trying to download package, version/reference [{0}].", reference);
+                        var purlRef = new PackageURL(bestSourcePurl.Type, bestSourcePurl.Namespace, bestSourcePurl.Name, reference, bestSourcePurl.Qualifiers, bestSourcePurl.Subpath);
+                        packageDownloader = new PackageDownloader(purlRef, Path.Join(tempDirectoryName, "src"));
+                        downloadResults = await packageDownloader.DownloadPackageLocalCopy(purlRef, false, true);
+                        if (downloadResults.Any())
                         {
-                            Directory.Delete(tempDirectoryName, true);  // Just in case
+                            break;
                         }
+                    }
+                    if (!downloadResults.Any())
+                    {
+                        Logger.Error("Unable to download source.");
+                        continue;
+                    }
 
-                        // Download the package
-                        Console.WriteLine("Downloading...");
-                        var packageDownloader = new PackageDownloader(purl, Path.Join(tempDirectoryName, "package"));
-                        var downloadResults = await packageDownloader.DownloadPackageLocalCopy(purl, false, true);
+                    // Execute all available strategies
+                    var strategyOptions = new StrategyOptions()
+                    {
+                        PackageDirectory = Path.Join(tempDirectoryName, "package"),
+                        SourceDirectory = Path.Join(tempDirectoryName, "src"),
+                        PackageUrl = purl,
+                        TemporaryDirectory = Path.GetFullPath(tempDirectoryName),
+                        DiffTechnique = options.DiffTechnique
+                    };
 
-                        if (!downloadResults.Any())
-                        {
-                            Logger.Error("Unable to download package.");
-                        }
+                    // First, check to see how many strategies apply
+                    var strategies = runSpecificStrategies;
+                    if (strategies == null || !strategies.Any())
+                    {
+                        strategies = BaseStrategy.GetStrategies(strategyOptions) ?? Array.Empty<Type>();
+                    }
 
-                        // Locate the source
-                        Console.WriteLine("Locating source...");
-                        var findSourceTool = new FindSourceTool();
-                        var sourceMap = await findSourceTool.FindSourceAsync(purl);
-                        if (!sourceMap.Any())
+                    int numStrategiesApplies = 0;
+                    foreach (var strategy in strategies)
+                    {
+                        var ctor = strategy.GetConstructor(new Type[] { typeof(StrategyOptions) });
+                        if (ctor != null)
                         {
-                            Logger.Warn("Unable to locate source. Trying 'master'");
-                            continue;
-                        }
-                        var sourceMapList = sourceMap.ToList();
-                        sourceMapList.Sort((a, b) => a.Value.CompareTo(b.Value));
-                        var bestSourcePurl = sourceMapList.Last().Key;
-                        if (string.IsNullOrEmpty(bestSourcePurl.Version))
-                        {
-                            // Tie back the original version to the new PackageURL
-                            bestSourcePurl = new PackageURL(bestSourcePurl.Type, bestSourcePurl.Namespace, bestSourcePurl.Name,
-                                                            purl.Version, bestSourcePurl.Qualifiers, bestSourcePurl.Subpath);
-                        }
-                        Logger.Debug("Identified best source code repository: {0}", bestSourcePurl);
-
-                        // Download the source
-                        Console.WriteLine("Downloading source...");
-                        foreach (var reference in new[] { bestSourcePurl.Version, options.OverrideSourceReference, "master", "main" })
-                        {
-                            if (string.IsNullOrWhiteSpace(reference))
+                            var strategyObject = (BaseStrategy)(ctor.Invoke(new object?[] { strategyOptions }));
+                            if (strategyObject.StrategyApplies())
                             {
+                                numStrategiesApplies++;
+                            }
+                        }
+                    }
+
+                    Console.Write("Out of {0} potential strategies, {1} apply. ", strategies.Count(), numStrategiesApplies);
+                    if (options.AllStrategies)
+                    {
+                        Console.WriteLine("Analysis will continue even after a successful strategy is found.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Analysis will stop after the first successful strategy is found.");
+                    }
+                    List<StrategyResult> strategyResults = new List<StrategyResult>();
+
+                    bool overallStrategyResult = false;
+
+                    Console.WriteLine();
+                    Console.WriteLine("Results:");
+
+                    foreach (var strategy in strategies)
+                    {
+                        var ctor = strategy.GetConstructor(new Type[] { typeof(StrategyOptions) });
+                        if (ctor != null)
+                        {
+                            // Create a temporary directory, copy the contents from source/package
+                            // so that this strategy can modify the contents without affecting other strategies.
+                            var tempStrategyOptions = new StrategyOptions
+                            {
+                                PackageDirectory = Path.Join(strategyOptions.TemporaryDirectory, strategy.Name, "package"),
+                                SourceDirectory = Path.Join(strategyOptions.TemporaryDirectory, strategy.Name, "src"),
+                                TemporaryDirectory = Path.Join(strategyOptions.TemporaryDirectory, strategy.Name),
+                                PackageUrl = strategyOptions.PackageUrl
+                            };
+
+                            try
+                            {
+                                Helpers.DirectoryCopy(strategyOptions.PackageDirectory, tempStrategyOptions.PackageDirectory);
+                                Helpers.DirectoryCopy(strategyOptions.SourceDirectory, tempStrategyOptions.SourceDirectory);
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Warn(ex, "Error copying directory for strategy. Aborting execution.");
                                 continue;
                             }
-                            Logger.Debug("Trying to download package, version/reference [{0}].", reference);
-                            var purlRef = new PackageURL(bestSourcePurl.Type, bestSourcePurl.Namespace, bestSourcePurl.Name, reference, bestSourcePurl.Qualifiers, bestSourcePurl.Subpath);
-                            packageDownloader = new PackageDownloader(purlRef, Path.Join(tempDirectoryName, "src"));
-                            downloadResults = await packageDownloader.DownloadPackageLocalCopy(purlRef, false, true);
-                            if (downloadResults.Any())
+
+                            try
                             {
-                                break;
-                            }
-                        }
-                        if (!downloadResults.Any())
-                        {
-                            Logger.Error("Unable to download source.");
-                            continue;
-                        }
+                                var strategyObject = (BaseStrategy)(ctor.Invoke(new object?[] { tempStrategyOptions }));
+                                StrategyResult? strategyResult = strategyObject.Execute();
 
-                        // Execute all available strategies
-                        var strategyOptions = new StrategyOptions()
-                        {
-                            PackageDirectory = Path.Join(tempDirectoryName, "package"),
-                            SourceDirectory = Path.Join(tempDirectoryName, "src"),
-                            PackageUrl = purl,
-                            TemporaryDirectory = Path.GetFullPath(tempDirectoryName)
-                        };
-
-                        // First, check to see how many strategies apply
-                        var strategies = runSpecificStrategies;
-                        if (strategies == null || !strategies.Any())
-                        {
-                            strategies = BaseStrategy.GetStrategies(strategyOptions) ?? Array.Empty<Type>();
-                        }
-
-                        int numStrategiesApplies = 0;
-                        foreach (var strategy in strategies)
-                        {
-                            var ctor = strategy.GetConstructor(new Type[] { typeof(StrategyOptions) });
-                            if (ctor != null)
-                            {
-                                var strategyObject = (BaseStrategy)(ctor.Invoke(new object?[] { strategyOptions }));
-                                if (strategyObject.StrategyApplies())
-                                { 
-                                    numStrategiesApplies++;
+                                if (strategyResult != null)
+                                {
+                                    strategyResults.Add(strategyResult);
+                                    overallStrategyResult |= strategyResult.IsSuccess;
                                 }
-                            }
-                        }
-                        
-                        Console.Write("Out of {0} potential strategies, {1} apply. ", strategies.Count(), numStrategiesApplies);
-                        if (options.AllStrategies)
-                        {
-                            Console.WriteLine("Analysis will continue even after a successful strategy is found.");
-                        }
-                        else
-                        {
-                            Console.WriteLine("Analysis will stop after the first successful strategy is found.");
-                        }
-                        List<StrategyResult> strategyResults = new List<StrategyResult>();
 
-                        bool overallStrategyResult = false;
-
-                        Console.WriteLine();
-                        Console.WriteLine("Results:");
-
-                        foreach (var strategy in strategies)
-                        {
-                            var ctor = strategy.GetConstructor(new Type[] { typeof(StrategyOptions) });
-                            if (ctor != null)
-                            {
-                                // Create a temporary directory, copy the contents from source/package so that
-                                // this strategy can modify the contents without affecting other strategies.
-                                var tempStrategyOptions = new StrategyOptions
+                                if (strategyResult != null)
                                 {
-                                    PackageDirectory = Path.Join(strategyOptions.TemporaryDirectory, strategy.Name, "package"),
-                                    SourceDirectory = Path.Join(strategyOptions.TemporaryDirectory, strategy.Name, "src"),
-                                    TemporaryDirectory = Path.Join(strategyOptions.TemporaryDirectory, strategy.Name),
-                                    PackageUrl = strategyOptions.PackageUrl
-                                };
-
-                                try
-                                {
-                                    Helpers.DirectoryCopy(strategyOptions.PackageDirectory, tempStrategyOptions.PackageDirectory);
-                                    Helpers.DirectoryCopy(strategyOptions.SourceDirectory, tempStrategyOptions.SourceDirectory);
-                                }
-                                catch(Exception ex)
-                                {
-                                    Logger.Warn(ex, "Error copying directory for strategy. Aborting execution.");
-                                    continue;
-                                }
-                                
-                                try
-                                {
-                                    var strategyObject = (BaseStrategy)(ctor.Invoke(new object?[] { tempStrategyOptions }));
-                                    StrategyResult? strategyResult = strategyObject.Execute();
-                                    
-                                    if (strategyResult != null)
+                                    if (strategyResult.IsSuccess)
                                     {
-                                        strategyResults.Add(strategyResult);
-                                        overallStrategyResult |= strategyResult.IsSuccess;
-                                    }
-
-                                    if (strategyResult != null)
-                                    {
-                                        if (strategyResult.IsSuccess)
+                                        Console.WriteLine(Yellow().Bold($"  [✓] {strategy.Name}"));
+                                        if (!options.AllStrategies)
                                         {
-                                            Console.WriteLine($"  [✓] {strategy.Name}");
-                                            if (!options.AllStrategies)
-                                            {
-                                                break;   // TODO need to move this down or we won't see diffs
-                                            }
-                                        }
-                                        else
-                                        {
-                                            Console.WriteLine($"  [✗] {strategy.Name}");
-                                        }
-
-                                        if (options.ShowDifferences)
-                                        {
-                                            foreach (var resultMessage in strategyResult.Messages)
-                                            {
-                                                
-                                                if (resultMessage.CompareFilename != null)
-                                                {
-                                                    Console.WriteLine($"      [PKG]: {resultMessage.Filename}");
-                                                    Console.WriteLine($"      [GEN]: {resultMessage.CompareFilename}");
-                                                }
-                                                else
-                                                {
-                                                    Console.WriteLine($"      [PKG]: {resultMessage.Filename}");
-                                                }
-                                                var differences = resultMessage.Differences ?? Array.Empty<DiffPiece>();
-                                                foreach (var diff in differences)
-                                                {
-                                                    switch (diff.Type)
-                                                    {
-                                                        case ChangeType.Inserted:
-                                                            Console.WriteLine("      + " + diff.Text); break;
-                                                        case ChangeType.Deleted:
-                                                            Console.WriteLine("      - " + diff.Text); break;
-                                                        case ChangeType.Modified:
-                                                            Console.WriteLine("      * " + diff.Text); break;
-                                                        default:
-                                                            break;
-                                                    }
-                                                }
-                                                if (differences.Any())
-                                                {
-                                                    Console.WriteLine();
-                                                }
-                                            }
+                                            break;   // TODO need to move this down or we won't see diffs
                                         }
                                     }
                                     else
                                     {
-                                        Console.WriteLine($"  [-] {strategy.Name}");
+                                        Console.WriteLine(White().Bold().Background.Rgb(170, 0, 0, $"  [✗] {strategy.Name}"));
+                                    }
+
+                                    if (options.ShowDifferences)
+                                    {
+                                        foreach (var resultMessage in strategyResult.Messages)
+                                        {
+                                            if (resultMessage.CompareFilename != null)
+                                            {
+                                                Console.WriteLine($"      Existing File: {resultMessage.Filename}");
+                                                Console.WriteLine($"         Changed To: {resultMessage.CompareFilename}");
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine(Blue($"           New File: {resultMessage.Filename}"));
+                                            }
+                                            var differences = resultMessage.Differences ?? Array.Empty<DiffPiece>();
+                                            foreach (var diff in differences)
+                                            {
+                                                switch (diff.Type)
+                                                {
+                                                    case ChangeType.Inserted:
+                                                        Console.WriteLine("      + " + diff.Text); break;
+                                                    case ChangeType.Deleted:
+                                                        Console.WriteLine(Dim().White("      - " + diff.Text)); break;
+                                                    case ChangeType.Modified:
+                                                        Console.WriteLine("      * " + diff.Text); break;
+                                                    default:
+                                                        break;
+                                                }
+                                            }
+                                            if (differences.Any())
+                                            {
+                                                Console.WriteLine();
+                                            }
+                                        }
                                     }
                                 }
-                                catch(Exception ex)
+                                else
                                 {
-                                    Logger.Warn(ex, "Error processing {0}: {1}", strategy, ex.Message);
-                                    Logger.Debug(ex.StackTrace);
+                                    Console.WriteLine(Green($"  [-] {strategy.Name}"));
                                 }
                             }
-                        }
-
-                        Console.WriteLine("\nSummary:");
-                        if (overallStrategyResult)
-                        {
-                            Console.WriteLine($"  [✓] Yes, this package is reproducible.");
-                        }
-                        else
-                        {
-                            Console.WriteLine($"  [✗] No, this package is not reproducible.");
-                        }
-
-                        var finalResult = new ReproducibleToolResult
-                        {
-                            IsReproducible = overallStrategyResult,
-                            Results = strategyResults
-                        };
-
-                        // Write the output somewhere
-                        var jsonResults = JsonSerializer.Serialize<ReproducibleToolResult>(finalResult, new JsonSerializerOptions { WriteIndented = true });
-                        if (!string.IsNullOrWhiteSpace(options.OutputFile) && !string.Equals(options.OutputFile, "-", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            try
+                            catch (Exception ex)
                             {
-                                File.WriteAllText(options.OutputFile, jsonResults);
-                                Console.WriteLine($"Detailed results are available in {options.OutputFile}.");
-                            }
-                            catch(Exception ex)
-                            {
-                                Logger.Warn(ex, "Unable to write to {0}. Writing to console instead.", options.OutputFile);
-                                Console.Error.WriteLine(jsonResults);
-                            }
-                        }
-                        else if (string.Equals(options.OutputFile, "-", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            Console.Error.WriteLine(jsonResults);
-                        }
-
-                        if (options.LeaveIntermediateFiles)
-                        {
-                            Console.WriteLine($"Intermediate files are located in [{tempDirectoryName}].");
-                        }
-                        else
-                        {
-                            // Clean up our temporary directory
-                            int numCleanTries = 2;
-                            while (numCleanTries-- >= 0)
-                            {
-                                try
-                                {
-                                    Directory.Delete(tempDirectoryName, true);
-                                    break;
-                                }
-                                catch (Exception)
-                                {
-                                    Logger.Debug("Error deleting {0}, sleeping for 5 seconds.", tempDirectoryName);
-                                    Thread.Sleep(5000);
-                                }
+                                Logger.Warn(ex, "Error processing {0}: {1}", strategy, ex.Message);
+                                Logger.Debug(ex.StackTrace);
                             }
                         }
                     }
-                    catch (Exception ex)
+
+                    Console.WriteLine("\nSummary:");
+                    if (overallStrategyResult)
                     {
-                        Logger.Warn(ex, "Error processing {0}: {1}", target, ex.Message);
-                        Logger.Debug(ex.StackTrace);
+                        Console.WriteLine($"  [✓] Yes, this package is reproducible.");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"  [✗] No, this package is not reproducible.");
+                    }
+
+
+                    finalResults.Add(new ReproducibleToolResult
+                    {
+                        PackageUrl = purl.ToString(),
+                        IsReproducible = overallStrategyResult,
+                        Results = strategyResults
+                    }); ;
+
+
+                    if (options.LeaveIntermediateFiles)
+                    {
+                        Console.WriteLine($"Intermediate files are located in [{tempDirectoryName}].");
+                    }
+                    else
+                    {
+                        Helpers.DeleteDirectory(tempDirectoryName);
                     }
                 }
+                catch (Exception ex)
+                {
+                    Logger.Warn(ex, "Error processing {0}: {1}", target, ex.Message);
+                    Logger.Debug(ex.StackTrace);
+                }
+            }
+
+            // Write the output somewhere
+            var jsonResults = JsonSerializer.Serialize<List<ReproducibleToolResult>>(finalResults, new JsonSerializerOptions { WriteIndented = true });
+            if (!string.IsNullOrWhiteSpace(options.OutputFile) && !string.Equals(options.OutputFile, "-", StringComparison.InvariantCultureIgnoreCase))
+            {
+                try
+                {
+                    File.WriteAllText(options.OutputFile, jsonResults);
+                    Console.WriteLine($"Detailed results are available in {options.OutputFile}.");
+                }
+                catch (Exception ex)
+                {
+                    Logger.Warn(ex, "Unable to write to {0}. Writing to console instead.", options.OutputFile);
+                    Console.Error.WriteLine(jsonResults);
+                }
+            }
+            else if (string.Equals(options.OutputFile, "-", StringComparison.InvariantCultureIgnoreCase))
+            {
+                Console.Error.WriteLine(jsonResults);
             }
         }
     }

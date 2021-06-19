@@ -19,7 +19,7 @@
   <ItemGroup>
     <None Remove="BuildHelperScripts\cpan\autobuild.sh" />
     <None Remove="BuildHelperScripts\gem\autobuild.sh" />
-    <None Remove="BuildHelperScripts\npm-1.sh" />
+    <None Remove="BuildHelperScripts\npm\@objectisundefined\typo.build" />
     <None Remove="BuildHelperScripts\npm\bluebird.build" />
     <None Remove="BuildHelperScripts\npm\bluebird.prebuild" />
     <None Remove="BuildHelperScripts\pypi\autobuild.sh" />
@@ -33,6 +33,9 @@
     <Content Include="BuildHelperScripts\gem\autobuild.sh">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="BuildHelperScripts\npm\%40objectisundefined\typo.build">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="BuildHelperScripts\npm\bluebird.build">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -40,6 +43,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="BuildHelperScripts\npm\autobuild.sh">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="BuildHelperScripts\cargo\autobuild.sh">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="BuildHelperScripts\pypi\autobuild.sh">

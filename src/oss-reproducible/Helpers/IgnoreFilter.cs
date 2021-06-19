@@ -1,20 +1,19 @@
-﻿using Microsoft.CST.OpenSource.Shared;
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
+
+using Microsoft.CST.OpenSource.Shared;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Reproducibility
 {
-    class IgnoreFilter
+    internal class IgnoreFilter
     {
         private static readonly List<string> FilterText;
-        
+
         protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
         /// <summary>
@@ -74,7 +73,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 if (string.Equals(_packageManager, "*", StringComparison.InvariantCultureIgnoreCase) ||
                     string.Equals(_packageManager, packageUrl?.Type ?? "*", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    if (string.Equals(_strategy, "*", StringComparison.InvariantCultureIgnoreCase) || 
+                    if (string.Equals(_strategy, "*", StringComparison.InvariantCultureIgnoreCase) ||
                         string.Equals(strategyName, _strategy, StringComparison.InvariantCultureIgnoreCase))
                     {
                         if (Regex.IsMatch(filePath, _regex, RegexOptions.IgnoreCase))

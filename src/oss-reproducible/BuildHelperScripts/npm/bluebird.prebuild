@@ -1,6 +1,4 @@
 #!/bin/bash
 
-# Bluebird can only build from a directory called 'bluebird'
-mkdir /bluebird
-cp -R /repo/* /bluebird
-cd /bluebird
+# Requires Yarn to be installed
+npm -g i yarn

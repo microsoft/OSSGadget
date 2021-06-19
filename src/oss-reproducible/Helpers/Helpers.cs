@@ -1,14 +1,15 @@
-﻿using DiffPlex.Chunkers;
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
+
 using DiffPlex.DiffBuilder;
 using DiffPlex.DiffBuilder.Model;
 using Microsoft.CST.OpenSource.Shared;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 
 namespace Microsoft.CST.OpenSource.Reproducibility
 {
@@ -25,37 +26,15 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         public string Filename { get; set; } = "";
         public DirectoryDifferenceOperation Operation { get; set; }
         public string? ComparisonFile { get; set; }
-        public IEnumerable<DiffPiece>? Difference { get; set; } 
+        public IEnumerable<DiffPiece>? Difference { get; set; }
     }
 
-    class Helpers
+    internal class Helpers
     {
         protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
         static Helpers()
         {
-
-        }
-        internal static IEnumerable<KeyValuePair<string, string>> GenerateDirectoryHashes(string directory)
-        {
-            var results = new List<KeyValuePair<string, string>>();
-            var hashFunction = SHA256.Create();
-
-            foreach (var filename in Directory.EnumerateFiles(directory, "*", new EnumerationOptions { RecurseSubdirectories = true, AttributesToSkip = 0 }))
-            {
-                try
-                {
-                    var hashValue = hashFunction.ComputeHash(File.ReadAllBytes(filename));
-                    var hashString = Convert.ToHexString(hashValue);
-                    results.Add(new KeyValuePair<string, string>(filename, hashString));
-                }
-                catch (Exception)
-                {
-                    //Logger.Debug("Unable to compute hash for {0}: {1}", filename, ex.Message);
-                }
-            }
-
-            return results;
         }
 
         internal static void DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs = true)
@@ -72,7 +51,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
 
             DirectoryInfo[] dirs = dir.GetDirectories();
 
-            // If the destination directory doesn't exist, create it.       
+            // If the destination directory doesn't exist, create it.
             Directory.CreateDirectory(destDirName);
 
             // Get the files in the directory and copy them to the new location.
@@ -93,6 +72,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 }
             }
         }
+
         public static IEnumerable<DirectoryDifference> GetDirectoryDifferenceByFilename(string? leftDirectory, string? rightDirectory, PackageURL? packageUrl, string? strategyName)
         {
             var results = new List<DirectoryDifference>();
@@ -114,7 +94,6 @@ namespace Microsoft.CST.OpenSource.Reproducibility
             var commonRightPrefix = new string(rightFiles.First().Substring(0, rightFiles.Min(s => s.Length)).TakeWhile((c, i) => rightFiles.All(s => s[i] == c)).ToArray());
             rightFiles = rightFiles.Select(s => s[commonRightPrefix.Length..]);
 
-
             results.AddRange(rightFiles.Except(leftFiles).Select(f => new DirectoryDifference { Filename = f, Operation = DirectoryDifferenceOperation.Added }));
             results.AddRange(leftFiles.Except(rightFiles).Select(f => new DirectoryDifference { Filename = f, Operation = DirectoryDifferenceOperation.Removed }));
             results.AddRange(leftFiles.Intersect(rightFiles).Where(f =>
@@ -132,52 +111,24 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 }
                 return false;
             }).Select(f => new DirectoryDifference { Filename = f, Operation = DirectoryDifferenceOperation.Modified }));
-            
+
             var resultsWithFilter = results.Where(dd => !IgnoreFilter.IsIgnored(packageUrl, strategyName!, dd.Filename));
             return resultsWithFilter;
         }
 
-        public static IEnumerable<DirectoryDifference> GetDirectoryDifferenceByContentSmarter(PackageURL packageUrl, string? leftDirectory, string? rightDirectory, string strategyName)
-        {
-            var results = new List<DirectoryDifference>();
-
-            Logger.Debug("GetDirectoryDifferenceByContent({0}, {1})", leftDirectory, rightDirectory);
-            if (leftDirectory == null || !Directory.Exists(leftDirectory))
-            {
-                throw new DirectoryNotFoundException($"Directory {leftDirectory} does not exist.");
-            }
-            if (rightDirectory == null || !Directory.Exists(rightDirectory))
-            {
-                throw new DirectoryNotFoundException($"Directory {rightDirectory} does not exist.");
-            }
-
-
-            var leftContent = GenerateDirectoryHashes2(packageUrl, strategyName, leftDirectory);
-            var rightContent = GenerateDirectoryHashes2(packageUrl, strategyName, rightDirectory);
-            
-            var onlyInLeft = leftContent.Keys.Except(rightContent.Keys);
-            var onlyInRight = rightContent.Keys.Except(leftContent.Keys);
-
-            results.AddRange(rightContent.Keys.Except(leftContent.Keys).Select(f => new DirectoryDifference { Filename = string.Join(',', rightContent[f]), Operation = DirectoryDifferenceOperation.Added }));
-            results.AddRange(leftContent.Keys.Except(rightContent.Keys).Select(f => new DirectoryDifference { Filename = string.Join(',', leftContent[f]), Operation = DirectoryDifferenceOperation.Removed }));
-
-            return results;
-        }
-
         /// <summary>
-        /// Identifies all elements in leftDirectory that either don't exist in rightDirectory or exist with different content.
-        /// This function is "smart" in that it is resilient to changes in directory names, meaning:
-        ///   leftDirectory, file  = /foo/bar/quux/baz.txt
-        ///   rightDirectory, file = /bing/quux/baz.txt
-        /// These would be correctly classified as the same file.
-        /// If there was another file in rightDirectory:
-        ///   rightDirectory, file = /qwerty/bing/quux/baz.txt
-        /// Then that one would match better, since it has a longer suffix in common with the leftDirectory file.
+        /// Identifies all elements in leftDirectory that either don't exist in rightDirectory or
+        /// exist with different content. This function is "smart" in that it is resilient to
+        /// changes in directory names, meaning: leftDirectory, file = /foo/bar/quux/baz.txt
+        /// rightDirectory, file = /bing/quux/baz.txt These would be correctly classified as the
+        /// same file. If there was another file in rightDirectory: rightDirectory, file =
+        /// /qwerty/bing/quux/baz.txt Then that one would match better, since it has a longer suffix
+        /// in common with the leftDirectory file.
         /// </summary>
         /// <param name="leftDirectory">Typically the existing package</param>
         /// <param name="rightDirectory">Source repo, or built package, etc.</param>
         /// <returns></returns>
-        public static IEnumerable<DirectoryDifference> DirectoryDifference(string leftDirectory, string rightDirectory)
+        public static IEnumerable<DirectoryDifference> DirectoryDifference(string leftDirectory, string rightDirectory, DiffTechnique diffTechnique)
         {
             var results = new List<DirectoryDifference>();
 
@@ -191,7 +142,8 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 var closestMatch = closestMatches.FirstOrDefault();
                 if (closestMatch == null)
                 {
-                    results.Add(new DirectoryDifference() { 
+                    results.Add(new DirectoryDifference()
+                    {
                         Filename = leftFile[leftDirectory.Length..].Replace("\\", "/"),
                         ComparisonFile = null,
                         Operation = DirectoryDifferenceOperation.Added
@@ -199,13 +151,26 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 }
                 else
                 {
-                    var filenameContent = File.ReadAllText(leftFile);
-                    var closestMatchContent = File.ReadAllText(closestMatch);
-                    
+                    string? filenameContent;
+                    string? closestMatchContent;
+
+                    if (diffTechnique == DiffTechnique.Normalized)
+                    {
+                        filenameContent = NormalizeContent(leftFile);
+                        closestMatchContent = NormalizeContent(closestMatch);
+
+                    }
+                    else
+                    { 
+                        filenameContent = File.ReadAllText(leftFile);
+                        closestMatchContent = File.ReadAllText(closestMatch);
+                    }
+
                     var diff = InlineDiffBuilder.Diff(filenameContent, closestMatchContent, ignoreWhiteSpace: true, ignoreCase: false);
                     if (diff.HasDifferences)
                     {
-                        results.Add(new DirectoryDifference() {
+                        results.Add(new DirectoryDifference()
+                        {
                             Filename = leftFile[leftDirectory.Length..].Replace("\\", "/"),
                             ComparisonFile = closestMatch[rightDirectory.Length..].Replace("\\", "/"),
                             Operation = DirectoryDifferenceOperation.Modified,
@@ -215,6 +180,148 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 }
             }
             return results;
+        }
+        public static bool RunCommand(string workingDirectory, string filename, IEnumerable<string> args, out string? stdout, out string? stderr)
+        {
+            Logger.Debug("RunCommand({0}, {1})", filename, string.Join(';', args));
+
+            var startInfo = new ProcessStartInfo()
+            {
+                CreateNoWindow = false,
+                UseShellExecute = false,
+                FileName = filename,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                WorkingDirectory = workingDirectory
+            };
+            foreach (var arg in args)
+            {
+                startInfo.ArgumentList.Add(arg);
+            }
+
+            var timer = new Stopwatch();
+            timer.Start();
+
+            using var process = Process.Start(startInfo);
+            if (process == null)
+            {
+                stdout = null;
+                stderr = null;
+                return false;
+            }
+            var sbStdout = new StringBuilder();
+            var sbStderr = new StringBuilder();
+
+            process.OutputDataReceived += (sender, args) =>
+            {
+                if (args.Data != null)
+                {
+                    Logger.Trace("OUT: {0}", args.Data);
+                    sbStdout.AppendLine(args.Data);
+                }
+            };
+            process.ErrorDataReceived += (sender, args) =>
+            {
+                if (args.Data != null)
+                {
+                    Logger.Trace("ERR: {0}", args.Data);
+                    sbStderr.AppendLine(args.Data);
+                }
+            };
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+
+            // Apply a timeout
+            var timeout = 1000 * 60 * 15; // 15 minute default timeout
+            var envTimeout = Environment.GetEnvironmentVariable("OSS_REPRODUCIBLE_COMMAND_TIMEOUT");
+            if (envTimeout != null)
+            {
+                if (int.TryParse(envTimeout, out var envTimeoutInt))
+                {
+                    timeout = envTimeoutInt;
+                }
+            }
+            process.WaitForExit(timeout);
+
+            stdout = sbStdout.ToString();
+            stderr = sbStderr.ToString();
+            
+            timer.Stop();
+            Logger.Debug("Elapsed time: {0}s", timer.Elapsed.TotalSeconds);
+            Logger.Debug("Exit Code: {0}", process.ExitCode);
+            
+            return process.ExitCode == 0;
+        }
+
+        /// <summary>
+        /// Delete a directory, with retries in case of failure.
+        /// </summary>
+        /// <param name="directoryName">Directory to delete</param>
+        /// <param name="numTries">Number of attempts to make</param>
+        public static void DeleteDirectory(string directoryName, int numTries = 3)
+        {
+            if (!Directory.Exists(directoryName))
+            {
+                return;
+            }
+            int delayMs = 1000;
+
+            // Clean up our temporary directory
+            while (numTries > 0)
+            {
+                try
+                {
+                    Directory.Delete(directoryName, true);
+                    break;
+                }
+                catch (Exception)
+                {
+                    Logger.Debug($"Error deleting [{0}], sleeping for {1} seconds.", directoryName, delayMs);
+                    Thread.Sleep(delayMs);
+                    delayMs *= 2;
+                    numTries--;
+                }
+            }
+        }
+
+        public static string NormalizeContent(string filename)
+        {
+            if (filename.EndsWith(".js") || filename.EndsWith(".ts"))
+            {
+                var tempDirectoryName = Guid.NewGuid().ToString();
+                if (!Directory.Exists(tempDirectoryName))
+                {
+                    Directory.CreateDirectory(tempDirectoryName);
+                }
+                var extension = Path.GetExtension(filename);
+                var tempFile = Path.ChangeExtension(Path.Join(tempDirectoryName, "temp"), extension);
+                var bytes = File.ReadAllBytes(filename);
+                File.WriteAllBytes(tempFile, bytes);
+
+                var runResult = Helpers.RunCommand(tempDirectoryName, "docker", new[] {
+                                            "run",
+                                            "--rm",
+                                            "--memory=1g",
+                                            "--cpus=1.0",
+                                            "--volume", $"{Path.GetFullPath(tempDirectoryName)}:/repo",
+                                            "--workdir=/repo",
+                                            "tmknom/prettier",
+                                            Path.ChangeExtension("/repo/temp", extension)
+                                       }, out var stdout, out var stderr);
+                Helpers.DeleteDirectory(tempDirectoryName);
+                if (stdout != null)
+                {
+                    return stdout;
+                }
+                else
+                {
+                    return File.ReadAllText(filename);
+                }
+            }
+            else
+            {
+                return File.ReadAllText(filename);
+            }
         }
 
         /// <summary>
@@ -227,7 +334,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         {
             target = target.Replace("\\", "/");
             var candidate = "";
-            
+
             var bestCandidates = new HashSet<string>();
             var bestCandidateScore = 0;
             filenames = filenames.Select(f => f.Replace("\\", "/").Trim());
@@ -260,65 +367,6 @@ namespace Microsoft.CST.OpenSource.Reproducibility
             resultList.Reverse();
             return resultList;
         }
-
-        public static IEnumerable<DirectoryDifference> GetDirectoryDifferenceByContent(PackageURL packageUrl, string? leftDirectory, string? rightDirectory, string strategyName)
-        {
-            var results = new List<DirectoryDifference>();
-
-            Logger.Debug("GetDirectoryDifferenceByContent({0}, {1})", leftDirectory, rightDirectory);
-            if (leftDirectory == null || rightDirectory == null ||
-                !Directory.Exists(leftDirectory) || !Directory.Exists(rightDirectory))
-            {
-                Logger.Warn("Directory does not exist.");
-                throw new DirectoryNotFoundException("Directory does not exist.");
-            }
-
-            var leftContent = GenerateDirectoryHashes2(packageUrl, strategyName, leftDirectory);
-            var rightContent = GenerateDirectoryHashes2(packageUrl, strategyName, rightDirectory);
-            results.AddRange(rightContent.Keys.Except(leftContent.Keys).Select(f => new DirectoryDifference { Filename = string.Join(',', rightContent[f]), Operation = DirectoryDifferenceOperation.Added }));
-            results.AddRange(leftContent.Keys.Except(rightContent.Keys).Select(f => new DirectoryDifference { Filename = string.Join(',', leftContent[f]), Operation = DirectoryDifferenceOperation.Removed }));
-
-            return results;
-        }
-
-        /*
-        internal static IEnumerable<KeyValuePair<string, string>> GenerateDirectoryHashes(PackageURL packageUrl, string directory, bool useFilters = true)
-        {
-            var hashFunction = SHA256.Create();
-            var directoryFiles = Directory.EnumerateFiles(directory, "*", new EnumerationOptions { RecurseSubdirectories = true, AttributesToSkip = 0 });
-            var filteredFiles = directoryFiles.Where(f => !IgnoreFilter.IsIgnored(packageUrl, this.GetType().Name, f));
-            foreach (var file in filteredFiles)
-            {
-                var hashValue = hashFunction.ComputeHash(File.ReadAllBytes(file));
-                var hashString = Convert.ToHexString(hashValue);
-                yield return KeyValuePair.Create<string, string>(file, hashString);
-            }
-        }
-        */
-
-        internal static Dictionary<string, HashSet<string>> GenerateDirectoryHashes2(PackageURL packageUrl, string strategyName, string directory)
-        {
-            var results = new Dictionary<string, HashSet<string>>();
-            var hashFunction = SHA256.Create();
-            var directoryFiles = Directory.EnumerateFiles(directory, "*", new EnumerationOptions { RecurseSubdirectories = true, AttributesToSkip = 0 });
-            var filteredFiles = directoryFiles.Where(f => !IgnoreFilter.IsIgnored(packageUrl, strategyName, f));
-            foreach (var filename in filteredFiles)
-            {
-
-                var hashValue = hashFunction.ComputeHash(File.ReadAllBytes(filename));
-                var hashString = Convert.ToHexString(hashValue);
-                if (results.ContainsKey(hashString))
-                {
-                    results[hashString].Add(filename);
-                }
-                else
-                {
-                    results[hashString] = new HashSet<string>() { filename };
-                }
-            }
-            return results;
-        }
-
 
         internal static string? GetFirstNonSingularDirectory(string? directory)
         {
@@ -381,6 +429,5 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 }
             }
         }
-
     }
 }

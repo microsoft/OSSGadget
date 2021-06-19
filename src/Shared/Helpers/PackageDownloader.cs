@@ -261,6 +261,6 @@ namespace Microsoft.CST.OpenSource
         private List<string> downloadPaths { get; set; } = new List<string>();
 
         private BaseProjectManager? packageManager { get; set; }
-        private List<PackageURL> PackageVersions { get; set; }
+        public List<PackageURL> PackageVersions { get; set; }
     }
 }

@@ -1,27 +1,19 @@
-﻿using Microsoft.CST.RecursiveExtractor;
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
+
+using Microsoft.CST.RecursiveExtractor;
 using NLog;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using SharpCompress;
-using SharpCompress.Common;
-using SharpCompress.Archives.Zip;
-using SharpCompress.Archives;
 
 namespace Microsoft.CST.OpenSource.Reproducibility
 {
-
     /// <summary>
-    /// This strategy uses the Microsoft Oryx (github.com/Microsoft/oryx) Docker image to attempt to build
-    /// the source repository. The priority high as this project attempts to create a runnable build, meaning,
-    /// it will bring in ancillary packages that aren't included in the actual package itself.
+    /// This strategy uses the Microsoft Oryx (github.com/Microsoft/oryx) Docker image to attempt to
+    /// build the source repository. The priority high as this project attempts to create a runnable
+    /// build, meaning, it will bring in ancillary packages that aren't included in the actual
+    /// package itself.
     /// </summary>
-    class OryxBuildStrategy : BaseStrategy
+    internal class OryxBuildStrategy : BaseStrategy
     {
         public override StrategyPriority PRIORITY => StrategyPriority.Low;
 
@@ -30,8 +22,8 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         }
 
         /// <summary>
-        /// Determines whether this strategy applies to the given package/source. For
-        /// this strategy, we'll let Oryx do whatever it can.
+        /// Determines whether this strategy applies to the given package/source. For this strategy,
+        /// we'll let Oryx do whatever it can.
         /// </summary>
         /// <returns></returns>
         public override bool StrategyApplies()
@@ -69,8 +61,8 @@ namespace Microsoft.CST.OpenSource.Reproducibility
             Directory.CreateDirectory(outputDirectory);
             var tempBuildArchiveDirectory = Path.Join(Options.TemporaryDirectory, "archive");
             Directory.CreateDirectory(tempBuildArchiveDirectory);
-            
-            var runResult = RunCommand(workingDirectory, "docker", new[] {
+
+            var runResult = Helpers.RunCommand(workingDirectory, "docker", new[] {
                                            "run",
                                            "--rm",
                                            "--volume", $"{Path.GetFullPath(workingDirectory)}:/repo",
@@ -87,20 +79,25 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 Strategy = this.GetType()
             };
 
-            // Zip up the output directory, then recursively extract
-            var unpackedDirectory = Path.Join(Options.TemporaryDirectory, "unpacked");
-            var tempBuildArchiveFile = Path.Join(tempBuildArchiveDirectory, "archive.zip");
-            Directory.CreateDirectory(unpackedDirectory);
-            CreateZipFromDirectory(outputDirectory, tempBuildArchiveFile);
-            var extractor = new Extractor();
-            extractor.ExtractToDirectoryAsync(unpackedDirectory, tempBuildArchiveFile).Wait();
-
-            var targetPackageDirectory = Helpers.GetFirstNonSingularDirectory(Options.PackageDirectory);
-            var targetPackedDirectory = Helpers.GetFirstNonSingularDirectory(unpackedDirectory);
-
-            var diffResults = Helpers.DirectoryDifference(Options.PackageDirectory!, unpackedDirectory);
-            diffResults = diffResults.Where(d => !IgnoreFilter.IsIgnored(Options.PackageUrl, this.GetType().Name, d.Filename));
-            Helpers.AddDifferencesToStrategyResult(strategyResult, diffResults);
+            if (runResult)
+            {
+                if (Directory.GetFiles(outputDirectory,"*", SearchOption.AllDirectories).Any())
+                {
+                    var diffResults = Helpers.DirectoryDifference(Options.PackageDirectory!, outputDirectory, Options.DiffTechnique);
+                    diffResults = diffResults.Where(d => !IgnoreFilter.IsIgnored(Options.PackageUrl, this.GetType().Name, d.Filename));
+                    Helpers.AddDifferencesToStrategyResult(strategyResult, diffResults);
+                }
+                else
+                {
+                    strategyResult.IsError = true;
+                    strategyResult.Summary = "The OryxBuildStrategy did not complete successfully (no files produced).";
+                }
+            }
+            else
+            {
+                strategyResult.IsError = true;
+                strategyResult.Summary = "The OryxBuildStrategy did not complete successfully (container execution failed).";
+            }
 
             return strategyResult;
         }

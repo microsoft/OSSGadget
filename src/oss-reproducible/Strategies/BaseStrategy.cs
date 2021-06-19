@@ -1,22 +1,18 @@
-﻿using Microsoft.CST.OpenSource.Shared;
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
+
+using DiffPlex.DiffBuilder.Model;
+using Microsoft.CST.OpenSource.Shared;
+using SharpCompress.Archives;
+using SharpCompress.Archives.Zip;
+using SharpCompress.Common;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
-using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
-using System.Text.RegularExpressions;
-using System.Text.Json.Serialization;
-using SharpCompress;
-using SharpCompress.Common;
-using SharpCompress.Archives.Zip;
-using SharpCompress.Archives;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
-using DiffPlex.DiffBuilder.Model;
+using System.Text;
+using System.Text.Json.Serialization;
 
 namespace Microsoft.CST.OpenSource.Reproducibility
 {
@@ -34,7 +30,9 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         public string? SourceDirectory { get; set; }
         public string? PackageDirectory { get; set; }
         public string? TemporaryDirectory { get; set; }
+        public DiffTechnique DiffTechnique { get; set; } = DiffTechnique.Normalized;
     }
+
     public class StrategyResultMessage
     {
         public StrategyResultMessage()
@@ -59,6 +57,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
 
         [JsonIgnore]
         public Type? Strategy { get; set; }
+
         public string? StrategyName { get => Strategy?.Name; }
         public string? Summary { get; set; }
         public HashSet<StrategyResultMessage> Messages;
@@ -69,7 +68,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
     public abstract class BaseStrategy
     {
         protected StrategyOptions Options;
-        
+
         public virtual StrategyPriority PRIORITY => StrategyPriority.None;
 
         /// <summary>
@@ -78,8 +77,8 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
         public abstract bool StrategyApplies();
-        public abstract StrategyResult? Execute();
 
+        public abstract StrategyResult? Execute();
 
         public BaseStrategy(StrategyOptions options)
         {
@@ -93,7 +92,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         public static IEnumerable<Type>? GetStrategies(StrategyOptions strategyOptions)
         {
             var strategies = typeof(BaseStrategy).Assembly.GetTypes().Where(t => t.IsSubclassOf(typeof(BaseStrategy))).ToList();
-            
+
             strategies.Sort((a, b) =>
             {
                 if (a == b)
@@ -147,8 +146,9 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         }
 
         /// <summary>
-        /// This is a failure-resistent version of .CreateFromDirectory or .AddDirectory, both of which fail under various
-        /// conditions. This function continues on (emitting a message to the logger) and returns false on any error.
+        /// This is a failure-resistent version of .CreateFromDirectory or .AddDirectory, both of
+        /// which fail under various conditions. This function continues on (emitting a message to
+        /// the logger) and returns false on any error.
         /// </summary>
         /// <param name="directoryName">Directory to zip</param>
         /// <param name="archiveName">File to write to.</param>
@@ -156,8 +156,9 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         protected static bool CreateZipFromDirectory(string directoryName, string archiveName)
         {
             var result = true;
-            // Note that we're not using something like .CreateFromDirectory, or .AddDirectory, since both of these had problems
-            // with permissions. Instead, we'll try to add each file separately, and continue on any failures.
+            // Note that we're not using something like .CreateFromDirectory, or .AddDirectory,
+            // since both of these had problems with permissions. Instead, we'll try to add each
+            // file separately, and continue on any failures.
             using (var archive = ZipArchive.Create())
             {
                 using (archive.PauseEntryRebuilding())
@@ -180,69 +181,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
             }
             return result;
         }
-        public static bool RunCommand(string workingDirectory, string filename, IEnumerable<string> args, out string? stdout, out string? stderr)
-        {
-            Logger.Debug("RunCommand({0})", filename);
 
-            var startInfo = new ProcessStartInfo()
-            {
-                CreateNoWindow = false,
-                UseShellExecute = false,
-                FileName = filename,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                WorkingDirectory = workingDirectory
-            };
-            foreach (var arg in args)
-            {
-                startInfo.ArgumentList.Add(arg);
-            }
-
-            using var process = Process.Start(startInfo);
-            if (process == null)
-            {
-                stdout = null;
-                stderr = null;
-                return false;
-            }
-            var sbStdout = new StringBuilder();
-            var sbStderr = new StringBuilder();
-
-            process.OutputDataReceived += (sender, args) =>
-            {
-                if (args.Data != null)
-                {
-                    Logger.Debug("OUT: {0}", args.Data);
-                    sbStdout.AppendLine(args.Data);
-                }
-            };
-            process.ErrorDataReceived += (sender, args) =>
-            {
-                if (args.Data != null)
-                {
-                    Logger.Debug("ERR: {0}", args.Data);
-                    sbStderr.AppendLine(args.Data);
-                }
-            };
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-
-            // Apply a timeout 
-            var timeout = 1000 * 60 * 15; // 15 minute default timeout
-            var envTimeout = Environment.GetEnvironmentVariable("OSS_REPRODUCIBLE_COMMAND_TIMEOUT");
-            if (envTimeout != null)
-            {
-                if (int.TryParse(envTimeout, out var envTimeoutInt))
-                {
-                    timeout = envTimeoutInt;
-                }
-            }
-            process.WaitForExit(timeout);
-            
-            stdout = sbStdout.ToString();
-            stderr = sbStderr.ToString();
-
-            return process.ExitCode == 0;
-        }
+        
     }
 }

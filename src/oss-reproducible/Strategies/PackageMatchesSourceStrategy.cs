@@ -1,17 +1,15 @@
-﻿using NLog;
-using System;
-using System.Collections.Generic;
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
+
+using NLog;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Reproducibility
 {
     /// <summary>
-    /// This strategy checks to see if the package content exactly matches the source code repository.
-    /// It automatically excludes the .git directory.
+    /// This strategy checks to see if the package content exactly matches the source code
+    /// repository. It automatically excludes the .git directory.
     /// </summary>
-    class PackageMatchesSourceStrategy : BaseStrategy
+    internal class PackageMatchesSourceStrategy : BaseStrategy
     {
         public override StrategyPriority PRIORITY => StrategyPriority.High;
 
@@ -38,11 +36,12 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 return null;
             }
 
-            var strategyResult = new StrategyResult() {
+            var strategyResult = new StrategyResult()
+            {
                 Strategy = this.GetType()
             };
 
-            var diffResults = Helpers.DirectoryDifference(Options.PackageDirectory!, Options.SourceDirectory!);
+            var diffResults = Helpers.DirectoryDifference(Options.PackageDirectory!, Options.SourceDirectory!, Options.DiffTechnique);
             diffResults = diffResults.Where(d => !IgnoreFilter.IsIgnored(Options.PackageUrl, this.GetType().Name, d.Filename));
             Helpers.AddDifferencesToStrategyResult(strategyResult, diffResults);
 

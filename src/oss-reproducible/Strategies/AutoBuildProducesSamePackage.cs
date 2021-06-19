@@ -1,31 +1,28 @@
-﻿using DiffPlex.DiffBuilder.Model;
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
+
 using Microsoft.CST.OpenSource.Shared;
 using Microsoft.CST.RecursiveExtractor;
 using NLog;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Reproducibility
 {
     /// <summary>
-    /// This strategy identifies packages as reproducible if running `npm pack` on the source repository produces a file
-    /// that matches the content of the package downloaded from the registry.
+    /// This strategy identifies packages as reproducible if running `npm pack` on the source
+    /// repository produces a file that matches the content of the package downloaded from the registry.
     /// </summary>
-    class AutoBuildProducesSamePackage : BaseStrategy
+    internal class AutoBuildProducesSamePackage : BaseStrategy
     {
-        private static readonly Dictionary<string, string> DOCKER_CONTAINERS = new Dictionary<string, string>()
+        private static readonly Dictionary<string, string> DOCKER_CONTAINERS = new()
         {
-            {"npm", "node:latest" },
-            {"gem", "ruby:latest" },
-            {"cpan", "perl:latest" },
-            {"pypi", "python:latest" }
+            { "npm", "node:latest" },
+            { "gem", "ruby:latest" },
+            { "cpan", "perl:latest" },
+            { "pypi", "python:latest" },
+            { "cargo", "rust:latest" }
         };
 
         public override StrategyPriority PRIORITY => StrategyPriority.Medium;
@@ -35,7 +32,8 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         }
 
         /// <summary>
-        /// This strategy applies when the source and package directories exist, as well as if an autobuilder script is available.
+        /// This strategy applies when the source and package directories exist, as well as if an
+        /// autobuilder script is available.
         /// </summary>
         /// <returns></returns>
         public override bool StrategyApplies()
@@ -58,7 +56,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 return false;
             }
 
-            if (!DOCKER_CONTAINERS.TryGetValue(Options.PackageUrl?.Type!, out string? dockerContainerName))
+            if (!DOCKER_CONTAINERS.TryGetValue(Options.PackageUrl?.Type!, out _))
             {
                 Logger.Debug("Strategy {0} does not apply because no docker container is known for type: {0}", Options.PackageUrl?.Type);
                 return false;
@@ -98,7 +96,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 return null;
             }
 
-            var runResult = RunCommand(workingDirectory, "docker", new[] {
+            var runResult = Helpers.RunCommand(workingDirectory, "docker", new[] {
                                             "run",
                                             "--rm",
                                             "--memory=4g",
@@ -114,7 +112,6 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                                             customBuild,
                                             customPostBuild
                                        }, out var stdout, out var stderr);
-
             if (runResult)
             {
                 var packedFilenamePath = Path.Join(outputDirectory, "output.archive");
@@ -130,7 +127,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 var packedDirectory = Path.Join(Options.TemporaryDirectory, "src_packed");
                 extractor.ExtractToDirectoryAsync(packedDirectory, packedFilenamePath).Wait();
 
-                var diffResults = Helpers.DirectoryDifference(Options.PackageDirectory!, packedDirectory);
+                var diffResults = Helpers.DirectoryDifference(Options.PackageDirectory!, packedDirectory, Options.DiffTechnique);
                 diffResults = diffResults.Where(d => !IgnoreFilter.IsIgnored(Options.PackageUrl, this.GetType().Name, d.Filename));
                 Helpers.AddDifferencesToStrategyResult(strategyResult, diffResults);
             }
@@ -139,7 +136,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 strategyResult.IsError = true;
                 strategyResult.Summary = "The AutoBuilder did not complete successfully.";
             }
-            
+
             return strategyResult;
         }
 
@@ -162,7 +159,14 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 targetWithVersion = Path.Join("BuildHelperScripts", packageUrl.Type, packageUrl.Name + "@" + packageUrl.Version + $".{scriptType}");
                 targetWithoutVersion = Path.Join("BuildHelperScripts", packageUrl.Type, packageUrl.Name + $".{scriptType}");
             }
-            
+            Func<string, string> normalize = (s =>
+            {
+                return s.Replace("%40", "@").Replace("%2F", "/").Replace("%2f", "/");
+            });
+
+            targetWithVersion = normalize(targetWithVersion);
+            targetWithoutVersion = normalize(targetWithoutVersion);
+
             if (File.Exists(targetWithVersion))
             {
                 return targetWithVersion.Replace("\\", "/");

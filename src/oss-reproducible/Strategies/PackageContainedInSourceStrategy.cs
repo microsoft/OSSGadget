@@ -1,23 +1,15 @@
-﻿using DiffPlex.DiffBuilder.Model;
-using DiffPlex.Model;
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
+
 using NLog;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Reproducibility
 {
-    /// <summary>
-    /// This strategy checks to see if all files included in the package are also included in the source directory,
-    /// and that they have identical contents. If a file was renamed, for example, it fails this strategy.
-    /// </summary>
-    class PackageContainedInSourceByFilenameStrategy : BaseStrategy
+    internal class PackageContainedInSourceStrategy : BaseStrategy
     {
         public override StrategyPriority PRIORITY => StrategyPriority.Medium;
 
-        public PackageContainedInSourceByFilenameStrategy(StrategyOptions options) : base(options)
+        public PackageContainedInSourceStrategy(StrategyOptions options) : base(options)
         {
         }
 
@@ -45,7 +37,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 Strategy = this.GetType()
             };
 
-            var diffResults = Helpers.GetDirectoryDifferenceByFilename(Options!.SourceDirectory, Options!.PackageDirectory, Options.PackageUrl, this.GetType().Name);
+            var diffResults = Helpers.DirectoryDifference(Options.PackageDirectory!, Options.SourceDirectory!, Options.DiffTechnique);
             diffResults = diffResults.Where(d => !IgnoreFilter.IsIgnored(Options.PackageUrl, this.GetType().Name, d.Filename));
             Helpers.AddDifferencesToStrategyResult(strategyResult, diffResults);
 

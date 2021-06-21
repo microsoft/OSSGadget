@@ -5,6 +5,7 @@ using System.IO;
 using System;
 using System.Text.Json;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace Microsoft.CST.OpenSource.Tests
 {
@@ -18,7 +19,6 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataTestMethod]
         [DataRow("pkg:npm/left-pad@1.3.0", true)]
         [DataRow("pkg:npm/non-existent1267461827467@12421", null)]
-        [DataRow("pkg:error/error", null)]
         public async Task CheckReproducibility(string packageUrl, bool? expectedToBeReproducible)
         {
             var outputFilename = Guid.NewGuid().ToString() + ".json";
@@ -31,10 +31,10 @@ namespace Microsoft.CST.OpenSource.Tests
                 Assert.IsTrue(outputFileExists, "Output file does not exist.");
                 var result = File.ReadAllText(outputFilename);
 
-                var jsonResult = JsonSerializer.Deserialize<ReproducibleToolResult>(result);
-                Assert.IsNotNull(jsonResult, "Output file was not parseable.");
+                var jsonResults = JsonSerializer.Deserialize<List<ReproducibleToolResult>>(result);
+                Assert.IsNotNull(jsonResults, "Output file was not parseable.");
 
-                Assert.AreEqual(expectedToBeReproducible == true, jsonResult.IsReproducible);
+                Assert.AreEqual(expectedToBeReproducible == true, jsonResults.First().IsReproducible);
             }
             else
             {

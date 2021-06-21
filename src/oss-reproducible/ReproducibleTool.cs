@@ -412,24 +412,31 @@ namespace Microsoft.CST.OpenSource
                 }
             }
 
-            // Write the output somewhere
-            var jsonResults = JsonSerializer.Serialize<List<ReproducibleToolResult>>(finalResults, new JsonSerializerOptions { WriteIndented = true });
-            if (!string.IsNullOrWhiteSpace(options.OutputFile) && !string.Equals(options.OutputFile, "-", StringComparison.InvariantCultureIgnoreCase))
+            if (finalResults.Any())
             {
-                try
+                // Write the output somewhere
+                var jsonResults = JsonSerializer.Serialize<List<ReproducibleToolResult>>(finalResults, new JsonSerializerOptions { WriteIndented = true });
+                if (!string.IsNullOrWhiteSpace(options.OutputFile) && !string.Equals(options.OutputFile, "-", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    File.WriteAllText(options.OutputFile, jsonResults);
-                    Console.WriteLine($"Detailed results are available in {options.OutputFile}.");
+                    try
+                    {
+                        File.WriteAllText(options.OutputFile, jsonResults);
+                        Console.WriteLine($"Detailed results are available in {options.OutputFile}.");
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Warn(ex, "Unable to write to {0}. Writing to console instead.", options.OutputFile);
+                        Console.Error.WriteLine(jsonResults);
+                    }
                 }
-                catch (Exception ex)
+                else if (string.Equals(options.OutputFile, "-", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    Logger.Warn(ex, "Unable to write to {0}. Writing to console instead.", options.OutputFile);
                     Console.Error.WriteLine(jsonResults);
                 }
             }
-            else if (string.Equals(options.OutputFile, "-", StringComparison.InvariantCultureIgnoreCase))
+            else
             {
-                Console.Error.WriteLine(jsonResults);
+                Logger.Debug("No results were produced.");
             }
         }
     }

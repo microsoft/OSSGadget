@@ -63,6 +63,10 @@ namespace Microsoft.CST.OpenSource
             [Option('d', "show-differences", Required = false, Default = false,
                 HelpText = "Output the differences between the package and the reference content.")]
             public bool ShowDifferences { get; set; }
+            
+            [Option("show-all-differences", Required = false, Default = false,
+                HelpText = "Show all differences (default: capped at 20), implies --show-differences")]
+            public bool ShowAllDifferences { get; set; }
 
             [Option('l', "leave-intermediate", Required = false, Default = false,
                 HelpText = "Do not clean up intermediate files (useful for debugging).")]
@@ -87,6 +91,11 @@ namespace Microsoft.CST.OpenSource
 
         private async Task RunAsync(Options options)
         {
+            if (options.ShowAllDifferences)
+            {
+                options.ShowDifferences = true;
+            }
+
             // Validate strategies (before we do any other processing
             IEnumerable<Type>? runSpecificStrategies = null;
             if (options.SpecificStrategies != null)
@@ -144,7 +153,7 @@ namespace Microsoft.CST.OpenSource
                         Directory.Delete(tempDirectoryName, true);  // Just in case
                     }
                     // Download the package
-                    Console.WriteLine("Downloading...");
+                    Console.WriteLine("Downloading package...");
                     var packageDownloader = new PackageDownloader(purl, Path.Join(tempDirectoryName, "package"));
                     var downloadResults = await packageDownloader.DownloadPackageLocalCopy(purl, false, true);
 
@@ -243,6 +252,8 @@ namespace Microsoft.CST.OpenSource
 
                     Console.WriteLine();
                     Console.WriteLine("Results:");
+                    
+                    var hasSuccessfulStrategy = false;
 
                     foreach (var strategy in strategies)
                     {
@@ -285,46 +296,62 @@ namespace Microsoft.CST.OpenSource
                                 {
                                     if (strategyResult.IsSuccess)
                                     {
-                                        Console.WriteLine(Yellow().Bold($"  [✓] {strategy.Name}"));
-                                        if (!options.AllStrategies)
-                                        {
-                                            break;   // TODO need to move this down or we won't see diffs
-                                        }
+                                        Console.WriteLine($" [{Bold().Yellow("PASS")}] {Yellow(strategy.Name)}");
+                                        hasSuccessfulStrategy = true;
                                     }
                                     else
                                     {
-                                        Console.WriteLine(White().Bold().Background.Rgb(170, 0, 0, $"  [✗] {strategy.Name}"));
+                                        Console.WriteLine($" [{Red("FAIL")}] {Red(strategy.Name)}");
                                     }
 
                                     if (options.ShowDifferences)
                                     {
                                         foreach (var resultMessage in strategyResult.Messages)
                                         {
-                                            if (resultMessage.CompareFilename != null)
+                                            
+                                            if (resultMessage.Filename != null && resultMessage.CompareFilename != null)
                                             {
-                                                Console.WriteLine($"      Existing File: {resultMessage.Filename}");
-                                                Console.WriteLine($"         Changed To: {resultMessage.CompareFilename}");
+                                                Console.WriteLine($"  {Bright.Black("(")}{Blue("P ")}{Bright.Black(")")} {resultMessage.Filename}");
+                                                Console.WriteLine($"  {Bright.Black("(")}{Blue(" S")}{Bright.Black(")")} {resultMessage.CompareFilename}");
                                             }
-                                            else
+                                            else if (resultMessage.Filename != null)
                                             {
-                                                Console.WriteLine(Blue($"           New File: {resultMessage.Filename}"));
+                                                Console.WriteLine($"  {Bright.Black("(")}{Blue("P+")}{Bright.Black(")")} {resultMessage.Filename}");
                                             }
+                                            else if (resultMessage.CompareFilename != null)
+                                            {
+                                                Console.WriteLine($"  {Bright.Black("(")}{Blue("S+")}{Bright.Black(")")} {resultMessage.CompareFilename}");
+                                            }
+
                                             var differences = resultMessage.Differences ?? Array.Empty<DiffPiece>();
+                                            
+                                            var maxShowDifferences = 20;
+                                            var numShowDifferences = 0;
+
                                             foreach (var diff in differences)
                                             {
+                                                if (!options.ShowAllDifferences && numShowDifferences > maxShowDifferences)
+                                                {
+                                                    Console.WriteLine(Background.Blue(Bold().White("NOTE: Additional differences exist but are not shown. Pass --show-all-differences to view them all.")));
+                                                    break;
+                                                }
+                                                
                                                 switch (diff.Type)
                                                 {
+                                                    
                                                     case ChangeType.Inserted:
-                                                        Console.WriteLine("      + " + diff.Text); break;
+                                                        Console.WriteLine($"{Bright.Black(diff.Position + ")")}\t{Red("+")} {Blue(diff.Text)}");
+                                                        ++numShowDifferences;
+                                                        break;
                                                     case ChangeType.Deleted:
-                                                        Console.WriteLine(Dim().White("      - " + diff.Text)); break;
-                                                    case ChangeType.Modified:
-                                                        Console.WriteLine("      * " + diff.Text); break;
+                                                        Console.WriteLine($"\t{Green("-")} {Green(diff.Text)}");
+                                                        ++numShowDifferences;
+                                                        break;
                                                     default:
                                                         break;
                                                 }
                                             }
-                                            if (differences.Any())
+                                            if (numShowDifferences > 0)
                                             {
                                                 Console.WriteLine();
                                             }
@@ -342,6 +369,12 @@ namespace Microsoft.CST.OpenSource
                                 Logger.Debug(ex.StackTrace);
                             }
                         }
+
+                        if (hasSuccessfulStrategy && !options.AllStrategies)
+                        {
+                            break;  // We don't need to continue
+                        }
+
                     }
 
                     Console.WriteLine("\nSummary:");

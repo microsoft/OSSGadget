@@ -44,6 +44,10 @@ namespace Microsoft.CST.OpenSource.Reproducibility
             var diffResults = Helpers.DirectoryDifference(Options.PackageDirectory!, Options.SourceDirectory!, Options.DiffTechnique);
             diffResults = diffResults.Where(d => !IgnoreFilter.IsIgnored(Options.PackageUrl, this.GetType().Name, d.Filename));
             Helpers.AddDifferencesToStrategyResult(strategyResult, diffResults);
+            
+            diffResults = Helpers.DirectoryDifference(Options.SourceDirectory!, Options.PackageDirectory!, Options.DiffTechnique);
+            diffResults = diffResults.Where(d => !IgnoreFilter.IsIgnored(Options.PackageUrl, this.GetType().Name, d.Filename));
+            Helpers.AddDifferencesToStrategyResult(strategyResult, diffResults, reverseDirection: true);
 
             return strategyResult;
         }

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System;
 using System.Text.Json;
+using System.Linq;
 
 namespace Microsoft.CST.OpenSource.Tests
 {
@@ -48,6 +49,28 @@ namespace Microsoft.CST.OpenSource.Tests
             if (File.Exists(outputFilename))
             {
                 File.Delete(outputFilename);
+            }
+     
+        }
+
+
+        [DataTestMethod]
+        [DataRow("/foo/bar/quux.c", "quux.c", "quux.c")]
+        [DataRow("/foo/bar/quux.c", "baz.c", null)]
+        [DataRow("/foo/bar/quux.c", "baz/quux.c,bar/quux.c", "bar/quux.c")]
+        public async Task CheckGetClosestMatch(string filename, string targets, string expectedTarget)
+        {
+            var results = Helpers.GetClosestFileMatch(filename, targets.Split(','));
+            Assert.IsNotNull(results);
+
+            if (expectedTarget == null)
+            {
+                Assert.IsFalse(results.Any());
+            }
+            else
+            {
+                Assert.IsTrue(results.Any());
+                Assert.AreEqual(expectedTarget, results.First());
             }
         }
     }

@@ -27,10 +27,12 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         public DirectoryDifferenceOperation Operation { get; set; }
         public string? ComparisonFile { get; set; }
         public IEnumerable<DiffPiece>? Difference { get; set; }
+        //public SideBySideDiffModel? Differences { get; set; }
     }
 
-    internal class Helpers
+    public class Helpers
     {
+        
         protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
         static Helpers()
@@ -151,22 +153,20 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 }
                 else
                 {
-                    string? filenameContent;
-                    string? closestMatchContent;
-
-                    if (diffTechnique == DiffTechnique.Normalized)
+                    var filenameContent = File.ReadAllText(leftFile);
+                    var closestMatchContent = File.ReadAllText(closestMatch);
+                    if (!string.Equals(filenameContent, closestMatchContent))
                     {
-                        filenameContent = NormalizeContent(leftFile);
-                        closestMatchContent = NormalizeContent(closestMatch);
-
-                    }
-                    else
-                    { 
-                        filenameContent = File.ReadAllText(leftFile);
-                        closestMatchContent = File.ReadAllText(closestMatch);
+                        if (diffTechnique == DiffTechnique.Normalized)
+                        {
+                            filenameContent = NormalizeContent(leftFile);
+                            closestMatchContent = NormalizeContent(closestMatch);
+                        }
                     }
 
                     var diff = InlineDiffBuilder.Diff(filenameContent, closestMatchContent, ignoreWhiteSpace: true, ignoreCase: false);
+                    //var diff = SideBySideDiffBuilder.Diff(filenameContent, closestMatchContent, ignoreWhiteSpace: true, ignoreCase: false);
+                    //if (diff.NewText.HasDifferences || diff.OldText.HasDifferences)
                     if (diff.HasDifferences)
                     {
                         results.Add(new DirectoryDifference()
@@ -175,6 +175,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                             ComparisonFile = closestMatch[rightDirectory.Length..].Replace("\\", "/"),
                             Operation = DirectoryDifferenceOperation.Modified,
                             Difference = diff.Lines
+                            //Differences = diff
                         });
                     }
                 }
@@ -211,13 +212,17 @@ namespace Microsoft.CST.OpenSource.Reproducibility
             }
             var sbStdout = new StringBuilder();
             var sbStderr = new StringBuilder();
+            var sbLock = new Object();
 
             process.OutputDataReceived += (sender, args) =>
             {
                 if (args.Data != null)
                 {
                     Logger.Trace("OUT: {0}", args.Data);
-                    sbStdout.AppendLine(args.Data);
+                    lock (sbLock)
+                    {
+                        sbStdout.AppendLine(args.Data);
+                    }
                 }
             };
             process.ErrorDataReceived += (sender, args) =>
@@ -225,7 +230,10 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 if (args.Data != null)
                 {
                     Logger.Trace("ERR: {0}", args.Data);
-                    sbStderr.AppendLine(args.Data);
+                    lock (sbLock)
+                    {
+                        sbStderr.AppendLine(args.Data);
+                    }
                 }
             };
             process.BeginOutputReadLine();
@@ -242,7 +250,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 }
             }
             process.WaitForExit(timeout);
-
+            
             stdout = sbStdout.ToString();
             stderr = sbStderr.ToString();
             
@@ -276,7 +284,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 }
                 catch (Exception)
                 {
-                    Logger.Debug($"Error deleting [{0}], sleeping for {1} seconds.", directoryName, delayMs);
+                    Logger.Debug("Error deleting [{0}], sleeping for {1} seconds.", directoryName, delayMs);
                     Thread.Sleep(delayMs);
                     delayMs *= 2;
                     numTries--;
@@ -284,10 +292,18 @@ namespace Microsoft.CST.OpenSource.Reproducibility
             }
         }
 
+        /// <summary>
+        /// Attempts to "normalize" source code content by beautifying it. In some cases, this can
+        /// remove trivial differences.
+        /// Uses the NPM 'prettier' module within a docker container.
+        /// </summary>
+        /// <param name="filename">File to normalize</param>
+        /// <returns>Normalized content, or the raw file content.</returns>
         public static string NormalizeContent(string filename)
         {
             if (filename.EndsWith(".js") || filename.EndsWith(".ts"))
             {
+                Logger.Debug("Normalizing {0}", filename);
                 var tempDirectoryName = Guid.NewGuid().ToString();
                 if (!Directory.Exists(tempDirectoryName))
                 {
@@ -308,6 +324,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                                             "tmknom/prettier",
                                             Path.ChangeExtension("/repo/temp", extension)
                                        }, out var stdout, out var stderr);
+
                 Helpers.DeleteDirectory(tempDirectoryName);
                 if (stdout != null)
                 {
@@ -332,17 +349,19 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         /// <returns></returns>
         public static IEnumerable<string> GetClosestFileMatch(string target, IEnumerable<string> filenames)
         {
-            target = target.Replace("\\", "/");
+            target = target.Replace("\\", "/").Trim().Trim(' ', '/');
+            filenames = filenames.Select(f => f.Replace("\\", "/").Trim(' ', '/'));
+
             var candidate = "";
 
             var bestCandidates = new HashSet<string>();
             var bestCandidateScore = 0;
-            filenames = filenames.Select(f => f.Replace("\\", "/").Trim());
+            
             var targetNumDirs = target.Count(ch => ch == '/') + 1;
 
             foreach (var part in target.Split('/').Reverse())
             {
-                candidate = Path.Join("/" + part, candidate);
+                candidate = Path.Join(part, candidate).Replace("\\", "/");
                 foreach (var filename in filenames)
                 {
                     if (filename.EndsWith(candidate, StringComparison.InvariantCultureIgnoreCase))
@@ -354,8 +373,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                             bestCandidates.Clear();
                             bestCandidates.Add(filename);
                         }
-                        else if (candidateScore == bestCandidateScore &&
-                                 (targetNumDirs < 2 || (targetNumDirs >= 2 && candidateScore > 1)))
+                        else if (candidateScore == bestCandidateScore)
                         {
                             bestCandidates.Add(filename);
                         }
@@ -393,7 +411,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
             }
         }
 
-        internal static void AddDifferencesToStrategyResult(StrategyResult strategyResult, IEnumerable<DirectoryDifference> directoryDifferences)
+        internal static void AddDifferencesToStrategyResult(StrategyResult strategyResult, IEnumerable<DirectoryDifference> directoryDifferences, bool reverseDirection = false)
         {
             if (!directoryDifferences.Any())
             {
@@ -410,8 +428,8 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 {
                     var message = new StrategyResultMessage()
                     {
-                        Filename = dirDiff.Filename,
-                        CompareFilename = dirDiff.ComparisonFile,
+                        Filename = reverseDirection ? dirDiff.ComparisonFile : dirDiff.Filename,
+                        CompareFilename = reverseDirection ? dirDiff.Filename : dirDiff.ComparisonFile,
                         Differences = dirDiff.Difference,
                     };
                     switch (dirDiff.Operation)
@@ -429,5 +447,31 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 }
             }
         }
+
+        /*
+        internal string ConvertSideBySideDiffModelToText(SideBySideDiffModel diff)
+        {
+            var leftSide = new Dictionary<int, KeyValuePair<ChangeType, string>>();
+            var rightSide = new Dictionary<int, KeyValuePair<ChangeType, string>>();
+
+            var oldText = diff.OldText;
+            foreach (var d in diff.OldText.Lines)
+            {
+                if (d.Position != null)
+                {
+                    leftSide[(int)d.Position] = KeyValuePair.Create<ChangeType, string>(d.Type, d.Text);
+                }
+            }
+            foreach (var d in diff.NewText.Lines)
+            {
+                if (d.Position != null)
+                {
+                    rightSide[(int)d.Position] = KeyValuePair.Create<ChangeType, string>(d.Type, d.Text);
+                }
+            }
+
+            foreach 
+        }
+        */
     }
 }

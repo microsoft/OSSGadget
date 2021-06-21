@@ -39,13 +39,13 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         {
             this.Text = "";
             this.Filename = "";
-            this.Differences = Array.Empty<DiffPiece>();
         }
 
         public string Text { get; set; }
-        public string Filename { get; set; }
+        public string? Filename { get; set; }
         public string? CompareFilename { get; set; }
         public IEnumerable<DiffPiece>? Differences { get; set; }
+        //public SideBySideDiffModel? Differences { get; set; }
     }
 
     public class StrategyResult

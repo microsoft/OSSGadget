@@ -90,6 +90,12 @@ namespace Microsoft.CST.OpenSource.Shared
                 return downloadedPaths;
             }
 
+            // Cut the .git off the end of the package name.
+            if (packageName.EndsWith(".git"))
+            {
+                packageName = packageName[0..^4];
+            }
+
             try
             {
                 var url = $"{ENV_GITHUB_ENDPOINT}/{packageNamespace}/{packageName}";
@@ -108,15 +114,24 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
 
                 // First, try a tag (most likely what we're looking for)
-                var archiveUrls = new string[]
+                var archiveUrls = new List<string>();
+                foreach (var prefix in new[] { "", "v" })
                 {
-                    $"{url}/archive/refs/tags/{packageVersion}.zip",
-                    $"{url}/archive/{packageVersion}.zip",
-                    $"{url}/archive/refs/heads/{packageVersion}.zip",
-                    $"{url}/archive/refs/tags/v{packageVersion}.zip",
-                    $"{url}/archive/v{packageVersion}.zip",
-                    $"{url}/archive/refs/heads/v{packageVersion}.zip",
-                };
+                    archiveUrls.AddRange(new[] {
+                        $"{url}/archive/refs/tags/{prefix}{packageVersion}.zip",
+                        $"{url}/archive/{prefix}{packageVersion}.zip",
+                        $"{url}/archive/refs/heads/{prefix}{packageVersion}.zip",
+                    });
+                }
+                var purlNoVersion = new PackageURL(purl!.Type, purl.Namespace, purl.Name, null, purl.Qualifiers, purl.Subpath);
+                foreach (var v in EnumerateVersions(purlNoVersion).Result)
+                {
+                    if (Regex.IsMatch(purl.Version!, @"(^|[^\d\.])" + Regex.Escape(v)))
+                    { 
+                        archiveUrls.Add($"{url}/archive/refs/tags/{v}.zip");
+                    }
+                }
+
                 foreach (var archiveUrl in archiveUrls)
                 {
                     Logger.Debug("Attemping to download {0}", archiveUrl);

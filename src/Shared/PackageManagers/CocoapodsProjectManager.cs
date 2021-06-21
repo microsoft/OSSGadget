@@ -127,7 +127,6 @@ namespace Microsoft.CST.OpenSource.Shared
 
                 foreach (var navItem in navItems)
                 {
-                    Console.WriteLine("[" + navItem.TextContent + "]");
                     if (string.IsNullOrWhiteSpace(Regex.Replace(navItem.TextContent, @"\s", "").Replace(".", "")))
                     {
                         continue;

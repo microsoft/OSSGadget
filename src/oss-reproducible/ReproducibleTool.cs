@@ -415,7 +415,8 @@ namespace Microsoft.CST.OpenSource
             if (finalResults.Any())
             {
                 // Write the output somewhere
-                var jsonResults = JsonSerializer.Serialize<List<ReproducibleToolResult>>(finalResults, new JsonSerializerOptions { WriteIndented = true });
+                //var jsonResults = JsonSerializer.Serialize<List<ReproducibleToolResult>>(finalResults, new JsonSerializerOptions { WriteIndented = true });
+                var jsonResults = Newtonsoft.Json.JsonConvert.SerializeObject(finalResults, Newtonsoft.Json.Formatting.Indented);
                 if (!string.IsNullOrWhiteSpace(options.OutputFile) && !string.Equals(options.OutputFile, "-", StringComparison.InvariantCultureIgnoreCase))
                 {
                     try

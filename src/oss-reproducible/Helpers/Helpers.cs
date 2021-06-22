@@ -212,14 +212,15 @@ namespace Microsoft.CST.OpenSource.Reproducibility
             }
             var sbStdout = new StringBuilder();
             var sbStderr = new StringBuilder();
-            var sbLock = new Object();
+            var sbStdoutLock = new Object();
+            var sbStderrLock = new Object();
 
             process.OutputDataReceived += (sender, args) =>
             {
                 if (args.Data != null)
                 {
                     Logger.Trace("OUT: {0}", args.Data);
-                    lock (sbLock)
+                    lock (sbStdoutLock)
                     {
                         sbStdout.AppendLine(args.Data);
                     }
@@ -230,7 +231,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 if (args.Data != null)
                 {
                     Logger.Trace("ERR: {0}", args.Data);
-                    lock (sbLock)
+                    lock (sbStderrLock)
                     {
                         sbStderr.AppendLine(args.Data);
                     }
@@ -250,9 +251,15 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 }
             }
             process.WaitForExit(timeout);
-            
-            stdout = sbStdout.ToString();
-            stderr = sbStderr.ToString();
+
+            lock (sbStderrLock)
+            {
+                stderr = sbStderr.ToString();
+            }
+            lock (sbStdoutLock)
+            {
+                stdout = sbStdout.ToString();
+            }
             
             timer.Stop();
             Logger.Debug("Elapsed time: {0}s", timer.Elapsed.TotalSeconds);
@@ -447,6 +454,9 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 }
             }
         }
+        //public string ConvertStrategyResult(StrategyResult strategyResult)
+        //{
+        //}
 
         /*
         internal string ConvertSideBySideDiffModelToText(SideBySideDiffModel diff)

@@ -42,7 +42,8 @@ namespace Microsoft.CST.OpenSource.Shared
             var handler = new HttpClientHandler()
             {
                 AllowAutoRedirect = true,
-                UseCookies = false
+                UseCookies = false,
+                MaxAutomaticRedirections = 5
             };
 #pragma warning restore CA2000
 

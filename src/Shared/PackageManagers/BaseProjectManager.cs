@@ -193,6 +193,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
                     }
                 }
             }
+            Logger.Trace("Loading Uri");
             var result = await WebClient.GetAsync(uri);
             result.EnsureSuccessStatusCode();   // Don't cache error codes
             var contentLength = result.Content.Headers.ContentLength ?? 8192;

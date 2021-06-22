@@ -76,18 +76,13 @@ namespace Microsoft.CST.OpenSource.Shared
                 MaxAutomaticRedirections = 5,
                 PooledConnectionIdleTimeout = TimeSpan.FromSeconds(30),
                 PooledConnectionLifetime = TimeSpan.FromSeconds(30),
-                ConnectCallback = IPv4ConnectAsync
+                ConnectCallback = IPv4ConnectAsync,
+                AutomaticDecompression = System.Net.DecompressionMethods.All
             };
             #pragma warning restore CA2000
 
-            //if (handler.SupportsAutomaticDecompression)
-            //{
-            //    handler.AutomaticDecompression = System.Net.DecompressionMethods.All;
-            //}
-            
             WebClient = new HttpClient(handler);
             WebClient.Timeout = TimeSpan.FromSeconds(120);
-            
             
             WebClient.DefaultRequestHeaders.UserAgent.ParseAdd(ENV_HTTPCLIENT_USER_AGENT);
 

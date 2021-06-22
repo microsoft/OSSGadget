@@ -165,8 +165,6 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                     }
 
                     var diff = InlineDiffBuilder.Diff(filenameContent, closestMatchContent, ignoreWhiteSpace: true, ignoreCase: false);
-                    //var diff = SideBySideDiffBuilder.Diff(filenameContent, closestMatchContent, ignoreWhiteSpace: true, ignoreCase: false);
-                    //if (diff.NewText.HasDifferences || diff.OldText.HasDifferences)
                     if (diff.HasDifferences)
                     {
                         results.Add(new DirectoryDifference()
@@ -175,7 +173,6 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                             ComparisonFile = closestMatch[rightDirectory.Length..].Replace("\\", "/"),
                             Operation = DirectoryDifferenceOperation.Modified,
                             Difference = diff.Lines
-                            //Differences = diff
                         });
                     }
                 }
@@ -357,7 +354,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         public static IEnumerable<string> GetClosestFileMatch(string target, IEnumerable<string> filenames)
         {
             target = target.Replace("\\", "/").Trim().Trim(' ', '/');
-            filenames = filenames.Select(f => f.Replace("\\", "/").Trim(' ', '/'));
+            filenames = filenames.Select(f => f.Replace("\\", "/").Trim().TrimEnd('/'));
 
             var candidate = "";
 

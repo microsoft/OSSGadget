@@ -148,7 +148,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Warn("Unable to enumerate versions: {0}", ex.Message);
+                Logger.Debug("Unable to enumerate versions: {0}", ex.Message);
                 throw;
             }
         }

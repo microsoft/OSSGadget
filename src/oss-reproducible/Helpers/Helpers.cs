@@ -75,49 +75,6 @@ namespace Microsoft.CST.OpenSource.Reproducibility
             }
         }
 
-        public static IEnumerable<DirectoryDifference> GetDirectoryDifferenceByFilename(string? leftDirectory, string? rightDirectory, PackageURL? packageUrl, string? strategyName)
-        {
-            var results = new List<DirectoryDifference>();
-
-            Logger.Debug("GetDirectoryDifferenceByFilename({0}, {1})", leftDirectory, rightDirectory);
-            if (leftDirectory == null || rightDirectory == null ||
-                !Directory.Exists(leftDirectory) || !Directory.Exists(rightDirectory))
-            {
-                Logger.Warn("Directory does not exist.");
-                throw new DirectoryNotFoundException("Directory does not exist.");
-            }
-
-            var leftFiles = Directory.EnumerateFiles(leftDirectory, "*", new EnumerationOptions { RecurseSubdirectories = true, AttributesToSkip = 0 });
-            // https://stackoverflow.com/questions/2070356/find-common-prefix-of-strings
-            var commonLeftPrefix = new string(leftFiles.First().Substring(0, leftFiles.Min(s => s.Length)).TakeWhile((c, i) => leftFiles.All(s => s[i] == c)).ToArray());
-            leftFiles = leftFiles.Select(s => s[commonLeftPrefix.Length..]);
-
-            var rightFiles = Directory.EnumerateFiles(rightDirectory, "*", new EnumerationOptions { RecurseSubdirectories = true, AttributesToSkip = 0 });
-            var commonRightPrefix = new string(rightFiles.First().Substring(0, rightFiles.Min(s => s.Length)).TakeWhile((c, i) => rightFiles.All(s => s[i] == c)).ToArray());
-            rightFiles = rightFiles.Select(s => s[commonRightPrefix.Length..]);
-
-            results.AddRange(rightFiles.Except(leftFiles).Select(f => new DirectoryDifference { Filename = f, Operation = DirectoryDifferenceOperation.Added }));
-            results.AddRange(leftFiles.Except(rightFiles).Select(f => new DirectoryDifference { Filename = f, Operation = DirectoryDifferenceOperation.Removed }));
-            results.AddRange(leftFiles.Intersect(rightFiles).Where(f =>
-            {
-                var leftFile = Path.Join(commonLeftPrefix, f);
-                var rightFile = Path.Join(commonRightPrefix, f);
-
-                if (new FileInfo(leftFile).Length != new FileInfo(rightFile).Length)
-                {
-                    return true;
-                }
-                if (!File.ReadAllBytes(leftFile).SequenceEqual(File.ReadAllBytes(rightFile)))
-                {
-                    return true;
-                }
-                return false;
-            }).Select(f => new DirectoryDifference { Filename = f, Operation = DirectoryDifferenceOperation.Modified }));
-
-            var resultsWithFilter = results.Where(dd => !IgnoreFilter.IsIgnored(packageUrl, strategyName!, dd.Filename));
-            return resultsWithFilter;
-        }
-
         /// <summary>
         /// Identifies all elements in leftDirectory that either don't exist in rightDirectory or
         /// exist with different content. This function is "smart" in that it is resilient to

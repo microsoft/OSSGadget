@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using NLog;
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace Microsoft.CST.OpenSource.Reproducibility
@@ -17,14 +20,10 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         {
         }
 
+
         public override bool StrategyApplies()
         {
-            if (Options.SourceDirectory == null || Options.PackageDirectory == null)
-            {
-                Logger.Debug("Strategy {0} does not apply, as both source and package directories are required.", this.GetType().Name);
-                return false;
-            }
-            return true;
+            return GenericStrategyApplies(new[] { Options.SourceDirectory, Options.PackageDirectory });
         }
 
         public override StrategyResult? Execute()
@@ -41,12 +40,23 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 Strategy = this.GetType()
             };
 
+            if (Options.IncludeDiffoscope)
+            {
+                var diffoscopeTempDir = Path.Join(Options.TemporaryDirectory, "diffoscope");
+                var diffoscopeResults = GenerateDiffoscope(diffoscopeTempDir, Options.SourceDirectory!, Options.PackageDirectory!);
+                strategyResult.Diffoscope = diffoscopeResults;
+            }
+
             var diffResults = Helpers.DirectoryDifference(Options.PackageDirectory!, Options.SourceDirectory!, Options.DiffTechnique);
+            var originalDiffResultsLength = diffResults.Count();
             diffResults = diffResults.Where(d => !IgnoreFilter.IsIgnored(Options.PackageUrl, this.GetType().Name, d.Filename));
+            strategyResult.NumIgnoredFiles += (originalDiffResultsLength - diffResults.Count());
             Helpers.AddDifferencesToStrategyResult(strategyResult, diffResults);
             
             diffResults = Helpers.DirectoryDifference(Options.SourceDirectory!, Options.PackageDirectory!, Options.DiffTechnique);
+            originalDiffResultsLength = diffResults.Count();
             diffResults = diffResults.Where(d => !IgnoreFilter.IsIgnored(Options.PackageUrl, this.GetType().Name, d.Filename));
+            strategyResult.NumIgnoredFiles += (originalDiffResultsLength - diffResults.Count());
             Helpers.AddDifferencesToStrategyResult(strategyResult, diffResults, reverseDirection: true);
 
             return strategyResult;

@@ -31,6 +31,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         public string? PackageDirectory { get; set; }
         public string? TemporaryDirectory { get; set; }
         public DiffTechnique DiffTechnique { get; set; } = DiffTechnique.Normalized;
+        public bool IncludeDiffoscope { get; set; } = false;
     }
 
     public class StrategyResultMessage
@@ -45,7 +46,6 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         public string? Filename { get; set; }
         public string? CompareFilename { get; set; }
         public IEnumerable<DiffPiece>? Differences { get; set; }
-        //public SideBySideDiffModel? Differences { get; set; }
     }
 
     public class StrategyResult
@@ -63,6 +63,8 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         public HashSet<StrategyResultMessage> Messages;
         public bool IsSuccess { get; set; } = false;
         public bool IsError { get; set; } = false;
+        public int NumIgnoredFiles { get; set; } = 0;
+        public string? Diffoscope { get; set; }
     }
 
     public abstract class BaseStrategy
@@ -83,6 +85,37 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         public BaseStrategy(StrategyOptions options)
         {
             this.Options = options;
+        }
+
+        /// <summary>
+        /// Checks the directories passed in, ensuring they aren't null, exist, and aren't empty.
+        /// </summary>
+        /// <param name="directories">Directories to check</param>
+        /// <returns>True if the satisfy the above conditions, else false.</returns>
+        public bool GenericStrategyApplies(IEnumerable<string?> directories)
+        {
+            if (directories == null)
+            {
+                Logger.Debug("Strategy {0} does not apply as no directories checked.", this.GetType().Name);
+                return false;
+            }
+
+            bool result = true;
+            foreach (var directory in directories)
+            {
+                if (directory == null)
+                {
+                    Logger.Debug("Strategy {0} does not apply as no directories checked.", this.GetType().Name);
+                    result = false;
+                }
+                else if (Directory.Exists(directory) && !Directory.EnumerateFileSystemEntries(directory).Any())
+                {
+                    Logger.Debug("Strategy {0} does not apply as {1} was empty.", this.GetType().Name, directory);
+                    result = false;
+                }
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -182,6 +215,39 @@ namespace Microsoft.CST.OpenSource.Reproducibility
             return result;
         }
 
-        
+        internal static string? GenerateDiffoscope(string workingDirectory, string leftDirectory, string rightDirectory)
+        {
+            Logger.Debug("Running Diffoscope on ({0}, {1})", leftDirectory, rightDirectory);
+            Directory.CreateDirectory(workingDirectory);
+
+            var runResult = Helpers.RunCommand(workingDirectory, "docker", new[] {
+                                            "run",
+                                            "--rm",
+                                            "--memory=1g",
+                                            "--cpus=0.5",
+                                            "--volume", $"{Path.GetFullPath(leftDirectory)}:/work/left:ro",
+                                            "--volume", $"{Path.GetFullPath(rightDirectory)}:/work/right:ro",
+                                            "--volume", $"{Path.GetFullPath(workingDirectory)}:/work/output",
+                                            "--workdir=/work",
+                                            "registry.salsa.debian.org/reproducible-builds/diffoscope",
+                                            "--html",
+                                            "/work/output/results.html",
+                                            "/work/left",
+                                            "/work/right"
+                                       }, out var stdout, out var stderr);
+            
+            var resultsFile = Path.Join(workingDirectory, "results.html");
+            if (File.Exists(resultsFile))
+            {
+                Logger.Debug("Diffoscope run successful.");
+                var results = File.ReadAllText(resultsFile);
+                return results;
+            }
+            else
+            {
+                Logger.Debug("Diffoscope result file was empty.");
+                return null;
+            }
+        }
     }
 }

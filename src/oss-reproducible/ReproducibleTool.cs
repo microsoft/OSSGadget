@@ -89,6 +89,112 @@ namespace Microsoft.CST.OpenSource
             await reproducibleTool.ParseOptions<Options>(args).WithParsedAsync(reproducibleTool.RunAsync);
         }
 
+        /// <summary>
+        /// Algorithm:
+        /// 0.0 = Worst, 1.0 = Best
+        /// 1.0 => Bit for bit archive match.
+        /// @TODO Refactor this into the individual strategy objects.
+        /// </summary>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        public KeyValuePair<double, string> GetReproducibilityScore(ReproducibleToolResult fullResult)
+        {
+            if (fullResult.Results == null)
+            {
+                return KeyValuePair.Create(0.0, "No reproducibility results were created.");
+            }
+
+            var bestScore = KeyValuePair.Create(0.0, "No strategies were able to successfully derive the package from the source code.");
+
+            foreach (var result in fullResult.Results)
+            {
+                var filesString = result.NumIgnoredFiles == 1 ? "file" : "files";
+
+                if (string.Equals(result.StrategyName, "PackageMatchesSourceStrategy"))
+                {
+                    if (result.IsSuccess && !result.IsError)
+                    {
+                        if (result.NumIgnoredFiles == 0)
+                        {
+                            if (bestScore.Key < 0.80)
+                            {
+                                bestScore = KeyValuePair.Create(0.80, $"Package contents match the source repository contents, file-by-file, with no ignored {filesString}.");
+                            }
+                        }
+                        else
+                        {
+                            if (bestScore.Key < 0.70)
+                            {
+                                bestScore = KeyValuePair.Create(0.70, $"Package contents match the source repository contents, file-by-file, with {result.NumIgnoredFiles} ignored {filesString}.");
+                            }
+                        }
+                    }
+
+                }
+                else if (string.Equals(result.StrategyName, "PackageContainedInSourceStrategy"))
+                {
+                    if (result.IsSuccess && !result.IsError)
+                    {
+                        if (result.NumIgnoredFiles == 0)
+                        {
+                            if (bestScore.Key < 0.75)
+                            {
+                                bestScore = KeyValuePair.Create(0.75, $"Package is a subset of the source repository contents, with no ignored {filesString}.");
+                            }
+                        }
+                        else
+                        {
+                            if (bestScore.Key < 0.65)
+                            {
+                                bestScore = KeyValuePair.Create(0.65, $"Package is a subset of the source repository contents, with {result.NumIgnoredFiles} ignored {filesString}.");
+                            }
+                        }
+                    }
+                }
+                else if (string.Equals(result.StrategyName, "AutoBuildProducesSamePackage"))
+                {
+                    if (result.IsSuccess && !result.IsError)
+                    {
+                        if (result.NumIgnoredFiles == 0)
+                        {
+                            if (bestScore.Key < 0.90)
+                            {
+                                bestScore = KeyValuePair.Create(0.90, "Package was re-built from source, with no ignored {filesString}.");
+                            }
+                        }
+                        else
+                        {
+                            if (bestScore.Key < 0.65)
+                            {
+                                bestScore = KeyValuePair.Create(0.65, $"Package was re-built from source, with {result.NumIgnoredFiles} ignored {filesString}.");
+                            }
+                        }
+                    }
+                }
+                else if (string.Equals(result.StrategyName, "OryxBuildStrategy"))
+                {
+                    if (result.IsSuccess && !result.IsError)
+                    {
+                        if (result.NumIgnoredFiles == 0)
+                        {
+                            if (bestScore.Key < 0.90)
+                            {
+                                bestScore = KeyValuePair.Create(0.90, "Package was re-built from source, with no ignored {filesString}.");
+                            }
+                        }
+                        else
+                        {
+                            if (bestScore.Key < 0.65)
+                            {
+                                bestScore = KeyValuePair.Create(0.65, $"Package was re-built from source, with {result.NumIgnoredFiles} ignored {filesString}.");
+                            }
+                        }
+                    }
+                }
+            }
+            return bestScore;
+        }
+
         private async Task RunAsync(Options options)
         {
             if (options.ShowAllDifferences)
@@ -137,8 +243,7 @@ namespace Microsoft.CST.OpenSource
             {
                 try
                 {
-                    Console.WriteLine("------------------------------------------------------------------------");
-                    Console.WriteLine($"Analyzing: {target}...");
+                    Console.WriteLine($"Analyzing {target}...");
                     Logger.Debug("Processing: {0}", target);
 
                     var purl = new PackageURL(target);
@@ -159,51 +264,52 @@ namespace Microsoft.CST.OpenSource
 
                     if (!downloadResults.Any())
                     {
-                        Logger.Error("Unable to download package.");
+                        Logger.Debug("Unable to download package.");
                         continue;
                     }
-                    
+
                     // Locate the source
                     Console.WriteLine("Locating source...");
                     var findSourceTool = new FindSourceTool();
                     var sourceMap = await findSourceTool.FindSourceAsync(purl);
-                    if (!sourceMap.Any())
+                    if (sourceMap.Any())
                     {
-                        Logger.Error("Unable to locate source repository.");
-                        continue;
-                    }
-                    var sourceMapList = sourceMap.ToList();
-                    sourceMapList.Sort((a, b) => a.Value.CompareTo(b.Value));
-                    var bestSourcePurl = sourceMapList.Last().Key;
-                    if (string.IsNullOrEmpty(bestSourcePurl.Version))
-                    {
-                        // Tie back the original version to the new PackageURL
-                        bestSourcePurl = new PackageURL(bestSourcePurl.Type, bestSourcePurl.Namespace, bestSourcePurl.Name,
-                                                        purl.Version, bestSourcePurl.Qualifiers, bestSourcePurl.Subpath);
-                    }
-                    Logger.Debug("Identified best source code repository: {0}", bestSourcePurl);
+                        var sourceMapList = sourceMap.ToList();
+                        sourceMapList.Sort((a, b) => a.Value.CompareTo(b.Value));
+                        var bestSourcePurl = sourceMapList.Last().Key;
+                        if (string.IsNullOrEmpty(bestSourcePurl.Version))
+                        {
+                            // Tie back the original version to the new PackageURL
+                            bestSourcePurl = new PackageURL(bestSourcePurl.Type, bestSourcePurl.Namespace, bestSourcePurl.Name,
+                                                            purl.Version, bestSourcePurl.Qualifiers, bestSourcePurl.Subpath);
+                        }
+                        Logger.Debug("Identified best source code repository: {0}", bestSourcePurl);
 
-                    // Download the source
-                    Console.WriteLine("Downloading source...");
-                    foreach (var reference in new[] { bestSourcePurl.Version, options.OverrideSourceReference, "master", "main" })
-                    {
-                        if (string.IsNullOrWhiteSpace(reference))
+                        // Download the source
+                        Console.WriteLine("Downloading source...");
+                        foreach (var reference in new[] { bestSourcePurl.Version, options.OverrideSourceReference, "master", "main" })
                         {
-                            continue;
+                            if (string.IsNullOrWhiteSpace(reference))
+                            {
+                                continue;
+                            }
+                            Logger.Debug("Trying to download package, version/reference [{0}].", reference);
+                            var purlRef = new PackageURL(bestSourcePurl.Type, bestSourcePurl.Namespace, bestSourcePurl.Name, reference, bestSourcePurl.Qualifiers, bestSourcePurl.Subpath);
+                            packageDownloader = new PackageDownloader(purlRef, Path.Join(tempDirectoryName, "src"));
+                            downloadResults = await packageDownloader.DownloadPackageLocalCopy(purlRef, false, true);
+                            if (downloadResults.Any())
+                            {
+                                break;
+                            }
                         }
-                        Logger.Debug("Trying to download package, version/reference [{0}].", reference);
-                        var purlRef = new PackageURL(bestSourcePurl.Type, bestSourcePurl.Namespace, bestSourcePurl.Name, reference, bestSourcePurl.Qualifiers, bestSourcePurl.Subpath);
-                        packageDownloader = new PackageDownloader(purlRef, Path.Join(tempDirectoryName, "src"));
-                        downloadResults = await packageDownloader.DownloadPackageLocalCopy(purlRef, false, true);
-                        if (downloadResults.Any())
+                        if (!downloadResults.Any())
                         {
-                            break;
+                            Logger.Debug("Unable to download source.");
                         }
                     }
-                    if (!downloadResults.Any())
+                    else
                     {
-                        Logger.Error("Unable to download source.");
-                        continue;
+                        Logger.Debug("Unable to locate source repository.");
                     }
 
                     // Execute all available strategies
@@ -237,7 +343,7 @@ namespace Microsoft.CST.OpenSource
                         }
                     }
 
-                    Console.Write("Out of {0} potential strategies, {1} apply. ", strategies.Count(), numStrategiesApplies);
+                    Console.Write($"Out of {Yellow(strategies.Count().ToString())} potential strategies, {Yellow(numStrategiesApplies.ToString())} apply. ");
                     if (options.AllStrategies)
                     {
                         Console.WriteLine("Analysis will continue even after a successful strategy is found.");
@@ -250,9 +356,8 @@ namespace Microsoft.CST.OpenSource
 
                     bool overallStrategyResult = false;
 
-                    Console.WriteLine();
-                    Console.WriteLine("Results:");
-                    
+                    Console.WriteLine($"\n{Blue("Results: ")}");
+
                     var hasSuccessfulStrategy = false;
 
                     foreach (var strategy in strategies)
@@ -267,7 +372,8 @@ namespace Microsoft.CST.OpenSource
                                 PackageDirectory = Path.Join(strategyOptions.TemporaryDirectory, strategy.Name, "package"),
                                 SourceDirectory = Path.Join(strategyOptions.TemporaryDirectory, strategy.Name, "src"),
                                 TemporaryDirectory = Path.Join(strategyOptions.TemporaryDirectory, strategy.Name),
-                                PackageUrl = strategyOptions.PackageUrl
+                                PackageUrl = strategyOptions.PackageUrl,
+                                IncludeDiffoscope = options.ShowDifferences
                             };
 
                             try
@@ -277,9 +383,11 @@ namespace Microsoft.CST.OpenSource
                             }
                             catch (Exception ex)
                             {
-                                Logger.Warn(ex, "Error copying directory for strategy. Aborting execution.");
-                                continue;
+                                Logger.Debug(ex, "Error copying directory for strategy. Aborting execution.");
                             }
+
+                            Directory.CreateDirectory(tempStrategyOptions.PackageDirectory);
+                            Directory.CreateDirectory(tempStrategyOptions.SourceDirectory);
 
                             try
                             {
@@ -356,6 +464,10 @@ namespace Microsoft.CST.OpenSource
                                                 Console.WriteLine();
                                             }
                                         }
+
+                                        var diffoscopeFile = Guid.NewGuid().ToString() + ".html";
+                                        File.WriteAllText(diffoscopeFile, strategyResult.Diffoscope);
+                                        Console.WriteLine($"  Diffoscope results written to {diffoscopeFile}.");
                                     }
                                 }
                                 else
@@ -377,27 +489,30 @@ namespace Microsoft.CST.OpenSource
 
                     }
 
-                    Console.WriteLine("\nSummary:");
-                    if (overallStrategyResult)
-                    {
-                        Console.WriteLine($"  [✓] Yes, this package is reproducible.");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"  [✗] No, this package is not reproducible.");
-                    }
-
-
-                    finalResults.Add(new ReproducibleToolResult
+                    var reproducibilityToolResult = new ReproducibleToolResult
                     {
                         PackageUrl = purl.ToString(),
                         IsReproducible = overallStrategyResult,
                         Results = strategyResults
-                    }); ;
+                    };
 
+                    finalResults.Add(reproducibilityToolResult);
+
+                    var (score, scoreText) = GetReproducibilityScore(reproducibilityToolResult);
+                    Console.WriteLine($"\n{Blue("Summary:")}");
+                    var scoreDisplay = $"{(score * 100.0):0.#}";
+                    if (overallStrategyResult)
+                    {
+                        Console.WriteLine($"  [{Yellow(scoreDisplay + "%")}] {Yellow(scoreText)}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"  [{Red(scoreDisplay + "%")}] {Red(scoreText)}");
+                    }
 
                     if (options.LeaveIntermediateFiles)
                     {
+                        Console.WriteLine();
                         Console.WriteLine($"Intermediate files are located in [{tempDirectoryName}].");
                     }
                     else

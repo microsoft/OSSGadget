@@ -28,11 +28,11 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         /// <returns></returns>
         public override bool StrategyApplies()
         {
-            if (Options.SourceDirectory == null || Options.PackageDirectory == null)
+            if (!GenericStrategyApplies(new[] { Options.SourceDirectory, Options.PackageDirectory }))
             {
-                Logger.Debug("Strategy {0} does not apply, as both source and package directories are required.", this.GetType().Name);
                 return false;
             }
+
             if (GetPathToCommand(new[] { "docker" }) == null)
             {
                 Logger.Debug("Strategy {0} cannot be used, as Docker does not appear to be installed.", this.GetType().Name);
@@ -83,8 +83,17 @@ namespace Microsoft.CST.OpenSource.Reproducibility
             {
                 if (Directory.GetFiles(outputDirectory,"*", SearchOption.AllDirectories).Any())
                 {
+                    if (Options.IncludeDiffoscope)
+                    {
+                        var diffoscopeTempDir = Path.Join(Options.TemporaryDirectory, "diffoscope");
+                        var diffoscopeResults = GenerateDiffoscope(diffoscopeTempDir, outputDirectory, Options.PackageDirectory!);
+                        strategyResult.Diffoscope = diffoscopeResults;
+                    }
+
                     var diffResults = Helpers.DirectoryDifference(Options.PackageDirectory!, outputDirectory, Options.DiffTechnique);
+                    var diffResultsOriginalCount = diffResults.Count();
                     diffResults = diffResults.Where(d => !IgnoreFilter.IsIgnored(Options.PackageUrl, this.GetType().Name, d.Filename));
+                    strategyResult.NumIgnoredFiles += (diffResultsOriginalCount - diffResults.Count());
                     Helpers.AddDifferencesToStrategyResult(strategyResult, diffResults);
                 }
                 else

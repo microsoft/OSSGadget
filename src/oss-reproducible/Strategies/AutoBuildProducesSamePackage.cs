@@ -38,15 +38,14 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         /// <returns></returns>
         public override bool StrategyApplies()
         {
-            if (Options.SourceDirectory == null || Options.PackageDirectory == null)
+            if (!GenericStrategyApplies(new[] { Options.SourceDirectory, Options.PackageDirectory }))
             {
-                Logger.Trace("Strategy {0} does not apply, as both source and package directories are required.", this.GetType().Name);
                 return false;
             }
 
             if (!File.Exists(Path.Join("BuildHelperScripts", Options.PackageUrl?.Type, "autobuild.sh")))
             {
-                Logger.Trace("Strategy {0} does not apply because no autobuilder script could be found.", this.GetType().Name);
+                Logger.Debug("Strategy {0} does not apply because no autobuilder script could be found.", this.GetType().Name);
                 return false;
             }
 
@@ -127,8 +126,17 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 var packedDirectory = Path.Join(Options.TemporaryDirectory, "src_packed");
                 extractor.ExtractToDirectoryAsync(packedDirectory, packedFilenamePath).Wait();
 
+                if (Options.IncludeDiffoscope)
+                {
+                    var diffoscopeTempDir = Path.Join(Options.TemporaryDirectory, "diffoscope");
+                    var diffoscopeResults = GenerateDiffoscope(diffoscopeTempDir, packedDirectory, Options.PackageDirectory!);
+                    strategyResult.Diffoscope = diffoscopeResults;
+                }
+
                 var diffResults = Helpers.DirectoryDifference(Options.PackageDirectory!, packedDirectory, Options.DiffTechnique);
+                var diffResultsOriginalCount = diffResults.Count();
                 diffResults = diffResults.Where(d => !IgnoreFilter.IsIgnored(Options.PackageUrl, this.GetType().Name, d.Filename));
+                strategyResult.NumIgnoredFiles += (diffResultsOriginalCount - diffResults.Count());
                 Helpers.AddDifferencesToStrategyResult(strategyResult, diffResults);
             }
             else

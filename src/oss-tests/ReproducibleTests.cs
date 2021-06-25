@@ -18,7 +18,7 @@ namespace Microsoft.CST.OpenSource.Tests
 
         [DataTestMethod]
         [DataRow("pkg:npm/left-pad@1.3.0", true)]
-        [DataRow("pkg:npm/non-existent1267461827467@12421", null)]
+        [DataRow("pkg:npm/non-existent1267461827467@12421", false)]
         public async Task CheckReproducibility(string packageUrl, bool? expectedToBeReproducible)
         {
             var outputFilename = Guid.NewGuid().ToString() + ".json";

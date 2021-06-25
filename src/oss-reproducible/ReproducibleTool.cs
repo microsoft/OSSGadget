@@ -265,7 +265,7 @@ namespace Microsoft.CST.OpenSource
                     if (!downloadResults.Any())
                     {
                         Logger.Debug("Unable to download package.");
-                        continue;
+                        //continue;
                     }
 
                     // Locate the source

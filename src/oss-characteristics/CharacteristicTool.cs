@@ -105,7 +105,8 @@ namespace Microsoft.CST.OpenSource
                 CustomRulesPath = options.CustomRuleDirectory,
                 ConfidenceFilters = "high,medium,low",
                 TreatEverythingAsCode = options.TreatEverythingAsCode,
-                SingleThread = true
+                SingleThread = true,
+                AllowDupTags = options.AllowDupTags
             };
 
             try

@@ -23,10 +23,10 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        ///     Download one CPAN package and extract it to the target directory.
+        /// Download one CPAN package and extract it to the target directory.
         /// </summary>
-        /// <param name="purl"> Package URL of the package to download. </param>
-        /// <returns> n/a </returns>
+        /// <param name="purl">Package URL of the package to download.</param>
+        /// <returns>n/a</returns>
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
@@ -168,7 +168,6 @@ namespace Microsoft.CST.OpenSource.Shared
                 {
                     return "";
                 }
-
             }
             catch (Exception ex)
             {

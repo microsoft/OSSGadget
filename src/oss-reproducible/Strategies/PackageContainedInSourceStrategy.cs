@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using NLog;
-using System;
 using System.IO;
 using System.Linq;
 

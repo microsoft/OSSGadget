@@ -1,4 +1,15 @@
-﻿# All files
+﻿#
+# This file contains ignore patterns for different strategies
+# The format of each line is:
+# A:B:C
+# where:
+#   A => the Package URL type (e.g. npm, pypi), or '*', meaning all types
+#   B => the strategy name (just the class name, like 'AutoBuildProducesSamePackage')
+#   C => the regex that matches the files to ignore
+#
+#
+# All files
+*:*:^.*/\.git/.*$
 *:*:^.*\.txt$
 *:*:^.*\.md$
 *:*:^.*\.rst$

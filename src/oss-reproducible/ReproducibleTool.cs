@@ -9,11 +9,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
 using static Crayon.Output;
-
 
 namespace Microsoft.CST.OpenSource
 {
@@ -63,7 +60,7 @@ namespace Microsoft.CST.OpenSource
             [Option('d', "show-differences", Required = false, Default = false,
                 HelpText = "Output the differences between the package and the reference content.")]
             public bool ShowDifferences { get; set; }
-            
+
             [Option("show-all-differences", Required = false, Default = false,
                 HelpText = "Show all differences (default: capped at 20), implies --show-differences")]
             public bool ShowAllDifferences { get; set; }
@@ -90,10 +87,8 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Algorithm:
-        /// 0.0 = Worst, 1.0 = Best
-        /// 1.0 => Bit for bit archive match.
-        /// @TODO Refactor this into the individual strategy objects.
+        /// Algorithm: 0.0 = Worst, 1.0 = Best 1.0 =&gt; Bit for bit archive match. @TODO Refactor
+        /// this into the individual strategy objects.
         /// </summary>
         /// <param name="result"></param>
         /// <returns></returns>
@@ -129,7 +124,6 @@ namespace Microsoft.CST.OpenSource
                             }
                         }
                     }
-
                 }
                 else if (string.Equals(result.StrategyName, "PackageContainedInSourceStrategy"))
                 {
@@ -416,7 +410,6 @@ namespace Microsoft.CST.OpenSource
                                     {
                                         foreach (var resultMessage in strategyResult.Messages)
                                         {
-                                            
                                             if (resultMessage.Filename != null && resultMessage.CompareFilename != null)
                                             {
                                                 Console.WriteLine($"  {Bright.Black("(")}{Blue("P ")}{Bright.Black(")")} {resultMessage.Filename}");
@@ -432,7 +425,7 @@ namespace Microsoft.CST.OpenSource
                                             }
 
                                             var differences = resultMessage.Differences ?? Array.Empty<DiffPiece>();
-                                            
+
                                             var maxShowDifferences = 20;
                                             var numShowDifferences = 0;
 
@@ -443,18 +436,19 @@ namespace Microsoft.CST.OpenSource
                                                     Console.WriteLine(Background.Blue(Bold().White("NOTE: Additional differences exist but are not shown. Pass --show-all-differences to view them all.")));
                                                     break;
                                                 }
-                                                
+
                                                 switch (diff.Type)
                                                 {
-                                                    
                                                     case ChangeType.Inserted:
                                                         Console.WriteLine($"{Bright.Black(diff.Position + ")")}\t{Red("+")} {Blue(diff.Text)}");
                                                         ++numShowDifferences;
                                                         break;
+
                                                     case ChangeType.Deleted:
                                                         Console.WriteLine($"\t{Green("-")} {Green(diff.Text)}");
                                                         ++numShowDifferences;
                                                         break;
+
                                                     default:
                                                         break;
                                                 }
@@ -486,7 +480,6 @@ namespace Microsoft.CST.OpenSource
                         {
                             break;  // We don't need to continue
                         }
-
                     }
 
                     var reproducibilityToolResult = new ReproducibleToolResult

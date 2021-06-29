@@ -4,10 +4,7 @@ using Microsoft.CST.OpenSource.Shared;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text.Json;
-using System.Threading.Tasks;
 using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
 
 namespace Microsoft.CST.OpenSource
@@ -25,16 +22,16 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        ///     Logger for this class
+        /// Logger for this class
         /// </summary>
         public static NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
 
         /// <summary>
-        ///     Formulates the help text for each derived tool
+        /// Formulates the help text for each derived tool
         /// </summary>
-        /// <typeparam name="T"> </typeparam>
-        /// <param name="result"> </param>
-        /// <param name="errs"> </param>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="result"></param>
+        /// <param name="errs"></param>
         protected void DisplayHelp<T>(ParserResult<T> result, IEnumerable<Error> errs)
         {
             HelpText helpText = HelpText.AutoBuild(result, h =>
@@ -50,11 +47,11 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        ///     Use the CommandlineParser library to get the cmd line arguments
+        /// Use the CommandlineParser library to get the cmd line arguments
         /// </summary>
-        /// <typeparam name="T"> </typeparam>
-        /// <param name="args"> </param>
-        /// <returns> The Action object with the parsed options </returns>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="args"></param>
+        /// <returns>The Action object with the parsed options</returns>
         protected ParserResult<T> ParseOptions<T>(string[]? args)
         {
             var parser = new Parser();
@@ -63,9 +60,8 @@ namespace Microsoft.CST.OpenSource
             return parserResult;
         }
 
-
         /// <summary>
-        ///     Restores the output stream to Console, if it was changed to something else
+        /// Restores the output stream to Console, if it was changed to something else
         /// </summary>
         protected void RestoreOutput()
         {
@@ -76,12 +72,12 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        ///     Use the OutputBuilder to select the given format and return a output builder The format should
-        ///     be compatible with one of the enum entries in OutputFormat text format will be chosen, if the
-        ///     format is invalid
+        /// Use the OutputBuilder to select the given format and return a output builder The format
+        /// should be compatible with one of the enum entries in OutputFormat text format will be
+        /// chosen, if the format is invalid
         /// </summary>
-        /// <param name="format"> </param>
-        /// <returns> </returns>
+        /// <param name="format"></param>
+        /// <returns></returns>
         protected IOutputBuilder SelectFormat(string format)
         {
             try
@@ -99,10 +95,10 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        ///     Change the tool output from the existing one to the passed in file If the outputFile is not a
-        ///     valid filename, the output will be switched to Console
+        /// Change the tool output from the existing one to the passed in file If the outputFile is
+        /// not a valid filename, the output will be switched to Console
         /// </summary>
-        /// <param name="outputFile"> </param>
+        /// <param name="outputFile"></param>
         protected void SelectOutput(string outputFile)
         {
             // output to console or file?
@@ -133,7 +129,6 @@ namespace Microsoft.CST.OpenSource
             Console.WriteLine($"OSS Gadget - {toolName} {toolVersion} - github.com/Microsoft/OSSGadget");
         }
 
-
         /// <summary>
         /// Calculates the tool name from the entry assembly.
         /// </summary>
@@ -163,13 +158,13 @@ namespace Microsoft.CST.OpenSource
         public static string GetBanner()
         {
             return @"
-   ____   _____ _____    _____           _            _   
-  / __ \ / ____/ ____|  / ____|         | |          | |  
- | |  | | (___| (___   | |  __  __ _  __| | __ _  ___| |_ 
+   ____   _____ _____    _____           _            _
+  / __ \ / ____/ ____|  / ____|         | |          | |
+ | |  | | (___| (___   | |  __  __ _  __| | __ _  ___| |_
  | |  | |\___ \\___ \  | | |_ |/ _` |/ _` |/ _` |/ _ \ __|
- | |__| |____) |___) | | |__| | (_| | (_| | (_| |  __/ |_ 
+ | |__| |____) |___) | | |__| | (_| | (_| | (_| |  __/ |_
   \____/|_____/_____/   \_____|\__,_|\__,_|\__, |\___|\__|
-                                            __/ |         
+                                            __/ |
                                            |___/          ";
         }
 

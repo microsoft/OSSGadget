@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using Microsoft.CST.RecursiveExtractor;
 using NLog;
 using System.IO;
 using System.Linq;
@@ -81,7 +80,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
 
             if (runResult)
             {
-                if (Directory.GetFiles(outputDirectory,"*", SearchOption.AllDirectories).Any())
+                if (Directory.GetFiles(outputDirectory, "*", SearchOption.AllDirectories).Any())
                 {
                     if (Options.IncludeDiffoscope)
                     {

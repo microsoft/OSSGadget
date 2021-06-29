@@ -2,7 +2,6 @@
 
 using DiffPlex.DiffBuilder;
 using DiffPlex.DiffBuilder.Model;
-using Microsoft.CST.OpenSource.Shared;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -32,7 +31,6 @@ namespace Microsoft.CST.OpenSource.Reproducibility
 
     public class Helpers
     {
-        
         protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
         static Helpers()
@@ -136,6 +134,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
             }
             return results;
         }
+
         public static bool RunCommand(string workingDirectory, string filename, IEnumerable<string> args, out string? stdout, out string? stderr)
         {
             Logger.Debug("RunCommand({0}, {1})", filename, string.Join(';', args));
@@ -214,11 +213,11 @@ namespace Microsoft.CST.OpenSource.Reproducibility
             {
                 stdout = sbStdout.ToString();
             }
-            
+
             timer.Stop();
             Logger.Debug("Elapsed time: {0}s", timer.Elapsed.TotalSeconds);
             Logger.Debug("Exit Code: {0}", process.ExitCode);
-            
+
             return process.ExitCode == 0;
         }
 
@@ -255,8 +254,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
 
         /// <summary>
         /// Attempts to "normalize" source code content by beautifying it. In some cases, this can
-        /// remove trivial differences.
-        /// Uses the NPM 'prettier' module within a docker container.
+        /// remove trivial differences. Uses the NPM 'prettier' module within a docker container.
         /// </summary>
         /// <param name="filename">File to normalize</param>
         /// <returns>Normalized content, or the raw file content.</returns>
@@ -317,7 +315,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
 
             var bestCandidates = new HashSet<string>();
             var bestCandidateScore = 0;
-            
+
             var targetNumDirs = target.Count(ch => ch == '/') + 1;
 
             foreach (var part in target.Split('/').Reverse())
@@ -408,34 +406,5 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 }
             }
         }
-        //public string ConvertStrategyResult(StrategyResult strategyResult)
-        //{
-        //}
-
-        /*
-        internal string ConvertSideBySideDiffModelToText(SideBySideDiffModel diff)
-        {
-            var leftSide = new Dictionary<int, KeyValuePair<ChangeType, string>>();
-            var rightSide = new Dictionary<int, KeyValuePair<ChangeType, string>>();
-
-            var oldText = diff.OldText;
-            foreach (var d in diff.OldText.Lines)
-            {
-                if (d.Position != null)
-                {
-                    leftSide[(int)d.Position] = KeyValuePair.Create<ChangeType, string>(d.Type, d.Text);
-                }
-            }
-            foreach (var d in diff.NewText.Lines)
-            {
-                if (d.Position != null)
-                {
-                    rightSide[(int)d.Position] = KeyValuePair.Create<ChangeType, string>(d.Type, d.Text);
-                }
-            }
-
-            foreach 
-        }
-        */
     }
 }

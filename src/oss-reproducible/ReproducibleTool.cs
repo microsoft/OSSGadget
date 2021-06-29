@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using static Crayon.Output;
 
@@ -259,7 +260,6 @@ namespace Microsoft.CST.OpenSource
                     if (!downloadResults.Any())
                     {
                         Logger.Debug("Unable to download package.");
-                        //continue;
                     }
 
                     // Locate the source
@@ -523,7 +523,6 @@ namespace Microsoft.CST.OpenSource
             if (finalResults.Any())
             {
                 // Write the output somewhere
-                //var jsonResults = JsonSerializer.Serialize<List<ReproducibleToolResult>>(finalResults, new JsonSerializerOptions { WriteIndented = true });
                 var jsonResults = Newtonsoft.Json.JsonConvert.SerializeObject(finalResults, Newtonsoft.Json.Formatting.Indented);
                 if (!string.IsNullOrWhiteSpace(options.OutputFile) && !string.Equals(options.OutputFile, "-", StringComparison.InvariantCultureIgnoreCase))
                 {

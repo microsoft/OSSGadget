@@ -13,7 +13,27 @@ namespace Microsoft.CST.OpenSource.Reproducibility
     public class ReproducibleToolResult
     {
         public string? PackageUrl { get; set; }
-        public bool IsReproducible { get; set; } = false;
+
+        public bool IsReproducible
+        {
+            get
+            {
+                if (Results == null)
+                {
+                    return false;
+                }
+
+                foreach (var result in Results)
+                {
+                    if (result.IsSuccess && !result.IsError)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+
         public List<StrategyResult>? Results { get; set; }
     }
 }

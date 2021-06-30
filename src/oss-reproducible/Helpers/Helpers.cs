@@ -340,8 +340,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 }
             }
             var resultList = bestCandidates.ToList();
-            resultList.Sort((a, b) => a.Length.CompareTo(b.Length));
-            resultList.Reverse();
+            resultList.Sort((a, b) => 1 - a.Length.CompareTo(b.Length));
             return resultList;
         }
 

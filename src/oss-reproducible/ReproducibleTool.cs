@@ -348,8 +348,6 @@ namespace Microsoft.CST.OpenSource
                     }
                     List<StrategyResult> strategyResults = new List<StrategyResult>();
 
-                    bool overallStrategyResult = false;
-
                     Console.WriteLine($"\n{Blue("Results: ")}");
 
                     var hasSuccessfulStrategy = false;
@@ -391,7 +389,6 @@ namespace Microsoft.CST.OpenSource
                                 if (strategyResult != null)
                                 {
                                     strategyResults.Add(strategyResult);
-                                    overallStrategyResult |= strategyResult.IsSuccess;
                                 }
 
                                 if (strategyResult != null)
@@ -485,7 +482,6 @@ namespace Microsoft.CST.OpenSource
                     var reproducibilityToolResult = new ReproducibleToolResult
                     {
                         PackageUrl = purl.ToString(),
-                        IsReproducible = overallStrategyResult,
                         Results = strategyResults
                     };
 
@@ -494,7 +490,7 @@ namespace Microsoft.CST.OpenSource
                     var (score, scoreText) = GetReproducibilityScore(reproducibilityToolResult);
                     Console.WriteLine($"\n{Blue("Summary:")}");
                     var scoreDisplay = $"{(score * 100.0):0.#}";
-                    if (overallStrategyResult)
+                    if (reproducibilityToolResult.IsReproducible)
                     {
                         Console.WriteLine($"  [{Yellow(scoreDisplay + "%")}] {Yellow(scoreText)}");
                     }

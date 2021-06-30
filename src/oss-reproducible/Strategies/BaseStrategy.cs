@@ -63,6 +63,53 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         public bool IsError { get; set; } = false;
         public int NumIgnoredFiles { get; set; } = 0;
         public string? Diffoscope { get; set; }
+
+        /// <summary>
+        /// Adds a collection of DirectoryDiffererence objects to this strategy result.
+        /// </summary>
+        /// <param name="directoryDifferences">
+        /// Differences between two sets of files (filename / comparefilename)
+        /// </param>
+        /// <param name="reverseDirection"></param>
+        /// <returns></returns>
+        public bool AddDifferencesToStrategyResult(IEnumerable<DirectoryDifference> directoryDifferences, bool reverseDirection = false)
+        {
+            if (!directoryDifferences.Any())
+            {
+                this.Summary = "Successfully reproduced package.";
+                this.IsSuccess = true;
+                return true;
+                //Logger.Debug("Strategy succeeded. The results match the package contents.");
+            }
+            else
+            {
+                this.Summary = "Strategy failed. The results do not match the package contents.";
+                this.IsSuccess = false;
+
+                foreach (var dirDiff in directoryDifferences)
+                {
+                    var message = new StrategyResultMessage()
+                    {
+                        Filename = reverseDirection ? dirDiff.ComparisonFile : dirDiff.Filename,
+                        CompareFilename = reverseDirection ? dirDiff.Filename : dirDiff.ComparisonFile,
+                        Differences = dirDiff.Difference,
+                    };
+                    switch (dirDiff.Operation)
+                    {
+                        case DirectoryDifferenceOperation.Added:
+                            message.Text = "File added"; break;
+                        case DirectoryDifferenceOperation.Modified:
+                            message.Text = "File modified"; break;
+                        case DirectoryDifferenceOperation.Removed:
+                            message.Text = "File removed"; break;
+                        default:
+                            break;
+                    }
+                    this.Messages.Add(message);
+                }
+                return false;
+            }
+        }
     }
 
     public abstract class BaseStrategy

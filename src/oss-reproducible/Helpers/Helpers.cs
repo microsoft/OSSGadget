@@ -369,42 +369,5 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 return directory;
             }
         }
-
-        internal static void AddDifferencesToStrategyResult(StrategyResult strategyResult, IEnumerable<DirectoryDifference> directoryDifferences, bool reverseDirection = false)
-        {
-            if (!directoryDifferences.Any())
-            {
-                strategyResult.Summary = "Successfully reproduced package.";
-                strategyResult.IsSuccess = true;
-                Logger.Debug("Strategy succeeded. The results match the package contents.");
-            }
-            else
-            {
-                strategyResult.Summary = "Strategy failed. The results do not match the package contents.";
-                strategyResult.IsSuccess = false;
-
-                foreach (var dirDiff in directoryDifferences)
-                {
-                    var message = new StrategyResultMessage()
-                    {
-                        Filename = reverseDirection ? dirDiff.ComparisonFile : dirDiff.Filename,
-                        CompareFilename = reverseDirection ? dirDiff.Filename : dirDiff.ComparisonFile,
-                        Differences = dirDiff.Difference,
-                    };
-                    switch (dirDiff.Operation)
-                    {
-                        case DirectoryDifferenceOperation.Added:
-                            message.Text = "File added"; break;
-                        case DirectoryDifferenceOperation.Modified:
-                            message.Text = "File modified"; break;
-                        case DirectoryDifferenceOperation.Removed:
-                            message.Text = "File removed"; break;
-                        default:
-                            break;
-                    }
-                    strategyResult.Messages.Add(message);
-                }
-            }
-        }
     }
 }

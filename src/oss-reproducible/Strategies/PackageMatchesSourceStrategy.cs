@@ -47,13 +47,13 @@ namespace Microsoft.CST.OpenSource.Reproducibility
             var originalDiffResultsLength = diffResults.Count();
             diffResults = diffResults.Where(d => !IgnoreFilter.IsIgnored(Options.PackageUrl, this.GetType().Name, d.Filename));
             strategyResult.NumIgnoredFiles += (originalDiffResultsLength - diffResults.Count());
-            Helpers.AddDifferencesToStrategyResult(strategyResult, diffResults);
+            strategyResult.AddDifferencesToStrategyResult(diffResults);
 
             diffResults = Helpers.DirectoryDifference(Options.SourceDirectory!, Options.PackageDirectory!, Options.DiffTechnique);
             originalDiffResultsLength = diffResults.Count();
             diffResults = diffResults.Where(d => !IgnoreFilter.IsIgnored(Options.PackageUrl, this.GetType().Name, d.Filename));
             strategyResult.NumIgnoredFiles += (originalDiffResultsLength - diffResults.Count());
-            Helpers.AddDifferencesToStrategyResult(strategyResult, diffResults, reverseDirection: true);
+            strategyResult.AddDifferencesToStrategyResult(diffResults, reverseDirection: true);
 
             return strategyResult;
         }

@@ -44,7 +44,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
             var diffResultsOriginalCount = diffResults.Count();
             diffResults = diffResults.Where(d => !IgnoreFilter.IsIgnored(Options.PackageUrl, this.GetType().Name, d.Filename));
             strategyResult.NumIgnoredFiles += (diffResultsOriginalCount - diffResults.Count());
-            Helpers.AddDifferencesToStrategyResult(strategyResult, diffResults);
+            strategyResult.AddDifferencesToStrategyResult(diffResults);
 
             return strategyResult;
         }

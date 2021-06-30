@@ -20,10 +20,18 @@ else
 	npm install
 
 	echo "Executing npm scripts"
+	# Note, we expect most of these to fail gracefully
+	npm run preprepare
 	npm run prepare
-	npm run prepublish
-	npm run publish
+	npm run postprepare
+	
+	npm run prepack
+	npm run pack
+	npm run postpack
+	
 	npm run build
+	npm pack
+	npm run prepublish
 fi
 
 if [ ! -z "$POSTBUILD_SCRIPT" -a -f "/build-helpers/$POSTBUILD_SCRIPT" ]; then

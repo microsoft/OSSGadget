@@ -24,6 +24,7 @@
     <PackageReference Include="MSTest.TestAdapter" Version="2.2.3" />
     <PackageReference Include="MSTest.TestFramework" Version="2.2.3" />
     <PackageReference Include="Nerdbank.GitVersioning" Version="3.3.37" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -35,6 +36,7 @@
     <ProjectReference Include="..\oss-find-source\oss-find-source.csproj" />
     <ProjectReference Include="..\oss-find-squats\oss-find-squats.csproj" />
     <ProjectReference Include="..\oss-health\oss-health.csproj" />
+    <ProjectReference Include="..\oss-reproducible\oss-reproducible.csproj" />
     <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>
   <ItemGroup>

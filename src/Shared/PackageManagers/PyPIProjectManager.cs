@@ -128,7 +128,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Warn("Unable to enumerate versions: {0}", ex.Message);
+                Logger.Debug("Unable to enumerate versions: {0}", ex.Message);
                 throw;
             }
         }
@@ -348,7 +348,7 @@ namespace Microsoft.CST.OpenSource.Shared
                         string homepage = property.Value.ToString() ?? string.Empty;
                         var packageUrls = GitHubProjectManager.ExtractGitHubPackageURLs(homepage);
                         // if we were able to extract a github url, return
-                        if (packageUrls != null && packageUrls.Count() > 0)
+                        if (packageUrls != null && packageUrls.Any())
                         {
                             mapping.Add(packageUrls.First(), 1.0F);
                             return mapping;

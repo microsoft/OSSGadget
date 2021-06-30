@@ -127,7 +127,6 @@ namespace Microsoft.CST.OpenSource.Shared
 
                 foreach (var navItem in navItems)
                 {
-                    Console.WriteLine("[" + navItem.TextContent + "]");
                     if (string.IsNullOrWhiteSpace(Regex.Replace(navItem.TextContent, @"\s", "").Replace(".", "")))
                     {
                         continue;
@@ -139,7 +138,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Warn("Unable to enumerate versions: {0}", ex.Message);
+                Logger.Debug("Unable to enumerate versions: {0}", ex.Message);
                 throw;
             }
         }

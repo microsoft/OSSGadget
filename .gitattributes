@@ -3,3 +3,6 @@
 
 # Don't mess with .ar files
 *.ar binary
+
+# These are all shell scripts
+/src/oss-reproducible/BuildHelperScripts/**	text	eol=lf

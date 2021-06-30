@@ -1,0 +1,74 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <OutputType>Exe</OutputType>
+	  <TargetFramework>net5.0</TargetFramework>
+	  <RootNamespace>Microsoft.CST.OpenSource</RootNamespace>
+	  <Company>Microsoft Corporation</Company>
+	  <Description>OSS Gadget - Package Reprodicibility Finder</Description>
+	  <Authors>Michael Scovetta</Authors>
+	  <RepositoryType>GitHub</RepositoryType>
+	  <RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>
+	  <StartupObject>Microsoft.CST.OpenSource.ReproducibleTool</StartupObject>
+	  <LangVersion>9.0</LangVersion>
+	  <Nullable>enable</Nullable>
+	  <RuntimeIdentifiers>win-x64;osx-x64;linux-x64</RuntimeIdentifiers>
+	  <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="BuildHelperScripts\cpan\autobuild.sh" />
+    <None Remove="BuildHelperScripts\gem\autobuild.sh" />
+    <None Remove="BuildHelperScripts\npm\@objectisundefined\typo.build" />
+    <None Remove="BuildHelperScripts\npm\bluebird.build" />
+    <None Remove="BuildHelperScripts\npm\bluebird.prebuild" />
+    <None Remove="BuildHelperScripts\pypi\autobuild.sh" />
+    <None Remove="Strategies\PackageIgnoreList.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="BuildHelperScripts\cpan\autobuild.sh">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="BuildHelperScripts\gem\autobuild.sh">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="BuildHelperScripts\npm\%40objectisundefined\typo.build">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="BuildHelperScripts\npm\bluebird.build">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="BuildHelperScripts\npm\bluebird.prebuild">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="BuildHelperScripts\npm\autobuild.sh">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="BuildHelperScripts\cargo\autobuild.sh">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="BuildHelperScripts\pypi\autobuild.sh">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Strategies\PackageIgnoreList.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DiffPlex" Version="1.7.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="SharpCompress" Version="0.28.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\oss-download\oss-download.csproj" />
+    <ProjectReference Include="..\oss-find-source\oss-find-source.csproj" />
+    <ProjectReference Include="..\Shared\Shared.csproj" />
+  </ItemGroup>
+
+</Project>

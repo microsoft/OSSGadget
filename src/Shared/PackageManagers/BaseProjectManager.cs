@@ -113,7 +113,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
   pkg:maven/org.apdplat/deep-qa The latest version of org.apdplat.deep-qa (via repo1.maven.org)
   pkg:npm/express               The latest version of Express (via npm.org)
   pkg:nuget/Newtonsoft.JSON     The latest version of Newtonsoft.JSON (via nuget.org)
-  pkg:pypi/django@1.11.1        Version 1.11.1 fo Django (via pypi.org)
+  pkg:pypi/django@1.11.1        Version 1.11.1 of Django (via pypi.org)
   pkg:ubuntu/zerofree           The latest version of zerofree from Ubuntu (via packages.ubuntu.com)
   pkg:vsm/MLNET/07              The latest version of MLNET.07 (from marketplace.visualstudio.com)
   pkg:url/foo@1.0?url=<URL>     The direct URL <URL>
@@ -193,6 +193,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
                     }
                 }
             }
+            Logger.Trace("Loading Uri");
             var result = await WebClient.GetAsync(uri);
             result.EnsureSuccessStatusCode();   // Don't cache error codes
             var contentLength = result.Content.Headers.ContentLength ?? 8192;

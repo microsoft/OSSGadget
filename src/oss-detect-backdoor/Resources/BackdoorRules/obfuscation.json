@@ -84,5 +84,41 @@
         "confidence": "high"
       }
     ]
+  },
+  {
+    "name": "Backdoor: Long Strings",
+    "id": "BD000804",
+    "description": "Backdoor: Long Strings",
+    "tags": [
+      "Security.Backdoor.Obfuscation.LongStrings"
+    ],
+    "severity": "moderate",
+    "patterns": [
+      {
+        "pattern": "[\"'][a-z0-9]{40,}[\"']",
+        "type": "regex",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "medium"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Long Binary Strings",
+    "id": "BD000805",
+    "description": "Backdoor: Long Binary Strings",
+    "tags": [
+      "Security.Backdoor.Obfuscation.LongBinaryStrings"
+    ],
+    "severity": "moderate",
+    "patterns": [
+      {
+        "pattern": "(\\\\x[a-f0-9][a-f0-9]){10,}",
+        "type": "regex",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "medium"
+      }
+    ]
   }
 ]

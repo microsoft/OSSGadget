@@ -54,7 +54,7 @@ namespace Microsoft.CST.OpenSource
         ///     Main entrypoint for the download program.
         /// </summary>
         /// <param name="args"> parameters passed in from the user </param>
-        private static async Task Main(string[] args)
+        static async Task Main(string[] args)
         {
             ShowToolBanner();
             var downloadTool = new DownloadTool();

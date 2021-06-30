@@ -52,7 +52,7 @@ namespace Microsoft.CST.OpenSource.Tests
             IOutputBuilder outputBuilder = OutputBuilderFactory.CreateOutputBuilder("sarifv2");
             outputBuilder.AppendOutput(sarifResults);
             string sarifJSON = outputBuilder.GetOutput();
-            SarifLog sarif = JsonConvert.DeserializeObject<SarifLog>(sarifJSON);
+            var sarif = JsonConvert.DeserializeObject<SarifLog>(sarifJSON);
             Assert.IsNotNull(sarif);
 
             var sarifRun = sarif.Runs.FirstOrDefault();

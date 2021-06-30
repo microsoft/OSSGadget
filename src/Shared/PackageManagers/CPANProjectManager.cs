@@ -23,10 +23,10 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        ///     Download one CPAN package and extract it to the target directory.
+        /// Download one CPAN package and extract it to the target directory.
         /// </summary>
-        /// <param name="purl"> Package URL of the package to download. </param>
-        /// <returns> n/a </returns>
+        /// <param name="purl">Package URL of the package to download.</param>
+        /// <returns>n/a</returns>
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
@@ -148,7 +148,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Warn("Unable to enumerate versions: {0}", ex.Message);
+                Logger.Debug("Unable to enumerate versions: {0}", ex.Message);
                 throw;
             }
         }
@@ -158,8 +158,16 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 var packageName = purl.Name;
-                var content = await GetHttpStringCache($"{ENV_CPAN_ENDPOINT}/release/{packageName}");
-                return content;
+                if (packageName != null)
+                {
+                    var contentRelease = await GetHttpStringCache($"{ENV_CPAN_ENDPOINT}/release/{packageName}");
+                    var contentPod = await GetHttpStringCache($"{ENV_CPAN_ENDPOINT}/pod/{packageName.Replace("-", "::")}");
+                    return contentRelease + "\n" + contentPod;
+                }
+                else
+                {
+                    return "";
+                }
             }
             catch (Exception ex)
             {

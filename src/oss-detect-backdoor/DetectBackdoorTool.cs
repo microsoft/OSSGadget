@@ -114,18 +114,20 @@ namespace Microsoft.CST.OpenSource
             if (options != null && options.Targets is IList<string> targetList && targetList.Count > 0)
             {
                 var characteristicTool = new CharacteristicTool();
-                CharacteristicTool.Options cOptions = new CharacteristicTool.Options();
-                cOptions.Targets = options.Targets;
-                cOptions.DisableDefaultRules = true;
-                cOptions.CustomRuleDirectory = RULE_DIRECTORY;
-                cOptions.DownloadDirectory = options.DownloadDirectory;
-                cOptions.UseCache = options.UseCache;
-                cOptions.Format = options.Format == "text" ? "none" : options.Format;
-                cOptions.OutputFile = options.OutputFile;
-                cOptions.TreatEverythingAsCode = true;
-                cOptions.FilePathExclusions = ".md,LICENSE,.txt";
-                cOptions.AllowDupTags = true;
-                cOptions.SarifLevel = CodeAnalysis.Sarif.FailureLevel.Warning;
+                CharacteristicTool.Options cOptions = new CharacteristicTool.Options
+                {
+                    Targets = options.Targets,
+                    DisableDefaultRules = true,
+                    CustomRuleDirectory = RULE_DIRECTORY,
+                    DownloadDirectory = options.DownloadDirectory,
+                    UseCache = options.UseCache,
+                    Format = options.Format == "text" ? "none" : options.Format,
+                    OutputFile = options.OutputFile,
+                    TreatEverythingAsCode = true,
+                    FilePathExclusions = ".md,LICENSE,.txt",
+                    AllowDupTags = true,
+                    SarifLevel = CodeAnalysis.Sarif.FailureLevel.Warning
+                };
 
                 return await characteristicTool.RunAsync(cOptions);
             }

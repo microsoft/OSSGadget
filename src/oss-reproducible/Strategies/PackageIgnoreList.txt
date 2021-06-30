@@ -1,0 +1,36 @@
+﻿#
+# This file contains ignore patterns for different strategies
+# The format of each line is:
+# A:B:C
+# where:
+#   A => the Package URL type (e.g. npm, pypi), or '*', meaning all types
+#   B => the strategy name (just the class name, like 'AutoBuildProducesSamePackage')
+#   C => the regex that matches the files to ignore
+#
+#
+# All files
+*:*:^.*/\.git/.*$
+*:*:^.*\.txt$
+*:*:^.*\.md$
+*:*:^.*\.rst$
+*:*:^.*changelog(\.[a-z]+)?$
+
+# NPM
+# Oryx performs a full build, which puts a lot of content in node_modules, which isn't useful.
+npm:OryxBuildStrategy:^.*/node_modules/.*$
+
+# RubyGems
+gem:*:^.*metadata\.gz/metadata$
+gem:*:^.*checksums\.yaml\.gz/checksums\.yaml$
+
+# PyPI
+pypi:*:(^|.*/)METADATA$
+pypi:*:(^|.*/)RECORD$
+pypi:*:(^|.*/)WHEEL$
+pypi:*:(^|.*/)PKG-INFO$
+pypi:*:(^|.*/)LICENSE$
+
+# CPAN
+cpan:*:(^|.*/)META\.json$
+cpan:*:(^|.*/)META\.yml$
+cpan:*:(^|.*/)MANIFEST$

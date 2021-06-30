@@ -69,14 +69,13 @@ namespace Microsoft.CST.OpenSource.Tests
             await TestDownload(purl, targetFilename, expectedDirectoryCount);
         }
 
-
         [DataTestMethod]
         [DataRow("pkg:golang/sigs.k8s.io/yaml", "yaml.go", 1)]
         public async Task Golang_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
         {
             await TestDownload(purl, targetFilename, expectedDirectoryCount);
         }
-        
+
         [DataTestMethod]
         [DataRow("pkg:golang/sigs.k8s.io/yaml", "does-not-exist", 37)]
         public async Task Golang_Download_Version_Fails(string purl, string targetFilename, int expectedDirectoryCount)
@@ -166,7 +165,24 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("pkg:ubuntu/zerofree", "zerofree.c", 4)]
         public async Task Ubuntu_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
         {
-            await TestDownload(purl, targetFilename, expectedDirectoryCount);
+            // The Ubuntu endpoints fail occasionally, but often just come back a few seconds later,
+            // so try it a few times
+            int numAttempts = 3;
+            bool isSuccess = false;
+            while (numAttempts > 0 && !isSuccess)
+            {
+                try
+                {
+                    TestDownload(purl, targetFilename, expectedDirectoryCount).Wait();
+                    isSuccess = true; // Successful!
+                }
+                catch (Exception)
+                {
+                    Thread.Sleep(10000);
+                    numAttempts--;
+                }
+            }
+            Assert.IsTrue(isSuccess);
         }
 
         [DataTestMethod]
@@ -189,10 +205,10 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         /// <summary>
-        ///     delete the package download
+        /// delete the package download
         /// </summary>
-        /// <param name="packageDownloader"> </param>
-        /// <param name="tempDirectoryName"> </param>
+        /// <param name="packageDownloader"></param>
+        /// <param name="tempDirectoryName"></param>
         private void deleteTempDirs(PackageDownloader? packageDownloader, string tempDirectoryName)
         {
             try
@@ -215,11 +231,11 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         /// <summary>
-        ///     Download the package
+        /// Download the package
         /// </summary>
-        /// <param name="packageUrl"> </param>
-        /// <param name="tempDirectoryName"> </param>
-        /// <returns> </returns>
+        /// <param name="packageUrl"></param>
+        /// <param name="tempDirectoryName"></param>
+        /// <returns></returns>
         private PackageDownloader? DownloadPackage(PackageURL packageUrl, string tempDirectoryName, bool doCache = false)
         {
             int numAttempts = 3;
@@ -252,7 +268,7 @@ namespace Microsoft.CST.OpenSource.Tests
             {
                 tempDirectoryName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             }
-            
+
             Directory.CreateDirectory(tempDirectoryName);
             string? errorString = null;
 
@@ -286,7 +302,7 @@ namespace Microsoft.CST.OpenSource.Tests
                 // one delete is enough, since its only a single cached copy
                 deleteTempDirs(packageDownloader, tempDirectoryName);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw new InternalTestFailureException("Error", ex);
             }

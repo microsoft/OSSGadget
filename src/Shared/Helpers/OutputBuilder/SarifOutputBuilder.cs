@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis.Sarif;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -15,11 +16,11 @@ namespace Microsoft.CST.OpenSource.Shared
 
         // default = text
         /// <summary>
-        ///     Build a SARIF Result.Location object for the purl package
+        /// Build a SARIF Result.Location object for the purl package
         /// </summary>
-        /// <param name="purl"> </param>
-        /// <returns> Location list with single location object </returns>
-        /// <returns> Location list with single location object </returns>
+        /// <param name="purl"></param>
+        /// <returns>Location list with single location object</returns>
+        /// <returns>Location list with single location object</returns>
         public static List<Location> BuildPurlLocation(PackageURL purl)
         {
             BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, null);
@@ -44,18 +45,18 @@ namespace Microsoft.CST.OpenSource.Shared
             };
         }
 
-        /// <summary> Adds the sarif results to the the Sarif Log. An incompatible object input will result in
-        /// InvalidCast exception </summary> <param name="output">An IEnumerable<Result> object of sarif
-        /// results </param>
+        /// <summary> Adds the sarif results to the the Sarif Log. An incompatible object input will
+        /// result in InvalidCast exception </summary> <param name="output">An IEnumerable<Result>
+        /// object of sarif results </param>
         public void AppendOutput(IEnumerable<object> output)
         {
             sarifResults.AddRange((IEnumerable<SarifResult>)output);
         }
 
         /// <summary>
-        ///     Builds a SARIF log object with the stored results
+        /// Builds a SARIF log object with the stored results
         /// </summary>
-        /// <returns> </returns>
+        /// <returns></returns>
         public SarifLog BuildSingleRunSarifLog()
         {
             Tool thisTool = new Tool
@@ -84,9 +85,9 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        ///     Gets the string representation of the sarif
+        /// Gets the string representation of the sarif
         /// </summary>
-        /// <returns> </returns>
+        /// <returns></returns>
         public string GetOutput()
         {
             SarifLog completedSarif = BuildSingleRunSarifLog();
@@ -104,7 +105,7 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        ///     Prints to the sarif output as string
+        /// Prints to the sarif output as string
         /// </summary>
         public void PrintOutput()
         {
@@ -112,7 +113,7 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        ///     Write the output to the given file. Creating directory if needed.
+        /// Write the output to the given file. Creating directory if needed.
         /// </summary>
         public void WriteOutput(string fileName)
         {
@@ -122,17 +123,20 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        ///     Print the whole SARIF log to the stream
+        /// Print the whole SARIF log to the stream.
         /// </summary>
-        /// <param name="writeStream"> </param>
+        /// <param name="writeStream">StreamWriter to write the SARIF result to.</param>
         public void PrintSarifLog(StreamWriter writeStream)
         {
             SarifLog completedSarif = BuildSingleRunSarifLog();
-            completedSarif.Save(writeStream);
+
+            var serializer = new JsonSerializer() { Formatting = Formatting.Indented };
+            using var writer = new JsonTextWriter(writeStream);
+            serializer.Serialize(writer, completedSarif);
         }
 
         /// <summary>
-        ///     Class logger
+        /// Class logger
         /// </summary>
         protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
@@ -141,8 +145,8 @@ namespace Microsoft.CST.OpenSource.Shared
         // cache variables to avoid reflection
         private static readonly string AssemblyName = Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty;
 
-        private static readonly string Company = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyCompanyAttribute>()?.Company ?? string.Empty;
-        private static readonly string Version = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version.ToString() ?? string.Empty;
+        private static readonly string Company = "Microsoft Corporation";
+        private static readonly string Version = OSSGadget.GetToolVersion();
         private readonly SarifVersion currentSarifVersion = SarifVersion.Current;
         private List<Result> sarifResults = new List<Result>();
     }

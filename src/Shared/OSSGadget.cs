@@ -43,7 +43,7 @@ namespace Microsoft.CST.OpenSource
                 h.AddPostOptionsLines(BaseProjectManager.GetCommonSupportedHelpTextLines());
                 return HelpText.DefaultParsingErrorsHandler(result, h);
             });
-            Console.Error.Write(helpText);
+            Console.Write(helpText);
         }
 
         /// <summary>
@@ -129,10 +129,10 @@ namespace Microsoft.CST.OpenSource
 
         public static void ShowToolBanner()
         {
-            Console.Error.WriteLine(OSSGadget.GetBanner());
+            Console.WriteLine(OSSGadget.GetBanner());
             var toolName = GetToolName();
             var toolVersion = GetToolVersion();
-            Console.Error.WriteLine($"OSS Gadget - {toolName} {toolVersion} - github.com/Microsoft/OSSGadget");
+            Console.WriteLine($"OSS Gadget - {toolName} {toolVersion} - github.com/Microsoft/OSSGadget");
         }
 
         /// <summary>

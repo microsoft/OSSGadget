@@ -530,12 +530,12 @@ namespace Microsoft.CST.OpenSource
                     catch (Exception ex)
                     {
                         Logger.Warn(ex, "Unable to write to {0}. Writing to console instead.", options.OutputFile);
-                        Console.Error.WriteLine(jsonResults);
+                        Console.WriteLine(jsonResults);
                     }
                 }
                 else if (string.Equals(options.OutputFile, "-", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    Console.Error.WriteLine(jsonResults);
+                    Console.WriteLine(jsonResults);
                 }
             }
             else

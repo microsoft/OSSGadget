@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using License = Microsoft.CST.OpenSource.Model.License;
 using Repository = Microsoft.CST.OpenSource.Model.Repository;
 using User = Microsoft.CST.OpenSource.Model.User;
-using Version = SemVer.Version;
+using Version = SemanticVersioning.Version;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
@@ -25,10 +25,10 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        ///     Download one PyPI package and extract it to the target directory.
+        /// Download one PyPI package and extract it to the target directory.
         /// </summary>
-        /// <param name="purl"> Package URL of the package to download. </param>
-        /// <returns> the path or file written. </returns>
+        /// <param name="purl">Package URL of the package to download.</param>
+        /// <returns>the path or file written.</returns>
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
@@ -272,7 +272,6 @@ namespace Microsoft.CST.OpenSource.Shared
             return metadata;
         }
 
-
         public override List<Version> GetVersions(JsonDocument? contentJSON)
         {
             List<Version> allVersions = new List<Version>();
@@ -293,7 +292,6 @@ namespace Microsoft.CST.OpenSource.Shared
 
             return allVersions;
         }
-
 
         public override JsonElement? GetVersionElement(JsonDocument contentJSON, Version version)
         {

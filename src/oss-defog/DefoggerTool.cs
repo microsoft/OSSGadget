@@ -16,47 +16,47 @@ namespace Microsoft.CST.OpenSource
     public class DefoggerTool : OSSGadget
     {
         /// <summary>
-        ///     String with placeholders that matches Base64-encoded text.
+        /// String with placeholders that matches Base64-encoded text.
         /// </summary>
         private static readonly string BASE64_REGEX_STRING = "(([A-Z0-9+\\/]{B})+(([A-Z0-9+\\/]{3}=)|([A-Z0-9+\\/]{2}==))?)";
 
         /// <summary>
-        ///     String with placeholders that matches hex-encoded text.
+        /// String with placeholders that matches hex-encoded text.
         /// </summary>
         private static readonly string HEX_REGEX_STRING = "(0x)?(([A-F0-9][A-F0-9]{B,})|(([A-F0-9][A-F0-9]-){C,}[A-F0-9][A-F0-9]))";
 
         /// <summary>
-        ///     Regular expression that matches Base64-encoded text.
+        /// Regular expression that matches Base64-encoded text.
         /// </summary>
-        private static Regex BASE64_REGEX = new Regex(BASE64_REGEX_STRING.Replace("B","4"), RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(5000));
+        private static Regex BASE64_REGEX = new Regex(BASE64_REGEX_STRING.Replace("B", "4"), RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(5000));
 
         /// <summary>
-        ///     Regular expression that matches hex-encoded text.
+        /// Regular expression that matches hex-encoded text.
         /// </summary>
-        private static Regex HEX_REGEX = new Regex(HEX_REGEX_STRING.Replace("B","8").Replace("C","7"), RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        private static Regex HEX_REGEX = new Regex(HEX_REGEX_STRING.Replace("B", "8").Replace("C", "7"), RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
         /// <summary>
-        ///     Short strings must match this regular expression to be reported.
+        /// Short strings must match this regular expression to be reported.
         /// </summary>
         private static readonly Regex SHORT_INTERESTING_STRINGS_REGEX = new Regex(@"^[A-Z0-9\-:]+$", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(5000));
 
         /// <summary>
-        ///     Do not analyze binary files (those with a MIME type that matches this regular expression).
+        /// Do not analyze binary files (those with a MIME type that matches this regular expression).
         /// </summary>
         private static readonly Regex IGNORE_MIME_REGEX = new Regex(@"audio|video|x-msdownload", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(5000));
 
         /// <summary>
-        ///     Only report detected strings this length or longer.
+        /// Only report detected strings this length or longer.
         /// </summary>
         private const int DEFAULT_MINIMUM_STRING_LENGTH = 8;
 
         /// <summary>
-        ///     Strings longer than this are interesting.
+        /// Strings longer than this are interesting.
         /// </summary>
         private const int INTERESTING_STRINGS_CUTOFF = 24;
 
         /// <summary>
-        ///     Enum of executable types
+        /// Enum of executable types
         /// </summary>
         public enum ExecutableType
         {
@@ -76,17 +76,17 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        ///     Linux Elf
+        /// Linux Elf
         /// </summary>
         public static readonly byte[] ElfMagicNumber = HexStringToBytes("7F454C46");
 
         /// <summary>
-        ///     Java Classes
+        /// Java Classes
         /// </summary>
         public static readonly byte[] JavaMagicNumber = HexStringToBytes("CAFEBABE");
 
         /// <summary>
-        ///     Mac Binary Magic numbers
+        /// Mac Binary Magic numbers
         /// </summary>
         public static readonly List<byte[]> MacMagicNumbers = new List<byte[]>()
         {
@@ -103,12 +103,12 @@ namespace Microsoft.CST.OpenSource
         };
 
         /// <summary>
-        ///     Windows Binary header
+        /// Windows Binary header
         /// </summary>
         public static readonly byte[] WindowsMagicNumber = HexStringToBytes("4D5A");
 
         /// <summary>
-        ///     Gets the executable type of the given stream.
+        /// Gets the executable type of the given stream.
         /// </summary>
         /// <param name="input">Stream bytes to check</param>
         /// <returns>The executable type</returns>
@@ -151,7 +151,7 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        ///     Command line options passed into this tool.
+        /// Command line options passed into this tool.
         /// </summary>
         private readonly IDictionary<string, object?> Options = new Dictionary<string, object?>()
         {
@@ -167,16 +167,16 @@ namespace Microsoft.CST.OpenSource
         };
 
         /// <summary>
-        ///     Identified findings from the analysis.
+        /// Identified findings from the analysis.
         /// </summary>
         public IList<EncodedString> Findings { get; private set; }
+
         public List<EncodedBinary> BinaryFindings { get; }
         public List<EncodedArchive> ArchiveFindings { get; }
         public List<EncodedBlob> NonTextFindings { get; private set; }
 
-
         /// <summary>
-        ///     The specific type of encoding detected.
+        /// The specific type of encoding detected.
         /// </summary>
         public enum EncodedStringType
         {
@@ -186,7 +186,7 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        ///     The encoded string and type.
+        /// The encoded string and type.
         /// </summary>
         public class EncodedString
         {
@@ -205,7 +205,7 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        ///     The encoded string and type.
+        /// The encoded string and type.
         /// </summary>
         public class EncodedBlob
         {
@@ -222,7 +222,7 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        ///     The encoded archive and type.
+        /// The encoded archive and type.
         /// </summary>
         public class EncodedArchive
         {
@@ -241,7 +241,7 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        ///     The encoded binary and type.
+        /// The encoded binary and type.
         /// </summary>
         public class EncodedBinary
         {
@@ -304,7 +304,7 @@ namespace Microsoft.CST.OpenSource
                                 Directory.CreateDirectory(binaryDir);
                                 var path = Path.Combine(binaryDir, binaryFinding.Filename, $"binary-{binaryNumber}");
                                 Logger.Info("Saving to {0}", path);
-                                var fs = new FileStream(path,System.IO.FileMode.OpenOrCreate);
+                                var fs = new FileStream(path, System.IO.FileMode.OpenOrCreate);
                                 binaryFinding.DecodedBinary.CopyTo(fs);
                                 binaryNumber++;
                             }
@@ -358,7 +358,7 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        ///     Initializes a new DefoggerTool instance.
+        /// Initializes a new DefoggerTool instance.
         /// </summary>
         public DefoggerTool() : base()
         {
@@ -369,10 +369,10 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        ///     Analyze a package by downloading it first.
+        /// Analyze a package by downloading it first.
         /// </summary>
-        /// <param name="purl"> The package-url of the package to analyze. </param>
-        /// <returns> n/a </returns>
+        /// <param name="purl">The package-url of the package to analyze.</param>
+        /// <returns>n/a</returns>
         public async Task AnalyzePackage(PackageURL purl, string? destinationDirectory, bool doCaching)
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
@@ -398,9 +398,9 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        ///     Analyzes a directory of files.
+        /// Analyzes a directory of files.
         /// </summary>
-        /// <param name="directory"> directory to analyze. </param>
+        /// <param name="directory">directory to analyze.</param>
         public void AnalyzeDirectory(string directory)
         {
             Logger.Trace("AnalyzeDirectory({0})", directory);
@@ -419,9 +419,9 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        ///     Analyzes a single file.
+        /// Analyzes a single file.
         /// </summary>
-        /// <param name="filename"> filename to analyze </param>
+        /// <param name="filename">filename to analyze</param>
         public void AnalyzeFile(string filename)
         {
             Logger.Trace("AnalyzeFile({0})", filename);
@@ -454,8 +454,9 @@ namespace Microsoft.CST.OpenSource
                     continue;
                 }
 
-                // Try to decode and then re-encode. Are we successful, and do we get the same value we
-                // started out with? This will filter out Base64-encoded binary data, which is what we want.
+                // Try to decode and then re-encode. Are we successful, and do we get the same value
+                // we started out with? This will filter out Base64-encoded binary data, which is
+                // what we want.
                 try
                 {
                     var bytes = Convert.FromBase64String(match.Value);
@@ -464,7 +465,7 @@ namespace Microsoft.CST.OpenSource
 
                     if (match.Value.Equals(reencoded))
                     {
-                        var entry = new FileEntry("bytes", new MemoryStream(bytes),new FileEntry(filename,new MemoryStream()));
+                        var entry = new FileEntry("bytes", new MemoryStream(bytes), new FileEntry(filename, new MemoryStream()));
 
                         var exeType = GetExecutableType(entry.Content);
 
@@ -506,7 +507,7 @@ namespace Microsoft.CST.OpenSource
                                         DecodedText: decoded
                                     ));
 
-                                    AnalyzeFile(Path.Combine(filename,match.Value), decoded);
+                                    AnalyzeFile(Path.Combine(filename, match.Value), decoded);
                                 }
                                 // Bail out early if the decoded string isn't interesting.
                                 if (!IsInterestingString(decoded))
@@ -555,7 +556,7 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        ///     Converts hex data to a string
+        /// Converts hex data to a string
         /// </summary>
         /// <param name="hex">The Hex data to decode</param>
         /// <returns>The decoded string</returns>
@@ -590,10 +591,10 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        ///     Decides whether the given string is interesting or not
+        /// Decides whether the given string is interesting or not
         /// </summary>
-        /// <param name="s"> string to check </param>
-        /// <returns> </returns>
+        /// <param name="s">string to check</param>
+        /// <returns></returns>
         private static bool IsInterestingString(string s)
         {
             if (string.IsNullOrWhiteSpace(s))
@@ -632,9 +633,9 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        ///     Parses options for this program.
+        /// Parses options for this program.
         /// </summary>
-        /// <param name="args"> arguments (passed in from the user) </param>
+        /// <param name="args">arguments (passed in from the user)</param>
         private void ParseOptions(string[] args)
         {
             if (args == null)
@@ -655,7 +656,7 @@ namespace Microsoft.CST.OpenSource
 
                     case "-v":
                     case "--version":
-                        Console.Error.WriteLine($"{GetToolName()} {GetToolVersion()}");
+                        Console.WriteLine($"{GetToolName()} {GetToolVersion()}");
                         Environment.Exit(1);
                         break;
 
@@ -708,11 +709,11 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        ///     Displays usage information for the program.
+        /// Displays usage information for the program.
         /// </summary>
         private static void ShowUsage()
         {
-            Console.Error.WriteLine($@"
+            Console.WriteLine($@"
 {ToolName} {ToolVersion}
 
 Usage: {ToolName} [options] package-url...
@@ -733,7 +734,7 @@ optional arguments:
   --use-cache                   do not download the package if it is already present in the destination directory
   --help                        show this help message and exit
   --version                     show version number
-  
+
 ");
         }
     }

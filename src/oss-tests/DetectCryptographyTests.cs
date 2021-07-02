@@ -3,6 +3,7 @@
 using Microsoft.CST.OpenSource.Shared;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -40,7 +41,7 @@ namespace Microsoft.CST.OpenSource.Tests
             var results = await detectCryptographyTool.AnalyzePackage(new PackageURL(purl), targetDirectoryName, false);
 
             var distinctTargets = expectedTags.Distinct();
-            var distinctFindings = results.SelectMany(s => s.Issue.Rule.Tags ?? Array.Empty<string>())
+            var distinctFindings = results.SelectMany(s => s.Issue.Rule.Tags ?? new List<string>())
                                           .Where(s => s.StartsWith("Cryptography.Implementation"))
                                           .Distinct();
 

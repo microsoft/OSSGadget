@@ -60,14 +60,17 @@
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.9.0-preview1" />
-    <PackageReference Include="ELFSharp" Version="2.12.0" />
-    <PackageReference Include="ICSharpCode.Decompiler" Version="6.2.1.6137" />
-    <PackageReference Include="Microsoft.CST.ApplicationInspector.Commands" Version="1.2.100" />
-    <PackageReference Include="Microsoft.CST.DevSkim" Version="0.4.234" />
-    <PackageReference Include="PeNet" Version="2.6.2" />
+    <PackageReference Include="ELFSharp" Version="2.12.1" />
+    <PackageReference Include="ICSharpCode.Decompiler" Version="7.1.0.6543" />
+    <PackageReference Include="Microsoft.CST.ApplicationInspector.Commands" Version="1.4.4" />
+    <PackageReference Include="Microsoft.CST.DevSkim" Version="0.4.238" />
+    <PackageReference Include="PeNet" Version="2.6.3" />
     <PackageReference Include="SharpDisasm" Version="1.1.11" />
-    <PackageReference Include="WebAssembly" Version="0.11.0" />
-    <PackageReference Include="Nerdbank.GitVersioning" Version="3.3.37" />
+    <PackageReference Include="WebAssembly" Version="1.2.0" />
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.4.220">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>

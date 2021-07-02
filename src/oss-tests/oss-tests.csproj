@@ -12,18 +12,21 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DiscUtils.Btrfs" Version="0.15.1-ci0002" />
-    <PackageReference Include="DiscUtils.HfsPlus" Version="0.15.1-ci0002" />
-    <PackageReference Include="DiscUtils.SquashFs" Version="0.15.1-ci0002" />
-    <PackageReference Include="DiscUtils.Xfs" Version="0.15.1-ci0002" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.1" />
+    <PackageReference Include="DiscUtils.Btrfs" Version="0.16.4" />
+    <PackageReference Include="DiscUtils.HfsPlus" Version="0.16.4" />
+    <PackageReference Include="DiscUtils.SquashFs" Version="0.16.4" />
+    <PackageReference Include="DiscUtils.Xfs" Version="0.16.4" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0-release-20210626-04" />
     <PackageReference Include="coverlet.collector" Version="3.0.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="MSTest.TestAdapter" Version="2.2.3" />
-    <PackageReference Include="MSTest.TestFramework" Version="2.2.3" />
-    <PackageReference Include="Nerdbank.GitVersioning" Version="3.3.37" />
+    <PackageReference Include="MSTest.TestAdapter" Version="2.2.5" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.2.5" />
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.4.220">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 

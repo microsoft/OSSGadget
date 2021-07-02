@@ -17,12 +17,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Sarif.Sdk" Version="2.4.5" />
-    <PackageReference Include="Scriban" Version="3.5.0" />
+    <PackageReference Include="Sarif.Sdk" Version="2.4.10" />
+    <PackageReference Include="Scriban" Version="4.0.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Shared\Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.4.220" />
   </ItemGroup>
 
 </Project>

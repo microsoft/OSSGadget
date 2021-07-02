@@ -43,7 +43,7 @@ namespace Microsoft.CST.OpenSource
                 h.AddPostOptionsLines(BaseProjectManager.GetCommonSupportedHelpTextLines());
                 return HelpText.DefaultParsingErrorsHandler(result, h);
             });
-            Console.Error.Write(helpText);
+            Console.Write(helpText);
         }
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Restores the output stream to Console, if it was changed to something else
+        /// Restores the output stream to Console, if it was changed to something else.
         /// </summary>
         protected void RestoreOutput()
         {
@@ -72,9 +72,9 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Use the OutputBuilder to select the given format and return a output builder The format
+        /// Use the OutputBuilder to select the given format and return a output builder. The format
         /// should be compatible with one of the enum entries in OutputFormat text format will be
-        /// chosen, if the format is invalid
+        /// chosen, if the format is invalid.
         /// </summary>
         /// <param name="format"></param>
         /// <returns></returns>
@@ -95,29 +95,28 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        /// Change the tool output from the existing one to the passed in file If the outputFile is
-        /// not a valid filename, the output will be switched to Console
+        /// Change the tool output from the existing one to the passed in file. If the outputFile is
+        /// not a valid filename, the output will be switched to Console.
         /// </summary>
         /// <param name="outputFile"></param>
         protected void SelectOutput(string outputFile)
         {
-            // output to console or file?
-            this.redirectConsole = !string.IsNullOrEmpty(outputFile) &&
-                outputFile.IndexOfAny(Path.GetInvalidFileNameChars()) < 0;
-            if (redirectConsole)
+            // If outputFile is valid, then redirect output there.
+            if (string.IsNullOrWhiteSpace(outputFile) ||
+                outputFile.IndexOfAny(Path.GetInvalidPathChars()) < 0 ||
+                Path.GetFileName(outputFile).IndexOfAny(Path.GetInvalidFileNameChars()) < 0)
             {
-                if (outputFile is string outputLoc)
+                this.redirectConsole = true;
+                if (!ConsoleHelper.RedirectConsole(outputFile))
                 {
-                    if (!ConsoleHelper.RedirectConsole(outputLoc))
-                    {
-                        Logger.Debug("Could not switch output from console to file");
-                        // continue with current output
-                    }
+                    Logger.Debug("Could not switch output from console to file");
+                    // continue with current output
                 }
-                else
-                {
-                    Logger.Debug($"Invalid outputFile {outputFile}. Switching to console");
-                }
+            }
+            else
+            {
+                this.redirectConsole = false;
+                Logger.Debug("Invalid file, {0}, writing to console instead.", outputFile);
             }
         }
 

@@ -118,11 +118,11 @@ namespace Microsoft.CST.OpenSource
                         }
                         else
                         {
-                            var shortTags = results.SelectMany(r => r.Issue.Rule.Tags ?? Array.Empty<string>())
+                            var shortTags = results.SelectMany(r => r.Issue.Rule.Tags ?? new List<string>())
                                                    .Distinct()
                                                    .Where(t => t.StartsWith("Cryptography.Implementation."))
                                                    .Select(t => t.Replace("Cryptography.Implementation.", ""));
-                            var otherTags = results.SelectMany(r => r.Issue.Rule.Tags ?? Array.Empty<string>())
+                            var otherTags = results.SelectMany(r => r.Issue.Rule.Tags ?? new List<string>())
                                                    .Distinct()
                                                    .Where(t => !t.StartsWith("Cryptography.Implementation."));
 
@@ -511,7 +511,7 @@ namespace Microsoft.CST.OpenSource
                                     Id = "_CRYPTO_DENSITY",
                                     Name = "Cryptographic symbols",
                                     Description = cryptoOperationLikelihood.ToString(),
-                                    Tags = new string[]
+                                    Tags = new List<string>()
                                     {
                                         "Cryptography.GenericImplementation.HighDensityOperators"
                                     }

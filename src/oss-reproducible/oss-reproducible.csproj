@@ -62,13 +62,17 @@
   <ItemGroup>
     <PackageReference Include="DiffPlex" Version="1.7.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="SharpCompress" Version="0.28.1" />
+    <PackageReference Include="SharpCompress" Version="0.28.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\oss-download\oss-download.csproj" />
     <ProjectReference Include="..\oss-find-source\oss-find-source.csproj" />
     <ProjectReference Include="..\Shared\Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.4.220" />
   </ItemGroup>
 
 </Project>

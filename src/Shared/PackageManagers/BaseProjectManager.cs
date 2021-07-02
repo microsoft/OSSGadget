@@ -13,14 +13,14 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Version = SemVer.Version;
+using Version = SemanticVersioning.Version;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
     public class BaseProjectManager
     {
         /// <summary>
-        ///     Initializes a new project management object.
+        /// Initializes a new project management object.
         /// </summary>
         public BaseProjectManager(string destinationDirectory)
         {
@@ -39,20 +39,20 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        ///     Per-object option container.
+        /// Per-object option container.
         /// </summary>
         public Dictionary<string, object> Options { get; private set; }
 
         /// <summary>
-        ///     The location (directory) to extract files to.
+        /// The location (directory) to extract files to.
         /// </summary>
         public string TopLevelExtractionDirectory { get; set; } = ".";
 
         /// <summary>
-        ///     Extracts GitHub URLs from a given piece of text.
+        /// Extracts GitHub URLs from a given piece of text.
         /// </summary>
-        /// <param name="content"> text to analyze </param>
-        /// <returns> PackageURLs (type=GitHub) located in the text. </returns>
+        /// <param name="content">text to analyze</param>
+        /// <returns>PackageURLs (type=GitHub) located in the text.</returns>
         public static IEnumerable<PackageURL> ExtractGitHubPackageURLs(string content)
         {
             Logger.Trace("ExtractGitHubPackageURLs({0})", content?.Substring(0, 30));
@@ -127,10 +127,10 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         }
 
         /// <summary>
-        ///     Retrieves HTTP content from a given URI.
+        /// Retrieves HTTP content from a given URI.
         /// </summary>
-        /// <param name="uri"> URI to load. </param>
-        /// <returns> </returns>
+        /// <param name="uri">URI to load.</param>
+        /// <returns></returns>
         public static async Task<string?> GetHttpStringCache(string uri, bool useCache = true, bool neverThrow = false)
         {
             Logger.Trace("GetHttpStringCache({0}, {1})", uri, useCache);
@@ -176,10 +176,10 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         }
 
         /// <summary>
-        ///     Retrieves JSON content from a given URI.
+        /// Retrieves JSON content from a given URI.
         /// </summary>
-        /// <param name="uri"> URI to load. </param>
-        /// <returns> Content, as a JsonDocument, possibly from cache. </returns>
+        /// <param name="uri">URI to load.</param>
+        /// <returns>Content, as a JsonDocument, possibly from cache.</returns>
         public static async Task<JsonDocument> GetJsonCache(string uri, bool useCache = true)
         {
             Logger.Trace("GetJsonCache({0}, {1})", uri, useCache);
@@ -225,10 +225,10 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         }
 
         /// <summary>
-        ///     Downloads a given PackageURL and extracts it locally to a directory.
+        /// Downloads a given PackageURL and extracts it locally to a directory.
         /// </summary>
-        /// <param name="purl"> PackageURL to download </param>
-        /// <returns> Paths (either files or directory names) pertaining to the downloaded files. </returns>
+        /// <param name="purl">PackageURL to download</param>
+        /// <returns>Paths (either files or directory names) pertaining to the downloaded files.</returns>
         public virtual Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             throw new NotImplementedException("BaseProjectManager does not implement DownloadVersion.");
@@ -240,12 +240,12 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         }
 
         /// <summary>
-        ///     Extracts an archive (given by 'bytes') into a directory named 'directoryName', recursively,
-        ///     using RecursiveExtractor.
+        /// Extracts an archive (given by 'bytes') into a directory named 'directoryName',
+        /// recursively, using RecursiveExtractor.
         /// </summary>
-        /// <param name="directoryName"> directory to extract content into (within TopLevelExtractionDirectory) </param>
-        /// <param name="bytes"> bytes to extract (should be an archive file) </param>
-        /// <returns> </returns>
+        /// <param name="directoryName">directory to extract content into (within TopLevelExtractionDirectory)</param>
+        /// <param name="bytes">bytes to extract (should be an archive file)</param>
+        /// <returns></returns>
         public async Task<string> ExtractArchive(string directoryName, byte[] bytes, bool cached = false)
         {
             Logger.Trace("ExtractArchive({0}, <bytes> len={1})", directoryName, bytes.Length);
@@ -300,10 +300,10 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         }
 
         /// <summary>
-        ///     Gets the latest version from the package metadata
+        /// Gets the latest version from the package metadata
         /// </summary>
-        /// <param name="metadata"> </param>
-        /// <returns> </returns>
+        /// <param name="metadata"></param>
+        /// <returns></returns>
         public Version? GetLatestVersion(JsonDocument? metadata)
         {
             List<Version> versions = GetVersions(metadata);
@@ -311,10 +311,10 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         }
 
         /// <summary>
-        ///     overload for getting the latest version
+        /// overload for getting the latest version
         /// </summary>
-        /// <param name="versions"> </param>
-        /// <returns> </returns>
+        /// <param name="versions"></param>
+        /// <returns></returns>
         public Version? GetLatestVersion(List<Version> versions)
         {
             if (versions?.Count > 0)
@@ -326,10 +326,11 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         }
 
         /// <summary>
-        ///     This method should return text reflecting metadata for the given package. There is no assumed format.
+        /// This method should return text reflecting metadata for the given package. There is no
+        /// assumed format.
         /// </summary>
-        /// <param name="purl"> PackageURL to search </param>
-        /// <returns> a string containing metadata. </returns>
+        /// <param name="purl">PackageURL to search</param>
+        /// <returns>a string containing metadata.</returns>
         public virtual Task<string?> GetMetadata(PackageURL purl)
         {
             var typeName = GetType().Name;
@@ -337,10 +338,10 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         }
 
         /// <summary>
-        ///     Get the uri for the package home page (no version)
+        /// Get the uri for the package home page (no version)
         /// </summary>
-        /// <param name="purl"> </param>
-        /// <returns> </returns>
+        /// <param name="purl"></param>
+        /// <returns></returns>
         public virtual Uri? GetPackageAbsoluteUri(PackageURL purl)
         {
             var typeName = GetType().Name;
@@ -348,10 +349,10 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         }
 
         /// <summary>
-        ///     Return a normalized package metadata.
+        /// Return a normalized package metadata.
         /// </summary>
-        /// <param name="purl"> </param>
-        /// <returns> </returns>
+        /// <param name="purl"></param>
+        /// <returns></returns>
         public virtual Task<PackageMetadata> GetPackageMetadata(PackageURL purl)
         {
             var typeName = GetType().Name;
@@ -359,11 +360,11 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         }
 
         /// <summary>
-        ///     Gets everything contained in a JSON element for the package version
+        /// Gets everything contained in a JSON element for the package version
         /// </summary>
-        /// <param name="metadata"> </param>
-        /// <param name="version"> </param>
-        /// <returns> </returns>
+        /// <param name="metadata"></param>
+        /// <param name="version"></param>
+        /// <returns></returns>
         public virtual JsonElement? GetVersionElement(JsonDocument contentJSON, Version version)
         {
             var typeName = GetType().Name;
@@ -371,11 +372,11 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         }
 
         /// <summary>
-        ///     Gets all the versions of a package
+        /// Gets all the versions of a package
         /// </summary>
-        /// <param name="metadata"> </param>
-        /// <param name="version"> </param>
-        /// <returns> </returns>
+        /// <param name="metadata"></param>
+        /// <param name="version"></param>
+        /// <returns></returns>
         public virtual List<Version> GetVersions(JsonDocument? metadata)
         {
             var typeName = GetType().Name;
@@ -383,14 +384,14 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         }
 
         /// <summary>
-        ///     Tries to find out the package repository from the metadata of the package. Check with the
-        ///     specific package manager, if they have any specific extraction to do, w.r.t the metadata. If
-        ///     they found some package specific well defined metadata, use that. If that doesn't work, do a
-        ///     search across the metadata to find probable source repository urls
+        /// Tries to find out the package repository from the metadata of the package. Check with
+        /// the specific package manager, if they have any specific extraction to do, w.r.t the
+        /// metadata. If they found some package specific well defined metadata, use that. If that
+        /// doesn't work, do a search across the metadata to find probable source repository urls
         /// </summary>
-        /// <param name="purl"> PackageURL to search </param>
+        /// <param name="purl">PackageURL to search</param>
         /// <returns>
-        ///     A dictionary, mapping each possible repo source entry to its probability/empty dictionary
+        /// A dictionary, mapping each possible repo source entry to its probability/empty dictionary
         /// </returns>
         public async Task<Dictionary<PackageURL, double>> IdentifySourceRepository(PackageURL purl)
         {
@@ -428,7 +429,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         }
 
         /// <summary>
-        ///     Protected memory cache to make subsequent loads of the same URL fast and transparent.
+        /// Protected memory cache to make subsequent loads of the same URL fast and transparent.
         /// </summary>
         protected static readonly MemoryCache DataCache = new MemoryCache(
             new MemoryCacheOptions
@@ -438,13 +439,13 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         );
 
         /// <summary>
-        ///     Logger for each of the subclasses
+        /// Logger for each of the subclasses
         /// </summary>
         protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
         /// <summary>
-        ///     Static HttpClient for use in all HTTP connections.
-        ///      Class throws a NullExceptionError in the constructor if this is null.
+        /// Static HttpClient for use in all HTTP connections. Class throws a NullExceptionError in
+        /// the constructor if this is null.
         /// </summary>
 #nullable disable
         protected static HttpClient WebClient;
@@ -452,11 +453,11 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
 #nullable enable
 
         /// <summary>
-        ///     Rank the source repo entry candidates by their edit distance.
+        /// Rank the source repo entry candidates by their edit distance.
         /// </summary>
-        /// <param name="purl"> the package </param>
-        /// <param name="rawMetadataString"> metadata of the package </param>
-        /// <returns> Possible candidates of the package/empty dictionary </returns>
+        /// <param name="purl">the package</param>
+        /// <param name="rawMetadataString">metadata of the package</param>
+        /// <returns>Possible candidates of the package/empty dictionary</returns>
         protected Dictionary<PackageURL, double> ExtractRankedSourceRepositories(PackageURL purl, string rawMetadataString)
         {
             Logger.Trace("ExtractRankedSourceRepositories({0})", purl);
@@ -477,11 +478,12 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
 
                 foreach (var group in sourceUrls.GroupBy(item => item))
                 {
-                    // the cumulative boosts should be < 0.2; otherwise it'd be an 1.0 score by Levenshtein distance
+                    // the cumulative boosts should be < 0.2; otherwise it'd be an 1.0 score by
+                    // Levenshtein distance
                     double similarityBoost = levenshtein.Similarity(purl.Name, group.Key.Name) * 0.0001;
 
-                    // give a similarly weighted boost based on the number of times a particular candidate
-                    // appear in the metadata
+                    // give a similarly weighted boost based on the number of times a particular
+                    // candidate appear in the metadata
                     double countBoost = (double)(group.Count()) * 0.0001;
 
                     sourceRepositoryMap.Add(group.Key, baseScore + similarityBoost + countBoost);
@@ -491,10 +493,11 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         }
 
         /// <summary>
-        ///     Implemented by all package managers to search the metadata, and either return a successful
-        ///     result for the package repository, or return a null in case of failure/nothing to do.
+        /// Implemented by all package managers to search the metadata, and either return a
+        /// successful result for the package repository, or return a null in case of
+        /// failure/nothing to do.
         /// </summary>
-        /// <returns> </returns>
+        /// <returns></returns>
         protected virtual Task<Dictionary<PackageURL, double>> SearchRepoUrlsInPackageMetadata(PackageURL purl, string metadata)
         {
             return Task.FromResult(new Dictionary<PackageURL, double>());

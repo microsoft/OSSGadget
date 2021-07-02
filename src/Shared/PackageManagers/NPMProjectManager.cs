@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Version = SemVer.Version;
+using Version = SemanticVersioning.Version;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
@@ -23,10 +23,10 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        ///     Download one NPM package and extract it to the target directory.
+        /// Download one NPM package and extract it to the target directory.
         /// </summary>
-        /// <param name="purl"> Package URL of the package to download. </param>
-        /// <returns> n/a </returns>
+        /// <param name="purl">Package URL of the package to download.</param>
+        /// <returns>n/a</returns>
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
@@ -109,10 +109,10 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        ///     Gets the latest version of the package
+        /// Gets the latest version of the package
         /// </summary>
-        /// <param name="contentJSON"> </param>
-        /// <returns> </returns>
+        /// <param name="contentJSON"></param>
+        /// <returns></returns>
         public JsonElement? GetLatestVersionElement(JsonDocument contentJSON)
         {
             List<Version> versions = GetVersions(contentJSON);
@@ -142,10 +142,10 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        ///     Gets the structured metadata for the npm package
+        /// Gets the structured metadata for the npm package
         /// </summary>
         /// <param name="purl">PackageURL to retrieve metadata for</param>
-        /// <returns> </returns>
+        /// <returns></returns>
         public override async Task<PackageMetadata> GetPackageMetadata(PackageURL purl)
         {
             PackageMetadata metadata = new PackageMetadata();
@@ -363,11 +363,11 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        ///     Searches the package manager metadata to figure out the source code repository
+        /// Searches the package manager metadata to figure out the source code repository
         /// </summary>
-        /// <param name="purl"> the package for which we need to find the source code repository </param>
+        /// <param name="purl">the package for which we need to find the source code repository</param>
         /// <returns>
-        ///     A dictionary, mapping each possible repo source entry to its probability/empty dictionary
+        /// A dictionary, mapping each possible repo source entry to its probability/empty dictionary
         /// </returns>
 
         protected async override Task<Dictionary<PackageURL, double>> SearchRepoUrlsInPackageMetadata(PackageURL purl,
@@ -394,8 +394,8 @@ namespace Microsoft.CST.OpenSource.Shared
                 return mapping;
             }
 
-            // if a version is provided, search that JSONElement, otherwise, just search the latest version,
-            // which is more likely best maintained
+            // if a version is provided, search that JSONElement, otherwise, just search the latest
+            // version, which is more likely best maintained
             // TODO: If the latest version JSONElement doesnt have the repo infor, should we search all elements
             // on that chance that one of them might have it?
             JsonElement? versionJSON = string.IsNullOrEmpty(purl?.Version) ? GetLatestVersionElement(contentJSON) :
@@ -413,8 +413,8 @@ namespace Microsoft.CST.OpenSource.Shared
                     if (repoType == "git" && repoURL is not null)
                     {
                         PackageURL gitPURL = GitHubProjectManager.ParseUri(new Uri(repoURL));
-                        // we got a repository value the author specified in the metadata - so no further
-                        // processing needed
+                        // we got a repository value the author specified in the metadata - so no
+                        // further processing needed
                         if (gitPURL != null)
                         {
                             mapping.Add(gitPURL, 1.0F);
@@ -430,7 +430,7 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        ///     Internal Node.js modules that should be ignored when searching metadata.
+        /// Internal Node.js modules that should be ignored when searching metadata.
         /// </summary>
         private static readonly List<string> npm_internal_modules = new List<string>()
         {

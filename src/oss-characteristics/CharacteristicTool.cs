@@ -39,7 +39,7 @@ namespace Microsoft.CST.OpenSource
                 HelpText = "load rules from the specified directory.")]
             public string? CustomRuleDirectory { get; set; }
 
-            [Option('x', "disable-default-rules", Required = false, Default = false,
+            [Option("disable-default-rules", Required = false, Default = false,
                 HelpText = "do not load default, built-in rules.")]
             public bool DisableDefaultRules { get; set; }
 
@@ -63,7 +63,7 @@ namespace Microsoft.CST.OpenSource
                 HelpText = "do not download the package if it is already present in the destination directory.")]
             public bool UseCache { get; set; }
 
-            [Option('x', "exclude", Required = false, Default = false,
+            [Option('x', "exclude", Required = false,
                 HelpText = "exclude specific files or paths.")]
             public string FilePathExclusions { get; set; } = "";
 
@@ -100,13 +100,13 @@ namespace Microsoft.CST.OpenSource
             {
                 ConsoleVerbosityLevel = "None",
                 LogFileLevel = "Off",
-                SourcePath = directory,
+                SourcePath = new[] { directory },
                 IgnoreDefaultRules = options.DisableDefaultRules == true,
                 CustomRulesPath = options.CustomRuleDirectory,
                 ConfidenceFilters = "high,medium,low",
                 TreatEverythingAsCode = options.TreatEverythingAsCode,
                 SingleThread = true,
-                AllowDupTags = options.AllowDupTags
+                TagsOnly = true
             };
 
             try
@@ -236,10 +236,11 @@ namespace Microsoft.CST.OpenSource
                 {
                     var metadata = analysisResult?[key]?.Metadata;
 
-                    stringOutput.Add(string.Format("Programming Language: {0}",
-                        string.Join(", ", metadata?.Languages?.Keys ?? Array.Empty<string>().ToList())));
+                    stringOutput.Add(string.Format("Programming Language(s): {0}",
+                        string.Join(", ", metadata?.Languages?.Keys ?? new List<string>())));
                     
                     stringOutput.Add("Unique Tags (Confidence): ");
+                    bool hasTags = false;
                     var dict = new Dictionary<string, List<Confidence>>();
                     foreach ((var tags, var confidence) in metadata?.Matches?.Where(x => x is not null).Select(x => (x.Tags, x.Confidence)) ?? Array.Empty<(string[], Confidence)>())
                     {
@@ -258,15 +259,20 @@ namespace Microsoft.CST.OpenSource
 
                     foreach ((var k, var v) in dict)
                     {
+                        hasTags = true;
                         var confidence = v.Max();
                         if (confidence > 0)
                         {
-                            stringOutput.Add(string.Format($" * {k} ({v.Max()})"));
+                            stringOutput.Add($" * {k} ({v.Max()})");
                         }
                         else
                         {
-                            stringOutput.Add(string.Format($" * {k}"));
+                            stringOutput.Add($" * {k}");
                         }
+                    }
+                    if (!hasTags)
+                    {
+                        stringOutput.Add("No tags were found.");
                     }
                 }
             }

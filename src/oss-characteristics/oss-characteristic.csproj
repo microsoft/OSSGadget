@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.9.0-preview1" />
-    <PackageReference Include="Microsoft.CST.ApplicationInspector.Commands" Version="1.2.100" />
+    <PackageReference Include="Microsoft.CST.ApplicationInspector.Commands" Version="1.4.4" />
     <PackageReference Include="Nerdbank.GitVersioning" Version="3.4.220">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

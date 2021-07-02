@@ -19,10 +19,10 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        ///     Download one Maven package and extract it to the target directory.
+        /// Download one Maven package and extract it to the target directory.
         /// </summary>
-        /// <param name="purl"> Package URL of the package to download. </param>
-        /// <returns> n/a </returns>
+        /// <param name="purl">Package URL of the package to download.</param>
+        /// <returns>n/a</returns>
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
@@ -49,7 +49,8 @@ namespace Microsoft.CST.OpenSource.Shared
                     result.EnsureSuccessStatusCode();
                     Logger.Debug($"Downloading {purl}...");
 
-                    var targetName = $"maven-{packageNamespace}/{packageName}{suffix}@{packageVersion}";
+                    var targetName = $"maven-{packageNamespace}-{packageName}{suffix}@{packageVersion}";
+                    targetName = targetName.Replace('/', '-');
                     string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                     if (doExtract && Directory.Exists(extractionPath) && cached == true)
                     {

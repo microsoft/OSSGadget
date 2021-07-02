@@ -101,29 +101,22 @@ namespace Microsoft.CST.OpenSource
         /// <param name="outputFile"></param>
         protected void SelectOutput(string outputFile)
         {
-            // output to console or file?
-            this.redirectConsole = false;
+            // If outputFile is valid, then redirect output there.
             if (string.IsNullOrWhiteSpace(outputFile) ||
                 outputFile.IndexOfAny(Path.GetInvalidPathChars()) < 0 ||
                 Path.GetFileName(outputFile).IndexOfAny(Path.GetInvalidFileNameChars()) < 0)
             {
                 this.redirectConsole = true;
+                if (!ConsoleHelper.RedirectConsole(outputFile))
+                {
+                    Logger.Debug("Could not switch output from console to file");
+                    // continue with current output
+                }
             }
-
-            if (redirectConsole)
+            else
             {
-                if (outputFile is string outputLoc)
-                {
-                    if (!ConsoleHelper.RedirectConsole(outputLoc))
-                    {
-                        Logger.Debug("Could not switch output from console to file");
-                        // continue with current output
-                    }
-                }
-                else
-                {
-                    Logger.Debug("Invalid outputFile {0}. Switching to console.", outputFile);
-                }
+                this.redirectConsole = false;
+                Logger.Debug("Invalid file, {0}, writing to console instead.", outputFile);
             }
         }
 

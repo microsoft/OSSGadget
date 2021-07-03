@@ -34,7 +34,7 @@
   },
   {
     "name": "Dependency Confusion: Attack Pattern (Suspicious Hostname)",
-    "id": "BD001001",
+    "id": "BD001002",
     "description": "Dependency Confusion: Attack Pattern (Suspicious Hostname)",
     "tags": [
       "Security.DependencyConfusion.AttackPattern.SuspiciousHostname"
@@ -43,7 +43,7 @@
     "severity": "critical",
     "patterns": [
       {
-        "pattern": ".{1,45}\\.(pipedream\\.net|ceye\\.io|burpcollaborator\\.net|requestbin\\.net",
+        "pattern": ".{1,45}\\.(pipedream\\.net|ceye\\.io|burpcollaborator\\.net|requestbin\\.net)",
         "type": "regex",
         "scopes": [ "code", "comment" ],
         "modifiers": [ "i" ],

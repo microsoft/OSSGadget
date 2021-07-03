@@ -10,7 +10,7 @@
     "patterns": [
       {
         "pattern": "(shell\\.now\\.sh|tcp\\.ngrok\\.io|reverse shell|reverse-shell\\.sh)",
-        "type": "regex-word",
+        "type": "regexword",
         "scopes": [ "code", "comment" ],
         "modifiers": [ "i" ],
         "confidence": "high"

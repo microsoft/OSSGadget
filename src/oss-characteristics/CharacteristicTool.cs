@@ -67,7 +67,7 @@ namespace Microsoft.CST.OpenSource
                 HelpText = "exclude specific files or paths.")]
             public string FilePathExclusions { get; set; } = "";
 
-            public bool TreatEverythingAsCode { get; set; }
+            public bool TreatEverythingAsCode { get; set; } = true;
 
             public bool AllowDupTags { get; set; } = false;
 
@@ -98,15 +98,16 @@ namespace Microsoft.CST.OpenSource
             // Call Application Inspector using the NuGet package
             var analyzeOptions = new AnalyzeOptions()
             {
-                ConsoleVerbosityLevel = "None",
-                LogFileLevel = "Off",
+                ConsoleVerbosityLevel = "High",
+                LogFileLevel = "trace",
                 SourcePath = new[] { directory },
-                IgnoreDefaultRules = options.DisableDefaultRules == true,
+                IgnoreDefaultRules = options.DisableDefaultRules,
                 CustomRulesPath = options.CustomRuleDirectory,
                 ConfidenceFilters = "high,medium,low",
+                ScanUnknownTypes = true,
                 TreatEverythingAsCode = options.TreatEverythingAsCode,
-                SingleThread = true,
-                TagsOnly = true
+                SingleThread = false,
+                FilePathExclusions = options.FilePathExclusions?.Split(',') ?? Array.Empty<string>()
             };
 
             try

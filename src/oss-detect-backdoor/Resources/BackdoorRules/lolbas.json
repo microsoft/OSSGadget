@@ -13,7 +13,7 @@
         "type": "regex",
         "scopes": [ "code" ],
         "modifiers": [ "i" ],
-        "confidence": "high"
+        "confidence": "low"
       }
     ]
   },
@@ -31,7 +31,7 @@
         "type": "regex",
         "scopes": [ "code" ],
         "modifiers": [ "i" ],
-        "confidence": "high"
+        "confidence": "low"
       }
     ]
   }

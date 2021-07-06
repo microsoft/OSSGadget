@@ -58,7 +58,7 @@
         "type": "string",
         "scopes": [ "code" ],
         "modifiers": [ "i" ],
-        "confidence": "high"
+        "confidence": "medium"
       }
     ]
   },

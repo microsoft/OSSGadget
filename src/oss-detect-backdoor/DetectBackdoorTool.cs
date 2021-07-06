@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using static Crayon.Output;
 
 namespace Microsoft.CST.OpenSource
 {
@@ -81,14 +82,19 @@ namespace Microsoft.CST.OpenSource
 
                     if (parsedOptions.Format == "text")
                     {
-                        foreach (var match in entry.Value.Metadata.Matches.OrderByDescending(x => x.Confidence))
+                        var matchEntries = entry.Value.Metadata.Matches.OrderByDescending(x => x.Confidence);
+                        var matchEntriesCount = matchEntries.Count();
+                        int matchIndex = 1;
+
+                        foreach (var match in matchEntries)
                         {
-                            WriteMatch(match);
+                            WriteMatch(match, matchIndex, matchEntriesCount);
+                            matchIndex++;
                         }
                         Console.WriteLine($"{entry.Value.Metadata.TotalMatchesCount} matches found.");
                     }
 
-                    void WriteMatch(MatchRecord match)
+                    void WriteMatch(MatchRecord match, int index, int matchCount)
                     {
                         var filename = match.FileName;
                         if (filename == null)
@@ -103,7 +109,16 @@ namespace Microsoft.CST.OpenSource
                                 filename = filename[sourcePathLength.Value..];
                             }
                         }
-                        Console.WriteLine($"{match.Tags?.First()} - {filename}:{match.StartLocationLine} - {match.RuleName} ({match.Severity} - {match.Confidence})");
+                        Console.WriteLine(Red($"--[ ") + Blue("Match #") + Yellow(index.ToString()) + Blue(" of ") + Yellow(matchCount.ToString()) + Red(" ]--"));
+                        Console.WriteLine("       Tag: " + Blue(match.Tags?.First()));
+                        Console.WriteLine("  Severity: " + Cyan(match.Severity.ToString()) + ", Confidence: " + Cyan(match.Confidence.ToString()));
+                        Console.WriteLine("  Filename: " + Yellow(filename));
+                        Console.WriteLine("   Pattern: " + Green(match.MatchingPattern.Pattern));
+                        foreach (var line in match.Excerpt.Split(new[] {"\r", "\n", "\r\n"}, StringSplitOptions.None))
+                        {
+                            Console.WriteLine(Bright.Black("  | ") + Magenta(line));
+                        }
+                        Console.WriteLine();
                     }
                 }
             }

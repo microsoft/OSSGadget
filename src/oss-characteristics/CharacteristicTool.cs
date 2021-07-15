@@ -64,7 +64,7 @@ namespace Microsoft.CST.OpenSource
             public bool UseCache { get; set; }
 
             [Option('x', "exclude", Required = false,
-                HelpText = "exclude specific files or paths.")]
+                HelpText = "exclude files or paths which match provided glob patterns.")]
             public string FilePathExclusions { get; set; } = "";
 
             public bool TreatEverythingAsCode { get; set; } = true;

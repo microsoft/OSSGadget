@@ -37,7 +37,7 @@
   },
   {
     "name": "Backdoor: gohack.xyz",
-    "id": "BD000201",
+    "id": "BD000202",
     "description": "Backdoor: gohack.xyz",
     "tags": [
       "Security.Backdoor.Signature.gohackxyz"

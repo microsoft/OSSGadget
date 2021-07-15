@@ -10,7 +10,7 @@
     "patterns": [
       {
         "pattern": "base64|encodedcommand|obfuscate",
-        "type": "regex",
+        "type": "regexword",
         "scopes": [ "code" ],
         "modifiers": [ "i" ],
         "confidence": "high"
@@ -28,7 +28,7 @@
     "patterns": [
       {
         "pattern": "fromhex.+decode",
-        "type": "regex",
+        "type": "regexword",
         "scopes": [ "code" ],
         "modifiers": [ "i" ],
         "confidence": "high"

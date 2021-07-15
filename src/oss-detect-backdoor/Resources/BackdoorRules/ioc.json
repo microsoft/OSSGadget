@@ -7,7 +7,7 @@
     "tags": [
       "Security.Backdoor.ReverseShell"
     ],
-    "severity": "moderate",
+    "severity": "important",
     "patterns": [
       {
         "pattern": "(\\-bxor|cpassword|getnetworkcredential|securestringtobstr|shellexecute|processtartinfo|activexobject|regsvr32|mimikatz|new-scheduledtask|loadlibrary|ptrtostructure|getdelegateforfunctionpointer|unsafenativemethods|structuretoptr|virtualprotect)",

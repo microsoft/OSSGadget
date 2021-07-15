@@ -247,7 +247,7 @@
   },
   {
     "name": "Backdoor: Data Exfiltration (Whoami)",
-    "id": "BD000710",
+    "id": "BD000711",
     "description": "Backdoor: Data Exfiltration (Whoami)",
     "tags": [
       "Security.Backdoor.DataExfiltration.Whoami"
@@ -266,7 +266,7 @@
   },
   {
     "name": "Backdoor: Data Exfiltration (Dep Confusion Test)",
-    "id": "BD000711",
+    "id": "BD000712",
     "description": "Backdoor: Data Exfiltration (Dep Confusion Test)",
     "tags": [
       "Security.Backdoor.DataExfiltration.DepConfusionTest"

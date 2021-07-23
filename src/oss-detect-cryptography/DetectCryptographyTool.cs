@@ -523,13 +523,13 @@ namespace Microsoft.CST.OpenSource
 
                     Issue[]? fileResults = null;
                     var task = Task.Run(() => processor.Analyze(buffer, Language.FromFileName(filename)));
-                    if (task.Wait(TimeSpan.FromSeconds(2)))
+                    if (task.Wait(TimeSpan.FromSeconds(30)))
                     {
                         fileResults = task.Result;
                     }
                     else
                     {
-                        Logger.Debug("DevSkim operation timed out.");
+                        Logger.Warn("DevSkim operation timed out.");
                         return analysisResults;
                     }
 

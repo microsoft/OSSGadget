@@ -103,10 +103,11 @@ namespace Microsoft.CST.OpenSource.Shared
                 var fsName = Utilities.NormalizeStringForFileSystem(packageName);
                 var fsVersion = Utilities.NormalizeStringForFileSystem(packageVersion);
 
-                var workingDirectory = string.IsNullOrWhiteSpace(packageVersion) ?
-                                        Path.Join(TopLevelExtractionDirectory, $"github-{fsNamespace}-{fsName}") :
-                                        Path.Join(TopLevelExtractionDirectory, $"github-{fsNamespace}-{fsName}-{fsVersion}");
-                string extractionPath = Path.Combine(TopLevelExtractionDirectory, workingDirectory);
+                var relativeWorkingDirectory = string.IsNullOrWhiteSpace(packageVersion) ?
+                                                $"github-{fsNamespace}-{fsName}" :
+                                                $"github-{fsNamespace}-{fsName}-{fsVersion}";
+                string extractionPath = Path.Combine(TopLevelExtractionDirectory, relativeWorkingDirectory);
+
                 if (doExtract && Directory.Exists(extractionPath) && cached == true)
                 {
                     downloadedPaths.Add(extractionPath);
@@ -141,7 +142,7 @@ namespace Microsoft.CST.OpenSource.Shared
                         Logger.Debug("Download successful.");
                         if (doExtract)
                         {
-                            downloadedPaths.Add(await ExtractArchive(extractionPath, await result.Content.ReadAsByteArrayAsync(), cached));
+                            downloadedPaths.Add(await ExtractArchive(relativeWorkingDirectory, await result.Content.ReadAsByteArrayAsync(), cached));
                         }
                         else
                         {

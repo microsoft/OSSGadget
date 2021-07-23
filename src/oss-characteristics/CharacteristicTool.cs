@@ -98,8 +98,8 @@ namespace Microsoft.CST.OpenSource
             // Call Application Inspector using the NuGet package
             var analyzeOptions = new AnalyzeOptions()
             {
-                ConsoleVerbosityLevel = "High",
-                LogFileLevel = "trace",
+                ConsoleVerbosityLevel = "None",
+                LogFileLevel = "Off",
                 SourcePath = new[] { directory },
                 IgnoreDefaultRules = options.DisableDefaultRules,
                 CustomRulesPath = options.CustomRuleDirectory,

@@ -48,7 +48,7 @@ namespace Microsoft.CST.OpenSource
             }
             else
             {
-                throw new ArgumentException("Invalid Package URL type: {0}", purl.Type);
+                throw new ArgumentException($"Invalid Package URL type: {purl.Type}");
             }
             return null;
         }

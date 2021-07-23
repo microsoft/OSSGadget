@@ -43,9 +43,28 @@
     "severity": "critical",
     "patterns": [
       {
-        "pattern": ".{1,45}\\.(pipedream\\.net|ceye\\.io|burpcollaborator\\.net|requestbin\\.net)",
+        "pattern": ".{1,45}\\.(pipedream\\.net|ceye\\.io|burpcollaborator\\.net|interact\\.sh|requestbin\\.net|nmnfbb\\.com)",
         "type": "regex",
         "scopes": [ "code", "comment" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      }
+    ]
+  },
+  {
+    "name": "Dependency Confusion: Attack Pattern (Exfiltration over DNS)",
+    "id": "BD001003",
+    "description": "Dependency Confusion: Attack Pattern (Exfiltration over DNS)",
+    "tags": [
+      "Security.DependencyConfusion.AttackPattern.ExfiltrationOverDNS"
+    ],
+    "applies_to": ["javascript", "package.json"],
+    "severity": "critical",
+    "patterns": [
+      {
+        "pattern": "resolve4\\((.*+){2}.*",
+        "type": "regex",
+        "scopes": [ "code" ],
         "modifiers": [ "i" ],
         "confidence": "high"
       }

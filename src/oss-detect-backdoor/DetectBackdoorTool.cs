@@ -110,13 +110,19 @@ namespace Microsoft.CST.OpenSource
                             }
                         }
                         Console.WriteLine(Red($"--[ ") + Blue("Match #") + Yellow(index.ToString()) + Blue(" of ") + Yellow(matchCount.ToString()) + Red(" ]--"));
+                        Console.WriteLine("   Rule Id: " + Blue(match.Rule.Id));
                         Console.WriteLine("       Tag: " + Blue(match.Tags?.First()));
                         Console.WriteLine("  Severity: " + Cyan(match.Severity.ToString()) + ", Confidence: " + Cyan(match.Confidence.ToString()));
                         Console.WriteLine("  Filename: " + Yellow(filename));
                         Console.WriteLine("   Pattern: " + Green(match.MatchingPattern.Pattern));
                         foreach (var line in match.Excerpt.Split(new[] {"\r", "\n", "\r\n"}, StringSplitOptions.None))
                         {
-                            Console.WriteLine(Bright.Black("  | ") + Magenta(line));
+                            var s = line;
+                            if (s.Length > 100)
+                            {
+                                s = s.Substring(0, 100);
+                            }
+                            Console.WriteLine(Bright.Black("  | ") + Magenta(s));
                         }
                         Console.WriteLine();
                     }

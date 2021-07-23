@@ -247,7 +247,8 @@ namespace Microsoft.CST.OpenSource
                         Logger.Error("Package is missing a version, which is required for this tool.");
                         continue;
                     }
-                    var tempDirectoryName = Guid.NewGuid().ToString();
+                    
+                    var tempDirectoryName = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString().Substring(0, 8));
                     if (Directory.Exists(tempDirectoryName))
                     {
                         Directory.Delete(tempDirectoryName, true);  // Just in case

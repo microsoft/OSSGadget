@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using WebAssembly; // Acquire from https://www.nuget.org/packages/WebAssembly
 using WebAssembly.Instructions;
 using Microsoft.ApplicationInspector.Commands;
+using static Crayon.Output;
 
 namespace Microsoft.CST.OpenSource
 {
@@ -107,54 +108,78 @@ namespace Microsoft.CST.OpenSource
                                 Logger.Warn("Unable to delete {0}: {1}", targetDirectoryName, ex.Message);
                             }
                         }
+                        else
+                        {
+                            Logger.Warn($"{target} was neither a Package URL, directory, nor a file.");
+                            continue;
+                        }
 
                         if (results == null)
                         {
-                            Logger.Warn("Error generating results, was null.");
-                        }
-                        else if (!results.Any())
-                        {
-                            sb.AppendLine($"[ ] {target} - This software package does NOT appear to implement cryptography.");
+                            Logger.Warn("No results were generated.");
+                            continue;
                         }
                         else
                         {
-                            var shortTags = results.SelectMany(r => r.Issue.Rule.Tags ?? new List<string>())
-                                                   .Distinct()
-                                                   .Where(t => t.StartsWith("Cryptography.Implementation."))
-                                                   .Select(t => t.Replace("Cryptography.Implementation.", ""));
-                            var otherTags = results.SelectMany(r => r.Issue.Rule.Tags ?? new List<string>())
-                                                   .Distinct()
-                                                   .Where(t => !t.StartsWith("Cryptography.Implementation."));
+                            sb.AppendLine("Summary Results:");
 
-                            if (shortTags.Any())
+                            sb.AppendLine(Blue("Cryptographic Implementations:"));
+                            var implementations = results.SelectMany(r => r.Issue.Rule.Tags ?? new List<string>())
+                                                         .Distinct()
+                                                         .Where(t => t.StartsWith("Cryptography.Implementation."))
+                                                         .Select(t => t.Replace("Cryptography.Implementation.", ""))
+                                                         .OrderBy(s => s);
+                            if (implementations.Any())
                             {
-                                sb.AppendLine($"[X] {target} - This software package appears to implement {string.Join(", ", shortTags)}.");
-                            }
-
-                            if (otherTags.Contains("Cryptography.GenericImplementation.HighDensityOperators"))
-                            {
-                                sb.AppendLine($"[X] {target} - This software package has a high-density of cryptographic operators.");
-                            }
-                            else
-                            {
-                                sb.AppendLine($"[ ] {target} - This software package does NOT have a high-density of cryptographic operators.");
-                            }
-
-                            if (otherTags.Contains("Cryptography.GenericImplementation.CryptographicWords"))
-                            {
-                                sb.AppendLine($"[X] {target} - This software package contains words that suggest cryptography.");
-                            }
-                            else
-                            {
-                                sb.AppendLine($"[ ] {target} - This software package does NOT contains words that suggest cryptography.");
-                            }
-
-                            foreach (var t in otherTags)
-                            {
-                                if (t.Contains("cryptography", StringComparison.InvariantCultureIgnoreCase))
+                                foreach (var tag in implementations)
                                 {
-                                    sb.AppendLine($"[X] {target} - This software references [{t}].");
+                                    sb.AppendLine(Bright.Blue($" * {tag}"));
                                 }
+                            }
+                            else
+                            {
+                                sb.AppendLine(Bright.Black("  No implementations found."));
+                            }
+
+                            sb.AppendLine();
+                            sb.AppendLine(Red("Cryptographic Library References:"));
+                            var references = results.SelectMany(r => r.Issue.Rule.Tags ?? new List<string>())
+                                                    .Distinct()
+                                                    .Where(t => t.StartsWith("Cryptography.Reference."))
+                                                    .Select(t => t.Replace("Cryptography.Reference.", ""))
+                                                    .OrderBy(s => s);
+
+                            if (references.Any())
+                            {
+                                foreach (var tag in references)
+                                {
+                                    sb.AppendLine(Bright.Red($" * {tag}"));
+                                }
+                            }
+                            else
+                            {
+                                sb.AppendLine(Bright.Black("  No library references found."));
+                            }
+
+                            sb.AppendLine();
+                            sb.AppendLine(Green("Other Cryptographic Characteristics:"));
+                            var characteristics = results.SelectMany(r => r.Issue.Rule.Tags ?? new List<string>())
+                                                         .Distinct()
+                                                         .Where(t => t.Contains("Crypto", StringComparison.InvariantCultureIgnoreCase)&&
+                                                                     !t.StartsWith("Cryptography.Implementation.") &&
+                                                                     !t.StartsWith("Cryptography.Reference."))
+                                                         .Select(t => t.Replace("Cryptography.", ""))
+                                                         .OrderBy(s => s);
+                            if (characteristics.Any())
+                            {
+                                foreach (var tag in characteristics)
+                                {
+                                    sb.AppendLine(Bright.Green($" * {tag}"));
+                                }
+                            }
+                            else
+                            {
+                                sb.AppendLine(Bright.Black("  No additional characteristics found."));
                             }
 
                             if ((bool?)detectCryptographyTool.Options["verbose"] == true)
@@ -172,7 +197,7 @@ namespace Microsoft.CST.OpenSource
                                             sb.AppendLine($" {result.Filename}:");
                                             if (result.Issue.Rule.Id == "_CRYPTO_DENSITY")
                                             {
-                                                // No excerpt for cryptogrpahic density
+                                                // No excerpt for cryptographic density
                                                 // TODO: We stuffed the density in the unused 'Description' field. This is code smell.
                                                 sb.AppendLine($"  | The maximum cryptographic density is {result.Issue.Rule.Description}.");
                                             }
@@ -395,7 +420,6 @@ namespace Microsoft.CST.OpenSource
                 var assembly = Assembly.GetExecutingAssembly();
                 foreach (var resourceName in assembly.GetManifestResourceNames())
                 {
-                    Console.WriteLine(resourceName);
                     if (resourceName.EndsWith(".json"))
                     {
                         try
@@ -523,13 +547,13 @@ namespace Microsoft.CST.OpenSource
 
                     Issue[]? fileResults = null;
                     var task = Task.Run(() => processor.Analyze(buffer, Language.FromFileName(filename)));
-                    if (task.Wait(TimeSpan.FromSeconds(2)))
+                    if (task.Wait(TimeSpan.FromSeconds(30)))
                     {
                         fileResults = task.Result;
                     }
                     else
                     {
-                        Logger.Debug("DevSkim operation timed out.");
+                        Logger.Warn("DevSkim operation timed out.");
                         return analysisResults;
                     }
 

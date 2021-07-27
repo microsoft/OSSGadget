@@ -26,7 +26,7 @@ namespace Microsoft.CST.OpenSource
             }
 
             [Option('x', "download-directory", Required = false, Default = ".",
-                            HelpText = "the directory to download the package to.")]
+                HelpText = "the directory to download the package to.")]
             public string DownloadDirectory { get; set; } = ".";
 
             [Option('m', "download-metadata-only", Required = false, Default = false,
@@ -42,7 +42,7 @@ namespace Microsoft.CST.OpenSource
             public IEnumerable<string>? Targets { get; set; }
 
             [Option('c', "use-cache", Required = false, Default = false,
-                                                                HelpText = "do not download the package if it is already present in the destination directory.")]
+                HelpText = "do not download the package if it is already present in the destination directory.")]
             public bool UseCache { get; set; }
         }
 

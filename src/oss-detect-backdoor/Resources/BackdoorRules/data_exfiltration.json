@@ -311,5 +311,41 @@
         "search_in": "finding-region(-30,30)"
       }
     ]
+  },
+  {
+    "name": "Searching for Twilio Credentials",
+    "id": "BD000713",
+    "description": "Searching for Twilio Credentials",
+    "tags": [
+      "Security.Backdoor.DataExfiltration.TwilioCredentials"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": "twilio.env",
+        "type": "string",
+        "scopes": [ "code" ],
+        "modifiers": [],
+        "confidence": "high"
+      }
+    ]
+  },
+  {
+    "name": "Searching for Environment Variable Files",
+    "id": "BD000714",
+    "description": "Searching for Environment Variable Files",
+    "tags": [
+      "Security.Backdoor.DataExfiltration.EnvironmentVariableFiles"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": "\\.env\\.(dev|prod|stage|production|development|test|testing|uat)",
+        "type": "regex",
+        "scopes": [ "code" ],
+        "modifiers": [],
+        "confidence": "high"
+      }
+    ]
   }
 ]

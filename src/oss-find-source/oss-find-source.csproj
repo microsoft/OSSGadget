@@ -27,8 +27,8 @@
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.9.0-preview1" />
-    <PackageReference Include="Sarif.Sdk" Version="2.4.10" />
-    <PackageReference Include="Nerdbank.GitVersioning" Version="3.4.220">
+    <PackageReference Include="Sarif.Sdk" Version="2.4.11" />
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.4.231">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

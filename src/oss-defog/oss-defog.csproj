@@ -22,7 +22,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommandLineParser" Version="2.8.0" />
     <PackageReference Include="MediaTypeMap.Core" Version="2.3.3" />
     <PackageReference Include="System.Console" Version="4.3.1" />
     <PackageReference Include="Nerdbank.GitVersioning" Version="3.4.240">

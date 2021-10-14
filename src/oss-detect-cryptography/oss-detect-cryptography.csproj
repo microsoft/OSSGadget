@@ -59,15 +59,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommandLineParser" Version="2.9.0-preview1" />
+    <PackageReference Include="CommandLineParser" Version="2.8.0" />
     <PackageReference Include="ELFSharp" Version="2.13.0" />
     <PackageReference Include="ICSharpCode.Decompiler" Version="7.1.0.6543" />
     <PackageReference Include="Microsoft.CST.ApplicationInspector.Commands" Version="1.4.9" />
-    <PackageReference Include="Microsoft.CST.DevSkim" Version="0.4.254" />
-    <PackageReference Include="PeNet" Version="2.8.1" />
+    <PackageReference Include="Microsoft.CST.DevSkim" Version="0.5.1" />
+    <PackageReference Include="PeNet" Version="2.9.1" />
     <PackageReference Include="SharpDisasm" Version="1.1.11" />
     <PackageReference Include="WebAssembly" Version="1.2.0" />
-    <PackageReference Include="Nerdbank.GitVersioning" Version="3.4.231">
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.4.240">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

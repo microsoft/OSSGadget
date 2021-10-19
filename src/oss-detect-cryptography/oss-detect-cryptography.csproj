@@ -62,7 +62,7 @@
     <PackageReference Include="ELFSharp" Version="2.13.0" />
     <PackageReference Include="ICSharpCode.Decompiler" Version="7.1.0.6543" />
     <PackageReference Include="Microsoft.CST.ApplicationInspector.Commands" Version="1.4.9" />
-    <PackageReference Include="Microsoft.CST.DevSkim" Version="0.5.1" />
+    <PackageReference Include="Microsoft.CST.DevSkim" Version="0.5.3" />
     <PackageReference Include="PeNet" Version="2.9.1" />
     <PackageReference Include="SharpDisasm" Version="1.1.11" />
     <PackageReference Include="WebAssembly" Version="1.2.0" />

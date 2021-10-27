@@ -34,8 +34,8 @@
     <PackageReference Include="HtmlAgilityPack" Version="1.11.37" />
     <PackageReference Include="Microsoft.CST.RecursiveExtractor" Version="1.1.5" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="6.0.0-preview.5.21301.5" />
-    <PackageReference Include="NLog" Version="4.7.11" />
-    <PackageReference Include="NLog.Schema" Version="4.7.11" />
+    <PackageReference Include="NLog" Version="4.7.12" />
+    <PackageReference Include="NLog.Schema" Version="4.7.12" />
     <PackageReference Include="NuGet.Versioning" Version="5.11.0" />
     <PackageReference Include="Octokit" Version="0.50.0" />
     <PackageReference Include="Sarif.Sdk" Version="2.4.12" />

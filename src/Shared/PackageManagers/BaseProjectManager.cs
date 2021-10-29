@@ -10,6 +10,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -252,13 +253,21 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
 
             Directory.CreateDirectory(TopLevelExtractionDirectory);
 
+            var dirBuilder = new StringBuilder(directoryName);
+
+            foreach (var c in Path.GetInvalidPathChars())
+            {
+               dirBuilder.Replace(c, '-');    // ignore: lgtm [cs/string-concatenation-in-loop]
+            }
+
+            string fullTargetPath = Path.Combine(TopLevelExtractionDirectory, dirBuilder.ToString());
+
             if (!cached)
             {
-                string fullTargetPath = Path.Combine(TopLevelExtractionDirectory, directoryName);
                 while (Directory.Exists(fullTargetPath) || File.Exists(fullTargetPath))
                 {
-                    directoryName += "-" + DateTime.Now.Ticks;
-                    fullTargetPath = Path.Combine(TopLevelExtractionDirectory, directoryName);
+                    dirBuilder.Append("-" + DateTime.Now.Ticks);
+                    fullTargetPath = Path.Combine(TopLevelExtractionDirectory, dirBuilder.ToString());
                 }
             }
             var extractor = new Extractor();
@@ -268,35 +277,17 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
                 Parallel = true
                 //MaxExtractedBytes = 1000 * 1000 * 10;  // 10 MB maximum package size
             };
-            foreach (var fileEntry in extractor.Extract(directoryName, bytes, extractorOptions))
+            var result = await extractor.ExtractToDirectoryAsync(TopLevelExtractionDirectory, dirBuilder.ToString(), new MemoryStream(bytes), extractorOptions);
+            if (result == ExtractionStatusCode.Ok)
             {
-                var fullPath = fileEntry.FullPath.Replace(':', Path.DirectorySeparatorChar);
-
-                // TODO: Does this prevent zip-slip?
-                foreach (var c in Path.GetInvalidPathChars())
-                {
-                    fullPath = fullPath.Replace(c, '-');    // ignore: lgtm [cs/string-concatenation-in-loop]
-                }
-
-                var filePathToWrite = Path.Combine(TopLevelExtractionDirectory, fullPath);
-                filePathToWrite = filePathToWrite.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
-
-                if (Path.GetDirectoryName(filePathToWrite) is string dir && !string.IsNullOrWhiteSpace(dir))
-                {
-                    Directory.CreateDirectory(dir);
-                }
-                if (!Directory.Exists(fullPath))
-                {
-                    using var fs = File.Open(filePathToWrite, FileMode.Append);
-                    await fileEntry.Content.CopyToAsync(fs);
-                }
+                Logger.Debug("Archive extracted to {0}", fullTargetPath);
+            }
+            else
+            {
+                Logger.Warn("Error extracting archive {0} ({1})", fullTargetPath, result);
             }
 
-            var fullExtractionPath = Path.Combine(TopLevelExtractionDirectory, directoryName);
-            fullExtractionPath = Path.GetFullPath(fullExtractionPath);
-            Logger.Debug("Archive extracted to {0}", fullExtractionPath);
-
-            return fullExtractionPath;
+            return fullTargetPath;
         }
 
         /// <summary>

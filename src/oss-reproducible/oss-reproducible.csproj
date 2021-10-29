@@ -62,7 +62,7 @@
   <ItemGroup>
     <PackageReference Include="DiffPlex" Version="1.7.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="SharpCompress" Version="0.28.3" />
+    <PackageReference Include="SharpCompress" Version="0.30.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -72,7 +72,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Update="Nerdbank.GitVersioning" Version="3.4.220" />
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.4.240" />
   </ItemGroup>
 
 </Project>

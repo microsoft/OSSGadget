@@ -1,0 +1,39 @@
+trigger: none
+resources:
+  pipelines:
+  - pipeline: OSS Gadget Main Pipeline
+    source: OSS Gadget
+    trigger:
+      pr:
+        - main
+      # branches:
+      #   include: 
+      #   - main
+      paths:
+        include:
+        - Pipelines
+        - src/oss-characteristics
+        - src/oss-download
+        - src/Shared
+
+- stage: Release
+  condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI', 'BatchedCI'))
+  jobs:
+    - template: templates/nuget-build-job.yml
+      parameters:
+        jobName: 'pack oss-characteristics'
+        projectPath: 'oss-characteristics/oss-characteristics.csproj'
+        projectName: 'oss-characteristics'
+    - task: PublishPipelineArtifact@1
+      displayName: Publish Signed Artifacts to Pipeline
+      inputs:
+        targetPath: 'Packages'
+        artifact: 'OSS-Characteristics Nuget'
+    # - task: NuGetCommand@2
+    #   displayName: Push NuGet Packages
+    #   inputs:
+    #     command: 'push'
+    #     packagesToPush: 'Packages/*.nupkg'
+    #     nuGetFeedType: 'external'
+    #     publishFeedCredentials: 'CST-E Nuget CI'
+    #     verbosityPush: 'Normal'

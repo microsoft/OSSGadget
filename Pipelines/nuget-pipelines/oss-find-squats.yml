@@ -1,0 +1,36 @@
+trigger: none
+resources:
+  pipelines:
+  - pipeline: OSS Gadget Main Pipeline
+    source: OSS Gadget
+    trigger:
+      branches:
+        include: 
+        - main
+      paths:
+        include:
+        - Pipelines
+        - src/oss-find-squats
+        - src/Shared
+
+- stage: Release
+  condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI', 'BatchedCI'))
+  jobs:
+    - template: templates/nuget-build-job.yml
+      parameters:
+        jobName: 'pack oss-find-squats'
+        projectPath: 'oss-find-squats/oss-find-squats.csproj'
+        projectName: 'oss-find-squats'
+    - task: PublishPipelineArtifact@1
+      displayName: Publish Signed Artifacts to Pipeline
+      inputs:
+        targetPath: 'Packages'
+        artifact: 'OSS-Find-Squats Nuget'
+    - task: NuGetCommand@2
+      displayName: Push NuGet Packages
+      inputs:
+        command: 'push'
+        packagesToPush: 'Packages/*.nupkg'
+        nuGetFeedType: 'external'
+        publishFeedCredentials: 'CST-E Nuget CI'
+        verbosityPush: 'Normal'

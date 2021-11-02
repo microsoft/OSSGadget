@@ -33,6 +33,7 @@ resources:
     #   displayName: Push NuGet Packages
     #   inputs:
     #     command: 'push'
+    
     #     packagesToPush: 'Packages/*.nupkg'
     #     nuGetFeedType: 'external'
     #     publishFeedCredentials: 'CST-E Nuget CI'

@@ -9,6 +9,7 @@ trigger:
     - main
   paths:
     include:
+    - Pipelines
     - src
 pr:
   branches:

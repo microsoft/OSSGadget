@@ -7,6 +7,7 @@ resources:
       branches:
         include: 
         - main
+        - gfs/#196
       paths:
         include:
         - Pipelines
@@ -15,7 +16,7 @@ resources:
 
 stages:
 - stage: Release
-  condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI', 'BatchedCI'))
+  #condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI', 'BatchedCI'))
   jobs:
     - template: templates/nuget-build-job.yml
       parameters:
@@ -27,11 +28,11 @@ stages:
       inputs:
         targetPath: 'Packages'
         artifact: 'OSS-Find-Squats Nuget'
-    - task: NuGetCommand@2
-      displayName: Push NuGet Packages
-      inputs:
-        command: 'push'
-        packagesToPush: 'Packages/*.nupkg'
-        nuGetFeedType: 'external'
-        publishFeedCredentials: 'CST-E Nuget CI'
-        verbosityPush: 'Normal'
+    # - task: NuGetCommand@2
+    #   displayName: Push NuGet Packages
+    #   inputs:
+    #     command: 'push'
+    #     packagesToPush: 'Packages/*.nupkg'
+    #     nuGetFeedType: 'external'
+    #     publishFeedCredentials: 'CST-E Nuget CI'
+    #     verbosityPush: 'Normal'

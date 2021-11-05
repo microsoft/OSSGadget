@@ -15,25 +15,25 @@ stages:
   # condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI', 'BatchedCI'))
   jobs:
   - job: Release oss-find-squats
-  displayName: Publish oss-find-squats nuget
-  pool:
-    vmImage: 'ubuntu-latest'
-  steps:
-  - template: templates/nuget-build-job.yml
-    parameters:
-      jobName: 'pack oss-find-squats'
-      projectPath: 'oss-find-squats/oss-find-squats.csproj'
-      projectName: 'oss-find-squats'
-  - task: PublishPipelineArtifact@1
-    displayName: Publish Signed Artifacts to Pipeline
-    inputs:
-      targetPath: 'Packages'
-      artifact: 'OSS-Find-Squats Nuget'
-  # - task: NuGetCommand@2
-  #   displayName: Push NuGet Packages
-  #   inputs:
-  #     command: 'push'
-  #     packagesToPush: 'Packages/*.nupkg'
-  #     nuGetFeedType: 'external'
-  #     publishFeedCredentials: 'CST-E Nuget CI'
-  #     verbosityPush: 'Normal'
+    displayName: Publish oss-find-squats nuget
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - template: templates/nuget-build-job.yml
+      parameters:
+        jobName: 'pack oss-find-squats'
+        projectPath: 'oss-find-squats/oss-find-squats.csproj'
+        projectName: 'oss-find-squats'
+    - task: PublishPipelineArtifact@1
+      displayName: Publish Signed Artifacts to Pipeline
+      inputs:
+        targetPath: 'Packages'
+        artifact: 'OSS-Find-Squats Nuget'
+    # - task: NuGetCommand@2
+    #   displayName: Push NuGet Packages
+    #   inputs:
+    #     command: 'push'
+    #     packagesToPush: 'Packages/*.nupkg'
+    #     nuGetFeedType: 'external'
+    #     publishFeedCredentials: 'CST-E Nuget CI'
+    #     verbosityPush: 'Normal'

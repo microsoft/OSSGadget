@@ -1,24 +1,16 @@
-trigger: none
-resources:
-  pipelines:
-  - pipeline: OSS Gadget Main Pipeline
-    source: OSS Gadget
-    trigger:
-      branches:
-        include: 
-        - main
-      pr:
-        include:
-        - gfs/#196
-      paths:
-        include:
-        - Pipelines
-        - src/oss-find-squats
-        - src/Shared
+trigger:
+  tags:
+    include: 
+    - v0.*
+  paths:
+    include:
+    - Pipelines
+    - src/oss-find-squats
+    - src/Shared
 
 stages:
 - stage: Release
-  # condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI', 'BatchedCI'))
+  condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI', 'BatchedCI'))
   jobs:
     - template: templates/nuget-build-job.yml
       parameters:
@@ -30,11 +22,11 @@ stages:
       inputs:
         targetPath: 'Packages'
         artifact: 'OSS-Find-Squats Nuget'
-    # - task: NuGetCommand@2
-    #   displayName: Push NuGet Packages
-    #   inputs:
-    #     command: 'push'
-    #     packagesToPush: 'Packages/*.nupkg'
-    #     nuGetFeedType: 'external'
-    #     publishFeedCredentials: 'CST-E Nuget CI'
-    #     verbosityPush: 'Normal'
+    - task: NuGetCommand@2
+      displayName: Push NuGet Packages
+      inputs:
+        command: 'push'
+        packagesToPush: 'Packages/*.nupkg'
+        nuGetFeedType: 'external'
+        publishFeedCredentials: 'CST-E Nuget CI'
+        verbosityPush: 'Normal'

@@ -1,17 +1,12 @@
-trigger: none
-resources:
-  pipelines:
-  - pipeline: OSS Gadget Main Pipeline
-    source: OSS Gadget
-    trigger:
-      branches:
-        include: 
-        - main
-      paths:
-        include:
-        - Pipelines
-        - src/oss-find-squats
-        - src/Shared
+trigger:
+  tags:
+    include: 
+    - v0.*
+  paths:
+    include:
+    - Pipelines
+    - src/oss-find-squats
+    - src/Shared
 
 stages:
 - stage: Release

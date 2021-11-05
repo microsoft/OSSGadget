@@ -4,8 +4,8 @@ trigger:
     - v0.*
   paths:
     include:
-    - Pipelines/nuget-pipelines/oss-find-squats.yml
-    - src/oss-find-squats
+    - Pipelines/nuget-pipelines/oss-characteristics.yml
+    - src/oss-characteristics
     - src/Shared
 
 stages:
@@ -14,14 +14,14 @@ stages:
   jobs:
     - template: templates/nuget-build-job.yml
       parameters:
-        jobName: 'pack oss-find-squats'
-        projectPath: 'oss-find-squats/oss-find-squats.csproj'
-        projectName: 'oss-find-squats'
+        jobName: 'pack oss-characteristics'
+        projectPath: 'oss-characteristics/oss-characteristics.csproj'
+        projectName: 'oss-characteristics'
     - task: PublishPipelineArtifact@1
       displayName: Publish Signed Artifacts to Pipeline
       inputs:
         targetPath: 'Packages'
-        artifact: 'OSS-Find-Squats Nuget'
+        artifact: 'OSS-characteristics Nuget'
     - task: NuGetCommand@2
       displayName: Push NuGet Packages
       inputs:

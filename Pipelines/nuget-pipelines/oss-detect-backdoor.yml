@@ -4,8 +4,8 @@ trigger:
     - v0.*
   paths:
     include:
-    - Pipelines/nuget-pipelines/oss-find-squats.yml
-    - src/oss-find-squats
+    - Pipelines/nuget-pipelines/oss-detect-backdoor.yml
+    - src/oss-detect-backdoor
     - src/Shared
 
 stages:
@@ -14,14 +14,14 @@ stages:
   jobs:
     - template: templates/nuget-build-job.yml
       parameters:
-        jobName: 'pack oss-find-squats'
-        projectPath: 'oss-find-squats/oss-find-squats.csproj'
-        projectName: 'oss-find-squats'
+        jobName: 'pack oss-detect-backdoor'
+        projectPath: 'oss-detect-backdoor/oss-detect-backdoor.csproj'
+        projectName: 'oss-detect-backdoor'
     - task: PublishPipelineArtifact@1
       displayName: Publish Signed Artifacts to Pipeline
       inputs:
         targetPath: 'Packages'
-        artifact: 'OSS-Find-Squats Nuget'
+        artifact: 'OSS-detect-backdoor Nuget'
     - task: NuGetCommand@2
       displayName: Push NuGet Packages
       inputs:

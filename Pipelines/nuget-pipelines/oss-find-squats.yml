@@ -1,6 +1,5 @@
-trigger:
-  branches:
-  - gfs/196-5
+pr:
+- main
 # trigger:
 #   tags:
 #     include: 

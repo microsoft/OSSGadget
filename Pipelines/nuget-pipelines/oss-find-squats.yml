@@ -7,6 +7,8 @@ resources:
       branches:
         include: 
         - main
+      pr:
+        include:
         - gfs/#196
       paths:
         include:
@@ -16,7 +18,7 @@ resources:
 
 stages:
 - stage: Release
-  #condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI', 'BatchedCI'))
+  # condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI', 'BatchedCI'))
   jobs:
     - template: templates/nuget-build-job.yml
       parameters:

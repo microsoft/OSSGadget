@@ -19,11 +19,11 @@
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <IsPackable>true</IsPackable>
     <PackAsTool>true</PackAsTool>
-    <PackageId>Microsoft.CST.OSSGadget.Characteristics.CLI</PackageId>
+    <PackageId>Microsoft.CST.OSSGadget.Defog.CLI</PackageId>
     <PackageVersion>0.0.0</PackageVersion>
     <PackageProjectUrl>https://github.com/Microsoft/OSSGadget</PackageProjectUrl>
     <PackageTags>Security Scanner</PackageTags>
-    <ToolCommandName>oss-characteristics</ToolCommandName>
+    <ToolCommandName>oss-defog</ToolCommandName>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageIcon>icon-128.png</PackageIcon>
   </PropertyGroup>

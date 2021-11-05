@@ -19,7 +19,7 @@ stages:
     pool:
       vmImage: 'ubuntu-latest'
     steps:
-    - template: templates/nuget-build-job.yml
+    - template: ../templates/nuget-build-job.yml
       parameters:
         jobName: 'pack oss-find-squats'
         projectPath: 'oss-find-squats/oss-find-squats.csproj'

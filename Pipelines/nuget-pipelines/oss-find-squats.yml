@@ -13,6 +13,7 @@ resources:
         - src/oss-find-squats
         - src/Shared
 
+stages:
 - stage: Release
   condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI', 'BatchedCI'))
   jobs:

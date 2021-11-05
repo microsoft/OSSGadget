@@ -4,9 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>Microsoft.CST.OpenSource</RootNamespace>
-    <Company>Microsoft Corporation</Company>
     <Description>OSS Gadget - Obfuscated String Detector</Description>
-    <Authors>Michael Scovetta</Authors>
     <RepositoryType>GitHub</RepositoryType>
     <RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>
     <StartupObject>Microsoft.CST.OpenSource.DefoggerTool</StartupObject>
@@ -15,6 +13,19 @@
     <Nullable>enable</Nullable>
     <RuntimeIdentifiers>win-x64;osx-x64;linux-x64</RuntimeIdentifiers>
     <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
+    <copyright>© Microsoft Corporation. All rights reserved.</copyright>
+    <Company>Microsoft</Company>
+    <Authors>Microsoft</Authors>   
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <IsPackable>true</IsPackable>
+    <PackAsTool>true</PackAsTool>
+    <PackageId>Microsoft.CST.OSSGadget.Defog.CLI</PackageId>
+    <PackageVersion>0.0.0</PackageVersion>
+    <PackageProjectUrl>https://github.com/Microsoft/OSSGadget</PackageProjectUrl>
+    <PackageTags>Security Scanner</PackageTags>
+    <ToolCommandName>oss-defog</ToolCommandName>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PackageIcon>icon-128.png</PackageIcon>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

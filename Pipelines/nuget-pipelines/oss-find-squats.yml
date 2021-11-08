@@ -16,7 +16,7 @@ jobs:
     jobName: 'pack_oss_find_squats'
     projectPath: 'oss-find-squats/oss-find-squats.csproj'
     projectName: 'oss-find-squats'
-- job: Release oss-find-squats
+- job: Release_oss_find_squats
   displayName: Publish oss-find-squats nuget
   pool:
     vmImage: 'ubuntu-latest'

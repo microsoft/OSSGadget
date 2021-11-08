@@ -23,8 +23,8 @@
     <PackageProjectUrl>https://github.com/Microsoft/OSSGadget</PackageProjectUrl>
     <PackageTags>Security Scanner</PackageTags>
     <ToolCommandName>oss-detect-cryptography</ToolCommandName>
-    <PackageLicenseFile>..\..\LICENSE.txt</PackageLicenseFile>
-    <PackageIcon>..\..\icon-128.png</PackageIcon>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PackageIcon>icon-128.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -86,5 +86,10 @@
   <ItemGroup>
     <ProjectReference Include="..\oss-download\oss-download.csproj" />
     <ProjectReference Include="..\Shared\Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LICENSE.txt" Pack="true" PackagePath=""/>
+    <None Include="..\..\icon-128.png" Pack="true" PackagePath=""/>
   </ItemGroup>
 </Project>

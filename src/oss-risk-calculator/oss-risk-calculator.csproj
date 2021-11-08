@@ -24,8 +24,8 @@
     <PackageProjectUrl>https://github.com/Microsoft/OSSGadget</PackageProjectUrl>
     <PackageTags>Security Scanner</PackageTags>
     <ToolCommandName>oss-risk-calculator</ToolCommandName>
-    <PackageLicenseFile>..\..\LICENSE.txt</PackageLicenseFile>
-    <PackageIcon>..\..\icon-128.png</PackageIcon>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PackageIcon>icon-128.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -40,5 +40,10 @@
     <ProjectReference Include="..\oss-detect-cryptography\oss-detect-cryptography.csproj" />
     <ProjectReference Include="..\oss-health\oss-health.csproj" />
     <ProjectReference Include="..\Shared\Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LICENSE.txt" Pack="true" PackagePath=""/>
+    <None Include="..\..\icon-128.png" Pack="true" PackagePath=""/>
   </ItemGroup>
 </Project>

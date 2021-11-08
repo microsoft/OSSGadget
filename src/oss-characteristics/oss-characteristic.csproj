@@ -24,8 +24,8 @@
     <PackageProjectUrl>https://github.com/Microsoft/OSSGadget</PackageProjectUrl>
     <PackageTags>Security Scanner</PackageTags>
     <ToolCommandName>oss-characteristics</ToolCommandName>
-    <PackageLicenseFile>..\LICENSE.txt</PackageLicenseFile>
-    <PackageIcon>..\icon-128.png</PackageIcon>
+    <PackageLicenseFile>..\..\LICENSE.txt</PackageLicenseFile>
+    <PackageIcon>..\..\icon-128.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>

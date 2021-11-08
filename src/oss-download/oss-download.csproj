@@ -23,8 +23,8 @@
     <PackageProjectUrl>https://github.com/Microsoft/OSSGadget</PackageProjectUrl>
     <PackageTags>Security Scanner</PackageTags>
     <ToolCommandName>oss-download</ToolCommandName>
-    <PackageLicenseFile>..\LICENSE.txt</PackageLicenseFile>
-    <PackageIcon>..\icon-128.png</PackageIcon>
+    <PackageLicenseFile>..\..\LICENSE.txt</PackageLicenseFile>
+    <PackageIcon>..\..\icon-128.png</PackageIcon>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

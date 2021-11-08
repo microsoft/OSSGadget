@@ -19,8 +19,8 @@
     <PackageVersion>0.0.0</PackageVersion>
     <PackageProjectUrl>https://github.com/Microsoft/OSSGadget</PackageProjectUrl>
     <PackageTags>Security Scanner</PackageTags>
-    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-    <PackageIcon>icon-128.png</PackageIcon>
+    <PackageLicenseFile>..\LICENSE.txt</PackageLicenseFile>
+    <PackageIcon>..\icon-128.png</PackageIcon>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>

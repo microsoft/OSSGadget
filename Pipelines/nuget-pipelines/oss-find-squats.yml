@@ -15,3 +15,4 @@ jobs:
     jobName: 'pack_oss_find_squats'
     projectPath: 'src/oss-find-squats/oss-find-squats.csproj'
     projectName: 'oss-find-squats'
+    publishToNuget: true

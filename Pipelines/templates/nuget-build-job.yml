@@ -31,6 +31,9 @@ parameters:
 - name: artifactName
   type: string
   default: 'Unsigned_Binaries'
+- name: publishToNuget
+  type: boolean
+  default: false
 
 jobs:
 - job: ${{ parameters.jobName }}
@@ -86,3 +89,12 @@ jobs:
       PathtoPublish: 'Archives'
       ArtifactName: '${{ parameters.artifactName }}'
       publishLocation: 'Container'
+  - task: NuGetCommand@2
+    displayName: Push NuGet Packages
+    condition: and(succeeded(), eq('${{ parameters.publishToNuget }}', 'true'))
+    inputs:
+      command: 'push'
+      packagesToPush: 'Packages/*.nupkg'
+      nuGetFeedType: 'external'
+      publishFeedCredentials: 'CST-E Nuget CI'
+      verbosityPush: 'Normal'

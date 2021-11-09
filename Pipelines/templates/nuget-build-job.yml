@@ -75,6 +75,34 @@ jobs:
       TreatSignatureUpdateFailureAs: 'Warning'
       SignatureFreshness: 'UpToDate'
       TreatStaleSignatureAs: 'Warning'
+  - task: EsrpCodeSigning@1
+    displayName: Code Sign Nuget Packages
+    condition: and(succeeded(), eq('${{ parameters.publishToNuget }}', 'true'))
+    inputs:
+      ConnectedServiceName: 'CodeSignforATSAN'
+      FolderPath: 'Packages'
+      Pattern: '*.nupkg, *.snupkg'
+      signConfigType: 'inlineSignParams'
+      inlineOperation: |
+        [
+                {
+                    "KeyCode" : "CP-401405",
+                    "OperationCode" : "NuGetSign",
+                    "Parameters" : {},
+                    "ToolName" : "sign",
+                    "ToolVersion" : "1.0"
+                },
+                {
+                    "KeyCode" : "CP-401405",
+                    "OperationCode" : "NuGetVerify",
+                    "Parameters" : {},
+                    "ToolName" : "sign",
+                    "ToolVersion" : "1.0"
+                }
+            ]
+      SessionTimeout: '60'
+      MaxConcurrency: '50'
+      MaxRetryAttempts: '5'
   - task: ArchiveFiles@2
     displayName: Archive Packages
     inputs:

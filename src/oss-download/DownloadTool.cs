@@ -104,6 +104,7 @@ namespace Microsoft.CST.OpenSource
             }
             else
             {
+                Logger.Error("No targets were specified for downloading.");
                 return ErrorCode.NO_TARGETS;
             }
             return ErrorCode.OK;

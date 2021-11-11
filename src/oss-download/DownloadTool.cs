@@ -14,9 +14,9 @@ namespace Microsoft.CST.OpenSource
     {
         public enum ErrorCode
         {
-            OK,
-            PROCESSING_EXCEPTION,
-            NO_TARGETS
+            Ok,
+            ProcessingException,
+            NoTargets
         }
 
         public class Options
@@ -98,16 +98,16 @@ namespace Microsoft.CST.OpenSource
                     catch (Exception ex)
                     {
                         Logger.Warn(ex, "Error processing {0}: {1}", target, ex.Message);
-                        return ErrorCode.PROCESSING_EXCEPTION;
+                        return ErrorCode.ProcessingException;
                     }
                 }
             }
             else
             {
                 Logger.Error("No targets were specified for downloading.");
-                return ErrorCode.NO_TARGETS;
+                return ErrorCode.NoTargets;
             }
-            return ErrorCode.OK;
+            return ErrorCode.Ok;
         }
     }
 }

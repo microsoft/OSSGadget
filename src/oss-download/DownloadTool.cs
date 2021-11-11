@@ -12,6 +12,13 @@ namespace Microsoft.CST.OpenSource
 {
     public class DownloadTool : OSSGadget
     {
+        public enum ErrorCode
+        {
+            OK,
+            PROCESSING_EXCEPTION,
+            NO_TARGETS
+        }
+
         public class Options
         {
             [Usage()]
@@ -54,14 +61,15 @@ namespace Microsoft.CST.OpenSource
         ///     Main entrypoint for the download program.
         /// </summary>
         /// <param name="args"> parameters passed in from the user </param>
-        static async Task Main(string[] args)
+        static async Task<ErrorCode> Main(string[] args)
         {
             ShowToolBanner();
             var downloadTool = new DownloadTool();
-            await downloadTool.ParseOptions<Options>(args).WithParsedAsync(downloadTool.RunAsync);
+            var opts = downloadTool.ParseOptions<Options>(args).Value;
+            return await downloadTool.RunAsync(opts);
         }
 
-        private async Task RunAsync(Options options)
+        private async Task<ErrorCode> RunAsync(Options options)
         {
             if (options.Targets is IList<string> targetList && targetList.Count > 0)
             {
@@ -90,9 +98,15 @@ namespace Microsoft.CST.OpenSource
                     catch (Exception ex)
                     {
                         Logger.Warn(ex, "Error processing {0}: {1}", target, ex.Message);
+                        return ErrorCode.PROCESSING_EXCEPTION;
                     }
                 }
             }
+            else
+            {
+                return ErrorCode.NO_TARGETS;
+            }
+            return ErrorCode.OK;
         }
     }
 }

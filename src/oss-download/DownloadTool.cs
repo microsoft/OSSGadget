@@ -61,12 +61,12 @@ namespace Microsoft.CST.OpenSource
         ///     Main entrypoint for the download program.
         /// </summary>
         /// <param name="args"> parameters passed in from the user </param>
-        static async Task<ErrorCode> Main(string[] args)
+        static async Task<int> Main(string[] args)
         {
             ShowToolBanner();
             var downloadTool = new DownloadTool();
             var opts = downloadTool.ParseOptions<Options>(args).Value;
-            return await downloadTool.RunAsync(opts);
+            return (int)(await downloadTool.RunAsync(opts));
         }
 
         private async Task<ErrorCode> RunAsync(Options options)

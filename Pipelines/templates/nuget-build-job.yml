@@ -48,7 +48,7 @@ jobs:
 - job: ${{ parameters.jobName }}
   dependsOn: ${{ parameters.dependsOnArg }}
   condition: eq(dependencies.${{ parameters.dependsOnArg }}.outputs['check_script.${{ parameters.conditionedOnTag }}'], 'true')
-  displayName: NuGet Package ${{ projectName }}
+  displayName: NuGet Package ${{ parameters.projectName }}
   pool:
     vmImage: 'windows-latest'
   steps:

@@ -282,7 +282,7 @@ stages:
         changeLogCompareToRelease: 'lastNonDraftRelease'
         changeLogType: 'commitBased'
 
-- stage: Publish OSS-Find-Squat Nuget
+- stage: Publish_OSS_Find_Squats_Nuget
   dependsOn:
   - SDL
   #condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI', 'BatchedCI'))

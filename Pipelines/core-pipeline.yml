@@ -289,9 +289,9 @@ stages:
   jobs:
   - template: templates/check-changes.yml
     parameters:
-      jobName: "check_changes_oss_find_squats"
-      tagName: "code_changed"
-      pathArgument: "Pipelines/nuget-build-job.yml,Pipelines/check-changes.yml,src/oss-find-squats,src/Shared"
+      jobName: 'check_changes_oss_find_squats'
+      tagName: 'code_changed'
+      pathArgument: 'Pipelines/nuget-build-job.yml,Pipelines/check-changes.yml,src/oss-find-squats,src/Shared'
   - template: templates/nuget-build-job.yml
     parameters:
       jobName: 'pack_oss_find_squats'

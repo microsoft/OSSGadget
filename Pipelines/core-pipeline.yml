@@ -287,17 +287,16 @@ stages:
   - SDL
   #condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI', 'BatchedCI'))
   jobs:
-  - template: templates/check_changes.yml
+  - template: templates/check-changes.yml
     parameters:
       jobName: "check_changes_oss_find_squats"
       tagName: "code_changed"
       pathArgument: "Pipelines,src/oss-find-squats,src/Shared"
   - template: templates/nuget-build-job.yml
-       
     parameters:
       jobName: 'pack_oss_find_squats'
       projectPath: 'src/oss-find-squats/oss-find-squats.csproj'
       projectName: 'oss-find-squats'
       dependsOnArg: 'check_changes_oss_find_squats'
-      conditionArg: "eq(dependencies.CheckChanges.outputs['check_changes_oss_find_squats.code_changed'], 'true')"
+      conditionedOnTag: 'code_changed'
       #publishToNuget: true

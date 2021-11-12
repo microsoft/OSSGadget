@@ -43,7 +43,8 @@ parameters:
 jobs:
 - job: ${{ parameters.jobName }}
   dependsOn: ${{ parameters.dependsOnArg }}
-  condition: ${{ parameters.conditionArg }}
+  condition: eq(dependencies.${{ parameters.dependsOnArg }}.outputs['${{ parameters.dependsOnArg }}.${{ parameters.conditionedOnTag }}'], 'true')
+
   displayName: NuGet Package
   pool:
     vmImage: 'windows-latest'

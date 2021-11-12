@@ -14,9 +14,12 @@ namespace Microsoft.CST.OpenSource.FindSquats
         private string[] _keymap = new string[4];
         private HashSet<char> seperators = new HashSet<char> { '.', '-', '_' };
 
-        public IList<Func<string, IEnumerable<(string, string)>>> Mutations { get; } = new List<Func<string, IEnumerable<(string, string)>>>();
+        public List<Func<string, IEnumerable<(string, string)>>> Mutations { get; } = new List<Func<string, IEnumerable<(string, string)>>>();
 
         public Dictionary<string, IList<Func<string, IEnumerable<(string, string)>>>> ManagerSpecificMutations = new();
+
+        public Dictionary<string, IList<Func<string, IEnumerable<(string, string)>>>> ManagerSpecificExcludes = new();
+
 
         public Generative()
         {
@@ -83,7 +86,10 @@ namespace Microsoft.CST.OpenSource.FindSquats
             Mutations.Add(_vowelSwap);
             Mutations.Add(_doubleHit);
 
-            ManagerSpecificMutations.Add("javascript", new List<Func<string, IEnumerable<(string, string)>>>() { _appendJs });
+            ManagerSpecificMutations.Add("npm", new List<Func<string, IEnumerable<(string, string)>>>() { _appendJs });
+
+            ManagerSpecificExcludes.Add("npm", new List<Func<string, IEnumerable<(string, string)>>>() { _unicodeHomoglyphs });
+            ManagerSpecificExcludes.Add("nuget", new List<Func<string, IEnumerable<(string, string)>>>() { _unicodeHomoglyphs });
 
             for (int i = 0; i < _locations.Length; i++)
             {
@@ -162,7 +168,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
         /// <param name="packageName">The name of the package to mutate.</param>
         /// <param name="mutationFuncs">The mutation functions to use.</param>
         /// <returns></returns>
-        public Dictionary<string, IEnumerable<string>> Mutate(string packageName, IList<Func<string, IEnumerable<(string, string)>>> mutationFuncs)
+        public Dictionary<string, IEnumerable<string>> Mutate(string packageName, IEnumerable<Func<string, IEnumerable<(string, string)>>> mutationFuncs)
         {
             var mutations = mutationFuncs.SelectMany(m => m(packageName));
             var result = new Dictionary<string, IEnumerable<string>>();
@@ -193,24 +199,17 @@ namespace Microsoft.CST.OpenSource.FindSquats
                 var manager = ProjectManagerFactory.CreateProjectManager(purl, null);
                 if (manager is not null)
                 {
-                    var mutationsDict = Mutate(purl.Name);
+                    IEnumerable<Func<string, IEnumerable<(string, string)>>> mutationsToUse = Mutations;
+                    if (ManagerSpecificExcludes.TryGetValue(purl.Type, out IList<Func<string, IEnumerable<(string, string)>>>? specificExcludes) && specificExcludes is not null)
+                    {
+                        mutationsToUse = mutationsToUse.Except(specificExcludes);
+                    }
                     if (ManagerSpecificMutations.TryGetValue(purl.Type, out IList<Func<string, IEnumerable<(string, string)>>>? specificMutations) && specificMutations is not null)
                     {
-                        foreach (var mutation in Mutate(purl.Name, specificMutations))
-                        {
-                            if (mutationsDict.TryGetValue(mutation.Key, out IEnumerable<string>? generatorsList) && generatorsList is not null)
-                            {
-                                foreach (var generator in mutation.Value)
-                                {
-                                    generatorsList.Append(generator);
-                                }
-                            }
-                            else
-                            {
-                                mutationsDict[mutation.Key] = mutation.Value;
-                            }
-                        }
+                        mutationsToUse = mutationsToUse.Union(specificMutations);
                     }
+                    var mutationsDict = Mutate(purl.Name, mutationsToUse);
+
                     return mutationsDict;
                 }
             }

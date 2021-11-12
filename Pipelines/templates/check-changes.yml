@@ -13,7 +13,7 @@ parameters:
   default: '/'
 
 jobs:
-- job: ${{parameters.jobName}}
+- job: 'check_changes'
   displayName: Checking for changed paths
   steps:
     - bash: |

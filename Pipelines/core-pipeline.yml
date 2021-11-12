@@ -291,10 +291,10 @@ stages:
     parameters:
       jobName: 'check_changes_Shared'
       tagName: 'code_changed'
-      pathArgument: 'Pipelines/nuget-build-job.yml,Pipelines/check-changes.yml,src/Shared'
+      pathArgument: 'Pipelines,Pipelines/nuget-build-job.yml,Pipelines/check-changes.yml,src/Shared'
   - template: templates/nuget-build-job.yml
     parameters:
-      jobName: 'pack_oss_find_squats'
+      jobName: 'pack_shared'
       projectPath: 'src/Shared/Shared.csproj'
       projectName: 'Shared'
       dependsOnArg: 'check_changes_Shared'

@@ -34,9 +34,16 @@ parameters:
 - name: publishToNuget
   type: boolean
   default: false
-
+- name: dependsOnArg
+  type: string
+  default: []
+- name: conditionArg
+  type: string
+  default: []
 jobs:
 - job: ${{ parameters.jobName }}
+  dependsOn: ${{ parameters.dependsOnArg }}
+  condition: ${{ parameters.conditionArg }}
   displayName: NuGet Package
   pool:
     vmImage: 'windows-latest'
@@ -63,7 +70,7 @@ jobs:
     inputs:
       command: 'custom'
       custom: 'pack'
-      arguments: '${{ parameters.projectPath }} -c ${{ parameters.buildConfiguration }} -o Packages'
+      arguments: '${{ parameters.projectPath }} -c ${{ parameters.buildConfiguration }} -o Packages -p '
   - task: AntiMalware@3
     displayName: Anti-Malware Scan
     inputs:

@@ -29,8 +29,8 @@ jobs:
             if [[ $FILE == *${strarr[n]}* ]]; then
               echo "MATCH:  ${FILE} changed"
               echo "##vso[task.setvariable variable=${{ parameters.tagName }};isOutput=true]true"
-              DONE = true;
-              break;
+              DONE=true
+              break
             fi
           done
         done

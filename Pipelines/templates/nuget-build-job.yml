@@ -31,12 +31,15 @@ parameters:
 - name: artifactName
   type: string
   default: 'Unsigned_Binaries'
+# Should the resulting built nugets be published to Nuget.org
 - name: publishToNuget
   type: boolean
   default: false
+# The Job name for the pipeline that checked paths
 - name: dependsOnArg
   type: string
   default: []
+# The tag set by the checking job
 - name: conditionedOnTag
   type: string
   default: 'code_changed'

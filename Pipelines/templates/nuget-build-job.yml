@@ -37,9 +37,9 @@ parameters:
 - name: dependsOnArg
   type: string
   default: []
-- name: conditionArg
+- name: conditionedOnTag
   type: string
-  default: []
+  default: 'code_changed'
 jobs:
 - job: ${{ parameters.jobName }}
   dependsOn: ${{ parameters.dependsOnArg }}

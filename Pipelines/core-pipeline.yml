@@ -20,7 +20,7 @@ pr:
     - Pipelines
     - src
 
-# stages:
+stages:
 # - stage: Test
 #   jobs:
 #   - template: templates/dotnet-test-job.yml

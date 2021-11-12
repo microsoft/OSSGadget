@@ -87,6 +87,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
             Mutations.Add(_doubleHit);
 
             ManagerSpecificMutations.Add("npm", new List<Func<string, IEnumerable<(string, string)>>>() { _appendJs });
+            ManagerSpecificMutations.Add("nuget", new List<Func<string, IEnumerable<(string, string)>>>() { _appendNet });
 
             ManagerSpecificExcludes.Add("npm", new List<Func<string, IEnumerable<(string, string)>>>() { _unicodeHomoglyphs });
             ManagerSpecificExcludes.Add("nuget", new List<Func<string, IEnumerable<(string, string)>>>() { _unicodeHomoglyphs });
@@ -310,6 +311,13 @@ namespace Microsoft.CST.OpenSource.FindSquats
             string reason = "Appending JS.";
             yield return ($"{arg}js", reason);
             yield return ($"{arg}.js", reason);
+        }
+
+        private IEnumerable<(string, string)> _appendNet(string arg)
+        {
+            string reason = "Appending .NET.";
+            yield return ($"{arg}net", reason);
+            yield return ($"{arg}.net", reason);
         }
 
         private IEnumerable<char> _getNeighbors(char c, string[] keymap, int[] locs)

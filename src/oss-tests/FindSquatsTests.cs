@@ -1,6 +1,7 @@
 ﻿using Microsoft.CST.OpenSource.FindSquats;
+using Microsoft.CST.OpenSource.Shared;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Tests
@@ -10,6 +11,7 @@ namespace Microsoft.CST.OpenSource.Tests
     {
         public FindSquatsTest()
         {
+            CommonInitialization.Initialize();
         }
 
         [DataTestMethod]
@@ -26,6 +28,26 @@ namespace Microsoft.CST.OpenSource.Tests
             };
             var result = await fst.RunAsync(options);
             Assert.IsTrue(expectedToHaveSquats ? result.numSquats > 0 : result.numSquats == 0);
+        }
+
+        [DataTestMethod]
+        [DataRow("pkg:npm/foo", "foojs")]
+        [DataRow("pkg:nuget/Microsoft.CST.OAT", "microsoft.cst.oat.net")]
+        public async Task GenerateManagerSpecific(string packageUrl, string expectedToFind)
+        {
+            var gen = new Generative();
+            var res = gen.Mutate(new PackageURL(packageUrl));
+            Assert.IsTrue(res.ContainsKey(expectedToFind));
+        }
+
+        [DataTestMethod]
+        [DataRow("pkg:npm/foo", "unicode homoglyph")]
+        [DataRow("pkg:nuget/Microsoft.CST.OAT", "unicode homoglyph")]
+        public async Task DontGenerateManagerSpecific(string packageUrl, string notExpectedToFind)
+        {
+            var gen = new Generative();
+            var res = gen.Mutate(new PackageURL(packageUrl));
+            Assert.IsFalse(res.Values.Any(x => x.Any(x => x == notExpectedToFind)));
         }
     }
 }

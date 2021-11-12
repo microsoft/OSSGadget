@@ -31,7 +31,7 @@ parameters:
 - name: artifactName
   type: string
   default: 'Unsigned_Binaries'
-# Should the resulting built nugets be published to Nuget.org
+# Should the resulting built nugets be signed and published to Nuget.org
 - name: publishToNuget
   type: boolean
   default: false

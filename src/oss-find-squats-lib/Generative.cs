@@ -1,9 +1,7 @@
-﻿using Scriban.Syntax;
+﻿using Microsoft.CST.OpenSource.Shared;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Text;
 
 namespace Microsoft.CST.OpenSource.FindSquats
@@ -17,6 +15,8 @@ namespace Microsoft.CST.OpenSource.FindSquats
         private HashSet<char> seperators = new HashSet<char> { '.', '-', '_' };
 
         public IList<Func<string, IEnumerable<(string, string)>>> Mutations { get; } = new List<Func<string, IEnumerable<(string, string)>>>();
+
+        public Dictionary<string, IList<Func<string, IEnumerable<(string, string)>>>> ManagerSpecificMutations = new();
 
         public Generative()
         {
@@ -83,6 +83,8 @@ namespace Microsoft.CST.OpenSource.FindSquats
             Mutations.Add(_vowelSwap);
             Mutations.Add(_doubleHit);
 
+            ManagerSpecificMutations.Add("javascript", new List<Func<string, IEnumerable<(string, string)>>>() { _appendJs });
+
             for (int i = 0; i < _locations.Length; i++)
             {
                 _locations[i] = -1;
@@ -144,9 +146,25 @@ namespace Microsoft.CST.OpenSource.FindSquats
             _locations['/'] = 309;
         }
 
-        public Dictionary<string, IEnumerable<string>> Mutate(string arg)
+        /// <summary>
+        /// Mutate with the current set of Mutations and no manager specific mutations.
+        /// </summary>
+        /// <param name="packageName">The name of the package to mutate.</param>
+        /// <returns></returns>
+        public Dictionary<string, IEnumerable<string>> Mutate(string packageName)
         {
-            var mutations = Mutations.SelectMany(m => m(arg));
+            return Mutate(packageName, Mutations);
+        }
+
+        /// <summary>
+        /// Mutate with the provided set of Mutations and no manager specific mutations.
+        /// </summary>
+        /// <param name="packageName">The name of the package to mutate.</param>
+        /// <param name="mutationFuncs">The mutation functions to use.</param>
+        /// <returns></returns>
+        public Dictionary<string, IEnumerable<string>> Mutate(string packageName, IList<Func<string, IEnumerable<(string, string)>>> mutationFuncs)
+        {
+            var mutations = mutationFuncs.SelectMany(m => m(packageName));
             var result = new Dictionary<string, IEnumerable<string>>();
             foreach (var mutation in mutations)
             {
@@ -156,11 +174,47 @@ namespace Microsoft.CST.OpenSource.FindSquats
                 }
                 else
                 {
-                    result[mutation.Item1] = new List<string>{ mutation.Item2 };
+                    result[mutation.Item1] = new List<string> { mutation.Item2 };
                 }
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Mutate with the current set of Mutations and manager specific mutations based on the PackageURL provided.
+        /// </summary>
+        /// <param name="purl">The PackageURL to mutate.</param>
+        /// <returns></returns>
+        public Dictionary<string, IEnumerable<string>> Mutate(PackageURL purl)
+        {
+            if (purl.Name is not null && purl.Type is not null)
+            {
+                var manager = ProjectManagerFactory.CreateProjectManager(purl, null);
+                if (manager is not null)
+                {
+                    var mutationsDict = Mutate(purl.Name);
+                    if (ManagerSpecificMutations.TryGetValue(purl.Type, out IList<Func<string, IEnumerable<(string, string)>>>? specificMutations) && specificMutations is not null)
+                    {
+                        foreach (var mutation in Mutate(purl.Name, specificMutations))
+                        {
+                            if (mutationsDict.TryGetValue(mutation.Key, out IEnumerable<string>? generatorsList) && generatorsList is not null)
+                            {
+                                foreach (var generator in mutation.Value)
+                                {
+                                    generatorsList.Append(generator);
+                                }
+                            }
+                            else
+                            {
+                                mutationsDict[mutation.Key] = mutation.Value;
+                            }
+                        }
+                    }
+                    return mutationsDict;
+                }
+            }
+            return new();
         }
 
         private IEnumerable<(string, string)> _unicodeHomoglyphs(string arg)
@@ -250,6 +304,13 @@ namespace Microsoft.CST.OpenSource.FindSquats
                     yield return (string.Concat(arg[0..(i + 1)], c, arg[(i + 1)..]), "double hit close letters on keyboard");
                 }
             }
+        }
+
+        private IEnumerable<(string, string)> _appendJs(string arg)
+        {
+            string reason = "Appending JS.";
+            yield return ($"{arg}js", reason);
+            yield return ($"{arg}.js", reason);
         }
 
         private IEnumerable<char> _getNeighbors(char c, string[] keymap, int[] locs)

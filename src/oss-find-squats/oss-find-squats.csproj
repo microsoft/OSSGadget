@@ -29,10 +29,10 @@
 
   <ItemGroup>
     <PackageReference Include="Sarif.Sdk" Version="2.4.12" />
-    <PackageReference Include="Scriban" Version="4.1.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\oss-find-squats-lib\oss-find-squats-lib.csproj" />
     <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>
 
@@ -41,7 +41,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\LICENSE.txt" Pack="true" PackagePath=""/>
-    <None Include="..\..\icon-128.png" Pack="true" PackagePath=""/>
+    <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="" />
+    <None Include="..\..\icon-128.png" Pack="true" PackagePath="" />
   </ItemGroup>
 </Project>

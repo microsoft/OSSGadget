@@ -16,8 +16,6 @@ namespace Microsoft.CST.OpenSource.FindSquats
 {
     public class FindSquatsTool : OSSGadget
     {
-        Generative gen { get; set; }
-
         public class Options
         {
             [Usage()]
@@ -54,10 +52,11 @@ namespace Microsoft.CST.OpenSource.FindSquats
 
         public FindSquatsTool() : base()
         {
-            gen = new Generative();
+            checker = new SquatChecker();
             client = new HttpClient();
         }
 
+        private SquatChecker checker;
         HttpClient client;
         static async Task Main(string[] args)
         {
@@ -93,83 +92,52 @@ namespace Microsoft.CST.OpenSource.FindSquats
         {
             IOutputBuilder outputBuilder = SelectFormat(options.Format);
             var foundSquats = 0;
+            SquatChecker.Options checkerOptions = new SquatChecker.Options()
+            {
+                SleepDelay = options.SleepDelay
+            };
             foreach (var target in options.Targets ?? Array.Empty<string>())
             {
                 var purl = new PackageURL(target);
                 if (purl.Name is not null && purl.Type is not null)
                 {
-                    var manager = ProjectManagerFactory.CreateProjectManager(purl, null);
-                    if (manager is not null)
+                    await foreach(var potentialSquat in checker.CheckSquats(purl, checkerOptions))
                     {
-                        var mutationsDict = gen.Mutate(purl.Name);
-
-                        foreach ((var candidate, var rules) in mutationsDict)
+                        foundSquats++;
+                        if (!options.Quiet)
                         {
-                            if (options.SleepDelay > 0)
+                            Logger.Info($"{potentialSquat.PackageName} package exists. Potential squat. {JsonConvert.SerializeObject(potentialSquat.Rules)}");
+                        }
+                        if (outputBuilder is SarifOutputBuilder sarob)
+                        {
+                            SarifResult sarifResult = new SarifResult()
                             {
-                                Thread.Sleep(options.SleepDelay);
-                            }
-                            // Nuget will match "microsoft.cst.oat." against "Microsoft.CST.OAT" but these are the same package
-                            // For nuget in particular we filter out this case
-                            if (manager is NuGetProjectManager)
-                            {
-                                if (candidate.EndsWith('.'))
+                                Message = new Message()
                                 {
-                                    if (candidate.Equals($"{purl.Name}.", StringComparison.InvariantCultureIgnoreCase))
-                                    {
-                                        continue;
-                                    }
-                                }
-                            }
-                            var candidatePurl = new PackageURL(purl.Type, candidate);
-                            try
+                                    Text = $"Potential Squat candidate { potentialSquat.PackageName }.",
+                                    Id = "oss-find-squats"
+                                },
+                                Kind = ResultKind.Review,
+                                Level = FailureLevel.None,
+                                Locations = SarifOutputBuilder.BuildPurlLocation(potentialSquat.PackageUrl),
+                            };
+                            foreach (var tag in potentialSquat.Rules)
                             {
-                                var versions = await manager.EnumerateVersions(candidatePurl);
-
-                                if (versions.Any())
-                                {
-                                    foundSquats++;
-                                    if (!options.Quiet)
-                                    {
-                                        Logger.Info($"{candidate} package exists. Potential squat. {JsonConvert.SerializeObject(rules)}");
-                                    }
-                                    if (outputBuilder is SarifOutputBuilder sarob)
-                                    {
-                                        SarifResult sarifResult = new SarifResult()
-                                        {
-                                            Message = new Message()
-                                            {
-                                                Text = $"Potential Squat candidate { candidate }.",
-                                                Id = "oss-find-squats"
-                                            },
-                                            Kind = ResultKind.Review,
-                                            Level = FailureLevel.None,
-                                            Locations = SarifOutputBuilder.BuildPurlLocation(candidatePurl),
-                                        };
-                                        foreach(var tag in rules)
-                                        {
-                                            sarifResult.Tags.Add(tag);
-                                        }
-                                        sarob.AppendOutput(new SarifResult[] { sarifResult });
-                                    }
-                                    else if (outputBuilder is StringOutputBuilder strob)
-                                    {
-                                        var rulesString = string.Join(',', rules);
-                                        strob.AppendOutput(new string[] { $"Potential Squat candidate '{ candidate }' detected. Generated by { rulesString }.{Environment.NewLine}" });
-                                    }
-                                    else
-                                    {
-                                        var rulesString = string.Join(',', rules);
-                                        if (!options.Quiet)
-                                        {
-                                            Logger.Info($"Potential Squat candidate '{ candidate }' detected. Generated by { rulesString }.");
-                                        }
-                                    }
-                                }
+                                sarifResult.Tags.Add(tag);
                             }
-                            catch (Exception e) 
+                            sarob.AppendOutput(new SarifResult[] { sarifResult });
+                        }
+                        else if (outputBuilder is StringOutputBuilder strob)
+                        {
+                            var rulesString = string.Join(',', potentialSquat.Rules);
+                            strob.AppendOutput(new string[] { $"Potential Squat candidate '{ potentialSquat.PackageName }' detected. Generated by { rulesString }.{Environment.NewLine}" });
+                        }
+                        else
+                        {
+                            var rulesString = string.Join(',', potentialSquat.Rules);
+                            if (!options.Quiet)
                             {
-                                Logger.Trace($"Could not enumerate versions. Package {candidate} likely doesn't exist. {e.Message}:{e.StackTrace}");
+                                Logger.Info($"Potential Squat candidate '{ potentialSquat.PackageName }' detected. Generated by { rulesString }.");
                             }
                         }
                     }

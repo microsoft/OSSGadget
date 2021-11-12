@@ -43,6 +43,10 @@ parameters:
 - name: conditionedOnTag
   type: string
   default: 'code_changed'
+# Should the resulting nugets be marked as a public release (disable prerelease versioning)
+- name: publicRelease
+  type: boolean
+  default: true
 
 jobs:
 - job: ${{ parameters.jobName }}
@@ -74,7 +78,7 @@ jobs:
     inputs:
       command: 'custom'
       custom: 'pack'
-      arguments: '${{ parameters.projectPath }} -c ${{ parameters.buildConfiguration }} -o Packages'
+      arguments: '${{ parameters.projectPath }} -c ${{ parameters.buildConfiguration }} -o Packages /p:PublicRelease=${{ parameters.publicRelease }}'
   - task: AntiMalware@3
     displayName: Anti-Malware Scan
     inputs:

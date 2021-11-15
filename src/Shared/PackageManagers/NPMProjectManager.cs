@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using Microsoft.CST.OpenSource.Model;
+using Microsoft.CST.OpenSource.Model.Mutators;
 using NLog.Targets;
 using System;
 using System.Collections.Generic;
@@ -21,6 +22,22 @@ namespace Microsoft.CST.OpenSource.Shared
         public NPMProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
         }
+
+        public override IList<BaseMutator> Mutators { get; } = new List<BaseMutator>()
+        {
+            new AfterSeparatorMutator(),
+            new AsciiHomoglyphMutator(),
+            new CloseLettersMutator(),
+            new DoubleHitMutator(),
+            new DuplicatorMutator(),
+            new PrefixMutator(),
+            new RemovedCharacterMutator(),
+            new SeparatorMutator(),
+            new SubstitutionMutator(SubstitutionOverride),
+            new SuffixMutator(SuffixOverride),
+            new SwapOrderOfLettersMutator(),
+            new VowelSwapMutator(),
+        };
 
         /// <summary>
         /// Download one NPM package and extract it to the target directory.
@@ -427,6 +444,35 @@ namespace Microsoft.CST.OpenSource.Shared
             }
 
             return mapping;
+        }
+
+        private static IEnumerable<(string Name, string Reason)> SubstitutionOverride(string name, string mutator)
+        {
+            if (name.Contains("js"))
+            {
+                yield return (name.Replace("js", "javascript"), mutator + "_NPM");
+            }
+
+            if (name.Contains("javascript"))
+            {
+                yield return (name.Replace("javascript", "js"), mutator + "_NPM");
+            }
+
+            if (name.Contains("ts"))
+            {
+                yield return (name.Replace("ts", "typescript"), mutator + "_NPM");
+            }
+
+            if (name.Contains("typescript"))
+            {
+                yield return (name.Replace("typescript", "ts"), mutator + "_NPM");
+            }
+        }
+
+        private static IEnumerable<(string Name, string Reason)> SuffixOverride(string name, string mutator)
+        {
+            var suffixes = new[] { "js", ".js", "javascript", "ts", ".ts", "typescript"};
+            return suffixes.Select(s => (string.Concat(name, s), mutator + "_NPM"));
         }
 
         /// <summary>

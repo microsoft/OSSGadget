@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using HtmlAgilityPack;
+using Microsoft.CST.OpenSource.Model.Mutators;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -25,6 +26,22 @@ namespace Microsoft.CST.OpenSource.Shared
             GetRegistrationEndpointAsync().Wait();
         }
 
+
+        public override IList<BaseMutator> Mutators { get; } = new List<BaseMutator>()
+        {
+            new AfterSeparatorMutator(),
+            new AsciiHomoglyphMutator(),
+            new CloseLettersMutator(),
+            new DoubleHitMutator(),
+            new DuplicatorMutator(),
+            new PrefixMutator(),
+            new RemovedCharacterMutator(),
+            new SeparatorMutator(),
+            new SubstitutionMutator(),
+            new SuffixMutator(SuffixOverride),
+            new SwapOrderOfLettersMutator(),
+            new VowelSwapMutator(),
+        };
         /// <summary>
         /// Dynamically identifies the registration endpoint.
         /// </summary>
@@ -322,6 +339,12 @@ namespace Microsoft.CST.OpenSource.Shared
 
             // if nothing worked, return empty
             return mapping;
+        }
+
+        private static IEnumerable<(string Name, string Reason)> SuffixOverride(string name, string mutator)
+        {
+            var suffixes = new[] { "net", ".net", "nuget"};
+            return suffixes.Select(s => (string.Concat(name, s), mutator + "_NUGET"));
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]

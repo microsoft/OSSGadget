@@ -12,9 +12,10 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        ///     Get the project manager for the package type
+        /// Get the project manager for the package type specified in the PackageURL.
         /// </summary>
-        /// <param name="purl"> </param>
+        /// <param name="purl">The PackageURL to get the Project Manager for.</param>
+        /// <param name="destinationDirectory">The destination for downloaded files from this manager.</param>
         /// <returns> BaseProjectManager object </returns>
         public static BaseProjectManager? CreateProjectManager(PackageURL purl, string? destinationDirectory)
         {

@@ -2,6 +2,7 @@
 
 using F23.StringSimilarity;
 using Microsoft.CST.OpenSource.Model;
+using Microsoft.CST.OpenSource.Model.Mutators;
 using Microsoft.CST.RecursiveExtractor;
 using Microsoft.Extensions.Caching.Memory;
 using System;
@@ -48,6 +49,26 @@ namespace Microsoft.CST.OpenSource.Shared
         /// The location (directory) to extract files to.
         /// </summary>
         public string TopLevelExtractionDirectory { get; set; } = ".";
+
+        /// <summary>
+        /// The mutators to be called on this manager.
+        /// </summary>
+        public virtual IList<BaseMutator> Mutators { get; } = new List<BaseMutator>()
+        {
+            new AfterSeparatorMutator(),
+            new AsciiHomoglyphMutator(),
+            new CloseLettersMutator(),
+            new DoubleHitMutator(),
+            new DuplicatorMutator(),
+            new PrefixMutator(),
+            new RemovedCharacterMutator(),
+            new SeparatorMutator(),
+            new SubstitutionMutator(),
+            new SuffixMutator(),
+            new SwapOrderOfLettersMutator(),
+            new UnicodeHomoglyphMutator(),
+            new VowelSwapMutator(),
+        };
 
         /// <summary>
         /// Extracts GitHub URLs from a given piece of text.

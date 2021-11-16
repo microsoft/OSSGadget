@@ -4,7 +4,10 @@
 
 namespace Microsoft.CST.OpenSource.Helpers
 {
-    public static class StringExtensions
+    /// <summary>
+    /// A utilities class for string extension functions.
+    /// </summary>
+    internal static class StringExtensions
     {
         /// <summary>
         /// Replaces a character at a specified position in a string.

@@ -30,7 +30,7 @@ namespace Microsoft.CST.OpenSource.Model.Mutators
                         if (vowel != char.ToLower(arg[i]))
                         {
                             // Only do something if the vowel isn't the same.
-                            // TODO: I think this messes up casing.
+                            // TODO: I think this doesn't maintain casing.
                             yield return (arg.ReplaceCharAtPosition(vowel, i), Mutator);
                         }
                     }

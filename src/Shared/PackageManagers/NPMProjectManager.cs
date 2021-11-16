@@ -33,8 +33,12 @@ namespace Microsoft.CST.OpenSource.Shared
             new PrefixMutator(),
             new RemovedCharacterMutator(),
             new SeparatorMutator(),
-            new SubstitutionMutator(SubstitutionOverride),
-            new SuffixMutator(SuffixOverride),
+            new SubstitutionMutator(new List<(string Original, string Substitution)>()
+            {
+                ("js", "javascript"),
+                ("ts", "typescript"),
+            }),
+            new SuffixMutator(additionalSuffixes: new[] { "js", ".js", "javascript", "ts", ".ts", "typescript"}),
             new SwapOrderOfLettersMutator(),
             new VowelSwapMutator(),
         };
@@ -444,35 +448,6 @@ namespace Microsoft.CST.OpenSource.Shared
             }
 
             return mapping;
-        }
-
-        private static IEnumerable<(string Name, string Reason)> SubstitutionOverride(string name, string mutator)
-        {
-            if (name.Contains("js"))
-            {
-                yield return (name.Replace("js", "javascript"), mutator + "_NPM");
-            }
-
-            if (name.Contains("javascript"))
-            {
-                yield return (name.Replace("javascript", "js"), mutator + "_NPM");
-            }
-
-            if (name.Contains("ts"))
-            {
-                yield return (name.Replace("ts", "typescript"), mutator + "_NPM");
-            }
-
-            if (name.Contains("typescript"))
-            {
-                yield return (name.Replace("typescript", "ts"), mutator + "_NPM");
-            }
-        }
-
-        private static IEnumerable<(string Name, string Reason)> SuffixOverride(string name, string mutator)
-        {
-            var suffixes = new[] { "js", ".js", "javascript", "ts", ".ts", "typescript"};
-            return suffixes.Select(s => (string.Concat(name, s), mutator + "_NPM"));
         }
 
         /// <summary>

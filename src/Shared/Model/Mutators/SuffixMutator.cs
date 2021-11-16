@@ -16,19 +16,28 @@ namespace Microsoft.CST.OpenSource.Model.Mutators
     {
         public new string Mutator = "SUFFIX_ADDED";
 
-        public SuffixMutator(Func<string, string, IEnumerable<(string Name, string Reason)>>? func = null)
+        private static IList<string> _suffixes = new List<string>(){ "s", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "ng", "-ng", ".", "x", "-", "_"};
+
+        /// <summary>
+        /// Initializes a <see cref="SuffixMutator"/> instance.
+        /// Optionally takes in a additional suffixes, or a list of overriding suffixes to replace the default list with.
+        /// </summary>
+        /// <param name="additionalSuffixes">An optional parameter for extra suffixes.</param>
+        /// <param name="overrideSuffixes">An optional parameter for list of suffixes to replace the default list with.</param>
+        public SuffixMutator(string[]? additionalSuffixes = null, string[]? overrideSuffixes = null)
         {
-            this.MutatorOverrideFunction = func;
+            if (overrideSuffixes != null)
+            {
+                _suffixes = new List<string>(overrideSuffixes);
+            }
+            if (additionalSuffixes != null)
+            {
+                _suffixes = new List<string>(_suffixes.Concat(additionalSuffixes));
+            }
         }
         public override IEnumerable<(string Name, string Reason)> Generate(string arg)
         {
-            var suffixes = new[] { "s", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "ng", "-ng", ".", "x", "-", "_"};
-            var mutations = suffixes.Select(s => (string.Concat(arg, s), Mutator));
-            if (this.MutatorOverrideFunction != null)
-            {
-                return mutations.Concat(this.MutatorOverrideFunction(arg, Mutator));
-            }
-            return mutations;
+            return _suffixes.Select(s => (string.Concat(arg, s), Mutator));
         }
     }
 }

@@ -38,7 +38,7 @@ namespace Microsoft.CST.OpenSource.Shared
             new RemovedCharacterMutator(),
             new SeparatorMutator(),
             new SubstitutionMutator(),
-            new SuffixMutator(SuffixOverride),
+            new SuffixMutator(additionalSuffixes: new[] { "net", ".net", "nuget"}),
             new SwapOrderOfLettersMutator(),
             new VowelSwapMutator(),
         };
@@ -339,12 +339,6 @@ namespace Microsoft.CST.OpenSource.Shared
 
             // if nothing worked, return empty
             return mapping;
-        }
-
-        private static IEnumerable<(string Name, string Reason)> SuffixOverride(string name, string mutator)
-        {
-            var suffixes = new[] { "net", ".net", "nuget"};
-            return suffixes.Select(s => (string.Concat(name, s), mutator + "_NUGET"));
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]

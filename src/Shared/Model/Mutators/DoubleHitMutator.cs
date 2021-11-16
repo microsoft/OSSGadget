@@ -9,7 +9,7 @@ using System.Linq;
 namespace Microsoft.CST.OpenSource.Model.Mutators
 {
     /// <summary>
-    /// TODO: Explain?
+    /// Generates mutations for if a nearby character was double pressed.
     /// </summary>
     public class DoubleHitMutator : BaseMutator
     {

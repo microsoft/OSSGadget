@@ -12,25 +12,41 @@ namespace Microsoft.CST.OpenSource.Model.Mutators
     /// e.g. js -> javascript and vice versa.
     /// </summary>
     /// <remarks>
-    /// Currently depends on the MutatorOverrideFunction being populated in the constructor.
+    /// Currently has no substitutions by default, has to be populated in the constructor.
     /// </remarks>
     public class SubstitutionMutator : BaseMutator
     {
         public new string Mutator = "SWAPPED_WITH_SUBSTITUTE";
 
-        public SubstitutionMutator(Func<string, string, IEnumerable<(string Name, string Reason)>>? func = null)
+        /// <summary>
+        /// A list of the original strings and their equivalent substitutions.
+        /// They get replaced in both directions.
+        /// e.g. "js" -> "javascript" and "javascript" -> "js".
+        /// </summary>
+        private static IList<(string Original, string Substitution)> _substitutions = new List<(string Original, string Substitution)>();
+
+        public SubstitutionMutator(IList<(string Original, string Substitution)>? substitutions = null)
         {
-            this.MutatorOverrideFunction = func;
+            if (substitutions != null)
+            {
+                _substitutions = substitutions;
+            }
         }
 
         public override IEnumerable<(string Name, string Reason)> Generate(string arg)
         {
-            if (this.MutatorOverrideFunction != null)
+            foreach (var (original, substitution) in _substitutions)
             {
-                return this.MutatorOverrideFunction(arg, Mutator);
-            }
+                if (arg.Contains(original))
+                {
+                    yield return (arg.Replace(original, substitution), Mutator);
+                }
 
-            return Array.Empty<(string Name, string Reason)>();
+                if (arg.Contains(substitution))
+                {
+                    yield return (arg.Replace(substitution, original), Mutator);
+                }
+            }
         }
     }
 }

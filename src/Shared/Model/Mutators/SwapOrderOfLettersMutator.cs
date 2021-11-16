@@ -17,13 +17,13 @@ namespace Microsoft.CST.OpenSource.Model.Mutators
         {
             if (arg.Length < 5)
             {
-                // Why?
+                // TODO: Figure out why we only check for less than 5 char strings.
                 yield break;
             }
 
             for (int i = 1; i < arg.Length - 1; i++)
             {
-                yield return (string.Concat(arg.Substring(0, i), arg[i + 1], arg[i], arg.Substring(i + 2, arg.Length - (i + 2))), Mutator);
+                yield return (string.Concat(arg[..i], arg[i + 1], arg[i], arg.Substring(i + 2, arg.Length - (i + 2))), Mutator);
             }
         }
     }

@@ -6,8 +6,14 @@ using System.Collections.Generic;
 
 namespace Microsoft.CST.OpenSource.Helpers
 {
+    /// <summary>
+    /// A helper for utilities related to the QWERTY keyboard.
+    /// </summary>
     public static class QwertyKeyboardHelper
     {
+        /// <summary>
+        /// The keymap of an ANSI QWERTY Keyboard. (USA style QWERTY Keyboard)
+        /// </summary>
         private static string[] _keymap = {"1234567890-=", "qwertyuiop[]\\", "asdfghjkl;'", "zxcvbnm,./",};
 
         private static Dictionary<char, int> _locations = new()
@@ -60,6 +66,11 @@ namespace Microsoft.CST.OpenSource.Helpers
             ['/'] = 309,
         };
 
+        /// <summary>
+        /// Gets the neighboring characters on the keyboard.
+        /// </summary>
+        /// <param name="c">The keyboard character to get the neighboring characters for.</param>
+        /// <returns>A list of the neighboring characters.</returns>
         public static IEnumerable<char> GetNeighboringCharacters(char c)
         {
             // See if dictionary contains the given character.

@@ -7,7 +7,7 @@ using System.Collections.Generic;
 namespace Microsoft.CST.OpenSource.Model.Mutators
 {
     /// <summary>
-    /// Generates mutations for removing a character in the string and continuing.
+    /// Generates mutations for removing a character in the string.
     /// </summary>
     public class RemovedCharacterMutator : BaseMutator
     {

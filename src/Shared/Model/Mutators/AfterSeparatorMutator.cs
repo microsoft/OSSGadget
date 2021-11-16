@@ -9,6 +9,7 @@ namespace Microsoft.CST.OpenSource.Model.Mutators
 {
     /// <summary>
     /// Generates mutations for if a character was changed after a separator was used.
+    /// NOTE: Doesn't currently support extra separators like the <see cref="SeparatorMutator"/> does.
     /// </summary>
     public class AfterSeparatorMutator : BaseMutator
     {

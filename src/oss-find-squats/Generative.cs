@@ -1,4 +1,6 @@
-﻿using Scriban.Syntax;
+﻿using Microsoft.CST.OpenSource.Helpers;
+using Microsoft.CST.OpenSource.Model.Mutators;
+using Scriban.Syntax;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -229,7 +231,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
         {
             for (int i = 0; i < arg.Length; i++)
             {
-                var n = _getNeighbors(arg[i], _keymap, _locations).ToList();
+                var n = QwertyKeyboardHelper.GetNeighboringCharacters(arg[i]).ToList();
 
                 foreach (var c in n)
                 {
@@ -242,60 +244,13 @@ namespace Microsoft.CST.OpenSource.FindSquats
         {
             for (int i = 0; i < arg.Length; i++)
             {
-                var n = _getNeighbors(arg[i], _keymap, _locations).ToList();
+                var n = QwertyKeyboardHelper.GetNeighboringCharacters(arg[i]).ToList();
 
                 foreach (var c in n)
                 {
                     yield return (string.Concat(arg[0..i], c, arg[i..]), "double hit close letters on keyboard");
                     yield return (string.Concat(arg[0..(i + 1)], c, arg[(i + 1)..]), "double hit close letters on keyboard");
                 }
-            }
-        }
-
-        private IEnumerable<char> _getNeighbors(char c, string[] keymap, int[] locs)
-        {
-            if (c >= locs.Length)
-            {
-                yield break;
-            }
-
-            var loc = locs[c];
-            if (loc == -1)
-            {
-                yield break;
-            }
-
-            int yOrigin = loc / 100;
-            int xOrigin = loc % 100;
-            var neighbors = new int[][]
-            {
-                new int[] { xOrigin - 1, yOrigin - 1 }, new int[] { xOrigin, yOrigin - 1}, new int[] { xOrigin + 1, yOrigin - 1 },
-                new int[] { xOrigin - 1, yOrigin     }                                   , new int[] { xOrigin + 1, yOrigin     },
-                new int[] { xOrigin - 1, yOrigin + 1 }, new int[] { xOrigin, yOrigin + 1}, new int[] { xOrigin + 1, yOrigin + 1 },
-            };
-
-            foreach (var n in neighbors)
-            {
-                int x = n[0];
-                int y = n[1];
-                if (x < 0 || y < 0)
-                {
-                    continue;
-                }
-
-                if (y > 3)
-                {
-                    continue;
-                }
-
-                var row = keymap[y];
-
-                if (x >= row.Length)
-                {
-                    continue;
-                }
-
-                yield return row[x];
             }
         }
 

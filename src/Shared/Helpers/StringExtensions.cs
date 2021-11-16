@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // --------------------------------------------------------------------------------------------
 
-namespace Microsoft.CST.OpenSource.Helpers
+namespace Microsoft.CST.OpenSource.Shared
 {
     /// <summary>
     /// A utilities class for string extension functions.

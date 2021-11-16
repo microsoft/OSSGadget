@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // --------------------------------------------------------------------------------------------
 
-using Microsoft.CST.OpenSource.Helpers;
+using Microsoft.CST.OpenSource.Shared;
 using System.Collections.Generic;
 using System.Linq;
 

@@ -4,7 +4,7 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CST.OpenSource.Helpers
+namespace Microsoft.CST.OpenSource.Shared
 {
     /// <summary>
     /// A helper for utilities related to the QWERTY keyboard.

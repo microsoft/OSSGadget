@@ -18,12 +18,28 @@ using System.Text;
 using Whois;
 using System.Text.RegularExpressions;
 using NLog;
+using Microsoft.CST.OpenSource.FindSquats.Mutators;
 
 namespace Microsoft.CST.OpenSource.DomainSquats
 {
     public class FindDomainSquatsTool : OSSGadget
     {
-        Generative gen { get; set; }
+        internal static IList<Mutator> BaseMutators { get; } = new List<Mutator>()
+        {
+            new AfterSeparatorMutator(),
+            new AsciiHomoglyphMutator(),
+            new CloseLettersMutator(),
+            new DoubleHitMutator(),
+            new DuplicatorMutator(),
+            new PrefixMutator(),
+            new RemovedCharacterMutator(),
+            new SeparatorMutator(),
+            new SubstitutionMutator(),
+            new SuffixMutator(),
+            new SwapOrderOfLettersMutator(),
+            new UnicodeHomoglyphMutator(),
+            new VowelSwapMutator(),
+        };
 
         public class Options
         {
@@ -66,7 +82,6 @@ namespace Microsoft.CST.OpenSource.DomainSquats
 
         public FindDomainSquatsTool() : base()
         {
-            gen = new Generative();
         }
 
         static async Task Main(string[] args)
@@ -83,19 +98,36 @@ namespace Microsoft.CST.OpenSource.DomainSquats
         public async Task<(string output, int registeredSquats, int unregisteredSquats)> RunAsync(Options options)
         {
             IOutputBuilder outputBuilder = SelectFormat(options.Format);
-            var registeredSquats = new List<(string, KeyValuePair<string, IEnumerable<string>>)>();
-            var unregisteredSquats = new List<(string, KeyValuePair<string, IEnumerable<string>>)>();
-            var failedSquats = new List<(string, KeyValuePair<string, IEnumerable<string>>)>();
+            var registeredSquats = new List<(string, KeyValuePair<string, IList<string>>)>();
+            var unregisteredSquats = new List<(string, KeyValuePair<string, IList<string>>)>();
+            var failedSquats = new List<(string, KeyValuePair<string, IList<string>>)>();
             var whois = new WhoisLookup();
             foreach (var target in options.Targets ?? Array.Empty<string>())
             {
                 var splits = target.Split('.');
-                var potentials = gen.Mutate(splits[0]);
-                foreach (var potential in potentials)
+                var domain = splits[0];
+                var potentials = new Dictionary<string, IList<string>>();
+                foreach (var mutator in BaseMutators)
+                {
+                    foreach (var mutation in mutator.Generate(splits[0]))
+                    {
+                        if (potentials.ContainsKey(mutation.Name))
+                        {
+                            potentials[mutation.Name].Add(mutation.Reason);
+                        }
+                        else
+                        {
+                            potentials[mutation.Name] = new List<string>() { mutation.Reason };
+                        }
+                    }
+                }
+
+                foreach(var potential in potentials)
                 {
                     await CheckPotential(potential);
                 }
-                async Task CheckPotential(KeyValuePair<string, IEnumerable<string>> potential, int retries = 0)
+
+                async Task CheckPotential(KeyValuePair<string, IList<string>> potential, int retries = 0)
                 {
                     // Not a valid domain
                     if (!ValidDomainRegex.IsMatch(potential.Key))

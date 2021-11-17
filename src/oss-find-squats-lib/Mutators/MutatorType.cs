@@ -15,6 +15,7 @@
         Suffix,
         SwapOrderOfLetters,
         UnicodeHomoglyph,
-        VowelSwap
+        VowelSwap,
+        Custom
     }
 }

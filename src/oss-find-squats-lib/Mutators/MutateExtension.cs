@@ -68,23 +68,13 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
 
         public static async IAsyncEnumerable<FindSquatResult> EnumerateSquats(this BaseProjectManager manager, PackageURL purl, MutateOptions options)
         {
-            await foreach(var mutation in manager.EnumerateSquats(purl, BaseMutators, options))
+            var mutationsToUse = manager switch
             {
-                yield return mutation;
-            }
-        }
-
-        public static async IAsyncEnumerable<FindSquatResult> EnumerateSquats(this NuGetProjectManager manager, PackageURL purl, MutateOptions options)
-        {
-            await foreach (var mutation in manager.EnumerateSquats(purl, NugetMutators, options))
-            {
-                yield return mutation;
-            }
-        }
-
-        public static async IAsyncEnumerable<FindSquatResult> EnumerateSquats(this NPMProjectManager manager, PackageURL purl, MutateOptions options)
-        {
-            await foreach (var mutation in manager.EnumerateSquats(purl, NpmMutators, options))
+                NuGetProjectManager => NugetMutators,
+                NPMProjectManager => NpmMutators,
+                _ => BaseMutators
+            };
+            await foreach(var mutation in manager.EnumerateSquats(purl, mutationsToUse, options))
             {
                 yield return mutation;
             }

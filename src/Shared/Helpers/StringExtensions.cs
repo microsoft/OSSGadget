@@ -18,7 +18,18 @@ namespace Microsoft.CST.OpenSource.Shared.Extensions
         /// <returns>The string with the swapped character.</returns>
         public static string ReplaceCharAtPosition(this string str, char c, int pos)
         {
-            return string.IsNullOrEmpty(str) ? str : string.Concat(str[..pos], c, str[(pos + 1)..]);
+            if (string.IsNullOrEmpty(str))
+            {
+                return str;
+            }
+            else if (pos >= 0 && pos < str.Length)
+            {
+                return string.Concat(str[..pos], c, str[(pos + 1)..]);
+            }
+            else
+            {
+                return str;
+            }
         }
     }
 }

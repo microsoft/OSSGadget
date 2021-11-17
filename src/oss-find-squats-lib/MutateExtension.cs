@@ -17,24 +17,23 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
         {
             new AfterSeparatorMutator(),
             new AsciiHomoglyphMutator(),
+            new BitFlipMutator(),
             new CloseLettersMutator(),
             new DoubleHitMutator(),
             new DuplicatorMutator(),
             new PrefixMutator(),
             new RemovedCharacterMutator(),
             new SeparatorMutator(),
-            new SubstitutionMutator(),
             new SuffixMutator(),
             new SwapOrderOfLettersMutator(),
             new UnicodeHomoglyphMutator(),
-            new VowelSwapMutator(),
-            new BitFlipMutator()
+            new VowelSwapMutator()
         };
 
         internal static IEnumerable<Mutator> NugetMutators { get; } = BaseMutators.Where(x => x is not UnicodeHomoglyphMutator and not SuffixMutator)
             .Append(new SuffixMutator(additionalSuffixes: new[] { "net", ".net", "nuget" }, skipSuffixes: new[] { "." }));
 
-        internal static IEnumerable<Mutator> NpmMutators { get; } = BaseMutators.Where(x => x is not UnicodeHomoglyphMutator and not SuffixMutator and not SubstitutionMutator)
+        internal static IEnumerable<Mutator> NpmMutators { get; } = BaseMutators.Where(x => x is not UnicodeHomoglyphMutator and not SuffixMutator)
             .Concat(new Mutator[]
                 {
                     new SubstitutionMutator(new List<(string Original, string Substitution)>()

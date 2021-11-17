@@ -14,7 +14,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     /// </summary>
     public class SuffixMutator : Mutator
     {
-        public string Name { get; } = "SUFFIX_ADDED";
+        public MutatorType Kind { get; } = MutatorType.Suffix;
 
         private static IList<string> _suffixes = new List<string>(){ "s", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "ng", "-ng", ".", "x", "-", "_"};
 
@@ -24,7 +24,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
         /// </summary>
         /// <param name="additionalSuffixes">An optional parameter for extra suffixes.</param>
         /// <param name="overrideSuffixes">An optional parameter for list of suffixes to replace the default list with.</param>
-        public SuffixMutator(string[]? additionalSuffixes = null, string[]? overrideSuffixes = null)
+        public SuffixMutator(string[]? additionalSuffixes = null, string[]? overrideSuffixes = null, string[]? skipSuffixes = null)
         {
             if (overrideSuffixes != null)
             {
@@ -34,10 +34,21 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
             {
                 _suffixes = new List<string>(_suffixes.Concat(additionalSuffixes));
             }
+            if (skipSuffixes != null)
+            {
+                _suffixes = new List<string>(_suffixes.Except(skipSuffixes));
+            }
         }
-        public IEnumerable<(string Name, string Reason)> Generate(string arg)
+        public IEnumerable<Mutation> Generate(string arg)
         {
-            return _suffixes.Select(s => (string.Concat(arg, s), Name));
+            return _suffixes.Select(s => new Mutation()
+                {
+                    Mutated = string.Concat(arg, s),
+                    Original = arg,
+                    Mutator = Kind,
+                    Reason = "Suffix Added"
+                }
+            );
         }
     }
 }

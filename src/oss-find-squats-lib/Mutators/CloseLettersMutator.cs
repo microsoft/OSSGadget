@@ -15,9 +15,9 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     /// </summary>
     public class CloseLettersMutator : Mutator
     {
-        public string Name { get; } = "CLOSE_LETTERS_ON_KEYBOARD";
+        public MutatorType Kind { get; } = MutatorType.CloseLetters;
 
-        public IEnumerable<(string Name, string Reason)> Generate(string arg)
+        public IEnumerable<Mutation> Generate(string arg)
         {
             for (int i = 0; i < arg.Length; i++)
             {
@@ -25,7 +25,13 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 
                 foreach (var c in n)
                 {
-                    yield return (arg.ReplaceCharAtPosition(c, i), Name);
+                    yield return new Mutation()
+                    {
+                        Mutated = arg.ReplaceCharAtPosition(c, i),
+                        Original = arg,
+                        Mutator = Kind,
+                        Reason = "Close Letters on QWERTY Keyboard"
+                    };
                 }
             }
         }

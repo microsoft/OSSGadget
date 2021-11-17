@@ -41,7 +41,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
             new RemovedCharacterMutator(),
             new SeparatorMutator(),
             new SubstitutionMutator(),
-            new SuffixMutator(additionalSuffixes: new[] { "net", ".net", "nuget"}),
+            new SuffixMutator(additionalSuffixes: new[] { "net", ".net", "nuget"}, skipSuffixes: new[] { "." }),
             new SwapOrderOfLettersMutator(),
             new VowelSwapMutator(),
         };
@@ -83,31 +83,24 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
 
         public static async IAsyncEnumerable<FindSquatResult> EnumerateSquats(this BaseProjectManager manager, PackageURL purl, IEnumerable<Mutator> mutators, MutateOptions options)
         {
+            HashSet<string> alreadyChecked = new();
             if (purl.Name is null || purl.Type is null)
             {
                 yield break;
             }
             foreach(var mutator in mutators)
             {
-                foreach((var candidate, var reason) in mutator.Generate(purl.Name))
+                foreach(var mutation in mutator.Generate(purl.Name))
                 {
+                    if (!alreadyChecked.Add(mutation.Mutated))
+                    {
+                        continue;
+                    }
                     if (options?.SleepDelay > 0)
                     {
                         Thread.Sleep(options.SleepDelay);
                     }
-                    // Nuget will match "microsoft.cst.oat." against "Microsoft.CST.OAT" but these are the same package
-                    // For nuget in particular we filter out this case
-                    if (manager is NuGetProjectManager)
-                    {
-                        if (candidate.EndsWith('.'))
-                        {
-                            if (candidate.Equals($"{purl.Name}.", StringComparison.InvariantCultureIgnoreCase))
-                            {
-                                continue;
-                            }
-                        }
-                    }
-                    var candidatePurl = new PackageURL(purl.Type, candidate);
+                    var candidatePurl = new PackageURL(purl.Type, mutation.Mutated);
                     FindSquatResult? res = null;
                     try
                     {
@@ -116,15 +109,15 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
                         if (versions.Any())
                         {
                             res = new FindSquatResult(
-                                packageName: candidate,
+                                packageName: mutation.Mutated,
                                 packageUrl: candidatePurl,
                                 squattedPackage: purl,
-                                rules: new string[] { reason });
+                                mutations: new Mutation[] { mutation });
                         }
                     }
                     catch (Exception e)
                     {
-                        Logger.Trace($"Could not enumerate versions. Package {candidate} likely doesn't exist. {e.Message}:{e.StackTrace}");
+                        Logger.Trace($"Could not enumerate versions. Package {mutation.Mutated} likely doesn't exist. {e.Message}:{e.StackTrace}");
                     }
                     if (res is not null)
                     {

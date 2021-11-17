@@ -13,9 +13,9 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     /// </summary>
     public class AfterSeparatorMutator : Mutator
     {
-        public string Name { get; } = "AFTER_SEPARATOR_CHANGE";
+        public MutatorType Kind { get; } = MutatorType.AfterSeparator;
 
-        public IEnumerable<(string Name, string Reason)> Generate(string arg)
+        public IEnumerable<Mutation> Generate(string arg)
         {
             foreach (var s in SeparatorMutator.separators)
             {
@@ -25,7 +25,13 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                 {
                     for (var c = 'a'; c <= 'z'; c++)
                     {
-                        yield return (splits[0] + s + c + splits[1][1..], Name);
+                        yield return new Mutation()
+                        {
+                            Mutated = splits[0] + s + c + splits[1][1..],
+                            Original = arg,
+                            Mutator = Kind,
+                            Reason = "After Separator"
+                        };
                     }
                 }
             }

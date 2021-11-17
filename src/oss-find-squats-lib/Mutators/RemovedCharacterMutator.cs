@@ -11,13 +11,19 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     /// </summary>
     public class RemovedCharacterMutator : Mutator
     {
-        public string Name { get; } = "REMOVED_CHARACTER";
+        public MutatorType Kind { get; } = MutatorType.RemovedCharacter;
 
-        public IEnumerable<(string Name, string Reason)> Generate(string arg)
+        public IEnumerable<Mutation> Generate(string arg)
         {
-            for(var i = 1; i < arg.Length; i++)
+            for (var i = 1; i < arg.Length; i++)
             {
-                yield return ($"{arg[..i]}{arg[(i + 1)..]}", Name);
+                yield return new Mutation()
+                {
+                    Mutated = $"{arg[..i]}{arg[(i + 1)..]}",
+                    Original = arg,
+                    Mutator = Kind,
+                    Reason = "Character Removed"
+                };
             }
         }
     }

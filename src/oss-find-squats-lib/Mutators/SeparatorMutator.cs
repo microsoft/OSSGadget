@@ -13,7 +13,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     /// </summary>
     public class SeparatorMutator : Mutator
     {
-        public string Name { get; } = "SEPARATOR";
+        public MutatorType Kind { get; } = MutatorType.Separator;
 
         public static HashSet<char> separators = new() { '.', '-', '_' };
 
@@ -37,7 +37,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
             }
         }
 
-        public IEnumerable<(string Name, string Reason)> Generate(string arg)
+        public IEnumerable<Mutation> Generate(string arg)
         {
             foreach (var s in separators)
             {
@@ -46,11 +46,22 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                     var rest = separators.Except(new[] { s });
                     foreach (var r in rest)
                     {
-                        yield return (arg.Replace(s, r), Name + "_CHANGED");
+                        yield return new Mutation()
+                        {
+                            Mutated = arg.Replace(s, r),
+                            Original = arg,
+                            Mutator = Kind,
+                            Reason = "Separator Changed"
+                        };
                     }
 
-                    // lastly remove separator
-                    yield return (arg.Replace(s.ToString(), string.Empty), Name + "_REMOVED");
+                    yield return new Mutation()
+                    {
+                        Mutated = arg.Replace(s.ToString(), string.Empty),
+                        Original = arg,
+                        Mutator = Kind,
+                        Reason = "Separator Removed"
+                    };
                 }
             }
         }

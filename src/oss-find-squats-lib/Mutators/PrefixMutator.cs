@@ -14,7 +14,8 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     /// </summary>
     public class PrefixMutator : Mutator
     {
-        public string Name { get; } = "PREFIX_ADDED";
+        public MutatorType Kind { get; } = MutatorType.Prefix;
+
 
         private static IList<string> _prefixes = new List<string>(){ ".", "x", "-", "X", "_" };
 
@@ -36,9 +37,16 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
             }
         }
 
-        public IEnumerable<(string Name, string Reason)> Generate(string arg)
+        public IEnumerable<Mutation> Generate(string arg)
         {
-            return _prefixes.Select(s => (string.Concat(s, arg), Name));
+            return _prefixes.Select(s => new Mutation()
+                {
+                    Mutated = string.Concat(s, arg),
+                    Original = arg,
+                    Mutator = Kind,
+                    Reason = "Prefix Added"
+                }
+            );
         }
     }
 }

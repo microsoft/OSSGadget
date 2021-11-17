@@ -14,7 +14,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     /// </summary>
     public class UnicodeHomoglyphMutator : Mutator
     {
-        public string Name { get; } = "UNICODE_HOMOGLYPH";
+        public MutatorType Kind { get; } = MutatorType.UnicodeHomoglyph;
 
         private static Dictionary<char, string> homoglyphs = new()
         {
@@ -48,7 +48,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
             ['-'] = "ˉ‾▔﹉﹊﹋﹌￣",
         };
 
-        public IEnumerable<(string Name, string Reason)> Generate(string arg)
+        public IEnumerable<Mutation> Generate(string arg)
         {
             // assumption is that attacker is making just one change
             for (int i = 0; i < arg.Length; i++)
@@ -57,7 +57,13 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                 {
                     foreach (var c in homoglyphs[arg[i]])
                     {
-                        yield return (arg.ReplaceCharAtPosition(c, i), Name);
+                        yield return new Mutation()
+                        {
+                            Mutated = arg.ReplaceCharAtPosition(c, i),
+                            Original = arg,
+                            Mutator = Kind,
+                            Reason = "Unicode Homoglyph"
+                        };
                     }
                 }
             }

@@ -13,9 +13,9 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     /// </summary>
     public class DoubleHitMutator : Mutator
     {
-        public string Name { get; } = "DOUBLE_HIT_CLOSE_LETTERS";
+        public MutatorType Kind { get; } = MutatorType.DoubleHit;
 
-        public IEnumerable<(string Name, string Reason)> Generate(string arg)
+        public IEnumerable<Mutation> Generate(string arg)
         {
             for (int i = 0; i < arg.Length; i++)
             {
@@ -23,8 +23,20 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 
                 foreach (var c in n)
                 {
-                    yield return (string.Concat(arg[..i], c, arg[i..]), Name);
-                    yield return (string.Concat(arg[..(i + 1)], c, arg[(i + 1)..]), Name);
+                    yield return new Mutation()
+                    {
+                        Mutated = string.Concat(arg[..i], c, arg[i..]),
+                        Original = arg,
+                        Mutator = Kind,
+                        Reason = "Double hit character"
+                    };
+                    yield return new Mutation()
+                    {
+                        Mutated = string.Concat(arg[..(i + 1)], c, arg[(i + 1)..]),
+                        Original = arg,
+                        Mutator = Kind,
+                        Reason = "Double hit character"
+                    };
                 }
             }
         }

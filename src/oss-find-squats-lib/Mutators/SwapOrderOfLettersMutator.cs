@@ -11,19 +11,19 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     /// </summary>
     public class SwapOrderOfLettersMutator : Mutator
     {
-        public string Name { get; } = "LETTERS_SWAPPED";
+        public MutatorType Kind { get; } = MutatorType.SwapOrderOfLetters;
 
-        public IEnumerable<(string Name, string Reason)> Generate(string arg)
+        public IEnumerable<Mutation> Generate(string arg)
         {
-            if (arg.Length < 5)
-            {
-                // TODO: Figure out why we only check for less than 5 char strings.
-                yield break;
-            }
-
             for (int i = 1; i < arg.Length - 1; i++)
             {
-                yield return (string.Concat(arg[..i], arg[i + 1], arg[i], arg.Substring(i + 2, arg.Length - (i + 2))), Name);
+                yield return new Mutation()
+                {
+                    Mutated = string.Concat(arg[..i], arg[i + 1], arg[i], arg.Substring(i + 2, arg.Length - (i + 2))),
+                    Original = arg,
+                    Mutator = Kind,
+                    Reason = "Letters Swapped"
+                };
             }
         }
     }

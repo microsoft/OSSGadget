@@ -98,36 +98,29 @@ namespace Microsoft.CST.OpenSource.DomainSquats
         public async Task<(string output, int registeredSquats, int unregisteredSquats)> RunAsync(Options options)
         {
             IOutputBuilder outputBuilder = SelectFormat(options.Format);
-            var registeredSquats = new List<(string, KeyValuePair<string, IList<string>>)>();
-            var unregisteredSquats = new List<(string, KeyValuePair<string, IList<string>>)>();
-            var failedSquats = new List<(string, KeyValuePair<string, IList<string>>)>();
+            var registeredSquats = new List<(string, KeyValuePair<string, List<Mutation>>)>();
+            var unregisteredSquats = new List<(string, KeyValuePair<string, List<Mutation>>)>();
+            var failedSquats = new List<(string, KeyValuePair<string, List<Mutation>>)>();
             var whois = new WhoisLookup();
             foreach (var target in options.Targets ?? Array.Empty<string>())
             {
                 var splits = target.Split('.');
                 var domain = splits[0];
-                var potentials = new Dictionary<string, IList<string>>();
+                var potentials = new List<Mutation>();
                 foreach (var mutator in BaseMutators)
                 {
                     foreach (var mutation in mutator.Generate(splits[0]))
                     {
-                        if (potentials.ContainsKey(mutation.Name))
-                        {
-                            potentials[mutation.Name].Add(mutation.Reason);
-                        }
-                        else
-                        {
-                            potentials[mutation.Name] = new List<string>() { mutation.Reason };
-                        }
+                        potentials.Add(mutation);
                     }
                 }
 
-                foreach(var potential in potentials)
+                foreach(var potential in potentials.GroupBy(x => x.Mutated).ToDictionary(x => x.Key, x => x.ToList()))
                 {
                     await CheckPotential(potential);
                 }
 
-                async Task CheckPotential(KeyValuePair<string, IList<string>> potential, int retries = 0)
+                async Task CheckPotential(KeyValuePair<string, List<Mutation>> potential, int retries = 0)
                 {
                     // Not a valid domain
                     if (!ValidDomainRegex.IsMatch(potential.Key))
@@ -208,7 +201,8 @@ namespace Microsoft.CST.OpenSource.DomainSquats
                             sarifResult.Tags.Add("Registered");
                             foreach (var tag in potential.Item2.Value)
                             {
-                                sarifResult.Tags.Add(tag);
+                                sarifResult.Tags.Add(tag.Reason);
+                                sarifResult.Tags.Add(tag.Mutator.ToString());
                             }
                             sarif.AppendOutput(new SarifResult[] { sarifResult });
                             break;
@@ -246,7 +240,8 @@ namespace Microsoft.CST.OpenSource.DomainSquats
                                 sarifResult.Tags.Add("Unregistered");
                                 foreach (var tag in potential.Item2.Value)
                                 {
-                                    sarifResult.Tags.Add(tag);
+                                    sarifResult.Tags.Add(tag.Reason);
+                                    sarifResult.Tags.Add(tag.Mutator.ToString());
                                 }
                                 sarif.AppendOutput(new SarifResult[] { sarifResult });
                                 break;

@@ -16,7 +16,8 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     /// </remarks>
     public class SubstitutionMutator : Mutator
     {
-        public string Name { get; } = "SWAPPED_WITH_SUBSTITUTE";
+        public MutatorType Kind { get; } = MutatorType.Substitution;
+
 
         /// <summary>
         /// A list of the original strings and their equivalent substitutions.
@@ -33,18 +34,30 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
             }
         }
 
-        public IEnumerable<(string Name, string Reason)> Generate(string arg)
+        public IEnumerable<Mutation> Generate(string arg)
         {
             foreach (var (original, substitution) in _substitutions)
             {
                 if (arg.Contains(original))
                 {
-                    yield return (arg.Replace(original, substitution), Name);
+                    yield return new Mutation()
+                    {
+                        Mutated = arg.Replace(original, substitution),
+                        Original = arg,
+                        Mutator = Kind,
+                        Reason = "Character Substituted"
+                    };
                 }
 
                 if (arg.Contains(substitution))
                 {
-                    yield return (arg.Replace(substitution, original), Name);
+                    yield return new Mutation()
+                    {
+                        Mutated = arg.Replace(substitution, original),
+                        Original = arg,
+                        Mutator = Kind,
+                        Reason = "Character Substituted"
+                    };
                 }
             }
         }

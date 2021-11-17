@@ -14,13 +14,13 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     /// </summary>
     public class VowelSwapMutator : Mutator
     {
-        public string Name { get; } = "VOWEL_SWAPPED";
+        public MutatorType Kind { get; } = MutatorType.VowelSwap;
 
         private HashSet<char> _vowels = new() {'a', 'e', 'i', 'o', 'u', 'y'};
 
-        public IEnumerable<(string Name, string Reason)> Generate(string arg)
+        public IEnumerable<Mutation> Generate(string arg)
         {
-            for(var i = 0; i < arg.Length; i++)
+            for (var i = 0; i < arg.Length; i++)
             {
                 if (_vowels.Contains(char.ToLower(arg[i])))
                 {
@@ -31,7 +31,13 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                         {
                             // Only do something if the vowel isn't the same.
                             // TODO: I think this doesn't maintain casing.
-                            yield return (arg.ReplaceCharAtPosition(vowel, i), Name);
+                            yield return new Mutation()
+                            {
+                                Mutated = arg.ReplaceCharAtPosition(vowel, i),
+                                Original = arg,
+                                Mutator = Kind,
+                                Reason = "Swap Vowel"
+                            };
                         }
                     }
                 }

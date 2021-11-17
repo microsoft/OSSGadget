@@ -13,7 +13,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
     {
         public static NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
 
-        internal static IList<Mutator> BaseMutators { get; } = new List<Mutator>()
+        internal static IEnumerable<Mutator> BaseMutators { get; } = new List<Mutator>()
         {
             new AfterSeparatorMutator(),
             new AsciiHomoglyphMutator(),
@@ -28,43 +28,22 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
             new SwapOrderOfLettersMutator(),
             new UnicodeHomoglyphMutator(),
             new VowelSwapMutator(),
+            new BitFlipMutator()
         };
 
-        internal static IList<Mutator> NugetMutators { get; } = new List<Mutator>()
-        {
-            new AfterSeparatorMutator(),
-            new AsciiHomoglyphMutator(),
-            new CloseLettersMutator(),
-            new DoubleHitMutator(),
-            new DuplicatorMutator(),
-            new PrefixMutator(),
-            new RemovedCharacterMutator(),
-            new SeparatorMutator(),
-            new SubstitutionMutator(),
-            new SuffixMutator(additionalSuffixes: new[] { "net", ".net", "nuget"}, skipSuffixes: new[] { "." }),
-            new SwapOrderOfLettersMutator(),
-            new VowelSwapMutator(),
-        };
+        internal static IEnumerable<Mutator> NugetMutators { get; } = BaseMutators.Where(x => x is not UnicodeHomoglyphMutator and not SuffixMutator)
+            .Append(new SuffixMutator(additionalSuffixes: new[] { "net", ".net", "nuget" }, skipSuffixes: new[] { "." }));
 
-        internal static IList<Mutator> NpmMutators { get; } = new List<Mutator>()
-        {
-            new AfterSeparatorMutator(),
-            new AsciiHomoglyphMutator(),
-            new CloseLettersMutator(),
-            new DoubleHitMutator(),
-            new DuplicatorMutator(),
-            new PrefixMutator(),
-            new RemovedCharacterMutator(),
-            new SeparatorMutator(),
-            new SubstitutionMutator(new List<(string Original, string Substitution)>()
-            {
-                ("js", "javascript"),
-                ("ts", "typescript"),
-            }),
-            new SuffixMutator(additionalSuffixes: new[] { "js", ".js", "javascript", "ts", ".ts", "typescript"}),
-            new SwapOrderOfLettersMutator(),
-            new VowelSwapMutator(),
-        };
+        internal static IEnumerable<Mutator> NpmMutators { get; } = BaseMutators.Where(x => x is not UnicodeHomoglyphMutator and not SuffixMutator and not SubstitutionMutator)
+            .Concat(new Mutator[]
+                {
+                    new SubstitutionMutator(new List<(string Original, string Substitution)>()
+                    {
+                        ("js", "javascript"),
+                        ("ts", "typescript"),
+                    }),
+                    new SuffixMutator(additionalSuffixes: new[] { "js", ".js", "javascript", "ts", ".ts", "typescript"})
+                });
 
         public static IEnumerable<Mutator> GetDefaultMutators(this BaseProjectManager manager) => manager switch
         {
@@ -94,9 +73,10 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
                 {
                     if (!alreadyChecked.Add(mutation.Mutated))
                     {
+                        Logger.Trace($"Already chcked {mutation.Mutated}. Skipping.");
                         continue;
                     }
-                    if (options?.SleepDelay > 0)
+                    if (options.SleepDelay > 0)
                     {
                         Thread.Sleep(options.SleepDelay);
                     }

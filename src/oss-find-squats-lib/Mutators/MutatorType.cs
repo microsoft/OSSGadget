@@ -3,8 +3,10 @@
     public enum MutatorType
     {
         Base,
+        Custom,
         AfterSeparator,
         AsciiHomoglyph,
+        BitFlip,
         CloseLetters,
         DoubleHit,
         Duplicator,
@@ -15,7 +17,6 @@
         Suffix,
         SwapOrderOfLetters,
         UnicodeHomoglyph,
-        VowelSwap,
-        Custom
+        VowelSwap
     }
 }

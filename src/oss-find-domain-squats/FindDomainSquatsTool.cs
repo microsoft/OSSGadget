@@ -39,6 +39,7 @@ namespace Microsoft.CST.OpenSource.DomainSquats
             new SwapOrderOfLettersMutator(),
             new UnicodeHomoglyphMutator(),
             new VowelSwapMutator(),
+            new BitFlipMutator()
         };
 
         public class Options

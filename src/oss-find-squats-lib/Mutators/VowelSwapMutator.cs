@@ -1,6 +1,4 @@
-// --------------------------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// --------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using Microsoft.CST.OpenSource.Shared.Extensions;
 using System;
@@ -31,13 +29,11 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                         {
                             // Only do something if the vowel isn't the same.
                             // TODO: I think this doesn't maintain casing.
-                            yield return new Mutation()
-                            {
-                                Mutated = arg.ReplaceCharAtPosition(vowel, i),
-                                Original = arg,
-                                Mutator = Kind,
-                                Reason = "Swap Vowel"
-                            };
+                            yield return new Mutation(
+                                mutated: arg.ReplaceCharAtPosition(vowel, i),
+                                original: arg,
+                                mutator: Kind,
+                                reason: "Swap Vowel");
                         }
                     }
                 }

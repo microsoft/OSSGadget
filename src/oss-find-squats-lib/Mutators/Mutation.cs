@@ -1,12 +1,19 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 {
-    public class Mutation
+    public record Mutation
     {
-        public string Mutated { get; set; }
-        public string Original { get; set; }
-        public string Reason { get; set; }
-        public MutatorType Mutator { get; set; }
+        public Mutation(string mutated, string original, string reason, MutatorType mutator)
+        {
+            Mutated = mutated;
+            Original = original;
+            Reason = reason;
+            Mutator = mutator;
+        }
+        public string Mutated { get; }
+        public string Original { get; }
+        public string Reason { get; }
+        public MutatorType Mutator { get; }
     }
 }

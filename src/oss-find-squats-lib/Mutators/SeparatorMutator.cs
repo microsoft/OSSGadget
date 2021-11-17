@@ -1,6 +1,4 @@
-// --------------------------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// --------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -46,22 +44,18 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                     var rest = separators.Except(new[] { s });
                     foreach (var r in rest)
                     {
-                        yield return new Mutation()
-                        {
-                            Mutated = arg.Replace(s, r),
-                            Original = arg,
-                            Mutator = Kind,
-                            Reason = "Separator Changed"
-                        };
+                        yield return new Mutation(
+                            mutated: arg.Replace(s, r),
+                            original: arg,
+                            mutator: Kind,
+                            reason: "Separator Changed");
                     }
 
-                    yield return new Mutation()
-                    {
-                        Mutated = arg.Replace(s.ToString(), string.Empty),
-                        Original = arg,
-                        Mutator = Kind,
-                        Reason = "Separator Removed"
-                    };
+                    yield return new Mutation(
+                        mutated: arg.Replace(s.ToString(), string.Empty),
+                        original: arg,
+                        mutator: Kind,
+                        reason: "Separator Removed");
                 }
             }
         }

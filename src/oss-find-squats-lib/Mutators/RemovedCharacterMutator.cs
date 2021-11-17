@@ -1,6 +1,4 @@
-// --------------------------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// --------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using System.Collections.Generic;
 
@@ -17,13 +15,11 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
         {
             for (var i = 1; i < arg.Length; i++)
             {
-                yield return new Mutation()
-                {
-                    Mutated = $"{arg[..i]}{arg[(i + 1)..]}",
-                    Original = arg,
-                    Mutator = Kind,
-                    Reason = "Character Removed"
-                };
+                yield return new Mutation(
+                    mutated: $"{arg[..i]}{arg[(i + 1)..]}",
+                    original: arg,
+                    mutator: Kind,
+                    reason: "Character Removed");
             }
         }
     }

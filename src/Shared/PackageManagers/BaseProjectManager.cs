@@ -1,27 +1,27 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using F23.StringSimilarity;
-using Microsoft.CST.OpenSource.Model;
-using Microsoft.CST.RecursiveExtractor;
-using Microsoft.Extensions.Caching.Memory;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using Version = SemanticVersioning.Version;
-
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Data;
+    using System.IO;
+    using System.Linq;
+    using System.Net.Http;
+    using System.Text;
+    using System.Text.Json;
+    using System.Text.RegularExpressions;
+    using System.Threading.Tasks;
+    using F23.StringSimilarity;
+    using Microsoft.CST.OpenSource.Model;
+    using Microsoft.CST.RecursiveExtractor;
+    using Microsoft.Extensions.Caching.Memory;
+    using Version = SemanticVersioning.Version;
+
     public class BaseProjectManager
     {
         /// <summary>
-        /// Initializes a new project management object.
+        /// Initializes a new instance of the <see cref="BaseProjectManager"/> class.
         /// </summary>
         public BaseProjectManager(string destinationDirectory)
         {

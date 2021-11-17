@@ -1,6 +1,4 @@
-// --------------------------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// --------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using System.Collections.Generic;
 
@@ -17,33 +15,27 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
         {
             for (int i = 0; i < arg.Length; i++)
             {
-                yield return new Mutation()
-                {
-                    Mutated = string.Concat(arg[..i], arg[i], arg[i..]),
-                    Original = arg,
-                    Mutator = Kind,
-                    Reason = "Letter Duplicated"
-                };
+                yield return new Mutation(
+                    mutated: string.Concat(arg[..i], arg[i], arg[i..]),
+                    original: arg,
+                    mutator: Kind,
+                    reason: "Letter Duplicated");
             }
 
             for (int i = 0; i < arg.Length - 2; i++)
             {
-                yield return new Mutation()
-                {
-                    Mutated = string.Concat(arg[..(i + 1)], arg[i], arg[(i + 2)..]),
-                    Original = arg,
-                    Mutator = Kind,
-                    Reason = "Letter Duplicated and Replaced"
-                };
+                yield return new Mutation(
+                    mutated: string.Concat(arg[..(i + 1)], arg[i], arg[(i + 2)..]),
+                    original: arg,
+                    mutator: Kind,
+                    reason: "Letter Duplicated and Replaced");
             }
 
-            yield return new Mutation()
-            {
-                Mutated = string.Concat(arg[..arg.Length], arg[^1]),
-                Original = arg,
-                Mutator = Kind,
-                Reason = "Letter Duplicated and Replaced"
-            };
+            yield return new Mutation(
+                mutated: string.Concat(arg[..arg.Length], arg[^1]),
+                original: arg,
+                mutator: Kind,
+                reason: "Letter Duplicated and Replaced");
         }
     }
 }

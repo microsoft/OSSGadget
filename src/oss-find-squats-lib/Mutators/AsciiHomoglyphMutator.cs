@@ -1,6 +1,4 @@
-// --------------------------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// --------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using Microsoft.CST.OpenSource.Shared.Extensions;
 using System.Collections.Generic;
@@ -46,13 +44,11 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                 {
                     foreach (var c in homoglyphs[arg[i]])
                     {
-                        yield return new Mutation()
-                        {
-                            Mutated = arg.ReplaceCharAtPosition(c, i),
-                            Original = arg,
-                            Mutator = Kind,
-                            Reason = "Ascii Homoglpyh"
-                        };
+                        yield return new Mutation(
+                            mutated: arg.ReplaceCharAtPosition(c, i),
+                            original: arg,
+                            mutator: Kind,
+                            reason: "Ascii Homoglpyh");
                     }
                 }
             }

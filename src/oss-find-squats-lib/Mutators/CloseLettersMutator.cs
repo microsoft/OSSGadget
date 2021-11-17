@@ -1,6 +1,4 @@
-// --------------------------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// --------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using Microsoft.CST.OpenSource.Shared.Extensions;
 using Microsoft.CST.OpenSource.Shared;
@@ -25,13 +23,11 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 
                 foreach (var c in n)
                 {
-                    yield return new Mutation()
-                    {
-                        Mutated = arg.ReplaceCharAtPosition(c, i),
-                        Original = arg,
-                        Mutator = Kind,
-                        Reason = "Close Letters on QWERTY Keyboard"
-                    };
+                    yield return new Mutation(
+                        mutated: arg.ReplaceCharAtPosition(c, i),
+                        original: arg,
+                        mutator: Kind,
+                        reason: "Close Letters on QWERTY Keyboard");
                 }
             }
         }

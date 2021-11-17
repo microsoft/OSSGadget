@@ -1,6 +1,4 @@
-// --------------------------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// --------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using System;
 using System.Collections.Generic;
@@ -41,13 +39,11 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
         }
         public IEnumerable<Mutation> Generate(string arg)
         {
-            return _suffixes.Select(s => new Mutation()
-                {
-                    Mutated = string.Concat(arg, s),
-                    Original = arg,
-                    Mutator = Kind,
-                    Reason = "Suffix Added"
-                }
+            return _suffixes.Select(s => new Mutation(
+                    mutated: string.Concat(arg, s),
+                    original: arg,
+                    mutator: Kind,
+                    reason: "Suffix Added")
             );
         }
     }

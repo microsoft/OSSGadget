@@ -1,6 +1,4 @@
-// --------------------------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// --------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using System;
 using System.Collections.Generic;
@@ -40,24 +38,20 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
             {
                 if (arg.Contains(original))
                 {
-                    yield return new Mutation()
-                    {
-                        Mutated = arg.Replace(original, substitution),
-                        Original = arg,
-                        Mutator = Kind,
-                        Reason = "Character Substituted"
-                    };
+                    yield return new Mutation(
+                        mutated: arg.Replace(original, substitution),
+                        original: arg,
+                        mutator: Kind,
+                        reason: "Character Substituted");
                 }
 
                 if (arg.Contains(substitution))
                 {
-                    yield return new Mutation()
-                    {
-                        Mutated = arg.Replace(substitution, original),
-                        Original = arg,
-                        Mutator = Kind,
-                        Reason = "Character Substituted"
-                    };
+                    yield return new Mutation(
+                        mutated: arg.Replace(substitution, original),
+                        original: arg,
+                        mutator: Kind,
+                        reason: "Character Substituted");
                 }
             }
         }

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 {
@@ -13,9 +14,27 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     {
         public MutatorType Kind { get; } = MutatorType.AfterSeparator;
 
+        public HashSet<char> Separators { get; set; } = SeparatorMutator.DefaultSeparators.ToHashSet();
+
+        public AfterSeparatorMutator(char[]? additionalSeparators = null, char[]? overrideSeparators = null, char[]? skipSeparators = null)
+        {
+            if (overrideSeparators != null)
+            {
+                Separators = new HashSet<char>(overrideSeparators);
+            }
+            if (additionalSeparators != null)
+            {
+                Separators.UnionWith(additionalSeparators);
+            }
+            if (skipSeparators != null)
+            {
+                Separators.ExceptWith(skipSeparators);
+            }
+        }
+
         public IEnumerable<Mutation> Generate(string arg)
         {
-            foreach (var s in SeparatorMutator.separators)
+            foreach (var s in Separators)
             {
                 var splits = arg.Split(s, StringSplitOptions.RemoveEmptyEntries);
 

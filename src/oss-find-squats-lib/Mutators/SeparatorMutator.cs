@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace Microsoft.CST.OpenSource.FindSquats.Mutators
@@ -13,7 +14,9 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     {
         public MutatorType Kind { get; } = MutatorType.Separator;
 
-        public static HashSet<char> separators = new() { '.', '-', '_' };
+        public HashSet<char> Separators { get; set; } = DefaultSeparators.ToHashSet();
+
+        public static ImmutableHashSet<char> DefaultSeparators = ImmutableHashSet.Create(new[] { '.', '-', '_' });
 
         /// <summary>
         /// Initializes a <see cref="SeparatorMutator"/> instance.
@@ -27,21 +30,21 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
         {
             if (overrideSeparators != null)
             {
-                separators = new HashSet<char>(overrideSeparators);
+                Separators = new HashSet<char>(overrideSeparators);
             }
             if (additionalSeparators != null)
             {
-                separators = new HashSet<char>(separators.Concat(additionalSeparators));
+                Separators = new HashSet<char>(Separators.Concat(additionalSeparators));
             }
         }
 
         public IEnumerable<Mutation> Generate(string arg)
         {
-            foreach (var s in separators)
+            foreach (var s in Separators)
             {
                 if (arg.Contains(s))
                 {
-                    var rest = separators.Except(new[] { s });
+                    var rest = Separators.Except(new[] { s });
                     foreach (var r in rest)
                     {
                         yield return new Mutation(

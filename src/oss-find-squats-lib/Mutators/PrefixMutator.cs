@@ -23,7 +23,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
         /// </summary>
         /// <param name="additionalPrefixes">An optional parameter for extra prefixes.</param>
         /// <param name="overridePrefixes">An optional parameter for list of prefixes to replace the default list with.</param>
-        public PrefixMutator(string[]? additionalPrefixes = null, string[]? overridePrefixes = null)
+        public PrefixMutator(string[]? additionalPrefixes = null, string[]? overridePrefixes = null, string[]? skipPrefixes = null)
         {
             if (overridePrefixes != null)
             {
@@ -32,6 +32,10 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
             if (additionalPrefixes != null)
             {
                 _prefixes = new List<string>(_prefixes.Concat(additionalPrefixes));
+            }
+            if (skipPrefixes != null)
+            {
+                _prefixes = new List<string>(_prefixes.Except(skipPrefixes));
             }
         }
 

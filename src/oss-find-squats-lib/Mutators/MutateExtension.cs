@@ -66,21 +66,22 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
             new VowelSwapMutator(),
         };
 
+        public static IEnumerable<Mutator> GetDefaultMutators(this BaseProjectManager manager) => manager switch
+        {
+            NuGetProjectManager => NugetMutators,
+            NPMProjectManager => NpmMutators,
+            _ => BaseMutators
+        };
+
         public static async IAsyncEnumerable<FindSquatResult> EnumerateSquats(this BaseProjectManager manager, PackageURL purl, MutateOptions options)
         {
-            var mutationsToUse = manager switch
-            {
-                NuGetProjectManager => NugetMutators,
-                NPMProjectManager => NpmMutators,
-                _ => BaseMutators
-            };
-            await foreach(var mutation in manager.EnumerateSquats(purl, mutationsToUse, options))
+            await foreach(var mutation in manager.EnumerateSquats(purl, manager.GetDefaultMutators(), options))
             {
                 yield return mutation;
             }
         }
 
-        public static async IAsyncEnumerable<FindSquatResult> EnumerateSquats(this BaseProjectManager manager, PackageURL purl, IList<Mutator> mutators, MutateOptions options)
+        public static async IAsyncEnumerable<FindSquatResult> EnumerateSquats(this BaseProjectManager manager, PackageURL purl, IEnumerable<Mutator> mutators, MutateOptions options)
         {
             if (purl.Name is null || purl.Type is null)
             {

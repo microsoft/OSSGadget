@@ -2,7 +2,7 @@
 
   <PropertyGroup>
 	  <TargetFramework>net5.0</TargetFramework>
-	  <RootNamespace>Microsoft.CST.OpenSource</RootNamespace>
+	  <RootNamespace>Microsoft.CST.OpenSource.FindSquats</RootNamespace>
 	  <Description>OSS Gadget - Package Typosquatting Detector Library</Description>
 	  <RepositoryType>GitHub</RepositoryType>
 	  <RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>

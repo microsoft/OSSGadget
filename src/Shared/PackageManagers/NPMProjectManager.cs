@@ -13,7 +13,7 @@ using Version = SemanticVersioning.Version;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
-    internal class NPMProjectManager : BaseProjectManager
+    public class NPMProjectManager : BaseProjectManager
     {
         public static string ENV_NPM_API_ENDPOINT = "https://registry.npmjs.org";
         public static string ENV_NPM_ENDPOINT = "https://www.npmjs.com";

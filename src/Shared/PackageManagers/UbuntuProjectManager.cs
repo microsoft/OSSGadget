@@ -35,19 +35,20 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
-            var packageVersion = purl?.Version;
-            var downloadedPaths = new List<string>();
-            var downloadedUrls = new HashSet<string>();
+            List<string> downloadedPaths = new();
+            HashSet<string> downloadedUrls = new();
 
-            if (purl == null || purl.Name == null || packageVersion == null)
+            if (purl == null || purl.Name == null || purl.Version == null)
             {
                 return downloadedPaths;
             }
 
-            var availablePools = await GetPoolsForProject(purl);
-            foreach (var pool in availablePools)
+            string packageVersion = purl.Version;
+
+            IEnumerable<string>? availablePools = await GetPoolsForProject(purl);
+            foreach (string? pool in availablePools)
             {
-                var archiveBaseUrl = await GetArchiveBaseUrlForProject(purl, pool);
+                string? archiveBaseUrl = await GetArchiveBaseUrlForProject(purl, pool);
                 if (archiveBaseUrl == null)
                 {
                     Logger.Debug("Unable to find archive base URL for {0}, pool {1}", purl.ToString(), pool);
@@ -56,20 +57,20 @@ namespace Microsoft.CST.OpenSource.Shared
 
                 try
                 {
-                    var html = await GetHttpStringCache(archiveBaseUrl, neverThrow: true);
+                    string? html = await GetHttpStringCache(archiveBaseUrl, neverThrow: true);
                     if (html == null)
                     {
                         Logger.Debug("Error reading {0}", archiveBaseUrl);
                         continue;
                     }
 
-                    var document = await new HtmlParser().ParseDocumentAsync(html);
-                    foreach (var anchor in document.QuerySelectorAll("a"))
+                    AngleSharp.Html.Dom.IHtmlDocument document = await new HtmlParser().ParseDocumentAsync(html);
+                    foreach (AngleSharp.Dom.IElement anchor in document.QuerySelectorAll("a"))
                     {
-                        var anchorHref = anchor.GetAttribute("href");
+                        string? anchorHref = anchor.GetAttribute("href");
                         if (anchorHref.Contains(packageVersion) && anchorHref.EndsWith(".deb"))
                         {
-                            var fullDownloadUrl = archiveBaseUrl + "/" + anchorHref;
+                            string? fullDownloadUrl = archiveBaseUrl + "/" + anchorHref;
                             if (!downloadedUrls.Add(fullDownloadUrl))
                             {
                                 // Never re-download the same file twice.
@@ -77,7 +78,7 @@ namespace Microsoft.CST.OpenSource.Shared
                             }
                             Logger.Debug("Downloading binary: {0}", fullDownloadUrl);
 
-                            var downloadResult = await WebClient.GetAsync(fullDownloadUrl);
+                            System.Net.Http.HttpResponseMessage downloadResult = await WebClient.GetAsync(fullDownloadUrl);
                             if (!downloadResult.IsSuccessStatusCode)
                             {
                                 Logger.Debug("Error {0} downloading file {1}", downloadResult.StatusCode, fullDownloadUrl);
@@ -85,7 +86,7 @@ namespace Microsoft.CST.OpenSource.Shared
                             }
 
                             // TODO: Add distro version id
-                            var targetName = $"ubuntu-{purl.Name}@{packageVersion}-{anchorHref}";
+                            string targetName = $"ubuntu-{purl.Name}@{packageVersion}-{anchorHref}";
                             string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                             if (doExtract && Directory.Exists(extractionPath) && cached == true)
                             {
@@ -109,25 +110,25 @@ namespace Microsoft.CST.OpenSource.Shared
                         // them in the .dsc
                         else if (anchorHref.Contains(packageVersion) && anchorHref.EndsWith(".dsc"))
                         {
-                            var dscContent = await GetHttpStringCache(archiveBaseUrl + "/" + anchorHref);
+                            string? dscContent = await GetHttpStringCache(archiveBaseUrl + "/" + anchorHref);
                             if (dscContent == null)
                             {
                                 continue;
                             }
 
-                            var seenFiles = new HashSet<string>();
+                            HashSet<string> seenFiles = new();
                             foreach (Match match in Regex.Matches(dscContent, "^ [a-z0-9]+ \\d+ (.*)$", RegexOptions.Multiline | RegexOptions.IgnoreCase).Where(x => x != null))
                             {
                                 seenFiles.Add(match.Groups[1].Value.Trim());
                             }
 
                             // Now we need to go through the anchor tags again looking for the source code files
-                            foreach (var secondAnchor in document.QuerySelectorAll("a"))
+                            foreach (AngleSharp.Dom.IElement? secondAnchor in document.QuerySelectorAll("a"))
                             {
-                                var secondHref = secondAnchor.GetAttribute("href");
+                                string? secondHref = secondAnchor.GetAttribute("href");
                                 if (seenFiles.Any(f => f.Equals(secondHref) && !secondHref.EndsWith(".deb") && !secondHref.EndsWith(".dsc") && !secondHref.EndsWith(".asc")))
                                 {
-                                    var fullDownloadUrl = archiveBaseUrl + "/" + secondHref;
+                                    string fullDownloadUrl = archiveBaseUrl + "/" + secondHref;
                                     if (!downloadedUrls.Add(fullDownloadUrl))
                                     {
                                         // Never re-download the same file twice.
@@ -135,7 +136,7 @@ namespace Microsoft.CST.OpenSource.Shared
                                     }
                                     Logger.Debug("Downloading source code: {0}", fullDownloadUrl);
 
-                                    var downloadResult = await WebClient.GetAsync(fullDownloadUrl);
+                                    System.Net.Http.HttpResponseMessage downloadResult = await WebClient.GetAsync(fullDownloadUrl);
                                     if (!downloadResult.IsSuccessStatusCode)
                                     {
                                         Logger.Debug("Error {0} downloading file {1}", downloadResult.StatusCode, fullDownloadUrl);
@@ -143,7 +144,7 @@ namespace Microsoft.CST.OpenSource.Shared
                                     }
 
                                     // TODO: Add distro version id
-                                    var targetName = $"ubuntu-{purl.Name}@{packageVersion}-{secondHref}";
+                                    string targetName = $"ubuntu-{purl.Name}@{packageVersion}-{secondHref}";
 
                                     if (doExtract)
                                     {
@@ -173,15 +174,15 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
 
-            var versionList = new List<string>();
             if (purl == null || purl.Name == null)
             {
-                return versionList;
+                return Array.Empty<string>();
             }
-            var availablePools = await GetPoolsForProject(purl);
-            foreach (var pool in availablePools)
+            List<string> versionList = new();
+            IEnumerable<string> availablePools = await GetPoolsForProject(purl);
+            foreach (string pool in availablePools)
             {
-                var archiveBaseUrl = await GetArchiveBaseUrlForProject(purl, pool);
+                string? archiveBaseUrl = await GetArchiveBaseUrlForProject(purl, pool);
                 if (archiveBaseUrl == null)
                 {
                     Logger.Debug("Unable to find archive base URL.");
@@ -193,24 +194,24 @@ namespace Microsoft.CST.OpenSource.Shared
                 // Now load the archive page, which will show all of the versions in each of the .dsc files there.
                 try
                 {
-                    var html = await GetHttpStringCache(archiveBaseUrl, neverThrow: true);
+                    string? html = await GetHttpStringCache(archiveBaseUrl, neverThrow: true);
                     if (html == null)
                     {
                         continue;
                     }
-                    var document = await new HtmlParser().ParseDocumentAsync(html);
-                    foreach (var anchor in document.QuerySelectorAll("a"))
+                    AngleSharp.Html.Dom.IHtmlDocument? document = await new HtmlParser().ParseDocumentAsync(html);
+                    foreach (AngleSharp.Dom.IElement? anchor in document.QuerySelectorAll("a"))
                     {
-                        var anchorHref = anchor.GetAttribute("href");
+                        string? anchorHref = anchor.GetAttribute("href");
                         if (anchorHref.EndsWith(".dsc"))
                         {
                             Logger.Debug("Found a .dsc file: {0}", anchorHref);
-                            var dscContent = await GetHttpStringCache(archiveBaseUrl + "/" + anchorHref);
-                            foreach (var line in dscContent?.Split(new char[] { '\n', '\r' }) ?? Array.Empty<string>())
+                            string? dscContent = await GetHttpStringCache(archiveBaseUrl + "/" + anchorHref);
+                            foreach (string line in dscContent?.Split(new char[] { '\n', '\r' }) ?? Array.Empty<string>())
                             {
                                 if (line.StartsWith("Version:"))
                                 {
-                                    var versionOnly = line.Replace("Version:", "").Trim();
+                                    string versionOnly = line.Replace("Version:", "").Trim();
                                     Match match = Regex.Match(versionOnly, "^\\d+:(.*)$");
                                     if (match.Success)
                                     {
@@ -240,26 +241,26 @@ namespace Microsoft.CST.OpenSource.Shared
 
             if (purl == null || purl.Name == null)
             {
-                return string.Empty;
+                return null;
             }
 
-            var metadataContent = new StringBuilder();
+            StringBuilder metadataContent = new();
 
-            foreach (var distroUrlPrefix in GetBaseURLs(purl))
+            foreach (string distroUrlPrefix in GetBaseURLs(purl))
             {
                 try
                 {
-                    var html = await GetHttpStringCache(distroUrlPrefix, neverThrow: true);
+                    string? html = await GetHttpStringCache(distroUrlPrefix, neverThrow: true);
                     if (html != null)
                     {
-                        var document = await new HtmlParser().ParseDocumentAsync(html);
-                        foreach (var anchor in document.QuerySelectorAll("a"))
+                        AngleSharp.Html.Dom.IHtmlDocument? document = await new HtmlParser().ParseDocumentAsync(html);
+                        foreach (AngleSharp.Dom.IElement? anchor in document.QuerySelectorAll("a"))
                         {
-                            var anchorHref = anchor.GetAttribute("href");
+                            string? anchorHref = anchor.GetAttribute("href");
                             if (anchorHref.EndsWith(".dsc"))
                             {
                                 Logger.Debug("Found a .dsc file: {0}", anchorHref);
-                                var dscContent = await GetHttpStringCache(distroUrlPrefix + anchorHref, neverThrow: true);
+                                string? dscContent = await GetHttpStringCache(distroUrlPrefix + anchorHref, neverThrow: true);
                                 if (dscContent == null)
                                 {
                                     continue;
@@ -279,13 +280,13 @@ namespace Microsoft.CST.OpenSource.Shared
                 {
                     try
                     {
-                        var searchResults = await GetHttpStringCache($"{ENV_UBUNTU_ENDPOINT}/search?keywords={purl.Name}&searchon=names&exact=1&suite=all&section=all");
-                        var parser = new HtmlParser();
-                        var document = await parser.ParseDocumentAsync(searchResults);
-                        var anchorItems = document.QuerySelectorAll("a.resultlink");
-                        var metadataUrlList = anchorItems.Select(s => s.GetAttribute("href") ?? "");
+                        string? searchResults = await GetHttpStringCache($"{ENV_UBUNTU_ENDPOINT}/search?keywords={purl.Name}&searchon=names&exact=1&suite=all&section=all");
+                        HtmlParser parser = new();
+                        AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(searchResults);
+                        AngleSharp.Dom.IHtmlCollection<AngleSharp.Dom.IElement> anchorItems = document.QuerySelectorAll("a.resultlink");
+                        IEnumerable<string> metadataUrlList = anchorItems.Select(s => s.GetAttribute("href") ?? "");
 
-                        foreach (var metadataUrl in metadataUrlList)
+                        foreach (string metadataUrl in metadataUrlList)
                         {
                             metadataContent.AppendLine(await GetHttpStringCache($"{ENV_UBUNTU_ENDPOINT}/{metadataUrl}"));
                         }
@@ -302,10 +303,10 @@ namespace Microsoft.CST.OpenSource.Shared
 
         public override Uri? GetPackageAbsoluteUri(PackageURL purl)
         {
-            var availablePools = GetPoolsForProject(purl).Result;
-            foreach (var pool in availablePools)
+            IEnumerable<string> availablePools = GetPoolsForProject(purl).Result;
+            foreach (string? pool in availablePools)
             {
-                var archiveBaseUrl = GetArchiveBaseUrlForProject(purl, pool).Result;
+                string? archiveBaseUrl = GetArchiveBaseUrlForProject(purl, pool).Result;
                 if (archiveBaseUrl != null)
                 {
                     return new Uri(archiveBaseUrl);
@@ -324,18 +325,18 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             try
             {
-                var html = await GetHttpStringCache($"{ENV_UBUNTU_ENDPOINT}/{pool}/{purl.Name}", neverThrow: true);
+                string? html = await GetHttpStringCache($"{ENV_UBUNTU_ENDPOINT}/{pool}/{purl.Name}", neverThrow: true);
                 if (html == null)
                 {
                     return null;
                 }
-                var document = await new HtmlParser().ParseDocumentAsync(html);
-                foreach (var anchor in document.QuerySelectorAll("a"))
+                AngleSharp.Html.Dom.IHtmlDocument document = await new HtmlParser().ParseDocumentAsync(html);
+                foreach (AngleSharp.Dom.IElement anchor in document.QuerySelectorAll("a"))
                 {
-                    var href = anchor.GetAttribute("href");
+                    string? href = anchor.GetAttribute("href");
                     if (href != null && href.EndsWith(".dsc"))
                     {
-                        var match = Regex.Match(href, "(.+)/[^/]+\\.dsc");
+                        Match match = Regex.Match(href, "(.+)/[^/]+\\.dsc");
                         if (match.Success)
                         {
                             return match.Groups[1].Value.Trim();
@@ -352,8 +353,8 @@ namespace Microsoft.CST.OpenSource.Shared
 
         private List<string> GetBaseURLs(PackageURL purl)
         {
-            var results = new List<string>();
-            var dirName = string.Empty;
+            List<string> results = new();
+            string dirName;
             if (purl.Name is string purlName)
             {
                 dirName = purlName.StartsWith("lib") ? "lib" + purlName.Substring(3, 1) : purlName.Substring(0, 1);
@@ -363,7 +364,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 return results;
             }
 
-            var distroName = "ubuntu";  // default
+            string? distroName = "ubuntu";  // default
             purl.Qualifiers?.TryGetValue("distro", out distroName);
 
             if (purl.Qualifiers != null && purl.Qualifiers.TryGetValue("pool", out string? selectedPool))
@@ -372,7 +373,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             else
             {
-                foreach (var pool in ENV_UBUNTU_POOL_NAMES.Split(","))
+                foreach (string? pool in ENV_UBUNTU_POOL_NAMES.Split(","))
                 {
                     results.Add($"{ENV_UBUNTU_ARCHIVE_MIRROR}/{distroName}/pool/{pool}/{dirName}/{purl.Name}/");
                     Logger.Debug($"{ENV_UBUNTU_ARCHIVE_MIRROR}/{distroName}/pool/{pool}/{dirName}/{purl.Name}/");
@@ -388,20 +389,20 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <returns> List of pool names </returns>
         private async Task<IEnumerable<string>> GetPoolsForProject(PackageURL purl)
         {
-            var pools = new HashSet<string>();
+            HashSet<string> pools = new();
             try
             {
-                var searchResults = await GetHttpStringCache($"{ENV_UBUNTU_ENDPOINT}/search?keywords={purl.Name}&searchon=names&exact=1&suite=all&section=all", neverThrow: true);
-                var document = await new HtmlParser().ParseDocumentAsync(searchResults);
-                foreach (var anchor in document.QuerySelectorAll("a.resultlink"))
+                string? searchResults = await GetHttpStringCache($"{ENV_UBUNTU_ENDPOINT}/search?keywords={purl.Name}&searchon=names&exact=1&suite=all&section=all", neverThrow: true);
+                AngleSharp.Html.Dom.IHtmlDocument document = await new HtmlParser().ParseDocumentAsync(searchResults);
+                foreach (AngleSharp.Dom.IElement anchor in document.QuerySelectorAll("a.resultlink"))
                 {
-                    var href = anchor.GetAttribute("href");
+                    string? href = anchor.GetAttribute("href");
                     if (href != null)
                     {
-                        var match = Regex.Match(href, "^/([^/]+)/.+");
+                        Match match = Regex.Match(href, "^/([^/]+)/.+");
                         if (match.Success)
                         {
-                            var pool = match.Groups[1].Value.Trim();
+                            string pool = match.Groups[1].Value.Trim();
                             Logger.Debug("Identified pool: {0}", pool);
                             pools.Add(pool);
                         }

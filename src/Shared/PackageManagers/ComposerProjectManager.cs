@@ -150,8 +150,7 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 string packageName = $"{purl.Namespace}/{purl.Name}";
-                string content = await GetHttpStringCache($"{ENV_COMPOSER_ENDPOINT}/p/{packageName}.json");
-                return content;
+                return await GetHttpStringCache($"{ENV_COMPOSER_ENDPOINT}/p/{packageName}.json");
             }
             catch (Exception ex)
             {

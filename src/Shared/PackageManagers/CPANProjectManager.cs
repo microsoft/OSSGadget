@@ -60,7 +60,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             // Locate the URL
             string? packageVersionUrl = null;
-            string html = await GetHttpStringCache($"{ENV_CPAN_ENDPOINT}/release/{packageName}");
+            string? html = await GetHttpStringCache($"{ENV_CPAN_ENDPOINT}/release/{packageName}");
             HtmlParser parser = new();
             AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(html);
             foreach (AngleSharp.Dom.IElement option in document.QuerySelectorAll("div.release select.extend option"))
@@ -143,7 +143,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 string packageName = purl.Name;
                 List<string> versionList = new();
 
-                string html = await GetHttpStringCache($"{ENV_CPAN_ENDPOINT}/release/{packageName}");
+                string? html = await GetHttpStringCache($"{ENV_CPAN_ENDPOINT}/release/{packageName}");
                 HtmlParser parser = new();
                 AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(html);
                 foreach (AngleSharp.Dom.IElement option in document.QuerySelectorAll("div.release select.extend option"))
@@ -178,8 +178,8 @@ namespace Microsoft.CST.OpenSource.Shared
                 string? packageName = purl.Name;
                 if (packageName != null)
                 {
-                    string contentRelease = await GetHttpStringCache($"{ENV_CPAN_ENDPOINT}/release/{packageName}");
-                    string contentPod = await GetHttpStringCache($"{ENV_CPAN_ENDPOINT}/pod/{packageName.Replace("-", "::")}");
+                    string? contentRelease = await GetHttpStringCache($"{ENV_CPAN_ENDPOINT}/release/{packageName}");
+                    string? contentPod = await GetHttpStringCache($"{ENV_CPAN_ENDPOINT}/pod/{packageName.Replace("-", "::")}");
                     return contentRelease + "\n" + contentPod;
                 }
                 else

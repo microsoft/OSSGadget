@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using Microsoft.CST.OpenSource.Model;
-using Octokit;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -33,9 +32,9 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
-            var packageName = purl?.Name;
-            var packageVersion = purl?.Version;
-            var downloadedPaths = new List<string>();
+            string? packageName = purl?.Name;
+            string? packageVersion = purl?.Version;
+            List<string> downloadedPaths = new();
 
             if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
             {
@@ -45,29 +44,29 @@ namespace Microsoft.CST.OpenSource.Shared
 
             try
             {
-                var doc = await GetJsonCache($"{ENV_PYPI_ENDPOINT}/pypi/{packageName}/json");
+                JsonDocument? doc = await GetJsonCache($"{ENV_PYPI_ENDPOINT}/pypi/{packageName}/json");
 
                 if (!doc.RootElement.TryGetProperty("releases", out JsonElement releases))
                 {
                     return downloadedPaths;
                 }
 
-                foreach (var versionObject in releases.EnumerateObject())
+                foreach (JsonProperty versionObject in releases.EnumerateObject())
                 {
                     if (versionObject.Name != packageVersion)
                     {
                         continue;
                     }
-                    foreach (var release in versionObject.Value.EnumerateArray())
+                    foreach (JsonElement release in versionObject.Value.EnumerateArray())
                     {
                         if (!release.TryGetProperty("packagetype", out JsonElement packageType))
                         {
                             continue;   // Missing a package type
                         }
 
-                        var result = await WebClient.GetAsync(release.GetProperty("url").GetString());
+                        System.Net.Http.HttpResponseMessage result = await WebClient.GetAsync(release.GetProperty("url").GetString());
                         result.EnsureSuccessStatusCode();
-                        var targetName = $"pypi-{packageType}-{packageName}@{packageVersion}";
+                        string targetName = $"pypi-{packageType}-{packageName}@{packageVersion}";
                         string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                         if (doExtract && Directory.Exists(extractionPath) && cached == true)
                         {
@@ -114,19 +113,19 @@ namespace Microsoft.CST.OpenSource.Shared
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
-            if (purl == null)
+            if (purl == null || purl.Name is null)
             {
                 return new List<string>();
             }
 
             try
             {
-                var packageName = purl.Name;
-                var doc = await GetJsonCache($"{ENV_PYPI_ENDPOINT}/pypi/{packageName}/json");
-                var versionList = new List<string>();
+                string packageName = purl.Name;
+                JsonDocument doc = await GetJsonCache($"{ENV_PYPI_ENDPOINT}/pypi/{packageName}/json");
+                List<string> versionList = new();
                 if (doc.RootElement.TryGetProperty("releases", out JsonElement releases))
                 {
-                    foreach (var versionObject in releases.EnumerateObject())
+                    foreach (JsonProperty versionObject in releases.EnumerateObject())
                     {
                         Logger.Debug("Identified {0} version {1}.", packageName, versionObject.Name);
                         versionList.Add(versionObject.Name);
@@ -139,7 +138,9 @@ namespace Microsoft.CST.OpenSource.Shared
                 {
                     Logger.Debug("Identified {0} version {1}.", packageName, version.GetString());
                     if (version.GetString() is string versionString && !string.IsNullOrWhiteSpace(versionString))
+                    {
                         versionList.Add(versionString);
+                    }
                 }
 
                 return SortVersions(versionList.Distinct());
@@ -166,7 +167,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
         public override async Task<PackageMetadata> GetPackageMetadata(PackageURL purl)
         {
-            PackageMetadata metadata = new PackageMetadata();
+            PackageMetadata metadata = new();
             string? content = await GetMetadata(purl);
             if (string.IsNullOrEmpty(content)) { return metadata; }
 
@@ -188,7 +189,7 @@ namespace Microsoft.CST.OpenSource.Shared
             metadata.Keywords = Utilities.ConvertJSONToList(Utilities.GetJSONPropertyIfExists(infoElement, "keywords"));
 
             // author
-            User author = new User()
+            User author = new()
             {
                 Name = Utilities.GetJSONPropertyStringIfExists(infoElement, "author"),
                 Email = Utilities.GetJSONPropertyStringIfExists(infoElement, "author_email"),
@@ -197,7 +198,7 @@ namespace Microsoft.CST.OpenSource.Shared
             metadata.Authors.Add(author);
 
             // maintainers
-            User maintainer = new User()
+            User maintainer = new()
             {
                 Name = Utilities.GetJSONPropertyStringIfExists(infoElement, "maintainer"),
                 Email = Utilities.GetJSONPropertyStringIfExists(infoElement, "maintainer_email"),
@@ -206,10 +207,10 @@ namespace Microsoft.CST.OpenSource.Shared
             metadata.Maintainers.Add(maintainer);
 
             // repository
-            var repoMappings = await SearchRepoUrlsInPackageMetadata(purl, content);
-            foreach (var repoMapping in repoMappings)
+            Dictionary<PackageURL, double>? repoMappings = await SearchRepoUrlsInPackageMetadata(purl, content);
+            foreach (KeyValuePair<PackageURL, double> repoMapping in repoMappings)
             {
-                Repository repository = new Repository
+                Repository repository = new()
                 {
                     Rank = repoMapping.Value,
                     Type = repoMapping.Key.Type
@@ -221,7 +222,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
 
             // license
-            var licenseType = Utilities.GetJSONPropertyStringIfExists(infoElement, "license");
+            string? licenseType = Utilities.GetJSONPropertyStringIfExists(infoElement, "license");
             if (!string.IsNullOrWhiteSpace(licenseType))
             {
                 metadata.Licenses ??= new List<License>();
@@ -232,8 +233,8 @@ namespace Microsoft.CST.OpenSource.Shared
             }
 
             // get the version
-            var versions = GetVersions(contentJSON);
-            var latestVersion = GetLatestVersion(versions);
+            List<Version> versions = GetVersions(contentJSON);
+            Version? latestVersion = GetLatestVersion(versions);
 
             if (purl.Version != null)
             {
@@ -248,7 +249,7 @@ namespace Microsoft.CST.OpenSource.Shared
             // if we found any version at all, get the deets
             if (metadata.PackageVersion is not null)
             {
-                Version versionToGet = new Version(metadata.PackageVersion);
+                Version versionToGet = new(metadata.PackageVersion);
                 JsonElement? versionElement = GetVersionElement(contentJSON, versionToGet);
                 if (versionElement is not null)
                 {
@@ -259,7 +260,7 @@ namespace Microsoft.CST.OpenSource.Shared
                         is JsonElement.ObjectEnumerator digests)
                     {
                         metadata.Signature ??= new List<Digest>();
-                        foreach (var digest in digests)
+                        foreach (JsonProperty digest in digests)
                         {
                             metadata.Signature.Add(new Digest()
                             {
@@ -292,7 +293,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
         public override List<Version> GetVersions(JsonDocument? contentJSON)
         {
-            List<Version> allVersions = new List<Version>();
+            List<Version> allVersions = new();
             if (contentJSON is null) { return allVersions; }
 
             Console.WriteLine(JsonSerializer.Serialize(contentJSON));
@@ -300,7 +301,7 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 JsonElement versions = root.GetProperty("versions");
-                foreach (var version in versions.EnumerateObject())
+                foreach (JsonProperty version in versions.EnumerateObject())
                 {
                     allVersions.Add(new Version(version.Name));
                 }
@@ -315,7 +316,7 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             try
             {
-                var versionElement = contentJSON.RootElement.GetProperty("releases").GetProperty(version.ToString());
+                JsonElement versionElement = contentJSON.RootElement.GetProperty("releases").GetProperty(version.ToString());
                 return versionElement;
             }
             catch (KeyNotFoundException)
@@ -329,9 +330,9 @@ namespace Microsoft.CST.OpenSource.Shared
             return new Uri($"{ENV_PYPI_ENDPOINT}/project/{purl?.Name}");
         }
 
-        protected async override Task<Dictionary<PackageURL, double>> SearchRepoUrlsInPackageMetadata(PackageURL purl, string metadata)
+        protected override async Task<Dictionary<PackageURL, double>> SearchRepoUrlsInPackageMetadata(PackageURL purl, string metadata)
         {
-            var mapping = new Dictionary<PackageURL, double>();
+            Dictionary<PackageURL, double> mapping = new();
             if (purl.Name?.StartsWith('_') ?? false) // TODO: there are internal modules which do not start with _
             {
                 // TODO: internal modules could also be in https://github.com/python/cpython/tree/master/Modules/
@@ -344,7 +345,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             JsonDocument contentJSON = JsonDocument.Parse(metadata);
 
-            List<string> possibleProperties = new List<string>() { "homepage", "home_page" };
+            List<string> possibleProperties = new() { "homepage", "home_page" };
             JsonElement infoJSON;
             try
             {
@@ -355,14 +356,14 @@ namespace Microsoft.CST.OpenSource.Shared
                 return mapping;
             }
 
-            foreach (var property in infoJSON.EnumerateObject())
+            foreach (JsonProperty property in infoJSON.EnumerateObject())
             {   // there are a couple of possibilities where the repository url might be present - check all of them
                 try
                 {
                     if (possibleProperties.Contains(property.Name.ToLower()))
                     {
                         string homepage = property.Value.ToString() ?? string.Empty;
-                        var packageUrls = GitHubProjectManager.ExtractGitHubPackageURLs(homepage);
+                        IEnumerable<PackageURL>? packageUrls = GitHubProjectManager.ExtractGitHubPackageURLs(homepage);
                         // if we were able to extract a github url, return
                         if (packageUrls != null && packageUrls.Any())
                         {

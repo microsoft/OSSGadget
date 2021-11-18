@@ -32,16 +32,16 @@ namespace Microsoft.CST.OpenSource.Shared
                .Where(type => type.IsSubclassOf(typeof(BaseProjectManager))));
             }
             // Use reflection to find the correct package management class
-            var downloaderClass = projectManagers
+            Type? downloaderClass = projectManagers
                .Where(type => type.Name.Equals($"{purl.Type}ProjectManager",
                                                StringComparison.InvariantCultureIgnoreCase))
                .FirstOrDefault();
             if (downloaderClass != null)
             {
-                var ctor = downloaderClass.GetConstructor(new Type[] { typeof(string) });
+                System.Reflection.ConstructorInfo? ctor = downloaderClass.GetConstructor(new Type[] { typeof(string) });
                 if (ctor != null)
                 {
-                    var _downloader = (BaseProjectManager)(ctor.Invoke(new object?[] { destinationDirectory }));
+                    BaseProjectManager? _downloader = (BaseProjectManager)(ctor.Invoke(new object?[] { destinationDirectory }));
                     return _downloader;
                 }
             }
@@ -50,6 +50,6 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         // do reflection only once
-        private static List<Type> projectManagers = new List<Type>();
+        private static readonly List<Type> projectManagers = new();
     }
 }

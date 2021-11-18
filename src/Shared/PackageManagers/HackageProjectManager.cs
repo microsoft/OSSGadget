@@ -121,8 +121,7 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 string packageName = purl.Name;
-                string content = await GetHttpStringCache($"{ENV_HACKAGE_ENDPOINT}/package/{packageName}");
-                return content;
+                return await GetHttpStringCache($"{ENV_HACKAGE_ENDPOINT}/package/{packageName}");
             }
             catch (Exception ex)
             {

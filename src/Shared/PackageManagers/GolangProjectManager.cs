@@ -104,7 +104,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 string? packageNamespaceLower = purl?.Namespace?.ToLowerInvariant();
                 string? packageNameLower = purl?.Name?.ToLowerInvariant();
                 List<string> versionList = new();
-                string doc = await GetHttpStringCache($"{ENV_GO_PROXY_ENDPOINT}/{packageNamespaceLower}/{packageNameLower}/@v/list");
+                string? doc = await GetHttpStringCache($"{ENV_GO_PROXY_ENDPOINT}/{packageNamespaceLower}/{packageNameLower}/@v/list");
                 if (doc != null)
                 {
                     foreach (string line in doc.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
@@ -144,8 +144,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     string latestVersion = versions.Last();
                     string packageNamespaceLower = purl.Namespace.ToLowerInvariant();
                     string packageNameLower = purl.Name.ToLowerInvariant();
-                    string content = await GetHttpStringCache($"{ENV_GO_PROXY_ENDPOINT}/{packageNamespaceLower}/{packageNameLower}/@v/{latestVersion}.mod");
-                    return content;
+                    return await GetHttpStringCache($"{ENV_GO_PROXY_ENDPOINT}/{packageNamespaceLower}/{packageNameLower}/@v/{latestVersion}.mod");
                 }
                 else
                 {

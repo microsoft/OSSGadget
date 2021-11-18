@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 {
     /// <summary>
-    /// The base mutator to be implemented by other mutators.
+    /// The mutator interface
     /// </summary>
     public interface IMutator
     {
@@ -16,6 +16,6 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
         /// </summary>
         /// <param name="arg">The string to generate mutations for.</param>
         /// <returns>A list of mutations with the name and reason.</returns>
-        public abstract IEnumerable<Mutation> Generate(string arg);
+        public IEnumerable<Mutation> Generate(string arg);
     }
 }

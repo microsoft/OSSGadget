@@ -33,7 +33,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
             }
             if (skipPrefixes != null)
             {
-                _prefixes.RemoveAll(x => skipPrefixes.Contains(x)):
+                _prefixes.RemoveAll(x => skipPrefixes.Contains(x));
             }
         }
 

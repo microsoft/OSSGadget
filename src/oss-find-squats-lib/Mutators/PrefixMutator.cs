@@ -13,7 +13,6 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     {
         public MutatorType Kind { get; } = MutatorType.Prefix;
 
-
         private static IList<string> _prefixes = new List<string>() { ".", "x", "-", "X", "_" };
 
         /// <summary>

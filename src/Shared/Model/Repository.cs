@@ -3,13 +3,9 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using Microsoft.CST.OpenSource.Shared;
 using System.Threading.Tasks;
-using Octokit;
-
 using CSTRepository = Microsoft.CST.OpenSource.Model.Repository;
 using GHRepository = Octokit.Repository;
-using NLog;
 
 namespace Microsoft.CST.OpenSource.Model
 {
@@ -116,8 +112,8 @@ namespace Microsoft.CST.OpenSource.Model
         {
             try
             {
-                var github = new GitHubClient(new ProductHeaderValue("OSSGadget"));
-                var ghRepository = await github.Repository.Get(purl.Namespace, purl.Name);
+                GitHubClient github = new(new ProductHeaderValue("OSSGadget"));
+                GHRepository ghRepository = await github.Repository.Get(purl.Namespace, purl.Name);
 
                 if (ghRepository is null) { return null; }
                 Archived = ghRepository.Archived;

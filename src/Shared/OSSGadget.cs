@@ -56,8 +56,8 @@ namespace Microsoft.CST.OpenSource
         /// <returns>The Action object with the parsed options</returns>
         protected ParserResult<T> ParseOptions<T>(string[]? args)
         {
-            var parser = new Parser();
-            var parserResult = parser.ParseArguments<T>(args);
+            Parser parser = new();
+            ParserResult<T> parserResult = parser.ParseArguments<T>(args);
             parserResult.WithNotParsed(errs => DisplayHelp(parserResult, errs));
             return parserResult;
         }
@@ -67,7 +67,7 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         protected void RestoreOutput()
         {
-            if (this.redirectConsole)
+            if (redirectConsole)
             {
                 ConsoleHelper.RestoreConsole();
             }
@@ -108,7 +108,7 @@ namespace Microsoft.CST.OpenSource
                 outputFile.IndexOfAny(Path.GetInvalidPathChars()) < 0 ||
                 Path.GetFileName(outputFile).IndexOfAny(Path.GetInvalidFileNameChars()) < 0)
             {
-                this.redirectConsole = true;
+                redirectConsole = true;
                 if (!ConsoleHelper.RedirectConsole(outputFile))
                 {
                     Logger.Debug("Could not switch output from console to file");
@@ -117,7 +117,7 @@ namespace Microsoft.CST.OpenSource
             }
             else
             {
-                this.redirectConsole = false;
+                redirectConsole = false;
                 Logger.Debug("Invalid file, {0}, writing to console instead.", outputFile);
             }
         }
@@ -125,8 +125,8 @@ namespace Microsoft.CST.OpenSource
         public static void ShowToolBanner()
         {
             Console.WriteLine(OSSGadget.GetBanner());
-            var toolName = GetToolName();
-            var toolVersion = GetToolVersion();
+            string? toolName = GetToolName();
+            string? toolVersion = GetToolVersion();
             Console.WriteLine($"OSS Gadget - {toolName} {toolVersion} - github.com/Microsoft/OSSGadget");
         }
 
@@ -136,7 +136,7 @@ namespace Microsoft.CST.OpenSource
         /// <returns></returns>
         public static string? GetToolName()
         {
-            var entryAssembly = Assembly.GetEntryAssembly()?.Location;
+            string? entryAssembly = Assembly.GetEntryAssembly()?.Location;
             if (entryAssembly != null)
             {
                 return Path.GetFileNameWithoutExtension(entryAssembly) ?? "Unknown";
@@ -150,9 +150,9 @@ namespace Microsoft.CST.OpenSource
         /// <returns></returns>
         public static string GetToolVersion()
         {
-            var assembly = Assembly.GetExecutingAssembly();
-            var versionAttributes = assembly.GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false) as AssemblyInformationalVersionAttribute[];
-            var version = versionAttributes?[0].InformationalVersion;
+            Assembly? assembly = Assembly.GetExecutingAssembly();
+            AssemblyInformationalVersionAttribute[]? versionAttributes = assembly.GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false) as AssemblyInformationalVersionAttribute[];
+            string? version = versionAttributes?[0].InformationalVersion;
             return version ?? "Unknown";
         }
 

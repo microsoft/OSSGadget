@@ -1,7 +1,11 @@
+<<<<<<< HEAD
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using Newtonsoft.Json;
 using System;
+=======
+﻿using Newtonsoft.Json;
+>>>>>>> c889b38 (First batch.)
 using System.Collections.Generic;
 
 namespace Microsoft.CST.OpenSource.Model

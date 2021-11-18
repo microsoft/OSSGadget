@@ -2,6 +2,10 @@
 
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using F23.StringSimilarity;
+    using Microsoft.CST.OpenSource.Model;
+    using Microsoft.CST.RecursiveExtractor;
+    using Microsoft.Extensions.Caching.Memory;
     using System;
     using System.Collections.Generic;
     using System.Data;
@@ -12,10 +16,6 @@ namespace Microsoft.CST.OpenSource.Shared
     using System.Text.Json;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
-    using F23.StringSimilarity;
-    using Microsoft.CST.OpenSource.Model;
-    using Microsoft.CST.RecursiveExtractor;
-    using Microsoft.Extensions.Caching.Memory;
     using Version = SemanticVersioning.Version;
 
     public class BaseProjectManager
@@ -63,15 +63,15 @@ namespace Microsoft.CST.OpenSource.Shared
                 Logger.Debug("Content was empty; nothing to do.");
                 return Array.Empty<PackageURL>();
             }
-            var purlList = new List<PackageURL>();
+            List<PackageURL> purlList = new();
 
             // @TODO: Check the regex below; does this match GitHub's scheme?
-            var githubRegex = new Regex(@"github\.com/([a-z0-9\-_\.]+)/([a-z0-9\-_\.]+)",
+            Regex githubRegex = new(@"github\.com/([a-z0-9\-_\.]+)/([a-z0-9\-_\.]+)",
                                         RegexOptions.IgnoreCase);
             foreach (Match match in githubRegex.Matches(content).Where(match => match != null))
             {
-                var user = match.Groups[1].Value;
-                var repo = match.Groups[2].Value;
+                string user = match.Groups[1].Value;
+                string repo = match.Groups[2].Value;
 
                 if (repo.EndsWith(".git", StringComparison.InvariantCultureIgnoreCase))
                 {
@@ -86,7 +86,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
 
                 // Create a PackageURL from what we know
-                var purl = new PackageURL("github", user, repo, null, null, null);
+                PackageURL purl = new("github", user, repo, null, null, null);
                 purlList.Add(purl);
             }
 
@@ -100,7 +100,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
         public static string GetCommonSupportedHelpText()
         {
-            var supportedHelpText = @"
+            string supportedHelpText = @"
 The package-url specifier is described at https://github.com/package-url/purl-spec:
   pkg:cargo/rand                The latest version of Rand (via crates.io)
   pkg:cocoapods/AFNetworking    The latest version of AFNetworking (via cocoapods.org)
@@ -152,16 +152,16 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
                     }
                 }
 
-                var result = await WebClient.GetAsync(uri);
+                HttpResponseMessage result = await WebClient.GetAsync(uri);
                 result.EnsureSuccessStatusCode();   // Don't cache error codes
-                var contentLength = result.Content.Headers.ContentLength ?? 8192;
+                long contentLength = result.Content.Headers.ContentLength ?? 8192;
                 resultString = await result.Content.ReadAsStringAsync();
 
                 if (useCache)
                 {
                     lock (DataCache)
                     {
-                        var mce = new MemoryCacheEntryOptions() { Size = contentLength };
+                        MemoryCacheEntryOptions mce = new() { Size = contentLength };
                         DataCache.Set<string>(uri, resultString, mce);
                     }
                 }
@@ -257,16 +257,16 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
                 }
             }
             Logger.Trace("Loading Uri");
-            var result = await WebClient.GetAsync(uri);
+            HttpResponseMessage result = await WebClient.GetAsync(uri);
             result.EnsureSuccessStatusCode();   // Don't cache error codes
-            var contentLength = result.Content.Headers.ContentLength ?? 8192;
-            var doc = await JsonDocument.ParseAsync(await result.Content.ReadAsStreamAsync());
+            long contentLength = result.Content.Headers.ContentLength ?? 8192;
+            JsonDocument doc = await JsonDocument.ParseAsync(await result.Content.ReadAsStreamAsync());
 
             if (useCache)
             {
                 lock (DataCache)
                 {
-                    var mce = new MemoryCacheEntryOptions() { Size = contentLength };
+                    MemoryCacheEntryOptions? mce = new() { Size = contentLength };
                     DataCache.Set<JsonDocument>(uri, doc, mce);
                 }
             }
@@ -282,7 +282,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
             }
 
             // Split Versions
-            var versionPartsList = versionList.Select(s => VersionComparer.Parse(s)).ToList();
+            List<List<string>> versionPartsList = versionList.Select(s => VersionComparer.Parse(s)).ToList();
             versionPartsList.Sort(new VersionComparer());
             return versionPartsList.Select(s => string.Join("", s));
         }
@@ -315,11 +315,11 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
 
             Directory.CreateDirectory(TopLevelExtractionDirectory);
 
-            var dirBuilder = new StringBuilder(directoryName);
+            StringBuilder dirBuilder = new(directoryName);
 
-            foreach (var c in Path.GetInvalidPathChars())
+            foreach (char c in Path.GetInvalidPathChars())
             {
-               dirBuilder.Replace(c, '-');    // ignore: lgtm [cs/string-concatenation-in-loop]
+                dirBuilder.Replace(c, '-');    // ignore: lgtm [cs/string-concatenation-in-loop]
             }
 
             string fullTargetPath = Path.Combine(TopLevelExtractionDirectory, dirBuilder.ToString());
@@ -332,14 +332,14 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
                     fullTargetPath = Path.Combine(TopLevelExtractionDirectory, dirBuilder.ToString());
                 }
             }
-            var extractor = new Extractor();
-            var extractorOptions = new ExtractorOptions()
+            Extractor extractor = new();
+            ExtractorOptions extractorOptions = new()
             {
                 ExtractSelfOnFail = true,
                 Parallel = true
                 //MaxExtractedBytes = 1000 * 1000 * 10;  // 10 MB maximum package size
             };
-            var result = await extractor.ExtractToDirectoryAsync(TopLevelExtractionDirectory, dirBuilder.ToString(), new MemoryStream(bytes), extractorOptions);
+            ExtractionStatusCode result = await extractor.ExtractToDirectoryAsync(TopLevelExtractionDirectory, dirBuilder.ToString(), new MemoryStream(bytes), extractorOptions);
             if (result == ExtractionStatusCode.Ok)
             {
                 Logger.Debug("Archive extracted to {0}", fullTargetPath);
@@ -403,7 +403,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         /// <returns>a string containing metadata.</returns>
         public virtual Task<string?> GetMetadata(PackageURL purl)
         {
-            var typeName = GetType().Name;
+            string typeName = GetType().Name;
             throw new NotImplementedException($"{typeName} does not implement GetMetadata.");
         }
 
@@ -414,7 +414,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         /// <returns></returns>
         public virtual Uri? GetPackageAbsoluteUri(PackageURL purl)
         {
-            var typeName = GetType().Name;
+            string typeName = GetType().Name;
             throw new NotImplementedException($"{typeName} does not implement GetPackageAbsoluteUri.");
         }
 
@@ -425,7 +425,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         /// <returns></returns>
         public virtual Task<PackageMetadata> GetPackageMetadata(PackageURL purl)
         {
-            var typeName = GetType().Name;
+            string typeName = GetType().Name;
             throw new NotImplementedException($"{typeName} does not implement GetPackageMetadata.");
         }
 
@@ -437,7 +437,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         /// <returns></returns>
         public virtual JsonElement? GetVersionElement(JsonDocument contentJSON, Version version)
         {
-            var typeName = GetType().Name;
+            string typeName = GetType().Name;
             throw new NotImplementedException($"{typeName} does not implement GetVersions.");
         }
 
@@ -449,7 +449,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         /// <returns></returns>
         public virtual List<Version> GetVersions(JsonDocument? metadata)
         {
-            var typeName = GetType().Name;
+            string typeName = GetType().Name;
             throw new NotImplementedException($"{typeName} does not implement GetVersions.");
         }
 
@@ -467,13 +467,13 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         {
             Logger.Trace("IdentifySourceRepository({0})", purl);
 
-            var rawMetadataString = await GetMetadata(purl) ?? string.Empty;
-            var sourceRepositoryMap = new Dictionary<PackageURL, double>();
+            string rawMetadataString = await GetMetadata(purl) ?? string.Empty;
+            Dictionary<PackageURL, double> sourceRepositoryMap = new();
 
             // Check the specific PackageManager-specific implementation first
             try
             {
-                foreach (var result in await SearchRepoUrlsInPackageMetadata(purl, rawMetadataString))
+                foreach (KeyValuePair<PackageURL, double> result in await SearchRepoUrlsInPackageMetadata(purl, rawMetadataString))
                 {
                     sourceRepositoryMap.Add(result.Key, result.Value);
                 }
@@ -490,7 +490,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
             }
 
             // Fall back to searching the metadata string for all possible GitHub URLs.
-            foreach (var result in ExtractRankedSourceRepositories(purl, rawMetadataString))
+            foreach (KeyValuePair<PackageURL, double> result in ExtractRankedSourceRepositories(purl, rawMetadataString))
             {
                 sourceRepositoryMap.Add(result.Key, result.Value);
             }
@@ -501,7 +501,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         /// <summary>
         /// Protected memory cache to make subsequent loads of the same URL fast and transparent.
         /// </summary>
-        protected static readonly MemoryCache DataCache = new MemoryCache(
+        protected static readonly MemoryCache DataCache = new(
             new MemoryCacheOptions
             {
                 SizeLimit = 1024 * 1024 * 8
@@ -531,7 +531,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         protected Dictionary<PackageURL, double> ExtractRankedSourceRepositories(PackageURL purl, string rawMetadataString)
         {
             Logger.Trace("ExtractRankedSourceRepositories({0})", purl);
-            var sourceRepositoryMap = new Dictionary<PackageURL, double>();
+            Dictionary<PackageURL, double> sourceRepositoryMap = new();
 
             if (purl == null || string.IsNullOrWhiteSpace(rawMetadataString))
             {
@@ -540,13 +540,13 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
 
             // Simple regular expression, looking for GitHub URLs
             // TODO: Expand this to Bitbucket, GitLab, etc.
-            var sourceUrls = GitHubProjectManager.ExtractGitHubUris(purl, rawMetadataString);
+            IEnumerable<PackageURL> sourceUrls = GitHubProjectManager.ExtractGitHubUris(purl, rawMetadataString);
             if (sourceUrls != null && sourceUrls.Any())
             {
-                var baseScore = 0.8;     // Max confidence: 0.80
-                var levenshtein = new NormalizedLevenshtein();
+                double baseScore = 0.8;     // Max confidence: 0.80
+                NormalizedLevenshtein levenshtein = new();
 
-                foreach (var group in sourceUrls.GroupBy(item => item))
+                foreach (IGrouping<PackageURL, PackageURL>? group in sourceUrls.GroupBy(item => item))
                 {
                     // the cumulative boosts should be < 0.2; otherwise it'd be an 1.0 score by
                     // Levenshtein distance
@@ -554,7 +554,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
 
                     // give a similarly weighted boost based on the number of times a particular
                     // candidate appear in the metadata
-                    double countBoost = (double)(group.Count()) * 0.0001;
+                    double countBoost = group.Count() * 0.0001;
 
                     sourceRepositoryMap.Add(group.Key, baseScore + similarityBoost + countBoost);
                 }

@@ -27,29 +27,29 @@ namespace Microsoft.CST.OpenSource
                 throw new ArgumentNullException("PackageURL cannot be null");
             }
 
-            this.doCache = doCaching;
+            doCache = doCaching;
             // if we are told to use caching, and it exists, believe that caching is still doable
-            this.actualCaching = (doCaching && !string.IsNullOrEmpty(destinationDir) && Directory.Exists(destinationDir));
+            actualCaching = (doCaching && !string.IsNullOrEmpty(destinationDir) && Directory.Exists(destinationDir));
 
             // if no destination specified, dump the package in the temp directory
-            this.destinationDirectory = string.IsNullOrEmpty(destinationDir) ?
+            destinationDirectory = string.IsNullOrEmpty(destinationDir) ?
                 Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()) : destinationDir;
 
-            this.packageManager = ProjectManagerFactory.CreateProjectManager(purl, this.destinationDirectory);
-            if (this.packageManager == null)
+            packageManager = ProjectManagerFactory.CreateProjectManager(purl, destinationDirectory);
+            if (packageManager == null)
             {
                 // Cannot continue without package manager
                 throw new ArgumentException("Invalid Package URL type: {0}", purl.Type);
             }
-            this.PackageVersions = new List<PackageURL>();
+            PackageVersions = new List<PackageURL>();
             if (purl.Version == null || purl.Version.Equals("*"))
             {
                 // figure out which version(s) we need to process
-                this.PackageVersions = this.GetPackageVersionsToProcess(purl).Result;
+                PackageVersions = GetPackageVersionsToProcess(purl).Result;
             }
             else
             {
-                this.PackageVersions.Add(purl);
+                PackageVersions.Add(purl);
             }
         }
 
@@ -60,7 +60,7 @@ namespace Microsoft.CST.OpenSource
         {
             try
             {
-                foreach (string packageDirectory in this.downloadPaths)
+                foreach (string packageDirectory in downloadPaths)
                 {
                     if (Directory.Exists(packageDirectory))
                     {
@@ -74,7 +74,7 @@ namespace Microsoft.CST.OpenSource
                 Logger.Trace("Error removing {0}: {1}", destinationDirectory, ex.Message);
             }
 
-            this.downloadPaths.Clear();
+            downloadPaths.Clear();
         }
 
         /// <summary>
@@ -85,7 +85,7 @@ namespace Microsoft.CST.OpenSource
             try
             {
                 // if we were told to cache the copy by the caller, do not delete
-                if (!this.doCache)
+                if (!doCache)
                 {
                     ClearPackageLocalCopy();
                 }
@@ -116,18 +116,18 @@ namespace Microsoft.CST.OpenSource
             bool metadataOnly,
             bool doExtract)
         {
-            List<string> downloadPaths = new List<string>();
+            List<string> downloadPaths = new();
             if (packageManager != null)
             {
                 if (metadataOnly)
                 {
-                    var metadata = await packageManager.GetMetadata(purl);
+                    string? metadata = await packageManager.GetMetadata(purl);
                     if (metadata != null)
                     {
-                        var outputFilename = Path.Combine(packageManager.TopLevelExtractionDirectory, $"metadata-{purl.ToStringFilename()}");
+                        string outputFilename = Path.Combine(packageManager.TopLevelExtractionDirectory, $"metadata-{purl.ToStringFilename()}");
 
                         // this will be effectively the same as above, if the cache doesnt exist
-                        if (!this.actualCaching)
+                        if (!actualCaching)
                         {
                             while (File.Exists(outputFilename))
                             {
@@ -141,7 +141,7 @@ namespace Microsoft.CST.OpenSource
                 else
                 {
                     // only version download requests reach here
-                    downloadPaths.AddRange(await packageManager.DownloadVersion(purl, doExtract, this.actualCaching));
+                    downloadPaths.AddRange(await packageManager.DownloadVersion(purl, doExtract, actualCaching));
                 }
             }
 
@@ -174,14 +174,14 @@ namespace Microsoft.CST.OpenSource
                 return new List<string>();
             }
 
-            List<string> downloadDirectories = new List<string>();
-            foreach (var version in this.PackageVersions)
+            List<string> downloadDirectories = new();
+            foreach (PackageURL version in PackageVersions)
             {
-                downloadDirectories.AddRange(await this.Download(version, metadataOnly, doExtract));
+                downloadDirectories.AddRange(await Download(version, metadataOnly, doExtract));
             }
 
             // Add the return values to our internal storage to be cleaned up later by CleanPackageLocalCopy
-            this.downloadPaths.AddRange(downloadDirectories);
+            downloadPaths.AddRange(downloadDirectories);
 
             return downloadDirectories;
         }
@@ -193,9 +193,9 @@ namespace Microsoft.CST.OpenSource
         /// <returns> </returns>
         public async Task<List<PackageURL>> GetPackageVersionsToProcess(PackageURL purl)
         {
-            List<PackageURL> packageVersions = new List<PackageURL>();
+            List<PackageURL> packageVersions = new();
 
-            if (this.packageManager != null)
+            if (packageManager != null)
             {
                 // figure out which version we want to download
                 PackageURL vPurl;
@@ -203,7 +203,7 @@ namespace Microsoft.CST.OpenSource
                 {
                     try
                     {
-                        var versions = await packageManager.EnumerateVersions(purl);
+                        IEnumerable<string>? versions = await packageManager.EnumerateVersions(purl);
                         if (versions.Any())
                         {
                             vPurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, versions.First(), purl.Qualifiers, purl.Subpath);
@@ -223,7 +223,7 @@ namespace Microsoft.CST.OpenSource
                 {
                     try
                     {
-                        foreach (var version in await packageManager.EnumerateVersions(purl))
+                        foreach (string? version in await packageManager.EnumerateVersions(purl))
                         {
                             vPurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, version, purl.Qualifiers, purl.Subpath);
                             packageVersions.Add(vPurl);
@@ -250,10 +250,10 @@ namespace Microsoft.CST.OpenSource
         protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
         // do we actually have a cache copy? or do we have to download?
-        private bool actualCaching = false;
+        private readonly bool actualCaching = false;
 
         // should we cache/check for the cache?
-        private bool doCache = false;
+        private readonly bool doCache = false;
 
         private string destinationDirectory { get; set; }
 

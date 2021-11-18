@@ -105,7 +105,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
                 }
                 catch (Exception e)
                 {
-                    Logger.Trace($"Could not enumerate versions. Package {mutationSet.Key} likely doesn't exist. {e.Message}:{e.StackTrace}");
+                    Logger.Trace($"Could not check if package exists. Package {mutationSet.Key} likely doesn't exist. {e.Message}:{e.StackTrace}");
                 }
                 if (res is not null)
                 {

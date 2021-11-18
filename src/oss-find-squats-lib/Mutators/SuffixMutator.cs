@@ -13,7 +13,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     {
         public MutatorType Kind { get; } = MutatorType.Suffix;
 
-        private static IList<string> _suffixes = new List<string>() { "s", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "ng", "-ng", ".", "x", "-", "_" };
+        private List<string> _suffixes = new() { "s", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "ng", "-ng", ".", "x", "-", "_" };
 
         /// <summary>
         /// Initializes a <see cref="SuffixMutator"/> instance.
@@ -25,15 +25,15 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
         {
             if (overrideSuffixes != null)
             {
-                _suffixes = new List<string>(overrideSuffixes);
+                _suffixes = overrideSuffixes.ToList();
             }
             if (additionalSuffixes != null)
             {
-                _suffixes = new List<string>(_suffixes.Concat(additionalSuffixes));
+                _suffixes.AddRange(additionalSuffixes);
             }
             if (skipSuffixes != null)
             {
-                _suffixes = new List<string>(_suffixes.Except(skipSuffixes));
+                _suffixes.RemoveAll(x => skipSuffixes.Contains(x));
             }
         }
         public IEnumerable<Mutation> Generate(string arg)
@@ -42,7 +42,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                     mutated: string.Concat(arg, s),
                     original: arg,
                     mutator: Kind,
-                    reason: "Suffix Added")
+                    reason: $"Suffix Added {s}")
             );
         }
     }

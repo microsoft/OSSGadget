@@ -19,7 +19,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                     mutated: string.Concat(arg[..i], arg[i], arg[i..]),
                     original: arg,
                     mutator: Kind,
-                    reason: "Letter Duplicated");
+                    reason: $"Letter Duplicated: {arg[i]}");
             }
 
             for (int i = 0; i < arg.Length - 2; i++)

@@ -27,7 +27,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                         mutated: arg.ReplaceCharAtPosition(c, i),
                         original: arg,
                         mutator: Kind,
-                        reason: "Close Letters on QWERTY Keyboard");
+                        reason: $"Close Letters on QWERTY Keyboard: {arg[i]} => {c}");
                 }
             }
         }

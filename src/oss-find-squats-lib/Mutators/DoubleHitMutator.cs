@@ -25,12 +25,12 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                         mutated: string.Concat(arg[..i], c, arg[i..]),
                         original: arg,
                         mutator: Kind,
-                        reason: "Double hit character");
+                        reason: $"Double hit character: {c}");
                     yield return new Mutation(
                         mutated: string.Concat(arg[..(i + 1)], c, arg[(i + 1)..]),
                         original: arg,
                         mutator: Kind,
-                        reason: "Double hit character");
+                        reason: $"Double hit character: {c}");
                 }
             }
         }

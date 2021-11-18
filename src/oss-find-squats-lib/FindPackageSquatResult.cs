@@ -8,9 +8,9 @@ namespace Microsoft.CST.OpenSource.FindSquats
     /// <summary>
     /// Represents a potential squatted package.
     /// </summary>
-    public class FindSquatResult
+    public class FindPackageSquatResult
     {
-        public FindSquatResult(string packageName, PackageURL packageUrl, PackageURL squattedPackage, IEnumerable<Mutation> mutations)
+        public FindPackageSquatResult(string packageName, PackageURL packageUrl, PackageURL squattedPackage, IEnumerable<Mutation> mutations)
         {
             PackageName = packageName;
             PackageUrl = packageUrl;

@@ -38,7 +38,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                             mutated: newString,
                             original: arg,
                             mutator: Kind,
-                            reason: "Bit Flips");
+                            reason: $"Bit Flips: Byte {i}, Bit {j}");
                     }
                 }
             }

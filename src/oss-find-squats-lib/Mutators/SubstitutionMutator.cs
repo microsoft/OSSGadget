@@ -41,7 +41,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                         mutated: arg.Replace(original, substitution),
                         original: arg,
                         mutator: Kind,
-                        reason: "Character Substituted");
+                        reason: $"String Substituted: {original} => {substitution}");
                 }
 
                 if (arg.Contains(substitution))
@@ -50,7 +50,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                         mutated: arg.Replace(substitution, original),
                         original: arg,
                         mutator: Kind,
-                        reason: "Character Substituted");
+                        reason: $"String Substituted: {substitution} => {original}");
                 }
             }
         }

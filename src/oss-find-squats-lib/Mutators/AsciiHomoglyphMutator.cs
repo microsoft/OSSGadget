@@ -48,7 +48,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                             mutated: arg.ReplaceCharAtPosition(c, i),
                             original: arg,
                             mutator: Kind,
-                            reason: "Ascii Homoglpyh");
+                            reason: $"Ascii Homoglpyh: {arg[i]} => {c}");
                     }
                 }
             }

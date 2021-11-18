@@ -28,6 +28,7 @@ namespace Microsoft.CST.OpenSource.DomainSquats
         {
             new AfterSeparatorMutator(),
             new AsciiHomoglyphMutator(),
+            new BitFlipMutator(),
             new CloseLettersMutator(),
             new DoubleHitMutator(),
             new DuplicatorMutator(),
@@ -38,8 +39,7 @@ namespace Microsoft.CST.OpenSource.DomainSquats
             new SuffixMutator(),
             new SwapOrderOfLettersMutator(),
             new UnicodeHomoglyphMutator(),
-            new VowelSwapMutator(),
-            new BitFlipMutator()
+            new VowelSwapMutator()
         };
 
         public class Options

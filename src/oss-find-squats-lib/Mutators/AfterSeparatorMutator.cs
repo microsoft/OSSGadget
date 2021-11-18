@@ -46,7 +46,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                             mutated: splits[0] + s + c + splits[1][1..],
                             original: arg,
                             mutator: Kind,
-                            reason: "After Separator");
+                            reason: $"After Separator: {s}");
                     }
                 }
             }

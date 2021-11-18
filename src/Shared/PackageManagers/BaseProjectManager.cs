@@ -302,6 +302,16 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         }
 
         /// <summary>
+        /// Check if the package exists in the respository.
+        /// </summary>
+        /// <param name="packageURL"></param>
+        /// <returns></returns>
+        public async Task<bool> PackageExists(PackageURL packageURL)
+        {
+            return (await EnumerateVersions(packageURL)).Any();
+        }
+
+        /// <summary>
         /// overload for getting the latest version
         /// </summary>
         /// <param name="versions"></param>

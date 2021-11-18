@@ -59,7 +59,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                             mutated: arg.ReplaceCharAtPosition(c, i),
                             original: arg,
                             mutator: Kind,
-                            reason: "Unicode Homoglyph");
+                            reason: $"Unicode Homoglyph: {arg[i]} => {c}");
                     }
                 }
             }

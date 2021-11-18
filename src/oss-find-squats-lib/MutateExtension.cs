@@ -49,61 +49,66 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
             _ => BaseMutators
         };
 
-        public static async IAsyncEnumerable<FindSquatResult> EnumerateSquats(this BaseProjectManager manager, PackageURL purl, MutateOptions? options = null)
+        public static async IAsyncEnumerable<FindPackageSquatResult> EnumerateSquats(this BaseProjectManager manager, PackageURL purl, MutateOptions? options = null)
         {
-            await foreach (FindSquatResult? mutation in manager.EnumerateSquats(purl, manager.GetDefaultMutators(), options))
+            await foreach (FindPackageSquatResult? mutation in manager.EnumerateSquats(purl, manager.GetDefaultMutators(), options))
             {
                 yield return mutation;
             }
         }
 
-        public static async IAsyncEnumerable<FindSquatResult> EnumerateSquats(this BaseProjectManager manager, PackageURL purl, IEnumerable<IMutator> mutators, MutateOptions? options = null)
+        public static async IAsyncEnumerable<FindPackageSquatResult> EnumerateSquats(this BaseProjectManager manager, PackageURL purl, IEnumerable<IMutator> mutators, MutateOptions? options = null)
         {
             if (purl.Name is null || purl.Type is null)
             {
                 yield break;
             }
 
-            HashSet<string> alreadyChecked = new();
+            Dictionary<string, IList<Mutation>> generatedMutations = new();
 
             foreach (IMutator? mutator in mutators)
             {
                 foreach (Mutation? mutation in mutator.Generate(purl.Name))
                 {
-                    if (!alreadyChecked.Add(mutation.Mutated))
+                    if (generatedMutations.ContainsKey(mutation.Mutated))
                     {
-                        Logger.Trace($"Already chcked {mutation.Mutated}. Skipping.");
-                        continue;
+                        generatedMutations[mutation.Mutated].Add(mutation);
                     }
-                    if (options?.SleepDelay > 0)
+                    else
                     {
-                        Thread.Sleep(options.SleepDelay);
-                    }
-                    PackageURL candidatePurl = new(purl.Type, mutation.Mutated);
-                    FindSquatResult? res = null;
-                    try
-                    {
-                        IEnumerable<string>? versions = await manager.EnumerateVersions(candidatePurl);
-
-                        if (versions.Any())
-                        {
-                            res = new FindSquatResult(
-                                packageName: mutation.Mutated,
-                                packageUrl: candidatePurl,
-                                squattedPackage: purl,
-                                mutations: new Mutation[] { mutation });
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.Trace($"Could not enumerate versions. Package {mutation.Mutated} likely doesn't exist. {e.Message}:{e.StackTrace}");
-                    }
-                    if (res is not null)
-                    {
-                        yield return res;
+                        generatedMutations[mutation.Mutated] = new List<Mutation>() { mutation };
                     }
                 }
             }
+
+            foreach(KeyValuePair<string, IList<Mutation>> mutationSet in generatedMutations)
+            {
+                if (options?.SleepDelay > 0)
+                {
+                    Thread.Sleep(options.SleepDelay);
+                }
+                PackageURL candidatePurl = new(purl.Type, mutationSet.Key);
+                FindPackageSquatResult? res = null;
+                try
+                {
+                    if (await manager.PackageExists(candidatePurl))
+                    {
+                        res = new FindPackageSquatResult(
+                            packageName: mutationSet.Key,
+                            packageUrl: candidatePurl,
+                            squattedPackage: purl,
+                            mutations: mutationSet.Value);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Logger.Trace($"Could not enumerate versions. Package {mutationSet.Key} likely doesn't exist. {e.Message}:{e.StackTrace}");
+                }
+                if (res is not null)
+                {
+                    yield return res;
+                }
+            } 
         }
     }
 }

@@ -13,7 +13,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     {
         public MutatorType Kind { get; } = MutatorType.Prefix;
 
-        private static IList<string> _prefixes = new List<string>() { ".", "x", "-", "X", "_" };
+        private List<string> _prefixes = new() { ".", "x", "-", "X", "_" };
 
         /// <summary>
         /// Initializes a <see cref="PrefixMutator"/> instance.
@@ -25,15 +25,15 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
         {
             if (overridePrefixes != null)
             {
-                _prefixes = new List<string>(overridePrefixes);
+                _prefixes = overridePrefixes.ToList();
             }
             if (additionalPrefixes != null)
             {
-                _prefixes = new List<string>(_prefixes.Concat(additionalPrefixes));
+                _prefixes.AddRange(additionalPrefixes);
             }
             if (skipPrefixes != null)
             {
-                _prefixes = new List<string>(_prefixes.Except(skipPrefixes));
+                _prefixes.RemoveAll(x => skipPrefixes.Contains(x)):
             }
         }
 
@@ -43,7 +43,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                     mutated: string.Concat(s, arg),
                     original: arg,
                     mutator: Kind,
-                    reason: "Prefix Added")
+                    reason: $"Prefix Added: {s}")
             );
         }
     }

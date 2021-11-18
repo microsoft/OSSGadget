@@ -51,14 +51,14 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                             mutated: arg.Replace(s, r),
                             original: arg,
                             mutator: Kind,
-                            reason: "Separator Changed");
+                            reason: $"Separator Changed: {s} => {r}");
                     }
 
                     yield return new Mutation(
                         mutated: arg.Replace(s.ToString(), string.Empty),
                         original: arg,
                         mutator: Kind,
-                        reason: "Separator Removed");
+                        reason: $"Separator Removed {s}");
                 }
             }
         }

@@ -9,6 +9,9 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     /// </summary>
     public interface IMutator
     {
+        /// <summary>
+        /// An enum specifying which kind of Mutator this is.
+        /// </summary>
         public MutatorType Kind { get; }
 
         /// <summary>

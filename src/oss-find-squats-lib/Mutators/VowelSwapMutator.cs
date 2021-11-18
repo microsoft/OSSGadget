@@ -31,7 +31,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                                 mutated: arg.ReplaceCharAtPosition(vowel, i),
                                 original: arg,
                                 mutator: Kind,
-                                reason: "Swap Vowel");
+                                reason: $"Swap Vowel: {arg[i]} => {vowel}");
                         }
                     }
                 }

@@ -109,7 +109,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
                     continue;
                 }
 
-                await foreach (FindSquatResult? potentialSquat in manager.EnumerateSquats(purl, checkerOptions))
+                await foreach (FindPackageSquatResult? potentialSquat in manager.EnumerateSquats(purl, checkerOptions))
                 {
                     foundSquats++;
                     if (!options.Quiet)

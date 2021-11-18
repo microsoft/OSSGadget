@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using Microsoft.CST.OpenSource.Shared;
 using Microsoft.CST.OpenSource.Shared.Extensions;
 using System.Collections.Generic;
 using System.Linq;

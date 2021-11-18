@@ -34,16 +34,16 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
                     new SuffixMutator(additionalSuffixes: new[] { "net", ".net", "nuget" }, skipSuffixes: new[] { "." })
                 });
 
-    internal static IEnumerable<IMutator> NpmMutators { get; } = BaseMutators.Where(x => x is not UnicodeHomoglyphMutator and not SuffixMutator)
-            .Concat(new IMutator[]
-                {
+        internal static IEnumerable<IMutator> NpmMutators { get; } = BaseMutators.Where(x => x is not UnicodeHomoglyphMutator and not SuffixMutator)
+                .Concat(new IMutator[]
+                    {
                     new SubstitutionMutator(new List<(string Original, string Substitution)>()
                     {
                         ("js", "javascript"),
                         ("ts", "typescript"),
                     }),
                     new SuffixMutator(additionalSuffixes: new[] { "js", ".js", "javascript", "ts", ".ts", "typescript"})
-                });
+                    });
 
         public static IEnumerable<IMutator> GetDefaultMutators(this BaseProjectManager manager) => manager switch
         {
@@ -84,7 +84,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
                 }
             }
 
-            foreach(KeyValuePair<string, IList<Mutation>> mutationSet in generatedMutations)
+            foreach (KeyValuePair<string, IList<Mutation>> mutationSet in generatedMutations)
             {
                 if (options?.SleepDelay > 0)
                 {
@@ -111,7 +111,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
                 {
                     yield return res;
                 }
-            } 
+            }
         }
     }
 }

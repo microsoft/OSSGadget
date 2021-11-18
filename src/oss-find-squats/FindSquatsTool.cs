@@ -2,7 +2,6 @@
 using CommandLine.Text;
 using Microsoft.CodeAnalysis.Sarif;
 using Microsoft.CST.OpenSource.FindSquats.ExtensionMethods;
-using Microsoft.CST.OpenSource.FindSquats.Mutators;
 using Microsoft.CST.OpenSource.Shared;
 using Newtonsoft.Json;
 using System;

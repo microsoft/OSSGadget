@@ -16,7 +16,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl"> </param>
         /// <returns> BaseProjectManager object </returns>
-        public static BaseProjectManager? CreateProjectManager(PackageURL purl, string? destinationDirectory)
+        public static BaseProjectManager? CreateProjectManager(PackageURL purl, string? destinationDirectory = null)
         {
             if (projectManagers.Count == 0)
             {

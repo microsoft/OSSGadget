@@ -2,7 +2,7 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.FindSquats
 {
     /// <summary>
     /// A helper for utilities related to the QWERTY keyboard.

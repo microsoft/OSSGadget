@@ -102,7 +102,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
                     continue;
                 }
 
-                BaseProjectManager? manager = ProjectManagerFactory.CreateProjectManager(purl, null);
+                BaseProjectManager? manager = ProjectManagerFactory.CreateProjectManager(purl);
                 if (manager is null)
                 {
                     Logger.Trace($"Could not generate valid ProjectManager from { purl }.");

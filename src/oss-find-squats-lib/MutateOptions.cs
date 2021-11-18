@@ -1,4 +1,4 @@
-﻿namespace Microsoft.CST.OpenSource.FindSquats.Mutators
+﻿namespace Microsoft.CST.OpenSource.FindSquats
 {
     public class MutateOptions
     {

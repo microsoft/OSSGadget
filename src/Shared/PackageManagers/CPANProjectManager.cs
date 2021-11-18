@@ -49,9 +49,9 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
-            var packageName = purl?.Name;
-            var packageVersion = purl?.Version;
-            var downloadedPaths = new List<string>();
+            string? packageName = purl?.Name;
+            string? packageVersion = purl?.Version;
+            List<string> downloadedPaths = new();
 
             if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
             {
@@ -60,20 +60,20 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             // Locate the URL
             string? packageVersionUrl = null;
-            var html = await GetHttpStringCache($"{ENV_CPAN_ENDPOINT}/release/{packageName}");
-            var parser = new HtmlParser();
-            var document = await parser.ParseDocumentAsync(html);
-            foreach (var option in document.QuerySelectorAll("div.release select.extend option"))
+            string html = await GetHttpStringCache($"{ENV_CPAN_ENDPOINT}/release/{packageName}");
+            HtmlParser parser = new();
+            AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(html);
+            foreach (AngleSharp.Dom.IElement option in document.QuerySelectorAll("div.release select.extend option"))
             {
                 if (!option.HasAttribute("value"))
                 {
                     continue;
                 }
-                var value = option.GetAttribute("value");
-                var version = value.Split('-').Last();
+                string? value = option.GetAttribute("value");
+                string version = value.Split('-').Last();
                 if (version.StartsWith("v", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    version = version.Substring(1);
+                    version = version[1..];
                 }
                 Logger.Trace("Comparing {0} to {1}", version, packageVersion);
 
@@ -95,20 +95,20 @@ namespace Microsoft.CST.OpenSource.Shared
 
             html = await GetHttpStringCache(packageVersionUrl);
             document = await parser.ParseDocumentAsync(html);
-            foreach (var italic in document.QuerySelectorAll("li a i.fa-download"))
+            foreach (AngleSharp.Dom.IElement? italic in document.QuerySelectorAll("li a i.fa-download"))
             {
-                var anchor = italic.Closest("a");
+                AngleSharp.Dom.IElement? anchor = italic.Closest("a");
                 if (!anchor.TextContent.Contains("Download ("))
                 {
                     continue;
                 }
 
-                var binaryUrl = anchor.GetAttribute("href");
-                var result = await WebClient.GetAsync(binaryUrl);
+                string? binaryUrl = anchor.GetAttribute("href");
+                System.Net.Http.HttpResponseMessage? result = await WebClient.GetAsync(binaryUrl);
                 result.EnsureSuccessStatusCode();
                 Logger.Debug("Downloading {0}...", purl);
 
-                var targetName = $"cpan-{packageName}@{packageVersion}";
+                string targetName = $"cpan-{packageName}@{packageVersion}";
                 string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                 if (doExtract && Directory.Exists(extractionPath) && cached == true)
                 {
@@ -133,27 +133,27 @@ namespace Microsoft.CST.OpenSource.Shared
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
-            if (purl == null)
+            if (purl == null || purl.Name is null)
             {
                 return new List<string>();
             }
 
             try
             {
-                var packageName = purl.Name;
-                var versionList = new List<string>();
+                string packageName = purl.Name;
+                List<string> versionList = new();
 
-                var html = await GetHttpStringCache($"{ENV_CPAN_ENDPOINT}/release/{packageName}");
-                var parser = new HtmlParser();
-                var document = await parser.ParseDocumentAsync(html);
-                foreach (var option in document.QuerySelectorAll("div.release select.extend option"))
+                string html = await GetHttpStringCache($"{ENV_CPAN_ENDPOINT}/release/{packageName}");
+                HtmlParser parser = new();
+                AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(html);
+                foreach (AngleSharp.Dom.IElement option in document.QuerySelectorAll("div.release select.extend option"))
                 {
                     if (!option.HasAttribute("value"))
                     {
                         continue;
                     }
-                    var value = option.GetAttribute("value");
-                    var match = Regex.Match(value, @".*-([^-]+)$");
+                    string? value = option.GetAttribute("value");
+                    Match? match = Regex.Match(value, @".*-([^-]+)$");
                     if (match.Success)
                     {
                         Logger.Debug("Identified {0} version {1}.", packageName, match.Groups[1].Value);
@@ -161,7 +161,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     }
                 }
 
-                var result = SortVersions(versionList.Distinct());
+                IEnumerable<string> result = SortVersions(versionList.Distinct());
                 return result;
             }
             catch (Exception ex)
@@ -175,11 +175,11 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             try
             {
-                var packageName = purl.Name;
+                string? packageName = purl.Name;
                 if (packageName != null)
                 {
-                    var contentRelease = await GetHttpStringCache($"{ENV_CPAN_ENDPOINT}/release/{packageName}");
-                    var contentPod = await GetHttpStringCache($"{ENV_CPAN_ENDPOINT}/pod/{packageName.Replace("-", "::")}");
+                    string contentRelease = await GetHttpStringCache($"{ENV_CPAN_ENDPOINT}/release/{packageName}");
+                    string contentPod = await GetHttpStringCache($"{ENV_CPAN_ENDPOINT}/pod/{packageName.Replace("-", "::")}");
                     return contentRelease + "\n" + contentPod;
                 }
                 else
@@ -196,7 +196,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
         public override Uri GetPackageAbsoluteUri(PackageURL purl)
         {
-            var packageName = purl?.Name;
+            string? packageName = purl?.Name;
             return new Uri($"{ENV_CPAN_ENDPOINT}/pod/{packageName}");
             // TODO: Add version support
         }

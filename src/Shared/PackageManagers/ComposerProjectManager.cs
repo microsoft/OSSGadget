@@ -26,10 +26,10 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
-            var packageNamespace = purl?.Namespace;
-            var packageName = purl?.Name;
-            var packageVersion = purl?.Version;
-            var downloadedPaths = new List<string>();
+            string? packageNamespace = purl?.Namespace;
+            string? packageName = purl?.Name;
+            string? packageVersion = purl?.Version;
+            List<string> downloadedPaths = new();
 
             if (string.IsNullOrWhiteSpace(packageNamespace) || string.IsNullOrWhiteSpace(packageName) ||
                 string.IsNullOrWhiteSpace(packageVersion))
@@ -40,25 +40,25 @@ namespace Microsoft.CST.OpenSource.Shared
 
             try
             {
-                var doc = await GetJsonCache($"{ENV_COMPOSER_ENDPOINT}/p/{packageNamespace}/{packageName}.json");
-                foreach (var topObject in doc.RootElement.GetProperty("packages").EnumerateObject())
+                System.Text.Json.JsonDocument doc = await GetJsonCache($"{ENV_COMPOSER_ENDPOINT}/p/{packageNamespace}/{packageName}.json");
+                foreach (System.Text.Json.JsonProperty topObject in doc.RootElement.GetProperty("packages").EnumerateObject())
                 {
-                    foreach (var versionObject in topObject.Value.EnumerateObject())
+                    foreach (System.Text.Json.JsonProperty versionObject in topObject.Value.EnumerateObject())
                     {
                         if (versionObject.Name != packageVersion)
                         {
                             continue;
                         }
-                        var url = versionObject.Value.GetProperty("dist").GetProperty("url").GetString();
-                        var result = await WebClient.GetAsync(url);
+                        string? url = versionObject.Value.GetProperty("dist").GetProperty("url").GetString();
+                        System.Net.Http.HttpResponseMessage? result = await WebClient.GetAsync(url);
                         result.EnsureSuccessStatusCode();
                         Logger.Debug("Downloading {0}...", purl);
 
-                        var fsNamespace = Utilities.NormalizeStringForFileSystem(packageNamespace);
-                        var fsName = Utilities.NormalizeStringForFileSystem(packageName);
-                        var fsVersion = Utilities.NormalizeStringForFileSystem(packageVersion);
+                        string fsNamespace = Utilities.NormalizeStringForFileSystem(packageNamespace);
+                        string fsName = Utilities.NormalizeStringForFileSystem(packageName);
+                        string fsVersion = Utilities.NormalizeStringForFileSystem(packageVersion);
 
-                        var targetName = $"composer-{fsNamespace}-{fsName}@{fsVersion}";
+                        string targetName = $"composer-{fsNamespace}-{fsName}@{fsVersion}";
                         string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                         if (doExtract && Directory.Exists(extractionPath) && cached == true)
                         {
@@ -115,22 +115,22 @@ namespace Microsoft.CST.OpenSource.Shared
                 return new List<string>();
             }
 
-            var versionList = new List<string>();
+            List<string> versionList = new();
 
             if (string.IsNullOrWhiteSpace(purl?.Namespace) || string.IsNullOrWhiteSpace(purl?.Name))
             {
                 return versionList;
             }
 
-            var packageName = $"{purl?.Namespace}/{purl?.Name}";
+            string packageName = $"{purl?.Namespace}/{purl?.Name}";
 
             try
             {
-                var doc = await GetJsonCache($"{ENV_COMPOSER_ENDPOINT}/p/{packageName}.json");
+                System.Text.Json.JsonDocument doc = await GetJsonCache($"{ENV_COMPOSER_ENDPOINT}/p/{packageName}.json");
 
-                foreach (var topObject in doc.RootElement.GetProperty("packages").EnumerateObject())
+                foreach (System.Text.Json.JsonProperty topObject in doc.RootElement.GetProperty("packages").EnumerateObject())
                 {
-                    foreach (var versionObject in topObject.Value.EnumerateObject())
+                    foreach (System.Text.Json.JsonProperty versionObject in topObject.Value.EnumerateObject())
                     {
                         Logger.Debug("Identified {0} version {1}.", packageName, versionObject.Name);
                         versionList.Add(versionObject.Name);
@@ -149,8 +149,8 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             try
             {
-                var packageName = $"{purl.Namespace}/{purl.Name}";
-                var content = await GetHttpStringCache($"{ENV_COMPOSER_ENDPOINT}/p/{packageName}.json");
+                string packageName = $"{purl.Namespace}/{purl.Name}";
+                string content = await GetHttpStringCache($"{ENV_COMPOSER_ENDPOINT}/p/{packageName}.json");
                 return content;
             }
             catch (Exception ex)

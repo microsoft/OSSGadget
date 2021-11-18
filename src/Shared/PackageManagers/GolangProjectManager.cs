@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Shared
@@ -31,10 +29,10 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
-            var packageNamespace = purl?.Namespace;
-            var packageName = purl?.Name;
-            var packageVersion = purl?.Version;
-            var downloadedPaths = new List<string>();
+            string? packageNamespace = purl?.Namespace;
+            string? packageName = purl?.Name;
+            string? packageVersion = purl?.Version;
+            List<string> downloadedPaths = new();
 
             if (string.IsNullOrWhiteSpace(packageNamespace) || string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
             {
@@ -44,12 +42,12 @@ namespace Microsoft.CST.OpenSource.Shared
 
             try
             {
-                var url = $"{ENV_GO_PROXY_ENDPOINT}/{packageNamespace.ToLowerInvariant()}/{packageName.ToLowerInvariant()}/@v/{packageVersion}.zip";
-                var result = await WebClient.GetAsync(url);
+                string url = $"{ENV_GO_PROXY_ENDPOINT}/{packageNamespace.ToLowerInvariant()}/{packageName.ToLowerInvariant()}/@v/{packageVersion}.zip";
+                System.Net.Http.HttpResponseMessage result = await WebClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
                 Logger.Debug("Downloading {0}...", purl);
 
-                var targetName = $"golang-{packageNamespace}-{packageName}@{packageVersion}";
+                string targetName = $"golang-{packageNamespace}-{packageName}@{packageVersion}";
                 string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                 if (doExtract && Directory.Exists(extractionPath) && cached == true)
                 {
@@ -103,15 +101,15 @@ namespace Microsoft.CST.OpenSource.Shared
 
             try
             {
-                var packageNamespaceLower = purl?.Namespace?.ToLowerInvariant();
-                var packageNameLower = purl?.Name?.ToLowerInvariant();
-                var versionList = new List<string>();
-                var doc = await GetHttpStringCache($"{ENV_GO_PROXY_ENDPOINT}/{packageNamespaceLower}/{packageNameLower}/@v/list");
+                string? packageNamespaceLower = purl?.Namespace?.ToLowerInvariant();
+                string? packageNameLower = purl?.Name?.ToLowerInvariant();
+                List<string> versionList = new();
+                string doc = await GetHttpStringCache($"{ENV_GO_PROXY_ENDPOINT}/{packageNamespaceLower}/{packageNameLower}/@v/list");
                 if (doc != null)
                 {
-                    foreach (var line in doc.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
+                    foreach (string line in doc.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
                     {
-                        var lineTrim = line.Trim();
+                        string lineTrim = line.Trim();
                         if (!string.IsNullOrEmpty(lineTrim))
                         {
                             Logger.Debug("Identified {0}/{1} version {2}.", purl?.Namespace, purl?.Name, lineTrim);
@@ -134,15 +132,19 @@ namespace Microsoft.CST.OpenSource.Shared
 
         public override async Task<string?> GetMetadata(PackageURL purl)
         {
+            if (purl is null || purl.Name is null || purl.Namespace is null)
+            {
+                return null;
+            }
             try
             {
-                var versions = await EnumerateVersions(purl);
+                IEnumerable<string> versions = await EnumerateVersions(purl);
                 if (versions.Any())
                 {
-                    var latestVersion = versions.Last();
-                    var packageNamespaceLower = purl?.Namespace?.ToLowerInvariant();
-                    var packageNameLower = purl?.Name?.ToLowerInvariant();
-                    var content = await GetHttpStringCache($"{ENV_GO_PROXY_ENDPOINT}/{packageNamespaceLower}/{packageNameLower}/@v/{latestVersion}.mod");
+                    string latestVersion = versions.Last();
+                    string packageNamespaceLower = purl.Namespace.ToLowerInvariant();
+                    string packageNameLower = purl.Name.ToLowerInvariant();
+                    string content = await GetHttpStringCache($"{ENV_GO_PROXY_ENDPOINT}/{packageNamespaceLower}/{packageNameLower}/@v/{latestVersion}.mod");
                     return content;
                 }
                 else

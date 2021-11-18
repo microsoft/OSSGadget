@@ -51,7 +51,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
             _ => BaseMutators
         };
 
-        public static async IAsyncEnumerable<FindSquatResult> EnumerateSquats(this BaseProjectManager manager, PackageURL purl, MutateOptions options)
+        public static async IAsyncEnumerable<FindSquatResult> EnumerateSquats(this BaseProjectManager manager, PackageURL purl, MutateOptions? options = null)
         {
             await foreach(var mutation in manager.EnumerateSquats(purl, manager.GetDefaultMutators(), options))
             {
@@ -59,7 +59,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
             }
         }
 
-        public static async IAsyncEnumerable<FindSquatResult> EnumerateSquats(this BaseProjectManager manager, PackageURL purl, IEnumerable<Mutator> mutators, MutateOptions options)
+        public static async IAsyncEnumerable<FindSquatResult> EnumerateSquats(this BaseProjectManager manager, PackageURL purl, IEnumerable<Mutator> mutators, MutateOptions? options = null)
         {
             HashSet<string> alreadyChecked = new();
             if (purl.Name is null || purl.Type is null)
@@ -75,7 +75,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
                         Logger.Trace($"Already chcked {mutation.Mutated}. Skipping.");
                         continue;
                     }
-                    if (options.SleepDelay > 0)
+                    if (options?.SleepDelay > 0)
                     {
                         Thread.Sleep(options.SleepDelay);
                     }

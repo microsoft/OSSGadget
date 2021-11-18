@@ -43,8 +43,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                     mutated: string.Concat(s, arg),
                     original: arg,
                     mutator: Kind,
-                    reason: $"Prefix Added: {s}")
-            );
+                    reason: $"Prefix Added: {s}"));
         }
     }
 }

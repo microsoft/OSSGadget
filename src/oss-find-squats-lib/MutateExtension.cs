@@ -29,9 +29,12 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
         };
 
         internal static IEnumerable<IMutator> NugetMutators { get; } = BaseMutators.Where(x => x is not UnicodeHomoglyphMutator and not SuffixMutator)
-            .Append(new SuffixMutator(additionalSuffixes: new[] { "net", ".net", "nuget" }, skipSuffixes: new[] { "." }));
+            .Concat(new IMutator[]
+                {
+                    new SuffixMutator(additionalSuffixes: new[] { "net", ".net", "nuget" }, skipSuffixes: new[] { "." })
+                });
 
-        internal static IEnumerable<IMutator> NpmMutators { get; } = BaseMutators.Where(x => x is not UnicodeHomoglyphMutator and not SuffixMutator)
+    internal static IEnumerable<IMutator> NpmMutators { get; } = BaseMutators.Where(x => x is not UnicodeHomoglyphMutator and not SuffixMutator)
             .Concat(new IMutator[]
                 {
                     new SubstitutionMutator(new List<(string Original, string Substitution)>()

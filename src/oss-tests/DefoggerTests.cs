@@ -1,11 +1,9 @@
-﻿using Microsoft.CST.OpenSource;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Windows.Markup;
 
 namespace Microsoft.CST.OpenSource.Tests
 
@@ -13,7 +11,7 @@ namespace Microsoft.CST.OpenSource.Tests
     [TestClass]
     public class DefoggerTests
     {
-        string decoded = "The quick brown fox jumped over the lazy dog.";
+        readonly string decoded = "The quick brown fox jumped over the lazy dog.";
 
         public DefoggerTests()
         {
@@ -22,9 +20,9 @@ namespace Microsoft.CST.OpenSource.Tests
         [TestMethod]
         public void DetectHex()
         {
-            var encoded = BitConverter.ToString(Encoding.Default.GetBytes(decoded)).Replace("-", "");
+            string? encoded = BitConverter.ToString(Encoding.Default.GetBytes(decoded)).Replace("-", "");
 
-            var tool = new DefoggerTool();
+            DefoggerTool? tool = new();
             tool.AnalyzeFile("DetectHexTest", encoded);
             Assert.AreEqual(2, tool.Findings.Count);
             Assert.IsTrue(tool.Findings.Any(x => x.EncodedText == encoded && x.DecodedText == decoded));
@@ -34,9 +32,9 @@ namespace Microsoft.CST.OpenSource.Tests
         [TestMethod]
         public void DetectHexWithDash()
         {
-            var encodedWithDash = BitConverter.ToString(Encoding.Default.GetBytes(decoded));
+            string? encodedWithDash = BitConverter.ToString(Encoding.Default.GetBytes(decoded));
 
-            var tool = new DefoggerTool();
+            DefoggerTool? tool = new();
             tool.AnalyzeFile("DetectHexTest", encodedWithDash);
             Assert.AreEqual(1, tool.Findings.Count);
             Assert.IsTrue(tool.Findings.Any(x => x.EncodedText == encodedWithDash && x.DecodedText == decoded));
@@ -45,9 +43,9 @@ namespace Microsoft.CST.OpenSource.Tests
         [TestMethod]
         public void DetectBase64()
         {
-            var base64 = Convert.ToBase64String(Encoding.Default.GetBytes(decoded));
+            string? base64 = Convert.ToBase64String(Encoding.Default.GetBytes(decoded));
 
-            var tool = new DefoggerTool();
+            DefoggerTool? tool = new();
             tool.AnalyzeFile("DetectBase64Test", base64);
             Assert.AreEqual(1, tool.Findings.Count);
             Assert.IsTrue(tool.Findings.Any(x => x.EncodedText == base64 && x.DecodedText == decoded));
@@ -56,9 +54,9 @@ namespace Microsoft.CST.OpenSource.Tests
         [TestMethod]
         public void DetectNested()
         {
-            var nested = Convert.ToHexString(Encoding.Default.GetBytes(Convert.ToBase64String(Encoding.Default.GetBytes(decoded))));
+            string? nested = Convert.ToHexString(Encoding.Default.GetBytes(Convert.ToBase64String(Encoding.Default.GetBytes(decoded))));
 
-            var tool = new DefoggerTool();
+            DefoggerTool? tool = new();
             tool.AnalyzeFile("DetectNestedTest", nested);
             Assert.AreEqual(3, tool.Findings.Count);
             Assert.AreEqual(2, tool.Findings.Count(x => x.Type == DefoggerTool.EncodedStringType.Base64));
@@ -69,12 +67,12 @@ namespace Microsoft.CST.OpenSource.Tests
         [TestMethod]
         public void DetectNestedZip()
         {
-            var zip = new FileStream(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "TestData", "Base64Zip.zip"), FileMode.Open);
-            var ms = new MemoryStream();
+            FileStream? zip = new(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "TestData", "Base64Zip.zip"), FileMode.Open);
+            MemoryStream? ms = new();
             zip.CopyTo(ms);
-            var nested = Convert.ToHexString(Encoding.Default.GetBytes(Convert.ToBase64String(ms.ToArray())));
+            string? nested = Convert.ToHexString(Encoding.Default.GetBytes(Convert.ToBase64String(ms.ToArray())));
 
-            var tool = new DefoggerTool();
+            DefoggerTool? tool = new();
             tool.AnalyzeFile("DetectNestedZipTest", nested);
             Assert.AreEqual(5, tool.Findings.Count);
             Assert.AreEqual(3, tool.Findings.Count(x => x.Type == DefoggerTool.EncodedStringType.Base64));
@@ -88,16 +86,16 @@ namespace Microsoft.CST.OpenSource.Tests
         [TestMethod]
         public void DetectZip()
         {
-            var zip = new FileStream(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "TestData", "Base64Zip.zip"), FileMode.Open);
-            var ms = new MemoryStream();
+            FileStream? zip = new(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "TestData", "Base64Zip.zip"), FileMode.Open);
+            MemoryStream? ms = new();
             zip.CopyTo(ms);
-            var base64 = Convert.ToBase64String(ms.ToArray());
+            string? base64 = Convert.ToBase64String(ms.ToArray());
 
-            var tool = new DefoggerTool();
+            DefoggerTool? tool = new();
             tool.AnalyzeFile("DetectZipTest", base64);
 
             Assert.AreEqual(3, tool.Findings.Count);
-            Assert.AreEqual(2,tool.Findings.Count(x => x.DecodedText.Equals(decoded)));
+            Assert.AreEqual(2, tool.Findings.Count(x => x.DecodedText.Equals(decoded)));
             Assert.AreEqual(2, tool.Findings.Count(x => x.Type == DefoggerTool.EncodedStringType.Base64));
             Assert.AreEqual(1, tool.Findings.Count(x => x.Type == DefoggerTool.EncodedStringType.Hex));
 
@@ -109,12 +107,12 @@ namespace Microsoft.CST.OpenSource.Tests
         [TestMethod]
         public void DetectBinaryTest()
         {
-            var bin = new FileStream(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "TestData","oss-defog.dll"),FileMode.Open);
-            var ms = new MemoryStream();
+            FileStream? bin = new(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "TestData", "oss-defog.dll"), FileMode.Open);
+            MemoryStream? ms = new();
             bin.CopyTo(ms);
-            var base64 = Convert.ToBase64String(ms.ToArray());
+            string? base64 = Convert.ToBase64String(ms.ToArray());
 
-            var tool = new DefoggerTool();
+            DefoggerTool? tool = new();
             tool.AnalyzeFile("DetectBinaryTest", base64);
             Assert.AreEqual(1, tool.BinaryFindings.Count);
         }

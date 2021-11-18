@@ -89,7 +89,7 @@ namespace Microsoft.CST.OpenSource.DomainSquats
         {
             ShowToolBanner();
 
-            var findSquatsTool = new FindDomainSquatsTool();
+            FindDomainSquatsTool findSquatsTool = new();
             (string output, int numRegisteredSquats, int numUnregisteredSquats) = (string.Empty, 0, 0);
             await findSquatsTool.ParseOptions<Options>(args).WithParsedAsync<Options>(findSquatsTool.RunAsync);
         }
@@ -99,24 +99,24 @@ namespace Microsoft.CST.OpenSource.DomainSquats
         public async Task<(string output, int registeredSquats, int unregisteredSquats)> RunAsync(Options options)
         {
             IOutputBuilder outputBuilder = SelectFormat(options.Format);
-            var registeredSquats = new List<(string, KeyValuePair<string, List<Mutation>>)>();
-            var unregisteredSquats = new List<(string, KeyValuePair<string, List<Mutation>>)>();
-            var failedSquats = new List<(string, KeyValuePair<string, List<Mutation>>)>();
-            var whois = new WhoisLookup();
-            foreach (var target in options.Targets ?? Array.Empty<string>())
+            List<(string, KeyValuePair<string, List<Mutation>>)> registeredSquats = new();
+            List<(string, KeyValuePair<string, List<Mutation>>)> unregisteredSquats = new();
+            List<(string, KeyValuePair<string, List<Mutation>>)> failedSquats = new();
+            WhoisLookup whois = new();
+            foreach (string? target in options.Targets ?? Array.Empty<string>())
             {
-                var splits = target.Split('.');
-                var domain = splits[0];
-                var potentials = new List<Mutation>();
-                foreach (var mutator in BaseMutators)
+                string[] splits = target.Split('.');
+                string domain = splits[0];
+                List<Mutation> potentials = new();
+                foreach (Mutator mutator in BaseMutators)
                 {
-                    foreach (var mutation in mutator.Generate(splits[0]))
+                    foreach (Mutation mutation in mutator.Generate(splits[0]))
                     {
                         potentials.Add(mutation);
                     }
                 }
 
-                foreach(var potential in potentials.GroupBy(x => x.Mutated).ToDictionary(x => x.Key, x => x.ToList()))
+                foreach(KeyValuePair<string, List<Mutation>> potential in potentials.GroupBy(x => x.Mutated).ToDictionary(x => x.Key, x => x.ToList()))
                 {
                     await CheckPotential(potential);
                 }
@@ -130,12 +130,12 @@ namespace Microsoft.CST.OpenSource.DomainSquats
                     }
                     if (Uri.IsWellFormedUriString(potential.Key, UriKind.Relative))
                     {
-                        var url = string.Join('.',potential.Key, string.Join('.',splits[1..]));
+                        string url = string.Join('.',potential.Key, string.Join('.',splits[1..]));
 
                         try
                         {
                             Thread.Sleep(options.SleepDelay);
-                            var response = await whois.LookupAsync(url);
+                            WhoisResponse response = await whois.LookupAsync(url);
                             if (response.Status == WhoisStatus.Found)
                             {
                                 registeredSquats.Add((url, potential));
@@ -176,9 +176,9 @@ namespace Microsoft.CST.OpenSource.DomainSquats
                 {
                     Logger.Warn($"Found {registeredSquats.Count} registered potential squats.");
                 }
-                foreach (var potential in registeredSquats)
+                foreach ((string, KeyValuePair<string, List<Mutation>>) potential in registeredSquats)
                 {
-                    var output = $"Registered: {potential.Item1} (rules: {string.Join(',', potential.Item2.Value)})";
+                    string output = $"Registered: {potential.Item1} (rules: {string.Join(',', potential.Item2.Value)})";
                     if (!options.Quiet)
                     {
                         Logger.Info(output);
@@ -189,7 +189,7 @@ namespace Microsoft.CST.OpenSource.DomainSquats
                             s.AppendOutput(new string[] { output });
                             break;
                         case SarifOutputBuilder sarif:
-                            SarifResult sarifResult = new SarifResult()
+                            SarifResult sarifResult = new()
                             {
                                 Message = new Message()
                                 {
@@ -200,7 +200,7 @@ namespace Microsoft.CST.OpenSource.DomainSquats
                                 Level = FailureLevel.None,
                             };
                             sarifResult.Tags.Add("Registered");
-                            foreach (var tag in potential.Item2.Value)
+                            foreach (Mutation? tag in potential.Item2.Value)
                             {
                                 sarifResult.Tags.Add(tag.Reason);
                                 sarifResult.Tags.Add(tag.Mutator.ToString());
@@ -215,9 +215,9 @@ namespace Microsoft.CST.OpenSource.DomainSquats
                 if (unregisteredSquats.Any())
                 {
                     Logger.Warn($"Found {unregisteredSquats.Count} unregistered potential squats.");
-                    foreach (var potential in unregisteredSquats)
+                    foreach ((string, KeyValuePair<string, List<Mutation>>) potential in unregisteredSquats)
                     {
-                        var output = $"Unregistered: {potential.Item1} (rules: {string.Join(',', potential.Item2.Value)})";
+                        string output = $"Unregistered: {potential.Item1} (rules: {string.Join(',', potential.Item2.Value)})";
                         if (!options.Quiet)
                         {
                             Logger.Info(output);
@@ -228,7 +228,7 @@ namespace Microsoft.CST.OpenSource.DomainSquats
                                 s.AppendOutput(new string[] { output });
                                 break;
                             case SarifOutputBuilder sarif:
-                                SarifResult sarifResult = new SarifResult()
+                                SarifResult sarifResult = new()
                                 {
                                     Message = new Message()
                                     {
@@ -239,7 +239,7 @@ namespace Microsoft.CST.OpenSource.DomainSquats
                                     Level = FailureLevel.None,
                                 };
                                 sarifResult.Tags.Add("Unregistered");
-                                foreach (var tag in potential.Item2.Value)
+                                foreach (Mutation? tag in potential.Item2.Value)
                                 {
                                     sarifResult.Tags.Add(tag.Reason);
                                     sarifResult.Tags.Add(tag.Mutator.ToString());
@@ -255,7 +255,7 @@ namespace Microsoft.CST.OpenSource.DomainSquats
                 Logger.Error($"{failedSquats.Count} potential squats hit an exception when querying.  Try increasing the sleep setting and trying again or check these manually.");
                 if (!options.Quiet)
                 {
-                    foreach (var fail in failedSquats)
+                    foreach ((string, KeyValuePair<string, List<Mutation>>) fail in failedSquats)
                     {
                         Logger.Info($"Failed: {fail.Item1} (rules: {string.Join(',', fail.Item2.Value)})");
                     }
@@ -264,8 +264,8 @@ namespace Microsoft.CST.OpenSource.DomainSquats
             }
             
 
-            using var fw = new StreamWriter(options.OutputFile);
-            var outString = outputBuilder.GetOutput();
+            using StreamWriter fw = new(options.OutputFile);
+            string outString = outputBuilder.GetOutput();
             fw.WriteLine(outString);
             fw.Close();
             return (outString, registeredSquats.Count, unregisteredSquats.Count);

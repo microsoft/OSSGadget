@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -232,7 +231,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     return new List<string>();
                 }
 
-                var doc = 
+                var doc = await GetJsonCache($"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json");
                 var versionList = new List<string>();
                 foreach (var catalogPage in doc.RootElement.GetProperty("items").EnumerateArray())
                 {

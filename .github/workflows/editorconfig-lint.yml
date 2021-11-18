@@ -1,12 +1,18 @@
-workflow "PR Audit" {
-  on = "pull_request"
-  resolves = ["EC Audit PR"]
-}
+name: "EditorConfig Linting"
 
-action "EC Audit PR" {
-  uses = "zbeekman/EditorConfig-Action@v1.1.0"
-  # secrets = ["GITHUB_TOKEN"] # Will be needed for fixing errors
-  env = {
-    ALWAYS_LINT_ALL_FILES = "false" # This is the default
-  }
-}
+on:
+  push:
+    paths:
+    - src/*
+  pull_request:
+    paths: 
+    - src/*
+
+jobs:
+  Lint:
+    strategy:
+      fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+    - name: EditorConfig-Action
+      uses: zbeekman/EditorConfig-Action@v1.1.1

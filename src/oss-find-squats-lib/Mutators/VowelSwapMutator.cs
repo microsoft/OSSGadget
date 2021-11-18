@@ -8,7 +8,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     /// <summary>
     /// Generates mutations for swapping a vowel for another.
     /// </summary>
-    public class VowelSwapMutator : Mutator
+    public class VowelSwapMutator : IMutator
     {
         public MutatorType Kind { get; } = MutatorType.VowelSwap;
 

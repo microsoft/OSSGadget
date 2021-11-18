@@ -7,7 +7,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     /// <summary>
     /// Generates mutations for if a letter was swapped with an adjacent letter.
     /// </summary>
-    public class SwapOrderOfLettersMutator : Mutator
+    public class SwapOrderOfLettersMutator : IMutator
     {
         public MutatorType Kind { get; } = MutatorType.SwapOrderOfLetters;
 

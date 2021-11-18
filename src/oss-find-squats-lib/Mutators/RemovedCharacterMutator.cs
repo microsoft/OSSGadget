@@ -7,7 +7,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     /// <summary>
     /// Generates mutations for removing a character in the string.
     /// </summary>
-    public class RemovedCharacterMutator : Mutator
+    public class RemovedCharacterMutator : IMutator
     {
         public MutatorType Kind { get; } = MutatorType.RemovedCharacter;
 

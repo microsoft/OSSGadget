@@ -10,7 +10,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     /// Similar looking letters were swapped out for similar looking unicode characters.
     /// e.g. ['a'] = "αа⍺ａ𝐚𝑎𝒂𝒶𝓪𝔞𝕒𝖆𝖺𝗮𝘢𝙖𝚊𝛂𝛼𝜶𝝰𝞪";
     /// </summary>
-    public class UnicodeHomoglyphMutator : Mutator
+    public class UnicodeHomoglyphMutator : IMutator
     {
         public MutatorType Kind { get; } = MutatorType.UnicodeHomoglyph;
 

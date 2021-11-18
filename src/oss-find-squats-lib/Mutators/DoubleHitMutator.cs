@@ -9,7 +9,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     /// <summary>
     /// Generates mutations for if a nearby character was double pressed.
     /// </summary>
-    public class DoubleHitMutator : Mutator
+    public class DoubleHitMutator : IMutator
     {
         public MutatorType Kind { get; } = MutatorType.DoubleHit;
 

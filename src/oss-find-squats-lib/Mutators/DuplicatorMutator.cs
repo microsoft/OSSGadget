@@ -7,7 +7,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     /// <summary>
     /// Generates mutations for if a character was duplicated in the string. Or duplicated and replaced.
     /// </summary>
-    public class DuplicatorMutator : Mutator
+    public class DuplicatorMutator : IMutator
     {
         public MutatorType Kind { get; } = MutatorType.Duplicator;
 

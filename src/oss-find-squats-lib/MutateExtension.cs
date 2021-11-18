@@ -11,7 +11,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
     {
         public static NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
 
-        internal static IEnumerable<Mutator> BaseMutators { get; } = new List<Mutator>()
+        internal static IEnumerable<IMutator> BaseMutators { get; } = new List<IMutator>()
         {
             new AfterSeparatorMutator(),
             new AsciiHomoglyphMutator(),
@@ -28,11 +28,11 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
             new VowelSwapMutator()
         };
 
-        internal static IEnumerable<Mutator> NugetMutators { get; } = BaseMutators.Where(x => x is not UnicodeHomoglyphMutator and not SuffixMutator)
+        internal static IEnumerable<IMutator> NugetMutators { get; } = BaseMutators.Where(x => x is not UnicodeHomoglyphMutator and not SuffixMutator)
             .Append(new SuffixMutator(additionalSuffixes: new[] { "net", ".net", "nuget" }, skipSuffixes: new[] { "." }));
 
-        internal static IEnumerable<Mutator> NpmMutators { get; } = BaseMutators.Where(x => x is not UnicodeHomoglyphMutator and not SuffixMutator)
-            .Concat(new Mutator[]
+        internal static IEnumerable<IMutator> NpmMutators { get; } = BaseMutators.Where(x => x is not UnicodeHomoglyphMutator and not SuffixMutator)
+            .Concat(new IMutator[]
                 {
                     new SubstitutionMutator(new List<(string Original, string Substitution)>()
                     {
@@ -42,7 +42,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
                     new SuffixMutator(additionalSuffixes: new[] { "js", ".js", "javascript", "ts", ".ts", "typescript"})
                 });
 
-        public static IEnumerable<Mutator> GetDefaultMutators(this BaseProjectManager manager) => manager switch
+        public static IEnumerable<IMutator> GetDefaultMutators(this BaseProjectManager manager) => manager switch
         {
             NuGetProjectManager => NugetMutators,
             NPMProjectManager => NpmMutators,
@@ -57,7 +57,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
             }
         }
 
-        public static async IAsyncEnumerable<FindSquatResult> EnumerateSquats(this BaseProjectManager manager, PackageURL purl, IEnumerable<Mutator> mutators, MutateOptions? options = null)
+        public static async IAsyncEnumerable<FindSquatResult> EnumerateSquats(this BaseProjectManager manager, PackageURL purl, IEnumerable<IMutator> mutators, MutateOptions? options = null)
         {
             if (purl.Name is null || purl.Type is null)
             {
@@ -66,7 +66,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
 
             HashSet<string> alreadyChecked = new();
 
-            foreach (Mutator? mutator in mutators)
+            foreach (IMutator? mutator in mutators)
             {
                 foreach (Mutation? mutation in mutator.Generate(purl.Name))
                 {

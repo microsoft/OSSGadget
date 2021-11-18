@@ -9,7 +9,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     /// Generates ASCII homoglyphs.
     /// Similar looking letters were swapped out for others. eg. m -> n or r -> n.
     /// </summary>
-    public class AsciiHomoglyphMutator : Mutator
+    public class AsciiHomoglyphMutator : IMutator
     {
         public MutatorType Kind { get; } = MutatorType.AsciiHomoglyph;
 

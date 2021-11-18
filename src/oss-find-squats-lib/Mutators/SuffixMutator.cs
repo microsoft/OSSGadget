@@ -9,7 +9,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     /// Generates mutations for if a suffix was added to the string.
     /// We check for these prefixes: ".", "x", "-", "X", "_".
     /// </summary>
-    public class SuffixMutator : Mutator
+    public class SuffixMutator : IMutator
     {
         public MutatorType Kind { get; } = MutatorType.Suffix;
 

@@ -10,7 +10,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     /// Generates mutations of added or removed separators.
     /// Separators are '.', '-', '_'.
     /// </summary>
-    public class SeparatorMutator : Mutator
+    public class SeparatorMutator : IMutator
     {
         public MutatorType Kind { get; } = MutatorType.Separator;
 

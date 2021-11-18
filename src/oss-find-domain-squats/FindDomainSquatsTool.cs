@@ -24,7 +24,7 @@ namespace Microsoft.CST.OpenSource.DomainSquats
 {
     public class FindDomainSquatsTool : OSSGadget
     {
-        internal static IList<Mutator> BaseMutators { get; } = new List<Mutator>()
+        internal static IList<IMutator> BaseMutators { get; } = new List<IMutator>()
         {
             new AfterSeparatorMutator(),
             new AsciiHomoglyphMutator(),
@@ -108,7 +108,7 @@ namespace Microsoft.CST.OpenSource.DomainSquats
                 string[] splits = target.Split('.');
                 string domain = splits[0];
                 List<Mutation> potentials = new();
-                foreach (Mutator mutator in BaseMutators)
+                foreach (IMutator mutator in BaseMutators)
                 {
                     foreach (Mutation mutation in mutator.Generate(splits[0]))
                     {

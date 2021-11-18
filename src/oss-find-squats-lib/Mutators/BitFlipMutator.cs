@@ -9,7 +9,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     /// <summary>
     /// Generates mutations for a flipped bit.
     /// </summary>
-    public class BitFlipMutator : Mutator
+    public class BitFlipMutator : IMutator
     {
         public MutatorType Kind { get; } = MutatorType.BitFlip;
 

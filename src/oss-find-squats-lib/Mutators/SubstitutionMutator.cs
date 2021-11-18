@@ -11,7 +11,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     /// <remarks>
     /// Currently has no substitutions by default, has to be populated in the constructor.
     /// </remarks>
-    public class SubstitutionMutator : Mutator
+    public class SubstitutionMutator : IMutator
     {
         public MutatorType Kind { get; } = MutatorType.Substitution;
 

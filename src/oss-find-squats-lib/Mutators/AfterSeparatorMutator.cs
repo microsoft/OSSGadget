@@ -10,7 +10,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     /// Generates mutations for if a character was changed after a separator was used.
     /// NOTE: Doesn't currently support extra separators like the <see cref="SeparatorMutator"/> does.
     /// </summary>
-    public class AfterSeparatorMutator : Mutator
+    public class AfterSeparatorMutator : IMutator
     {
         public MutatorType Kind { get; } = MutatorType.AfterSeparator;
 

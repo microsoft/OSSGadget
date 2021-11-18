@@ -7,7 +7,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     /// <summary>
     /// The base mutator to be implemented by other mutators.
     /// </summary>
-    public interface Mutator
+    public interface IMutator
     {
         public MutatorType Kind { get; }
 

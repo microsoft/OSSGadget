@@ -11,7 +11,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     /// Generates mutations for if a character that was close on the QWERTY Keyboard was used instead.
     /// e.g. r -> f, y -> u, etc.
     /// </summary>
-    public class CloseLettersMutator : Mutator
+    public class CloseLettersMutator : IMutator
     {
         public MutatorType Kind { get; } = MutatorType.CloseLetters;
 

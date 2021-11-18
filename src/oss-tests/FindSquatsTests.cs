@@ -43,7 +43,7 @@ namespace Microsoft.CST.OpenSource.Tests
                 BaseProjectManager? manager = ProjectManagerFactory.CreateProjectManager(purl, null);
                 if (manager is not null)
                 {
-                    foreach (Mutator mutator in manager.GetDefaultMutators())
+                    foreach (IMutator mutator in manager.GetDefaultMutators())
                     {
                         foreach (Mutation mutation in mutator.Generate(purl.Name))
                         {
@@ -69,7 +69,7 @@ namespace Microsoft.CST.OpenSource.Tests
                 BaseProjectManager? manager = ProjectManagerFactory.CreateProjectManager(purl, null);
                 if (manager is not null)
                 {
-                    foreach (Mutator mutator in manager.GetDefaultMutators())
+                    foreach (IMutator mutator in manager.GetDefaultMutators())
                     {
                         if (mutator.GetType().Equals(notExpectedToFind))
                         {

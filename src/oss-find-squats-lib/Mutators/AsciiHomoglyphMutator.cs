@@ -13,7 +13,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     {
         public MutatorType Kind { get; } = MutatorType.AsciiHomoglyph;
 
-        private static Dictionary<char, string> homoglyphs = new()
+        private static readonly Dictionary<char, string> homoglyphs = new()
         {
             ['a'] = "eoq4",
             ['b'] = "dp",
@@ -42,7 +42,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
             {
                 if (homoglyphs.ContainsKey(arg[i]))
                 {
-                    foreach (var c in homoglyphs[arg[i]])
+                    foreach (char c in homoglyphs[arg[i]])
                     {
                         yield return new Mutation(
                             mutated: arg.ReplaceCharAtPosition(c, i),

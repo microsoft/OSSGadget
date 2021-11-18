@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using Microsoft.CST.OpenSource.Shared.Extensions;
 using Microsoft.CST.OpenSource.Shared;
+using Microsoft.CST.OpenSource.Shared.Extensions;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -19,9 +19,9 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
         {
             for (int i = 0; i < arg.Length; i++)
             {
-                var n = QwertyKeyboardHelper.GetNeighboringCharacters(arg[i]).ToList();
+                List<char>? n = QwertyKeyboardHelper.GetNeighboringCharacters(arg[i]).ToList();
 
-                foreach (var c in n)
+                foreach (char c in n)
                 {
                     yield return new Mutation(
                         mutated: arg.ReplaceCharAtPosition(c, i),

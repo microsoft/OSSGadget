@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -15,7 +14,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
         public MutatorType Kind { get; } = MutatorType.Prefix;
 
 
-        private static IList<string> _prefixes = new List<string>(){ ".", "x", "-", "X", "_" };
+        private static IList<string> _prefixes = new List<string>() { ".", "x", "-", "X", "_" };
 
         /// <summary>
         /// Initializes a <see cref="PrefixMutator"/> instance.

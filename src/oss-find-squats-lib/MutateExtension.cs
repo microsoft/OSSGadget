@@ -3,9 +3,7 @@ using Microsoft.CST.OpenSource.Shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
 {
@@ -53,7 +51,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
 
         public static async IAsyncEnumerable<FindSquatResult> EnumerateSquats(this BaseProjectManager manager, PackageURL purl, MutateOptions? options = null)
         {
-            await foreach(var mutation in manager.EnumerateSquats(purl, manager.GetDefaultMutators(), options))
+            await foreach (FindSquatResult? mutation in manager.EnumerateSquats(purl, manager.GetDefaultMutators(), options))
             {
                 yield return mutation;
             }
@@ -61,14 +59,16 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
 
         public static async IAsyncEnumerable<FindSquatResult> EnumerateSquats(this BaseProjectManager manager, PackageURL purl, IEnumerable<Mutator> mutators, MutateOptions? options = null)
         {
-            HashSet<string> alreadyChecked = new();
             if (purl.Name is null || purl.Type is null)
             {
                 yield break;
             }
-            foreach(var mutator in mutators)
+
+            HashSet<string> alreadyChecked = new();
+
+            foreach (Mutator? mutator in mutators)
             {
-                foreach(var mutation in mutator.Generate(purl.Name))
+                foreach (Mutation? mutation in mutator.Generate(purl.Name))
                 {
                     if (!alreadyChecked.Add(mutation.Mutated))
                     {
@@ -79,11 +79,11 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
                     {
                         Thread.Sleep(options.SleepDelay);
                     }
-                    var candidatePurl = new PackageURL(purl.Type, mutation.Mutated);
+                    PackageURL candidatePurl = new(purl.Type, mutation.Mutated);
                     FindSquatResult? res = null;
                     try
                     {
-                        var versions = await manager.EnumerateVersions(candidatePurl);
+                        IEnumerable<string>? versions = await manager.EnumerateVersions(candidatePurl);
 
                         if (versions.Any())
                         {

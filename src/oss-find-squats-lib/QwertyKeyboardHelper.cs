@@ -12,9 +12,9 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <summary>
         /// The keymap of an ANSI QWERTY Keyboard. (USA style QWERTY Keyboard)
         /// </summary>
-        private static string[] _keymap = {"1234567890-=", "qwertyuiop[]\\", "asdfghjkl;'", "zxcvbnm,./",};
+        private static readonly string[] _keymap = { "1234567890-=", "qwertyuiop[]\\", "asdfghjkl;'", "zxcvbnm,./", };
 
-        private static Dictionary<char, int> _locations = new()
+        private static readonly Dictionary<char, int> _locations = new()
         {
             ['1'] = 0,
             ['2'] = 1,
@@ -78,13 +78,13 @@ namespace Microsoft.CST.OpenSource.Shared
             }
 
             // Get the integer location value for this character.
-            var loc = _locations[c];
+            int loc = _locations[c];
 
             int yOrigin = loc / 100;
             int xOrigin = loc % 100;
 
             // Calculate the neighboring character locations.
-            var neighbors = new[]
+            int[][]? neighbors = new[]
             {
                 new[] {xOrigin - 1, yOrigin - 1}, new[] {xOrigin, yOrigin - 1}, new[] {xOrigin + 1, yOrigin - 1},
                 new[] {xOrigin - 1, yOrigin}, new[] {xOrigin + 1, yOrigin}, new[] {xOrigin - 1, yOrigin + 1},
@@ -92,19 +92,19 @@ namespace Microsoft.CST.OpenSource.Shared
             };
 
             // Loop through the 8 neighboring characters.
-            foreach (var n in neighbors)
+            foreach (int[]? n in neighbors)
             {
                 int x = n[0];
                 int y = n[1];
 
                 // Assert that the neighboring character's location is a valid location on a keyboard.
-                if (x < 0 || y is < 0 or > 3 )
+                if (x < 0 || y is < 0 or > 3)
                 {
                     continue;
                 }
 
                 // Get the row this neighboring character position is on.
-                var row = _keymap[y];
+                string? row = _keymap[y];
 
                 // Assert that the x coordinate for this neighboring character position is a valid position on this row.
                 if (x >= row.Length)

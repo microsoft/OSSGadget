@@ -17,9 +17,9 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
         {
             for (int i = 0; i < arg.Length; i++)
             {
-                var n = QwertyKeyboardHelper.GetNeighboringCharacters(arg[i]).ToList();
+                List<char>? n = QwertyKeyboardHelper.GetNeighboringCharacters(arg[i]).ToList();
 
-                foreach (var c in n)
+                foreach (char c in n)
                 {
                     yield return new Mutation(
                         mutated: string.Concat(arg[..i], c, arg[i..]),

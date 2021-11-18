@@ -34,13 +34,13 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 
         public IEnumerable<Mutation> Generate(string arg)
         {
-            foreach (var s in Separators)
+            foreach (char s in Separators)
             {
-                var splits = arg.Split(s, StringSplitOptions.RemoveEmptyEntries);
+                string[]? splits = arg.Split(s, StringSplitOptions.RemoveEmptyEntries);
 
                 if (splits.Length == 2)
                 {
-                    for (var c = 'a'; c <= 'z'; c++)
+                    for (char c = 'a'; c <= 'z'; c++)
                     {
                         yield return new Mutation(
                             mutated: splits[0] + s + c + splits[1][1..],

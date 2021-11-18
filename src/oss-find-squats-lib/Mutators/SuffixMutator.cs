@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -14,7 +13,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     {
         public MutatorType Kind { get; } = MutatorType.Suffix;
 
-        private static IList<string> _suffixes = new List<string>(){ "s", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "ng", "-ng", ".", "x", "-", "_"};
+        private static IList<string> _suffixes = new List<string>() { "s", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "ng", "-ng", ".", "x", "-", "_" };
 
         /// <summary>
         /// Initializes a <see cref="SuffixMutator"/> instance.

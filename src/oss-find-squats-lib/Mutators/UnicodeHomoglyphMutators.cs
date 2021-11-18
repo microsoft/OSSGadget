@@ -14,7 +14,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     {
         public MutatorType Kind { get; } = MutatorType.UnicodeHomoglyph;
 
-        private static Dictionary<char, string> homoglyphs = new()
+        private static readonly Dictionary<char, string> homoglyphs = new()
         {
             ['a'] = "αа⍺ａ𝐚𝑎𝒂𝒶𝓪𝔞𝕒𝖆𝖺𝗮𝘢𝙖𝚊𝛂𝛼𝜶𝝰𝞪",
             ['b'] = "ƄЬᏏᖯｂ𝐛𝑏𝒃𝒷𝓫𝔟𝕓𝖇𝖻𝗯𝘣𝙗𝚋",
@@ -53,7 +53,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
             {
                 if (homoglyphs.ContainsKey(arg[i]))
                 {
-                    foreach (var c in homoglyphs[arg[i]])
+                    foreach (char c in homoglyphs[arg[i]])
                     {
                         yield return new Mutation(
                             mutated: arg.ReplaceCharAtPosition(c, i),

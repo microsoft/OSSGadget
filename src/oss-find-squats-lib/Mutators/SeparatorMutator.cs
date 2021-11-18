@@ -40,12 +40,12 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 
         public IEnumerable<Mutation> Generate(string arg)
         {
-            foreach (var s in Separators)
+            foreach (char s in Separators)
             {
                 if (arg.Contains(s))
                 {
-                    var rest = Separators.Except(new[] { s });
-                    foreach (var r in rest)
+                    IEnumerable<char>? rest = Separators.Except(new[] { s });
+                    foreach (char r in rest)
                     {
                         yield return new Mutation(
                             mutated: arg.Replace(s, r),

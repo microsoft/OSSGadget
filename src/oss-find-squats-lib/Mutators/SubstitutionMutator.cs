@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using System;
 using System.Collections.Generic;
 
 namespace Microsoft.CST.OpenSource.FindSquats.Mutators
@@ -34,7 +33,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 
         public IEnumerable<Mutation> Generate(string arg)
         {
-            foreach (var (original, substitution) in _substitutions)
+            foreach ((string original, string substitution) in _substitutions)
             {
                 if (arg.Contains(original))
                 {

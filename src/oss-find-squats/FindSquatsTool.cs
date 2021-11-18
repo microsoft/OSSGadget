@@ -1,18 +1,16 @@
 ﻿using CommandLine;
 using CommandLine.Text;
 using Microsoft.CodeAnalysis.Sarif;
+using Microsoft.CST.OpenSource.FindSquats.ExtensionMethods;
+using Microsoft.CST.OpenSource.FindSquats.Mutators;
 using Microsoft.CST.OpenSource.Shared;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
-using System.IO;
-using System.Threading;
-using Newtonsoft.Json;
-using Microsoft.CST.OpenSource.FindSquats.ExtensionMethods;
-using Microsoft.CST.OpenSource.FindSquats.Mutators;
 
 namespace Microsoft.CST.OpenSource.FindSquats
 {
@@ -57,12 +55,12 @@ namespace Microsoft.CST.OpenSource.FindSquats
             client = new HttpClient();
         }
 
-        HttpClient client;
+        readonly HttpClient client;
         static async Task Main(string[] args)
         {
             ShowToolBanner();
             var findSquatsTool = new FindSquatsTool();
-            (string output, int numSquats) = (string.Empty, 0);
+            (var output, var numSquats) = (string.Empty, 0);
             findSquatsTool.ParseOptions<Options>(args).WithParsed<Options>(options =>
             {
                 (output, numSquats) = findSquatsTool.RunAsync(options).Result;
@@ -90,9 +88,9 @@ namespace Microsoft.CST.OpenSource.FindSquats
 
         public async Task<(string output, int numSquats)> RunAsync(Options options)
         {
-            IOutputBuilder outputBuilder = SelectFormat(options.Format);
+            var outputBuilder = SelectFormat(options.Format);
             var foundSquats = 0;
-            MutateOptions checkerOptions = new MutateOptions()
+            var checkerOptions = new MutateOptions()
             {
                 SleepDelay = options.SleepDelay
             };
@@ -121,7 +119,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
                     }
                     if (outputBuilder is SarifOutputBuilder sarob)
                     {
-                        SarifResult sarifResult = new SarifResult()
+                        var sarifResult = new SarifResult()
                         {
                             Message = new Message()
                             {
@@ -154,7 +152,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
                 }
             }
 
-            return (outputBuilder.GetOutput(),foundSquats);
+            return (outputBuilder.GetOutput(), foundSquats);
         }
     }
 }

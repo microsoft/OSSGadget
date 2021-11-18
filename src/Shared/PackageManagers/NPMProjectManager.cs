@@ -83,26 +83,8 @@ namespace Microsoft.CST.OpenSource.Shared
                 Logger.Trace("Provided PackageURL was null.");
                 return false;
             }
-            try
-            {
-                string packageName = purl.Name;
-                // GetJsonCache throws an exception if it has trouble finding the package
-                _ = await GetJsonCache($"{ENV_NPM_API_ENDPOINT}/{packageName}");
-                return true;
-            }
-            catch(Exception e)
-            {
-                if (e is HttpRequestException httpEx)
-                {
-                    if (httpEx.StatusCode == System.Net.HttpStatusCode.NotFound)
-                    {
-                        Logger.Trace("Package not found: {0}");
-                        return false;
-                    }
-                }
-                Logger.Debug("Unable to check if package exists: {0}", e.Message);
-            }
-            return false;
+            string packageName = purl.Name;
+            return await CheckJsonCacheForPackage($"{ENV_NPM_API_ENDPOINT}/{packageName}");
         }
 
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)

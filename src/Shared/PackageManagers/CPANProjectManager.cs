@@ -22,6 +22,18 @@ namespace Microsoft.CST.OpenSource.Shared
         {
         }
 
+        public override async Task<bool> PackageExists(PackageURL purl)
+        {
+            Logger.Trace("PackageExists {0}", purl?.ToString());
+            if (purl is null || purl.Name is null || purl.Type is null)
+            {
+                Logger.Trace("Provided PackageURL was null.");
+                return false;
+            }
+            string packageName = purl.Name;
+            return await CheckHttpCacheForPackage($"{ENV_CPAN_ENDPOINT}/release/{packageName}");
+        }
+
         /// <summary>
         /// Download one CPAN package and extract it to the target directory.
         /// </summary>

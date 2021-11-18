@@ -176,6 +176,54 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
             return resultString;
         }
 
+        internal async Task<bool> CheckHttpCacheForPackage(string url)
+        {
+            Logger.Trace("PackageExists {0}", url);
+            try
+            {
+                // GetJsonCache throws an exception if it has trouble finding the package
+                _ = await GetHttpStringCache(url);
+                return true;
+            }
+            catch (Exception e)
+            {
+                if (e is HttpRequestException httpEx)
+                {
+                    if (httpEx.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    {
+                        Logger.Trace("Package not found: {0}");
+                        return false;
+                    }
+                }
+                Logger.Debug("Unable to check if package exists: {0}", e.Message);
+            }
+            return false;
+        }
+
+        internal async Task<bool> CheckJsonCacheForPackage(string url)
+        {
+            Logger.Trace("PackageExists {0}", url);
+            try
+            {
+                // GetJsonCache throws an exception if it has trouble finding the package
+                _ = await GetJsonCache(url);
+                return true;
+            }
+            catch (Exception e)
+            {
+                if (e is HttpRequestException httpEx)
+                {
+                    if (httpEx.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    {
+                        Logger.Trace("Package not found: {0}");
+                        return false;
+                    }
+                }
+                Logger.Debug("Unable to check if package exists: {0}", e.Message);
+            }
+            return false;
+        }
+
         /// <summary>
         /// Retrieves JSON content from a given URI.
         /// </summary>

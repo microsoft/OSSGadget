@@ -75,6 +75,18 @@ namespace Microsoft.CST.OpenSource.Shared
             return downloadedPaths;
         }
 
+        public override async Task<bool> PackageExists(PackageURL purl)
+        {
+            Logger.Trace("PackageExists {0}", purl?.ToString());
+            if (purl is null || purl.Name is null || purl.Type is null)
+            {
+                Logger.Trace("Provided PackageURL was null.");
+                return false;
+            }
+            string packageName = purl.Name;
+            return await CheckJsonCacheForPackage($"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}");
+        }
+
         /// <summary>
         ///     Enumerates all possible versions of the package identified by purl.
         /// </summary>

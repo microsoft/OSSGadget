@@ -107,6 +107,19 @@ namespace Microsoft.CST.OpenSource.Shared
             return downloadedPaths;
         }
 
+        public override async Task<bool> PackageExists(PackageURL purl)
+        {
+            Logger.Trace("PackageExists {0}", purl?.ToString());
+            if (purl is null || purl.Name is null || purl.Type is null)
+            {
+                Logger.Trace("Provided PackageURL was null.");
+                return false;
+            }
+            string packageName = purl.Name;
+            string prefix = GetCocoapodsPrefix(packageName ?? string.Empty);
+            return await CheckHttpCacheForPackage($"{ENV_COCOAPODS_SPECS_ENDPOINT}/Specs/{prefix}/{packageName}");
+        }
+
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());

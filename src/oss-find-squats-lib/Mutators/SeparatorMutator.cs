@@ -8,7 +8,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 {
     /// <summary>
     /// Generates mutations of added or removed separators.
-    /// Separators are '.', '-', '_'.
+    /// The default separators are '.', '-', '_'.
     /// </summary>
     public class SeparatorMutator : IMutator
     {

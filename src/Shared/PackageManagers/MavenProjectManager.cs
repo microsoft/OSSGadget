@@ -26,11 +26,10 @@ namespace Microsoft.CST.OpenSource.Shared
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
-
-            var packageNamespace = purl?.Namespace?.Replace('.', '/');
-            var packageName = purl?.Name;
-            var packageVersion = purl?.Version;
-            var downloadedPaths = new List<string>();
+            string? packageNamespace = purl?.Namespace?.Replace('.', '/');
+            string? packageName = purl?.Name;
+            string? packageVersion = purl?.Version;
+            List<string> downloadedPaths = new();
 
             if (string.IsNullOrWhiteSpace(packageNamespace) || string.IsNullOrWhiteSpace(packageName) ||
                 string.IsNullOrWhiteSpace(packageVersion))
@@ -41,15 +40,15 @@ namespace Microsoft.CST.OpenSource.Shared
 
             try
             {
-                var suffixes = new string[] { "-javadoc", "-sources", "" };
-                foreach (var suffix in suffixes)
+                string[] suffixes = new string[] { "-javadoc", "-sources", "" };
+                foreach (string suffix in suffixes)
                 {
-                    var url = $"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/{packageVersion}/{packageName}-{packageVersion}{suffix}.jar";
-                    var result = await WebClient.GetAsync(url);
+                    string url = $"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/{packageVersion}/{packageName}-{packageVersion}{suffix}.jar";
+                    System.Net.Http.HttpResponseMessage result = await WebClient.GetAsync(url);
                     result.EnsureSuccessStatusCode();
                     Logger.Debug($"Downloading {purl}...");
 
-                    var targetName = $"maven-{packageNamespace}-{packageName}{suffix}@{packageVersion}";
+                    string targetName = $"maven-{packageNamespace}-{packageName}{suffix}@{packageVersion}";
                     targetName = targetName.Replace('/', '-');
                     string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                     if (doExtract && Directory.Exists(extractionPath) && cached == true)
@@ -98,21 +97,21 @@ namespace Microsoft.CST.OpenSource.Shared
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL? purl)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
-            if (purl == null)
+            if (purl is null || purl.Name is null || purl.Namespace is null)
             {
                 return new List<string>();
             }
             try
             {
-                var packageNamespace = purl?.Namespace?.Replace('.', '/');
-                var packageName = purl?.Name;
-                var content = await GetHttpStringCache($"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/maven-metadata.xml");
-                var versionList = new List<string>();
+                string packageNamespace = purl.Namespace.Replace('.', '/');
+                string packageName = purl.Name;
+                string content = await GetHttpStringCache($"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/maven-metadata.xml");
+                List<string> versionList = new();
                 if (string.IsNullOrWhiteSpace(content))
                 {
                     return new List<string>();
                 }
-                var doc = new XmlDocument();
+                XmlDocument doc = new();
                 doc.LoadXml(content);
                 foreach (XmlNode? versionObject in doc.GetElementsByTagName("version"))
                 {
@@ -135,11 +134,11 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             try
             {
-                var packageNamespace = purl?.Namespace?.Replace('.', '/');
-                var packageName = purl?.Name;
+                string? packageNamespace = purl?.Namespace?.Replace('.', '/');
+                string? packageName = purl?.Name;
                 if (purl?.Version == null)
                 {
-                    foreach (var version in await EnumerateVersions(purl))
+                    foreach (string? version in await EnumerateVersions(purl))
                     {
                         return await GetHttpStringCache($"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/{version}/{packageName}-{version}.pom");
                     }
@@ -147,7 +146,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
                 else
                 {
-                    var version = purl.Version;
+                    string version = purl.Version;
                     return await GetHttpStringCache($"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/{version}/{packageName}-{version}.pom");
                 }
             }
@@ -160,8 +159,8 @@ namespace Microsoft.CST.OpenSource.Shared
 
         public override Uri GetPackageAbsoluteUri(PackageURL purl)
         {
-            var packageNamespace = purl?.Namespace?.Replace('.', '/');
-            var packageName = purl?.Name;
+            string? packageNamespace = purl?.Namespace?.Replace('.', '/');
+            string? packageName = purl?.Name;
 
             return new Uri($"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}");
         }

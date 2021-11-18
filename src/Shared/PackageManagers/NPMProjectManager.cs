@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -72,6 +73,36 @@ namespace Microsoft.CST.OpenSource.Shared
                 Logger.Debug(ex, "Error downloading NPM package: {0}", ex.Message);
             }
             return downloadedPaths;
+        }
+
+        public override async Task<bool> PackageExists(PackageURL purl)
+        {
+            Logger.Trace("PackageExists {0}", purl?.ToString());
+            if (purl is null || purl.Name is null || purl.Type is null)
+            {
+                Logger.Trace("Provided PackageURL was null.");
+                return false;
+            }
+            try
+            {
+                string packageName = purl.Name;
+                // GetJsonCache throws an exception if it has trouble finding the package
+                _ = await GetJsonCache($"{ENV_NPM_API_ENDPOINT}/{packageName}");
+                return true;
+            }
+            catch(Exception e)
+            {
+                if (e is HttpRequestException httpEx)
+                {
+                    if (httpEx.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    {
+                        Logger.Trace("Package not found: {0}");
+                        return false;
+                    }
+                }
+                Logger.Debug("Unable to check if package exists: {0}", e.Message);
+            }
+            return false;
         }
 
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)

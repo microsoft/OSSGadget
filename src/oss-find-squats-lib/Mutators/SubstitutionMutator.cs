@@ -15,7 +15,6 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     {
         public MutatorType Kind { get; } = MutatorType.Substitution;
 
-
         /// <summary>
         /// A list of the original strings and their equivalent substitutions.
         /// They get replaced in both directions.

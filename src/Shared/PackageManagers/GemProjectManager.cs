@@ -73,7 +73,13 @@ namespace Microsoft.CST.OpenSource.Shared
             return downloadedPaths;
         }
 
-        public override async Task<bool> PackageExists(PackageURL purl)
+        /// <summary>
+        /// Check if the package exists in the respository.
+        /// </summary>
+        /// <param name="purl">The PackageURL to check.</param>
+        /// <param name="useCache">If cache should be used.</param>
+        /// <returns>True if the package is confirmed to exist in the repository. False otherwise.</returns>
+        public override async Task<bool> PackageExists(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("PackageExists {0}", purl?.ToString());
             if (purl is null || purl.Name is null || purl.Type is null)
@@ -82,7 +88,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 return false;
             }
             string packageName = purl.Name;
-            return await CheckJsonCacheForPackage($"{ENV_RUBYGEMS_ENDPOINT_API}/api/v1/versions/{packageName}.json");
+            return await CheckJsonCacheForPackage($"{ENV_RUBYGEMS_ENDPOINT_API}/api/v1/versions/{packageName}.json", useCache);
         }
 
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)

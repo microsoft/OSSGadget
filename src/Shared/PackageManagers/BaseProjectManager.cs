@@ -131,6 +131,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         /// Retrieves HTTP content from a given URI.
         /// </summary>
         /// <param name="uri">URI to load.</param>
+        /// <param name="useCache">If cache should be used.</param>
         /// <returns></returns>
         public static async Task<string?> GetHttpStringCache(string uri, bool useCache = true, bool neverThrow = false)
         {
@@ -176,13 +177,19 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
             return resultString;
         }
 
-        internal async Task<bool> CheckHttpCacheForPackage(string url)
+        /// <summary>
+        /// Checks <see cref="GetHttpStringCache(string, bool, bool)"/> to see if the package exists.
+        /// </summary>
+        /// <param name="url">The URL to check</param>
+        /// <param name="useCache">If cache should be used.</param>
+        /// <returns>true if the package exists.</returns>
+        internal static async Task<bool> CheckHttpCacheForPackage(string url, bool useCache = true)
         {
-            Logger.Trace("PackageExists {0}", url);
+            Logger.Trace("CheckHttpCacheForPackage {0}", url);
             try
             {
-                // GetJsonCache throws an exception if it has trouble finding the package
-                _ = await GetHttpStringCache(url);
+                // GetHttpStringCache throws an exception if it has trouble finding the package
+                _ = await GetHttpStringCache(url, useCache);
                 return true;
             }
             catch (Exception e)
@@ -195,18 +202,24 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
                         return false;
                     }
                 }
-                Logger.Debug("Unable to check if package exists: {0}", e.Message);
+                Logger.Debug("Unable to check if package {1} exists: {0}", e.Message, url);
             }
             return false;
         }
 
-        internal async Task<bool> CheckJsonCacheForPackage(string url)
+        /// <summary>
+        /// Checks <see cref="GetJsonCache(string, bool)"/> to see if the package exists.
+        /// </summary>
+        /// <param name="url">The URL to check</param>
+        /// <param name="useCache">If cache should be used.</param>
+        /// <returns>true if the package exists.</returns>
+        internal static async Task<bool> CheckJsonCacheForPackage(string url, bool useCache = true)
         {
-            Logger.Trace("PackageExists {0}", url);
+            Logger.Trace("CheckJsonCacheForPackage {0}", url);
             try
             {
                 // GetJsonCache throws an exception if it has trouble finding the package
-                _ = await GetJsonCache(url);
+                _ = await GetJsonCache(url, useCache);
                 return true;
             }
             catch (Exception e)
@@ -219,7 +232,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
                         return false;
                     }
                 }
-                Logger.Debug("Unable to check if package exists: {0}", e.Message);
+                Logger.Debug("Unable to check if package {1} exists: {0}", e.Message, url);
             }
             return false;
         }
@@ -228,6 +241,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         /// Retrieves JSON content from a given URI.
         /// </summary>
         /// <param name="uri">URI to load.</param>
+        /// <param name="useCache">If cache should be used. If false will make a direct WebClient request.</param>
         /// <returns>Content, as a JsonDocument, possibly from cache.</returns>
         public static async Task<JsonDocument> GetJsonCache(string uri, bool useCache = true)
         {
@@ -352,9 +366,10 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         /// <summary>
         /// Check if the package exists in the respository.
         /// </summary>
-        /// <param name="purl"></param>
-        /// <returns></returns>
-        public virtual async Task<bool> PackageExists(PackageURL purl)
+        /// <param name="purl">The PackageURL to check.</param>
+        /// <param name="useCache">Ignored by <see cref="BaseProjectManager"/> but may be respected by inherited implementations.</param>
+        /// <returns>True if the package is confirmed to exist in the repository. False otherwise.</returns>
+        public virtual async Task<bool> PackageExists(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("PackageExists {0}", purl?.ToString());
             if (purl is null || purl.Name is null || purl.Type is null)

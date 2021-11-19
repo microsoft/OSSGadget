@@ -1,4 +1,6 @@
-﻿using Microsoft.CST.OpenSource.Reproducibility;
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
+
+using Microsoft.CST.OpenSource.Reproducibility;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;

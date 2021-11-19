@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis.Sarif;
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
+
+using Microsoft.CodeAnalysis.Sarif;
 using System;
 
 namespace Microsoft.CST.OpenSource.Shared

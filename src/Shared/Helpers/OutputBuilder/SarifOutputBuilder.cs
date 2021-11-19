@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis.Sarif;
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
+
+using Microsoft.CodeAnalysis.Sarif;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;

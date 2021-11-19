@@ -1,4 +1,6 @@
-﻿namespace Microsoft.CST.OpenSource.FindSquats.Mutators
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
+
+namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 {
     /// <summary>
     /// An enum used by classes that implement <see cref="IMutator"/> to specify which kind they are.

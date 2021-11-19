@@ -16,17 +16,12 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
         {
             for (int i = 0; i < arg.Length; i++)
             {
-                List<char>? n = QwertyKeyboardHelper.GetNeighboringCharacters(arg[i]).ToList();
+                List<char> n = QwertyKeyboardHelper.GetNeighboringCharacters(arg[i]).ToList();
 
                 foreach (char c in n)
                 {
                     yield return new Mutation(
                         mutated: string.Concat(arg[..i], c, arg[i..]),
-                        original: arg,
-                        mutator: Kind,
-                        reason: $"Double hit character: {c}");
-                    yield return new Mutation(
-                        mutated: string.Concat(arg[..(i + 1)], c, arg[(i + 1)..]),
                         original: arg,
                         mutator: Kind,
                         reason: $"Double hit character: {c}");

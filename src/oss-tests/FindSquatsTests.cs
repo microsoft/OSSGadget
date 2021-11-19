@@ -1,4 +1,6 @@
-﻿using Microsoft.CST.OpenSource.FindSquats;
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
+
+using Microsoft.CST.OpenSource.FindSquats;
 using Microsoft.CST.OpenSource.FindSquats.ExtensionMethods;
 using Microsoft.CST.OpenSource.FindSquats.Mutators;
 using Microsoft.CST.OpenSource.Shared;

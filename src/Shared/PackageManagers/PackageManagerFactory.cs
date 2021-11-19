@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -6,15 +8,21 @@ namespace Microsoft.CST.OpenSource.Shared
 {
     public static class ProjectManagerFactory
     {
+        /// <summary>
+        /// Create a BaseProjectManager.
+        /// </summary>
+        /// <param name="destinationDirectory">The directory to use to store any downloaded packages.</param>
+        /// <returns></returns>
         public static BaseProjectManager CreateBaseProjectManager(string destinationDirectory)
         {
             return new BaseProjectManager(destinationDirectory);
         }
 
         /// <summary>
-        ///     Get the project manager for the package type
+        ///     Get an appropriate project manager for package given its PackageURL.
         /// </summary>
         /// <param name="purl"> </param>
+        /// <param name="destinationDirectory">The directory to use to store any downloaded packages.</param>
         /// <returns> BaseProjectManager object </returns>
         public static BaseProjectManager? CreateProjectManager(PackageURL purl, string? destinationDirectory = null)
         {

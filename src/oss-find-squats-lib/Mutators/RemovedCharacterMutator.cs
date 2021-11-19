@@ -19,7 +19,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                     mutated: $"{arg[..i]}{arg[(i + 1)..]}",
                     original: arg,
                     mutator: Kind,
-                    reason: $"Character Removed: {i}");
+                    reason: $"Character Removed: {i} ('{arg[i]}')");
             }
         }
     }

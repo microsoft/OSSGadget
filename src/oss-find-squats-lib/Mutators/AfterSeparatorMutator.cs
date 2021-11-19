@@ -8,7 +8,6 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 {
     /// <summary>
     /// Generates mutations for if a character was changed after a separator was used.
-    /// NOTE: Doesn't currently support extra separators like the <see cref="SeparatorMutator"/> does.
     /// </summary>
     public class AfterSeparatorMutator : IMutator
     {
@@ -36,17 +35,20 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
         {
             foreach (char s in Separators)
             {
-                string[]? splits = arg.Split(s, StringSplitOptions.RemoveEmptyEntries);
+                string[] splits = arg.Split(s, StringSplitOptions.RemoveEmptyEntries);
 
-                if (splits.Length == 2)
+                if (splits.Length >= 2)
                 {
-                    for (char c = 'a'; c <= 'z'; c++)
+                    for (int i = 0; i < splits.Length - 1; i++)
                     {
-                        yield return new Mutation(
-                            mutated: splits[0] + s + c + splits[1][1..],
-                            original: arg,
-                            mutator: Kind,
-                            reason: $"After Separator: {s}");
+                        for (char c = 'a'; c <= 'z'; c++)
+                        {
+                            yield return new Mutation(
+                                mutated: splits[i] + s + c + string.Join('s',splits[(i + 1)..]),
+                                original: arg,
+                                mutator: Kind,
+                                reason: $"After Separator: {s}");
+                        }
                     }
                 }
             }

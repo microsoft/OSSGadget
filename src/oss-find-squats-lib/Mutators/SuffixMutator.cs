@@ -42,7 +42,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                     mutated: string.Concat(arg, s),
                     original: arg,
                     mutator: Kind,
-                    reason: $"Suffix Added {s}"));
+                    reason: $"Suffix Added: {s}"));
         }
     }
 }

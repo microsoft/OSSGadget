@@ -1,4 +1,6 @@
-﻿using Microsoft.CST.OpenSource.Model;
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
+
+using Microsoft.CST.OpenSource.Model;
 using System;
 using System.Collections.Generic;
 using System.IO;

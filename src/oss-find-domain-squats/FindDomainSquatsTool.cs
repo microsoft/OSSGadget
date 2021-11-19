@@ -1,4 +1,6 @@
-﻿using CommandLine;
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
+
+using CommandLine;
 using CommandLine.Text;
 using Microsoft.CodeAnalysis.Sarif;
 using Microsoft.CST.OpenSource.Shared;

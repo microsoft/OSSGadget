@@ -39,4 +39,9 @@
     <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="" />
     <None Include="..\..\icon-128.png" Pack="true" PackagePath="" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\oss-find-squats-lib\oss-find-squats-lib.csproj" />
+    <ProjectReference Include="..\Shared\Shared.csproj" />
+  </ItemGroup>
 </Project>

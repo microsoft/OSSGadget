@@ -283,9 +283,9 @@ stages:
         changeLogType: 'commitBased'
 
 - stage: Publish_Shared_Nuget
-  dependsOn:
-  - SDL
-  condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI', 'BatchedCI'))
+  # dependsOn:
+  # - SDL
+  # condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI', 'BatchedCI'))
   jobs:
   - template: templates/check-changes.yml
     parameters:
@@ -299,12 +299,12 @@ stages:
       projectName: 'Shared'
       dependsOnArg: 'check_changes_shared'
       conditionedOnTag: 'code_changed'
-      publishToNuget: true
+      #publishToNuget: true
 
 - stage: Publish_OSS_Find_Squats_Nuget
-  dependsOn:
-  - SDL
-  condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI', 'BatchedCI'))
+  # dependsOn:
+  # - SDL
+  # condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI', 'BatchedCI'))
   jobs:
   - template: templates/check-changes.yml
     parameters:
@@ -326,4 +326,4 @@ stages:
       projectName: 'oss-find-squats-lib'
       dependsOnArg: 'check_changes_oss_find_squats'
       conditionedOnTag: 'code_changed'
-      publishToNuget: true
+      #publishToNuget: true

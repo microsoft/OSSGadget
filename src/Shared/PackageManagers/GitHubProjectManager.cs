@@ -19,7 +19,7 @@ namespace Microsoft.CST.OpenSource.Shared
         }
 
         /// <summary>
-        ///     Return all github repo patterns in the searchText which have the same name as the package repo
+        ///     Return all github repo patterns in the searchText.
         /// </summary>
         /// <param name="purl"> </param>
         /// <param name="searchText"> </param>

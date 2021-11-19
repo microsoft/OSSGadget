@@ -372,7 +372,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         public virtual async Task<bool> PackageExists(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("PackageExists {0}", purl?.ToString());
-            if (purl is null || purl.Name is null || purl.Type is null)
+            if (purl is null)
             {
                 Logger.Trace("Provided PackageURL was null.");
                 return false;

@@ -16,6 +16,9 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
     {
         public static NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
 
+        /// <summary>
+        /// The default set of mutators for an arbitrary BaseProjectManager.
+        /// </summary>
         internal static IEnumerable<IMutator> BaseMutators { get; } = new List<IMutator>()
         {
             new AfterSeparatorMutator(),
@@ -33,22 +36,28 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
             new VowelSwapMutator()
         };
 
+        /// <summary>
+        /// Common variations known uniquely for Nuget/C#. Excludes '.' because Nuget will match "Microsoft.CST.OAT." against "Microsoft.CST.OAT", giving false positives for the same package.
+        /// </summary>
         internal static IEnumerable<IMutator> NugetMutators { get; } = BaseMutators.Where(x => x is not UnicodeHomoglyphMutator and not SuffixMutator)
             .Concat(new IMutator[]
                 {
                     new SuffixMutator(additionalSuffixes: new[] { "net", ".net", "nuget" }, skipSuffixes: new[] { "." })
                 });
 
+        /// <summary>
+        /// Common variations known uniquely for NPM/Javascript. 
+        /// </summary>
         internal static IEnumerable<IMutator> NpmMutators { get; } = BaseMutators.Where(x => x is not UnicodeHomoglyphMutator and not SuffixMutator)
-                .Concat(new IMutator[]
-                    {
+            .Concat(new IMutator[]
+                {
                     new SubstitutionMutator(new List<(string Original, string Substitution)>()
                     {
                         ("js", "javascript"),
                         ("ts", "typescript"),
                     }),
                     new SuffixMutator(additionalSuffixes: new[] { "js", ".js", "javascript", "ts", ".ts", "typescript"})
-                    });
+                });
 
         /// <summary>
         /// Gets the default set of mutators for a given BaseProjectManager based on its Type.
@@ -63,12 +72,12 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
         };
 
         /// <summary>
-        /// Asynchronously Enumerate Squats for a given PackageURL with the default IMutators for this ProjectManager.
+        /// Asynchronous. Generates mutations of the provided <see cref="PackageURL"/> with the mutators from <see cref="GetDefaultMutators(BaseProjectManager)"/> and checks if they exist with <see cref="BaseProjectManager.PackageExists(PackageURL, bool)"/>.  
         /// </summary>
         /// <param name="manager">The ProjectManager to use for checking the generated mutations.</param>
         /// <param name="purl">The Target package to check for squats.</param>
         /// <param name="options">The options for enumerating squats.</param>
-        /// <returns>An IAsyncEnumerable of FindPackageSquatResult objects representing each candidate squat found to exist in the provided manager.</returns>
+        /// <returns>An <see cref="IAsyncEnumerable<T>"/> of <see cref="FindPackageSquatResult"/> objects representing each candidate squat found to exist with <see cref="BaseProjectManager.PackageExists(PackageURL, bool)"/>.</returns>
         public static async IAsyncEnumerable<FindPackageSquatResult> EnumerateSquats(this BaseProjectManager manager, PackageURL purl, MutateOptions? options = null)
         {
             await foreach (FindPackageSquatResult? mutation in manager.EnumerateSquats(purl, manager.GetDefaultMutators(), options))
@@ -78,14 +87,14 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
         }
 
         /// <summary>
-        /// Asynchronously Enumerate Squats for a given PackageURL.
+        /// Asynchronous. Generates <see cref="Mutation"/>s of the provided <see cref="PackageURL"/> with the provided <see cref="IEnumerable<IMutator>"/> and checks if they exist with <see cref="BaseProjectManager.PackageExists(PackageURL, bool)"/>.  
         /// </summary>
         /// <param name="manager">The ProjectManager to use for checking the generated mutations.</param>
         /// <param name="purl">The Target package to check for squats.</param>
         /// <param name="options">The options for enumerating squats.</param>
         /// <param name="mutators">The mutators to use. Will ignore the default set of mutators.</param>
         /// <param name="options">The options for enumerating squats.</param>
-        /// <returns>An IAsyncEnumerable of FindPackageSquatResult objects representing each candidate squat found to exist in the provided manager.</returns>
+        /// <returns>An <see cref="IAsyncEnumerable<T>"/> of <see cref="FindPackageSquatResult"/> objects representing each candidate squat found to exist with <see cref="BaseProjectManager.PackageExists(PackageURL, bool)"/>.</returns>
         public static async IAsyncEnumerable<FindPackageSquatResult> EnumerateSquats(this BaseProjectManager manager, PackageURL purl, IEnumerable<IMutator> mutators, MutateOptions? options = null)
         {
             if (purl.Name is null || purl.Type is null)
@@ -95,9 +104,9 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
 
             Dictionary<string, IList<Mutation>> generatedMutations = new();
 
-            foreach (IMutator? mutator in mutators)
+            foreach (IMutator mutator in mutators)
             {
-                foreach (Mutation? mutation in mutator.Generate(purl.Name))
+                foreach (Mutation mutation in mutator.Generate(purl.Name))
                 {
                     if (generatedMutations.ContainsKey(mutation.Mutated))
                     {

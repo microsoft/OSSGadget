@@ -385,7 +385,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         /// </summary>
         /// <param name="versions"></param>
         /// <returns></returns>
-        public Version? GetLatestVersion(List<Version> versions)
+        public static Version? GetLatestVersion(List<Version> versions)
         {
             if (versions?.Count > 0)
             {
@@ -518,8 +518,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         /// the constructor if this is null.
         /// </summary>
 #nullable disable
-        protected static HttpClient WebClient;
-
+        protected static HttpClient WebClient { get; private set; }
 #nullable enable
 
         /// <summary>
@@ -528,7 +527,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         /// <param name="purl">the package</param>
         /// <param name="rawMetadataString">metadata of the package</param>
         /// <returns>Possible candidates of the package/empty dictionary</returns>
-        protected Dictionary<PackageURL, double> ExtractRankedSourceRepositories(PackageURL purl, string rawMetadataString)
+        protected static Dictionary<PackageURL, double> ExtractRankedSourceRepositories(PackageURL purl, string rawMetadataString)
         {
             Logger.Trace("ExtractRankedSourceRepositories({0})", purl);
             Dictionary<PackageURL, double> sourceRepositoryMap = new();

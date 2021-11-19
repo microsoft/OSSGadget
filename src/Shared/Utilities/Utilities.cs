@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.Json;
-
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Text.Json;
+
     internal class Utilities
     {
         public static JsonElement? GetJSONPropertyIfExists(JsonElement? element, string keyName)

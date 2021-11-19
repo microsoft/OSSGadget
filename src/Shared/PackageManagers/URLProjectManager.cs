@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Threading.Tasks;
+
     internal class URLProjectManager : BaseProjectManager
     {
         public URLProjectManager(string destinationDirectory) : base(destinationDirectory)

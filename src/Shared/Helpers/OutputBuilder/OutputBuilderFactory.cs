@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using Microsoft.CodeAnalysis.Sarif;
-using System;
-
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using Microsoft.CodeAnalysis.Sarif;
+    using System;
+
     /// <summary>
     ///     Factory to build the outputBuilder based on the format specified
     /// </summary>

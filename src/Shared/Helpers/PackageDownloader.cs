@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using Microsoft.CST.OpenSource.Shared;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace Microsoft.CST.OpenSource
 {
+    using Microsoft.CST.OpenSource.Shared;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Threading.Tasks;
+
     /// <summary>
     ///     Class for managing the download of a single package
     /// </summary>

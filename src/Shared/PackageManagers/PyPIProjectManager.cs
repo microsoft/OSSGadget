@@ -1,19 +1,19 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using Microsoft.CST.OpenSource.Model;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.Json;
-using System.Threading.Tasks;
-using License = Microsoft.CST.OpenSource.Model.License;
-using Repository = Microsoft.CST.OpenSource.Model.Repository;
-using User = Microsoft.CST.OpenSource.Model.User;
-using Version = SemanticVersioning.Version;
-
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using Microsoft.CST.OpenSource.Model;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Text.Json;
+    using System.Threading.Tasks;
+    using License = Microsoft.CST.OpenSource.Model.License;
+    using Repository = Microsoft.CST.OpenSource.Model.Repository;
+    using User = Microsoft.CST.OpenSource.Model.User;
+    using Version = SemanticVersioning.Version;
+
     internal class PyPIProjectManager : BaseProjectManager
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
@@ -330,7 +330,9 @@ namespace Microsoft.CST.OpenSource.Shared
             return new Uri($"{ENV_PYPI_ENDPOINT}/project/{purl?.Name}");
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         protected override async Task<Dictionary<PackageURL, double>> SearchRepoUrlsInPackageMetadata(PackageURL purl, string metadata)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             Dictionary<PackageURL, double> mapping = new();
             if (purl.Name?.StartsWith('_') ?? false) // TODO: there are internal modules which do not start with _

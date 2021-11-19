@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using Microsoft.CodeAnalysis.Sarif;
-using Newtonsoft.Json;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
-
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using Microsoft.CodeAnalysis.Sarif;
+    using Newtonsoft.Json;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Reflection;
+    using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
+
     public class SarifOutputBuilder : IOutputBuilder
     {
         public SarifOutputBuilder(SarifVersion version)

@@ -1,16 +1,16 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using HtmlAgilityPack;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Text.Json;
-using System.Threading.Tasks;
-
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using HtmlAgilityPack;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Net.Http;
+    using System.Text.Json;
+    using System.Threading.Tasks;
+
     public class NuGetProjectManager : BaseProjectManager
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
@@ -282,7 +282,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 {
                     return null;
                 }
-                string content = await GetHttpStringCache($"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json");
+                string? content = await GetHttpStringCache($"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json");
                 return content;
             }
             catch (Exception ex)

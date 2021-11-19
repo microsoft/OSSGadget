@@ -1,17 +1,17 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using Microsoft.CST.OpenSource.Model;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Text.Json;
-using System.Threading.Tasks;
-using Version = SemanticVersioning.Version;
-
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using Microsoft.CST.OpenSource.Model;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Net.Http;
+    using System.Text.Json;
+    using System.Threading.Tasks;
+    using Version = SemanticVersioning.Version;
+
     public class NPMProjectManager : BaseProjectManager
     {
         public static string ENV_NPM_API_ENDPOINT = "https://registry.npmjs.org";
@@ -398,7 +398,9 @@ namespace Microsoft.CST.OpenSource.Shared
             return await SearchRepoUrlsInPackageMetadata(purl, contentJSON);
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         protected async Task<Dictionary<PackageURL, double>> SearchRepoUrlsInPackageMetadata(PackageURL purl,
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
             JsonDocument contentJSON)
         {
             Dictionary<PackageURL, double>? mapping = new();

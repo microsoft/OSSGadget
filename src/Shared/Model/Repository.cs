@@ -1,14 +1,16 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using CSTRepository = Microsoft.CST.OpenSource.Model.Repository;
-using GHRepository = Octokit.Repository;
-
 namespace Microsoft.CST.OpenSource.Model
 {
+    using Microsoft.CST.OpenSource.Shared;
+    using Newtonsoft.Json;
+    using Octokit;
+    using System;
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
+    using CSTRepository = Microsoft.CST.OpenSource.Model.Repository;
+    using GHRepository = Octokit.Repository;
+
     public class Repository
     {
         public const string ENV_GITHUB_ENDPOINT = "https://github.com";

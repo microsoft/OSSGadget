@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using NLog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using NLog;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+
     /// <summary>
     ///     Find out the source code repository for a given package, by applying various algorithms.
     ///

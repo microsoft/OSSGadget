@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using System;
-using System.IO;
-
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using System;
+    using System.IO;
+
     public class ConsoleHelper
     {
         public static StreamWriter GetCurrentWriteStream()

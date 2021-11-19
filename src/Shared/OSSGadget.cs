@@ -1,16 +1,16 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using CommandLine;
-using CommandLine.Text;
-using Microsoft.CST.OpenSource.Shared;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
-
 namespace Microsoft.CST.OpenSource
 {
+    using CommandLine;
+    using CommandLine.Text;
+    using Microsoft.CST.OpenSource.Shared;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Reflection;
+    using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
+
     public class OSSGadget
     {
         public OutputFormat currentOutputFormat = OutputFormat.text;

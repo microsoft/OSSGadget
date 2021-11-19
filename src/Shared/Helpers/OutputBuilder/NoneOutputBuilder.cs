@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using System.Collections.Generic;
-
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using System.Collections.Generic;
+
     public class NoneOutputBuilder : IOutputBuilder
     {
         /// <summary> 

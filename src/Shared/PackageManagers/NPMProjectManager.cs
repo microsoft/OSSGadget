@@ -14,8 +14,8 @@ namespace Microsoft.CST.OpenSource.Shared
 
     public class NPMProjectManager : BaseProjectManager
     {
-        public static string ENV_NPM_API_ENDPOINT = "https://registry.npmjs.org";
-        public static string ENV_NPM_ENDPOINT = "https://www.npmjs.com";
+        public static string ENV_NPM_API_ENDPOINT { get; set; } = "https://registry.npmjs.org";
+        public static string ENV_NPM_ENDPOINT { get; set; } = "https://www.npmjs.com";
 
         public NPMProjectManager(string destinationDirectory) : base(destinationDirectory)
         {

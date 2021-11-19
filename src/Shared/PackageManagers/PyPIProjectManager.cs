@@ -16,8 +16,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
     internal class PyPIProjectManager : BaseProjectManager
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        public static string ENV_PYPI_ENDPOINT = "https://pypi.org";
+        public static string ENV_PYPI_ENDPOINT { get; set; } = "https://pypi.org";
 
         public PyPIProjectManager(string destinationDirectory) : base(destinationDirectory)
         {

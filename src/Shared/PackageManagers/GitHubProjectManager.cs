@@ -12,7 +12,6 @@ namespace Microsoft.CST.OpenSource.Shared
 
     internal class GitHubProjectManager : BaseProjectManager
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_GITHUB_ENDPOINT = "https://github.com";
 
         public GitHubProjectManager(string destinationDirectory) : base(destinationDirectory)

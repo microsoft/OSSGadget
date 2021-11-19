@@ -174,7 +174,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             if (Subpath != null)
             {
-                purl.Append("#").Append(Subpath);
+                purl.Append('#').Append(Subpath);
             }
             return purl.ToString();
         }
@@ -242,26 +242,26 @@ namespace Microsoft.CST.OpenSource.Shared
             }
 
             // This is the purl (minus the scheme) that needs parsed.
-            string remainder = purl.Substring(4);
+            string remainder = purl[4..];
 
             if (remainder.Contains("#"))
             { // subpath is optional - check for existence
                 int index = remainder.LastIndexOf("#");
-                Subpath = ValidateSubpath(remainder.Substring(index + 1));
+                Subpath = ValidateSubpath(remainder[(index + 1)..]);
                 remainder = remainder.Substring(0, index);
             }
 
             if (remainder.Contains("?"))
             { // qualifiers are optional - check for existence
                 int index = remainder.LastIndexOf("?");
-                Qualifiers = ValidateQualifiers(remainder.Substring(index + 1));
+                Qualifiers = ValidateQualifiers(remainder[(index + 1)..]);
                 remainder = remainder.Substring(0, index);
             }
 
             if (remainder.Contains("@"))
             { // version is optional - check for existence
                 int index = remainder.LastIndexOf("@");
-                Version = remainder.Substring(index + 1);
+                Version = remainder[(index + 1)..];
                 remainder = remainder.Substring(0, index);
             }
 

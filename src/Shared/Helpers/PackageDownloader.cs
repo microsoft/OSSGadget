@@ -24,7 +24,7 @@ namespace Microsoft.CST.OpenSource
         {
             if (purl == null)
             {
-                throw new ArgumentNullException("PackageURL cannot be null");
+                throw new ArgumentNullException(nameof(purl), "PackageURL cannot be null");
             }
 
             doCache = doCaching;

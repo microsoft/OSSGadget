@@ -68,7 +68,6 @@ namespace Microsoft.CST.OpenSource.Shared
             }
 
             // Initialize the static HttpClient
-#pragma warning disable CA2000 // Held onto by WebClient
             SocketsHttpHandler handler = new()
             {
                 AllowAutoRedirect = true,
@@ -79,10 +78,11 @@ namespace Microsoft.CST.OpenSource.Shared
                 ConnectCallback = IPv4ConnectAsync,
                 AutomaticDecompression = System.Net.DecompressionMethods.All
             };
-#pragma warning restore CA2000
 
-            WebClient = new HttpClient(handler);
-            WebClient.Timeout = TimeSpan.FromSeconds(120);
+            WebClient = new HttpClient(handler)
+            {
+                Timeout = TimeSpan.FromSeconds(120)
+            };
 
             WebClient.DefaultRequestHeaders.UserAgent.ParseAdd(ENV_HTTPCLIENT_USER_AGENT);
 
@@ -115,7 +115,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     fieldInfo.Name.StartsWith("ENV_") &&
                     fieldInfo.Name.Length > 4)
                 {
-                    string? bareName = fieldInfo.Name.Substring(4);
+                    string? bareName = fieldInfo.Name[4..];
 
                     string? value = Environment.GetEnvironmentVariable(bareName);
                     if (value != null)

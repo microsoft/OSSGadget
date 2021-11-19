@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
     /// <summary>
     /// Generates mutations for if a character was changed after a separator was used.
     /// </summary>

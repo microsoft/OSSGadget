@@ -1,10 +1,10 @@
 // Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using Microsoft.CST.OpenSource.Shared.Extensions;
-using System.Collections.Generic;
-
 namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 {
+    using Microsoft.CST.OpenSource.Shared.Extensions;
+    using System.Collections.Generic;
+
     /// <summary>
     /// Generates ASCII homoglyphs.
     /// Similar looking letters were swapped out for others. eg. m -> n or r -> n.

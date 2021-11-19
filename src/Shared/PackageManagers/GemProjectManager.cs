@@ -12,10 +12,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
     internal class GemProjectManager : BaseProjectManager
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_RUBYGEMS_ENDPOINT = "https://rubygems.org";
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_RUBYGEMS_ENDPOINT_API = "https://api.rubygems.org";
 
         public GemProjectManager(string destinationDirectory) : base(destinationDirectory)

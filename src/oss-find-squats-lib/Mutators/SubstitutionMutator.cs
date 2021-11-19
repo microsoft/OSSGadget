@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using System.Collections.Generic;
-
 namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 {
+    using System.Collections.Generic;
+
     /// <summary>
     /// Generates mutations for if a known substitution exists.
     /// e.g. js -> javascript and vice versa.

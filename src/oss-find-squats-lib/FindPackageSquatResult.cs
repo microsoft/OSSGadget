@@ -24,11 +24,11 @@ namespace Microsoft.CST.OpenSource.FindSquats
         /// </summary>
         public string PackageName { get; }
         /// <summary>
-        /// The URL for the package
+        /// The <see cref="PackageURL"/> with uniquely identifying information for the package in its repository.
         /// </summary>
         public PackageURL PackageUrl { get; }
         /// <summary>
-        /// The package that appears to be squatted
+        /// The <see cref="PackageURL"/> with uniquely identifying information for the package that appears to be squatted.
         /// </summary>
         public PackageURL SquattedPackage { get; }
         /// <summary>
@@ -36,7 +36,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
         /// </summary>
         public IEnumerable<string> Rules => Mutations.Select(x => x.Reason);
         /// <summary>
-        /// The Mutations that generated this PackageName
+        /// The <see cref="Mutation"/>s that generated this PackageName
         /// </summary>
         public IEnumerable<Mutation> Mutations { get; }
     }

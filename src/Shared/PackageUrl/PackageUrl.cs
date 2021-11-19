@@ -140,7 +140,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         public override string ToString()
         {
-            var purl = new StringBuilder();
+            StringBuilder purl = new();
             purl.Append(Scheme).Append(':');
             if (Type != null)
             {
@@ -162,8 +162,8 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             if (Qualifiers != null && Qualifiers.Count > 0)
             {
-                purl.Append("?");
-                foreach (var pair in Qualifiers)
+                purl.Append('?');
+                foreach (KeyValuePair<string, string> pair in Qualifiers)
                 {
                     purl.Append(pair.Key.ToLower());
                     purl.Append('=');
@@ -181,17 +181,17 @@ namespace Microsoft.CST.OpenSource.Shared
 
         public string ToStringFilename()
         {
-            var invalidChars = new string(Path.GetInvalidFileNameChars()) + new string(Path.GetInvalidPathChars());
-            return Regex.Replace(this.ToString(), "[" + Regex.Escape(invalidChars) + "]", "-");
+            string invalidChars = new string(Path.GetInvalidFileNameChars()) + new string(Path.GetInvalidPathChars());
+            return Regex.Replace(ToString(), "[" + Regex.Escape(invalidChars) + "]", "-");
         }
 
-        private static readonly Regex s_typePattern = new Regex("^[a-zA-Z][a-zA-Z0-9.+-]+$", RegexOptions.Compiled);
+        private static readonly Regex s_typePattern = new("^[a-zA-Z][a-zA-Z0-9.+-]+$", RegexOptions.Compiled);
 
         private static SortedDictionary<string, string> ValidateQualifiers(string qualifiers)
         {
-            var list = new SortedDictionary<string, string>();
+            SortedDictionary<string, string> list = new();
             string[] pairs = qualifiers.Split('&');
-            foreach (var pair in pairs)
+            foreach (string pair in pairs)
             {
                 if (pair.Contains("="))
                 {
@@ -282,7 +282,7 @@ namespace Microsoft.CST.OpenSource.Shared
             // Test for namespaces
             if (firstPartArray.Length > 2)
             {
-                var @namespace = new StringBuilder();
+                StringBuilder @namespace = new();
                 int i;
                 for (i = 1; i < firstPartArray.Length - 2; ++i)
                 {

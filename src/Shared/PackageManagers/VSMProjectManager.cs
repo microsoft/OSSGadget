@@ -30,9 +30,9 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
-            var packageName = $"{purl?.Namespace}.{purl?.Name}";
-            var packageVersion = purl?.Version;
-            var downloadedPaths = new List<string>();
+            string? packageName = $"{purl?.Namespace}.{purl?.Name}";
+            string? packageVersion = purl?.Version;
+            List<string> downloadedPaths = new();
 
             if (string.IsNullOrWhiteSpace(purl?.Namespace) || string.IsNullOrWhiteSpace(purl?.Name) || string.IsNullOrWhiteSpace(packageVersion))
             {
@@ -43,7 +43,7 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 Stream? resultStream = null;
-                var cacheResult = GetCache(packageName);
+                string? cacheResult = GetCache(packageName);
                 if (cacheResult != null)
                 {
                     Logger.Debug("Located result for {0} in cache.", packageName);
@@ -51,18 +51,18 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
                 else
                 {
-                    using var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{ENV_VS_MARKETPLACE_ENDPOINT}/_apis/public/gallery/extensionquery");
+                    using HttpRequestMessage requestMessage = new(HttpMethod.Post, $"{ENV_VS_MARKETPLACE_ENDPOINT}/_apis/public/gallery/extensionquery");
                     requestMessage.Headers.Add("Accept", "application/json;api-version=3.0-preview.1");
-                    var postContent = $"{{filters:[{{criteria:[{{filterType:7,value:\"{packageName}\"}}],pageSize:1000,pageNumber:1,sortBy:0}}],flags:131}}";
+                    string? postContent = $"{{filters:[{{criteria:[{{filterType:7,value:\"{packageName}\"}}],pageSize:1000,pageNumber:1,sortBy:0}}],flags:131}}";
                     requestMessage.Content = new StringContent(postContent, Encoding.UTF8, "application/json");
-                    var response = await WebClient.SendAsync(requestMessage);
+                    HttpResponseMessage response = await WebClient.SendAsync(requestMessage);
                     resultStream = await response.Content.ReadAsStreamAsync();
 
-                    using var resultStreamReader = new StreamReader(resultStream, leaveOpen: true);
+                    using StreamReader resultStreamReader = new(resultStream, leaveOpen: true);
                     SetCache(packageName, resultStreamReader.ReadToEnd());
                     resultStream.Seek(0, SeekOrigin.Begin);
                 }
-                var doc = JsonDocument.Parse(resultStream);
+                JsonDocument doc = JsonDocument.Parse(resultStream);
                 await resultStream.DisposeAsync();
 
                 if (!doc.RootElement.TryGetProperty("results", out JsonElement results))
@@ -73,21 +73,21 @@ namespace Microsoft.CST.OpenSource.Shared
                 /*
                  * This is incredibly verbose. If C# gets a `jq`-like library, we should switch to that.
                  */
-                foreach (var result in results.EnumerateArray())
+                foreach (JsonElement result in results.EnumerateArray())
                 {
                     if (!result.TryGetProperty("extensions", out JsonElement extensions))
                     {
                         continue;
                     }
 
-                    foreach (var extension in extensions.EnumerateArray())
+                    foreach (JsonElement extension in extensions.EnumerateArray())
                     {
                         if (!extension.TryGetProperty("versions", out JsonElement versions))
                         {
                             continue;
                         }
 
-                        foreach (var version in versions.EnumerateArray())
+                        foreach (JsonElement version in versions.EnumerateArray())
                         {
                             if (!version.TryGetProperty("version", out JsonElement versionString))
                             {
@@ -104,7 +104,7 @@ namespace Microsoft.CST.OpenSource.Shared
                                 continue;  // No files present
                             }
 
-                            foreach (var file in files.EnumerateArray())
+                            foreach (JsonElement file in files.EnumerateArray())
                             {
                                 // Must have both an asset type and a source
                                 if (!file.TryGetProperty("source", out JsonElement source))
@@ -118,9 +118,9 @@ namespace Microsoft.CST.OpenSource.Shared
 
                                 try
                                 {
-                                    var downloadResult = await WebClient.GetAsync(source.GetString());
+                                    HttpResponseMessage downloadResult = await WebClient.GetAsync(source.GetString());
                                     downloadResult.EnsureSuccessStatusCode();
-                                    var targetName = $"vsm-{packageName}@{packageVersion}-{assetType}";
+                                    string? targetName = $"vsm-{packageName}@{packageVersion}-{assetType}";
                                     string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                                     if (doExtract && Directory.Exists(extractionPath) && cached == true)
                                     {
@@ -158,13 +158,13 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
 
-            var versionList = new List<string>();
+            List<string> versionList = new();
             if (purl == null || purl.Namespace == null || purl.Name == null)
             {
                 return versionList;
             }
 
-            var packageName = $"{purl.Namespace}.{purl.Name}";
+            string packageName = $"{purl.Namespace}.{purl.Name}";
 
             // Double quotes probably aren't allowed in package names, but nevertheless...
             packageName = packageName.Replace("\"", "\\\"");
@@ -172,7 +172,7 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 Stream? resultStream = null;
-                var cacheResult = GetCache(packageName);
+                string? cacheResult = GetCache(packageName);
                 if (cacheResult != null)
                 {
                     Logger.Debug("Located result for {0} in cache.", packageName);
@@ -180,18 +180,18 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
                 else
                 {
-                    using var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{ENV_VS_MARKETPLACE_ENDPOINT}/_apis/public/gallery/extensionquery");
+                    using HttpRequestMessage? requestMessage = new(HttpMethod.Post, $"{ENV_VS_MARKETPLACE_ENDPOINT}/_apis/public/gallery/extensionquery");
                     requestMessage.Headers.Add("Accept", "application/json;api-version=3.0-preview.1");
-                    var postContent = $"{{filters:[{{criteria:[{{filterType:7,value:\"{packageName}\"}}],pageSize:1000,pageNumber:1,sortBy:0}}],flags:131}}";
+                    string postContent = $"{{filters:[{{criteria:[{{filterType:7,value:\"{packageName}\"}}],pageSize:1000,pageNumber:1,sortBy:0}}],flags:131}}";
                     requestMessage.Content = new StringContent(postContent, Encoding.UTF8, "application/json");
-                    var response = await WebClient.SendAsync(requestMessage);
+                    HttpResponseMessage response = await WebClient.SendAsync(requestMessage);
                     resultStream = await response.Content.ReadAsStreamAsync();
-                    using var resultStreamReader = new StreamReader(resultStream, leaveOpen: true);
+                    using StreamReader resultStreamReader = new(resultStream, leaveOpen: true);
                     SetCache(packageName, resultStreamReader.ReadToEnd());
                     resultStream.Seek(0, SeekOrigin.Begin);
                 }
 
-                var doc = await JsonDocument.ParseAsync(resultStream);
+                JsonDocument doc = await JsonDocument.ParseAsync(resultStream);
                 await resultStream.DisposeAsync();
 
                 if (!doc.RootElement.TryGetProperty("results", out JsonElement results))
@@ -202,21 +202,21 @@ namespace Microsoft.CST.OpenSource.Shared
                 /*
                  * This is incredibly verbose. If C# every gets a `jq`-like library, we should switch to that.
                  */
-                foreach (var result in results.EnumerateArray())
+                foreach (JsonElement result in results.EnumerateArray())
                 {
                     if (!result.TryGetProperty("extensions", out JsonElement extensions))
                     {
                         continue;
                     }
 
-                    foreach (var extension in extensions.EnumerateArray())
+                    foreach (JsonElement extension in extensions.EnumerateArray())
                     {
                         if (!extension.TryGetProperty("versions", out JsonElement versions))
                         {
                             continue;
                         }
 
-                        foreach (var version in versions.EnumerateArray())
+                        foreach (JsonElement version in versions.EnumerateArray())
                         {
                             if (!version.TryGetProperty("version", out JsonElement versionString))
                             {
@@ -270,7 +270,7 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             lock (DataCache)
             {
-                var mce = new MemoryCacheEntryOptions() { Size = value.Length };
+                MemoryCacheEntryOptions mce = new() { Size = value.Length };
                 DataCache.Set<string>($"vsm__{key}", value, mce);
             }
         }

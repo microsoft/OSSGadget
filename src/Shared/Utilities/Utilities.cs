@@ -1,13 +1,10 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using Microsoft.CST.OpenSource.Model;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Shared
 {
@@ -50,7 +47,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <returns> </returns>
         public static List<string>? ConvertJSONToList(JsonElement? jsonElement)
         {
-            List<string> items = new List<string>();
+            List<string> items = new();
 
             if (jsonElement.ToString() is string str)
             {
@@ -111,8 +108,8 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 return s;
             }
-            var invalidChars = Path.GetInvalidFileNameChars();
-            var result = new string((s.Select(ch => invalidChars.Contains(ch) ? '_' : ch) ?? Array.Empty<char>()).ToArray());
+            char[] invalidChars = Path.GetInvalidFileNameChars();
+            string result = new((s.Select(ch => invalidChars.Contains(ch) ? '_' : ch) ?? Array.Empty<char>()).ToArray());
             return result;
         }
 

@@ -1,13 +1,11 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using Microsoft.CST.OpenSource.Model;
-using NLog.Targets;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Version = SemanticVersioning.Version;
@@ -389,7 +387,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// A dictionary, mapping each possible repo source entry to its probability/empty dictionary
         /// </returns>
 
-        protected async override Task<Dictionary<PackageURL, double>> SearchRepoUrlsInPackageMetadata(PackageURL purl,
+        protected override async Task<Dictionary<PackageURL, double>> SearchRepoUrlsInPackageMetadata(PackageURL purl,
             string metadata)
         {
             if (string.IsNullOrEmpty(metadata))

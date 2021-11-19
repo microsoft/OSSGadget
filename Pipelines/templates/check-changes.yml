@@ -17,10 +17,11 @@ jobs:
   displayName: Checking for changed paths
   steps:
     - pwsh: |
-        $varr = "${{ parameters.pathArgument }}"
+        $pathArgument = "${{ parameters.pathArgument }}"
+        $inputPaths = $pathArgument.Split(',')
+
         $changedPaths = git diff HEAD HEAD~ --name-only
-        $inputPaths = $varr.Split(',')
-        :outerLoop foreach ($changedPath in $changedPaths)
+        foreach ($changedPath in $changedPaths)
         {
             if ($done)
             {

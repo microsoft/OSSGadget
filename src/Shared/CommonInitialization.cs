@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using System;
-using System.IO;
-using System.Net.Http;
-using System.Net.Sockets;
-using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using System;
+    using System.IO;
+    using System.Net.Http;
+    using System.Net.Sockets;
+    using System.Reflection;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     public static class CommonInitialization
     {
         /// <summary>
@@ -30,7 +30,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
         public static NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
 
-        
+
 
         /// <summary>
         ///     Initializes common infrastructure, like logging.
@@ -50,7 +50,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 // By default, we create dual-mode sockets:
                 // Socket socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
 
-                Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
+                Socket socket = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
                 {
                     NoDelay = true
                 };
@@ -68,8 +68,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
 
             // Initialize the static HttpClient
-            #pragma warning disable CA2000 // Held onto by WebClient
-            var handler = new SocketsHttpHandler()
+            SocketsHttpHandler handler = new()
             {
                 AllowAutoRedirect = true,
                 UseCookies = false,
@@ -79,11 +78,12 @@ namespace Microsoft.CST.OpenSource.Shared
                 ConnectCallback = IPv4ConnectAsync,
                 AutomaticDecompression = System.Net.DecompressionMethods.All
             };
-            #pragma warning restore CA2000
 
-            WebClient = new HttpClient(handler);
-            WebClient.Timeout = TimeSpan.FromSeconds(120);
-            
+            WebClient = new HttpClient(handler)
+            {
+                Timeout = TimeSpan.FromSeconds(120)
+            };
+
             WebClient.DefaultRequestHeaders.UserAgent.ParseAdd(ENV_HTTPCLIENT_USER_AGENT);
 
             // @TODO Does this actually run? Is it necessary?
@@ -107,7 +107,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <param name="targetObject"> Examine this object (using reflection) </param>
         public static void OverrideEnvironmentVariables(object targetObject)
         {
-            foreach (var fieldInfo in targetObject.GetType().GetFields(BindingFlags.Static |
+            foreach (FieldInfo fieldInfo in targetObject.GetType().GetFields(BindingFlags.Static |
                                                                        BindingFlags.Public |
                                                                        BindingFlags.NonPublic))
             {
@@ -115,9 +115,9 @@ namespace Microsoft.CST.OpenSource.Shared
                     fieldInfo.Name.StartsWith("ENV_") &&
                     fieldInfo.Name.Length > 4)
                 {
-                    var bareName = fieldInfo.Name.Substring(4);
+                    string? bareName = fieldInfo.Name[4..];
 
-                    var value = Environment.GetEnvironmentVariable(bareName);
+                    string? value = Environment.GetEnvironmentVariable(bareName);
                     if (value != null)
                     {
                         Logger.Debug("Assiging value of {0} to {1}", bareName, fieldInfo.Name);

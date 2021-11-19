@@ -31,13 +31,28 @@ parameters:
 - name: artifactName
   type: string
   default: 'Unsigned_Binaries'
+# Should the resulting built nugets be signed and published to Nuget.org
 - name: publishToNuget
   type: boolean
   default: false
+# The Job name for the pipeline that checked paths
+- name: dependsOnArg
+  type: string
+  default: []
+# The tag set by the checking job
+- name: conditionedOnTag
+  type: string
+  default: 'code_changed'
+# Should the resulting nugets be marked as a public release (disable prerelease versioning)
+- name: publicRelease
+  type: boolean
+  default: true
 
 jobs:
 - job: ${{ parameters.jobName }}
-  displayName: NuGet Package
+  dependsOn: ${{ parameters.dependsOnArg }}
+  condition: eq(dependencies.${{ parameters.dependsOnArg }}.outputs['check_script.${{ parameters.conditionedOnTag }}'], 'true')
+  displayName: NuGet Package ${{ parameters.projectName }}
   pool:
     vmImage: 'windows-latest'
   steps:
@@ -63,7 +78,7 @@ jobs:
     inputs:
       command: 'custom'
       custom: 'pack'
-      arguments: '${{ parameters.projectPath }} -c ${{ parameters.buildConfiguration }} -o Packages'
+      arguments: '${{ parameters.projectPath }} -c ${{ parameters.buildConfiguration }} -o Packages /p:PublicRelease=${{ parameters.publicRelease }}'
   - task: AntiMalware@3
     displayName: Anti-Malware Scan
     inputs:

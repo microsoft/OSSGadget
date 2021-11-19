@@ -1,23 +1,22 @@
-﻿using CommandLine;
-using CommandLine.Text;
-using Microsoft.CodeAnalysis.Sarif;
-using Microsoft.CST.OpenSource.Shared;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
-using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
-using System.IO;
-using System.Threading;
-using Newtonsoft.Json;
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 namespace Microsoft.CST.OpenSource.FindSquats
 {
+    using CommandLine;
+    using CommandLine.Text;
+    using Microsoft.CodeAnalysis.Sarif;
+    using Microsoft.CST.OpenSource.FindSquats.ExtensionMethods;
+    using Microsoft.CST.OpenSource.Shared;
+    using Newtonsoft.Json;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Net.Http;
+    using System.Threading.Tasks;
+    using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
+
     public class FindSquatsTool : OSSGadget
     {
-        Generative gen { get; set; }
-
         public class Options
         {
             [Usage()]
@@ -54,19 +53,18 @@ namespace Microsoft.CST.OpenSource.FindSquats
 
         public FindSquatsTool() : base()
         {
-            gen = new Generative();
             client = new HttpClient();
         }
 
-        HttpClient client;
+        readonly HttpClient client;
         static async Task Main(string[] args)
         {
             ShowToolBanner();
-            var findSquatsTool = new FindSquatsTool();
+            FindSquatsTool findSquatsTool = new();
             (string output, int numSquats) = (string.Empty, 0);
-            findSquatsTool.ParseOptions<Options>(args).WithParsed<Options>(options =>
+            await findSquatsTool.ParseOptions<Options>(args).WithParsedAsync(async options =>
             {
-                (output, numSquats) = findSquatsTool.RunAsync(options).Result;
+                (output, numSquats) = await findSquatsTool.RunAsync(options);
                 if (string.IsNullOrEmpty(options.OutputFile))
                 {
                     options.OutputFile = $"oss-find-squat.{options.Format}";
@@ -82,101 +80,79 @@ namespace Microsoft.CST.OpenSource.FindSquats
                         Logger.Info($"No squats detected.");
                     }
                 }
-                using var fw = new StreamWriter(options.OutputFile);
-                fw.WriteLine(output);
+                using StreamWriter fw = new(options.OutputFile);
+                await fw.WriteLineAsync(output);
                 fw.Close();
-
             });
         }
 
         public async Task<(string output, int numSquats)> RunAsync(Options options)
         {
-            IOutputBuilder outputBuilder = SelectFormat(options.Format);
-            var foundSquats = 0;
-            foreach (var target in options.Targets ?? Array.Empty<string>())
+            IOutputBuilder? outputBuilder = SelectFormat(options.Format);
+            int foundSquats = 0;
+            MutateOptions? checkerOptions = new()
             {
-                var purl = new PackageURL(target);
-                if (purl.Name is not null && purl.Type is not null)
+                SleepDelay = options.SleepDelay
+            };
+            foreach (string? target in options.Targets ?? Array.Empty<string>())
+            {
+                PackageURL? purl = new(target);
+                if (purl.Name is null || purl.Type is null)
                 {
-                    var manager = ProjectManagerFactory.CreateProjectManager(purl, null);
-                    if (manager is not null)
+                    Logger.Trace($"Could not generate valid PackageURL from { target }.");
+                    continue;
+                }
+
+                BaseProjectManager? manager = ProjectManagerFactory.CreateProjectManager(purl);
+                if (manager is null)
+                {
+                    Logger.Trace($"Could not generate valid ProjectManager from { purl }.");
+                    continue;
+                }
+
+                await foreach (FindPackageSquatResult? potentialSquat in manager.EnumerateSquats(purl, checkerOptions))
+                {
+                    foundSquats++;
+                    if (!options.Quiet)
                     {
-                        var mutationsDict = gen.Mutate(purl.Name);
-
-                        foreach ((var candidate, var rules) in mutationsDict)
+                        Logger.Info($"{potentialSquat.PackageName} package exists. Potential squat. {JsonConvert.SerializeObject(potentialSquat.Rules)}");
+                    }
+                    if (outputBuilder is SarifOutputBuilder sarob)
+                    {
+                        SarifResult? sarifResult = new()
                         {
-                            if (options.SleepDelay > 0)
+                            Message = new Message()
                             {
-                                Thread.Sleep(options.SleepDelay);
-                            }
-                            // Nuget will match "microsoft.cst.oat." against "Microsoft.CST.OAT" but these are the same package
-                            // For nuget in particular we filter out this case
-                            if (manager is NuGetProjectManager)
-                            {
-                                if (candidate.EndsWith('.'))
-                                {
-                                    if (candidate.Equals($"{purl.Name}.", StringComparison.InvariantCultureIgnoreCase))
-                                    {
-                                        continue;
-                                    }
-                                }
-                            }
-                            var candidatePurl = new PackageURL(purl.Type, candidate);
-                            try
-                            {
-                                var versions = await manager.EnumerateVersions(candidatePurl);
-
-                                if (versions.Any())
-                                {
-                                    foundSquats++;
-                                    if (!options.Quiet)
-                                    {
-                                        Logger.Info($"{candidate} package exists. Potential squat. {JsonConvert.SerializeObject(rules)}");
-                                    }
-                                    if (outputBuilder is SarifOutputBuilder sarob)
-                                    {
-                                        SarifResult sarifResult = new SarifResult()
-                                        {
-                                            Message = new Message()
-                                            {
-                                                Text = $"Potential Squat candidate { candidate }.",
-                                                Id = "oss-find-squats"
-                                            },
-                                            Kind = ResultKind.Review,
-                                            Level = FailureLevel.None,
-                                            Locations = SarifOutputBuilder.BuildPurlLocation(candidatePurl),
-                                        };
-                                        foreach(var tag in rules)
-                                        {
-                                            sarifResult.Tags.Add(tag);
-                                        }
-                                        sarob.AppendOutput(new SarifResult[] { sarifResult });
-                                    }
-                                    else if (outputBuilder is StringOutputBuilder strob)
-                                    {
-                                        var rulesString = string.Join(',', rules);
-                                        strob.AppendOutput(new string[] { $"Potential Squat candidate '{ candidate }' detected. Generated by { rulesString }.{Environment.NewLine}" });
-                                    }
-                                    else
-                                    {
-                                        var rulesString = string.Join(',', rules);
-                                        if (!options.Quiet)
-                                        {
-                                            Logger.Info($"Potential Squat candidate '{ candidate }' detected. Generated by { rulesString }.");
-                                        }
-                                    }
-                                }
-                            }
-                            catch (Exception e) 
-                            {
-                                Logger.Trace($"Could not enumerate versions. Package {candidate} likely doesn't exist. {e.Message}:{e.StackTrace}");
-                            }
+                                Text = $"Potential Squat candidate { potentialSquat.PackageName }.",
+                                Id = "oss-find-squats"
+                            },
+                            Kind = ResultKind.Review,
+                            Level = FailureLevel.None,
+                            Locations = SarifOutputBuilder.BuildPurlLocation(potentialSquat.PackageUrl),
+                        };
+                        foreach (string? tag in potentialSquat.Rules)
+                        {
+                            sarifResult.Tags.Add(tag);
+                        }
+                        sarob.AppendOutput(new SarifResult[] { sarifResult });
+                    }
+                    else if (outputBuilder is StringOutputBuilder strob)
+                    {
+                        string? rulesString = string.Join(',', potentialSquat.Rules);
+                        strob.AppendOutput(new string[] { $"Potential Squat candidate '{ potentialSquat.PackageName }' detected. Generated by { rulesString }.{Environment.NewLine}" });
+                    }
+                    else
+                    {
+                        string? rulesString = string.Join(',', potentialSquat.Rules);
+                        if (!options.Quiet)
+                        {
+                            Logger.Info($"Potential Squat candidate '{ potentialSquat.PackageName }' detected. Generated by { rulesString }.");
                         }
                     }
                 }
             }
 
-            return (outputBuilder.GetOutput(),foundSquats);
+            return (outputBuilder.GetOutput(), foundSquats);
         }
     }
 }

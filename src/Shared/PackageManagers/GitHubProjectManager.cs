@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.IO;
+    using System.Linq;
+    using System.Text.RegularExpressions;
+    using System.Threading.Tasks;
+
     internal class GitHubProjectManager : BaseProjectManager
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
@@ -27,7 +27,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <returns> </returns>
         public static IEnumerable<PackageURL> ExtractGitHubUris(PackageURL purl, string searchText)
         {
-            List<PackageURL> repositoryList = new List<PackageURL>();
+            List<PackageURL> repositoryList = new();
             if (string.IsNullOrEmpty(searchText))
             {
                 return repositoryList;
@@ -51,8 +51,8 @@ namespace Microsoft.CST.OpenSource.Shared
         public static PackageURL ParseUri(Uri uri)
         {
             Match match = GithubMatchRegex.Match(uri.AbsoluteUri);
-            var matches = match.Groups;
-            PackageURL packageURL = new PackageURL(
+            GroupCollection matches = match.Groups;
+            PackageURL packageURL = new(
                 "github",
                 matches["namespace"].Value,
                 matches["name"].Value,
@@ -69,7 +69,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <returns> n/a </returns>
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
-            var downloadedPaths = new List<string>();
+            List<string> downloadedPaths = new();
 
             if (purl == null)
             {
@@ -79,9 +79,9 @@ namespace Microsoft.CST.OpenSource.Shared
 
             Logger.Trace("DownloadVersion {0}", purl.ToString());
 
-            var packageNamespace = purl?.Namespace;
-            var packageName = purl?.Name;
-            var packageVersion = purl?.Version;
+            string? packageNamespace = purl?.Namespace;
+            string? packageName = purl?.Name;
+            string? packageVersion = purl?.Version;
 
             if (string.IsNullOrWhiteSpace(packageNamespace) || string.IsNullOrWhiteSpace(packageName)
                 || string.IsNullOrWhiteSpace(packageVersion))
@@ -98,12 +98,12 @@ namespace Microsoft.CST.OpenSource.Shared
 
             try
             {
-                var url = $"{ENV_GITHUB_ENDPOINT}/{packageNamespace}/{packageName}";
-                var fsNamespace = Utilities.NormalizeStringForFileSystem(packageNamespace);
-                var fsName = Utilities.NormalizeStringForFileSystem(packageName);
-                var fsVersion = Utilities.NormalizeStringForFileSystem(packageVersion);
+                string url = $"{ENV_GITHUB_ENDPOINT}/{packageNamespace}/{packageName}";
+                string fsNamespace = Utilities.NormalizeStringForFileSystem(packageNamespace);
+                string fsName = Utilities.NormalizeStringForFileSystem(packageName);
+                string fsVersion = Utilities.NormalizeStringForFileSystem(packageVersion);
 
-                var relativeWorkingDirectory = string.IsNullOrWhiteSpace(packageVersion) ?
+                string relativeWorkingDirectory = string.IsNullOrWhiteSpace(packageVersion) ?
                                                 $"github-{fsNamespace}-{fsName}" :
                                                 $"github-{fsNamespace}-{fsName}-{fsVersion}";
                 string extractionPath = Path.Combine(TopLevelExtractionDirectory, relativeWorkingDirectory);
@@ -115,8 +115,8 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
 
                 // First, try a tag (most likely what we're looking for)
-                var archiveUrls = new List<string>();
-                foreach (var prefix in new[] { "", "v" })
+                List<string> archiveUrls = new();
+                foreach (string prefix in new[] { "", "v" })
                 {
                     archiveUrls.AddRange(new[] {
                         $"{url}/archive/refs/tags/{prefix}{packageVersion}.zip",
@@ -124,19 +124,19 @@ namespace Microsoft.CST.OpenSource.Shared
                         $"{url}/archive/refs/heads/{prefix}{packageVersion}.zip",
                     });
                 }
-                var purlNoVersion = new PackageURL(purl!.Type, purl.Namespace, purl.Name, null, purl.Qualifiers, purl.Subpath);
-                foreach (var v in EnumerateVersions(purlNoVersion).Result)
+                PackageURL purlNoVersion = new(purl!.Type, purl.Namespace, purl.Name, null, purl.Qualifiers, purl.Subpath);
+                foreach (string v in EnumerateVersions(purlNoVersion).Result)
                 {
                     if (Regex.IsMatch(purl.Version!, @"(^|[^\d\.])" + Regex.Escape(v)))
-                    { 
+                    {
                         archiveUrls.Add($"{url}/archive/refs/tags/{v}.zip");
                     }
                 }
 
-                foreach (var archiveUrl in archiveUrls)
+                foreach (string archiveUrl in archiveUrls)
                 {
                     Logger.Debug("Attemping to download {0}", archiveUrl);
-                    var result = await WebClient.GetAsync(archiveUrl);
+                    System.Net.Http.HttpResponseMessage? result = await WebClient.GetAsync(archiveUrl);
                     if (result.IsSuccessStatusCode)
                     {
                         Logger.Debug("Download successful.");
@@ -147,7 +147,7 @@ namespace Microsoft.CST.OpenSource.Shared
                         else
                         {
                             Directory.CreateDirectory(extractionPath);
-                            var targetName = Path.Join(extractionPath, $"{fsVersion}.zip");
+                            string targetName = Path.Join(extractionPath, $"{fsVersion}.zip");
                             await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
                             downloadedPaths.Add(targetName);
                         }
@@ -166,10 +166,10 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             try
             {
-                var versionList = new List<string>();
-                var githubUrl = $"https://github.com/{purl.Namespace}/{purl.Name}";
+                List<string> versionList = new();
+                string githubUrl = $"https://github.com/{purl.Namespace}/{purl.Name}";
 
-                var gitLsRemoteStartInfo = new ProcessStartInfo()
+                ProcessStartInfo gitLsRemoteStartInfo = new()
                 {
                     FileName = "git",
                     UseShellExecute = false,
@@ -182,23 +182,23 @@ namespace Microsoft.CST.OpenSource.Shared
                 gitLsRemoteStartInfo.ArgumentList.Add("--ref");
                 gitLsRemoteStartInfo.ArgumentList.Add(githubUrl);
 
-                var gitLsRemoteProcess = Process.Start(gitLsRemoteStartInfo);
+                Process? gitLsRemoteProcess = Process.Start(gitLsRemoteStartInfo);
                 if (gitLsRemoteProcess != null)
                 {
-                    var stdout = gitLsRemoteProcess.StandardOutput;
+                    StreamReader? stdout = gitLsRemoteProcess.StandardOutput;
                     string? outputLine;
                     while ((outputLine = await gitLsRemoteProcess.StandardOutput.ReadLineAsync()) != null)
                     {
-                        var match = Regex.Match(outputLine, "^.+refs/tags/(.*)$");
+                        Match? match = Regex.Match(outputLine, "^.+refs/tags/(.*)$");
                         if (match.Success)
                         {
-                            var tagName = match.Groups[1].Value;
+                            string? tagName = match.Groups[1].Value;
                             Logger.Debug("Adding tag: {0}", tagName);
                             versionList.Add(tagName);
                         }
                     }
-                    var stderr = await gitLsRemoteProcess.StandardError.ReadToEndAsync();
-                    if (!String.IsNullOrWhiteSpace(stderr))
+                    string stderr = await gitLsRemoteProcess.StandardError.ReadToEndAsync();
+                    if (!string.IsNullOrWhiteSpace(stderr))
                     {
                         Logger.Warn("Error running 'git', error: {0}", stderr);
                     }
@@ -227,7 +227,7 @@ namespace Microsoft.CST.OpenSource.Shared
             return new Uri($"{ENV_GITHUB_ENDPOINT}/{purl.Namespace}/{purl.Name}");
         }
 
-        private static readonly Regex GithubExtractorRegex = new Regex(
+        private static readonly Regex GithubExtractorRegex = new(
                     @"((?<protocol>https?|git|ssh|rsync)\+?)+\://" +
                     @"(?:(?<username>[\w-]+)@)*" +
                     @"(github\.com)" +
@@ -240,7 +240,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <summary>
         ///     Regular expression that matches possible GitHub URLs
         /// </summary>
-        private static readonly Regex GithubMatchRegex = new Regex(
+        private static readonly Regex GithubMatchRegex = new(
             @"^((?<protocol>https?|git|ssh|rsync)\+?)+\://" +
             @"(?:(?<user>.+)@)*" +
             @"(?<resource>[a-z0-9_.-]*)" +

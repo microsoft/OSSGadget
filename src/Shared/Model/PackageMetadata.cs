@@ -1,9 +1,10 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
+// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 namespace Microsoft.CST.OpenSource.Model
 {
+    using Newtonsoft.Json;
+    using System.Collections.Generic;
+
     public class Downloads
     {
         [JsonProperty(PropertyName = "daily", NullValueHandling = NullValueHandling.Ignore)]

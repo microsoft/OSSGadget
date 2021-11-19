@@ -1,11 +1,13 @@
-﻿using NLog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using NLog;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+
     /// <summary>
     ///     Find out the source code repository for a given package, by applying various algorithms.
     ///
@@ -34,18 +36,18 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             Logger.Trace("ResolvePackageLibraryAsync({0})", purl);
 
-            var repoMappings = new Dictionary<PackageURL, double>();
+            Dictionary<PackageURL, double>? repoMappings = new();
             if (purl == null)
             {
                 return repoMappings;
             }
 
-            var purlNoVersion = new PackageURL(purl.Type, purl.Namespace, purl.Name,
+            PackageURL purlNoVersion = new(purl.Type, purl.Namespace, purl.Name,
                                    null, purl.Qualifiers, purl.Subpath);
             Logger.Debug("Searching for source code for: {0}", purlNoVersion.ToString());
 
             // Use reflection to find the correct downloader class
-            var projectManager = ProjectManagerFactory.CreateProjectManager(purl, null);
+            BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, null);
 
             if (projectManager != null)
             {

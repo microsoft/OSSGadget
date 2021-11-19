@@ -32,9 +32,9 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("73,234", "234,73")]
         public async Task TestVersionSort(string preSortS, string postSortS)
         {
-            var preSort = preSortS.Split(new[] { ',' });
-            var postSort = postSortS.Split(new[] { ',' });
-            var result = BaseProjectManager.SortVersions(preSort);
+            string[]? preSort = preSortS.Split(new[] { ',' });
+            string[]? postSort = postSortS.Split(new[] { ',' });
+            System.Collections.Generic.IEnumerable<string>? result = BaseProjectManager.SortVersions(preSort);
             Assert.IsTrue(result.SequenceEqual(postSort), $"Result {string.Join(',', result)} != {string.Join(',', postSort)}");
         }
     }

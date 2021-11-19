@@ -2,7 +2,6 @@
 
 using Microsoft.CST.OpenSource.Shared;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -36,12 +35,12 @@ namespace Microsoft.CST.OpenSource.Tests
 
         private async Task TestDetectCryptography(string purl, params string[] expectedTags)
         {
-            var detectCryptographyTool = new DetectCryptographyTool();
+            DetectCryptographyTool? detectCryptographyTool = new();
             string targetDirectoryName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            var results = await detectCryptographyTool.AnalyzePackage(new PackageURL(purl), targetDirectoryName, false);
+            List<IssueRecord>? results = await detectCryptographyTool.AnalyzePackage(new PackageURL(purl), targetDirectoryName, false);
 
-            var distinctTargets = expectedTags.Distinct();
-            var distinctFindings = results.SelectMany(s => s.Issue.Rule.Tags ?? new List<string>())
+            IEnumerable<string>? distinctTargets = expectedTags.Distinct();
+            IEnumerable<string>? distinctFindings = results.SelectMany(s => s.Issue.Rule.Tags ?? new List<string>())
                                           .Where(s => s.StartsWith("Cryptography.Implementation"))
                                           .Distinct();
 

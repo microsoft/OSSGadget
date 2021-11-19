@@ -1,9 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+
     public class StringOutputBuilder : IOutputBuilder
     {
         /// <summary> 
@@ -36,7 +38,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         public void PrintOutput()
         {
-            foreach(var result in stringResults)
+            foreach (string? result in stringResults)
             {
                 Console.Out.WriteLine(result);
             }
@@ -47,9 +49,9 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         public void WriteOutput(string fileName)
         {
-            using var fs = new FileStream(fileName, FileMode.Create, FileAccess.ReadWrite);
-            using var sw = new StreamWriter(fs);
-            foreach(var result in stringResults)
+            using FileStream fs = new(fileName, FileMode.Create, FileAccess.ReadWrite);
+            using StreamWriter sw = new(fs);
+            foreach (string result in stringResults)
             {
                 sw.WriteLine(result);
             }

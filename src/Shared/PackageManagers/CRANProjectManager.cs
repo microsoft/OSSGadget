@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using AngleSharp.Html.Parser;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using AngleSharp.Html.Parser;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Threading.Tasks;
+
     internal class CRANProjectManager : BaseProjectManager
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
@@ -27,10 +27,10 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
-            var packageName = purl?.Name;
-            var packageVersion = purl?.Version;
+            string? packageName = purl?.Name;
+            string? packageVersion = purl?.Version;
 
-            var downloadedPaths = new List<string>();
+            List<string> downloadedPaths = new();
 
             if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
             {
@@ -41,12 +41,12 @@ namespace Microsoft.CST.OpenSource.Shared
             // Current Version
             try
             {
-                var url = $"{ENV_CRAN_ENDPOINT}/src/contrib/{packageName}_{packageVersion}.tar.gz";
-                var result = await WebClient.GetAsync(url);
+                string url = $"{ENV_CRAN_ENDPOINT}/src/contrib/{packageName}_{packageVersion}.tar.gz";
+                System.Net.Http.HttpResponseMessage? result = await WebClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
                 Logger.Debug("Downloading {0}...", purl);
 
-                var targetName = $"cran-{packageName}@{packageVersion}";
+                string targetName = $"cran-{packageName}@{packageVersion}";
                 string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                 if (doExtract && Directory.Exists(extractionPath) && cached == true)
                 {
@@ -76,12 +76,12 @@ namespace Microsoft.CST.OpenSource.Shared
             // Archive Version - Only continue here if needed
             try
             {
-                var url = $"{ENV_CRAN_ENDPOINT}/src/contrib/Archive/{packageName}/{packageName}_{packageVersion}.tar.gz";
-                var result = await WebClient.GetAsync(url);
+                string url = $"{ENV_CRAN_ENDPOINT}/src/contrib/Archive/{packageName}/{packageName}_{packageVersion}.tar.gz";
+                System.Net.Http.HttpResponseMessage? result = await WebClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
                 Logger.Debug("Downloading {0}...", purl);
 
-                var targetName = $"cran-{packageName}@{packageVersion}";
+                string targetName = $"cran-{packageName}@{packageVersion}";
                 if (doExtract)
                 {
                     downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync(), cached));
@@ -103,27 +103,27 @@ namespace Microsoft.CST.OpenSource.Shared
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
-            if (purl == null)
+            if (purl == null || purl.Name is null)
             {
                 return new List<string>();
             }
 
             try
             {
-                var packageName = purl.Name;
-                var versionList = new List<string>();
+                string packageName = purl.Name;
+                List<string> versionList = new();
 
                 // Get the latest version
-                var html = await WebClient.GetAsync($"{ENV_CRAN_ENDPOINT}/web/packages/{packageName}/index.html");
+                System.Net.Http.HttpResponseMessage html = await WebClient.GetAsync($"{ENV_CRAN_ENDPOINT}/web/packages/{packageName}/index.html");
                 html.EnsureSuccessStatusCode();
-                var parser = new HtmlParser();
-                var document = await parser.ParseDocumentAsync(await html.Content.ReadAsStringAsync());
-                var tds = document.QuerySelectorAll("td");
+                HtmlParser? parser = new();
+                AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(await html.Content.ReadAsStringAsync());
+                AngleSharp.Dom.IHtmlCollection<AngleSharp.Dom.IElement> tds = document.QuerySelectorAll("td");
                 for (int i = 0; i < tds.Length; i++)
                 {
                     if (tds[i].TextContent == "Version:")
                     {
-                        var value = tds[i + 1]?.TextContent?.Trim();
+                        string? value = tds[i + 1]?.TextContent?.Trim();
                         if (value != null)
                         {
                             versionList.Add(value);
@@ -137,12 +137,12 @@ namespace Microsoft.CST.OpenSource.Shared
                 html.EnsureSuccessStatusCode();
                 document = await parser.ParseDocumentAsync(await html.Content.ReadAsStringAsync());
                 tds = document.QuerySelectorAll("a");
-                foreach (var td in tds)
+                foreach (AngleSharp.Dom.IElement td in tds)
                 {
-                    var href = td.GetAttribute("href");
-                    if (href.Contains(".tar.gz"))
+                    string? href = td.GetAttribute("href");
+                    if (href?.Contains(".tar.gz") ?? false)
                     {
-                        var version = href.Replace(".tar.gz", "");
+                        string version = href.Replace(".tar.gz", "");
                         version = version.Replace(packageName + "_", "").Trim();
                         Logger.Debug("Identified {0} version {1}.", packageName, version);
                         versionList.Add(version);
@@ -161,8 +161,8 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             try
             {
-                var packageName = purl.Name;
-                var content = await GetHttpStringCache($"{ENV_CRAN_ENDPOINT}/web/packages/{packageName}/index.html");
+                string? packageName = purl.Name;
+                string? content = await GetHttpStringCache($"{ENV_CRAN_ENDPOINT}/web/packages/{packageName}/index.html");
                 return content;
             }
             catch (Exception ex)

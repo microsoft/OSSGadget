@@ -1,11 +1,13 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
+
 using Microsoft.CST.OpenSource.Reproducibility;
-using System.Threading.Tasks;
-using System.IO;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Text.Json;
-using System.Linq;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Tests
 {
@@ -21,17 +23,17 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("pkg:npm/non-existent1267461827467@12421", false)]
         public async Task CheckReproducibility(string packageUrl, bool? expectedToBeReproducible)
         {
-            var outputFilename = Guid.NewGuid().ToString() + ".json";
+            string? outputFilename = Guid.NewGuid().ToString() + ".json";
             ReproducibleTool.Main(new[] { "-a", "-o", outputFilename, packageUrl }).Wait();
-            
+
             bool outputFileExists = File.Exists(outputFilename);
 
             if (expectedToBeReproducible != null)
             {
                 Assert.IsTrue(outputFileExists, "Output file does not exist.");
-                var result = File.ReadAllText(outputFilename);
+                string? result = File.ReadAllText(outputFilename);
 
-                var jsonResults = JsonSerializer.Deserialize<List<ReproducibleToolResult>>(result);
+                List<ReproducibleToolResult>? jsonResults = JsonSerializer.Deserialize<List<ReproducibleToolResult>>(result);
                 Assert.IsNotNull(jsonResults, "Output file was not parseable.");
 
                 Assert.AreEqual(expectedToBeReproducible == true, jsonResults.First().IsReproducible);
@@ -50,7 +52,7 @@ namespace Microsoft.CST.OpenSource.Tests
             {
                 File.Delete(outputFilename);
             }
-     
+
         }
 
 
@@ -60,7 +62,7 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("/foo/bar/quux.c", "baz/quux.c,bar/quux.c", "bar/quux.c")]
         public async Task CheckGetClosestMatch(string filename, string targets, string expectedTarget)
         {
-            var results = Helpers.GetClosestFileMatch(filename, targets.Split(','));
+            IEnumerable<string>? results = Helpers.GetClosestFileMatch(filename, targets.Split(','));
             Assert.IsNotNull(results);
 
             if (expectedTarget == null)

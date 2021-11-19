@@ -1,12 +1,14 @@
-﻿using Microsoft.CodeAnalysis.Sarif;
-using Newtonsoft.Json;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using Microsoft.CodeAnalysis.Sarif;
+    using Newtonsoft.Json;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Reflection;
+    using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
+
     public class SarifOutputBuilder : IOutputBuilder
     {
         public SarifOutputBuilder(SarifVersion version)
@@ -59,7 +61,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <returns></returns>
         public SarifLog BuildSingleRunSarifLog()
         {
-            Tool thisTool = new Tool
+            Tool thisTool = new()
             {
                 Driver = new ToolComponent
                 {
@@ -70,7 +72,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
             };
 
-            SarifLog sarifLog = new SarifLog()
+            SarifLog sarifLog = new()
             {
                 Runs = new List<Run>() {
                     new Run()
@@ -79,7 +81,7 @@ namespace Microsoft.CST.OpenSource.Shared
                         Results = sarifResults
                     }
                 },
-                Version = this.currentSarifVersion
+                Version = currentSarifVersion
             };
             return sarifLog;
         }
@@ -92,16 +94,14 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             SarifLog completedSarif = BuildSingleRunSarifLog();
 
-            using (MemoryStream ms = new MemoryStream())
-            {
-                StreamWriter sw = new StreamWriter(ms, System.Text.Encoding.UTF8, -1, true);
-                StreamReader sr = new StreamReader(ms);
+            using MemoryStream ms = new();
+            StreamWriter sw = new(ms, System.Text.Encoding.UTF8, -1, true);
+            StreamReader sr = new(ms);
 
-                completedSarif.Save(sw);
-                ms.Position = 0;
+            completedSarif.Save(sw);
+            ms.Position = 0;
 
-                return sr.ReadToEnd();
-            }
+            return sr.ReadToEnd();
         }
 
         /// <summary>
@@ -117,8 +117,8 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         public void WriteOutput(string fileName)
         {
-            using var fs = new FileStream(fileName, FileMode.Create, FileAccess.ReadWrite);
-            using var sw = new StreamWriter(fs);
+            using FileStream fs = new(fileName, FileMode.Create, FileAccess.ReadWrite);
+            using StreamWriter sw = new(fs);
             PrintSarifLog(sw);
         }
 
@@ -130,8 +130,8 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             SarifLog completedSarif = BuildSingleRunSarifLog();
 
-            var serializer = new JsonSerializer() { Formatting = Formatting.Indented };
-            using var writer = new JsonTextWriter(writeStream);
+            JsonSerializer serializer = new() { Formatting = Formatting.Indented };
+            using JsonTextWriter writer = new(writeStream);
             serializer.Serialize(writer, completedSarif);
         }
 
@@ -148,6 +148,6 @@ namespace Microsoft.CST.OpenSource.Shared
         private static readonly string Company = "Microsoft Corporation";
         private static readonly string Version = OSSGadget.GetToolVersion();
         private readonly SarifVersion currentSarifVersion = SarifVersion.Current;
-        private List<Result> sarifResults = new List<Result>();
+        private readonly List<Result> sarifResults = new();
     }
 }

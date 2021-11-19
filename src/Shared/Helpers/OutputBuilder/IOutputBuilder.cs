@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using System.Collections.Generic;
+
     /// <summary>
     ///     Interface for implementing Output providers
     /// </summary>

@@ -24,17 +24,17 @@ namespace Microsoft.CST.OpenSource.Tests
         public async Task Check_Sarif(string purl, string targetResult)
         {
             // for initialization
-            FindSourceTool tool = new FindSourceTool();
+            FindSourceTool tool = new();
 
-            RepoSearch searchTool = new RepoSearch();
-            var results = await searchTool.ResolvePackageLibraryAsync(new PackageURL(purl));
+            RepoSearch searchTool = new();
+            Dictionary<PackageURL, double>? results = await searchTool.ResolvePackageLibraryAsync(new PackageURL(purl));
 
-            List<Result> sarifResults = new List<Result>();
-            foreach (var result in results)
+            List<Result> sarifResults = new();
+            foreach (KeyValuePair<PackageURL, double> result in results)
             {
-                var confidence = result.Value * 100.0;
+                double confidence = result.Value * 100.0;
 
-                Result sarifResult = new Result()
+                Result sarifResult = new()
                 {
                     Message = new Message()
                     {
@@ -52,17 +52,17 @@ namespace Microsoft.CST.OpenSource.Tests
             IOutputBuilder outputBuilder = OutputBuilderFactory.CreateOutputBuilder("sarifv2");
             outputBuilder.AppendOutput(sarifResults);
             string sarifJSON = outputBuilder.GetOutput();
-            var sarif = JsonConvert.DeserializeObject<SarifLog>(sarifJSON);
+            SarifLog? sarif = JsonConvert.DeserializeObject<SarifLog>(sarifJSON);
             Assert.IsNotNull(sarif);
 
-            var sarifRun = sarif.Runs.FirstOrDefault();
+            Run? sarifRun = sarif.Runs.FirstOrDefault();
             Assert.IsNotNull(sarifRun?.Tool.Driver.Name);
 
             // make sure atleast one of the result repos match the actual one
             bool found = false;
             if (sarifRun != null)
             {
-                foreach (var result in sarifRun.Results)
+                foreach (Result? result in sarifRun.Results)
                 {
                     if (result.Message.Text == targetResult)
                     {
@@ -80,10 +80,10 @@ namespace Microsoft.CST.OpenSource.Tests
         public async Task FindSource_NonExistentPackage(string purl, string _)
         {
             // for initialization
-            FindSourceTool tool = new FindSourceTool();
+            FindSourceTool tool = new();
 
-            RepoSearch searchTool = new RepoSearch();
-            var results = await searchTool.ResolvePackageLibraryAsync(new PackageURL(purl));
+            RepoSearch searchTool = new();
+            Dictionary<PackageURL, double>? results = await searchTool.ResolvePackageLibraryAsync(new PackageURL(purl));
             Assert.IsTrue(results.Count() == 0, $"Result {results} obtained from non-existent {purl}");
         }
 
@@ -95,14 +95,14 @@ namespace Microsoft.CST.OpenSource.Tests
         public async Task FindSource_Success(string purl, string targetResult)
         {
             // for initialization
-            FindSourceTool tool = new FindSourceTool();
+            FindSourceTool tool = new();
 
-            RepoSearch searchTool = new RepoSearch();
-            var results = await searchTool.ResolvePackageLibraryAsync(new PackageURL(purl));
-            var targetPurl = new PackageURL(targetResult);
-            var success = false;
+            RepoSearch searchTool = new();
+            Dictionary<PackageURL, double>? results = await searchTool.ResolvePackageLibraryAsync(new PackageURL(purl));
+            PackageURL? targetPurl = new(targetResult);
+            bool success = false;
 
-            foreach (var resultEntry in results)
+            foreach (KeyValuePair<PackageURL, double> resultEntry in results)
             {
                 if (resultEntry.Key.Equals(targetPurl))
                 {

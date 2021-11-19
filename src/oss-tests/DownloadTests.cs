@@ -218,9 +218,9 @@ namespace Microsoft.CST.OpenSource.Tests
             }
             catch (Exception)
             {
-                foreach (var filename in Directory.EnumerateFileSystemEntries(tempDirectoryName, "*", SearchOption.AllDirectories))
+                foreach (string? filename in Directory.EnumerateFileSystemEntries(tempDirectoryName, "*", SearchOption.AllDirectories))
                 {
-                    var fileInfo = new FileInfo(filename)
+                    FileInfo? fileInfo = new(filename)
                     {
                         Attributes = FileAttributes.Normal
                     };
@@ -274,16 +274,16 @@ namespace Microsoft.CST.OpenSource.Tests
 
             try
             {
-                var packageUrl = new PackageURL(purl);
-                var packageDownloader = DownloadPackage(packageUrl, tempDirectoryName);
+                PackageURL? packageUrl = new(purl);
+                PackageDownloader? packageDownloader = DownloadPackage(packageUrl, tempDirectoryName);
 
-                var targetFileWasDownloaded = Directory.EnumerateFiles(tempDirectoryName, targetFilename, SearchOption.AllDirectories).Any();
+                bool targetFileWasDownloaded = Directory.EnumerateFiles(tempDirectoryName, targetFilename, SearchOption.AllDirectories).Any();
                 if (!targetFileWasDownloaded)
                 {
                     errorString = "Target file was not downloaded.";
                 }
 
-                var topLevelDirectoryCount = Directory.GetDirectories(tempDirectoryName).Length;
+                int topLevelDirectoryCount = Directory.GetDirectories(tempDirectoryName).Length;
                 if (expectedDirectoryCount != topLevelDirectoryCount)
                 {
                     errorString = string.Format("Directory count {0} does not match expected {1}", topLevelDirectoryCount, expectedDirectoryCount);

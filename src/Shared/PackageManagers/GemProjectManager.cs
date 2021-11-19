@@ -1,21 +1,18 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.Json;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Text.Json;
+    using System.Text.RegularExpressions;
+    using System.Threading.Tasks;
+
     internal class GemProjectManager : BaseProjectManager
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_RUBYGEMS_ENDPOINT = "https://rubygems.org";
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_RUBYGEMS_ENDPOINT_API = "https://api.rubygems.org";
 
         public GemProjectManager(string destinationDirectory) : base(destinationDirectory)
@@ -31,9 +28,9 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
-            var packageName = purl?.Name;
-            var packageVersion = purl?.Version;
-            var downloadedPaths = new List<string>();
+            string? packageName = purl?.Name;
+            string? packageVersion = purl?.Version;
+            List<string> downloadedPaths = new();
 
             if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
             {
@@ -43,12 +40,12 @@ namespace Microsoft.CST.OpenSource.Shared
 
             try
             {
-                var url = $"{ENV_RUBYGEMS_ENDPOINT}/downloads/{packageName}-{packageVersion}.gem";
-                var result = await WebClient.GetAsync(url);
+                string url = $"{ENV_RUBYGEMS_ENDPOINT}/downloads/{packageName}-{packageVersion}.gem";
+                System.Net.Http.HttpResponseMessage result = await WebClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
                 Logger.Debug("Downloading {0}...", purl);
 
-                var targetName = $"rubygems-{packageName}@{packageVersion}";
+                string targetName = $"rubygems-{packageName}@{packageVersion}";
                 string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                 if (doExtract && Directory.Exists(extractionPath) && cached == true)
                 {
@@ -73,24 +70,42 @@ namespace Microsoft.CST.OpenSource.Shared
             return downloadedPaths;
         }
 
+        /// <summary>
+        /// Check if the package exists in the respository.
+        /// </summary>
+        /// <param name="purl">The PackageURL to check.</param>
+        /// <param name="useCache">If cache should be used.</param>
+        /// <returns>True if the package is confirmed to exist in the repository. False otherwise.</returns>
+        public override async Task<bool> PackageExists(PackageURL purl, bool useCache = true)
+        {
+            Logger.Trace("PackageExists {0}", purl?.ToString());
+            if (string.IsNullOrEmpty(purl?.Name))
+            {
+                Logger.Trace("Provided PackageURL was null.");
+                return false;
+            }
+            string packageName = purl.Name;
+            return await CheckJsonCacheForPackage($"{ENV_RUBYGEMS_ENDPOINT_API}/api/v1/versions/{packageName}.json", useCache);
+        }
+
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
-            if (purl == null)
+            if (purl == null || purl.Name is null)
             {
                 return new List<string>();
             }
 
             try
             {
-                var packageName = purl.Name;
-                var doc = await GetJsonCache($"{ENV_RUBYGEMS_ENDPOINT_API}/api/v1/versions/{packageName}.json");
-                var versionList = new List<string>();
-                foreach (var gemObject in doc.RootElement.EnumerateArray())
+                string packageName = purl.Name;
+                JsonDocument doc = await GetJsonCache($"{ENV_RUBYGEMS_ENDPOINT_API}/api/v1/versions/{packageName}.json");
+                List<string> versionList = new();
+                foreach (JsonElement gemObject in doc.RootElement.EnumerateArray())
                 {
                     if (gemObject.TryGetProperty("number", out JsonElement version))
                     {
-                        var vString = version.ToString();
+                        string? vString = version.ToString();
                         if (!string.IsNullOrWhiteSpace(vString))
                         {
                             // RubyGems is mostly-semver-compliant
@@ -111,11 +126,15 @@ namespace Microsoft.CST.OpenSource.Shared
 
         public override async Task<string?> GetMetadata(PackageURL purl)
         {
+            if (purl is null || purl.Name is null)
+            {
+                return null;
+            }
             try
             {
-                var packageName = purl.Name;
-                var contentVersion = await GetHttpStringCache($"{ENV_RUBYGEMS_ENDPOINT_API}/api/v1/versions/{packageName}.json") ?? "";
-                var contentGem = await GetHttpStringCache($"{ENV_RUBYGEMS_ENDPOINT_API}/api/v1/gems/{packageName}.json") ?? "";
+                string packageName = purl.Name;
+                string contentVersion = await GetHttpStringCache($"{ENV_RUBYGEMS_ENDPOINT_API}/api/v1/versions/{packageName}.json") ?? "";
+                string contentGem = await GetHttpStringCache($"{ENV_RUBYGEMS_ENDPOINT_API}/api/v1/gems/{packageName}.json") ?? "";
                 return contentVersion + contentGem;
             }
             catch (Exception ex)

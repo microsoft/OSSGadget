@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using Microsoft.CST.OpenSource.FindSquats.Mutators;
-using Microsoft.CST.OpenSource.Shared;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-
 namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
 {
+    using Microsoft.CST.OpenSource.FindSquats.Mutators;
+    using Microsoft.CST.OpenSource.Shared;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
+
     /// <summary>
     /// This class contains extension methods to find potentially squatted packages in BaseProjectManager derived classes.
     /// </summary>

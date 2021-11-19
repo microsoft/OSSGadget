@@ -1,22 +1,15 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using System;
-using System.IO;
-
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using System;
+    using System.IO;
+
     public class ConsoleHelper
     {
         public static StreamWriter GetCurrentWriteStream()
         {
-            if (streamWriter != null)
-            {
-                return streamWriter;
-            }
-            else
-            {
-                return new StreamWriter(Console.OpenStandardOutput());
-            }
+            return streamWriter ?? new StreamWriter(Console.OpenStandardOutput());
         }
 
         public static bool RedirectConsole(string outFile)
@@ -36,7 +29,7 @@ namespace Microsoft.CST.OpenSource.Shared
         public static void RestoreConsole()
         {
             // switch back to Console
-            var standardOutput = new StreamWriter(Console.OpenStandardOutput());
+            StreamWriter standardOutput = new(Console.OpenStandardOutput());
             standardOutput.AutoFlush = true;
             Console.SetOut(standardOutput);
 

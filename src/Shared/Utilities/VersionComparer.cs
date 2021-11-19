@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft Corporation. Licensed under the MIT License.
-using System;
-using System.Collections.Generic;
-
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using System;
+    using System.Collections.Generic;
+
     public class VersionComparer : IComparer<List<string>>
     {
 
@@ -14,14 +14,14 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <param name="version"></param>
         public static List<string> Parse(string version)
         {
-            var parts = new List<string>();
-            var inNumber = false;
-            var curStr = "";
+            List<string> parts = new();
+            bool inNumber = false;
+            string curStr = string.Empty;
 
             for (int i = 0; i < version.Length; i++)
             {
-                var ch = version[i];
-                if (Char.IsNumber(ch) ^ inNumber)
+                char ch = version[i];
+                if (char.IsNumber(ch) ^ inNumber)
                 {
                     if (curStr != "")
                     {
@@ -35,7 +35,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 {
                     parts.Add(curStr);
                 }
-                inNumber = Char.IsNumber(ch);
+                inNumber = char.IsNumber(ch);
             }
             return parts;
         }
@@ -50,8 +50,8 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             if (x != null && y != null)
             {
-                var minLength = Math.Min(x.Count, y.Count);
-                for (int i=0; i<minLength; i++)
+                int minLength = Math.Min(x.Count, y.Count);
+                for (int i = 0; i < minLength; i++)
                 {
                     if (int.TryParse(x[i], out int xInt) &&
                         int.TryParse(y[i], out int yInt))
@@ -61,7 +61,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     }
                     else
                     {
-                        var compValue = x[i].CompareTo(y[i]);
+                        int compValue = x[i].CompareTo(y[i]);
                         if (compValue != 0) return compValue;
                     }
                 }

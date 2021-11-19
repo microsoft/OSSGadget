@@ -1,24 +1,23 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using HtmlAgilityPack;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Text.Json;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using HtmlAgilityPack;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Net.Http;
+    using System.Text.Json;
+    using System.Threading.Tasks;
+
     public class NuGetProjectManager : BaseProjectManager
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_NUGET_ENDPOINT_API = "https://api.nuget.org";
-        
+
         private readonly string NUGET_DEFAULT_REGISTRATION_ENDPOINT = "https://api.nuget.org/v3/registration5-gz-semver2/";
-        
+
         private string? RegistrationEndpoint { get; set; } = null;
 
         public NuGetProjectManager(string destinationDirectory) : base(destinationDirectory)
@@ -36,19 +35,19 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 return RegistrationEndpoint;
             }
-            
+
             try
             {
-                var doc = await GetJsonCache($"{ENV_NUGET_ENDPOINT_API}/v3/index.json");
-                var resources = doc.RootElement.GetProperty("resources").EnumerateArray();
-                foreach (var resource in resources)
+                JsonDocument doc = await GetJsonCache($"{ENV_NUGET_ENDPOINT_API}/v3/index.json");
+                JsonElement.ArrayEnumerator resources = doc.RootElement.GetProperty("resources").EnumerateArray();
+                foreach (JsonElement resource in resources)
                 {
                     try
                     {
-                        var _type = resource.GetProperty("@type").GetString();
+                        string? _type = resource.GetProperty("@type").GetString();
                         if (_type != null && _type.Equals("RegistrationsBaseUrl/Versioned", StringComparison.InvariantCultureIgnoreCase))
                         {
-                            var _id = resource.GetProperty("@id").GetString();
+                            string? _id = resource.GetProperty("@id").GetString();
                             if (!string.IsNullOrWhiteSpace(_id))
                             {
                                 RegistrationEndpoint = _id;
@@ -62,7 +61,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Logger.Debug(ex, "Error parsing NuGet API endpoint: {0}", ex.Message);
             }
@@ -79,9 +78,9 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
-            var packageName = purl?.Name;
-            var packageVersion = purl?.Version;
-            var downloadedPaths = new List<string>();
+            string? packageName = purl?.Name;
+            string? packageVersion = purl?.Version;
+            List<string> downloadedPaths = new();
 
             if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
             {
@@ -91,24 +90,24 @@ namespace Microsoft.CST.OpenSource.Shared
 
             try
             {
-                var doc = await GetJsonCache($"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json");
-                var versionList = new List<string>();
-                foreach (var catalogPage in doc.RootElement.GetProperty("items").EnumerateArray())
+                JsonDocument doc = await GetJsonCache($"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json");
+                List<string> versionList = new();
+                foreach (JsonElement catalogPage in doc.RootElement.GetProperty("items").EnumerateArray())
                 {
                     if (catalogPage.TryGetProperty("items", out JsonElement itemElement))
                     {
-                        foreach (var item in itemElement.EnumerateArray())
+                        foreach (JsonElement item in itemElement.EnumerateArray())
                         {
-                            var catalogEntry = item.GetProperty("catalogEntry");
-                            var version = catalogEntry.GetProperty("version").GetString();
+                            JsonElement catalogEntry = item.GetProperty("catalogEntry");
+                            string? version = catalogEntry.GetProperty("version").GetString();
                             if (version != null && version.Equals(packageVersion, StringComparison.InvariantCultureIgnoreCase))
                             {
-                                var archive = catalogEntry.GetProperty("packageContent").GetString();
-                                var result = await WebClient.GetAsync(archive);
+                                string? archive = catalogEntry.GetProperty("packageContent").GetString();
+                                HttpResponseMessage? result = await WebClient.GetAsync(archive);
                                 result.EnsureSuccessStatusCode();
                                 Logger.Debug("Downloading {0}...", purl?.ToString());
 
-                                var targetName = $"nuget-{packageName}@{packageVersion}";
+                                string? targetName = $"nuget-{packageName}@{packageVersion}";
                                 string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                                 if (doExtract && Directory.Exists(extractionPath) && cached == true)
                                 {
@@ -132,23 +131,23 @@ namespace Microsoft.CST.OpenSource.Shared
                     }
                     else
                     {
-                        var subDocUrl = catalogPage.GetProperty("@id").GetString();
+                        string? subDocUrl = catalogPage.GetProperty("@id").GetString();
                         if (subDocUrl != null)
                         {
-                            var subDoc = await GetJsonCache(subDocUrl);
-                            foreach (var subCatalogPage in subDoc.RootElement.GetProperty("items").EnumerateArray())
+                            JsonDocument subDoc = await GetJsonCache(subDocUrl);
+                            foreach (JsonElement subCatalogPage in subDoc.RootElement.GetProperty("items").EnumerateArray())
                             {
-                                var catalogEntry = subCatalogPage.GetProperty("catalogEntry");
-                                var version = catalogEntry.GetProperty("version").GetString();
+                                JsonElement catalogEntry = subCatalogPage.GetProperty("catalogEntry");
+                                string? version = catalogEntry.GetProperty("version").GetString();
                                 Logger.Debug("Identified {0} version {1}.", packageName, version);
                                 if (version != null && version.Equals(packageVersion, StringComparison.InvariantCultureIgnoreCase))
                                 {
-                                    var archive = catalogEntry.GetProperty("packageContent").GetString();
-                                    var result = await WebClient.GetAsync(archive);
+                                    string? archive = catalogEntry.GetProperty("packageContent").GetString();
+                                    HttpResponseMessage? result = await WebClient.GetAsync(archive);
                                     result.EnsureSuccessStatusCode();
                                     Logger.Debug("Downloading {0}...", purl?.ToString());
 
-                                    var targetName = $"nuget-{packageName}@{packageVersion}";
+                                    string targetName = $"nuget-{packageName}@{packageVersion}";
                                     string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                                     if (doExtract && Directory.Exists(extractionPath) && cached == true)
                                     {
@@ -207,29 +206,25 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
 
-            if (purl == null)
+            if (purl == null || purl.Name is null)
             {
                 return new List<string>();
             }
 
             try
             {
-                var packageName = purl.Name;
-                if (packageName == null)
-                {
-                    return new List<string>();
-                }
+                string packageName = purl.Name;
 
-                var doc = await GetJsonCache($"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json");
-                var versionList = new List<string>();
-                foreach (var catalogPage in doc.RootElement.GetProperty("items").EnumerateArray())
+                JsonDocument doc = await GetJsonCache($"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json");
+                List<string> versionList = new();
+                foreach (JsonElement catalogPage in doc.RootElement.GetProperty("items").EnumerateArray())
                 {
                     if (catalogPage.TryGetProperty("items", out JsonElement itemElement))
                     {
-                        foreach (var item in itemElement.EnumerateArray())
+                        foreach (JsonElement item in itemElement.EnumerateArray())
                         {
-                            var catalogEntry = item.GetProperty("catalogEntry");
-                            var version = catalogEntry.GetProperty("version").GetString();
+                            JsonElement catalogEntry = item.GetProperty("catalogEntry");
+                            string? version = catalogEntry.GetProperty("version").GetString();
                             if (version != null)
                             {
                                 Logger.Debug("Identified {0} version {1}.", packageName, version);
@@ -243,14 +238,14 @@ namespace Microsoft.CST.OpenSource.Shared
                     }
                     else
                     {
-                        var subDocUrl = catalogPage.GetProperty("@id").GetString();
+                        string? subDocUrl = catalogPage.GetProperty("@id").GetString();
                         if (subDocUrl != null)
                         {
-                            var subDoc = await GetJsonCache(subDocUrl);
-                            foreach (var subCatalogPage in subDoc.RootElement.GetProperty("items").EnumerateArray())
+                            JsonDocument subDoc = await GetJsonCache(subDocUrl);
+                            foreach (JsonElement subCatalogPage in subDoc.RootElement.GetProperty("items").EnumerateArray())
                             {
-                                var catalogEntry = subCatalogPage.GetProperty("catalogEntry");
-                                var version = catalogEntry.GetProperty("version").GetString();
+                                JsonElement catalogEntry = subCatalogPage.GetProperty("catalogEntry");
+                                string? version = catalogEntry.GetProperty("version").GetString();
                                 Logger.Debug("Identified {0} version {1}.", packageName, version);
                                 if (version != null)
                                 {
@@ -282,12 +277,12 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             try
             {
-                var packageName = purl.Name;
+                string? packageName = purl?.Name;
                 if (packageName == null)
                 {
                     return null;
                 }
-                var content = await GetHttpStringCache($"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json");
+                string? content = await GetHttpStringCache($"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json");
                 return content;
             }
             catch (Exception ex)
@@ -302,36 +297,38 @@ namespace Microsoft.CST.OpenSource.Shared
             return new Uri($"{ENV_NUGET_HOMEPAGE}/{purl?.Name}");
         }
 
-        protected async override Task<Dictionary<PackageURL, double>> SearchRepoUrlsInPackageMetadata(PackageURL purl, string metadata)
+        protected override async Task<Dictionary<PackageURL, double>> SearchRepoUrlsInPackageMetadata(PackageURL purl, string metadata)
         {
-            Dictionary<PackageURL, double> mapping = new Dictionary<PackageURL, double>();
+            Dictionary<PackageURL, double> mapping = new();
             try
             {
-                var packageName = purl.Name;
+                string? packageName = purl.Name;
 
                 // nuget doesnt provide repository information in the json metadata; we have to extract it
                 // from the html home page
-                HtmlWeb web = new HtmlWeb();
+                HtmlWeb web = new();
                 HtmlDocument doc = web.Load($"{ENV_NUGET_HOMEPAGE}/{packageName}");
 
-                var paths = new List<string>()
+                List<string> paths = new()
                 {
                     "//a[@title=\"View the source code for this package\"]/@href",
                     "//a[@title=\"Visit the project site to learn more about this package\"]/@href"
                 };
-
-                foreach (string path in paths)
+                await Task.Run(() =>
                 {
-                    string? repoCandidate = doc.DocumentNode.SelectSingleNode(path)?.GetAttributeValue("href", string.Empty);
-                    if (!string.IsNullOrEmpty(repoCandidate))
+                    foreach (string path in paths)
                     {
-                        var candidate = ExtractGitHubPackageURLs(repoCandidate).FirstOrDefault();
-                        if (candidate != null)
+                        string? repoCandidate = doc.DocumentNode.SelectSingleNode(path)?.GetAttributeValue("href", string.Empty);
+                        if (!string.IsNullOrEmpty(repoCandidate))
                         {
-                            mapping[candidate as PackageURL] = 1.0F;
+                            PackageURL? candidate = ExtractGitHubPackageURLs(repoCandidate).FirstOrDefault();
+                            if (candidate != null)
+                            {
+                                mapping[candidate] = 1.0F;
+                            }
                         }
                     }
-                }
+                });
                 return mapping;
             }
             catch (Exception ex)

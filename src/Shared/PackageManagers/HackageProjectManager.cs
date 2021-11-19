@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using AngleSharp.Html.Parser;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using AngleSharp.Html.Parser;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Threading.Tasks;
+
     internal class HackageProjectManager : BaseProjectManager
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
@@ -27,23 +27,26 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
-            var packageName = purl?.Name;
-            var packageVersion = purl?.Version;
-            var downloadedPaths = new List<string>();
-
+            if (purl is null || purl.Name is null || purl.Version is null)
+            {
+                return Array.Empty<string>();
+            }
+            string packageName = purl.Name;
+            string packageVersion = purl.Version;
             if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
             {
                 Logger.Debug("Unable to download [{0} {1}]. Both must be defined.", packageName, packageVersion);
-                return downloadedPaths;
+                return Array.Empty<string>();
             }
+            List<string> downloadedPaths = new();
             try
             {
-                var url = $"{ENV_HACKAGE_ENDPOINT}/package/{packageName}-{packageVersion}/{packageName}-{packageVersion}.tar.gz";
-                var result = await WebClient.GetAsync(url);
+                string url = $"{ENV_HACKAGE_ENDPOINT}/package/{packageName}-{packageVersion}/{packageName}-{packageVersion}.tar.gz";
+                System.Net.Http.HttpResponseMessage result = await WebClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
-                Logger.Debug("Downloading {0}...", purl?.ToString());
+                Logger.Debug("Downloading {0}...", purl.ToString());
 
-                var targetName = $"hackage-{packageName}@{packageVersion}";
+                string targetName = $"hackage-{packageName}@{packageVersion}";
                 string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                 if (doExtract && Directory.Exists(extractionPath) && cached == true)
                 {
@@ -71,28 +74,28 @@ namespace Microsoft.CST.OpenSource.Shared
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
-            if (purl == null)
+            if (purl == null || purl.Name is null)
             {
-                return new List<string>();
+                return Array.Empty<string>();
             }
 
             try
             {
-                var packageName = purl.Name;
-                var html = await WebClient.GetAsync($"{ENV_HACKAGE_ENDPOINT}/package/{packageName}");
+                string packageName = purl.Name;
+                System.Net.Http.HttpResponseMessage? html = await WebClient.GetAsync($"{ENV_HACKAGE_ENDPOINT}/package/{packageName}");
                 html.EnsureSuccessStatusCode();
-                var parser = new HtmlParser();
-                var document = await parser.ParseDocumentAsync(await html.Content.ReadAsStringAsync());
-                var ths = document.QuerySelectorAll("th");
-                var versionList = new List<string>();
-                foreach (var th in ths)
+                HtmlParser parser = new();
+                AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(await html.Content.ReadAsStringAsync());
+                AngleSharp.Dom.IHtmlCollection<AngleSharp.Dom.IElement> ths = document.QuerySelectorAll("th");
+                List<string> versionList = new();
+                foreach (AngleSharp.Dom.IElement th in ths)
                 {
                     if (th.TextContent.StartsWith("Versions"))
                     {
-                        var td = th.NextElementSibling;
-                        foreach (var version in td.QuerySelectorAll("a,strong"))
+                        AngleSharp.Dom.IElement td = th.NextElementSibling;
+                        foreach (AngleSharp.Dom.IElement version in td.QuerySelectorAll("a,strong"))
                         {
-                            var versionString = version.TextContent.ToLower().Trim();
+                            string versionString = version.TextContent.ToLower().Trim();
                             Logger.Debug("Identified {0} version {1}.", packageName, versionString);
                             versionList.Add(versionString);
                         }
@@ -111,11 +114,14 @@ namespace Microsoft.CST.OpenSource.Shared
 
         public override async Task<string?> GetMetadata(PackageURL purl)
         {
+            if (purl is null || purl.Name is null)
+            {
+                return null;
+            }
             try
             {
-                var packageName = purl.Name;
-                var content = await GetHttpStringCache($"{ENV_HACKAGE_ENDPOINT}/package/{packageName}");
-                return content;
+                string packageName = purl.Name;
+                return await GetHttpStringCache($"{ENV_HACKAGE_ENDPOINT}/package/{packageName}");
             }
             catch (Exception ex)
             {

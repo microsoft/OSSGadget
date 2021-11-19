@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.Json;
-using System.Threading.Tasks;
-
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Text.Json;
+    using System.Threading.Tasks;
+
     internal class CargoProjectManager : BaseProjectManager
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
@@ -30,10 +30,10 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
-            var packageName = purl?.Name;
-            var packageVersion = purl?.Version;
-            var fileName = purl?.ToStringFilename();
-            var downloadedPaths = new List<string>();
+            string? packageName = purl?.Name;
+            string? packageVersion = purl?.Version;
+            string? fileName = purl?.ToStringFilename();
+            List<string> downloadedPaths = new();
 
             if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion) || string.IsNullOrWhiteSpace(fileName))
             {
@@ -41,7 +41,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 return downloadedPaths;
             }
 
-            var url = $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}/{packageVersion}/download";
+            string url = $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}/{packageVersion}/download";
             try
             {
                 string targetName = $"cargo-{fileName}";
@@ -54,7 +54,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
                 Logger.Debug("Downloading {0}", url);
 
-                var result = await WebClient.GetAsync(url);
+                System.Net.Http.HttpResponseMessage result = await WebClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
 
                 if (doExtract)
@@ -101,17 +101,17 @@ namespace Microsoft.CST.OpenSource.Shared
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
-            if (purl == null)
+            if (purl == null || purl.Name is null)
             {
                 return new List<string>();
             }
 
             try
             {
-                var packageName = purl.Name;
-                var doc = await GetJsonCache($"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}");
-                var versionList = new List<string>();
-                foreach (var versionObject in doc.RootElement.GetProperty("versions").EnumerateArray())
+                string? packageName = purl.Name;
+                JsonDocument doc = await GetJsonCache($"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}");
+                List<string> versionList = new();
+                foreach (JsonElement versionObject in doc.RootElement.GetProperty("versions").EnumerateArray())
                 {
                     if (versionObject.TryGetProperty("num", out JsonElement version))
                     {
@@ -140,8 +140,8 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             try
             {
-                var packageName = purl.Name;
-                var content = await GetHttpStringCache($"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}");
+                string? packageName = purl.Name;
+                string? content = await GetHttpStringCache($"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}");
                 return content;
             }
             catch (Exception ex)
@@ -153,7 +153,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
         public override Uri GetPackageAbsoluteUri(PackageURL purl)
         {
-            var packageName = purl?.Name;
+            string? packageName = purl?.Name;
             return new Uri($"{ENV_CARGO_ENDPOINT}/crates/{packageName}");
             // TODO: Add version support
         }

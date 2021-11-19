@@ -1,20 +1,20 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using CommandLine;
-using CommandLine.Text;
-using Microsoft.CodeAnalysis.Sarif;
-using Microsoft.CST.OpenSource.FindSquats.ExtensionMethods;
-using Microsoft.CST.OpenSource.Shared;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net.Http;
-using System.Threading.Tasks;
-using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
-
 namespace Microsoft.CST.OpenSource.FindSquats
 {
+    using CommandLine;
+    using CommandLine.Text;
+    using Microsoft.CodeAnalysis.Sarif;
+    using Microsoft.CST.OpenSource.FindSquats.ExtensionMethods;
+    using Microsoft.CST.OpenSource.Shared;
+    using Newtonsoft.Json;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Net.Http;
+    using System.Threading.Tasks;
+    using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
+
     public class FindSquatsTool : OSSGadget
     {
         public class Options

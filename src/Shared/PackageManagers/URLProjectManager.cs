@@ -1,16 +1,12 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using AngleSharp.Html.Parser;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Threading.Tasks;
+
     internal class URLProjectManager : BaseProjectManager
     {
         public URLProjectManager(string destinationDirectory) : base(destinationDirectory)
@@ -19,7 +15,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
         public override Uri GetPackageAbsoluteUri(PackageURL purl)
         {
-            var url = purl.Qualifiers?.GetValueOrDefault("url") ?? "https://missing-url.com";
+            string? url = purl.Qualifiers?.GetValueOrDefault("url") ?? "https://missing-url.com";
             return new Uri(url);
         }
 
@@ -31,18 +27,18 @@ namespace Microsoft.CST.OpenSource.Shared
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
-            
-            var downloadedPaths = new List<string>();
+
+            List<string> downloadedPaths = new();
             string? url = null;
-            var foundValue = purl?.Qualifiers?.TryGetValue("url", out url) ?? false;
+            bool foundValue = purl?.Qualifiers?.TryGetValue("url", out url) ?? false;
             if (foundValue && url is not null)
             {
-                Uri uri = new Uri(url);
+                Uri uri = new(url);
                 Logger.Debug("Downloading {0} ({1})...", purl, uri);
-                var result = await WebClient.GetAsync(uri);
+                System.Net.Http.HttpResponseMessage? result = await WebClient.GetAsync(uri);
                 result.EnsureSuccessStatusCode();
 
-                var targetName = Path.GetFileName(uri.LocalPath);
+                string targetName = Path.GetFileName(uri.LocalPath);
                 string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                 if (doExtract && Directory.Exists(extractionPath) && cached == true)
                 {
@@ -67,7 +63,9 @@ namespace Microsoft.CST.OpenSource.Shared
             }
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
             if (purl == null)
@@ -80,7 +78,9 @@ namespace Microsoft.CST.OpenSource.Shared
             };
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         public override async Task<string?> GetMetadata(PackageURL purl)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             return null;
         }

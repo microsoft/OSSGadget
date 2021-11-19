@@ -1,33 +1,33 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-// This file was derived from the packageurl-dotnet package available at https://github.com/package-url/packageurl-dotnet.
-
-// MIT License
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
-// associated documentation files (the "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all copies or substantial
-// portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
-// LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO
-// EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-// IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net;
-using System.Text;
-using System.Text.RegularExpressions;
-
 namespace Microsoft.CST.OpenSource.Shared
 {
+    // This file was derived from the packageurl-dotnet package available at https://github.com/package-url/packageurl-dotnet.
+
+    // MIT License
+    //
+    // Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+    // associated documentation files (the "Software"), to deal in the Software without restriction, including
+    // without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    // copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+    // following conditions:
+    //
+    // The above copyright notice and this permission notice shall be included in all copies or substantial
+    // portions of the Software.
+    //
+    // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+    // LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO
+    // EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+    // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+    // USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Net;
+    using System.Text;
+    using System.Text.RegularExpressions;
+
     /// <summary>
     ///     Provides an object representation of a Package URL and easy access to its parts.
     ///
@@ -140,7 +140,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         public override string ToString()
         {
-            var purl = new StringBuilder();
+            StringBuilder purl = new();
             purl.Append(Scheme).Append(':');
             if (Type != null)
             {
@@ -162,8 +162,8 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             if (Qualifiers != null && Qualifiers.Count > 0)
             {
-                purl.Append("?");
-                foreach (var pair in Qualifiers)
+                purl.Append('?');
+                foreach (KeyValuePair<string, string> pair in Qualifiers)
                 {
                     purl.Append(pair.Key.ToLower());
                     purl.Append('=');
@@ -174,24 +174,24 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             if (Subpath != null)
             {
-                purl.Append("#").Append(Subpath);
+                purl.Append('#').Append(Subpath);
             }
             return purl.ToString();
         }
 
         public string ToStringFilename()
         {
-            var invalidChars = new string(Path.GetInvalidFileNameChars()) + new string(Path.GetInvalidPathChars());
-            return Regex.Replace(this.ToString(), "[" + Regex.Escape(invalidChars) + "]", "-");
+            string invalidChars = new string(Path.GetInvalidFileNameChars()) + new string(Path.GetInvalidPathChars());
+            return Regex.Replace(ToString(), "[" + Regex.Escape(invalidChars) + "]", "-");
         }
 
-        private static readonly Regex s_typePattern = new Regex("^[a-zA-Z][a-zA-Z0-9.+-]+$", RegexOptions.Compiled);
+        private static readonly Regex s_typePattern = new("^[a-zA-Z][a-zA-Z0-9.+-]+$", RegexOptions.Compiled);
 
         private static SortedDictionary<string, string> ValidateQualifiers(string qualifiers)
         {
-            var list = new SortedDictionary<string, string>();
+            SortedDictionary<string, string> list = new();
             string[] pairs = qualifiers.Split('&');
-            foreach (var pair in pairs)
+            foreach (string pair in pairs)
             {
                 if (pair.Contains("="))
                 {
@@ -242,26 +242,26 @@ namespace Microsoft.CST.OpenSource.Shared
             }
 
             // This is the purl (minus the scheme) that needs parsed.
-            string remainder = purl.Substring(4);
+            string remainder = purl[4..];
 
             if (remainder.Contains("#"))
             { // subpath is optional - check for existence
                 int index = remainder.LastIndexOf("#");
-                Subpath = ValidateSubpath(remainder.Substring(index + 1));
+                Subpath = ValidateSubpath(remainder[(index + 1)..]);
                 remainder = remainder.Substring(0, index);
             }
 
             if (remainder.Contains("?"))
             { // qualifiers are optional - check for existence
                 int index = remainder.LastIndexOf("?");
-                Qualifiers = ValidateQualifiers(remainder.Substring(index + 1));
+                Qualifiers = ValidateQualifiers(remainder[(index + 1)..]);
                 remainder = remainder.Substring(0, index);
             }
 
             if (remainder.Contains("@"))
             { // version is optional - check for existence
                 int index = remainder.LastIndexOf("@");
-                Version = remainder.Substring(index + 1);
+                Version = remainder[(index + 1)..];
                 remainder = remainder.Substring(0, index);
             }
 
@@ -282,7 +282,7 @@ namespace Microsoft.CST.OpenSource.Shared
             // Test for namespaces
             if (firstPartArray.Length > 2)
             {
-                var @namespace = new StringBuilder();
+                StringBuilder @namespace = new();
                 int i;
                 for (i = 1; i < firstPartArray.Length - 2; ++i)
                 {

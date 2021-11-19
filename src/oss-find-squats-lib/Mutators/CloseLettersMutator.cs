@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using Microsoft.CST.OpenSource.Shared.Extensions;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 {
+    using Microsoft.CST.OpenSource.Shared.Extensions;
+    using System.Collections.Generic;
+    using System.Linq;
+
     /// <summary>
     /// Generates mutations for if a character that was close on the QWERTY Keyboard was used instead.
     /// e.g. r -> f, y -> u, etc.

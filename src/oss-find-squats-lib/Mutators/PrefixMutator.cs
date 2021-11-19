@@ -1,10 +1,10 @@
 // Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using System.Collections.Generic;
-using System.Linq;
-
 namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 {
+    using System.Collections.Generic;
+    using System.Linq;
+
     /// <summary>
     /// Generates mutations for if a prefix was added to the string.
     /// By default, we check for these prefixes: ".", "x", "-", "X", "_".

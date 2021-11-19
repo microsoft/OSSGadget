@@ -1,29 +1,22 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using CommandLine;
-using CommandLine.Text;
-using Microsoft.CodeAnalysis.Sarif;
-using Microsoft.CST.OpenSource.Shared;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
-using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
-using System.IO;
-using System.Threading;
-using Microsoft.CST.OpenSource.FindSquats;
-using System.Net;
-using Pastel;
-using System.Drawing;
-using System.Text;
-using Whois;
-using System.Text.RegularExpressions;
-using NLog;
-using Microsoft.CST.OpenSource.FindSquats.Mutators;
-
 namespace Microsoft.CST.OpenSource.DomainSquats
 {
+    using CommandLine;
+    using CommandLine.Text;
+    using Microsoft.CodeAnalysis.Sarif;
+    using Microsoft.CST.OpenSource.Shared;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
+    using System.IO;
+    using System.Threading;
+    using Whois;
+    using System.Text.RegularExpressions;
+    using Microsoft.CST.OpenSource.FindSquats.Mutators;
+
     public class FindDomainSquatsTool : OSSGadget
     {
         internal static IList<IMutator> BaseMutators { get; } = new List<IMutator>()

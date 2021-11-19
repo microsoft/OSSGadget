@@ -1,19 +1,17 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using Microsoft.CST.OpenSource.Model;
-using NLog.Targets;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Text.Encodings.Web;
-using System.Text.Json;
-using System.Threading.Tasks;
-using Version = SemanticVersioning.Version;
-
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using Microsoft.CST.OpenSource.Model;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Net.Http;
+    using System.Text.Json;
+    using System.Threading.Tasks;
+    using Version = SemanticVersioning.Version;
+
     public class NPMProjectManager : BaseProjectManager
     {
         public static string ENV_NPM_API_ENDPOINT = "https://registry.npmjs.org";
@@ -32,9 +30,9 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
-            var packageName = purl?.Name;
-            var packageVersion = purl?.Version;
-            var downloadedPaths = new List<string>();
+            string? packageName = purl?.Name;
+            string? packageVersion = purl?.Version;
+            List<string> downloadedPaths = new();
 
             // shouldn't happen here, but check
             if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
@@ -45,12 +43,12 @@ namespace Microsoft.CST.OpenSource.Shared
 
             try
             {
-                var doc = await GetJsonCache($"{ENV_NPM_API_ENDPOINT}/{packageName}");
-                var tarball = doc.RootElement.GetProperty("versions").GetProperty(packageVersion).GetProperty("dist").GetProperty("tarball").GetString();
-                var result = await WebClient.GetAsync(tarball);
+                JsonDocument doc = await GetJsonCache($"{ENV_NPM_API_ENDPOINT}/{packageName}");
+                string? tarball = doc.RootElement.GetProperty("versions").GetProperty(packageVersion).GetProperty("dist").GetProperty("tarball").GetString();
+                HttpResponseMessage result = await WebClient.GetAsync(tarball);
                 result.EnsureSuccessStatusCode();
                 Logger.Debug("Downloading {0}...", purl?.ToString());
-                var targetName = $"npm-{packageName}@{packageVersion}";
+                string targetName = $"npm-{packageName}@{packageVersion}";
                 string extractionPath = Path.Combine(TopLevelExtractionDirectory ?? string.Empty, targetName);
                 if (doExtract && Directory.Exists(extractionPath) && cached == true)
                 {
@@ -96,23 +94,23 @@ namespace Microsoft.CST.OpenSource.Shared
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
-            if (purl == null)
+            if (purl == null || purl.Name is null)
             {
                 return new List<string>();
             }
 
             try
             {
-                var packageName = purl.Name;
-                var doc = await GetJsonCache($"{ENV_NPM_API_ENDPOINT}/{packageName}");
-                var versionList = new List<string>();
+                string packageName = purl.Name;
+                JsonDocument doc = await GetJsonCache($"{ENV_NPM_API_ENDPOINT}/{packageName}");
+                List<string> versionList = new();
 
-                foreach (var versionKey in doc.RootElement.GetProperty("versions").EnumerateObject())
+                foreach (JsonProperty versionKey in doc.RootElement.GetProperty("versions").EnumerateObject())
                 {
                     Logger.Debug("Identified {0} version {1}.", packageName, versionKey.Name);
                     versionList.Add(versionKey.Name);
                 }
-                var latestVersion = doc.RootElement.GetProperty("dist-tags").GetProperty("latest").GetString();
+                string? latestVersion = doc.RootElement.GetProperty("dist-tags").GetProperty("latest").GetString();
                 if (!string.IsNullOrWhiteSpace(latestVersion))
                 {
                     Logger.Debug("Identified {0} version {1}.", packageName, latestVersion);
@@ -144,8 +142,8 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             try
             {
-                var packageName = purl.Name;
-                var content = await GetHttpStringCache($"{ENV_NPM_API_ENDPOINT}/{packageName}");
+                string? packageName = purl.Name;
+                string? content = await GetHttpStringCache($"{ENV_NPM_API_ENDPOINT}/{packageName}");
                 return content;
             }
             catch (Exception ex)
@@ -167,7 +165,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <returns></returns>
         public override async Task<PackageMetadata> GetPackageMetadata(PackageURL purl)
         {
-            PackageMetadata metadata = new PackageMetadata();
+            PackageMetadata metadata = new();
             string? content = await GetMetadata(purl);
             if (string.IsNullOrEmpty(content)) { return metadata; }
 
@@ -183,8 +181,8 @@ namespace Microsoft.CST.OpenSource.Shared
             metadata.Language = "JavaScript";
             metadata.Package_Uri = $"{metadata.PackageManagerUri}/package/{metadata.Name}";
 
-            var versions = GetVersions(contentJSON);
-            var latestVersion = GetLatestVersion(versions);
+            List<Version> versions = GetVersions(contentJSON);
+            Version? latestVersion = GetLatestVersion(versions);
 
             if (purl.Version != null)
             {
@@ -199,7 +197,7 @@ namespace Microsoft.CST.OpenSource.Shared
             // if we found any version at all, get the deets
             if (metadata.PackageVersion != null)
             {
-                Version versionToGet = new Version(metadata.PackageVersion);
+                Version versionToGet = new(metadata.PackageVersion);
                 JsonElement? versionElement = GetVersionElement(contentJSON, versionToGet);
                 if (versionElement != null)
                 {
@@ -207,7 +205,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     metadata.Package_Uri = $"{ENV_NPM_ENDPOINT}/package/{metadata.Name}";
                     metadata.VersionUri = $"{ENV_NPM_ENDPOINT}/package/{metadata.Name}/v/{metadata.PackageVersion}";
 
-                    var distElement = Utilities.GetJSONPropertyIfExists(versionElement, "dist");
+                    JsonElement? distElement = Utilities.GetJSONPropertyIfExists(versionElement, "dist");
                     if (distElement?.GetProperty("tarball") is JsonElement tarballElement)
                     {
                         metadata.VersionDownloadUri = tarballElement.ToString() ??
@@ -252,7 +250,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     }
 
                     // dependencies
-                    var dependencies = Utilities.ConvertJSONToList(Utilities.GetJSONPropertyIfExists(versionElement, "dependencies"));
+                    List<string>? dependencies = Utilities.ConvertJSONToList(Utilities.GetJSONPropertyIfExists(versionElement, "dependencies"));
                     if (dependencies is not null && dependencies.Count > 0)
                     {
                         metadata.Dependencies ??= new List<Dependency>();
@@ -260,8 +258,8 @@ namespace Microsoft.CST.OpenSource.Shared
                     }
 
                     // author(s)
-                    var authorElement = Utilities.GetJSONPropertyIfExists(versionElement, "author");
-                    User author = new User();
+                    JsonElement? authorElement = Utilities.GetJSONPropertyIfExists(versionElement, "author");
+                    User author = new();
                     if (authorElement is not null)
                     {
                         author.Name = Utilities.GetJSONPropertyStringIfExists(authorElement, "name");
@@ -274,7 +272,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
                     // maintainers
                     {
-                        var maintainersElement = Utilities.GetJSONPropertyIfExists(versionElement, "maintainers");
+                        JsonElement? maintainersElement = Utilities.GetJSONPropertyIfExists(versionElement, "maintainers");
                         if (maintainersElement?.EnumerateArray() is JsonElement.ArrayEnumerator enumerator)
                         {
                             metadata.Maintainers ??= new List<User>();
@@ -292,10 +290,10 @@ namespace Microsoft.CST.OpenSource.Shared
                     }
 
                     // repository
-                    var repoMappings = await SearchRepoUrlsInPackageMetadata(purl, content);
-                    foreach (var repoMapping in repoMappings)
+                    Dictionary<PackageURL, double> repoMappings = await SearchRepoUrlsInPackageMetadata(purl, content);
+                    foreach (KeyValuePair<PackageURL, double> repoMapping in repoMappings)
                     {
-                        Repository repository = new Repository
+                        Repository repository = new()
                         {
                             Rank = repoMapping.Value,
                             Type = repoMapping.Key.Type
@@ -363,14 +361,14 @@ namespace Microsoft.CST.OpenSource.Shared
 
         public override List<Version> GetVersions(JsonDocument? contentJSON)
         {
-            List<Version> allVersions = new List<Version>();
+            List<Version> allVersions = new();
             if (contentJSON is null) { return allVersions; }
 
             JsonElement root = contentJSON.RootElement;
             try
             {
                 JsonElement versions = root.GetProperty("versions");
-                foreach (var version in versions.EnumerateObject())
+                foreach (JsonProperty version in versions.EnumerateObject())
                 {
                     allVersions.Add(new Version(version.Name));
                 }
@@ -389,7 +387,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// A dictionary, mapping each possible repo source entry to its probability/empty dictionary
         /// </returns>
 
-        protected async override Task<Dictionary<PackageURL, double>> SearchRepoUrlsInPackageMetadata(PackageURL purl,
+        protected override async Task<Dictionary<PackageURL, double>> SearchRepoUrlsInPackageMetadata(PackageURL purl,
             string metadata)
         {
             if (string.IsNullOrEmpty(metadata))
@@ -400,10 +398,12 @@ namespace Microsoft.CST.OpenSource.Shared
             return await SearchRepoUrlsInPackageMetadata(purl, contentJSON);
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         protected async Task<Dictionary<PackageURL, double>> SearchRepoUrlsInPackageMetadata(PackageURL purl,
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
             JsonDocument contentJSON)
         {
-            var mapping = new Dictionary<PackageURL, double>();
+            Dictionary<PackageURL, double>? mapping = new();
             if (purl.Name is string purlName && (purlName.StartsWith('_') || npm_internal_modules.Contains(purlName)))
             {
                 // url = 'https://github.com/nodejs/node/tree/master/lib' + package.name,
@@ -451,7 +451,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <summary>
         /// Internal Node.js modules that should be ignored when searching metadata.
         /// </summary>
-        private static readonly List<string> npm_internal_modules = new List<string>()
+        private static readonly List<string> npm_internal_modules = new()
         {
             "assert",
             "async_hooks",

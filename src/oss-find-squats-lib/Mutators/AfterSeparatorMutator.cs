@@ -44,7 +44,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                         for (char c = 'a'; c <= 'z'; c++)
                         {
                             yield return new Mutation(
-                                mutated: splits[i] + s + c + string.Join('s',splits[(i + 1)..]),
+                                mutated: splits[i] + s + c + string.Join('s', splits[(i + 1)..]),
                                 original: arg,
                                 mutator: Kind,
                                 reason: $"After Separator: {s}");

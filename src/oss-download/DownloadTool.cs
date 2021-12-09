@@ -6,6 +6,7 @@ using Microsoft.CST.OpenSource.Shared;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource
@@ -16,7 +17,8 @@ namespace Microsoft.CST.OpenSource
         {
             Ok,
             ProcessingException,
-            NoTargets
+            NoTargets,
+            ErrorParsingOptions
         }
 
         public class Options
@@ -65,13 +67,27 @@ namespace Microsoft.CST.OpenSource
         {
             ShowToolBanner();
             var downloadTool = new DownloadTool();
-            var opts = downloadTool.ParseOptions<Options>(args).Value;
-            return (int)(await downloadTool.RunAsync(opts));
+            var opts = downloadTool.ParseOptions<Options>(args);
+            if (opts.Value is null)
+            {
+                if (opts.Errors.All(x => x.Tag == ErrorType.HelpRequestedError))
+                {
+                    return (int)ErrorCode.Ok;
+                }
+                else
+                {
+                    return (int)ErrorCode.ErrorParsingOptions;
+                }
+            }
+            else
+            {
+                return (int)(await downloadTool.RunAsync(opts.Value));
+            }
         }
 
         private async Task<ErrorCode> RunAsync(Options options)
         {
-            if (options.Targets is IList<string> targetList && targetList.Count > 0)
+            if (options.Targets is IEnumerable<string> targetList && targetList.Any())
             {
                 foreach (var target in targetList)
                 {

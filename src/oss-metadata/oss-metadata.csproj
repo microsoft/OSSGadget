@@ -2,11 +2,11 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>Microsoft.CST.OpenSource</RootNamespace>
     <Nullable>enable</Nullable>
     <Description>OSS Gadget - Package Metadata Collector</Description>
-    <LangVersion>9.0</LangVersion>
+    <LangVersion>10.0</LangVersion>
     <RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>
     <RepositoryType>Github</RepositoryType>
     <RuntimeIdentifiers>win-x64;osx-x64;linux-x64</RuntimeIdentifiers>

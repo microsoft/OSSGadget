@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>Microsoft.CST.OpenSource</RootNamespace>
     <Description>OSS Gadget - Shared Functionality</Description>
     <RepositoryType>GitHub</RepositoryType>
     <RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>
     <Configurations>Debug;Release</Configurations>
     <AssemblyName>Shared</AssemblyName>
-    <LangVersion>9.0</LangVersion>
+    <LangVersion>10.0</LangVersion>
     <Nullable>enable</Nullable>
     <copyright>© Microsoft Corporation. All rights reserved.</copyright>
     <Authors>Microsoft</Authors>

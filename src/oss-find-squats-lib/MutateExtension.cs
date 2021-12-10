@@ -2,8 +2,10 @@
 
 namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
 {
+    using Lib;
+    using Lib.Helpers;
+    using Lib.PackageManagers;
     using Microsoft.CST.OpenSource.FindSquats.Mutators;
-    using Microsoft.CST.OpenSource.Shared;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -72,37 +74,34 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
         };
 
         /// <summary>
-        /// Asynchronous. Generates mutations of the provided <see cref="PackageURL"/> with the mutators from <see cref="GetDefaultMutators(BaseProjectManager)"/> and checks if they exist with <see cref="BaseProjectManager.PackageExists(PackageURL, bool)"/>.  
+        /// Generates mutations of the provided <see cref="PackageURL"/>
+        /// with the mutators from <see cref="GetDefaultMutators(BaseProjectManager)"/>.
         /// </summary>
         /// <param name="manager">The ProjectManager to use for checking the generated mutations.</param>
         /// <param name="purl">The Target package to check for squats.</param>
         /// <param name="options">The options for enumerating squats.</param>
-        /// <returns>An <see cref="IAsyncEnumerable<T>"/> of <see cref="FindPackageSquatResult"/> objects representing each candidate squat found to exist with <see cref="BaseProjectManager.PackageExists(PackageURL, bool)"/>.</returns>
-        public static async IAsyncEnumerable<FindPackageSquatResult> EnumerateSquats(this BaseProjectManager manager, PackageURL purl, MutateOptions? options = null)
+        /// <returns>An <see cref="IDictionary{T, V}"/> where the key is the mutated name, and the value is a <see cref="IList{Mutation}"/> representing each candidate squat.</returns>
+        public static IDictionary<string, IList<Mutation>>? EnumerateSquats(this BaseProjectManager manager, PackageURL purl, MutateOptions? options = null)
         {
-            await foreach (FindPackageSquatResult? mutation in manager.EnumerateSquats(purl, manager.GetDefaultMutators(), options))
-            {
-                yield return mutation;
-            }
+            return manager.EnumerateSquats(purl, manager.GetDefaultMutators(), options);
         }
 
         /// <summary>
-        /// Asynchronous. Generates <see cref="Mutation"/>s of the provided <see cref="PackageURL"/> with the provided <see cref="IEnumerable<IMutator>"/> and checks if they exist with <see cref="BaseProjectManager.PackageExists(PackageURL, bool)"/>.  
+        /// Generates <see cref="Mutation"/>s of the provided <see cref="PackageURL"/> with the provided <see cref="IEnumerable{IMutator}"/>.
         /// </summary>
         /// <param name="manager">The ProjectManager to use for checking the generated mutations.</param>
         /// <param name="purl">The Target package to check for squats.</param>
-        /// <param name="options">The options for enumerating squats.</param>
         /// <param name="mutators">The mutators to use. Will ignore the default set of mutators.</param>
         /// <param name="options">The options for enumerating squats.</param>
-        /// <returns>An <see cref="IAsyncEnumerable<T>"/> of <see cref="FindPackageSquatResult"/> objects representing each candidate squat found to exist with <see cref="BaseProjectManager.PackageExists(PackageURL, bool)"/>.</returns>
-        public static async IAsyncEnumerable<FindPackageSquatResult> EnumerateSquats(this BaseProjectManager manager, PackageURL purl, IEnumerable<IMutator> mutators, MutateOptions? options = null)
+        /// <returns>An <see cref="IDictionary{T, V}"/> where the key is the mutated name, and the value is a <see cref="IList{Mutation}"/> representing each candidate squat.</returns>
+        public static IDictionary<string, IList<Mutation>>? EnumerateSquats(this BaseProjectManager manager, PackageURL purl, IEnumerable<IMutator> mutators, MutateOptions? options = null)
         {
             if (purl.Name is null || purl.Type is null)
             {
-                yield break;
+                return null;
             }
 
-            Dictionary<string, IList<Mutation>> generatedMutations = new();
+            Dictionary<string, IList<Mutation>>? generatedMutations = new();
 
             foreach (IMutator mutator in mutators)
             {
@@ -119,28 +118,48 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
                 }
             }
 
-            foreach (KeyValuePair<string, IList<Mutation>> mutationSet in generatedMutations)
+            return generatedMutations;
+        }
+
+        /// <summary>
+        /// Asynchronously generates an <see cref="IList{FindPackageSquatResult}"/> of packages that exist from the <see cref="IDictionary{T, D}"/> of each candidate.
+        /// </summary>
+        /// <param name="manager">The ProjectManager to use for checking the generated mutations.</param>
+        /// <param name="purl">The Target package to check for squats.</param>
+        /// <param name="candidateMutations">The <see cref="IList{Mutation}"/> representing each squatting candidate.</param>
+        /// <param name="options">The options for enumerating squats.</param>
+        /// <returns>An <see cref="IAsyncEnumerable{FindPackageSquatResult}"/> representing each existing candidate squat, or null if none.</returns>
+        public static async IAsyncEnumerable<FindPackageSquatResult> EnumerateExistingSquatsAsync(this BaseProjectManager manager, PackageURL purl, IDictionary<string, IList<Mutation>>? candidateMutations, MutateOptions? options = null)
+        {
+            Check.NotNullOrEmpty(nameof(candidateMutations), candidateMutations);
+
+            if (purl.Name is null || purl.Type is null)
+            {
+                yield break;
+            }
+
+            foreach ((string mutatedName, IList<Mutation> mutations) in candidateMutations!)
             {
                 if (options?.SleepDelay > 0)
                 {
                     Thread.Sleep(options.SleepDelay);
                 }
-                PackageURL candidatePurl = new(purl.Type, mutationSet.Key);
+                PackageURL candidatePurl = new(purl.Type, mutatedName);
                 FindPackageSquatResult? res = null;
                 try
                 {
                     if (await manager.PackageExists(candidatePurl))
                     {
                         res = new FindPackageSquatResult(
-                            packageName: mutationSet.Key,
+                            packageName: mutatedName,
                             packageUrl: candidatePurl,
                             squattedPackage: purl,
-                            mutations: mutationSet.Value);
+                            mutations: mutations);
                     }
                 }
                 catch (Exception e)
                 {
-                    Logger.Trace($"Could not check if package exists. Package {mutationSet.Key} likely doesn't exist. {e.Message}:{e.StackTrace}");
+                    Logger.Trace($"Could not check if package exists. Package {mutatedName} likely doesn't exist. {e.Message}:{e.StackTrace}");
                 }
                 if (res is not null)
                 {

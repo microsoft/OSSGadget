@@ -2,7 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 {
-    using Microsoft.CST.OpenSource.Shared.Extensions;
+    using Lib.Helpers;
     using System.Collections.Generic;
 
     /// <summary>

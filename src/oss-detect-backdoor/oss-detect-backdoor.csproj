@@ -75,13 +75,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nerdbank.GitVersioning" Version="3.4.240">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\oss-characteristics\oss-characteristic.csproj" />
     <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>

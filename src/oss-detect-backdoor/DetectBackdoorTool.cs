@@ -144,7 +144,7 @@ namespace Microsoft.CST.OpenSource
                     UseCache = options.UseCache,
                     Format = options.Format == "text" ? "none" : options.Format,
                     OutputFile = options.OutputFile,
-                    TreatEverythingAsCode = true,
+                    AllowTagsInBuildFiles = true,
                     FilePathExclusions = ".md,LICENSE,.txt",
                     AllowDupTags = true,
                     SarifLevel = CodeAnalysis.Sarif.FailureLevel.Warning

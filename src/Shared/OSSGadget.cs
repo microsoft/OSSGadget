@@ -4,21 +4,24 @@ namespace Microsoft.CST.OpenSource
 {
     using CommandLine;
     using CommandLine.Text;
+    using Lib;
     using Microsoft.CST.OpenSource.Shared;
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
+    using System.Net.Http;
     using System.Reflection;
     using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
 
-    public class OSSGadget
+    public class OSSGadget : OssGadgetLib
     {
         public OutputFormat currentOutputFormat = OutputFormat.text;
 
         public static string ToolName { get => GetToolName() ?? ""; }
         public static string ToolVersion { get => GetToolVersion() ?? ""; }
 
-        public OSSGadget()
+        public OSSGadget(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
         {
             CommonInitialization.Initialize();
         }
@@ -26,7 +29,7 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         /// Logger for this class
         /// </summary>
-        public static NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
+        public static new NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// Formulates the help text for each derived tool
@@ -42,7 +45,7 @@ namespace Microsoft.CST.OpenSource
                 h.AutoVersion = true;
                 h.AdditionalNewLineAfterOption = false;
                 h.MaximumDisplayWidth = Console.WindowWidth;
-                h.AddPostOptionsLines(BaseProjectManager.GetCommonSupportedHelpTextLines());
+                h.AddPostOptionsLines(GetCommonSupportedHelpTextLines());
                 return HelpText.DefaultParsingErrorsHandler(result, h);
             });
             Console.Write(helpText);
@@ -156,7 +159,9 @@ namespace Microsoft.CST.OpenSource
             return version ?? "Unknown";
         }
 
-        public static string GetBanner()
+        private bool redirectConsole = false;
+
+        private static string GetBanner()
         {
             return @"
    ____   _____ _____    _____           _            _
@@ -169,6 +174,33 @@ namespace Microsoft.CST.OpenSource
                                            |___/          ";
         }
 
-        private bool redirectConsole = false;
+        private static string GetCommonSupportedHelpText()
+        {
+            string supportedHelpText = @"
+                The package-url specifier is described at https://github.com/package-url/purl-spec:
+                  pkg:cargo/rand                The latest version of Rand (via crates.io)
+                  pkg:cocoapods/AFNetworking    The latest version of AFNetworking (via cocoapods.org)
+                  pkg:composer/Smarty/Smarty    The latest version of Smarty (via Composer/ Packagist)
+                  pkg:cpan/Apache-ACEProxy      The latest version of Apache::ACEProxy (via cpan.org)
+                  pkg:cran/ACNE@0.8.0           Version 0.8.0 of ACNE (via cran.r-project.org)
+                  pkg:gem/rubytree@*            All versions of RubyTree (via rubygems.org)
+                  pkg:golang/sigs.k8s.io/yaml   The latest version of sigs.k8s.io/yaml (via proxy.golang.org)
+                  pkg:github/Microsoft/DevSkim  The latest release of DevSkim (via GitHub)
+                  pkg:hackage/a50@*             All versions of a50 (via hackage.haskell.org)
+                  pkg:maven/org.apdplat/deep-qa The latest version of org.apdplat.deep-qa (via repo1.maven.org)
+                  pkg:npm/express               The latest version of Express (via npm.org)
+                  pkg:nuget/Newtonsoft.JSON     The latest version of Newtonsoft.JSON (via nuget.org)
+                  pkg:pypi/django@1.11.1        Version 1.11.1 of Django (via pypi.org)
+                  pkg:ubuntu/zerofree           The latest version of zerofree from Ubuntu (via packages.ubuntu.com)
+                  pkg:vsm/MLNET/07              The latest version of MLNET.07 (from marketplace.visualstudio.com)
+                  pkg:url/foo@1.0?url=<URL>     The direct URL <URL>
+                ";
+            return supportedHelpText;
+        }
+
+        private static List<string> GetCommonSupportedHelpTextLines()
+        {
+            return GetCommonSupportedHelpText().Split(Environment.NewLine).ToList<string>();
+        }
     }
 }

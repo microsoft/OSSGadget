@@ -2,6 +2,8 @@
 
 namespace Microsoft.CST.OpenSource
 {
+    using Lib;
+    using Lib.PackageManagers;
     using Microsoft.CST.OpenSource.Shared;
     using System;
     using System.Collections.Generic;
@@ -35,7 +37,7 @@ namespace Microsoft.CST.OpenSource
             destinationDirectory = string.IsNullOrEmpty(destinationDir) ?
                 Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()) : destinationDir;
 
-            packageManager = ProjectManagerFactory.CreateProjectManager(purl, destinationDirectory);
+            packageManager = ProjectManagerFactory.CreateProjectManager(purl, destinationDirectory: destinationDirectory);
             if (packageManager == null)
             {
                 // Cannot continue without package manager

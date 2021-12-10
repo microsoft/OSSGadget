@@ -44,6 +44,7 @@
     <PackageReference Include="Crayon" Version="2.0.62" />
     <PackageReference Include="F23.StringSimilarity" Version="4.1.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.37" />
+    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.0.0-beta.74" />
     <PackageReference Include="Microsoft.CST.RecursiveExtractor" Version="1.1.5" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="6.0.0-preview.5.21301.5" />
     <PackageReference Include="NLog" Version="4.7.12" />
@@ -66,7 +67,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\LICENSE.txt" Pack="true" PackagePath=""/>
-    <None Include="..\..\icon-128.png" Pack="true" PackagePath=""/>
+    <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="" />
+    <None Include="..\..\icon-128.png" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Shared-lib\Shared-lib.csproj" />
   </ItemGroup>
 </Project>

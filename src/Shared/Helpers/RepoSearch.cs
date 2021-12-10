@@ -2,6 +2,8 @@
 
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using Lib;
+    using Lib.PackageManagers;
     using NLog;
     using System;
     using System.Collections.Generic;

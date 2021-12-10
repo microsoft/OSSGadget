@@ -33,10 +33,6 @@
 
   <ItemGroup>
     <PackageReference Include="System.Console" Version="4.3.1" />
-    <PackageReference Include="Nerdbank.GitVersioning" Version="3.4.240">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>

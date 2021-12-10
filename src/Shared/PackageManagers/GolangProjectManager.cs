@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using Microsoft.CST.OpenSource.Model;
     using System;
     using System.Collections.Generic;
     using System.IO;

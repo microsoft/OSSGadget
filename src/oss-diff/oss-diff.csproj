@@ -2,13 +2,13 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>Microsoft.CST.OpenSource</RootNamespace>
     <Description>OSS Gadget - Package Differ</Description>
     <RepositoryType>GitHub</RepositoryType>
     <RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>
     <Configurations>Debug;Release</Configurations>
-    <LangVersion>9.0</LangVersion>
+    <LangVersion>10.0</LangVersion>
     <Nullable>enable</Nullable>
     <RuntimeIdentifiers>win-x64;osx-x64;linux-x64</RuntimeIdentifiers>
     <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
@@ -29,7 +29,7 @@
 
   <ItemGroup>
     <PackageReference Include="DiffPlex" Version="1.7.0" />
-    <PackageReference Include="Pastel" Version="2.1.0" />
+    <PackageReference Include="Pastel" Version="3.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -37,7 +37,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\LICENSE.txt" Pack="true" PackagePath=""/>
-    <None Include="..\..\icon-128.png" Pack="true" PackagePath=""/>
+    <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="" />
+    <None Include="..\..\icon-128.png" Pack="true" PackagePath="" />
   </ItemGroup>
 </Project>

@@ -3,7 +3,6 @@
 using ICSharpCode.Decompiler;
 using ICSharpCode.Decompiler.CSharp;
 using Microsoft.CST.OpenSource.Shared;
-using Microsoft.DevSkim;
 using PeNet;
 using SharpDisasm;
 using System;
@@ -18,6 +17,8 @@ using WebAssembly; // Acquire from https://www.nuget.org/packages/WebAssembly
 using WebAssembly.Instructions;
 using Microsoft.ApplicationInspector.Commands;
 using static Crayon.Output;
+using Microsoft.ApplicationInspector.RulesEngine;
+using Microsoft.CST.RecursiveExtractor;
 
 namespace Microsoft.CST.OpenSource
 {
@@ -124,7 +125,7 @@ namespace Microsoft.CST.OpenSource
                             sb.AppendLine("Summary Results:");
 
                             sb.AppendLine(Blue("Cryptographic Implementations:"));
-                            var implementations = results.SelectMany(r => r.Issue.Rule.Tags ?? new List<string>())
+                            var implementations = results.SelectMany(r => r.Issue.Rule.Tags ?? Array.Empty<string>())
                                                          .Distinct()
                                                          .Where(t => t.StartsWith("Cryptography.Implementation."))
                                                          .Select(t => t.Replace("Cryptography.Implementation.", ""))
@@ -143,7 +144,7 @@ namespace Microsoft.CST.OpenSource
 
                             sb.AppendLine();
                             sb.AppendLine(Red("Cryptographic Library References:"));
-                            var references = results.SelectMany(r => r.Issue.Rule.Tags ?? new List<string>())
+                            var references = results.SelectMany(r => r.Issue.Rule.Tags ?? Array.Empty<string>())
                                                     .Distinct()
                                                     .Where(t => t.StartsWith("Cryptography.Reference."))
                                                     .Select(t => t.Replace("Cryptography.Reference.", ""))
@@ -163,7 +164,7 @@ namespace Microsoft.CST.OpenSource
 
                             sb.AppendLine();
                             sb.AppendLine(Green("Other Cryptographic Characteristics:"));
-                            var characteristics = results.SelectMany(r => r.Issue.Rule.Tags ?? new List<string>())
+                            var characteristics = results.SelectMany(r => r.Issue.Rule.Tags ?? Array.Empty<string>())
                                                          .Distinct()
                                                          .Where(t => t.Contains("Crypto", StringComparison.InvariantCultureIgnoreCase)&&
                                                                      !t.StartsWith("Cryptography.Implementation.") &&
@@ -414,7 +415,7 @@ namespace Microsoft.CST.OpenSource
 
             var analysisResults = new List<IssueRecord>();
 
-            RuleSet rules = new RuleSet();
+            RuleSet rules = new RuleSet(null);
             if (Options["disable-default-rules"] is bool disableDefaultRules && !disableDefaultRules)
             {
                 var assembly = Assembly.GetExecutingAssembly();
@@ -436,7 +437,7 @@ namespace Microsoft.CST.OpenSource
                 }
 
                 // Add Appliation Inspector cryptography rules
-                assembly = typeof(ApplicationInspector.Commands.AnalyzeCommand).Assembly;
+                assembly = typeof(AnalyzeCommand).Assembly;
                 foreach (var resourceName in assembly.GetManifestResourceNames())
                 {
                     if (resourceName.EndsWith(".json"))
@@ -465,12 +466,7 @@ namespace Microsoft.CST.OpenSource
                 Logger.Error("No rules were specified, unable to continue.");
                 return analysisResults; // empty
             }
-
-            var processor = new RuleProcessor(rules)
-            {
-                EnableSuppressions = false,
-                SeverityLevel = (Severity)31
-            };
+            var processor = new RuleProcessor(rules, new RuleProcessorOptions());
 
             string[] fileList;
 
@@ -530,12 +526,12 @@ namespace Microsoft.CST.OpenSource
                                 Boundary: new Boundary(),
                                 StartLocation: new Location(),
                                 EndLocation: new Location(),
-                                Rule: new Rule("Crypto Symbols")
+                                Rule: new Rule()
                                 {
                                     Id = "_CRYPTO_DENSITY",
                                     Name = "Cryptographic symbols",
                                     Description = cryptoOperationLikelihood.ToString(),
-                                    Tags = new List<string>()
+                                    Tags = new string[]
                                     {
                                         "Cryptography.GenericImplementation.HighDensityOperators"
                                     }
@@ -545,8 +541,13 @@ namespace Microsoft.CST.OpenSource
                     }
                     Logger.Debug($"Analyzing {filename}, length={buffer.Length}");
 
-                    Issue[]? fileResults = null;
-                    var task = Task.Run(() => processor.Analyze(buffer, Language.FromFileName(filename)));
+                    List<MatchRecord>? fileResults = null;
+                    //processor.AnalyzeFile
+                    var holderEntry = new FileEntry("placeholder", new MemoryStream(Encoding.UTF8.GetBytes(buffer)));
+                    LanguageInfo languageInfo = new LanguageInfo();
+
+                    Language.FromFileName(filename, ref languageInfo);
+                    var task = Task.Run(() => processor.AnalyzeFile(holderEntry,languageInfo));
                     if (task.Wait(TimeSpan.FromSeconds(30)))
                     {
                         fileResults = task.Result;
@@ -557,13 +558,13 @@ namespace Microsoft.CST.OpenSource
                         return analysisResults;
                     }
 
-                    Logger.Debug("Operation Complete: {0}", fileResults?.Length);
-                    foreach (var issue in fileResults ?? Array.Empty<Issue>())
+                    Logger.Debug("Operation Complete: {0}", fileResults?.Count);
+                    foreach (var issue in fileResults ?? new List<MatchRecord>())
                     {
                         var fileContentArray = buffer.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
                         var excerpt = new List<string>();
-                        var startLoc = Math.Max(issue.StartLocation.Line - 1, 0);
-                        var endLoc = Math.Min(issue.EndLocation.Line + 1, fileContentArray.Length - 1);
+                        var startLoc = Math.Max(issue.StartLocationLine - 1, 0);
+                        var endLoc = Math.Min(issue.EndLocationLine + 1, fileContentArray.Length - 1);
                         for (int i = startLoc; i <= endLoc; i++)
                         {
                             excerpt.Add(fileContentArray[i].Trim());
@@ -572,8 +573,21 @@ namespace Microsoft.CST.OpenSource
                         analysisResults.Add(new IssueRecord(
                             Filename: filename,
                             Filesize: buffer.Length,
-                            TextSample: issue.StartLocation.Line + " => " + string.Join(Environment.NewLine, excerpt),
-                            Issue: issue)
+                            TextSample: issue.StartLocationLine + " => " + string.Join(Environment.NewLine, excerpt),
+                            Issue: new Issue(
+                                issue.Boundary, 
+                                new Location() 
+                                { 
+                                    Column = issue.StartLocationColumn, 
+                                    Line = issue.StartLocationLine 
+                                }, 
+                                new Location() 
+                                { 
+                                    Column = issue.EndLocationColumn, 
+                                    Line = issue.EndLocationLine 
+                                }, 
+                                issue.Rule)
+                            )
                         );
                     }
                 }

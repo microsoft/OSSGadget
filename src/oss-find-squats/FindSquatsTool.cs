@@ -64,15 +64,16 @@ namespace Microsoft.CST.OpenSource.FindSquats
         static async Task Main(string[] args)
         {
             ShowToolBanner();
-            //setup our DI
-            var serviceProvider = new ServiceCollection()
+
+            // Setup our DI for the HTTP Client.
+            ServiceProvider serviceProvider = new ServiceCollection()
                 .AddHttpClient()
                 .BuildServiceProvider();
 
-            //do the actual work here
-            var bar = serviceProvider.GetService<IHttpClientFactory>();
+            // Get the IHttpClientFactory
+            IHttpClientFactory? httpClientFactory = serviceProvider.GetService<IHttpClientFactory>();
 
-            FindSquatsTool findSquatsTool = new(bar);
+            FindSquatsTool findSquatsTool = new(httpClientFactory ?? throw new InvalidOperationException());
             (string output, int numSquats) = (string.Empty, 0);
             await findSquatsTool.ParseOptions<Options>(args).WithParsedAsync(async options =>
             {

@@ -8,6 +8,7 @@ namespace Microsoft.CST.OpenSource.Shared
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net.Http;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -26,6 +27,13 @@ namespace Microsoft.CST.OpenSource.Shared
     /// </summary>
     public class RepoSearch
     {
+        public RepoSearch(IHttpClientFactory httpClientFactory)
+        {
+            this.HttpClientFactory = httpClientFactory;
+        }
+
+        private IHttpClientFactory HttpClientFactory { get; }
+
         /// <summary>
         ///     try to resolve the source code for an npm package through different means
         ///     1) Look at the metadata
@@ -49,7 +57,7 @@ namespace Microsoft.CST.OpenSource.Shared
             Logger.Debug("Searching for source code for: {0}", purlNoVersion.ToString());
 
             // Use reflection to find the correct downloader class
-            BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, null);
+            BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, this.HttpClientFactory);
 
             if (projectManager != null)
             {

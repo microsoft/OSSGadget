@@ -2,13 +2,13 @@
 
   <PropertyGroup>
 	  <OutputType>Exe</OutputType>
-	  <TargetFramework>net5.0</TargetFramework>
+	  <TargetFramework>net6.0</TargetFramework>
 	  <RootNamespace>Microsoft.CST.OpenSource</RootNamespace>
 	  <Description>OSS Gadget - Package Reprodicibility Finder</Description>
 	  <RepositoryType>GitHub</RepositoryType>
 	  <RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>
 	  <StartupObject>Microsoft.CST.OpenSource.ReproducibleTool</StartupObject>
-	  <LangVersion>9.0</LangVersion>
+	  <LangVersion>10.0</LangVersion>
 	  <Nullable>enable</Nullable>
 	  <RuntimeIdentifiers>win-x64;osx-x64;linux-x64</RuntimeIdentifiers>
 	  <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
@@ -73,7 +73,7 @@
   <ItemGroup>
     <PackageReference Include="DiffPlex" Version="1.7.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="SharpCompress" Version="0.30.0" />
+    <PackageReference Include="SharpCompress" Version="0.30.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -83,11 +83,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Update="Nerdbank.GitVersioning" Version="3.4.240" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="..\..\LICENSE.txt" Pack="true" PackagePath=""/>
-    <None Include="..\..\icon-128.png" Pack="true" PackagePath=""/>
+    <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="" />
+    <None Include="..\..\icon-128.png" Pack="true" PackagePath="" />
   </ItemGroup>
 </Project>

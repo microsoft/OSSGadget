@@ -2,13 +2,13 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>Microsoft.CST.OpenSource</RootNamespace>
     <Description>OSS Gadget - Package Downloader</Description>
     <RepositoryType>GitHub</RepositoryType>
     <RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>
     <StartupObject>Microsoft.CST.OpenSource.DownloadTool</StartupObject>
-    <LangVersion>9.0</LangVersion>
+    <LangVersion>10.0</LangVersion>
     <Nullable>enable</Nullable>
     <RuntimeIdentifiers>win-x64;osx-x64;linux-x64</RuntimeIdentifiers>
     <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
@@ -33,10 +33,6 @@
 
   <ItemGroup>
     <PackageReference Include="System.Console" Version="4.3.1" />
-    <PackageReference Include="Nerdbank.GitVersioning" Version="3.4.240">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
@@ -44,7 +40,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\LICENSE.txt" Pack="true" PackagePath=""/>
-    <None Include="..\..\icon-128.png" Pack="true" PackagePath=""/>
+    <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="" />
+    <None Include="..\..\icon-128.png" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Shared, Version=0.1.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\oss-find-source\bin\Debug\net5.0\Shared.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

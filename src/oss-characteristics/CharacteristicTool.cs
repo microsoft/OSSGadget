@@ -67,7 +67,7 @@ namespace Microsoft.CST.OpenSource
                 HelpText = "exclude files or paths which match provided glob patterns.")]
             public string FilePathExclusions { get; set; } = "";
 
-            public bool TreatEverythingAsCode { get; set; } = true;
+            public bool AllowTagsInBuildFiles { get; set; } = true;
 
             public bool AllowDupTags { get; set; } = false;
 
@@ -105,7 +105,7 @@ namespace Microsoft.CST.OpenSource
                 CustomRulesPath = options.CustomRuleDirectory,
                 ConfidenceFilters = "high,medium,low",
                 ScanUnknownTypes = true,
-                TreatEverythingAsCode = options.TreatEverythingAsCode,
+                AllowAllTagsInBuildFiles = options.AllowTagsInBuildFiles,
                 SingleThread = false,
                 FilePathExclusions = options.FilePathExclusions?.Split(',') ?? Array.Empty<string>()
             };

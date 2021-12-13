@@ -43,10 +43,4 @@
     <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="" />
     <None Include="..\..\icon-128.png" Pack="true" PackagePath="" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Shared, Version=0.1.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\oss-find-source\bin\Debug\net5.0\Shared.dll</HintPath>
-    </Reference>
-  </ItemGroup>
 </Project>

@@ -14,6 +14,9 @@ using static Crayon.Output;
 
 namespace Microsoft.CST.OpenSource
 {
+    using Extensions.DependencyInjection;
+    using System.Net.Http;
+
     public class DetectBackdoorTool : OSSGadget
     {
         public class Options
@@ -50,7 +53,7 @@ namespace Microsoft.CST.OpenSource
             public bool UseCache { get; set; }
         }
 
-        public DetectBackdoorTool() : base()
+        public DetectBackdoorTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
         {
             RULE_DIRECTORY = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "BackdoorRules");
         }
@@ -67,7 +70,16 @@ namespace Microsoft.CST.OpenSource
         private static async Task Main(string[] args)
         {
             ShowToolBanner();
-            var detectBackdoorTool = new DetectBackdoorTool();
+
+            // Setup our DI for the HTTP Client.
+            ServiceProvider serviceProvider = new ServiceCollection()
+                .AddHttpClient()
+                .BuildServiceProvider();
+
+            // Get the IHttpClientFactory
+            IHttpClientFactory httpClientFactory = serviceProvider.GetService<IHttpClientFactory>() ?? throw new InvalidOperationException();
+
+            var detectBackdoorTool = new DetectBackdoorTool(httpClientFactory);
             var parsedOptions = detectBackdoorTool.ParseOptions<Options>(args).Value;
             var detectionResults = await detectBackdoorTool.RunAsync(parsedOptions);
 
@@ -134,7 +146,7 @@ namespace Microsoft.CST.OpenSource
         {
             if (options != null && options.Targets is IList<string> targetList && targetList.Count > 0)
             {
-                var characteristicTool = new CharacteristicTool();
+                var characteristicTool = new CharacteristicTool(this.HttpClientFactory);
                 CharacteristicTool.Options cOptions = new CharacteristicTool.Options
                 {
                     Targets = options.Targets,

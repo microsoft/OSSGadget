@@ -174,7 +174,7 @@ namespace Microsoft.CST.OpenSource
                                            |___/          ";
         }
 
-        private static string GetCommonSupportedHelpText()
+        protected static string GetCommonSupportedHelpText()
         {
             string supportedHelpText = @"
                 The package-url specifier is described at https://github.com/package-url/purl-spec:

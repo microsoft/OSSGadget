@@ -10,6 +10,10 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource
 {
+    using Extensions.DependencyInjection;
+    using Lib;
+    using System.Net.Http;
+
     public class DownloadTool : OSSGadget
     {
         public enum ErrorCode
@@ -53,7 +57,7 @@ namespace Microsoft.CST.OpenSource
             public bool UseCache { get; set; }
         }
 
-        public DownloadTool() : base()
+        public DownloadTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
         {
         }
 
@@ -64,7 +68,16 @@ namespace Microsoft.CST.OpenSource
         static async Task<int> Main(string[] args)
         {
             ShowToolBanner();
-            var downloadTool = new DownloadTool();
+
+            // Setup our DI for the HTTP Client.
+            ServiceProvider serviceProvider = new ServiceCollection()
+                .AddHttpClient()
+                .BuildServiceProvider();
+
+            // Get the IHttpClientFactory
+            IHttpClientFactory httpClientFactory = serviceProvider.GetService<IHttpClientFactory>() ?? throw new InvalidOperationException();
+
+            var downloadTool = new DownloadTool(httpClientFactory);
             var opts = downloadTool.ParseOptions<Options>(args).Value;
             return (int)(await downloadTool.RunAsync(opts));
         }
@@ -78,9 +91,9 @@ namespace Microsoft.CST.OpenSource
                     try
                     {
                         var purl = new PackageURL(target);
-                        string downloadDirectory = options.DownloadDirectory == "." ? Directory.GetCurrentDirectory() : options.DownloadDirectory;
+                        string downloadDirectory = options.DownloadDirectory == "." ? System.IO.Directory.GetCurrentDirectory() : options.DownloadDirectory;
                         var useCache = options.UseCache;
-                        var packageDownloader = new PackageDownloader(purl, downloadDirectory, useCache);
+                        var packageDownloader = new PackageDownloader(this.HttpClientFactory, purl, downloadDirectory, useCache);
 
                         var downloadResults = await packageDownloader.DownloadPackageLocalCopy(purl, options.DownloadMetadataOnly, options.Extract);
                         foreach (var downloadPath in downloadResults)

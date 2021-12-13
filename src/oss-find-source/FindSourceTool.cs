@@ -159,7 +159,7 @@ namespace Microsoft.CST.OpenSource
                 .BuildServiceProvider();
 
             // Get the IHttpClientFactory
-            IHttpClientFactory? httpClientFactory = serviceProvider.GetService<IHttpClientFactory>();
+            IHttpClientFactory httpClientFactory = serviceProvider.GetService<IHttpClientFactory>() ?? throw new InvalidOperationException();
 
             FindSourceTool findSourceTool = new FindSourceTool(httpClientFactory);
             await findSourceTool.ParseOptions<Options>(args).WithParsedAsync(findSourceTool.RunAsync);

@@ -11,22 +11,27 @@ using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
 
 namespace Microsoft.CST.OpenSource
 {
+    using Extensions.DependencyInjection;
+    using Lib;
+    using Lib.PackageManagers;
+    using System.Net.Http;
+
     public class HealthTool : OSSGadget
     {
-        public HealthTool() : base()
+        public HealthTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
         {
         }
 
         public async Task<HealthMetrics?> CheckHealth(PackageURL purl)
         {
-            var packageManager = ProjectManagerFactory.CreateProjectManager(purl, null);
+            var packageManager = ProjectManagerFactory.CreateProjectManager(purl, this.HttpClientFactory);
 
             if (packageManager != null)
             {
                 var content = await packageManager.GetMetadata(purl);
                 if (!string.IsNullOrWhiteSpace(content))
                 {
-                    RepoSearch repoSearcher = new RepoSearch();
+                    RepoSearch repoSearcher = new RepoSearch(this.HttpClientFactory);
                     foreach (var (githubPurl, _) in await repoSearcher.ResolvePackageLibraryAsync(purl))
                     {
                         try
@@ -82,7 +87,16 @@ namespace Microsoft.CST.OpenSource
         private static async Task Main(string[] args)
         {
             ShowToolBanner();
-            var healthTool = new HealthTool();
+
+            // Setup our DI for the HTTP Client.
+            ServiceProvider serviceProvider = new ServiceCollection()
+                .AddHttpClient()
+                .BuildServiceProvider();
+
+            // Get the IHttpClientFactory
+            IHttpClientFactory httpClientFactory = serviceProvider.GetService<IHttpClientFactory>() ?? throw new InvalidOperationException();
+
+            var healthTool = new HealthTool(httpClientFactory);
             await healthTool.ParseOptions<Options>(args).WithParsedAsync(healthTool.RunAsync);
         }
 

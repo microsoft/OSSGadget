@@ -18,6 +18,10 @@ using Microsoft.ApplicationInspector.RulesEngine;
 
 namespace Microsoft.CST.OpenSource
 {
+    using Extensions.DependencyInjection;
+    using Lib;
+    using System.Net.Http;
+
     public class RiskCalculatorTool : OSSGadget
     {
         public class Options
@@ -65,7 +69,7 @@ namespace Microsoft.CST.OpenSource
             public bool UseCache { get; set; }
         }
 
-        public RiskCalculatorTool() : base()
+        public RiskCalculatorTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
         {
         }
 
@@ -81,14 +85,14 @@ namespace Microsoft.CST.OpenSource
         {
             Logger.Trace("CalculateRisk({0})", purl.ToString());
 
-            var characteristicTool = new CharacteristicTool();
+            var characteristicTool = new CharacteristicTool(this.HttpClientFactory);
             var cOptions = new CharacteristicTool.Options();
             var characteristics = characteristicTool.AnalyzePackage(cOptions, purl, targetDirectory, doCaching).Result;
             double aggregateRisk = 0.0;
 
             if (checkHealth)
             {
-                var healthTool = new HealthTool();
+                var healthTool = new HealthTool(this.HttpClientFactory);
                 var healthMetrics = await healthTool.CheckHealth(purl);
                 if (healthMetrics == null)
                 {
@@ -192,7 +196,16 @@ namespace Microsoft.CST.OpenSource
         private static async Task Main(string[] args)
         {
             ShowToolBanner();
-            var riskCalculator = new RiskCalculatorTool();
+
+            // Setup our DI for the HTTP Client.
+            ServiceProvider serviceProvider = new ServiceCollection()
+                .AddHttpClient()
+                .BuildServiceProvider();
+
+            // Get the IHttpClientFactory
+            IHttpClientFactory httpClientFactory = serviceProvider.GetService<IHttpClientFactory>() ?? throw new InvalidOperationException();
+
+            var riskCalculator = new RiskCalculatorTool(httpClientFactory);
             await riskCalculator.ParseOptions<Options>(args).WithParsedAsync(riskCalculator.RunAsync);
         }
 
@@ -244,7 +257,7 @@ namespace Microsoft.CST.OpenSource
                     {
                         var useCache = options.UseCache == true;
                         var purl = new PackageURL(target);
-                        string downloadDirectory = options.DownloadDirectory == "." ? Directory.GetCurrentDirectory() : options.DownloadDirectory;
+                        string downloadDirectory = options.DownloadDirectory == "." ? System.IO.Directory.GetCurrentDirectory() : options.DownloadDirectory;
                         var riskLevel = CalculateRisk(purl,
                             downloadDirectory,
                             useCache,

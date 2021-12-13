@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using Microsoft.CST.OpenSource.Shared;
 using Microsoft.CST.RecursiveExtractor;
 using MimeTypes;
 using System;
@@ -13,6 +12,10 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource
 {
+    using Extensions.DependencyInjection;
+    using Lib;
+    using System.Net.Http;
+
     public class DefoggerTool : OSSGadget
     {
         /// <summary>
@@ -262,9 +265,16 @@ namespace Microsoft.CST.OpenSource
         private static async Task Main(string[] args)
         {
             ShowToolBanner();
-            CommonInitialization.Initialize();
 
-            var defoggerTool = new DefoggerTool();
+            // Setup our DI for the HTTP Client.
+            ServiceProvider serviceProvider = new ServiceCollection()
+                .AddHttpClient()
+                .BuildServiceProvider();
+
+            // Get the IHttpClientFactory
+            IHttpClientFactory httpClientFactory = serviceProvider.GetService<IHttpClientFactory>() ?? throw new InvalidOperationException();
+
+            var defoggerTool = new DefoggerTool(httpClientFactory);
             defoggerTool.ParseOptions(args);
 
             if (defoggerTool.Options["target"] is IList<string> targetList && targetList.Count > 0)
@@ -280,7 +290,7 @@ namespace Microsoft.CST.OpenSource
                                 (string?)defoggerTool.Options["download-directory"],
                                 (bool?)defoggerTool.Options["use-cache"] == true).Wait();
                         }
-                        else if (Directory.Exists(target))
+                        else if (System.IO.Directory.Exists(target))
                         {
                             defoggerTool.AnalyzeDirectory(target);
                         }
@@ -301,7 +311,7 @@ namespace Microsoft.CST.OpenSource
                             Logger.Info("[Binary] {0}: {1} -> {2}", binaryFinding.Filename, binaryFinding.EncodedText, binaryFinding.Type);
                             if (binaryDir is string)
                             {
-                                Directory.CreateDirectory(binaryDir);
+                                System.IO.Directory.CreateDirectory(binaryDir);
                                 var path = Path.Combine(binaryDir, binaryFinding.Filename, $"binary-{binaryNumber}");
                                 Logger.Info("Saving to {0}", path);
                                 var fs = new FileStream(path, System.IO.FileMode.OpenOrCreate);
@@ -317,7 +327,7 @@ namespace Microsoft.CST.OpenSource
                             Logger.Info("[Archive] {0}: {1} -> {2}", archiveFinding.Filename, archiveFinding.EncodedText, archiveFinding.Type);
                             if (archiveDir is string)
                             {
-                                Directory.CreateDirectory(archiveDir);
+                                System.IO.Directory.CreateDirectory(archiveDir);
                                 var path = Path.Combine(archiveDir, archiveFinding.Filename, $"archive-{archiveNumber++}");
                                 Logger.Info("Saving to {0}", path);
                                 var fs = new FileStream(path, System.IO.FileMode.OpenOrCreate);
@@ -360,7 +370,7 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         /// Initializes a new DefoggerTool instance.
         /// </summary>
-        public DefoggerTool() : base()
+        public DefoggerTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
         {
             Findings = new List<EncodedString>();
             BinaryFindings = new List<EncodedBinary>();
@@ -377,10 +387,10 @@ namespace Microsoft.CST.OpenSource
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
 
-            var packageDownloader = new PackageDownloader(purl, destinationDirectory, doCaching);
+            var packageDownloader = new PackageDownloader(this.HttpClientFactory, purl, destinationDirectory, doCaching);
             foreach (var directory in await packageDownloader.DownloadPackageLocalCopy(purl, false, true))
             {
-                if (Directory.Exists(directory))
+                if (System.IO.Directory.Exists(directory))
                 {
                     AnalyzeDirectory(directory);
                 }
@@ -404,7 +414,7 @@ namespace Microsoft.CST.OpenSource
         public void AnalyzeDirectory(string directory)
         {
             Logger.Trace("AnalyzeDirectory({0})", directory);
-            var fileList = Directory.EnumerateFiles(directory, @"*.*", SearchOption.AllDirectories);
+            var fileList = System.IO.Directory.EnumerateFiles(directory, @"*.*", SearchOption.AllDirectories);
             foreach (var filename in fileList)
             {
                 try
@@ -721,7 +731,7 @@ Usage: {ToolName} [options] package-url...
 positional arguments:
   package-url                   package url to analyze (required, multiple allowed), or directory.
 
-{BaseProjectManager.GetCommonSupportedHelpText()}
+{GetCommonSupportedHelpText()}
 
 optional arguments:
   --download-directory          the directory to download the package to

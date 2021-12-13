@@ -71,9 +71,9 @@ namespace Microsoft.CST.OpenSource.FindSquats
                 .BuildServiceProvider();
 
             // Get the IHttpClientFactory
-            IHttpClientFactory? httpClientFactory = serviceProvider.GetService<IHttpClientFactory>();
+            IHttpClientFactory httpClientFactory = serviceProvider.GetService<IHttpClientFactory>() ?? throw new InvalidOperationException();
 
-            FindSquatsTool findSquatsTool = new(httpClientFactory ?? throw new InvalidOperationException());
+            FindSquatsTool findSquatsTool = new(httpClientFactory);
             (string output, int numSquats) = (string.Empty, 0);
             await findSquatsTool.ParseOptions<Options>(args).WithParsedAsync(async options =>
             {

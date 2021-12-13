@@ -14,6 +14,8 @@ using System.Text.Json.Serialization;
 
 namespace Microsoft.CST.OpenSource.Reproducibility
 {
+    using Lib;
+
     public enum StrategyPriority
     {
         None = 0,

@@ -15,6 +15,10 @@ using static Crayon.Output;
 
 namespace Microsoft.CST.OpenSource
 {
+    using Extensions.DependencyInjection;
+    using Lib;
+    using System.Net.Http;
+
     public enum DiffTechnique
     {
         Strict,
@@ -71,7 +75,7 @@ namespace Microsoft.CST.OpenSource
             public bool LeaveIntermediateFiles { get; set; }
         }
 
-        public ReproducibleTool() : base()
+        public ReproducibleTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
         {
         }
 
@@ -83,7 +87,16 @@ namespace Microsoft.CST.OpenSource
         {
             ShowToolBanner();
             Console.WriteLine();
-            var reproducibleTool = new ReproducibleTool();
+
+            // Setup our DI for the HTTP Client.
+            ServiceProvider serviceProvider = new ServiceCollection()
+                .AddHttpClient()
+                .BuildServiceProvider();
+
+            // Get the IHttpClientFactory
+            IHttpClientFactory httpClientFactory = serviceProvider.GetService<IHttpClientFactory>() ?? throw new InvalidOperationException();
+
+            var reproducibleTool = new ReproducibleTool(httpClientFactory);
             await reproducibleTool.ParseOptions<Options>(args).WithParsedAsync(reproducibleTool.RunAsync);
         }
 
@@ -226,7 +239,7 @@ namespace Microsoft.CST.OpenSource
             foreach (var target in options.Targets ?? Array.Empty<string>())
             {
                 var purl = new PackageURL(target);
-                var downloader = new PackageDownloader(purl, "temp");
+                var downloader = new PackageDownloader(this.HttpClientFactory, purl, "temp");
                 foreach (var version in downloader.PackageVersions)
                 {
                     targets.Add(version.ToString());
@@ -249,13 +262,13 @@ namespace Microsoft.CST.OpenSource
                     }
                     
                     var tempDirectoryName = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString().Substring(0, 8));
-                    if (Directory.Exists(tempDirectoryName))
+                    if (System.IO.Directory.Exists(tempDirectoryName))
                     {
-                        Directory.Delete(tempDirectoryName, true);  // Just in case
+                        System.IO.Directory.Delete(tempDirectoryName, true);  // Just in case
                     }
                     // Download the package
                     Console.WriteLine("Downloading package...");
-                    var packageDownloader = new PackageDownloader(purl, Path.Join(tempDirectoryName, "package"));
+                    var packageDownloader = new PackageDownloader(this.HttpClientFactory, purl, Path.Join(tempDirectoryName, "package"));
                     var downloadResults = await packageDownloader.DownloadPackageLocalCopy(purl, false, true);
 
                     if (!downloadResults.Any())
@@ -265,7 +278,7 @@ namespace Microsoft.CST.OpenSource
 
                     // Locate the source
                     Console.WriteLine("Locating source...");
-                    var findSourceTool = new FindSourceTool();
+                    var findSourceTool = new FindSourceTool(this.HttpClientFactory);
                     var sourceMap = await findSourceTool.FindSourceAsync(purl);
                     if (sourceMap.Any())
                     {
@@ -290,7 +303,7 @@ namespace Microsoft.CST.OpenSource
                             }
                             Logger.Debug("Trying to download package, version/reference [{0}].", reference);
                             var purlRef = new PackageURL(bestSourcePurl.Type, bestSourcePurl.Namespace, bestSourcePurl.Name, reference, bestSourcePurl.Qualifiers, bestSourcePurl.Subpath);
-                            packageDownloader = new PackageDownloader(purlRef, Path.Join(tempDirectoryName, "src"));
+                            packageDownloader = new PackageDownloader(this.HttpClientFactory, purlRef, Path.Join(tempDirectoryName, "src"));
                             downloadResults = await packageDownloader.DownloadPackageLocalCopy(purlRef, false, true);
                             if (downloadResults.Any())
                             {
@@ -379,8 +392,8 @@ namespace Microsoft.CST.OpenSource
                                 Logger.Debug(ex, "Error copying directory for strategy. Aborting execution.");
                             }
 
-                            Directory.CreateDirectory(tempStrategyOptions.PackageDirectory);
-                            Directory.CreateDirectory(tempStrategyOptions.SourceDirectory);
+                            System.IO.Directory.CreateDirectory(tempStrategyOptions.PackageDirectory);
+                            System.IO.Directory.CreateDirectory(tempStrategyOptions.SourceDirectory);
 
                             try
                             {

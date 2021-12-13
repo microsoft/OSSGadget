@@ -13,24 +13,11 @@ namespace Microsoft.CST.OpenSource.Shared
     public static class CommonInitialization
     {
         /// <summary>
-        ///     Static HttpClient for use in all HTTP connections.
-        /// </summary>
-        public static HttpClient? WebClient { get; private set; } = null;
-
-        /// <summary>
-        ///     User Agent string, when needed to connect to external resources.
-        /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        private static string ENV_HTTPCLIENT_USER_AGENT = "OSSDL";
-
-        /// <summary>
         ///     Prevent being initialized multiple times.
         /// </summary>
         private static bool Initialized = false;
 
         public static NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
-
-
 
         /// <summary>
         ///     Initializes common infrastructure, like logging.
@@ -42,60 +29,6 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 return;
             }
-
-            // This is needed due to .NET 5 bug #47267 which should be fixed in .NET 6.
-            // https://github.com/dotnet/runtime/issues/47267
-            static async ValueTask<Stream> IPv4ConnectAsync(SocketsHttpConnectionContext context, CancellationToken cancellationToken)
-            {
-                // By default, we create dual-mode sockets:
-                // Socket socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
-
-                Socket socket = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
-                {
-                    NoDelay = true
-                };
-
-                try
-                {
-                    await socket.ConnectAsync(context.DnsEndPoint, cancellationToken).ConfigureAwait(false);
-                    return new NetworkStream(socket, ownsSocket: true);
-                }
-                catch
-                {
-                    socket.Dispose();
-                    throw;
-                }
-            }
-
-            // Initialize the static HttpClient
-            SocketsHttpHandler handler = new()
-            {
-                AllowAutoRedirect = true,
-                UseCookies = false,
-                MaxAutomaticRedirections = 5,
-                PooledConnectionIdleTimeout = TimeSpan.FromSeconds(30),
-                PooledConnectionLifetime = TimeSpan.FromSeconds(30),
-                ConnectCallback = IPv4ConnectAsync,
-                AutomaticDecompression = System.Net.DecompressionMethods.All
-            };
-
-            WebClient = new HttpClient(handler)
-            {
-                Timeout = TimeSpan.FromSeconds(120)
-            };
-
-            WebClient.DefaultRequestHeaders.UserAgent.ParseAdd(ENV_HTTPCLIENT_USER_AGENT);
-
-            // @TODO Does this actually run? Is it necessary?
-            System.Runtime.Loader.AssemblyLoadContext.Default.Unloading += (_) =>
-            {
-                if (WebClient != null)
-                {
-                    WebClient.Dispose();
-                    WebClient = null;
-                }
-                Initialized = false;
-            };
 
             Initialized = true;
         }

@@ -4,6 +4,7 @@ namespace Microsoft.CST.OpenSource.DomainSquats
 {
     using CommandLine;
     using CommandLine.Text;
+    using Extensions.DependencyInjection;
     using Microsoft.CodeAnalysis.Sarif;
     using Microsoft.CST.OpenSource.Shared;
     using System;
@@ -16,6 +17,7 @@ namespace Microsoft.CST.OpenSource.DomainSquats
     using Whois;
     using System.Text.RegularExpressions;
     using Microsoft.CST.OpenSource.FindSquats.Mutators;
+    using System.Net.Http;
 
     public class FindDomainSquatsTool : OSSGadget
     {
@@ -76,7 +78,7 @@ namespace Microsoft.CST.OpenSource.DomainSquats
             public IEnumerable<string>? Targets { get; set; }
         }
 
-        public FindDomainSquatsTool() : base()
+        public FindDomainSquatsTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
         {
         }
 
@@ -84,7 +86,15 @@ namespace Microsoft.CST.OpenSource.DomainSquats
         {
             ShowToolBanner();
 
-            FindDomainSquatsTool findSquatsTool = new();
+            // Setup our DI for the HTTP Client.
+            ServiceProvider serviceProvider = new ServiceCollection()
+                .AddHttpClient()
+                .BuildServiceProvider();
+
+            // Get the IHttpClientFactory
+            IHttpClientFactory httpClientFactory = serviceProvider.GetService<IHttpClientFactory>() ?? throw new InvalidOperationException();
+
+            FindDomainSquatsTool findSquatsTool = new(httpClientFactory);
             (string output, int numRegisteredSquats, int numUnregisteredSquats) = (string.Empty, 0, 0);
             await findSquatsTool.ParseOptions<Options>(args).WithParsedAsync<Options>(findSquatsTool.RunAsync);
         }

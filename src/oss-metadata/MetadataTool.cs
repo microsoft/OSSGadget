@@ -2,14 +2,18 @@
 
 using CommandLine;
 using CommandLine.Text;
-using Microsoft.CST.OpenSource.Model;
-using Microsoft.CST.OpenSource.Shared;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource
 {
+    using Extensions.DependencyInjection;
+    using Lib;
+    using Lib.Model;
+    using Lib.PackageManagers;
+    using System.Net.Http;
+
     public class MetadataTool : OSSGadget
     {
         public class Options
@@ -36,17 +40,17 @@ namespace Microsoft.CST.OpenSource
             private IEnumerable<string> targets = Array.Empty<string>();
         }
 
-        public MetadataTool() : base()
+        public MetadataTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
         {
         }
 
-        private static async Task<PackageMetadata?> GetPackageMetadata(PackageURL purl)
+        private static async Task<PackageMetadata?> GetPackageMetadata(PackageURL purl, IHttpClientFactory httpClientFactory)
         {
             PackageMetadata? metadata = null;
             try
             {
                 // Use reflection to find the correct downloader class
-                var projectManager = ProjectManagerFactory.CreateProjectManager(purl, null);
+                var projectManager = ProjectManagerFactory.CreateProjectManager(purl, httpClientFactory);
                 if (projectManager != null)
                 {
                     metadata = await projectManager.GetPackageMetadata(purl);
@@ -67,7 +71,16 @@ namespace Microsoft.CST.OpenSource
         private static async Task Main(string[] args)
         {
             ShowToolBanner();
-            var metadataTool = new MetadataTool();
+
+            // Setup our DI for the HTTP Client.
+            ServiceProvider serviceProvider = new ServiceCollection()
+                .AddHttpClient()
+                .BuildServiceProvider();
+
+            // Get the IHttpClientFactory
+            IHttpClientFactory httpClientFactory = serviceProvider.GetService<IHttpClientFactory>() ?? throw new InvalidOperationException();
+
+            var metadataTool = new MetadataTool(httpClientFactory);
             await metadataTool.ParseOptions<Options>(args).WithParsedAsync(metadataTool.RunAsync);
         }
 
@@ -83,7 +96,7 @@ namespace Microsoft.CST.OpenSource
                     try
                     {
                         var purl = new PackageURL(target);
-                        metadata = await GetPackageMetadata(purl);
+                        metadata = await GetPackageMetadata(purl, this.HttpClientFactory);
                     }
                     catch (Exception ex)
                     {

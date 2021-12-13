@@ -4,22 +4,22 @@ using CommandLine;
 using CommandLine.Text;
 using Microsoft.ApplicationInspector.Commands;
 using Microsoft.ApplicationInspector.RulesEngine;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Sarif;
 using Microsoft.CST.OpenSource.Shared;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
 using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
 
 namespace Microsoft.CST.OpenSource
 {
+    using Extensions.DependencyInjection;
+    using Lib;
+    using System.Net.Http;
+
     public class CharacteristicTool : OSSGadget
     {
         public class Options
@@ -74,7 +74,7 @@ namespace Microsoft.CST.OpenSource
             public FailureLevel SarifLevel { get; set; } = FailureLevel.Note;
         }
 
-        public CharacteristicTool() : base()
+        public CharacteristicTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
         {
         }
 
@@ -137,7 +137,7 @@ namespace Microsoft.CST.OpenSource
 
             var analysisResults = new Dictionary<string, AnalyzeResult?>();
 
-            var packageDownloader = new PackageDownloader(purl, targetDirectoryName, doCaching);
+            var packageDownloader = new PackageDownloader(this.HttpClientFactory, purl, targetDirectoryName, doCaching);
             // ensure that the cache directory has the required package, download it otherwise
             var directoryNames = await packageDownloader.DownloadPackageLocalCopy(purl,
                 false,
@@ -287,7 +287,16 @@ namespace Microsoft.CST.OpenSource
         private static async Task Main(string[] args)
         {
             ShowToolBanner();
-            var characteristicTool = new CharacteristicTool();
+
+            // Setup our DI for the HTTP Client.
+            ServiceProvider serviceProvider = new ServiceCollection()
+                .AddHttpClient()
+                .BuildServiceProvider();
+
+            // Get the IHttpClientFactory
+            IHttpClientFactory httpClientFactory = serviceProvider.GetService<IHttpClientFactory>() ?? throw new InvalidOperationException();
+
+            var characteristicTool = new CharacteristicTool(httpClientFactory);
             await characteristicTool.ParseOptions<Options>(args).WithParsedAsync(characteristicTool.RunAsync);
         }
 
@@ -330,7 +339,7 @@ namespace Microsoft.CST.OpenSource
                         if (target.StartsWith("pkg:"))
                         {
                             var purl = new PackageURL(target);
-                            string downloadDirectory = options.DownloadDirectory == "." ? Directory.GetCurrentDirectory() : options.DownloadDirectory;
+                            string downloadDirectory = options.DownloadDirectory == "." ? System.IO.Directory.GetCurrentDirectory() : options.DownloadDirectory;
                             var analysisResult = await AnalyzePackage(options, purl,
                                 downloadDirectory,
                                 options.UseCache == true);
@@ -338,7 +347,7 @@ namespace Microsoft.CST.OpenSource
                             AppendOutput(outputBuilder, purl, analysisResult, options);
                             finalResults.Add(analysisResult);
                         }
-                        else if (Directory.Exists(target))
+                        else if (System.IO.Directory.Exists(target))
                         {
                             var analysisResult = await AnalyzeDirectory(options, target);
                             if (analysisResult != null)

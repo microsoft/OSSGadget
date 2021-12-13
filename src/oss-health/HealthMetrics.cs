@@ -12,6 +12,9 @@ using System.Text.RegularExpressions;
 
 namespace Microsoft.CST.OpenSource.Health
 {
+    using Lib;
+    using Lib.PackageManagers;
+
     public class HealthMetrics
     {
         public double ReleaseHealth;

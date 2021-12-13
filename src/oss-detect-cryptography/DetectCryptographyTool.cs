@@ -21,6 +21,11 @@ using static Crayon.Output;
 
 namespace Microsoft.CST.OpenSource
 {
+    using Extensions.DependencyInjection;
+    using Lib;
+    using Lib.PackageManagers;
+    using System.Net.Http;
+
     public class DetectCryptographyTool : OSSGadget
     {
         /// <summary>
@@ -50,7 +55,16 @@ namespace Microsoft.CST.OpenSource
         private static async Task Main(string[] args)
         {
             ShowToolBanner();
-            DetectCryptographyTool detectCryptographyTool = new DetectCryptographyTool();
+
+            // Setup our DI for the HTTP Client.
+            ServiceProvider serviceProvider = new ServiceCollection()
+                .AddHttpClient()
+                .BuildServiceProvider();
+
+            // Get the IHttpClientFactory
+            IHttpClientFactory httpClientFactory = serviceProvider.GetService<IHttpClientFactory>() ?? throw new InvalidOperationException();
+
+            DetectCryptographyTool detectCryptographyTool = new DetectCryptographyTool(httpClientFactory);
 
             detectCryptographyTool.ParseOptions(args);
 
@@ -74,7 +88,7 @@ namespace Microsoft.CST.OpenSource
                                 (bool?)detectCryptographyTool.Options["use-cache"] == true) ??
                                 Task.FromResult(new List<IssueRecord>()));
                         }
-                        else if (Directory.Exists(target))
+                        else if (System.IO.Directory.Exists(target))
                         {
                             results = await (detectCryptographyTool.AnalyzeDirectory(target) ??
                                                                 Task.FromResult(new List<IssueRecord>()));
@@ -82,25 +96,22 @@ namespace Microsoft.CST.OpenSource
                         else if (File.Exists(target))
                         {
                             string? targetDirectoryName = null;
-                            while (targetDirectoryName == null || Directory.Exists(targetDirectoryName))
+                            while (targetDirectoryName == null || System.IO.Directory.Exists(targetDirectoryName))
                             {
                                 targetDirectoryName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                             }
-                            var projectManager = ProjectManagerFactory.CreateBaseProjectManager(targetDirectoryName);
+                            BaseProjectManager projectManager = ProjectManagerFactory.CreateBaseProjectManager(httpClientFactory, targetDirectoryName);
 
-#pragma warning disable SCS0018 // Path traversal: injection possible in {1} argument passed to '{0}'
                             var path = await projectManager.ExtractArchive("temp", File.ReadAllBytes(target));
-#pragma warning restore SCS0018 // Path traversal: injection possible in {1} argument passed to '{0}'
 
-                            results = await (detectCryptographyTool.AnalyzeDirectory(path) ??
-                                                                Task.FromResult(new List<IssueRecord>())); ;
+                            results = await detectCryptographyTool.AnalyzeDirectory(path);
 
                             // Clean up after ourselves
                             try
                             {
                                 if (targetDirectoryName != null)
                                 {
-                                    Directory.Delete(targetDirectoryName, true);
+                                    System.IO.Directory.Delete(targetDirectoryName, true);
                                 }
                             }
                             catch (Exception ex)
@@ -243,7 +254,7 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        public DetectCryptographyTool() : base()
+        public DetectCryptographyTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
         {
         }
 
@@ -256,7 +267,7 @@ namespace Microsoft.CST.OpenSource
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
 
-            var packageDownloader = new PackageDownloader(purl, targetDirectoryName, doCaching);
+            var packageDownloader = new PackageDownloader(this.HttpClientFactory, purl, targetDirectoryName, doCaching);
             var directoryNames = await packageDownloader.DownloadPackageLocalCopy(purl, false, true);
             directoryNames = directoryNames.Distinct().ToList<string>();
 
@@ -275,9 +286,9 @@ namespace Microsoft.CST.OpenSource
                     Logger.Trace("Removing {0}", directoryName);
                     try
                     {
-                        if (Directory.Exists(directoryName))
+                        if (System.IO.Directory.Exists(directoryName))
                         {
-                            Directory.Delete(directoryName, true);
+                            System.IO.Directory.Delete(directoryName, true);
                         }
                         else if (File.Exists(directoryName))
                         {
@@ -474,9 +485,9 @@ namespace Microsoft.CST.OpenSource
 
             string[] fileList;
 
-            if (Directory.Exists(directory))
+            if (System.IO.Directory.Exists(directory))
             {
-                fileList = Directory.GetFiles(directory, "*", SearchOption.AllDirectories);
+                fileList = System.IO.Directory.GetFiles(directory, "*", SearchOption.AllDirectories);
             }
             else if (File.Exists(directory))
             {
@@ -726,7 +737,7 @@ Usage: {ToolName} [options] package-url...
 positional arguments:
     package-url                 PackgeURL specifier to download (required, repeats OK), or directory.
 
-{BaseProjectManager.GetCommonSupportedHelpText()}
+{GetCommonSupportedHelpText()}
 
 optional arguments:
   --verbose                     increase output verbosity

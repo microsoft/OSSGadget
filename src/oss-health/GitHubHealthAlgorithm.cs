@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Health
 {
+    using Lib;
+
     /// <summary>
     ///     Actual implementation for Github project health
     /// </summary>

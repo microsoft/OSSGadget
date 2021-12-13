@@ -20,7 +20,12 @@ using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
 
 namespace Microsoft.CST.OpenSource.DiffTool
     {
-    class DiffTool : OSSGadget
+        using Extensions.DependencyInjection;
+        using Lib;
+        using Lib.PackageManagers;
+        using System.Net.Http;
+
+        class DiffTool : OSSGadget
     {
         public class Options
         {
@@ -80,6 +85,10 @@ namespace Microsoft.CST.OpenSource.DiffTool
             public IEnumerable<string> Targets { get; set; } = Array.Empty<string>();
         }
 
+        public DiffTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        {
+        }
+
         static async Task Main(string[] args)
         {
             ShowToolBanner();
@@ -87,7 +96,16 @@ namespace Microsoft.CST.OpenSource.DiffTool
             Console.CancelKeyPress += delegate {
                 Console.ForegroundColor = originalColor;
             };
-            var diffTool = new DiffTool();
+
+            // Setup our DI for the HTTP Client.
+            ServiceProvider serviceProvider = new ServiceCollection()
+                .AddHttpClient()
+                .BuildServiceProvider();
+
+            // Get the IHttpClientFactory
+            IHttpClientFactory httpClientFactory = serviceProvider.GetService<IHttpClientFactory>() ?? throw new InvalidOperationException();
+
+            var diffTool = new DiffTool(httpClientFactory);
             await diffTool.ParseOptions<Options>(args).WithParsedAsync<Options>(diffTool.RunAsync);
         }
 
@@ -109,7 +127,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
             try
             {
                 PackageURL purl1 = new PackageURL(options.Targets.First());
-                var manager = ProjectManagerFactory.CreateProjectManager(purl1, options.DownloadDirectory ?? Path.GetTempPath());
+                var manager = ProjectManagerFactory.CreateProjectManager(purl1, this.HttpClientFactory, options.DownloadDirectory ?? Path.GetTempPath());
 
                 if (manager is not null)
                 {
@@ -134,7 +152,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
 
             foreach (var directory in locations)
             {
-                foreach (var file in Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories))
+                foreach (var file in System.IO.Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories))
                 {
                     files[string.Join(Path.DirectorySeparatorChar, file[directory.Length..].Split(Path.DirectorySeparatorChar)[2..])] = (file, string.Empty);
                 }
@@ -143,7 +161,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
             try
             {
                 PackageURL purl2 = new PackageURL(options.Targets.Last());
-                var manager2 = ProjectManagerFactory.CreateProjectManager(purl2, options.DownloadDirectory ?? Path.GetTempPath());
+                var manager2 = ProjectManagerFactory.CreateProjectManager(purl2, this.HttpClientFactory, options.DownloadDirectory ?? Path.GetTempPath());
 
                 if (manager2 is not null)
                 {
@@ -167,7 +185,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
             }
             foreach (var directory in locations2)
             {
-                foreach (var file in Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories))
+                foreach (var file in System.IO.Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories))
                 {
                     var key = string.Join(Path.DirectorySeparatorChar, file[directory.Length..].Split(Path.DirectorySeparatorChar)[2..]);
 
@@ -256,6 +274,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
                     }
                 }
                 var diffObjList = diffObjs.ToList();
+
                 // Arrange the diffs in line order
                 diffObjList.Sort((x, y) => x.startLine1.CompareTo(y.startLine1));
 
@@ -442,20 +461,20 @@ namespace Microsoft.CST.OpenSource.DiffTool
                     }
                 }
             });
-            
+
 
             if (!options.UseCache)
             {
                 foreach (var directory in locations)
                 {
-                    Directory.Delete(directory, true);
+                    System.IO.Directory.Delete(directory, true);
                 }
                 foreach (var directory in locations2)
                 {
-                    Directory.Delete(directory, true);
+                    System.IO.Directory.Delete(directory, true);
                 }
             }
-            
+
             return outputBuilder;
         }
 
@@ -472,7 +491,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
                 options.Before = options.Context;
                 options.After = options.Context;
             }
-            
+
             var result = await DiffProjects(options);
 
             if (options.OutputLocation is null)

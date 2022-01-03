@@ -40,7 +40,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {
                 Uri uri = new(url);
                 Logger.Debug("Downloading {0} ({1})...", purl, uri);
-                using HttpClient httpClient = CreateHttpClient();
+                HttpClient httpClient = CreateHttpClient();
 
                 System.Net.Http.HttpResponseMessage? result = await httpClient.GetAsync(uri);
                 result.EnsureSuccessStatusCode();

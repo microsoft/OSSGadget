@@ -42,7 +42,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             List<string> downloadedPaths = new();
             HashSet<string> downloadedUrls = new();
-            using HttpClient httpClient = CreateHttpClient();
+            HttpClient httpClient = CreateHttpClient();
 
             if (purl == null || purl.Name == null || purl.Version == null)
             {
@@ -186,7 +186,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
             List<string> versionList = new();
             IEnumerable<string> availablePools = await GetPoolsForProject(purl);
-            using HttpClient httpClient = CreateHttpClient();
+            HttpClient httpClient = CreateHttpClient();
             foreach (string pool in availablePools)
             {
                 string? archiveBaseUrl = await GetArchiveBaseUrlForProject(purl, pool);
@@ -252,7 +252,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
 
             StringBuilder metadataContent = new();
-            using HttpClient httpClient = CreateHttpClient();
+            HttpClient httpClient = CreateHttpClient();
             foreach (string distroUrlPrefix in GetBaseURLs(purl))
             {
                 try
@@ -332,7 +332,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
             try
             {
-                using HttpClient httpClient = CreateHttpClient();
+                HttpClient httpClient = CreateHttpClient();
 
                 string? html = await GetHttpStringCache(httpClient, $"{ENV_UBUNTU_ENDPOINT}/{pool}/{purl.Name}", neverThrow: true);
                 if (html == null)
@@ -401,7 +401,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             HashSet<string> pools = new();
             try
             {
-                using HttpClient httpClient = CreateHttpClient();
+                HttpClient httpClient = CreateHttpClient();
 
                 string? searchResults = await GetHttpStringCache(httpClient, $"{ENV_UBUNTU_ENDPOINT}/search?keywords={purl.Name}&searchon=names&exact=1&suite=all&section=all", neverThrow: true);
                 AngleSharp.Html.Dom.IHtmlDocument document = await new HtmlParser().ParseDocumentAsync(searchResults);

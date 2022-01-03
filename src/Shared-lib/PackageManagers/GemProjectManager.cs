@@ -46,7 +46,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             try
             {
                 string url = $"{ENV_RUBYGEMS_ENDPOINT}/downloads/{packageName}-{packageVersion}.gem";
-                using HttpClient httpClient = CreateHttpClient();
+                HttpClient httpClient = CreateHttpClient();
 
                 System.Net.Http.HttpResponseMessage result = await httpClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
@@ -92,7 +92,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 return false;
             }
             string packageName = purl.Name;
-            using HttpClient httpClient = CreateHttpClient();
+            HttpClient httpClient = CreateHttpClient();
 
             return await CheckJsonCacheForPackage(httpClient, $"{ENV_RUBYGEMS_ENDPOINT_API}/api/v1/versions/{packageName}.json", useCache);
         }
@@ -108,7 +108,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             try
             {
                 string packageName = purl.Name;
-                using HttpClient httpClient = CreateHttpClient();
+                HttpClient httpClient = CreateHttpClient();
 
                 JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_RUBYGEMS_ENDPOINT_API}/api/v1/versions/{packageName}.json");
                 List<string> versionList = new();
@@ -143,7 +143,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
             try
             {
-                using HttpClient httpClient = CreateHttpClient();
+                HttpClient httpClient = CreateHttpClient();
 
                 string packageName = purl.Name;
                 string contentVersion = await GetHttpStringCache(httpClient, $"{ENV_RUBYGEMS_ENDPOINT_API}/api/v1/versions/{packageName}.json") ?? "";

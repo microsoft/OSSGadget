@@ -43,7 +43,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 return downloadedPaths;
             }
 
-            using HttpClient httpClient = CreateHttpClient();
+            HttpClient httpClient = CreateHttpClient();
             // Current Version
             try
             {
@@ -118,7 +118,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {
                 string packageName = purl.Name;
                 List<string> versionList = new();
-                using HttpClient httpClient = CreateHttpClient();
+                HttpClient httpClient = CreateHttpClient();
 
                 // Get the latest version
                 System.Net.Http.HttpResponseMessage html = await httpClient.GetAsync($"{ENV_CRAN_ENDPOINT}/web/packages/{packageName}/index.html");
@@ -169,7 +169,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             try
             {
                 string? packageName = purl.Name;
-                using HttpClient httpClient = CreateHttpClient();
+                HttpClient httpClient = CreateHttpClient();
                 string? content = await GetHttpStringCache(httpClient, $"{ENV_CRAN_ENDPOINT}/web/packages/{packageName}/index.html");
                 return content;
             }

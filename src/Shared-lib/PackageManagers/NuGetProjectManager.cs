@@ -43,7 +43,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             try
             {
-                using HttpClient httpClient = CreateHttpClient();
+                HttpClient httpClient = CreateHttpClient();
                 JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_NUGET_ENDPOINT_API}/v3/index.json");
                 JsonElement.ArrayEnumerator resources = doc.RootElement.GetProperty("resources").EnumerateArray();
                 foreach (JsonElement resource in resources)
@@ -96,7 +96,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             try
             {
-                using HttpClient httpClient = CreateHttpClient();
+                HttpClient httpClient = CreateHttpClient();
                 JsonDocument doc = await GetJsonCache(httpClient, $"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json");
                 List<string> versionList = new();
                 foreach (JsonElement catalogPage in doc.RootElement.GetProperty("items").EnumerateArray())
@@ -206,7 +206,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 return false;
             }
             string packageName = purl.Name;
-            using HttpClient httpClient = CreateHttpClient();
+            HttpClient httpClient = CreateHttpClient();
 
             return await CheckJsonCacheForPackage(httpClient, $"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json", useCache);
         }
@@ -222,7 +222,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             try
             {
-                using HttpClient httpClient = CreateHttpClient();
+                HttpClient httpClient = CreateHttpClient();
                 string packageName = purl.Name;
 
                 JsonDocument doc = await GetJsonCache(httpClient, $"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json");
@@ -292,7 +292,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 {
                     return null;
                 }
-                using HttpClient httpClient = CreateHttpClient();
+                HttpClient httpClient = CreateHttpClient();
 
                 string? content = await GetHttpStringCache(httpClient, $"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json");
                 return content;

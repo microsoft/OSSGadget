@@ -46,7 +46,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             try
             {
-                using HttpClient httpClient = CreateHttpClient();
+                HttpClient httpClient = CreateHttpClient();
 
                 JsonDocument? doc = await GetJsonCache(httpClient, $"{ENV_PYPI_ENDPOINT}/pypi/{packageName}/json");
 
@@ -111,7 +111,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 return false;
             }
             string packageName = purl.Name;
-            using HttpClient httpClient = CreateHttpClient();
+            HttpClient httpClient = CreateHttpClient();
 
             return await CheckJsonCacheForPackage(httpClient, $"{ENV_PYPI_ENDPOINT}/pypi/{packageName}/json", useCache);
         }
@@ -127,7 +127,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             try
             {
                 string packageName = purl.Name;
-                using HttpClient httpClient = CreateHttpClient();
+                HttpClient httpClient = CreateHttpClient();
 
                 JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_PYPI_ENDPOINT}/pypi/{packageName}/json");
                 List<string> versionList = new();
@@ -164,7 +164,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
             try
             {
-                using HttpClient httpClient = CreateHttpClient();
+                HttpClient httpClient = CreateHttpClient();
 
                 return await GetHttpStringCache(httpClient, $"{ENV_PYPI_ENDPOINT}/pypi/{purl.Name}/json");
             }

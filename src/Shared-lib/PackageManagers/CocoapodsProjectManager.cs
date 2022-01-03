@@ -57,7 +57,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 return downloadedPaths;
             }
 
-            using HttpClient httpClient = CreateHttpClient();
+            HttpClient httpClient = CreateHttpClient();
             string prefix = GetCocoapodsPrefix(packageName);
             System.Text.Json.JsonDocument podspec = await GetJsonCache(httpClient, $"{ENV_COCOAPODS_SPECS_RAW_ENDPOINT}/Specs/{prefix}/{packageName}/{packageVersion}/{packageName}.podspec.json");
 
@@ -129,7 +129,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
             string packageName = purl.Name;
             string prefix = GetCocoapodsPrefix(packageName ?? string.Empty);
-            using HttpClient httpClient = CreateHttpClient();
+            HttpClient httpClient = CreateHttpClient();
 
             return await CheckHttpCacheForPackage(httpClient, $"{ENV_COCOAPODS_SPECS_ENDPOINT}/Specs/{prefix}/{packageName}", useCache);
         }
@@ -146,7 +146,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {
                 string? packageName = purl.Name;
                 string? prefix = GetCocoapodsPrefix(packageName ?? string.Empty);
-                using HttpClient httpClient = CreateHttpClient();
+                HttpClient httpClient = CreateHttpClient();
                 string? html = await GetHttpStringCache(httpClient, $"{ENV_COCOAPODS_SPECS_ENDPOINT}/Specs/{prefix}/{packageName}");
                 HtmlParser parser = new();
                 AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(html);
@@ -195,7 +195,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
             try
             {
-                using HttpClient httpClient = CreateHttpClient();
+                HttpClient httpClient = CreateHttpClient();
                 string? packageName = purl.Name;
                 string? cocoapodsWebContent = await GetHttpStringCache(httpClient, $"{ENV_COCOAPODS_METADATA_ENDPOINT}/pods/{packageName}");
                 string? podSpecContent = "";

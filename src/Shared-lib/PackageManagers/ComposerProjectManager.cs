@@ -46,7 +46,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             try
             {
-                using HttpClient httpClient = CreateHttpClient();
+                HttpClient httpClient = CreateHttpClient();
                 System.Text.Json.JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_COMPOSER_ENDPOINT}/p/{packageNamespace}/{packageName}.json");
                 foreach (System.Text.Json.JsonProperty topObject in doc.RootElement.GetProperty("packages").EnumerateObject())
                 {
@@ -111,7 +111,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 return false;
             }
             string packageName = purl.Name;
-            using HttpClient httpClient = CreateHttpClient();
+            HttpClient httpClient = CreateHttpClient();
 
             return await CheckJsonCacheForPackage(httpClient, $"{ENV_COMPOSER_ENDPOINT}/p/{packageName}.json", useCache);
         }
@@ -135,7 +135,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             try
             {
-                using HttpClient httpClient = CreateHttpClient();
+                HttpClient httpClient = CreateHttpClient();
 
                 System.Text.Json.JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_COMPOSER_ENDPOINT}/p/{packageName}.json");
 
@@ -161,7 +161,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             try
             {
                 string packageName = $"{purl.Namespace}/{purl.Name}";
-                using HttpClient httpClient = CreateHttpClient();
+                HttpClient httpClient = CreateHttpClient();
 
                 return await GetHttpStringCache(httpClient, $"{ENV_COMPOSER_ENDPOINT}/p/{packageName}.json");
             }

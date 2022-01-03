@@ -47,7 +47,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             try
             {
                 string url = $"{ENV_HACKAGE_ENDPOINT}/package/{packageName}-{packageVersion}/{packageName}-{packageVersion}.tar.gz";
-                using HttpClient httpClient = CreateHttpClient();
+                HttpClient httpClient = CreateHttpClient();
 
                 System.Net.Http.HttpResponseMessage result = await httpClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
@@ -89,7 +89,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             try
             {
                 string packageName = purl.Name;
-                using HttpClient httpClient = CreateHttpClient();
+                HttpClient httpClient = CreateHttpClient();
 
                 System.Net.Http.HttpResponseMessage? html = await httpClient.GetAsync($"{ENV_HACKAGE_ENDPOINT}/package/{packageName}");
                 html.EnsureSuccessStatusCode();
@@ -130,7 +130,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             try
             {
                 string packageName = purl.Name;
-                using HttpClient httpClient = CreateHttpClient();
+                HttpClient httpClient = CreateHttpClient();
 
                 return await GetHttpStringCache(httpClient, $"{ENV_HACKAGE_ENDPOINT}/package/{packageName}");
             }

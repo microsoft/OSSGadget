@@ -59,7 +59,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 }
                 Logger.Debug("Downloading {0}", url);
 
-                using HttpClient httpClient = CreateHttpClient();
+                HttpClient httpClient = CreateHttpClient();
 
                 System.Net.Http.HttpResponseMessage result = await httpClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
@@ -97,7 +97,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 return false;
             }
             string packageName = purl.Name;
-            using HttpClient httpClient = CreateHttpClient();
+            HttpClient httpClient = CreateHttpClient();
             return await CheckJsonCacheForPackage(httpClient, $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}", useCache);
         }
 
@@ -117,7 +117,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             try
             {
                 string? packageName = purl.Name;
-                using HttpClient httpClient = CreateHttpClient();
+                HttpClient httpClient = CreateHttpClient();
                 JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}");
                 List<string> versionList = new();
                 foreach (JsonElement versionObject in doc.RootElement.GetProperty("versions").EnumerateArray())
@@ -150,7 +150,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             try
             {
                 string? packageName = purl.Name;
-                using HttpClient httpClient = CreateHttpClient();
+                HttpClient httpClient = CreateHttpClient();
                 string? content = await GetHttpStringCache(httpClient, $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}");
                 return content;
             }

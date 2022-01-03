@@ -7,6 +7,9 @@ namespace Microsoft.CST.OpenSource
 
     public abstract class OssGadgetLib
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
+        private string ENV_HTTPCLIENT_USER_AGENT = "OSSDL";
+
         /// <summary>
         /// The <see cref="IHttpClientFactory"/> to be used by classes that implement <see cref="OssGadgetLib"/>.
         /// </summary>
@@ -31,7 +34,8 @@ namespace Microsoft.CST.OpenSource
 
         protected OssGadgetLib(string directory = ".")
         {
-            HttpClientFactory = new DefaultHttpClientFactory();
+            EnvironmentHelper.OverrideEnvironmentVariables(this);
+            HttpClientFactory = new DefaultHttpClientFactory(ENV_HTTPCLIENT_USER_AGENT);
             Directory = directory;
         }
     }

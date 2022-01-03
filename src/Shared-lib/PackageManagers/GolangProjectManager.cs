@@ -48,7 +48,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             try
             {
                 string url = $"{ENV_GO_PROXY_ENDPOINT}/{packageNamespace.ToLowerInvariant()}/{packageName.ToLowerInvariant()}/@v/{packageVersion}.zip";
-                using HttpClient httpClient = CreateHttpClient();
+                HttpClient httpClient = CreateHttpClient();
 
                 System.Net.Http.HttpResponseMessage result = await httpClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
@@ -95,7 +95,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
             string packageNamespaceLower = purl.Namespace.ToLowerInvariant();
             string packageNameLower = purl.Name.ToLowerInvariant();
-            using HttpClient httpClient = CreateHttpClient();
+            HttpClient httpClient = CreateHttpClient();
 
             return await CheckHttpCacheForPackage(httpClient, $"{ENV_GO_PROXY_ENDPOINT}/{packageNamespaceLower}/{packageNameLower}/@v/list", useCache);
         }
@@ -113,7 +113,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 string? packageNamespaceLower = purl?.Namespace?.ToLowerInvariant();
                 string? packageNameLower = purl?.Name?.ToLowerInvariant();
                 List<string> versionList = new();
-                using HttpClient httpClient = CreateHttpClient();
+                HttpClient httpClient = CreateHttpClient();
 
                 string? doc = await GetHttpStringCache(httpClient, $"{ENV_GO_PROXY_ENDPOINT}/{packageNamespaceLower}/{packageNameLower}/@v/list");
                 if (doc != null)
@@ -155,7 +155,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     string latestVersion = versions.Last();
                     string packageNamespaceLower = purl.Namespace.ToLowerInvariant();
                     string packageNameLower = purl.Name.ToLowerInvariant();
-                    using HttpClient httpClient = CreateHttpClient();
+                    HttpClient httpClient = CreateHttpClient();
 
                     return await GetHttpStringCache(httpClient, $"{ENV_GO_PROXY_ENDPOINT}/{packageNamespaceLower}/{packageNameLower}/@v/{latestVersion}.mod");
                 }

@@ -141,7 +141,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 foreach (string archiveUrl in archiveUrls)
                 {
                     Logger.Debug("Attemping to download {0}", archiveUrl);
-                    using HttpClient httpClient = CreateHttpClient();
+                    HttpClient httpClient = CreateHttpClient();
 
                     System.Net.Http.HttpResponseMessage? result = await httpClient.GetAsync(archiveUrl);
                     if (result.IsSuccessStatusCode)

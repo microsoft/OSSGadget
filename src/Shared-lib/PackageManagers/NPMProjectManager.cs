@@ -48,7 +48,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             try
             {
-                using HttpClient httpClient = CreateHttpClient();
+                HttpClient httpClient = CreateHttpClient();
                 JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}");
                 string? tarball = doc.RootElement.GetProperty("versions").GetProperty(packageVersion).GetProperty("dist").GetProperty("tarball").GetString();
                 HttpResponseMessage result = await httpClient.GetAsync(tarball);
@@ -94,7 +94,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 return false;
             }
             string packageName = purl.Name;
-            using HttpClient httpClient = CreateHttpClient();
+            HttpClient httpClient = CreateHttpClient();
 
             return await CheckJsonCacheForPackage(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}", useCache);
         }
@@ -110,7 +110,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             try
             {
                 string packageName = purl.Name;
-                using HttpClient httpClient = CreateHttpClient();
+                HttpClient httpClient = CreateHttpClient();
 
                 JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}");
                 List<string> versionList = new();
@@ -153,7 +153,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             try
             {
                 string? packageName = purl.Name;
-                using HttpClient httpClient = CreateHttpClient();
+                HttpClient httpClient = CreateHttpClient();
 
                 string? content = await GetHttpStringCache(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}");
                 return content;

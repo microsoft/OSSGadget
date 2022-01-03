@@ -11,7 +11,7 @@ namespace Microsoft.CST.OpenSource
     public sealed class DefaultHttpClientFactory : IHttpClientFactory
     {
 
-        public DefaultHttpClientFactory(string? userAgent)
+        public DefaultHttpClientFactory(string? userAgent = null)
         {
             _httpClientLazy = new(() =>
             {

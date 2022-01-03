@@ -3,6 +3,7 @@
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using Model;
+    using NLog.LayoutRenderers.Wrappers;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -381,6 +382,22 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                         {
                             mapping.Add(packageUrls.First(), 1.0F);
                             return mapping;
+                        }
+                    }
+                    else if (property.Name.Equals("project_urls"))
+                    {
+                        if (property.Value.TryGetProperty("Source",out JsonElement jsonElement))
+                        {
+                            string? sourceLoc = jsonElement.GetString();
+                            if (sourceLoc != null)
+                            {
+                                IEnumerable<PackageURL>? packageUrls = GitHubProjectManager.ExtractGitHubPackageURLs(sourceLoc);
+                                if (packageUrls != null && packageUrls.Any())
+                                {
+                                    mapping.Add(packageUrls.First(), 1.0F);
+                                    return mapping;
+                                }
+                            }
                         }
                     }
                 }

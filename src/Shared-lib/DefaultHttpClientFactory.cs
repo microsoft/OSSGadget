@@ -28,7 +28,7 @@ namespace Microsoft.CST.OpenSource
             MaxAutomaticRedirections = 5,
             PooledConnectionIdleTimeout = TimeSpan.FromSeconds(30),
             PooledConnectionLifetime = TimeSpan.FromSeconds(30),
-            AutomaticDecompression = System.Net.DecompressionMethods.All
+            AutomaticDecompression = System.Net.DecompressionMethods.All,
         };
 
         private readonly Lazy<HttpClient> _httpClientLazy;

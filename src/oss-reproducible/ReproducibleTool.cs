@@ -4,7 +4,6 @@ using CommandLine;
 using CommandLine.Text;
 using DiffPlex.DiffBuilder.Model;
 using Microsoft.CST.OpenSource.Reproducibility;
-using Microsoft.CST.OpenSource.Shared;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,8 +15,8 @@ using static Crayon.Output;
 namespace Microsoft.CST.OpenSource
 {
     using Extensions.DependencyInjection;
-    using Lib;
     using System.Net.Http;
+    using Microsoft.CST.OpenSource;
 
     public enum DiffTechnique
     {
@@ -96,7 +95,7 @@ namespace Microsoft.CST.OpenSource
             // Get the IHttpClientFactory
             IHttpClientFactory httpClientFactory = serviceProvider.GetService<IHttpClientFactory>() ?? throw new InvalidOperationException();
 
-            var reproducibleTool = new ReproducibleTool(httpClientFactory);
+            ReproducibleTool? reproducibleTool = new ReproducibleTool(httpClientFactory);
             await reproducibleTool.ParseOptions<Options>(args).WithParsedAsync(reproducibleTool.RunAsync);
         }
 
@@ -113,11 +112,11 @@ namespace Microsoft.CST.OpenSource
                 return KeyValuePair.Create(0.0, "No reproducibility results were created.");
             }
 
-            var bestScore = KeyValuePair.Create(0.0, "No strategies were able to successfully derive the package from the source code.");
+            KeyValuePair<double, string> bestScore = KeyValuePair.Create(0.0, "No strategies were able to successfully derive the package from the source code.");
 
-            foreach (var result in fullResult.Results)
+            foreach (StrategyResult? result in fullResult.Results)
             {
-                var filesString = result.NumIgnoredFiles == 1 ? "file" : "files";
+                string? filesString = result.NumIgnoredFiles == 1 ? "file" : "files";
 
                 if (string.Equals(result.StrategyName, "PackageMatchesSourceStrategy"))
                 {
@@ -214,7 +213,7 @@ namespace Microsoft.CST.OpenSource
             IEnumerable<Type>? runSpecificStrategies = null;
             if (options.SpecificStrategies != null)
             {
-                var requestedStrategies = options.SpecificStrategies.Split(',').Select(s => s.Trim().ToLowerInvariant()).Distinct();
+                IEnumerable<string>? requestedStrategies = options.SpecificStrategies.Split(',').Select(s => s.Trim().ToLowerInvariant()).Distinct();
                 runSpecificStrategies = typeof(BaseStrategy).Assembly.GetTypes()
                     .Where(t => t.IsSubclassOf(typeof(BaseStrategy)))
                     .Where(t => requestedStrategies.Contains(t.Name.ToLowerInvariant()));
@@ -224,8 +223,8 @@ namespace Microsoft.CST.OpenSource
                 {
                     Logger.Debug("Invalid strategies.");
                     Console.WriteLine("Invalid strategy, available options are:");
-                    var allStrategies = typeof(BaseStrategy).Assembly.GetTypes().Where(t => t.IsSubclassOf(typeof(BaseStrategy)));
-                    foreach (var s in allStrategies)
+                    IEnumerable<Type>? allStrategies = typeof(BaseStrategy).Assembly.GetTypes().Where(t => t.IsSubclassOf(typeof(BaseStrategy)));
+                    foreach (Type? s in allStrategies)
                     {
                         Console.WriteLine($" * {s.Name}");
                     }
@@ -235,41 +234,41 @@ namespace Microsoft.CST.OpenSource
             }
 
             // Expand targets
-            var targets = new List<string>();
-            foreach (var target in options.Targets ?? Array.Empty<string>())
+            List<string>? targets = new List<string>();
+            foreach (string? target in options.Targets ?? Array.Empty<string>())
             {
-                var purl = new PackageURL(target);
-                var downloader = new PackageDownloader(purl, HttpClientFactory, "temp");
-                foreach (var version in downloader.PackageVersions)
+                PackageURL? purl = new PackageURL(target);
+                PackageDownloader? downloader = new PackageDownloader(purl, HttpClientFactory, "temp");
+                foreach (PackageURL? version in downloader.PackageVersions)
                 {
                     targets.Add(version.ToString());
                 }
             }
-            var finalResults = new List<ReproducibleToolResult>();
+            List<ReproducibleToolResult>? finalResults = new List<ReproducibleToolResult>();
 
-            foreach (var target in targets)
+            foreach (string? target in targets)
             {
                 try
                 {
                     Console.WriteLine($"Analyzing {target}...");
                     Logger.Debug("Processing: {0}", target);
 
-                    var purl = new PackageURL(target);
+                    PackageURL? purl = new PackageURL(target);
                     if (purl.Version == null)
                     {
                         Logger.Error("Package is missing a version, which is required for this tool.");
                         continue;
                     }
-                    
-                    var tempDirectoryName = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString().Substring(0, 8));
+
+                    string? tempDirectoryName = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString().Substring(0, 8));
                     if (System.IO.Directory.Exists(tempDirectoryName))
                     {
                         System.IO.Directory.Delete(tempDirectoryName, true);  // Just in case
                     }
                     // Download the package
                     Console.WriteLine("Downloading package...");
-                    var packageDownloader = new PackageDownloader(purl, HttpClientFactory, Path.Join(tempDirectoryName, "package"));
-                    var downloadResults = await packageDownloader.DownloadPackageLocalCopy(purl, false, true);
+                    PackageDownloader? packageDownloader = new PackageDownloader(purl, HttpClientFactory, Path.Join(tempDirectoryName, "package"));
+                    List<string>? downloadResults = await packageDownloader.DownloadPackageLocalCopy(purl, false, true);
 
                     if (!downloadResults.Any())
                     {
@@ -278,13 +277,13 @@ namespace Microsoft.CST.OpenSource
 
                     // Locate the source
                     Console.WriteLine("Locating source...");
-                    var findSourceTool = new FindSourceTool(HttpClientFactory);
-                    var sourceMap = await findSourceTool.FindSourceAsync(purl);
+                    FindSourceTool? findSourceTool = new FindSourceTool(HttpClientFactory);
+                    Dictionary<PackageURL, double>? sourceMap = await findSourceTool.FindSourceAsync(purl);
                     if (sourceMap.Any())
                     {
-                        var sourceMapList = sourceMap.ToList();
+                        List<KeyValuePair<PackageURL, double>>? sourceMapList = sourceMap.ToList();
                         sourceMapList.Sort((a, b) => a.Value.CompareTo(b.Value));
-                        var bestSourcePurl = sourceMapList.Last().Key;
+                        PackageURL? bestSourcePurl = sourceMapList.Last().Key;
                         if (string.IsNullOrEmpty(bestSourcePurl.Version))
                         {
                             // Tie back the original version to the new PackageURL
@@ -295,14 +294,14 @@ namespace Microsoft.CST.OpenSource
 
                         // Download the source
                         Console.WriteLine("Downloading source...");
-                        foreach (var reference in new[] { bestSourcePurl.Version, options.OverrideSourceReference, "master", "main" })
+                        foreach (string? reference in new[] { bestSourcePurl.Version, options.OverrideSourceReference, "master", "main" })
                         {
                             if (string.IsNullOrWhiteSpace(reference))
                             {
                                 continue;
                             }
                             Logger.Debug("Trying to download package, version/reference [{0}].", reference);
-                            var purlRef = new PackageURL(bestSourcePurl.Type, bestSourcePurl.Namespace, bestSourcePurl.Name, reference, bestSourcePurl.Qualifiers, bestSourcePurl.Subpath);
+                            PackageURL? purlRef = new PackageURL(bestSourcePurl.Type, bestSourcePurl.Namespace, bestSourcePurl.Name, reference, bestSourcePurl.Qualifiers, bestSourcePurl.Subpath);
                             packageDownloader = new PackageDownloader(purlRef, HttpClientFactory, Path.Join(tempDirectoryName, "src"));
                             downloadResults = await packageDownloader.DownloadPackageLocalCopy(purlRef, false, true);
                             if (downloadResults.Any())
@@ -321,7 +320,7 @@ namespace Microsoft.CST.OpenSource
                     }
 
                     // Execute all available strategies
-                    var strategyOptions = new StrategyOptions()
+                    StrategyOptions? strategyOptions = new StrategyOptions()
                     {
                         PackageDirectory = Path.Join(tempDirectoryName, "package"),
                         SourceDirectory = Path.Join(tempDirectoryName, "src"),
@@ -331,19 +330,19 @@ namespace Microsoft.CST.OpenSource
                     };
 
                     // First, check to see how many strategies apply
-                    var strategies = runSpecificStrategies;
+                    IEnumerable<Type>? strategies = runSpecificStrategies;
                     if (strategies == null || !strategies.Any())
                     {
                         strategies = BaseStrategy.GetStrategies(strategyOptions) ?? Array.Empty<Type>();
                     }
 
                     int numStrategiesApplies = 0;
-                    foreach (var strategy in strategies)
+                    foreach (Type? strategy in strategies)
                     {
-                        var ctor = strategy.GetConstructor(new Type[] { typeof(StrategyOptions) });
+                        ConstructorInfo? ctor = strategy.GetConstructor(new Type[] { typeof(StrategyOptions) });
                         if (ctor != null)
                         {
-                            var strategyObject = (BaseStrategy)(ctor.Invoke(new object?[] { strategyOptions }));
+                            BaseStrategy? strategyObject = (BaseStrategy)(ctor.Invoke(new object?[] { strategyOptions }));
                             if (strategyObject.StrategyApplies())
                             {
                                 numStrategiesApplies++;
@@ -364,16 +363,16 @@ namespace Microsoft.CST.OpenSource
 
                     Console.WriteLine($"\n{Blue("Results: ")}");
 
-                    var hasSuccessfulStrategy = false;
+                    bool hasSuccessfulStrategy = false;
 
-                    foreach (var strategy in strategies)
+                    foreach (Type? strategy in strategies)
                     {
-                        var ctor = strategy.GetConstructor(new Type[] { typeof(StrategyOptions) });
+                        ConstructorInfo? ctor = strategy.GetConstructor(new Type[] { typeof(StrategyOptions) });
                         if (ctor != null)
                         {
                             // Create a temporary directory, copy the contents from source/package
                             // so that this strategy can modify the contents without affecting other strategies.
-                            var tempStrategyOptions = new StrategyOptions
+                            StrategyOptions? tempStrategyOptions = new StrategyOptions
                             {
                                 PackageDirectory = Path.Join(strategyOptions.TemporaryDirectory, strategy.Name, "package"),
                                 SourceDirectory = Path.Join(strategyOptions.TemporaryDirectory, strategy.Name, "src"),
@@ -384,8 +383,8 @@ namespace Microsoft.CST.OpenSource
 
                             try
                             {
-                                Helpers.DirectoryCopy(strategyOptions.PackageDirectory, tempStrategyOptions.PackageDirectory);
-                                Helpers.DirectoryCopy(strategyOptions.SourceDirectory, tempStrategyOptions.SourceDirectory);
+                                OssReproducibleHelpers.DirectoryCopy(strategyOptions.PackageDirectory, tempStrategyOptions.PackageDirectory);
+                                OssReproducibleHelpers.DirectoryCopy(strategyOptions.SourceDirectory, tempStrategyOptions.SourceDirectory);
                             }
                             catch (Exception ex)
                             {
@@ -397,7 +396,7 @@ namespace Microsoft.CST.OpenSource
 
                             try
                             {
-                                var strategyObject = (BaseStrategy)(ctor.Invoke(new object?[] { tempStrategyOptions }));
+                                BaseStrategy? strategyObject = (BaseStrategy)(ctor.Invoke(new object?[] { tempStrategyOptions }));
                                 StrategyResult? strategyResult = strategyObject.Execute();
 
                                 if (strategyResult != null)
@@ -419,7 +418,7 @@ namespace Microsoft.CST.OpenSource
 
                                     if (options.ShowDifferences)
                                     {
-                                        foreach (var resultMessage in strategyResult.Messages)
+                                        foreach (StrategyResultMessage? resultMessage in strategyResult.Messages)
                                         {
                                             if (resultMessage.Filename != null && resultMessage.CompareFilename != null)
                                             {
@@ -435,12 +434,12 @@ namespace Microsoft.CST.OpenSource
                                                 Console.WriteLine($"  {Bright.Black("(")}{Blue("S+")}{Bright.Black(")")} {resultMessage.CompareFilename}");
                                             }
 
-                                            var differences = resultMessage.Differences ?? Array.Empty<DiffPiece>();
+                                            IEnumerable<DiffPiece>? differences = resultMessage.Differences ?? Array.Empty<DiffPiece>();
 
-                                            var maxShowDifferences = 20;
-                                            var numShowDifferences = 0;
+                                            int maxShowDifferences = 20;
+                                            int numShowDifferences = 0;
 
-                                            foreach (var diff in differences)
+                                            foreach (DiffPiece? diff in differences)
                                             {
                                                 if (!options.ShowAllDifferences && numShowDifferences > maxShowDifferences)
                                                 {
@@ -470,7 +469,7 @@ namespace Microsoft.CST.OpenSource
                                             }
                                         }
 
-                                        var diffoscopeFile = Guid.NewGuid().ToString() + ".html";
+                                        string? diffoscopeFile = Guid.NewGuid().ToString() + ".html";
                                         File.WriteAllText(diffoscopeFile, strategyResult.Diffoscope);
                                         Console.WriteLine($"  Diffoscope results written to {diffoscopeFile}.");
                                     }
@@ -493,7 +492,7 @@ namespace Microsoft.CST.OpenSource
                         }
                     }
 
-                    var reproducibilityToolResult = new ReproducibleToolResult
+                    ReproducibleToolResult? reproducibilityToolResult = new ReproducibleToolResult
                     {
                         PackageUrl = purl.ToString(),
                         Results = strategyResults
@@ -501,9 +500,9 @@ namespace Microsoft.CST.OpenSource
 
                     finalResults.Add(reproducibilityToolResult);
 
-                    var (score, scoreText) = GetReproducibilityScore(reproducibilityToolResult);
+                    (double score, string scoreText) = GetReproducibilityScore(reproducibilityToolResult);
                     Console.WriteLine($"\n{Blue("Summary:")}");
-                    var scoreDisplay = $"{(score * 100.0):0.#}";
+                    string? scoreDisplay = $"{(score * 100.0):0.#}";
                     if (reproducibilityToolResult.IsReproducible)
                     {
                         Console.WriteLine($"  [{Yellow(scoreDisplay + "%")}] {Yellow(scoreText)}");
@@ -520,7 +519,7 @@ namespace Microsoft.CST.OpenSource
                     }
                     else
                     {
-                        Helpers.DeleteDirectory(tempDirectoryName);
+                        OssReproducibleHelpers.DeleteDirectory(tempDirectoryName);
                     }
                 }
                 catch (Exception ex)
@@ -533,7 +532,7 @@ namespace Microsoft.CST.OpenSource
             if (finalResults.Any())
             {
                 // Write the output somewhere
-                var jsonResults = Newtonsoft.Json.JsonConvert.SerializeObject(finalResults, Newtonsoft.Json.Formatting.Indented);
+                string? jsonResults = Newtonsoft.Json.JsonConvert.SerializeObject(finalResults, Newtonsoft.Json.Formatting.Indented);
                 if (!string.IsNullOrWhiteSpace(options.OutputFile) && !string.Equals(options.OutputFile, "-", StringComparison.InvariantCultureIgnoreCase))
                 {
                     try

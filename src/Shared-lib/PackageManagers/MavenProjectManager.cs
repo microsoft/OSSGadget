@@ -1,14 +1,11 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-namespace Microsoft.CST.OpenSource.Lib.PackageManagers
+namespace Microsoft.CST.OpenSource.PackageManagers
 {
-    using Lib;
-    using Lib.PackageManagers;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
     using System.Xml;

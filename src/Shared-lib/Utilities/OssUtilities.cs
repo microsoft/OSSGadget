@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-namespace Microsoft.CST.OpenSource.Lib.Utilities
+namespace Microsoft.CST.OpenSource.Utilities
 {
     using System;
     using System.Collections.Generic;

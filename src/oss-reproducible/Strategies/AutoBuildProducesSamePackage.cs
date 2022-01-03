@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using Microsoft.CST.OpenSource.Shared;
 using Microsoft.CST.RecursiveExtractor;
 using NLog;
 using System;
@@ -10,8 +9,6 @@ using System.Linq;
 
 namespace Microsoft.CST.OpenSource.Reproducibility
 {
-    using Lib;
-
     /// <summary>
     /// This strategy identifies packages as reproducible if running `npm pack` on the source
     /// repository produces a file that matches the content of the package downloaded from the registry.
@@ -74,30 +71,30 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 return null;
             }
 
-            var workingDirectory = Helpers.GetFirstNonSingularDirectory(Options.SourceDirectory);
+            string? workingDirectory = OssReproducibleHelpers.GetFirstNonSingularDirectory(Options.SourceDirectory);
             if (workingDirectory == null)
             {
                 Logger.Warn("Unable to find correct source directory to run `npm pack` from. Unable to continue.");
                 return null;
             }
-            var outputDirectory = Path.Join(Options.TemporaryDirectory, "build-output");
+            string? outputDirectory = Path.Join(Options.TemporaryDirectory, "build-output");
 
-            var strategyResult = new StrategyResult()
+            StrategyResult? strategyResult = new StrategyResult()
             {
                 Strategy = GetType()
             };
 
-            var autoBuilderScript = Path.Join("/build-helpers", Options.PackageUrl?.Type, "autobuild.sh").Replace("\\", "/");
-            var customPrebuild = GetCustomScript(Options.PackageUrl!, "prebuild")?.Replace("BuildHelperScripts/", "") ?? "";
-            var customBuild = GetCustomScript(Options.PackageUrl!, "build")?.Replace("BuildHelperScripts/", "") ?? "";
-            var customPostBuild = GetCustomScript(Options.PackageUrl!, "postbuild")?.Replace("BuildHelperScripts/", "") ?? "";
+            string? autoBuilderScript = Path.Join("/build-helpers", Options.PackageUrl?.Type, "autobuild.sh").Replace("\\", "/");
+            string? customPrebuild = GetCustomScript(Options.PackageUrl!, "prebuild")?.Replace("BuildHelperScripts/", "") ?? "";
+            string? customBuild = GetCustomScript(Options.PackageUrl!, "build")?.Replace("BuildHelperScripts/", "") ?? "";
+            string? customPostBuild = GetCustomScript(Options.PackageUrl!, "postbuild")?.Replace("BuildHelperScripts/", "") ?? "";
             if (!DOCKER_CONTAINERS.TryGetValue(Options.PackageUrl!.Type!, out string? dockerContainerName))
             {
                 Logger.Debug("No docker container is known for type: {0}", Options.PackageUrl.Type);
                 return null;
             }
 
-            var runResult = Helpers.RunCommand(workingDirectory, "docker", new[] {
+            bool runResult = OssReproducibleHelpers.RunCommand(workingDirectory, "docker", new[] {
                                             "run",
                                             "--rm",
                                             "--memory=4g",
@@ -112,10 +109,10 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                                             customPrebuild,
                                             customBuild,
                                             customPostBuild
-                                       }, out var stdout, out var stderr);
+                                       }, out string? stdout, out string? stderr);
             if (runResult)
             {
-                var packedFilenamePath = Path.Join(outputDirectory, "output.archive");
+                string? packedFilenamePath = Path.Join(outputDirectory, "output.archive");
                 if (!File.Exists(packedFilenamePath))
                 {
                     Logger.Warn("Unable to find AutoBuilder archive.");
@@ -124,19 +121,19 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                     return strategyResult;
                 }
 
-                var extractor = new Extractor();
-                var packedDirectory = Path.Join(Options.TemporaryDirectory, "src_packed");
+                Extractor? extractor = new Extractor();
+                string? packedDirectory = Path.Join(Options.TemporaryDirectory, "src_packed");
                 extractor.ExtractToDirectoryAsync(packedDirectory, packedFilenamePath).Wait();
 
                 if (Options.IncludeDiffoscope)
                 {
-                    var diffoscopeTempDir = Path.Join(Options.TemporaryDirectory, "diffoscope");
-                    var diffoscopeResults = GenerateDiffoscope(diffoscopeTempDir, packedDirectory, Options.PackageDirectory!);
+                    string? diffoscopeTempDir = Path.Join(Options.TemporaryDirectory, "diffoscope");
+                    string? diffoscopeResults = GenerateDiffoscope(diffoscopeTempDir, packedDirectory, Options.PackageDirectory!);
                     strategyResult.Diffoscope = diffoscopeResults;
                 }
 
-                var diffResults = Helpers.DirectoryDifference(Options.PackageDirectory!, packedDirectory, Options.DiffTechnique);
-                var diffResultsOriginalCount = diffResults.Count();
+                IEnumerable<DirectoryDifference>? diffResults = OssReproducibleHelpers.DirectoryDifference(Options.PackageDirectory!, packedDirectory, Options.DiffTechnique);
+                int diffResultsOriginalCount = diffResults.Count();
                 diffResults = diffResults.Where(d => !IgnoreFilter.IsIgnored(Options.PackageUrl, GetType().Name, d.Filename));
                 strategyResult.NumIgnoredFiles += (diffResultsOriginalCount - diffResults.Count());
                 strategyResult.AddDifferencesToStrategyResult(diffResults);

@@ -2,8 +2,7 @@
 
 namespace Microsoft.CST.OpenSource
 {
-    using Lib;
-    using Lib.PackageManagers;
+    using Microsoft.CST.OpenSource.PackageManagers;
     using System;
     using System.Collections.Generic;
     using System.IO;

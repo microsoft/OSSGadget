@@ -29,11 +29,11 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         //public SideBySideDiffModel? Differences { get; set; }
     }
 
-    public class Helpers
+    public class OssReproducibleHelpers
     {
         protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
-        static Helpers()
+        static OssReproducibleHelpers()
         {
         }
 
@@ -87,16 +87,16 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         /// <returns></returns>
         public static IEnumerable<DirectoryDifference> DirectoryDifference(string leftDirectory, string rightDirectory, DiffTechnique diffTechnique)
         {
-            var results = new List<DirectoryDifference>();
+            List<DirectoryDifference>? results = new List<DirectoryDifference>();
 
             // left = built package, right = source repo
-            var leftFiles = Directory.EnumerateFiles(leftDirectory, "*", SearchOption.AllDirectories);
-            var rightFiles = Directory.EnumerateFiles(rightDirectory, "*", SearchOption.AllDirectories);
+            IEnumerable<string>? leftFiles = Directory.EnumerateFiles(leftDirectory, "*", SearchOption.AllDirectories);
+            IEnumerable<string>? rightFiles = Directory.EnumerateFiles(rightDirectory, "*", SearchOption.AllDirectories);
 
-            foreach (var leftFile in leftFiles)
+            foreach (string? leftFile in leftFiles)
             {
-                var closestMatches = GetClosestFileMatch(leftFile, rightFiles);
-                var closestMatch = closestMatches.FirstOrDefault();
+                IEnumerable<string>? closestMatches = GetClosestFileMatch(leftFile, rightFiles);
+                string? closestMatch = closestMatches.FirstOrDefault();
                 if (closestMatch == null)
                 {
                     results.Add(new DirectoryDifference()
@@ -108,8 +108,8 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 }
                 else
                 {
-                    var filenameContent = File.ReadAllText(leftFile);
-                    var closestMatchContent = File.ReadAllText(closestMatch);
+                    string? filenameContent = File.ReadAllText(leftFile);
+                    string? closestMatchContent = File.ReadAllText(closestMatch);
                     if (!string.Equals(filenameContent, closestMatchContent))
                     {
                         if (diffTechnique == DiffTechnique.Normalized)
@@ -119,7 +119,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                         }
                     }
 
-                    var diff = InlineDiffBuilder.Diff(filenameContent, closestMatchContent, ignoreWhiteSpace: true, ignoreCase: false);
+                    DiffPaneModel? diff = InlineDiffBuilder.Diff(filenameContent, closestMatchContent, ignoreWhiteSpace: true, ignoreCase: false);
                     if (diff.HasDifferences)
                     {
                         results.Add(new DirectoryDifference()
@@ -139,7 +139,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         {
             Logger.Debug("RunCommand({0}, {1})", filename, string.Join(';', args));
 
-            var startInfo = new ProcessStartInfo()
+            ProcessStartInfo? startInfo = new ProcessStartInfo()
             {
                 CreateNoWindow = false,
                 UseShellExecute = false,
@@ -148,25 +148,25 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 RedirectStandardError = true,
                 WorkingDirectory = workingDirectory
             };
-            foreach (var arg in args)
+            foreach (string? arg in args)
             {
                 startInfo.ArgumentList.Add(arg);
             }
 
-            var timer = new Stopwatch();
+            Stopwatch? timer = new Stopwatch();
             timer.Start();
 
-            using var process = Process.Start(startInfo);
+            using Process? process = Process.Start(startInfo);
             if (process == null)
             {
                 stdout = null;
                 stderr = null;
                 return false;
             }
-            var sbStdout = new StringBuilder();
-            var sbStderr = new StringBuilder();
-            var sbStdoutLock = new Object();
-            var sbStderrLock = new Object();
+            StringBuilder? sbStdout = new StringBuilder();
+            StringBuilder? sbStderr = new StringBuilder();
+            object? sbStdoutLock = new Object();
+            object? sbStderrLock = new Object();
 
             process.OutputDataReceived += (sender, args) =>
             {
@@ -194,11 +194,11 @@ namespace Microsoft.CST.OpenSource.Reproducibility
             process.BeginErrorReadLine();
 
             // Apply a timeout
-            var timeout = 1000 * 60 * 15; // 15 minute default timeout
-            var envTimeout = Environment.GetEnvironmentVariable("OSS_REPRODUCIBLE_COMMAND_TIMEOUT");
+            int timeout = 1000 * 60 * 15; // 15 minute default timeout
+            string? envTimeout = Environment.GetEnvironmentVariable("OSS_REPRODUCIBLE_COMMAND_TIMEOUT");
             if (envTimeout != null)
             {
-                if (int.TryParse(envTimeout, out var envTimeoutInt))
+                if (int.TryParse(envTimeout, out int envTimeoutInt))
                 {
                     timeout = envTimeoutInt;
                 }
@@ -263,17 +263,17 @@ namespace Microsoft.CST.OpenSource.Reproducibility
             if (filename.EndsWith(".js") || filename.EndsWith(".ts"))
             {
                 Logger.Debug("Normalizing {0}", filename);
-                var tempDirectoryName = Guid.NewGuid().ToString();
+                string? tempDirectoryName = Guid.NewGuid().ToString();
                 if (!Directory.Exists(tempDirectoryName))
                 {
                     Directory.CreateDirectory(tempDirectoryName);
                 }
-                var extension = Path.GetExtension(filename);
-                var tempFile = Path.ChangeExtension(Path.Join(tempDirectoryName, "temp"), extension);
-                var bytes = File.ReadAllBytes(filename);
+                string? extension = Path.GetExtension(filename);
+                string? tempFile = Path.ChangeExtension(Path.Join(tempDirectoryName, "temp"), extension);
+                byte[]? bytes = File.ReadAllBytes(filename);
                 File.WriteAllBytes(tempFile, bytes);
 
-                var runResult = Helpers.RunCommand(tempDirectoryName, "docker", new[] {
+                bool runResult = OssReproducibleHelpers.RunCommand(tempDirectoryName, "docker", new[] {
                                             "run",
                                             "--rm",
                                             "--memory=1g",
@@ -282,9 +282,9 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                                             "--workdir=/repo",
                                             "tmknom/prettier",
                                             Path.ChangeExtension("/repo/temp", extension)
-                                       }, out var stdout, out var stderr);
+                                       }, out string? stdout, out string? stderr);
 
-                Helpers.DeleteDirectory(tempDirectoryName);
+                OssReproducibleHelpers.DeleteDirectory(tempDirectoryName);
                 if (stdout != null)
                 {
                     return stdout;
@@ -311,21 +311,21 @@ namespace Microsoft.CST.OpenSource.Reproducibility
             target = target.Replace("\\", "/").Trim().Trim(' ', '/');
             filenames = filenames.Select(f => f.Replace("\\", "/").Trim().TrimEnd('/'));
 
-            var candidate = "";
+            string? candidate = "";
 
-            var bestCandidates = new HashSet<string>();
-            var bestCandidateScore = 0;
+            HashSet<string>? bestCandidates = new HashSet<string>();
+            int bestCandidateScore = 0;
 
-            var targetNumDirs = target.Count(ch => ch == '/') + 1;
+            int targetNumDirs = target.Count(ch => ch == '/') + 1;
 
-            foreach (var part in target.Split('/').Reverse())
+            foreach (string? part in target.Split('/').Reverse())
             {
                 candidate = Path.Join(part, candidate).Replace("\\", "/");
-                foreach (var filename in filenames)
+                foreach (string? filename in filenames)
                 {
                     if (filename.EndsWith(candidate, StringComparison.InvariantCultureIgnoreCase))
                     {
-                        var candidateScore = candidate.Count(ch => ch == '/');
+                        int candidateScore = candidate.Count(ch => ch == '/');
                         if (candidateScore > bestCandidateScore)
                         {
                             bestCandidateScore = candidateScore;
@@ -339,7 +339,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                     }
                 }
             }
-            var resultList = bestCandidates.ToList();
+            List<string>? resultList = bestCandidates.ToList();
             resultList.Sort((a, b) => 1 - a.Length.CompareTo(b.Length));
             return resultList;
         }
@@ -350,10 +350,10 @@ namespace Microsoft.CST.OpenSource.Reproducibility
             {
                 return null;
             }
-            var entries = Directory.EnumerateFileSystemEntries(directory, "*", SearchOption.TopDirectoryOnly);
+            IEnumerable<string>? entries = Directory.EnumerateFileSystemEntries(directory, "*", SearchOption.TopDirectoryOnly);
             if (entries.Count() == 1)
             {
-                var firstEntry = entries.First();
+                string? firstEntry = entries.First();
                 if (Directory.Exists(firstEntry))
                 {
                     return GetFirstNonSingularDirectory(firstEntry);

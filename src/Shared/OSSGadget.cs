@@ -4,7 +4,6 @@ namespace Microsoft.CST.OpenSource
 {
     using CommandLine;
     using CommandLine.Text;
-    using Lib;
     using Microsoft.CST.OpenSource.Shared;
     using System;
     using System.Collections.Generic;
@@ -22,6 +21,11 @@ namespace Microsoft.CST.OpenSource
         public static string ToolVersion { get => GetToolVersion() ?? ""; }
 
         public OSSGadget(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        {
+            CommonInitialization.Initialize();
+        }
+
+        public OSSGadget() : base()
         {
             CommonInitialization.Initialize();
         }

@@ -1,11 +1,10 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-namespace Microsoft.CST.OpenSource.Lib.PackageManagers
+namespace Microsoft.CST.OpenSource.PackageManagers
 {
-    using F23.StringSimilarity;
     using Microsoft.CST.RecursiveExtractor;
     using Microsoft.Extensions.Caching.Memory;
-    using Microsoft.CST.OpenSource.Lib.Model;
+    using Microsoft.CST.OpenSource.Model;
     using System;
     using System.Collections.Generic;
     using System.IO;

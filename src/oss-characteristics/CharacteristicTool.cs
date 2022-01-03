@@ -17,7 +17,6 @@ using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
 namespace Microsoft.CST.OpenSource
 {
     using Extensions.DependencyInjection;
-    using Lib;
     using System.Net.Http;
 
     public class CharacteristicTool : OSSGadget
@@ -96,7 +95,7 @@ namespace Microsoft.CST.OpenSource
             AnalyzeResult? analysisResult = null;
 
             // Call Application Inspector using the NuGet package
-            var analyzeOptions = new AnalyzeOptions()
+            AnalyzeOptions? analyzeOptions = new AnalyzeOptions()
             {
                 ConsoleVerbosityLevel = "None",
                 LogFileLevel = "Off",
@@ -112,7 +111,7 @@ namespace Microsoft.CST.OpenSource
 
             try
             {
-                var analyzeCommand = new AnalyzeCommand(analyzeOptions);
+                AnalyzeCommand? analyzeCommand = new AnalyzeCommand(analyzeOptions);
                 analysisResult = analyzeCommand.GetResult();
                 Logger.Debug("Operation Complete: {0} files analyzed.", analysisResult?.Metadata?.TotalFiles);
             }
@@ -135,18 +134,18 @@ namespace Microsoft.CST.OpenSource
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
 
-            var analysisResults = new Dictionary<string, AnalyzeResult?>();
+            Dictionary<string, AnalyzeResult?>? analysisResults = new Dictionary<string, AnalyzeResult?>();
 
-            var packageDownloader = new PackageDownloader(purl, HttpClientFactory, targetDirectoryName, doCaching);
+            PackageDownloader? packageDownloader = new PackageDownloader(purl, HttpClientFactory, targetDirectoryName, doCaching);
             // ensure that the cache directory has the required package, download it otherwise
-            var directoryNames = await packageDownloader.DownloadPackageLocalCopy(purl,
+            List<string>? directoryNames = await packageDownloader.DownloadPackageLocalCopy(purl,
                 false,
                 true);
             if (directoryNames.Count > 0)
             {
-                foreach (var directoryName in directoryNames)
+                foreach (string? directoryName in directoryNames)
                 {
-                    var singleResult = await AnalyzeDirectory(options, directoryName);
+                    AnalyzeResult? singleResult = await AnalyzeDirectory(options, directoryName);
                     analysisResults[directoryName] = singleResult;
                 }
             }
@@ -170,13 +169,13 @@ namespace Microsoft.CST.OpenSource
             
             if (analysisResult.HasAtLeastOneNonNullValue())
             {
-                foreach (var key in analysisResult.Keys)
+                foreach (string? key in analysisResult.Keys)
                 {
-                    var metadata = analysisResult?[key]?.Metadata;
+                    MetaData? metadata = analysisResult?[key]?.Metadata;
 
-                    foreach (var result in metadata?.Matches ?? new List<MatchRecord>())
+                    foreach (MatchRecord? result in metadata?.Matches ?? new List<MatchRecord>())
                     {
-                        var individualResult = new SarifResult()
+                        SarifResult? individualResult = new SarifResult()
                         {
                             Message = new Message()
                             {
@@ -233,19 +232,19 @@ namespace Microsoft.CST.OpenSource
 
             if (analysisResult.HasAtLeastOneNonNullValue())
             {
-                foreach (var key in analysisResult.Keys)
+                foreach (string? key in analysisResult.Keys)
                 {
-                    var metadata = analysisResult?[key]?.Metadata;
+                    MetaData? metadata = analysisResult?[key]?.Metadata;
 
                     stringOutput.Add(string.Format("Programming Language(s): {0}",
                         string.Join(", ", metadata?.Languages?.Keys ?? new List<string>())));
                     
                     stringOutput.Add("Unique Tags (Confidence): ");
                     bool hasTags = false;
-                    var dict = new Dictionary<string, List<Confidence>>();
-                    foreach ((var tags, var confidence) in metadata?.Matches?.Where(x => x is not null).Select(x => (x.Tags, x.Confidence)) ?? Array.Empty<(string[], Confidence)>())
+                    Dictionary<string, List<Confidence>>? dict = new Dictionary<string, List<Confidence>>();
+                    foreach ((string[]? tags, Confidence confidence) in metadata?.Matches?.Where(x => x is not null).Select(x => (x.Tags, x.Confidence)) ?? Array.Empty<(string[], Confidence)>())
                     {
-                        foreach (var tag in tags)
+                        foreach (string? tag in tags)
                         {
                             if (dict.ContainsKey(tag))
                             {
@@ -258,10 +257,10 @@ namespace Microsoft.CST.OpenSource
                         }
                     }
 
-                    foreach ((var k, var v) in dict)
+                    foreach ((string? k, List<Confidence>? v) in dict)
                     {
                         hasTags = true;
-                        var confidence = v.Max();
+                        Confidence confidence = v.Max();
                         if (confidence > 0)
                         {
                             stringOutput.Add($" * {k} ({v.Max()})");
@@ -296,7 +295,7 @@ namespace Microsoft.CST.OpenSource
             // Get the IHttpClientFactory
             IHttpClientFactory httpClientFactory = serviceProvider.GetService<IHttpClientFactory>() ?? throw new InvalidOperationException();
 
-            var characteristicTool = new CharacteristicTool(httpClientFactory);
+            CharacteristicTool? characteristicTool = new CharacteristicTool(httpClientFactory);
             await characteristicTool.ParseOptions<Options>(args).WithParsedAsync(characteristicTool.RunAsync);
         }
 
@@ -327,20 +326,20 @@ namespace Microsoft.CST.OpenSource
             // select output destination and format
             SelectOutput(options.OutputFile);
             IOutputBuilder outputBuilder = SelectFormat(options.Format);
-            
-            var finalResults = new List<Dictionary<string, AnalyzeResult?>>();
+
+            List<Dictionary<string, AnalyzeResult?>>? finalResults = new List<Dictionary<string, AnalyzeResult?>>();
 
             if (options.Targets is IList<string> targetList && targetList.Count > 0)
             {
-                foreach (var target in targetList)
+                foreach (string? target in targetList)
                 {
                     try
                     {
                         if (target.StartsWith("pkg:"))
                         {
-                            var purl = new PackageURL(target);
+                            PackageURL? purl = new PackageURL(target);
                             string downloadDirectory = options.DownloadDirectory == "." ? System.IO.Directory.GetCurrentDirectory() : options.DownloadDirectory;
-                            var analysisResult = await AnalyzePackage(options, purl,
+                            Dictionary<string, AnalyzeResult?>? analysisResult = await AnalyzePackage(options, purl,
                                 downloadDirectory,
                                 options.UseCache == true);
 
@@ -349,14 +348,14 @@ namespace Microsoft.CST.OpenSource
                         }
                         else if (System.IO.Directory.Exists(target))
                         {
-                            var analysisResult = await AnalyzeDirectory(options, target);
+                            AnalyzeResult? analysisResult = await AnalyzeDirectory(options, target);
                             if (analysisResult != null)
                             {
-                                var analysisResults = new Dictionary<string, AnalyzeResult?>()
+                                Dictionary<string, AnalyzeResult?>? analysisResults = new Dictionary<string, AnalyzeResult?>()
                                 {
                                     { target, analysisResult }
                                 };
-                                var purl = new PackageURL("generic", target);
+                                PackageURL? purl = new PackageURL("generic", target);
                                 AppendOutput(outputBuilder, purl, analysisResults, options);
                             }
                             finalResults.Add(new Dictionary<string, AnalyzeResult?>() { { target, analysisResult } });
@@ -364,14 +363,14 @@ namespace Microsoft.CST.OpenSource
                         }
                         else if (File.Exists(target))
                         {
-                            var analysisResult = await AnalyzeFile(options, target);
+                            AnalyzeResult? analysisResult = await AnalyzeFile(options, target);
                             if (analysisResult != null)
                             {
-                                var analysisResults = new Dictionary<string, AnalyzeResult?>()
+                                Dictionary<string, AnalyzeResult?>? analysisResults = new Dictionary<string, AnalyzeResult?>()
                                 {
                                     { target, analysisResult }
                                 };
-                                var purl = new PackageURL("generic", target);
+                                PackageURL? purl = new PackageURL("generic", target);
                                 AppendOutput(outputBuilder, purl, analysisResults, options);
                             }
                             finalResults.Add(new Dictionary<string, AnalyzeResult?>() { { target, analysisResult } });

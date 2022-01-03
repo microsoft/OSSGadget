@@ -3,6 +3,7 @@
 using Microsoft.CST.OpenSource.FindSquats;
 using Microsoft.CST.OpenSource.FindSquats.ExtensionMethods;
 using Microsoft.CST.OpenSource.FindSquats.Mutators;
+using Microsoft.CST.OpenSource.PackageManagers;
 using Microsoft.CST.OpenSource.Shared;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;

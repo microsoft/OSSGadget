@@ -3,12 +3,7 @@
 namespace Microsoft.CST.OpenSource.Shared
 {
     using System;
-    using System.IO;
-    using System.Net.Http;
-    using System.Net.Sockets;
     using System.Reflection;
-    using System.Threading;
-    using System.Threading.Tasks;
 
     public static class CommonInitialization
     {

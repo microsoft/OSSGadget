@@ -2,10 +2,8 @@
 
 namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
 {
-    using Lib;
-    using Lib.Helpers;
-    using Lib.PackageManagers;
     using Microsoft.CST.OpenSource.FindSquats.Mutators;
+    using Microsoft.CST.OpenSource.PackageManagers;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -131,39 +129,40 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
         /// <returns>An <see cref="IAsyncEnumerable{FindPackageSquatResult}"/> representing each existing candidate squat, or null if none.</returns>
         public static async IAsyncEnumerable<FindPackageSquatResult> EnumerateExistingSquatsAsync(this BaseProjectManager manager, PackageURL purl, IDictionary<string, IList<Mutation>>? candidateMutations, MutateOptions? options = null)
         {
-            Check.NotNullOrEmpty(nameof(candidateMutations), candidateMutations);
-
             if (purl.Name is null || purl.Type is null)
             {
                 yield break;
             }
 
-            foreach ((string mutatedName, IList<Mutation> mutations) in candidateMutations!)
+            if (candidateMutations?.Any() is true)
             {
-                if (options?.SleepDelay > 0)
+                foreach ((string mutatedName, IList<Mutation> mutations) in candidateMutations)
                 {
-                    Thread.Sleep(options.SleepDelay);
-                }
-                PackageURL candidatePurl = new(purl.Type, mutatedName);
-                FindPackageSquatResult? res = null;
-                try
-                {
-                    if (await manager.PackageExists(candidatePurl))
+                    if (options?.SleepDelay > 0)
                     {
-                        res = new FindPackageSquatResult(
-                            packageName: mutatedName,
-                            packageUrl: candidatePurl,
-                            squattedPackage: purl,
-                            mutations: mutations);
+                        Thread.Sleep(options.SleepDelay);
                     }
-                }
-                catch (Exception e)
-                {
-                    Logger.Trace($"Could not check if package exists. Package {mutatedName} likely doesn't exist. {e.Message}:{e.StackTrace}");
-                }
-                if (res is not null)
-                {
-                    yield return res;
+                    PackageURL candidatePurl = new(purl.Type, mutatedName);
+                    FindPackageSquatResult? res = null;
+                    try
+                    {
+                        if (await manager.PackageExists(candidatePurl))
+                        {
+                            res = new FindPackageSquatResult(
+                                packageName: mutatedName,
+                                packageUrl: candidatePurl,
+                                squattedPackage: purl,
+                                mutations: mutations);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Trace($"Could not check if package exists. Package {mutatedName} likely doesn't exist. {e.Message}:{e.StackTrace}");
+                    }
+                    if (res is not null)
+                    {
+                        yield return res;
+                    }
                 }
             }
         }

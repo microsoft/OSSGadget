@@ -5,18 +5,13 @@ namespace Microsoft.CST.OpenSource.FindSquats
     using CommandLine;
     using CommandLine.Text;
     using Extensions.DependencyInjection;
-    using Extensions.Logging;
-    using Lib;
-    using Lib.PackageManagers;
     using Microsoft.CodeAnalysis.Sarif;
-    using Microsoft.CST.OpenSource.FindSquats.ExtensionMethods;
     using Microsoft.CST.OpenSource.Shared;
     using Mutators;
     using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
     using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
@@ -58,6 +53,10 @@ namespace Microsoft.CST.OpenSource.FindSquats
         }
 
         public FindSquatsTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        {
+        }
+
+        public FindSquatsTool() : base()
         {
         }
 

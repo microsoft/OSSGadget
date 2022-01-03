@@ -49,19 +49,19 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 return null;
             }
 
-            var workingDirectory = Helpers.GetFirstNonSingularDirectory(Options.SourceDirectory);
+            string? workingDirectory = OssReproducibleHelpers.GetFirstNonSingularDirectory(Options.SourceDirectory);
             if (workingDirectory == null)
             {
                 Logger.Warn("Unable to find correct source directory to run Oryx against. Unable to continue.");
                 return null;
             }
 
-            var outputDirectory = Path.Join(Options.TemporaryDirectory, "build");
+            string? outputDirectory = Path.Join(Options.TemporaryDirectory, "build");
             Directory.CreateDirectory(outputDirectory);
-            var tempBuildArchiveDirectory = Path.Join(Options.TemporaryDirectory, "archive");
+            string? tempBuildArchiveDirectory = Path.Join(Options.TemporaryDirectory, "archive");
             Directory.CreateDirectory(tempBuildArchiveDirectory);
 
-            var runResult = Helpers.RunCommand(workingDirectory, "docker", new[] {
+            bool runResult = OssReproducibleHelpers.RunCommand(workingDirectory, "docker", new[] {
                                            "run",
                                            "--rm",
                                            "--volume", $"{Path.GetFullPath(workingDirectory)}:/repo",
@@ -71,9 +71,9 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                                            "build",
                                            "/repo",
                                            "--output", "/build-output"
-                                       }, out var stdout, out var stderr);
+                                       }, out string? stdout, out string? stderr);
 
-            var strategyResult = new StrategyResult()
+            StrategyResult? strategyResult = new StrategyResult()
             {
                 Strategy = GetType()
             };
@@ -84,13 +84,13 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 {
                     if (Options.IncludeDiffoscope)
                     {
-                        var diffoscopeTempDir = Path.Join(Options.TemporaryDirectory, "diffoscope");
-                        var diffoscopeResults = GenerateDiffoscope(diffoscopeTempDir, outputDirectory, Options.PackageDirectory!);
+                        string? diffoscopeTempDir = Path.Join(Options.TemporaryDirectory, "diffoscope");
+                        string? diffoscopeResults = GenerateDiffoscope(diffoscopeTempDir, outputDirectory, Options.PackageDirectory!);
                         strategyResult.Diffoscope = diffoscopeResults;
                     }
 
-                    var diffResults = Helpers.DirectoryDifference(Options.PackageDirectory!, outputDirectory, Options.DiffTechnique);
-                    var diffResultsOriginalCount = diffResults.Count();
+                    System.Collections.Generic.IEnumerable<DirectoryDifference>? diffResults = OssReproducibleHelpers.DirectoryDifference(Options.PackageDirectory!, outputDirectory, Options.DiffTechnique);
+                    int diffResultsOriginalCount = diffResults.Count();
                     diffResults = diffResults.Where(d => !IgnoreFilter.IsIgnored(Options.PackageUrl, GetType().Name, d.Filename));
                     strategyResult.NumIgnoredFiles += (diffResultsOriginalCount - diffResults.Count());
                     strategyResult.AddDifferencesToStrategyResult(diffResults);

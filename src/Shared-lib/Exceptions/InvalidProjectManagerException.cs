@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-namespace Microsoft.CST.OpenSource.Lib.Exceptions
+namespace Microsoft.CST.OpenSource.Exceptions
 {
     using System;
 

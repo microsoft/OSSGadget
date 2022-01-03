@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-namespace Microsoft.CST.OpenSource.Lib.Model
+namespace Microsoft.CST.OpenSource.Model
 {
     using Newtonsoft.Json;
     using Octokit;

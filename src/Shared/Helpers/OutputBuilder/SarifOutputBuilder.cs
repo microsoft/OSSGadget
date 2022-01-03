@@ -2,9 +2,8 @@
 
 namespace Microsoft.CST.OpenSource.Shared
 {
-    using Lib;
-    using Lib.PackageManagers;
     using Microsoft.CodeAnalysis.Sarif;
+    using Microsoft.CST.OpenSource.PackageManagers;
     using Newtonsoft.Json;
     using System.Collections.Generic;
     using System.IO;

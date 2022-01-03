@@ -12,8 +12,7 @@ using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
 namespace Microsoft.CST.OpenSource
 {
     using Extensions.DependencyInjection;
-    using Lib;
-    using Lib.PackageManagers;
+    using Microsoft.CST.OpenSource.PackageManagers;
     using System.Net.Http;
 
     public class HealthTool : OSSGadget
@@ -24,20 +23,20 @@ namespace Microsoft.CST.OpenSource
 
         public async Task<HealthMetrics?> CheckHealth(PackageURL purl)
         {
-            var packageManager = ProjectManagerFactory.CreateProjectManager(purl, HttpClientFactory);
+            BaseProjectManager? packageManager = ProjectManagerFactory.CreateProjectManager(purl, HttpClientFactory);
 
             if (packageManager != null)
             {
-                var content = await packageManager.GetMetadata(purl);
+                string? content = await packageManager.GetMetadata(purl);
                 if (!string.IsNullOrWhiteSpace(content))
                 {
                     RepoSearch repoSearcher = new RepoSearch(HttpClientFactory);
-                    foreach (var (githubPurl, _) in await repoSearcher.ResolvePackageLibraryAsync(purl))
+                    foreach ((PackageURL githubPurl, double _) in await repoSearcher.ResolvePackageLibraryAsync(purl))
                     {
                         try
                         {
-                            var healthAlgorithm = new GitHubHealthAlgorithm(githubPurl);
-                            var health = await healthAlgorithm.GetHealth();
+                            GitHubHealthAlgorithm? healthAlgorithm = new GitHubHealthAlgorithm(githubPurl);
+                            HealthMetrics? health = await healthAlgorithm.GetHealth();
                             return health;
                         }
                         catch (Exception ex)
@@ -96,7 +95,7 @@ namespace Microsoft.CST.OpenSource
             // Get the IHttpClientFactory
             IHttpClientFactory httpClientFactory = serviceProvider.GetService<IHttpClientFactory>() ?? throw new InvalidOperationException();
 
-            var healthTool = new HealthTool(httpClientFactory);
+            HealthTool? healthTool = new HealthTool(httpClientFactory);
             await healthTool.ParseOptions<Options>(args).WithParsedAsync(healthTool.RunAsync);
         }
 
@@ -126,12 +125,12 @@ namespace Microsoft.CST.OpenSource
             IOutputBuilder outputBuilder = SelectFormat(options.Format ?? OutputFormat.text.ToString());
             if (options.Targets is IList<string> targetList && targetList.Count > 0)
             {
-                foreach (var target in targetList)
+                foreach (string? target in targetList)
                 {
                     try
                     {
-                        var purl = new PackageURL(target);
-                        var healthMetrics = CheckHealth(purl).Result;
+                        PackageURL? purl = new PackageURL(target);
+                        HealthMetrics? healthMetrics = CheckHealth(purl).Result;
                         if (healthMetrics == null)
                         {
                             Logger.Debug($"Cannot compute Health for {purl}");

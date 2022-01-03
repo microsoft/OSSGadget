@@ -31,6 +31,7 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("pkg:npm/sm4-demo", "Cryptography.Implementation.BlockCipher.SM4")]
         public async Task TestPackageDetectionSucceeds(string purl, params string[] expectedTags)
         {
+            Console.WriteLine("passed this line");
             await TestDetectCryptography(purl, expectedTags);
         }
 

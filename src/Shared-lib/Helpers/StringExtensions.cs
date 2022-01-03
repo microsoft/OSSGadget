@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-namespace Microsoft.CST.OpenSource.Lib.Helpers
+namespace Microsoft.CST.OpenSource.Helpers
 {
     /// <summary>
     /// A utilities class for string extension functions.

@@ -2,7 +2,6 @@
 
 namespace Microsoft.CST.OpenSource.FindSquats
 {
-    using Lib;
     using Microsoft.CST.OpenSource.FindSquats.Mutators;
     using System.Collections.Generic;
     using System.Linq;

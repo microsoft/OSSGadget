@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 namespace Microsoft.CST.OpenSource
 {
     using Extensions.DependencyInjection;
-    using Lib;
     using System.Net.Http;
 
     public class DownloadTool : OSSGadget
@@ -77,8 +76,8 @@ namespace Microsoft.CST.OpenSource
             // Get the IHttpClientFactory
             IHttpClientFactory httpClientFactory = serviceProvider.GetService<IHttpClientFactory>() ?? throw new InvalidOperationException();
 
-            var downloadTool = new DownloadTool(httpClientFactory);
-            var opts = downloadTool.ParseOptions<Options>(args);
+            DownloadTool? downloadTool = new DownloadTool(httpClientFactory);
+            ParserResult<Options>? opts = downloadTool.ParseOptions<Options>(args);
             if (opts.Value is null)
             {
                 if (opts.Errors.All(x => x.Tag == ErrorType.HelpRequestedError))
@@ -100,17 +99,17 @@ namespace Microsoft.CST.OpenSource
         {
             if (options.Targets is IEnumerable<string> targetList && targetList.Any())
             {
-                foreach (var target in targetList)
+                foreach (string? target in targetList)
                 {
                     try
                     {
-                        var purl = new PackageURL(target);
+                        PackageURL? purl = new PackageURL(target);
                         string downloadDirectory = options.DownloadDirectory == "." ? System.IO.Directory.GetCurrentDirectory() : options.DownloadDirectory;
-                        var useCache = options.UseCache;
-                        var packageDownloader = new PackageDownloader(purl, HttpClientFactory, downloadDirectory, useCache);
+                        bool useCache = options.UseCache;
+                        PackageDownloader? packageDownloader = new PackageDownloader(purl, HttpClientFactory, downloadDirectory, useCache);
 
-                        var downloadResults = await packageDownloader.DownloadPackageLocalCopy(purl, options.DownloadMetadataOnly, options.Extract);
-                        foreach (var downloadPath in downloadResults)
+                        List<string>? downloadResults = await packageDownloader.DownloadPackageLocalCopy(purl, options.DownloadMetadataOnly, options.Extract);
+                        foreach (string? downloadPath in downloadResults)
                         {
                             if (string.IsNullOrEmpty(downloadPath))
                             {

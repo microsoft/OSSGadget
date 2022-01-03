@@ -31,25 +31,25 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 return null;
             }
 
-            var strategyResult = new StrategyResult()
+            StrategyResult? strategyResult = new StrategyResult()
             {
                 Strategy = GetType()
             };
 
             if (Options.IncludeDiffoscope)
             {
-                var diffoscopeTempDir = Path.Join(Options.TemporaryDirectory, "diffoscope");
-                var diffoscopeResults = GenerateDiffoscope(diffoscopeTempDir, Options.SourceDirectory!, Options.PackageDirectory!);
+                string? diffoscopeTempDir = Path.Join(Options.TemporaryDirectory, "diffoscope");
+                string? diffoscopeResults = GenerateDiffoscope(diffoscopeTempDir, Options.SourceDirectory!, Options.PackageDirectory!);
                 strategyResult.Diffoscope = diffoscopeResults;
             }
 
-            var diffResults = Helpers.DirectoryDifference(Options.PackageDirectory!, Options.SourceDirectory!, Options.DiffTechnique);
-            var originalDiffResultsLength = diffResults.Count();
+            System.Collections.Generic.IEnumerable<DirectoryDifference>? diffResults = OssReproducibleHelpers.DirectoryDifference(Options.PackageDirectory!, Options.SourceDirectory!, Options.DiffTechnique);
+            int originalDiffResultsLength = diffResults.Count();
             diffResults = diffResults.Where(d => !IgnoreFilter.IsIgnored(Options.PackageUrl, GetType().Name, d.Filename));
             strategyResult.NumIgnoredFiles += (originalDiffResultsLength - diffResults.Count());
             strategyResult.AddDifferencesToStrategyResult(diffResults);
 
-            diffResults = Helpers.DirectoryDifference(Options.SourceDirectory!, Options.PackageDirectory!, Options.DiffTechnique);
+            diffResults = OssReproducibleHelpers.DirectoryDifference(Options.SourceDirectory!, Options.PackageDirectory!, Options.DiffTechnique);
             originalDiffResultsLength = diffResults.Count();
             diffResults = diffResults.Where(d => !IgnoreFilter.IsIgnored(Options.PackageUrl, GetType().Name, d.Filename));
             strategyResult.NumIgnoredFiles += (originalDiffResultsLength - diffResults.Count());

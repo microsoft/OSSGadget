@@ -2,8 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.Shared
 {
-    using Lib;
-    using Lib.PackageManagers;
+    using Microsoft.CST.OpenSource.PackageManagers;
     using NLog;
     using System;
     using System.Collections.Generic;
@@ -30,6 +29,11 @@ namespace Microsoft.CST.OpenSource.Shared
         public RepoSearch(IHttpClientFactory httpClientFactory)
         {
             HttpClientFactory = httpClientFactory;
+        }
+
+        public RepoSearch()
+        {
+            HttpClientFactory = new DefaultHttpClientFactory();
         }
 
         private IHttpClientFactory HttpClientFactory { get; }

@@ -3,10 +3,10 @@
 namespace Microsoft.CST.OpenSource.FindSquats
 {
     using ExtensionMethods;
-    using Lib.Exceptions;
-    using Lib.Helpers;
-    using Lib.PackageManagers;
-    using Microsoft.CST.OpenSource.Lib;
+    using Microsoft.CST.OpenSource;
+    using Microsoft.CST.OpenSource.Exceptions;
+    using Microsoft.CST.OpenSource.Helpers;
+    using Microsoft.CST.OpenSource.PackageManagers;
     using Mutators;
     using System.Collections.Generic;
     using System.Linq;
@@ -37,12 +37,19 @@ namespace Microsoft.CST.OpenSource.FindSquats
         public IDictionary<string, IList<Mutation>>? GenerateSquats(IEnumerable<IMutator>? mutators = null,
             MutateOptions? options = null)
         {
-            Check.NotNull(nameof(ProjectManager), ProjectManager);
-            if (mutators != null)
+            if (ProjectManager is null)
             {
-                return ProjectManager?.EnumerateSquats(PackageUrl, mutators, options);
+                Check.NotNull(nameof(ProjectManager), ProjectManager);
             }
-            return ProjectManager?.EnumerateSquats(PackageUrl, options);
+            else
+            {
+                if (mutators != null)
+                {
+                    return ProjectManager.EnumerateSquats(PackageUrl, mutators, options);
+                }
+                return ProjectManager.EnumerateSquats(PackageUrl, options);
+            }
+            return null;
         }
 
         public IAsyncEnumerable<FindPackageSquatResult> FindExistingSquatsAsync(IDictionary<string, IList<Mutation>>? candidateMutations, MutateOptions? options = null)

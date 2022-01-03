@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-namespace Microsoft.CST.OpenSource.Lib
+namespace Microsoft.CST.OpenSource
 {
     using Helpers;
     using System.Net.Http;
@@ -26,6 +26,12 @@ namespace Microsoft.CST.OpenSource.Lib
         protected OssGadgetLib(IHttpClientFactory httpClientFactory, string directory = ".")
         {
             HttpClientFactory = Check.NotNull(nameof(httpClientFactory), httpClientFactory);
+            Directory = directory;
+        }
+
+        protected OssGadgetLib(string directory = ".")
+        {
+            HttpClientFactory = new DefaultHttpClientFactory();
             Directory = directory;
         }
     }

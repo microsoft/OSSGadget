@@ -23,8 +23,7 @@ using Microsoft.CST.RecursiveExtractor;
 namespace Microsoft.CST.OpenSource
 {
     using Extensions.DependencyInjection;
-    using Lib;
-    using Lib.PackageManagers;
+    using Microsoft.CST.OpenSource.PackageManagers;
     using System.Net.Http;
 
     public class DetectCryptographyTool : OSSGadget
@@ -74,8 +73,8 @@ namespace Microsoft.CST.OpenSource
             IOutputBuilder outputBuilder = detectCryptographyTool.SelectFormat((string?)detectCryptographyTool.Options["format"] ?? "text");
             if (detectCryptographyTool.Options["target"] is IList<string> targetList && targetList.Count > 0)
             {
-                var sb = new StringBuilder();
-                foreach (var target in targetList)
+                StringBuilder? sb = new StringBuilder();
+                foreach (string? target in targetList)
                 {
                     sb.Clear();
                     try
@@ -83,7 +82,7 @@ namespace Microsoft.CST.OpenSource
                         List<IssueRecord>? results = null;
                         if (target.StartsWith("pkg:", StringComparison.InvariantCulture))
                         {
-                            var purl = new PackageURL(target);
+                            PackageURL? purl = new PackageURL(target);
                             results = await (detectCryptographyTool.AnalyzePackage(purl,
                                 (string?)detectCryptographyTool.Options["download-directory"] ?? string.Empty,
                                 (bool?)detectCryptographyTool.Options["use-cache"] == true) ??
@@ -103,7 +102,7 @@ namespace Microsoft.CST.OpenSource
                             }
                             BaseProjectManager projectManager = ProjectManagerFactory.CreateBaseProjectManager(httpClientFactory, targetDirectoryName);
 
-                            var path = await projectManager.ExtractArchive("temp", File.ReadAllBytes(target));
+                            string? path = await projectManager.ExtractArchive("temp", File.ReadAllBytes(target));
 
                             results = await detectCryptographyTool.AnalyzeDirectory(path);
 
@@ -136,14 +135,14 @@ namespace Microsoft.CST.OpenSource
                             sb.AppendLine("Summary Results:");
 
                             sb.AppendLine(Blue("Cryptographic Implementations:"));
-                            var implementations = results.SelectMany(r => r.Issue.Rule.Tags ?? Array.Empty<string>())
+                            IOrderedEnumerable<string>? implementations = results.SelectMany(r => r.Issue.Rule.Tags ?? Array.Empty<string>())
                                                          .Distinct()
                                                          .Where(t => t.StartsWith("Cryptography.Implementation."))
                                                          .Select(t => t.Replace("Cryptography.Implementation.", ""))
                                                          .OrderBy(s => s);
                             if (implementations.Any())
                             {
-                                foreach (var tag in implementations)
+                                foreach (string? tag in implementations)
                                 {
                                     sb.AppendLine(Bright.Blue($" * {tag}"));
                                 }
@@ -155,7 +154,7 @@ namespace Microsoft.CST.OpenSource
 
                             sb.AppendLine();
                             sb.AppendLine(Red("Cryptographic Library References:"));
-                            var references = results.SelectMany(r => r.Issue.Rule.Tags ?? Array.Empty<string>())
+                            IOrderedEnumerable<string>? references = results.SelectMany(r => r.Issue.Rule.Tags ?? Array.Empty<string>())
                                                     .Distinct()
                                                     .Where(t => t.StartsWith("Cryptography.Reference."))
                                                     .Select(t => t.Replace("Cryptography.Reference.", ""))
@@ -163,7 +162,7 @@ namespace Microsoft.CST.OpenSource
 
                             if (references.Any())
                             {
-                                foreach (var tag in references)
+                                foreach (string? tag in references)
                                 {
                                     sb.AppendLine(Bright.Red($" * {tag}"));
                                 }
@@ -175,7 +174,7 @@ namespace Microsoft.CST.OpenSource
 
                             sb.AppendLine();
                             sb.AppendLine(Green("Other Cryptographic Characteristics:"));
-                            var characteristics = results.SelectMany(r => r.Issue.Rule.Tags ?? Array.Empty<string>())
+                            IOrderedEnumerable<string>? characteristics = results.SelectMany(r => r.Issue.Rule.Tags ?? Array.Empty<string>())
                                                          .Distinct()
                                                          .Where(t => t.Contains("Crypto", StringComparison.InvariantCultureIgnoreCase)&&
                                                                      !t.StartsWith("Cryptography.Implementation.") &&
@@ -184,7 +183,7 @@ namespace Microsoft.CST.OpenSource
                                                          .OrderBy(s => s);
                             if (characteristics.Any())
                             {
-                                foreach (var tag in characteristics)
+                                foreach (string? tag in characteristics)
                                 {
                                     sb.AppendLine(Bright.Green($" * {tag}"));
                                 }
@@ -196,13 +195,13 @@ namespace Microsoft.CST.OpenSource
 
                             if ((bool?)detectCryptographyTool.Options["verbose"] == true)
                             {
-                                var items = results.GroupBy(k => k.Issue.Rule.Name).OrderByDescending(k => k.Count());
-                                foreach (var item in items)
+                                IOrderedEnumerable<IGrouping<string, IssueRecord>>? items = results.GroupBy(k => k.Issue.Rule.Name).OrderByDescending(k => k.Count());
+                                foreach (IGrouping<string, IssueRecord>? item in items)
                                 {
                                     sb.AppendLine();
                                     sb.AppendLine($"There were {item.Count()} finding(s) of type [{item.Key}].");
 
-                                    foreach (var result in results)
+                                    foreach (IssueRecord? result in results)
                                     {
                                         if (result.Issue.Rule.Name == item.Key)
                                         {
@@ -216,7 +215,7 @@ namespace Microsoft.CST.OpenSource
                                             else
                                             {
                                                 // Show the excerpt
-                                                foreach (var line in result.TextSample.Split(new char[] { '\n', '\r' }))
+                                                foreach (string? line in result.TextSample.Split(new char[] { '\n', '\r' }))
                                                 {
                                                     if (!string.IsNullOrWhiteSpace(line))
                                                     {
@@ -232,7 +231,7 @@ namespace Microsoft.CST.OpenSource
 
                             if (Logger.IsDebugEnabled)
                             {
-                                foreach (var result in results)
+                                foreach (IssueRecord? result in results)
                                 {
                                     Logger.Debug($"Result: {result.Filename} {result.Issue.Rule.Name} {result.TextSample}");
                                 }
@@ -259,6 +258,10 @@ namespace Microsoft.CST.OpenSource
         {
         }
 
+        public DetectCryptographyTool() : base()
+        {
+        }
+
         /// <summary>
         /// Analyze a package by downloading it first.
         /// </summary>
@@ -268,17 +271,17 @@ namespace Microsoft.CST.OpenSource
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
 
-            var packageDownloader = new PackageDownloader(purl, HttpClientFactory, targetDirectoryName, doCaching);
-            var directoryNames = await packageDownloader.DownloadPackageLocalCopy(purl, false, true);
+            PackageDownloader? packageDownloader = new PackageDownloader(purl, HttpClientFactory, targetDirectoryName, doCaching);
+            List<string>? directoryNames = await packageDownloader.DownloadPackageLocalCopy(purl, false, true);
             directoryNames = directoryNames.Distinct().ToList<string>();
 
-            var analysisResults = new List<IssueRecord>();
+            List<IssueRecord>? analysisResults = new List<IssueRecord>();
             if (directoryNames.Count > 0)
             {
-                foreach (var directoryName in directoryNames)
+                foreach (string? directoryName in directoryNames)
                 {
                     Logger.Trace("Analyzing directory {0}", directoryName);
-                    var singleResult = await AnalyzeDirectory(directoryName);
+                    List<IssueRecord>? singleResult = await AnalyzeDirectory(directoryName);
                     if (singleResult != null)
                     {
                         analysisResults.AddRange(singleResult);
@@ -322,9 +325,9 @@ namespace Microsoft.CST.OpenSource
 
             // Check if we have a binary file - meaning more than 10% control characters
             // TODO: Is this the right metric?
-            var bufferString = Encoding.ASCII.GetString(buffer);
-            var countControlChars = bufferString.Count(ch => char.IsControl(ch) && ch != '\r' && ch != '\n' && ch != '\t');
-            var isBinaryFile = (((double)countControlChars / (double)bufferString.Length) > 0.10);
+            string? bufferString = Encoding.ASCII.GetString(buffer);
+            int countControlChars = bufferString.Count(ch => char.IsControl(ch) && ch != '\r' && ch != '\n' && ch != '\t');
+            bool isBinaryFile = (((double)countControlChars / (double)bufferString.Length) > 0.10);
 
             if (isBinaryFile)
             {
@@ -333,7 +336,7 @@ namespace Microsoft.CST.OpenSource
                 {
                     try
                     {
-                        var decompiler = new CSharpDecompiler(filename, new DecompilerSettings());
+                        CSharpDecompiler? decompiler = new CSharpDecompiler(filename, new DecompilerSettings());
                         return decompiler.DecompileWholeModuleAsString();
                     }
                     catch (Exception ex)
@@ -342,16 +345,16 @@ namespace Microsoft.CST.OpenSource
                     }
                 }
 
-                var resultStrings = new HashSet<string>();
+                HashSet<string>? resultStrings = new HashSet<string>();
 
                 try
                 {
                     // Do a full disassembly, but only show unique lines.
                     Disassembler.Translator.IncludeAddress = false;
                     Disassembler.Translator.IncludeBinary = false;
-                    var architecture = buffer.Length > 5 && buffer[5] == 0x02 ? ArchitectureMode.x86_64 : ArchitectureMode.x86_32;
-                    using var disassembler = new Disassembler(buffer, architecture);
-                    foreach (var instruction in disassembler.Disassemble())
+                    ArchitectureMode architecture = buffer.Length > 5 && buffer[5] == 0x02 ? ArchitectureMode.x86_64 : ArchitectureMode.x86_32;
+                    using Disassembler? disassembler = new Disassembler(buffer, architecture);
+                    foreach (SharpDisasm.Instruction? instruction in disassembler.Disassemble())
                     {
                         resultStrings.Add(instruction.ToString());
                     }
@@ -364,18 +367,18 @@ namespace Microsoft.CST.OpenSource
                 try
                 {
                     // Maybe it's WebAseembly -- @TODO Make this less random.
-                    using var webAssemblyByteStream = new MemoryStream(buffer);
+                    using MemoryStream? webAssemblyByteStream = new MemoryStream(buffer);
 
-                    var m = WebAssembly.Module.ReadFromBinary(webAssemblyByteStream);
+                    WebAssembly.Module? m = WebAssembly.Module.ReadFromBinary(webAssemblyByteStream);
 
-                    foreach (var data in m.Data)
+                    foreach (Data? data in m.Data)
                     {
                         resultStrings.Add(Encoding.ASCII.GetString(data.RawData.ToArray()));
                     }
 
-                    foreach (var functionBody in m.Codes)
+                    foreach (FunctionBody? functionBody in m.Codes)
                     {
-                        foreach (var instruction in functionBody.Code)
+                        foreach (WebAssembly.Instruction? instruction in functionBody.Code)
                         {
                             switch (instruction.OpCode)
                             {
@@ -424,20 +427,20 @@ namespace Microsoft.CST.OpenSource
         {
             Logger.Trace("AnalyzeDirectory({0})", directory);
 
-            var analysisResults = new List<IssueRecord>();
+            List<IssueRecord>? analysisResults = new List<IssueRecord>();
 
             RuleSet rules = new RuleSet(null);
             if (Options["disable-default-rules"] is bool disableDefaultRules && !disableDefaultRules)
             {
-                var assembly = Assembly.GetExecutingAssembly();
-                foreach (var resourceName in assembly.GetManifestResourceNames())
+                Assembly? assembly = Assembly.GetExecutingAssembly();
+                foreach (string? resourceName in assembly.GetManifestResourceNames())
                 {
                     if (resourceName.EndsWith(".json"))
                     {
                         try
                         {
-                            var stream = assembly.GetManifestResourceStream(resourceName);
-                            using var resourceStream = new StreamReader(stream ?? new MemoryStream());
+                            Stream? stream = assembly.GetManifestResourceStream(resourceName);
+                            using StreamReader? resourceStream = new StreamReader(stream ?? new MemoryStream());
                             rules.AddString(resourceStream.ReadToEnd(), resourceName);
                         }
                         catch (Exception ex)
@@ -449,14 +452,14 @@ namespace Microsoft.CST.OpenSource
 
                 // Add Appliation Inspector cryptography rules
                 assembly = typeof(AnalyzeCommand).Assembly;
-                foreach (var resourceName in assembly.GetManifestResourceNames())
+                foreach (string? resourceName in assembly.GetManifestResourceNames())
                 {
                     if (resourceName.EndsWith(".json"))
                     {
                         try
                         {
-                            var stream = assembly.GetManifestResourceStream(resourceName);
-                            using var resourceStream = new StreamReader(stream ?? new MemoryStream());
+                            Stream? stream = assembly.GetManifestResourceStream(resourceName);
+                            using StreamReader? resourceStream = new StreamReader(stream ?? new MemoryStream());
                             rules.AddString(resourceStream.ReadToEnd(), resourceName);
                         }
                         catch (Exception ex)
@@ -477,7 +480,7 @@ namespace Microsoft.CST.OpenSource
                 Logger.Error("No rules were specified, unable to continue.");
                 return analysisResults; // empty
             }
-            var processor = new RuleProcessor(rules, new RuleProcessorOptions());
+            RuleProcessor? processor = new RuleProcessor(rules, new RuleProcessorOptions());
 
             string[] fileList;
 
@@ -495,7 +498,7 @@ namespace Microsoft.CST.OpenSource
                 return analysisResults; // empty
             }
 
-            foreach (var filename in fileList)
+            foreach (string? filename in fileList)
             {
                 Logger.Trace($"Processing {filename}");
 
@@ -517,14 +520,14 @@ namespace Microsoft.CST.OpenSource
                     continue;
                 }
 
-                var buffer = NormalizeFileContent(filename, fileContents);
+                string? buffer = NormalizeFileContent(filename, fileContents);
                 Logger.Debug("Normalization complete.");
 
                 double MIN_CRYPTO_OP_DENSITY = 0.10;
                 try
                 {
                     // TODO don't do this if we disassembled native code
-                    var cryptoOperationLikelihood = CalculateCryptoOpDensity(buffer);
+                    double cryptoOperationLikelihood = CalculateCryptoOpDensity(buffer);
                     Logger.Debug("Cryptographic operation density for {0} was {1}", filename, cryptoOperationLikelihood);
 
                     if (cryptoOperationLikelihood >= MIN_CRYPTO_OP_DENSITY)
@@ -554,11 +557,11 @@ namespace Microsoft.CST.OpenSource
 
                     List<MatchRecord>? fileResults = null;
                     //processor.AnalyzeFile
-                    var holderEntry = new FileEntry("placeholder", new MemoryStream(Encoding.UTF8.GetBytes(buffer)));
+                    FileEntry? holderEntry = new FileEntry("placeholder", new MemoryStream(Encoding.UTF8.GetBytes(buffer)));
                     LanguageInfo languageInfo = new LanguageInfo();
 
                     Language.FromFileName(filename, ref languageInfo);
-                    var task = Task.Run(() => processor.AnalyzeFile(holderEntry,languageInfo));
+                    Task<List<MatchRecord>>? task = Task.Run(() => processor.AnalyzeFile(holderEntry,languageInfo));
                     if (task.Wait(TimeSpan.FromSeconds(30)))
                     {
                         fileResults = task.Result;
@@ -570,12 +573,12 @@ namespace Microsoft.CST.OpenSource
                     }
 
                     Logger.Debug("Operation Complete: {0}", fileResults?.Count);
-                    foreach (var issue in fileResults ?? new List<MatchRecord>())
+                    foreach (MatchRecord? issue in fileResults ?? new List<MatchRecord>())
                     {
-                        var fileContentArray = buffer.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
-                        var excerpt = new List<string>();
-                        var startLoc = Math.Max(issue.StartLocationLine - 1, 0);
-                        var endLoc = Math.Min(issue.EndLocationLine + 1, fileContentArray.Length - 1);
+                        string[]? fileContentArray = buffer.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+                        List<string>? excerpt = new List<string>();
+                        int startLoc = Math.Max(issue.StartLocationLine - 1, 0);
+                        int endLoc = Math.Min(issue.EndLocationLine + 1, fileContentArray.Length - 1);
                         for (int i = startLoc; i <= endLoc; i++)
                         {
                             excerpt.Add(fileContentArray[i].Trim());
@@ -646,7 +649,7 @@ namespace Microsoft.CST.OpenSource
 
             // This is a horrible regular expression, but the intent is to capture symbol characters
             // that probably mean something within cryptographic code, but not within other code.
-            var cryptoChars = new Regex("(?<=[a-z0-9_])\\^=?(?=[a-z_])|(?<=[a-z0-9_])(>{2,3}|<{2,3})=?(?=[a-z0-9])|(?<=[a-z0-9_])([&^~|])=?(?=[a-z0-9])", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            Regex? cryptoChars = new Regex("(?<=[a-z0-9_])\\^=?(?=[a-z_])|(?<=[a-z0-9_])(>{2,3}|<{2,3})=?(?=[a-z0-9])|(?<=[a-z0-9_])([&^~|])=?(?=[a-z0-9])", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
             // We report on the highest ratio of symbol to total characters
             double maxRatio = 0;
@@ -654,7 +657,7 @@ namespace Microsoft.CST.OpenSource
             // Iterate through all windows: TODO We can skip-count a few here
             for (int i = 0; i < buffer.Length - windowSize; i += 1)
             {
-                var windowBuffer = buffer.Substring(i, windowSize);
+                string? windowBuffer = buffer.Substring(i, windowSize);
                 windowBuffer = cryptoChars.Replace(windowBuffer, string.Empty);
                 double ratio = ((double)windowSize - (double)windowBuffer.Length) / (double)windowSize;
                 if (ratio > maxRatio)
@@ -675,8 +678,8 @@ namespace Microsoft.CST.OpenSource
         /// <returns>unique strings</returns>
         private IEnumerable<string> UniqueStringsFromBinary(byte[] buffer)
         {
-            var bufferString = Encoding.ASCII.GetString(buffer);
-            var words = Regex.Matches(bufferString, @"([a-zA-Z]\.[a-zA-Z ]{4,})");
+            string? bufferString = Encoding.ASCII.GetString(buffer);
+            MatchCollection? words = Regex.Matches(bufferString, @"([a-zA-Z]\.[a-zA-Z ]{4,})");
             return words.Select(m => m.Value).Distinct<string>();
         }
 

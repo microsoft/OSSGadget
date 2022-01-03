@@ -9,9 +9,8 @@ using System.Threading.Tasks;
 namespace Microsoft.CST.OpenSource
 {
     using Extensions.DependencyInjection;
-    using Lib;
-    using Lib.Model;
-    using Lib.PackageManagers;
+    using Microsoft.CST.OpenSource.Model;
+    using Microsoft.CST.OpenSource.PackageManagers;
     using System.Net.Http;
 
     public class MetadataTool : OSSGadget
@@ -50,7 +49,7 @@ namespace Microsoft.CST.OpenSource
             try
             {
                 // Use reflection to find the correct downloader class
-                var projectManager = ProjectManagerFactory.CreateProjectManager(purl, httpClientFactory);
+                BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, httpClientFactory);
                 if (projectManager != null)
                 {
                     metadata = await projectManager.GetPackageMetadata(purl);
@@ -80,7 +79,7 @@ namespace Microsoft.CST.OpenSource
             // Get the IHttpClientFactory
             IHttpClientFactory httpClientFactory = serviceProvider.GetService<IHttpClientFactory>() ?? throw new InvalidOperationException();
 
-            var metadataTool = new MetadataTool(httpClientFactory);
+            MetadataTool? metadataTool = new MetadataTool(httpClientFactory);
             await metadataTool.ParseOptions<Options>(args).WithParsedAsync(metadataTool.RunAsync);
         }
 
@@ -91,11 +90,11 @@ namespace Microsoft.CST.OpenSource
             PackageMetadata? metadata = null;
             if (options.Targets is IList<string> targetList && targetList.Count > 0)
             {
-                foreach (var target in targetList)
+                foreach (string? target in targetList)
                 {
                     try
                     {
-                        var purl = new PackageURL(target);
+                        PackageURL? purl = new PackageURL(target);
                         metadata = await GetPackageMetadata(purl, HttpClientFactory);
                     }
                     catch (Exception ex)

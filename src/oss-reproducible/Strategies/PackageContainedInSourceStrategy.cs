@@ -28,20 +28,20 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 return null;
             }
 
-            var strategyResult = new StrategyResult()
+            StrategyResult? strategyResult = new StrategyResult()
             {
                 Strategy = GetType()
             };
 
             if (Options.IncludeDiffoscope)
             {
-                var diffoscopeTempDir = Path.Join(Options.TemporaryDirectory, "diffoscope");
-                var diffoscopeResults = GenerateDiffoscope(diffoscopeTempDir, Options.SourceDirectory!, Options.PackageDirectory!);
+                string? diffoscopeTempDir = Path.Join(Options.TemporaryDirectory, "diffoscope");
+                string? diffoscopeResults = GenerateDiffoscope(diffoscopeTempDir, Options.SourceDirectory!, Options.PackageDirectory!);
                 strategyResult.Diffoscope = diffoscopeResults;
             }
 
-            var diffResults = Helpers.DirectoryDifference(Options.PackageDirectory!, Options.SourceDirectory!, Options.DiffTechnique);
-            var diffResultsOriginalCount = diffResults.Count();
+            System.Collections.Generic.IEnumerable<DirectoryDifference>? diffResults = OssReproducibleHelpers.DirectoryDifference(Options.PackageDirectory!, Options.SourceDirectory!, Options.DiffTechnique);
+            int diffResultsOriginalCount = diffResults.Count();
             diffResults = diffResults.Where(d => !IgnoreFilter.IsIgnored(Options.PackageUrl, GetType().Name, d.Filename));
             strategyResult.NumIgnoredFiles += (diffResultsOriginalCount - diffResults.Count());
             strategyResult.AddDifferencesToStrategyResult(diffResults);

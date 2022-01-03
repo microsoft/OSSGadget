@@ -31,6 +31,10 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
         {
         }
 
+        public CocoapodsProjectManager(string destinationDirectory) : base(destinationDirectory)
+        {
+        }
+
         public override Uri GetPackageAbsoluteUri(PackageURL purl)
         {
             return new Uri($"{ENV_COCOAPODS_METADATA_ENDPOINT}/pods/{purl.Name}");
@@ -56,7 +60,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
                 return downloadedPaths;
             }
 
-            using HttpClient httpClient = this.CreateHttpClient();
+            using HttpClient httpClient = CreateHttpClient();
             string prefix = GetCocoapodsPrefix(packageName);
             System.Text.Json.JsonDocument podspec = await GetJsonCache(httpClient, $"{ENV_COCOAPODS_SPECS_RAW_ENDPOINT}/Specs/{prefix}/{packageName}/{packageVersion}/{packageName}.podspec.json");
 
@@ -128,7 +132,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
             }
             string packageName = purl.Name;
             string prefix = GetCocoapodsPrefix(packageName ?? string.Empty);
-            using HttpClient httpClient = this.CreateHttpClient();
+            using HttpClient httpClient = CreateHttpClient();
 
             return await CheckHttpCacheForPackage(httpClient, $"{ENV_COCOAPODS_SPECS_ENDPOINT}/Specs/{prefix}/{packageName}", useCache);
         }
@@ -145,7 +149,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
             {
                 string? packageName = purl.Name;
                 string? prefix = GetCocoapodsPrefix(packageName ?? string.Empty);
-                using HttpClient httpClient = this.CreateHttpClient();
+                using HttpClient httpClient = CreateHttpClient();
                 string? html = await GetHttpStringCache(httpClient, $"{ENV_COCOAPODS_SPECS_ENDPOINT}/Specs/{prefix}/{packageName}");
                 HtmlParser parser = new();
                 AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(html);
@@ -194,7 +198,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
         {
             try
             {
-                using HttpClient httpClient = this.CreateHttpClient();
+                using HttpClient httpClient = CreateHttpClient();
                 string? packageName = purl.Name;
                 string? cocoapodsWebContent = await GetHttpStringCache(httpClient, $"{ENV_COCOAPODS_METADATA_ENDPOINT}/pods/{packageName}");
                 string? podSpecContent = "";

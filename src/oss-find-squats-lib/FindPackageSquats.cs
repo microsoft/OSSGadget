@@ -25,8 +25,8 @@ namespace Microsoft.CST.OpenSource.FindSquats
         public FindPackageSquats(IHttpClientFactory httpClientFactory, PackageURL packageUrl, string directory = ".")
             : base(httpClientFactory, directory)
         {
-            this.PackageUrl = packageUrl;
-            this.ProjectManager = ProjectManagerFactory.CreateProjectManager(packageUrl, httpClientFactory);
+            PackageUrl = packageUrl;
+            ProjectManager = ProjectManagerFactory.CreateProjectManager(packageUrl, httpClientFactory);
             if (ProjectManager is null)
             {
                 Logger.Trace($"Could not generate valid ProjectManager from { packageUrl }.");
@@ -37,17 +37,17 @@ namespace Microsoft.CST.OpenSource.FindSquats
         public IDictionary<string, IList<Mutation>>? GenerateSquats(IEnumerable<IMutator>? mutators = null,
             MutateOptions? options = null)
         {
-            Check.NotNull(nameof(this.ProjectManager), this.ProjectManager);
+            Check.NotNull(nameof(ProjectManager), ProjectManager);
             if (mutators != null)
             {
-                return this.ProjectManager?.EnumerateSquats(this.PackageUrl, mutators, options);
+                return ProjectManager?.EnumerateSquats(PackageUrl, mutators, options);
             }
-            return this.ProjectManager?.EnumerateSquats(this.PackageUrl, options);
+            return ProjectManager?.EnumerateSquats(PackageUrl, options);
         }
 
         public IAsyncEnumerable<FindPackageSquatResult> FindExistingSquatsAsync(IDictionary<string, IList<Mutation>>? candidateMutations, MutateOptions? options = null)
         {
-            return this.ProjectManager?.EnumerateExistingSquatsAsync(this.PackageUrl, candidateMutations, options) ?? AsyncEnumerable.Empty<FindPackageSquatResult>();
+            return ProjectManager?.EnumerateExistingSquatsAsync(PackageUrl, candidateMutations, options) ?? AsyncEnumerable.Empty<FindPackageSquatResult>();
         }
     }
 }

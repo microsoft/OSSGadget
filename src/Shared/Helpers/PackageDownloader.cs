@@ -19,11 +19,11 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         /// Constructor - creates a class object for downloading packages.
         /// </summary>
-        /// <param name="httpClientFactory">The <see cref="IHttpClientFactory"/> to use to make the client to use when downloading.</param>
         /// <param name="purl">The package to download.</param>
+        /// <param name="httpClientFactory">The <see cref="IHttpClientFactory"/> to use to make the client to use when downloading.</param>
         /// <param name="destinationDir">The directory where the package needs to be downloaded to.</param>
         /// <param name="doCaching">Check and use the cache if it exists - create if not.</param>
-        public PackageDownloader(IHttpClientFactory httpClientFactory, PackageURL? purl, string? destinationDir = null, bool doCaching = false)
+        public PackageDownloader(PackageURL purl, IHttpClientFactory? httpClientFactory, string? destinationDir = null, bool doCaching = false)
         {
             if (purl == null)
             {

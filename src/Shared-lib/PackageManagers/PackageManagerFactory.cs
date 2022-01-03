@@ -22,6 +22,16 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
         }
 
         /// <summary>
+        /// Create a BaseProjectManager.
+        /// </summary>
+        /// <param name="destinationDirectory">The directory to use to store any downloaded packages.</param>
+        /// <returns></returns>
+        public static BaseProjectManager CreateBaseProjectManager(string destinationDirectory)
+        {
+            return new BaseProjectManager(destinationDirectory);
+        }
+
+        /// <summary>
         /// Get an appropriate project manager for package given its PackageURL.
         /// </summary>
         /// <param name="purl">The <see cref="PackageURL"/> for the package to create the project manager for.</param>

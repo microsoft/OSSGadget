@@ -25,8 +25,8 @@ namespace Microsoft.CST.OpenSource.Lib
 
         protected OssGadgetLib(IHttpClientFactory httpClientFactory, string directory = ".")
         {
-            this.HttpClientFactory = Check.NotNull(nameof(httpClientFactory), httpClientFactory);
-            this.Directory = directory;
+            HttpClientFactory = Check.NotNull(nameof(httpClientFactory), httpClientFactory);
+            Directory = directory;
         }
     }
 }

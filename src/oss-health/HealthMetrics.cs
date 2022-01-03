@@ -150,7 +150,7 @@ namespace Microsoft.CST.OpenSource.Health
 
         private PropertyInfo[] getHealthProperties()
         {
-            return this.GetType().GetProperties(BindingFlags.NonPublic |
+            return GetType().GetProperties(BindingFlags.NonPublic |
                                               BindingFlags.Public |
                                               BindingFlags.Instance);
         }

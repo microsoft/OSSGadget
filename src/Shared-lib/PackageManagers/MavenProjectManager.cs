@@ -22,6 +22,10 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
         {
         }
 
+        public MavenProjectManager(string destinationDirectory) : base(destinationDirectory)
+        {
+        }
+
         /// <summary>
         /// Download one Maven package and extract it to the target directory.
         /// </summary>
@@ -48,7 +52,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
                 foreach (string suffix in suffixes)
                 {
                     string url = $"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/{packageVersion}/{packageName}-{packageVersion}{suffix}.jar";
-                    using HttpClient httpClient = this.CreateHttpClient();
+                    using HttpClient httpClient = CreateHttpClient();
 
                     System.Net.Http.HttpResponseMessage result = await httpClient.GetAsync(url);
                     result.EnsureSuccessStatusCode();
@@ -97,7 +101,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
             }
             string packageNamespace = purl.Namespace.Replace('.', '/');
             string packageName = purl.Name;
-            using HttpClient httpClient = this.CreateHttpClient();
+            using HttpClient httpClient = CreateHttpClient();
 
             return await CheckHttpCacheForPackage(httpClient, $"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/maven-metadata.xml", useCache);
         }
@@ -113,7 +117,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
             {
                 string packageNamespace = purl.Namespace.Replace('.', '/');
                 string packageName = purl.Name;
-                using HttpClient httpClient = this.CreateHttpClient();
+                using HttpClient httpClient = CreateHttpClient();
 
                 string? content = await GetHttpStringCache(httpClient, $"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/maven-metadata.xml");
                 List<string> versionList = new();
@@ -146,7 +150,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
             {
                 string? packageNamespace = purl?.Namespace?.Replace('.', '/');
                 string? packageName = purl?.Name;
-                using HttpClient httpClient = this.CreateHttpClient();
+                using HttpClient httpClient = CreateHttpClient();
                 if (purl?.Version == null)
                 {
                     foreach (string? version in await EnumerateVersions(purl))

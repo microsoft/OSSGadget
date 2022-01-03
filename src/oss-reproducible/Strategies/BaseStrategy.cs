@@ -38,8 +38,8 @@ namespace Microsoft.CST.OpenSource.Reproducibility
     {
         public StrategyResultMessage()
         {
-            this.Text = "";
-            this.Filename = "";
+            Text = "";
+            Filename = "";
         }
 
         public string Text { get; set; }
@@ -78,15 +78,15 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         {
             if (!directoryDifferences.Any())
             {
-                this.Summary = "Successfully reproduced package.";
-                this.IsSuccess = true;
+                Summary = "Successfully reproduced package.";
+                IsSuccess = true;
                 return true;
                 //Logger.Debug("Strategy succeeded. The results match the package contents.");
             }
             else
             {
-                this.Summary = "Strategy failed. The results do not match the package contents.";
-                this.IsSuccess = false;
+                Summary = "Strategy failed. The results do not match the package contents.";
+                IsSuccess = false;
 
                 foreach (var dirDiff in directoryDifferences)
                 {
@@ -107,7 +107,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                         default:
                             break;
                     }
-                    this.Messages.Add(message);
+                    Messages.Add(message);
                 }
                 return false;
             }
@@ -131,7 +131,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
 
         public BaseStrategy(StrategyOptions options)
         {
-            this.Options = options;
+            Options = options;
         }
 
         /// <summary>
@@ -143,7 +143,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         {
             if (directories == null)
             {
-                Logger.Debug("Strategy {0} does not apply as no directories checked.", this.GetType().Name);
+                Logger.Debug("Strategy {0} does not apply as no directories checked.", GetType().Name);
                 return false;
             }
 
@@ -152,12 +152,12 @@ namespace Microsoft.CST.OpenSource.Reproducibility
             {
                 if (directory == null)
                 {
-                    Logger.Debug("Strategy {0} does not apply as no directories checked.", this.GetType().Name);
+                    Logger.Debug("Strategy {0} does not apply as no directories checked.", GetType().Name);
                     result = false;
                 }
                 else if (Directory.Exists(directory) && !Directory.EnumerateFileSystemEntries(directory).Any())
                 {
-                    Logger.Debug("Strategy {0} does not apply as {1} was empty.", this.GetType().Name, directory);
+                    Logger.Debug("Strategy {0} does not apply as {1} was empty.", GetType().Name, directory);
                     result = false;
                 }
             }

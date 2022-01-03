@@ -23,6 +23,10 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
         {
         }
 
+        public GitHubProjectManager(string destinationDirectory) : base(destinationDirectory)
+        {
+        }
+
         /// <summary>
         ///     Return all github repo patterns in the searchText.
         /// </summary>
@@ -140,7 +144,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
                 foreach (string archiveUrl in archiveUrls)
                 {
                     Logger.Debug("Attemping to download {0}", archiveUrl);
-                    using HttpClient httpClient = this.CreateHttpClient();
+                    using HttpClient httpClient = CreateHttpClient();
 
                     System.Net.Http.HttpResponseMessage? result = await httpClient.GetAsync(archiveUrl);
                     if (result.IsSuccessStatusCode)

@@ -239,7 +239,7 @@ namespace Microsoft.CST.OpenSource
             foreach (var target in options.Targets ?? Array.Empty<string>())
             {
                 var purl = new PackageURL(target);
-                var downloader = new PackageDownloader(this.HttpClientFactory, purl, "temp");
+                var downloader = new PackageDownloader(purl, HttpClientFactory, "temp");
                 foreach (var version in downloader.PackageVersions)
                 {
                     targets.Add(version.ToString());
@@ -268,7 +268,7 @@ namespace Microsoft.CST.OpenSource
                     }
                     // Download the package
                     Console.WriteLine("Downloading package...");
-                    var packageDownloader = new PackageDownloader(this.HttpClientFactory, purl, Path.Join(tempDirectoryName, "package"));
+                    var packageDownloader = new PackageDownloader(purl, HttpClientFactory, Path.Join(tempDirectoryName, "package"));
                     var downloadResults = await packageDownloader.DownloadPackageLocalCopy(purl, false, true);
 
                     if (!downloadResults.Any())
@@ -278,7 +278,7 @@ namespace Microsoft.CST.OpenSource
 
                     // Locate the source
                     Console.WriteLine("Locating source...");
-                    var findSourceTool = new FindSourceTool(this.HttpClientFactory);
+                    var findSourceTool = new FindSourceTool(HttpClientFactory);
                     var sourceMap = await findSourceTool.FindSourceAsync(purl);
                     if (sourceMap.Any())
                     {
@@ -303,7 +303,7 @@ namespace Microsoft.CST.OpenSource
                             }
                             Logger.Debug("Trying to download package, version/reference [{0}].", reference);
                             var purlRef = new PackageURL(bestSourcePurl.Type, bestSourcePurl.Namespace, bestSourcePurl.Name, reference, bestSourcePurl.Qualifiers, bestSourcePurl.Subpath);
-                            packageDownloader = new PackageDownloader(this.HttpClientFactory, purlRef, Path.Join(tempDirectoryName, "src"));
+                            packageDownloader = new PackageDownloader(purlRef, HttpClientFactory, Path.Join(tempDirectoryName, "src"));
                             downloadResults = await packageDownloader.DownloadPackageLocalCopy(purlRef, false, true);
                             if (downloadResults.Any())
                             {

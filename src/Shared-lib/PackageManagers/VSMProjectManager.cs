@@ -22,6 +22,10 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
         {
         }
 
+        public VSMProjectManager(string destinationDirectory) : base(destinationDirectory)
+        {
+        }
+
         /// <summary>
         ///     Download one VS Marketplace package and extract it to the target directory.
         /// </summary>
@@ -43,7 +47,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
 
             try
             {
-                using HttpClient httpClient = this.CreateHttpClient();
+                using HttpClient httpClient = CreateHttpClient();
                 Stream? resultStream = null;
                 string? cacheResult = GetCache(packageName);
                 if (cacheResult != null)
@@ -186,7 +190,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
                     requestMessage.Headers.Add("Accept", "application/json;api-version=3.0-preview.1");
                     string postContent = $"{{filters:[{{criteria:[{{filterType:7,value:\"{packageName}\"}}],pageSize:1000,pageNumber:1,sortBy:0}}],flags:131}}";
                     requestMessage.Content = new StringContent(postContent, Encoding.UTF8, "application/json");
-                    using HttpClient httpClient = this.CreateHttpClient();
+                    using HttpClient httpClient = CreateHttpClient();
 
                     HttpResponseMessage response = await httpClient.SendAsync(requestMessage);
                     resultStream = await response.Content.ReadAsStreamAsync();
@@ -245,7 +249,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
         {
             try
             {
-                using HttpClient httpClient = this.CreateHttpClient();
+                using HttpClient httpClient = CreateHttpClient();
 
                 return await GetHttpStringCache(httpClient, $"{ENV_VS_MARKETPLACE_ENDPOINT}/items?itemName={purl.Namespace}/{purl.Name}");
             }

@@ -137,7 +137,7 @@ namespace Microsoft.CST.OpenSource
 
             var analysisResults = new Dictionary<string, AnalyzeResult?>();
 
-            var packageDownloader = new PackageDownloader(this.HttpClientFactory, purl, targetDirectoryName, doCaching);
+            var packageDownloader = new PackageDownloader(purl, HttpClientFactory, targetDirectoryName, doCaching);
             // ensure that the cache directory has the required package, download it otherwise
             var directoryNames = await packageDownloader.DownloadPackageLocalCopy(purl,
                 false,

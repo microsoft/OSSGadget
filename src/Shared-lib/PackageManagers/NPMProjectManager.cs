@@ -24,6 +24,10 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
         {
         }
 
+        public NPMProjectManager(string destinationDirectory) : base(destinationDirectory)
+        {
+        }
+
         /// <summary>
         /// Download one NPM package and extract it to the target directory.
         /// </summary>
@@ -46,7 +50,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
 
             try
             {
-                using HttpClient httpClient = this.CreateHttpClient();
+                using HttpClient httpClient = CreateHttpClient();
                 JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}");
                 string? tarball = doc.RootElement.GetProperty("versions").GetProperty(packageVersion).GetProperty("dist").GetProperty("tarball").GetString();
                 HttpResponseMessage result = await httpClient.GetAsync(tarball);
@@ -92,7 +96,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
                 return false;
             }
             string packageName = purl.Name;
-            using HttpClient httpClient = this.CreateHttpClient();
+            using HttpClient httpClient = CreateHttpClient();
 
             return await CheckJsonCacheForPackage(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}", useCache);
         }
@@ -108,7 +112,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
             try
             {
                 string packageName = purl.Name;
-                using HttpClient httpClient = this.CreateHttpClient();
+                using HttpClient httpClient = CreateHttpClient();
 
                 JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}");
                 List<string> versionList = new();
@@ -151,7 +155,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
             try
             {
                 string? packageName = purl.Name;
-                using HttpClient httpClient = this.CreateHttpClient();
+                using HttpClient httpClient = CreateHttpClient();
 
                 string? content = await GetHttpStringCache(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}");
                 return content;

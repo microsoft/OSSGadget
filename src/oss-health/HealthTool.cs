@@ -24,14 +24,14 @@ namespace Microsoft.CST.OpenSource
 
         public async Task<HealthMetrics?> CheckHealth(PackageURL purl)
         {
-            var packageManager = ProjectManagerFactory.CreateProjectManager(purl, this.HttpClientFactory);
+            var packageManager = ProjectManagerFactory.CreateProjectManager(purl, HttpClientFactory);
 
             if (packageManager != null)
             {
                 var content = await packageManager.GetMetadata(purl);
                 if (!string.IsNullOrWhiteSpace(content))
                 {
-                    RepoSearch repoSearcher = new RepoSearch(this.HttpClientFactory);
+                    RepoSearch repoSearcher = new RepoSearch(HttpClientFactory);
                     foreach (var (githubPurl, _) in await repoSearcher.ResolvePackageLibraryAsync(purl))
                     {
                         try

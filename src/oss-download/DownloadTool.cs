@@ -107,7 +107,7 @@ namespace Microsoft.CST.OpenSource
                         var purl = new PackageURL(target);
                         string downloadDirectory = options.DownloadDirectory == "." ? System.IO.Directory.GetCurrentDirectory() : options.DownloadDirectory;
                         var useCache = options.UseCache;
-                        var packageDownloader = new PackageDownloader(this.HttpClientFactory, purl, downloadDirectory, useCache);
+                        var packageDownloader = new PackageDownloader(purl, HttpClientFactory, downloadDirectory, useCache);
 
                         var downloadResults = await packageDownloader.DownloadPackageLocalCopy(purl, options.DownloadMetadataOnly, options.Extract);
                         foreach (var downloadPath in downloadResults)

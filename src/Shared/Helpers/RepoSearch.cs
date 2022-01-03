@@ -29,7 +29,7 @@ namespace Microsoft.CST.OpenSource.Shared
     {
         public RepoSearch(IHttpClientFactory httpClientFactory)
         {
-            this.HttpClientFactory = httpClientFactory;
+            HttpClientFactory = httpClientFactory;
         }
 
         private IHttpClientFactory HttpClientFactory { get; }
@@ -57,7 +57,7 @@ namespace Microsoft.CST.OpenSource.Shared
             Logger.Debug("Searching for source code for: {0}", purlNoVersion.ToString());
 
             // Use reflection to find the correct downloader class
-            BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, this.HttpClientFactory);
+            BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, HttpClientFactory);
 
             if (projectManager != null)
             {

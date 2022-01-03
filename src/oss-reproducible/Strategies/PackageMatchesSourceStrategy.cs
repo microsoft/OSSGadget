@@ -24,7 +24,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
 
         public override StrategyResult? Execute()
         {
-            Logger.Debug("Executing {0} reproducibility strategy.", this.GetType().Name);
+            Logger.Debug("Executing {0} reproducibility strategy.", GetType().Name);
             if (!StrategyApplies())
             {
                 Logger.Debug("Strategy does not apply, so cannot execute.");
@@ -33,7 +33,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
 
             var strategyResult = new StrategyResult()
             {
-                Strategy = this.GetType()
+                Strategy = GetType()
             };
 
             if (Options.IncludeDiffoscope)
@@ -45,13 +45,13 @@ namespace Microsoft.CST.OpenSource.Reproducibility
 
             var diffResults = Helpers.DirectoryDifference(Options.PackageDirectory!, Options.SourceDirectory!, Options.DiffTechnique);
             var originalDiffResultsLength = diffResults.Count();
-            diffResults = diffResults.Where(d => !IgnoreFilter.IsIgnored(Options.PackageUrl, this.GetType().Name, d.Filename));
+            diffResults = diffResults.Where(d => !IgnoreFilter.IsIgnored(Options.PackageUrl, GetType().Name, d.Filename));
             strategyResult.NumIgnoredFiles += (originalDiffResultsLength - diffResults.Count());
             strategyResult.AddDifferencesToStrategyResult(diffResults);
 
             diffResults = Helpers.DirectoryDifference(Options.SourceDirectory!, Options.PackageDirectory!, Options.DiffTechnique);
             originalDiffResultsLength = diffResults.Count();
-            diffResults = diffResults.Where(d => !IgnoreFilter.IsIgnored(Options.PackageUrl, this.GetType().Name, d.Filename));
+            diffResults = diffResults.Where(d => !IgnoreFilter.IsIgnored(Options.PackageUrl, GetType().Name, d.Filename));
             strategyResult.NumIgnoredFiles += (originalDiffResultsLength - diffResults.Count());
             strategyResult.AddDifferencesToStrategyResult(diffResults, reverseDirection: true);
 

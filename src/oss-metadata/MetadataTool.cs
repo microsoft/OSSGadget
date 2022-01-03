@@ -96,7 +96,7 @@ namespace Microsoft.CST.OpenSource
                     try
                     {
                         var purl = new PackageURL(target);
-                        metadata = await GetPackageMetadata(purl, this.HttpClientFactory);
+                        metadata = await GetPackageMetadata(purl, HttpClientFactory);
                     }
                     catch (Exception ex)
                     {

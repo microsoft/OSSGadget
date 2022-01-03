@@ -15,6 +15,10 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
         {
         }
 
+        public URLProjectManager(string destinationDirectory) : base(destinationDirectory)
+        {
+        }
+
         public override Uri GetPackageAbsoluteUri(PackageURL purl)
         {
             string? url = purl.Qualifiers?.GetValueOrDefault("url") ?? "https://missing-url.com";
@@ -37,7 +41,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
             {
                 Uri uri = new(url);
                 Logger.Debug("Downloading {0} ({1})...", purl, uri);
-                using HttpClient httpClient = this.CreateHttpClient();
+                using HttpClient httpClient = CreateHttpClient();
 
                 System.Net.Http.HttpResponseMessage? result = await httpClient.GetAsync(uri);
                 result.EnsureSuccessStatusCode();

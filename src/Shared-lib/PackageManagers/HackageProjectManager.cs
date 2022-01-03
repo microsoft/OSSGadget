@@ -21,6 +21,10 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
         {
         }
 
+        public HackageProjectManager(string destinationDirectory) : base(destinationDirectory)
+        {
+        }
+
         /// <summary>
         ///     Download one Hackage (Haskell) package and extract it to the target directory.
         /// </summary>
@@ -45,7 +49,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
             try
             {
                 string url = $"{ENV_HACKAGE_ENDPOINT}/package/{packageName}-{packageVersion}/{packageName}-{packageVersion}.tar.gz";
-                using HttpClient httpClient = this.CreateHttpClient();
+                using HttpClient httpClient = CreateHttpClient();
 
                 System.Net.Http.HttpResponseMessage result = await httpClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
@@ -87,7 +91,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
             try
             {
                 string packageName = purl.Name;
-                using HttpClient httpClient = this.CreateHttpClient();
+                using HttpClient httpClient = CreateHttpClient();
 
                 System.Net.Http.HttpResponseMessage? html = await httpClient.GetAsync($"{ENV_HACKAGE_ENDPOINT}/package/{packageName}");
                 html.EnsureSuccessStatusCode();
@@ -128,7 +132,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
             try
             {
                 string packageName = purl.Name;
-                using HttpClient httpClient = this.CreateHttpClient();
+                using HttpClient httpClient = CreateHttpClient();
 
                 return await GetHttpStringCache(httpClient, $"{ENV_HACKAGE_ENDPOINT}/package/{packageName}");
             }

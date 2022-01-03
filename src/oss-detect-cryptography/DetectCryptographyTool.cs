@@ -268,7 +268,7 @@ namespace Microsoft.CST.OpenSource
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
 
-            var packageDownloader = new PackageDownloader(this.HttpClientFactory, purl, targetDirectoryName, doCaching);
+            var packageDownloader = new PackageDownloader(purl, HttpClientFactory, targetDirectoryName, doCaching);
             var directoryNames = await packageDownloader.DownloadPackageLocalCopy(purl, false, true);
             directoryNames = directoryNames.Distinct().ToList<string>();
 

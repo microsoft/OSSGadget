@@ -146,7 +146,7 @@ namespace Microsoft.CST.OpenSource
         {
             if (options != null && options.Targets is IList<string> targetList && targetList.Count > 0)
             {
-                var characteristicTool = new CharacteristicTool(this.HttpClientFactory);
+                var characteristicTool = new CharacteristicTool(HttpClientFactory);
                 CharacteristicTool.Options cOptions = new CharacteristicTool.Options
                 {
                     Targets = options.Targets,

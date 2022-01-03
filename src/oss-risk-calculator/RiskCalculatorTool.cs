@@ -85,14 +85,14 @@ namespace Microsoft.CST.OpenSource
         {
             Logger.Trace("CalculateRisk({0})", purl.ToString());
 
-            var characteristicTool = new CharacteristicTool(this.HttpClientFactory);
+            var characteristicTool = new CharacteristicTool(HttpClientFactory);
             var cOptions = new CharacteristicTool.Options();
             var characteristics = characteristicTool.AnalyzePackage(cOptions, purl, targetDirectory, doCaching).Result;
             double aggregateRisk = 0.0;
 
             if (checkHealth)
             {
-                var healthTool = new HealthTool(this.HttpClientFactory);
+                var healthTool = new HealthTool(HttpClientFactory);
                 var healthMetrics = await healthTool.CheckHealth(purl);
                 if (healthMetrics == null)
                 {

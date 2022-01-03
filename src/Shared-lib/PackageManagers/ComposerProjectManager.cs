@@ -21,6 +21,10 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
         {
         }
 
+        public ComposerProjectManager(string destinationDirectory) : base(destinationDirectory)
+        {
+        }
+
         /// <summary>
         ///     Download one Composer (PHP) package and extract it to the target directory.
         /// </summary>
@@ -44,7 +48,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
 
             try
             {
-                using HttpClient httpClient = this.CreateHttpClient();
+                using HttpClient httpClient = CreateHttpClient();
                 System.Text.Json.JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_COMPOSER_ENDPOINT}/p/{packageNamespace}/{packageName}.json");
                 foreach (System.Text.Json.JsonProperty topObject in doc.RootElement.GetProperty("packages").EnumerateObject())
                 {
@@ -109,7 +113,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
                 return false;
             }
             string packageName = purl.Name;
-            using HttpClient httpClient = this.CreateHttpClient();
+            using HttpClient httpClient = CreateHttpClient();
 
             return await CheckJsonCacheForPackage(httpClient, $"{ENV_COMPOSER_ENDPOINT}/p/{packageName}.json", useCache);
         }
@@ -133,7 +137,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
 
             try
             {
-                using HttpClient httpClient = this.CreateHttpClient();
+                using HttpClient httpClient = CreateHttpClient();
 
                 System.Text.Json.JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_COMPOSER_ENDPOINT}/p/{packageName}.json");
 
@@ -159,7 +163,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
             try
             {
                 string packageName = $"{purl.Namespace}/{purl.Name}";
-                using HttpClient httpClient = this.CreateHttpClient();
+                using HttpClient httpClient = CreateHttpClient();
 
                 return await GetHttpStringCache(httpClient, $"{ENV_COMPOSER_ENDPOINT}/p/{packageName}.json");
             }

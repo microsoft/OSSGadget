@@ -127,7 +127,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
             try
             {
                 PackageURL purl1 = new PackageURL(options.Targets.First());
-                var manager = ProjectManagerFactory.CreateProjectManager(purl1, this.HttpClientFactory, options.DownloadDirectory ?? Path.GetTempPath());
+                var manager = ProjectManagerFactory.CreateProjectManager(purl1, HttpClientFactory, options.DownloadDirectory ?? Path.GetTempPath());
 
                 if (manager is not null)
                 {
@@ -161,7 +161,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
             try
             {
                 PackageURL purl2 = new PackageURL(options.Targets.Last());
-                var manager2 = ProjectManagerFactory.CreateProjectManager(purl2, this.HttpClientFactory, options.DownloadDirectory ?? Path.GetTempPath());
+                var manager2 = ProjectManagerFactory.CreateProjectManager(purl2, HttpClientFactory, options.DownloadDirectory ?? Path.GetTempPath());
 
                 if (manager2 is not null)
                 {

@@ -22,6 +22,10 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
         {
         }
 
+        public PyPIProjectManager(string destinationDirectory) : base(destinationDirectory)
+        {
+        }
+
         /// <summary>
         /// Download one PyPI package and extract it to the target directory.
         /// </summary>
@@ -43,7 +47,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
 
             try
             {
-                using HttpClient httpClient = this.CreateHttpClient();
+                using HttpClient httpClient = CreateHttpClient();
 
                 JsonDocument? doc = await GetJsonCache(httpClient, $"{ENV_PYPI_ENDPOINT}/pypi/{packageName}/json");
 
@@ -108,7 +112,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
                 return false;
             }
             string packageName = purl.Name;
-            using HttpClient httpClient = this.CreateHttpClient();
+            using HttpClient httpClient = CreateHttpClient();
 
             return await CheckJsonCacheForPackage(httpClient, $"{ENV_PYPI_ENDPOINT}/pypi/{packageName}/json", useCache);
         }
@@ -124,7 +128,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
             try
             {
                 string packageName = purl.Name;
-                using HttpClient httpClient = this.CreateHttpClient();
+                using HttpClient httpClient = CreateHttpClient();
 
                 JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_PYPI_ENDPOINT}/pypi/{packageName}/json");
                 List<string> versionList = new();
@@ -161,7 +165,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
         {
             try
             {
-                using HttpClient httpClient = this.CreateHttpClient();
+                using HttpClient httpClient = CreateHttpClient();
 
                 return await GetHttpStringCache(httpClient, $"{ENV_PYPI_ENDPOINT}/pypi/{purl.Name}/json");
             }

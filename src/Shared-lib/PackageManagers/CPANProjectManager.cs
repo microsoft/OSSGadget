@@ -26,6 +26,10 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
         {
         }
 
+        public CPANProjectManager(string destinationDirectory) : base(destinationDirectory)
+        {
+        }
+
         /// <summary>
         /// Check if the package exists in the respository.
         /// </summary>
@@ -41,7 +45,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
                 return false;
             }
             string packageName = purl.Name;
-            using HttpClient httpClient = this.CreateHttpClient();
+            using HttpClient httpClient = CreateHttpClient();
             return await CheckHttpCacheForPackage(httpClient, $"{ENV_CPAN_ENDPOINT}/release/{packageName}", useCache);
         }
 
@@ -64,7 +68,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
                 return downloadedPaths;
             }
             // Locate the URL
-            using HttpClient httpClient = this.CreateHttpClient();
+            using HttpClient httpClient = CreateHttpClient();
             string? packageVersionUrl = null;
             string? html = await GetHttpStringCache(httpClient, $"{ENV_CPAN_ENDPOINT}/release/{packageName}");
             HtmlParser parser = new();
@@ -148,7 +152,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
             {
                 string packageName = purl.Name;
                 List<string> versionList = new();
-                using HttpClient httpClient = this.CreateHttpClient();
+                using HttpClient httpClient = CreateHttpClient();
 
                 string? html = await GetHttpStringCache(httpClient, $"{ENV_CPAN_ENDPOINT}/release/{packageName}");
                 HtmlParser parser = new();
@@ -185,7 +189,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
                 string? packageName = purl.Name;
                 if (packageName != null)
                 {
-                    using HttpClient httpClient = this.CreateHttpClient();
+                    using HttpClient httpClient = CreateHttpClient();
                     string? contentRelease = await GetHttpStringCache(httpClient, $"{ENV_CPAN_ENDPOINT}/release/{packageName}");
                     string? contentPod = await GetHttpStringCache(httpClient, $"{ENV_CPAN_ENDPOINT}/pod/{packageName.Replace("-", "::")}");
                     return contentRelease + "\n" + contentPod;

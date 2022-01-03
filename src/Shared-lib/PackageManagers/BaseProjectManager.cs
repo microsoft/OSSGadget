@@ -30,6 +30,13 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
             HttpClientFactory = httpClientFactory;
         }
 
+        public BaseProjectManager(string destinationDirectory)
+        {
+            Options = new Dictionary<string, object>();
+            TopLevelExtractionDirectory = destinationDirectory;
+            HttpClientFactory = new DefaultHttpClientFactory();
+        }
+
         /// <summary>
         /// Per-object option container.
         /// </summary>
@@ -330,7 +337,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
         /// </summary>
         /// <param name="metadata">The package metadata to parse.</param>
         /// <returns>The latest version of the package.</returns>
-        public Version? GetLatestVersion(JsonDocument? metadata)
+        public Version? GetLatestVersion(JsonDocument metadata)
         {
             List<Version> versions = GetVersions(metadata);
             return GetLatestVersion(versions);
@@ -342,7 +349,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
         /// <param name="purl">The PackageURL to check.</param>
         /// <param name="useCache">Ignored by <see cref="BaseProjectManager"/> but may be respected by inherited implementations.</param>
         /// <returns>True if the package is confirmed to exist in the repository. False otherwise.</returns>
-        public virtual async Task<bool> PackageExists(PackageURL? purl, bool useCache = true)
+        public virtual async Task<bool> PackageExists(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("PackageExists {0}", purl?.ToString());
             if (purl is null)
@@ -538,7 +545,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
 
         protected HttpClient CreateHttpClient()
         {
-            return this.HttpClientFactory.CreateClient(this.GetType().Name);
+            return HttpClientFactory.CreateClient(GetType().Name);
         }
     }
 }

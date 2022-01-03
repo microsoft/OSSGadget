@@ -22,6 +22,10 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
         {
         }
 
+        public CRANProjectManager(string destinationDirectory) : base(destinationDirectory)
+        {
+        }
+
         /// <summary>
         ///     Download one CRAN package and extract it to the target directory.
         /// </summary>
@@ -42,7 +46,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
                 return downloadedPaths;
             }
 
-            using HttpClient httpClient = this.CreateHttpClient();
+            using HttpClient httpClient = CreateHttpClient();
             // Current Version
             try
             {
@@ -117,7 +121,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
             {
                 string packageName = purl.Name;
                 List<string> versionList = new();
-                using HttpClient httpClient = this.CreateHttpClient();
+                using HttpClient httpClient = CreateHttpClient();
 
                 // Get the latest version
                 System.Net.Http.HttpResponseMessage html = await httpClient.GetAsync($"{ENV_CRAN_ENDPOINT}/web/packages/{packageName}/index.html");
@@ -168,7 +172,7 @@ namespace Microsoft.CST.OpenSource.Lib.PackageManagers
             try
             {
                 string? packageName = purl.Name;
-                using HttpClient httpClient = this.CreateHttpClient();
+                using HttpClient httpClient = CreateHttpClient();
                 string? content = await GetHttpStringCache(httpClient, $"{ENV_CRAN_ENDPOINT}/web/packages/{packageName}/index.html");
                 return content;
             }

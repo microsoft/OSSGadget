@@ -35,7 +35,8 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         [DataTestMethod]
-        [DataRow("pkg:npm/foo", "foojs")]
+        [DataRow("pkg:npm/foo", "foojs")] // SuffixAdded, js
+        [DataRow("pkg:npm/lodash", "odash")] // RemovedCharacter, first character
         [DataRow("pkg:nuget/Microsoft.CST.OAT", "microsoft.cst.oat.net")]
         public void GenerateManagerSpecific(string packageUrl, string expectedToFind)
         {

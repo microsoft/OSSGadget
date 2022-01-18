@@ -13,7 +13,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 
         public IEnumerable<Mutation> Generate(string arg)
         {
-            for (int i = 1; i < arg.Length; i++)
+            for (int i = 0; i < arg.Length; i++)
             {
                 yield return new Mutation(
                     mutated: $"{arg[..i]}{arg[(i + 1)..]}",

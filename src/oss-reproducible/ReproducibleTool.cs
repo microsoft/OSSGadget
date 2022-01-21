@@ -17,6 +17,7 @@ namespace Microsoft.CST.OpenSource
     using Extensions.DependencyInjection;
     using System.Net.Http;
     using Microsoft.CST.OpenSource;
+    using Microsoft.CST.OpenSource.Helpers;
 
     public enum DiffTechnique
     {
@@ -255,10 +256,7 @@ namespace Microsoft.CST.OpenSource
                     }
 
                     string? tempDirectoryName = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString().Substring(0, 8));
-                    if (System.IO.Directory.Exists(tempDirectoryName))
-                    {
-                        System.IO.Directory.Delete(tempDirectoryName, true);  // Just in case
-                    }
+                    FileSystemHelper.RetryDeleteDirectory(tempDirectoryName);
                     // Download the package
                     Console.WriteLine("Downloading package...");
                     PackageDownloader? packageDownloader = new PackageDownloader(purl, HttpClientFactory, Path.Join(tempDirectoryName, "package"));
@@ -513,7 +511,7 @@ namespace Microsoft.CST.OpenSource
                     }
                     else
                     {
-                        OssReproducibleHelpers.DeleteDirectory(tempDirectoryName);
+                        FileSystemHelper.RetryDeleteDirectory(tempDirectoryName);
                     }
                 }
                 catch (Exception ex)

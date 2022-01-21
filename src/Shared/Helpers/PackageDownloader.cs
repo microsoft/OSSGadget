@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource
 {
+    using Microsoft.CST.OpenSource.Helpers;
     using Microsoft.CST.OpenSource.PackageManagers;
     using System;
     using System.Collections.Generic;
@@ -67,7 +68,7 @@ namespace Microsoft.CST.OpenSource
                     if (Directory.Exists(packageDirectory))
                     {
                         Logger.Trace("Removing directory {0}", packageDirectory);
-                        Directory.Delete(packageDirectory, true);
+                        FileSystemHelper.RetryDeleteDirectory(packageDirectory);
                     }
                 }
             }

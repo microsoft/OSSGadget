@@ -20,7 +20,9 @@ namespace Microsoft.CST.OpenSource
         public HealthTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
         {
         }
-
+        public HealthTool() : this(new DefaultHttpClientFactory())
+        {
+        }
         public async Task<HealthMetrics?> CheckHealth(PackageURL purl)
         {
             BaseProjectManager? packageManager = ProjectManagerFactory.CreateProjectManager(purl, HttpClientFactory);

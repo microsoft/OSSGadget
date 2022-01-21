@@ -60,10 +60,6 @@ namespace Microsoft.CST.OpenSource.FindSquats
         {
         }
 
-        public FindSquatsTool() : base()
-        {
-        }
-
         static async Task Main(string[] args)
         {
             ShowToolBanner();

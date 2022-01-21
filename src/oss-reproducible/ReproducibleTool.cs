@@ -77,7 +77,9 @@ namespace Microsoft.CST.OpenSource
         public ReproducibleTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
         {
         }
-
+        public ReproducibleTool() : this(new DefaultHttpClientFactory())
+        {
+        }
         /// <summary>
         /// Main entrypoint for the download program.
         /// </summary>

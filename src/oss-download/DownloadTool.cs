@@ -59,6 +59,8 @@ namespace Microsoft.CST.OpenSource
         {
         }
 
+        public DownloadTool() : this(new DefaultHttpClientFactory()) { }
+
         /// <summary>
         ///     Main entrypoint for the download program.
         /// </summary>

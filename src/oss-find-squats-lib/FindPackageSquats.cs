@@ -34,7 +34,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
             }
         }
 
-        public IDictionary<string, IList<Mutation>>? GenerateSquats(IEnumerable<IMutator>? mutators = null,
+        public IDictionary<string, IList<Mutation>>? GenerateSquatCandidates(IEnumerable<IMutator>? mutators = null,
             MutateOptions? options = null)
         {
             if (ProjectManager is null)
@@ -45,9 +45,9 @@ namespace Microsoft.CST.OpenSource.FindSquats
             {
                 if (mutators != null)
                 {
-                    return ProjectManager.EnumerateSquats(PackageUrl, mutators, options);
+                    return ProjectManager.EnumerateSquatCandidates(PackageUrl, mutators, options);
                 }
-                return ProjectManager.EnumerateSquats(PackageUrl, options);
+                return ProjectManager.EnumerateSquatCandidates(PackageUrl, options);
             }
             return null;
         }

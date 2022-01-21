@@ -7,7 +7,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     using System.Linq;
 
     /// <summary>
-    /// Generates mutations for if a character was changed after a separator was used.
+    /// Generates mutations for if a character was added after a separator was used.
     /// </summary>
     public class AfterSeparatorMutator : IMutator
     {
@@ -31,23 +31,29 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
             }
         }
 
+        /// <summary>
+        /// Generates mutations by adding a character after each separator.
+        /// For example: foo-js generates foo-ajs, foo-bjs, etc. through z.
+        /// </summary>
+        /// <param name="target">String to mutate</param>
+        /// <returns>The generated mutations.</returns>
         public IEnumerable<Mutation> Generate(string arg)
         {
-            foreach (char s in Separators)
+            foreach (char separator in Separators)
             {
-                string[] splits = arg.Split(s, StringSplitOptions.RemoveEmptyEntries);
+                string[] splits = arg.Split(separator, StringSplitOptions.RemoveEmptyEntries);
 
                 if (splits.Length >= 2)
                 {
                     for (int i = 0; i < splits.Length - 1; i++)
                     {
-                        for (char c = 'a'; c <= 'z'; c++)
+                        for (char character = 'a'; character <= 'z'; character++)
                         {
                             yield return new Mutation(
-                                mutated: splits[i] + s + c + string.Join('s', splits[(i + 1)..]),
+                                mutated: splits[i] + separator + character + string.Join(separator, splits[(i + 1)..]),
                                 original: arg,
                                 mutator: Kind,
-                                reason: $"After Separator: {s}");
+                                reason: $"After Separator: {separator}");
                         }
                     }
                 }

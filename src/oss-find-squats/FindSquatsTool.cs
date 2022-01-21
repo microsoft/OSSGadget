@@ -108,7 +108,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
 
                 FindPackageSquats findPackageSquats = new FindPackageSquats(HttpClientFactory, purl);
 
-                IDictionary<string, IList<Mutation>>? potentialSquats = findPackageSquats.GenerateSquats(options: checkerOptions);
+                IDictionary<string, IList<Mutation>>? potentialSquats = findPackageSquats.GenerateSquatCandidates(options: checkerOptions);
 
                 await foreach (FindPackageSquatResult? potentialSquat in findPackageSquats.FindExistingSquatsAsync(potentialSquats, checkerOptions))
                 {

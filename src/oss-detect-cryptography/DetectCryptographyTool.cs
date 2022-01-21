@@ -254,7 +254,7 @@ namespace Microsoft.CST.OpenSource
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
 
-            PackageDownloader? packageDownloader = new PackageDownloader(purl, HttpClientFactory, targetDirectoryName, doCaching);
+            PackageDownloader? packageDownloader = new(purl, HttpClientFactory, targetDirectoryName, doCaching);
             List<string>? directoryNames = await packageDownloader.DownloadPackageLocalCopy(purl, false, true);
             directoryNames = directoryNames.Distinct().ToList<string>();
 
@@ -269,12 +269,6 @@ namespace Microsoft.CST.OpenSource
                     {
                         analysisResults.AddRange(singleResult);
                     }
-
-                    Logger.Trace("Removing {0}", directoryName);
-                    if (!FileSystemHelper.RetryDeleteDirectory(directoryName))
-                    {
-                        Logger.Warn("Error removing {0}", directoryName);
-                    }
                 }
             }
             else
@@ -282,7 +276,7 @@ namespace Microsoft.CST.OpenSource
                 Logger.Warn("Error downloading {0}.", purl.ToString());
             }
             packageDownloader.ClearPackageLocalCopyIfNoCaching();
-
+            packageDownloader.DeleteDestinationDirectoryIfTemp();
             return analysisResults.ToList();
         }
 

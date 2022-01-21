@@ -11,7 +11,6 @@ namespace Microsoft.CST.OpenSource
 {
     using Extensions.DependencyInjection;
     using System.Net.Http;
-
     public class DownloadTool : OSSGadget
     {
         public enum ErrorCode
@@ -68,15 +67,7 @@ namespace Microsoft.CST.OpenSource
         {
             ShowToolBanner();
 
-            // Setup our DI for the HTTP Client.
-            ServiceProvider serviceProvider = new ServiceCollection()
-                .AddHttpClient()
-                .BuildServiceProvider();
-
-            // Get the IHttpClientFactory
-            IHttpClientFactory httpClientFactory = serviceProvider.GetService<IHttpClientFactory>() ?? throw new InvalidOperationException();
-
-            DownloadTool? downloadTool = new DownloadTool(httpClientFactory);
+            DownloadTool? downloadTool = new DownloadTool(new DefaultHttpClientFactory());
             ParserResult<Options>? opts = downloadTool.ParseOptions<Options>(args);
             if (opts.Value is null)
             {

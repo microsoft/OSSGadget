@@ -3,12 +3,15 @@
 namespace Microsoft.CST.OpenSource
 {
     using Helpers;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Http;
+    using System;
     using System.Net.Http;
 
     public abstract class OssGadgetLib
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        private string ENV_HTTPCLIENT_USER_AGENT = "OSSDL";
+        protected static string ENV_HTTPCLIENT_USER_AGENT = "OSSDL";
 
         /// <summary>
         /// The <see cref="IHttpClientFactory"/> to be used by classes that implement <see cref="OssGadgetLib"/>.
@@ -32,11 +35,18 @@ namespace Microsoft.CST.OpenSource
             Directory = directory;
         }
 
-        protected OssGadgetLib(string directory = ".")
+        protected OssGadgetLib(string directory = ".") : this(new DefaultHttpClientFactory(ENV_HTTPCLIENT_USER_AGENT), directory)
         {
-            EnvironmentHelper.OverrideEnvironmentVariables(this);
-            HttpClientFactory = new DefaultHttpClientFactory(ENV_HTTPCLIENT_USER_AGENT);
-            Directory = directory;
+        }
+
+        protected static IHttpClientFactory GetDefaultClientFactory()
+        {
+            ServiceProvider serviceProvider = new ServiceCollection()
+                .AddHttpClient()
+                .BuildServiceProvider();
+
+            // Get the IHttpClientFactory
+            return serviceProvider.GetService<IHttpClientFactory>() ?? throw new InvalidOperationException();
         }
     }
 }

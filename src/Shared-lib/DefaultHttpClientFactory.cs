@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource
 {
+    using Microsoft.CST.OpenSource.Helpers;
     using System;
     using System.Net.Http;
 
@@ -10,13 +11,17 @@ namespace Microsoft.CST.OpenSource
     /// </summary>
     public sealed class DefaultHttpClientFactory : IHttpClientFactory
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
+        private string ENV_HTTPCLIENT_USER_AGENT = "OSSDL";
 
         public DefaultHttpClientFactory(string? userAgent = null)
         {
+            EnvironmentHelper.OverrideEnvironmentVariables(this);
+
             _httpClientLazy = new(() =>
             {
                 HttpClient cli = new(handler);
-                cli.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent ?? "OSSDL");
+                cli.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent ?? ENV_HTTPCLIENT_USER_AGENT);
                 return cli;
             });
         }

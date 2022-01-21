@@ -77,6 +77,10 @@ namespace Microsoft.CST.OpenSource
         {
         }
 
+        public CharacteristicTool() : this(new DefaultHttpClientFactory()) 
+        {
+        }
+
         public async Task<AnalyzeResult?> AnalyzeFile(Options options, string file)
         {
             Logger.Trace("AnalyzeFile({0})", file);
@@ -287,15 +291,7 @@ namespace Microsoft.CST.OpenSource
         {
             ShowToolBanner();
 
-            // Setup our DI for the HTTP Client.
-            ServiceProvider serviceProvider = new ServiceCollection()
-                .AddHttpClient()
-                .BuildServiceProvider();
-
-            // Get the IHttpClientFactory
-            IHttpClientFactory httpClientFactory = serviceProvider.GetService<IHttpClientFactory>() ?? throw new InvalidOperationException();
-
-            CharacteristicTool? characteristicTool = new CharacteristicTool(httpClientFactory);
+            CharacteristicTool? characteristicTool = new CharacteristicTool(new DefaultHttpClientFactory());
             await characteristicTool.ParseOptions<Options>(args).WithParsedAsync(characteristicTool.RunAsync);
         }
 

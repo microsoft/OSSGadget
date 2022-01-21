@@ -70,15 +70,7 @@ namespace Microsoft.CST.OpenSource
         {
             ShowToolBanner();
 
-            // Setup our DI for the HTTP Client.
-            ServiceProvider serviceProvider = new ServiceCollection()
-                .AddHttpClient()
-                .BuildServiceProvider();
-
-            // Get the IHttpClientFactory
-            IHttpClientFactory httpClientFactory = serviceProvider.GetService<IHttpClientFactory>() ?? throw new InvalidOperationException();
-
-            DetectBackdoorTool? detectBackdoorTool = new DetectBackdoorTool(httpClientFactory);
+            DetectBackdoorTool? detectBackdoorTool = new DetectBackdoorTool(new DefaultHttpClientFactory());
             Options? parsedOptions = detectBackdoorTool.ParseOptions<Options>(args).Value;
             List<Dictionary<string, AnalyzeResult?>>? detectionResults = await detectBackdoorTool.RunAsync(parsedOptions);
 

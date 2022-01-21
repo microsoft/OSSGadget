@@ -87,15 +87,7 @@ namespace Microsoft.CST.OpenSource
             ShowToolBanner();
             Console.WriteLine();
 
-            // Setup our DI for the HTTP Client.
-            ServiceProvider serviceProvider = new ServiceCollection()
-                .AddHttpClient()
-                .BuildServiceProvider();
-
-            // Get the IHttpClientFactory
-            IHttpClientFactory httpClientFactory = serviceProvider.GetService<IHttpClientFactory>() ?? throw new InvalidOperationException();
-
-            ReproducibleTool? reproducibleTool = new ReproducibleTool(httpClientFactory);
+            ReproducibleTool? reproducibleTool = new ReproducibleTool(new DefaultHttpClientFactory());
             await reproducibleTool.ParseOptions<Options>(args).WithParsedAsync(reproducibleTool.RunAsync);
         }
 

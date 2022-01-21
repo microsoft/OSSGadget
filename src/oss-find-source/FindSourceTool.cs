@@ -156,15 +156,7 @@ namespace Microsoft.CST.OpenSource
 
         static async Task Main(string[] args)
         {
-            // Setup our DI for the HTTP Client.
-            ServiceProvider serviceProvider = new ServiceCollection()
-                .AddHttpClient()
-                .BuildServiceProvider();
-
-            // Get the IHttpClientFactory
-            IHttpClientFactory httpClientFactory = serviceProvider.GetService<IHttpClientFactory>() ?? throw new InvalidOperationException();
-
-            FindSourceTool findSourceTool = new FindSourceTool(httpClientFactory);
+            FindSourceTool findSourceTool = new FindSourceTool(new DefaultHttpClientFactory());
             await findSourceTool.ParseOptions<Options>(args).WithParsedAsync(findSourceTool.RunAsync);
         }
 

@@ -194,16 +194,7 @@ namespace Microsoft.CST.OpenSource
         private static async Task Main(string[] args)
         {
             ShowToolBanner();
-
-            // Setup our DI for the HTTP Client.
-            ServiceProvider serviceProvider = new ServiceCollection()
-                .AddHttpClient()
-                .BuildServiceProvider();
-
-            // Get the IHttpClientFactory
-            IHttpClientFactory httpClientFactory = serviceProvider.GetService<IHttpClientFactory>() ?? throw new InvalidOperationException();
-
-            RiskCalculatorTool? riskCalculator = new RiskCalculatorTool(httpClientFactory);
+            RiskCalculatorTool? riskCalculator = new RiskCalculatorTool(new DefaultHttpClientFactory());
             await riskCalculator.ParseOptions<Options>(args).WithParsedAsync(riskCalculator.RunAsync);
         }
 

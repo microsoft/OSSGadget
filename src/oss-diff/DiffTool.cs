@@ -96,15 +96,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
                 Console.ForegroundColor = originalColor;
             };
 
-            // Setup our DI for the HTTP Client.
-            ServiceProvider serviceProvider = new ServiceCollection()
-                .AddHttpClient()
-                .BuildServiceProvider();
-
-            // Get the IHttpClientFactory
-            IHttpClientFactory httpClientFactory = serviceProvider.GetService<IHttpClientFactory>() ?? throw new InvalidOperationException();
-
-            DiffTool? diffTool = new DiffTool(httpClientFactory);
+            DiffTool? diffTool = new DiffTool(new DefaultHttpClientFactory());
             await diffTool.ParseOptions<Options>(args).WithParsedAsync<Options>(diffTool.RunAsync);
         }
 

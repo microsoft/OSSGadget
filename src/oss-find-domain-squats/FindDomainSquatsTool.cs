@@ -85,16 +85,7 @@ namespace Microsoft.CST.OpenSource.DomainSquats
         static async Task Main(string[] args)
         {
             ShowToolBanner();
-
-            // Setup our DI for the HTTP Client.
-            ServiceProvider serviceProvider = new ServiceCollection()
-                .AddHttpClient()
-                .BuildServiceProvider();
-
-            // Get the IHttpClientFactory
-            IHttpClientFactory httpClientFactory = serviceProvider.GetService<IHttpClientFactory>() ?? throw new InvalidOperationException();
-
-            FindDomainSquatsTool findSquatsTool = new(httpClientFactory);
+            FindDomainSquatsTool findSquatsTool = new(new DefaultHttpClientFactory());
             (string output, int numRegisteredSquats, int numUnregisteredSquats) = (string.Empty, 0, 0);
             await findSquatsTool.ParseOptions<Options>(args).WithParsedAsync<Options>(findSquatsTool.RunAsync);
         }

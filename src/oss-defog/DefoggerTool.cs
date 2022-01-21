@@ -265,15 +265,7 @@ namespace Microsoft.CST.OpenSource
         {
             ShowToolBanner();
 
-            // Setup our DI for the HTTP Client.
-            ServiceProvider serviceProvider = new ServiceCollection()
-                .AddHttpClient()
-                .BuildServiceProvider();
-
-            // Get the IHttpClientFactory
-            IHttpClientFactory httpClientFactory = serviceProvider.GetService<IHttpClientFactory>() ?? throw new InvalidOperationException();
-
-            DefoggerTool? defoggerTool = new DefoggerTool(httpClientFactory);
+            DefoggerTool? defoggerTool = new DefoggerTool(new DefaultHttpClientFactory());
             defoggerTool.ParseOptions(args);
 
             if (defoggerTool.Options["target"] is IList<string> targetList && targetList.Count > 0)

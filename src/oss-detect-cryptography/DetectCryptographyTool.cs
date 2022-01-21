@@ -56,15 +56,7 @@ namespace Microsoft.CST.OpenSource
         {
             ShowToolBanner();
 
-            // Setup our DI for the HTTP Client.
-            ServiceProvider serviceProvider = new ServiceCollection()
-                .AddHttpClient()
-                .BuildServiceProvider();
-
-            // Get the IHttpClientFactory
-            IHttpClientFactory httpClientFactory = serviceProvider.GetService<IHttpClientFactory>() ?? throw new InvalidOperationException();
-
-            DetectCryptographyTool detectCryptographyTool = new DetectCryptographyTool(httpClientFactory);
+            DetectCryptographyTool detectCryptographyTool = new DetectCryptographyTool(new DefaultHttpClientFactory());
 
             detectCryptographyTool.ParseOptions(args);
 

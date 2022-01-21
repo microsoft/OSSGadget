@@ -369,12 +369,8 @@ namespace Microsoft.CST.OpenSource
             NonTextFindings = new List<EncodedBlob>();
         }
 
-        public DefoggerTool() : base()
+        public DefoggerTool() : this(new DefaultHttpClientFactory())
         {
-            Findings = new List<EncodedString>();
-            BinaryFindings = new List<EncodedBinary>();
-            ArchiveFindings = new List<EncodedArchive>();
-            NonTextFindings = new List<EncodedBlob>();
         }
 
         /// <summary>

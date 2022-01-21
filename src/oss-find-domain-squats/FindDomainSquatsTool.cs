@@ -82,6 +82,8 @@ namespace Microsoft.CST.OpenSource.DomainSquats
         {
         }
 
+        public FindDomainSquatsTool() : this(new DefaultHttpClientFactory()) { }
+
         static async Task Main(string[] args)
         {
             ShowToolBanner();

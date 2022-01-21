@@ -71,7 +71,11 @@ namespace Microsoft.CST.OpenSource
         {
         }
 
-        
+        public RiskCalculatorTool() : this(new DefaultHttpClientFactory())
+        {
+        }
+
+
         /// <summary>
         /// Calculates project risk based on health and characteristics.
         /// </summary>

@@ -56,6 +56,10 @@ namespace Microsoft.CST.OpenSource.FindSquats
         {
         }
 
+        public FindSquatsTool() : this(new DefaultHttpClientFactory())
+        {
+        }
+
         public FindSquatsTool() : base()
         {
         }

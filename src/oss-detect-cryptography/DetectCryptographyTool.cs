@@ -250,7 +250,7 @@ namespace Microsoft.CST.OpenSource
         {
         }
 
-        public DetectCryptographyTool() : base()
+        public DetectCryptographyTool() : this(new DefaultHttpClientFactory())
         {
         }
 

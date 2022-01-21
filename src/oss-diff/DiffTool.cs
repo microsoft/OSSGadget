@@ -88,6 +88,8 @@ namespace Microsoft.CST.OpenSource.DiffTool
         {
         }
 
+        public DiffTool() : this (new DefaultHttpClientFactory()) { }
+
         static async Task Main(string[] args)
         {
             ShowToolBanner();

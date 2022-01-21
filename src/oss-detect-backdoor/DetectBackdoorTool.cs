@@ -57,6 +57,10 @@ namespace Microsoft.CST.OpenSource
             RULE_DIRECTORY = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "BackdoorRules");
         }
 
+        public DetectBackdoorTool() : this(new DefaultHttpClientFactory())
+        {
+        }
+
         /// <summary>
         ///     Location of the backdoor detection rules.
         /// </summary>

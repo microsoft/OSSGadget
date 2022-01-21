@@ -34,7 +34,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
 
             if (GetPathToCommand(new[] { "docker" }) == null)
             {
-                Logger.Debug("Strategy {0} cannot be used, as Docker does not appear to be installed.", this.GetType().Name);
+                Logger.Debug("Strategy {0} cannot be used, as Docker does not appear to be installed.", GetType().Name);
                 return false;
             }
             return true;
@@ -42,26 +42,26 @@ namespace Microsoft.CST.OpenSource.Reproducibility
 
         public override StrategyResult? Execute()
         {
-            Logger.Debug("Executing {0} reproducibility strategy.", this.GetType().Name);
+            Logger.Debug("Executing {0} reproducibility strategy.", GetType().Name);
             if (!StrategyApplies())
             {
                 Logger.Debug("Strategy does not apply, so cannot execute.");
                 return null;
             }
 
-            var workingDirectory = Helpers.GetFirstNonSingularDirectory(Options.SourceDirectory);
+            string? workingDirectory = OssReproducibleHelpers.GetFirstNonSingularDirectory(Options.SourceDirectory);
             if (workingDirectory == null)
             {
                 Logger.Warn("Unable to find correct source directory to run Oryx against. Unable to continue.");
                 return null;
             }
 
-            var outputDirectory = Path.Join(Options.TemporaryDirectory, "build");
+            string? outputDirectory = Path.Join(Options.TemporaryDirectory, "build");
             Directory.CreateDirectory(outputDirectory);
-            var tempBuildArchiveDirectory = Path.Join(Options.TemporaryDirectory, "archive");
+            string? tempBuildArchiveDirectory = Path.Join(Options.TemporaryDirectory, "archive");
             Directory.CreateDirectory(tempBuildArchiveDirectory);
 
-            var runResult = Helpers.RunCommand(workingDirectory, "docker", new[] {
+            bool runResult = OssReproducibleHelpers.RunCommand(workingDirectory, "docker", new[] {
                                            "run",
                                            "--rm",
                                            "--volume", $"{Path.GetFullPath(workingDirectory)}:/repo",
@@ -71,11 +71,11 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                                            "build",
                                            "/repo",
                                            "--output", "/build-output"
-                                       }, out var stdout, out var stderr);
+                                       }, out string? stdout, out string? stderr);
 
-            var strategyResult = new StrategyResult()
+            StrategyResult? strategyResult = new StrategyResult()
             {
-                Strategy = this.GetType()
+                Strategy = GetType()
             };
 
             if (runResult)
@@ -84,14 +84,14 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 {
                     if (Options.IncludeDiffoscope)
                     {
-                        var diffoscopeTempDir = Path.Join(Options.TemporaryDirectory, "diffoscope");
-                        var diffoscopeResults = GenerateDiffoscope(diffoscopeTempDir, outputDirectory, Options.PackageDirectory!);
+                        string? diffoscopeTempDir = Path.Join(Options.TemporaryDirectory, "diffoscope");
+                        string? diffoscopeResults = GenerateDiffoscope(diffoscopeTempDir, outputDirectory, Options.PackageDirectory!);
                         strategyResult.Diffoscope = diffoscopeResults;
                     }
 
-                    var diffResults = Helpers.DirectoryDifference(Options.PackageDirectory!, outputDirectory, Options.DiffTechnique);
-                    var diffResultsOriginalCount = diffResults.Count();
-                    diffResults = diffResults.Where(d => !IgnoreFilter.IsIgnored(Options.PackageUrl, this.GetType().Name, d.Filename));
+                    System.Collections.Generic.IEnumerable<DirectoryDifference>? diffResults = OssReproducibleHelpers.DirectoryDifference(Options.PackageDirectory!, outputDirectory, Options.DiffTechnique);
+                    int diffResultsOriginalCount = diffResults.Count();
+                    diffResults = diffResults.Where(d => !IgnoreFilter.IsIgnored(Options.PackageUrl, GetType().Name, d.Filename));
                     strategyResult.NumIgnoredFiles += (diffResultsOriginalCount - diffResults.Count());
                     strategyResult.AddDifferencesToStrategyResult(diffResults);
                 }

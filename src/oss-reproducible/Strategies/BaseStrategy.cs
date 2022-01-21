@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using DiffPlex.DiffBuilder.Model;
-using Microsoft.CST.OpenSource.Shared;
 using SharpCompress.Archives;
 using SharpCompress.Archives.Zip;
 using SharpCompress.Common;
@@ -36,8 +35,8 @@ namespace Microsoft.CST.OpenSource.Reproducibility
     {
         public StrategyResultMessage()
         {
-            this.Text = "";
-            this.Filename = "";
+            Text = "";
+            Filename = "";
         }
 
         public string Text { get; set; }
@@ -76,19 +75,19 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         {
             if (!directoryDifferences.Any())
             {
-                this.Summary = "Successfully reproduced package.";
-                this.IsSuccess = true;
+                Summary = "Successfully reproduced package.";
+                IsSuccess = true;
                 return true;
                 //Logger.Debug("Strategy succeeded. The results match the package contents.");
             }
             else
             {
-                this.Summary = "Strategy failed. The results do not match the package contents.";
-                this.IsSuccess = false;
+                Summary = "Strategy failed. The results do not match the package contents.";
+                IsSuccess = false;
 
-                foreach (var dirDiff in directoryDifferences)
+                foreach (DirectoryDifference? dirDiff in directoryDifferences)
                 {
-                    var message = new StrategyResultMessage()
+                    StrategyResultMessage? message = new StrategyResultMessage()
                     {
                         Filename = reverseDirection ? dirDiff.ComparisonFile : dirDiff.Filename,
                         CompareFilename = reverseDirection ? dirDiff.Filename : dirDiff.ComparisonFile,
@@ -105,7 +104,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                         default:
                             break;
                     }
-                    this.Messages.Add(message);
+                    Messages.Add(message);
                 }
                 return false;
             }
@@ -129,7 +128,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
 
         public BaseStrategy(StrategyOptions options)
         {
-            this.Options = options;
+            Options = options;
         }
 
         /// <summary>
@@ -141,21 +140,21 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         {
             if (directories == null)
             {
-                Logger.Debug("Strategy {0} does not apply as no directories checked.", this.GetType().Name);
+                Logger.Debug("Strategy {0} does not apply as no directories checked.", GetType().Name);
                 return false;
             }
 
             bool result = true;
-            foreach (var directory in directories)
+            foreach (string? directory in directories)
             {
                 if (directory == null)
                 {
-                    Logger.Debug("Strategy {0} does not apply as no directories checked.", this.GetType().Name);
+                    Logger.Debug("Strategy {0} does not apply as no directories checked.", GetType().Name);
                     result = false;
                 }
                 else if (Directory.Exists(directory) && !Directory.EnumerateFileSystemEntries(directory).Any())
                 {
-                    Logger.Debug("Strategy {0} does not apply as {1} was empty.", this.GetType().Name, directory);
+                    Logger.Debug("Strategy {0} does not apply as {1} was empty.", GetType().Name, directory);
                     result = false;
                 }
             }
@@ -169,7 +168,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         /// <returns></returns>
         public static IEnumerable<Type>? GetStrategies(StrategyOptions strategyOptions)
         {
-            var strategies = typeof(BaseStrategy).Assembly.GetTypes().Where(t => t.IsSubclassOf(typeof(BaseStrategy))).ToList();
+            List<Type>? strategies = typeof(BaseStrategy).Assembly.GetTypes().Where(t => t.IsSubclassOf(typeof(BaseStrategy))).ToList();
 
             strategies.Sort((a, b) =>
             {
@@ -177,11 +176,11 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 {
                     return 0;
                 }
-                var aCtor = a.GetConstructor(new Type[] { typeof(StrategyOptions) });
-                var aObj = aCtor?.Invoke(new object?[] { strategyOptions }) as BaseStrategy;
+                System.Reflection.ConstructorInfo? aCtor = a.GetConstructor(new Type[] { typeof(StrategyOptions) });
+                BaseStrategy? aObj = aCtor?.Invoke(new object?[] { strategyOptions }) as BaseStrategy;
 
-                var bCtor = b.GetConstructor(new Type[] { typeof(StrategyOptions) });
-                var bObj = bCtor?.Invoke(new object?[] { strategyOptions }) as BaseStrategy;
+                System.Reflection.ConstructorInfo? bCtor = b.GetConstructor(new Type[] { typeof(StrategyOptions) });
+                BaseStrategy? bObj = bCtor?.Invoke(new object?[] { strategyOptions }) as BaseStrategy;
 
                 if (aObj == null && bObj != null) return -1;
                 if (aObj != null && bObj == null) return 1;
@@ -198,7 +197,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
 
         protected static string? GetPathToCommand(IEnumerable<string> commands)
         {
-            foreach (var command in commands)
+            foreach (string? command in commands)
             {
                 string[]? pathParts = null;
 
@@ -211,9 +210,9 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                     pathParts = Environment.GetEnvironmentVariable("PATH")?.Split(':');
                 }
 
-                foreach (var pathPart in pathParts ?? Array.Empty<string>())
+                foreach (string? pathPart in pathParts ?? Array.Empty<string>())
                 {
-                    var target = Path.Combine(pathPart, command);
+                    string? target = Path.Combine(pathPart, command);
                     if (File.Exists(target))
                     {
                         return target;
@@ -233,19 +232,19 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         /// <returns>true iff no errors occur</returns>
         protected static bool CreateZipFromDirectory(string directoryName, string archiveName)
         {
-            var result = true;
+            bool result = true;
             // Note that we're not using something like .CreateFromDirectory, or .AddDirectory,
             // since both of these had problems with permissions. Instead, we'll try to add each
             // file separately, and continue on any failures.
-            using (var archive = ZipArchive.Create())
+            using (ZipArchive? archive = ZipArchive.Create())
             {
                 using (archive.PauseEntryRebuilding())
                 {
-                    foreach (var path in Directory.EnumerateFiles(directoryName, "*", SearchOption.AllDirectories))
+                    foreach (string? path in Directory.EnumerateFiles(directoryName, "*", SearchOption.AllDirectories))
                     {
                         try
                         {
-                            var fileInfo = new FileInfo(path);
+                            FileInfo? fileInfo = new FileInfo(path);
                             archive.AddEntry(path[directoryName.Length..], fileInfo.OpenRead(), true, fileInfo.Length, fileInfo.LastWriteTime);
                         }
                         catch (Exception ex)
@@ -265,7 +264,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
             Logger.Debug("Running Diffoscope on ({0}, {1})", leftDirectory, rightDirectory);
             Directory.CreateDirectory(workingDirectory);
 
-            var runResult = Helpers.RunCommand(workingDirectory, "docker", new[] {
+            bool runResult = OssReproducibleHelpers.RunCommand(workingDirectory, "docker", new[] {
                                             "run",
                                             "--rm",
                                             "--memory=1g",
@@ -279,13 +278,13 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                                             "/work/output/results.html",
                                             "/work/left",
                                             "/work/right"
-                                       }, out var stdout, out var stderr);
+                                       }, out string? stdout, out string? stderr);
 
-            var resultsFile = Path.Join(workingDirectory, "results.html");
+            string? resultsFile = Path.Join(workingDirectory, "results.html");
             if (File.Exists(resultsFile))
             {
                 Logger.Debug("Diffoscope run successful.");
-                var results = File.ReadAllText(resultsFile);
+                string? results = File.ReadAllText(resultsFile);
                 return results;
             }
             else

@@ -3,6 +3,7 @@
 using Microsoft.CST.OpenSource.FindSquats;
 using Microsoft.CST.OpenSource.FindSquats.ExtensionMethods;
 using Microsoft.CST.OpenSource.FindSquats.Mutators;
+using Microsoft.CST.OpenSource.PackageManagers;
 using Microsoft.CST.OpenSource.Shared;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -13,11 +14,6 @@ namespace Microsoft.CST.OpenSource.Tests
     [TestClass]
     public class FindSquatsTest
     {
-        public FindSquatsTest()
-        {
-            CommonInitialization.Initialize();
-        }
-
         [DataTestMethod]
         [DataRow("pkg:nuget/Microsoft.CST.OAT", false)]
         [DataRow("pkg:npm/microsoft/microsoft-graph-library", false)]

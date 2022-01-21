@@ -1,12 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using DiffPlex.DiffBuilder;
-using DiffPlex.DiffBuilder.Model;
-using Microsoft.CST.OpenSource.Shared;
-using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 namespace Microsoft.CST.OpenSource.Reproducibility
 {
@@ -23,7 +17,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                     return false;
                 }
 
-                foreach (var result in Results)
+                foreach (StrategyResult? result in Results)
                 {
                     if (result.IsSuccess && !result.IsError)
                     {

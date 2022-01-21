@@ -76,11 +76,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\oss-characteristics\oss-characteristic.csproj" />
-    <ProjectReference Include="..\Shared\Shared.csproj" />
+    <ProjectReference Include="..\Shared\Shared.CLI.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\LICENSE.txt" Pack="true" PackagePath=""/>
-    <None Include="..\..\icon-128.png" Pack="true" PackagePath=""/>
+    <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="" />
+    <None Include="..\..\icon-128.png" Pack="true" PackagePath="" />
   </ItemGroup>
 </Project>

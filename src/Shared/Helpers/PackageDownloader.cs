@@ -2,25 +2,27 @@
 
 namespace Microsoft.CST.OpenSource
 {
-    using Microsoft.CST.OpenSource.Shared;
+    using Microsoft.CST.OpenSource.PackageManagers;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Net.Http;
     using System.Threading.Tasks;
 
     /// <summary>
-    ///     Class for managing the download of a single package
+    /// Class for managing the download of a single package.
     /// </summary>
     public class PackageDownloader
     {
         /// <summary>
-        ///     Constuctor - creates a class object for downloading packages
+        /// Constructor - creates a class object for downloading packages.
         /// </summary>
-        /// <param name="purl"> package to download </param>
-        /// <param name="destinationDir"> the directory where the package needs to be placed </param>
-        /// <param name="doCaching"> check and use the cache if it exists - create if not </param>
-        public PackageDownloader(PackageURL? purl, string? destinationDir = null, bool doCaching = false)
+        /// <param name="purl">The package to download.</param>
+        /// <param name="httpClientFactory">The <see cref="IHttpClientFactory"/> to use to make the client to use when downloading.</param>
+        /// <param name="destinationDir">The directory where the package needs to be downloaded to.</param>
+        /// <param name="doCaching">Check and use the cache if it exists - create if not.</param>
+        public PackageDownloader(PackageURL purl, IHttpClientFactory? httpClientFactory, string? destinationDir = null, bool doCaching = false)
         {
             if (purl == null)
             {
@@ -35,10 +37,10 @@ namespace Microsoft.CST.OpenSource
             destinationDirectory = string.IsNullOrEmpty(destinationDir) ?
                 Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()) : destinationDir;
 
-            packageManager = ProjectManagerFactory.CreateProjectManager(purl, destinationDirectory);
+            packageManager = ProjectManagerFactory.CreateProjectManager(purl, httpClientFactory, destinationDirectory);
             if (packageManager == null)
             {
-                // Cannot continue without package manager
+                // Cannot continue without a package manager.
                 throw new ArgumentException("Invalid Package URL type: {0}", purl.Type);
             }
             PackageVersions = new List<PackageURL>();

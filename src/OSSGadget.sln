@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29806.167
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32014.148
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared", "Shared\Shared.csproj", "{292BEE61-1C30-4EB5-A2DE-810E7118433A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared.CLI", "Shared\Shared.CLI.csproj", "{292BEE61-1C30-4EB5-A2DE-810E7118433A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "oss-download", "oss-download\oss-download.csproj", "{DEBC05E9-A5A9-4FFE-9023-1248F2DA58D9}"
 EndProject
@@ -38,7 +38,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "oss-find-domain-squats", "o
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "oss-reproducible", "oss-reproducible\oss-reproducible.csproj", "{B79FCA22-5A3B-47F5-8FB1-692E3175162D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "oss-find-squats-lib", "oss-find-squats-lib\oss-find-squats-lib.csproj", "{182CA72B-6BB1-400E-83FC-B35558928BAB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "oss-find-squats-lib", "oss-find-squats-lib\oss-find-squats-lib.csproj", "{182CA72B-6BB1-400E-83FC-B35558928BAB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared.Lib", "Shared-lib\Shared.Lib.csproj", "{E87DAFE2-A060-458F-8924-C946585BF746}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -109,6 +111,10 @@ Global
 		{182CA72B-6BB1-400E-83FC-B35558928BAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{182CA72B-6BB1-400E-83FC-B35558928BAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{182CA72B-6BB1-400E-83FC-B35558928BAB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E87DAFE2-A060-458F-8924-C946585BF746}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E87DAFE2-A060-458F-8924-C946585BF746}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E87DAFE2-A060-458F-8924-C946585BF746}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E87DAFE2-A060-458F-8924-C946585BF746}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

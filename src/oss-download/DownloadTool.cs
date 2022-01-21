@@ -2,15 +2,15 @@
 
 using CommandLine;
 using CommandLine.Text;
-using Microsoft.CST.OpenSource.Shared;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource
 {
+    using Extensions.DependencyInjection;
+    using System.Net.Http;
     public class DownloadTool : OSSGadget
     {
         public enum ErrorCode
@@ -55,9 +55,11 @@ namespace Microsoft.CST.OpenSource
             public bool UseCache { get; set; }
         }
 
-        public DownloadTool() : base()
+        public DownloadTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
         {
         }
+
+        public DownloadTool() : this(new DefaultHttpClientFactory()) { }
 
         /// <summary>
         ///     Main entrypoint for the download program.
@@ -66,8 +68,9 @@ namespace Microsoft.CST.OpenSource
         static async Task<int> Main(string[] args)
         {
             ShowToolBanner();
-            var downloadTool = new DownloadTool();
-            var opts = downloadTool.ParseOptions<Options>(args);
+
+            DownloadTool? downloadTool = new DownloadTool();
+            ParserResult<Options>? opts = downloadTool.ParseOptions<Options>(args);
             if (opts.Value is null)
             {
                 if (opts.Errors.All(x => x.Tag == ErrorType.HelpRequestedError))
@@ -89,17 +92,17 @@ namespace Microsoft.CST.OpenSource
         {
             if (options.Targets is IEnumerable<string> targetList && targetList.Any())
             {
-                foreach (var target in targetList)
+                foreach (string? target in targetList)
                 {
                     try
                     {
-                        var purl = new PackageURL(target);
-                        string downloadDirectory = options.DownloadDirectory == "." ? Directory.GetCurrentDirectory() : options.DownloadDirectory;
-                        var useCache = options.UseCache;
-                        var packageDownloader = new PackageDownloader(purl, downloadDirectory, useCache);
+                        PackageURL? purl = new PackageURL(target);
+                        string downloadDirectory = options.DownloadDirectory == "." ? System.IO.Directory.GetCurrentDirectory() : options.DownloadDirectory;
+                        bool useCache = options.UseCache;
+                        PackageDownloader? packageDownloader = new PackageDownloader(purl, HttpClientFactory, downloadDirectory, useCache);
 
-                        var downloadResults = await packageDownloader.DownloadPackageLocalCopy(purl, options.DownloadMetadataOnly, options.Extract);
-                        foreach (var downloadPath in downloadResults)
+                        List<string>? downloadResults = await packageDownloader.DownloadPackageLocalCopy(purl, options.DownloadMetadataOnly, options.Extract);
+                        foreach (string? downloadPath in downloadResults)
                         {
                             if (string.IsNullOrEmpty(downloadPath))
                             {

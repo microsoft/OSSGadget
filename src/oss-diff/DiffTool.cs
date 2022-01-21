@@ -19,7 +19,11 @@ using Pastel;
 using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
 
 namespace Microsoft.CST.OpenSource.DiffTool
-    {
+{
+    using Extensions.DependencyInjection;
+    using Microsoft.CST.OpenSource.PackageManagers;
+    using System.Net.Http;
+
     class DiffTool : OSSGadget
     {
         public class Options
@@ -80,21 +84,28 @@ namespace Microsoft.CST.OpenSource.DiffTool
             public IEnumerable<string> Targets { get; set; } = Array.Empty<string>();
         }
 
+        public DiffTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        {
+        }
+
+        public DiffTool() : this (new DefaultHttpClientFactory()) { }
+
         static async Task Main(string[] args)
         {
             ShowToolBanner();
-            var originalColor = Console.ForegroundColor;
+            ConsoleColor originalColor = Console.ForegroundColor;
             Console.CancelKeyPress += delegate {
                 Console.ForegroundColor = originalColor;
             };
-            var diffTool = new DiffTool();
+
+            DiffTool? diffTool = new DiffTool();
             await diffTool.ParseOptions<Options>(args).WithParsedAsync<Options>(diffTool.RunAsync);
         }
 
         public async Task<IOutputBuilder> DiffProjects(Options options)
         {
-            var extractor = new Extractor();
-            var outputBuilder = OutputBuilderFactory.CreateOutputBuilder(options.Format);
+            Extractor? extractor = new Extractor();
+            IOutputBuilder? outputBuilder = OutputBuilderFactory.CreateOutputBuilder(options.Format);
             if (outputBuilder is null)
             {
                 Logger.Error($"Format {options.Format} is not supported.");
@@ -109,7 +120,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
             try
             {
                 PackageURL purl1 = new PackageURL(options.Targets.First());
-                var manager = ProjectManagerFactory.CreateProjectManager(purl1, options.DownloadDirectory ?? Path.GetTempPath());
+                BaseProjectManager? manager = ProjectManagerFactory.CreateProjectManager(purl1, HttpClientFactory, options.DownloadDirectory ?? Path.GetTempPath());
 
                 if (manager is not null)
                 {
@@ -118,7 +129,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
             }
             catch (Exception)
             {
-                var tmpDir = Path.GetTempFileName();
+                string? tmpDir = Path.GetTempFileName();
                 File.Delete(tmpDir);
                 try
                 {
@@ -132,9 +143,9 @@ namespace Microsoft.CST.OpenSource.DiffTool
                 }
             }
 
-            foreach (var directory in locations)
+            foreach (string? directory in locations)
             {
-                foreach (var file in Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories))
+                foreach (string? file in System.IO.Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories))
                 {
                     files[string.Join(Path.DirectorySeparatorChar, file[directory.Length..].Split(Path.DirectorySeparatorChar)[2..])] = (file, string.Empty);
                 }
@@ -143,7 +154,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
             try
             {
                 PackageURL purl2 = new PackageURL(options.Targets.Last());
-                var manager2 = ProjectManagerFactory.CreateProjectManager(purl2, options.DownloadDirectory ?? Path.GetTempPath());
+                BaseProjectManager? manager2 = ProjectManagerFactory.CreateProjectManager(purl2, HttpClientFactory, options.DownloadDirectory ?? Path.GetTempPath());
 
                 if (manager2 is not null)
                 {
@@ -152,7 +163,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
             }
             catch (Exception)
             {
-                var tmpDir = Path.GetTempFileName();
+                string? tmpDir = Path.GetTempFileName();
                 File.Delete(tmpDir);
                 try
                 {
@@ -165,15 +176,15 @@ namespace Microsoft.CST.OpenSource.DiffTool
                     Environment.Exit(-1);
                 }
             }
-            foreach (var directory in locations2)
+            foreach (string? directory in locations2)
             {
-                foreach (var file in Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories))
+                foreach (string? file in System.IO.Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories))
                 {
-                    var key = string.Join(Path.DirectorySeparatorChar, file[directory.Length..].Split(Path.DirectorySeparatorChar)[2..]);
+                    string? key = string.Join(Path.DirectorySeparatorChar, file[directory.Length..].Split(Path.DirectorySeparatorChar)[2..]);
 
                     if (files.ContainsKey(key))
                     {
-                        var existing = files[key];
+                        (string, string) existing = files[key];
                         existing.Item2 = file;
                         files[key] = existing;
                     }
@@ -186,20 +197,20 @@ namespace Microsoft.CST.OpenSource.DiffTool
 
             Parallel.ForEach(files, filePair =>
             {
-                var diffObjs = new ConcurrentBag<Diff>();
+                ConcurrentBag<Diff>? diffObjs = new ConcurrentBag<Diff>();
 
                 if (options.CrawlArchives)
                 {
                     using Stream fs1 = !string.IsNullOrEmpty(filePair.Value.Item1) ? File.OpenRead(filePair.Value.Item1) : new MemoryStream();
                     using Stream fs2 = !string.IsNullOrEmpty(filePair.Value.Item2) ? File.OpenRead(filePair.Value.Item2) : new MemoryStream();
-                    var entries1 = extractor.Extract(new FileEntry(filePair.Key, fs1), new ExtractorOptions() { Parallel = false, MemoryStreamCutoff = 1 });
-                    var entries2 = extractor.Extract(new FileEntry(filePair.Key, fs2), new ExtractorOptions() { Parallel = false, MemoryStreamCutoff = 1 });
-                    var entryPairs = new ConcurrentDictionary<string, (FileEntry?, FileEntry?)>();
-                    foreach (var entry in entries1)
+                    IEnumerable<FileEntry>? entries1 = extractor.Extract(new FileEntry(filePair.Key, fs1), new ExtractorOptions() { Parallel = false, MemoryStreamCutoff = 1 });
+                    IEnumerable<FileEntry>? entries2 = extractor.Extract(new FileEntry(filePair.Key, fs2), new ExtractorOptions() { Parallel = false, MemoryStreamCutoff = 1 });
+                    ConcurrentDictionary<string, (FileEntry?, FileEntry?)>? entryPairs = new ConcurrentDictionary<string, (FileEntry?, FileEntry?)>();
+                    foreach (FileEntry? entry in entries1)
                     {
                         entryPairs[entry.FullPath] = (entry, null);
                     }
-                    foreach (var entry in entries2)
+                    foreach (FileEntry? entry in entries2)
                     {
                         if (entryPairs.ContainsKey(entry.FullPath))
                         {
@@ -211,18 +222,18 @@ namespace Microsoft.CST.OpenSource.DiffTool
                         }
                     }
 
-                    foreach (var entryPair in entryPairs)
+                    foreach (KeyValuePair<string, (FileEntry?, FileEntry?)> entryPair in entryPairs)
                     {
-                        var text1 = string.Empty;
-                        var text2 = string.Empty;
+                        string? text1 = string.Empty;
+                        string? text2 = string.Empty;
                         if (entryPair.Value.Item1 is not null)
                         {
-                            using var sr = new StreamReader(entryPair.Value.Item1.Content);
+                            using StreamReader? sr = new StreamReader(entryPair.Value.Item1.Content);
                             text1 = sr.ReadToEnd();
                         }
                         if (entryPair.Value.Item2 is not null)
                         {
-                            using var sr = new StreamReader(entryPair.Value.Item2.Content);
+                            using StreamReader? sr = new StreamReader(entryPair.Value.Item2.Content);
                             text2 = sr.ReadToEnd();
                         }
                         WriteFileIssues(entryPair.Key, text1, text2);
@@ -230,8 +241,8 @@ namespace Microsoft.CST.OpenSource.DiffTool
                 }
                 else
                 {
-                    var file1 = string.Empty;
-                    var file2 = string.Empty;
+                    string? file1 = string.Empty;
+                    string? file2 = string.Empty;
                     if (!string.IsNullOrEmpty(filePair.Value.Item1))
                     {
                         file1 = File.ReadAllText(filePair.Value.Item1);
@@ -255,13 +266,14 @@ namespace Microsoft.CST.OpenSource.DiffTool
                         outputBuilder.AppendOutput(new string[] { filePair.Key });
                     }
                 }
-                var diffObjList = diffObjs.ToList();
+                List<Diff>? diffObjList = diffObjs.ToList();
+
                 // Arrange the diffs in line order
                 diffObjList.Sort((x, y) => x.startLine1.CompareTo(y.startLine1));
 
-                foreach (var diff in diffObjList)
+                foreach (Diff? diff in diffObjList)
                 {
-                    var sb = new StringBuilder();
+                    StringBuilder? sb = new StringBuilder();
                     // Write Context Format
                     if (options.Context > 0 || options.After > 0 || options.Before > 0)
                     {
@@ -333,7 +345,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
                             stringOutputBuilder.AppendOutput(new string[] { sb.ToString().TrimEnd() });
                             break;
                         case SarifOutputBuilder sarifOutputBuilder:
-                            var sr = new SarifResult
+                            SarifResult? sr = new SarifResult
                             {
                                 Locations = new Location[] { new Location() { LogicalLocation = new LogicalLocation() { FullyQualifiedName = filePair.Key } } },
                                 AnalysisTarget = new ArtifactLocation() { Uri = new Uri(options.Targets.First()) },
@@ -346,15 +358,15 @@ namespace Microsoft.CST.OpenSource.DiffTool
 
                 void WriteFileIssues(string path, string file1, string file2)
                 {
-                    var diff = InlineDiffBuilder.Diff(file1, file2);
+                    DiffPaneModel? diff = InlineDiffBuilder.Diff(file1, file2);
                     List<string> beforeBuffer = new List<string>();
 
                     int afterCount = 0;
                     int lineNumber1 = 0;
                     int lineNumber2 = 0;
-                    var diffObj = new Diff();
+                    Diff? diffObj = new Diff();
 
-                    foreach (var line in diff.Lines)
+                    foreach (DiffPiece? line in diff.Lines)
                     {
                         switch (line.Type)
                         {
@@ -442,20 +454,20 @@ namespace Microsoft.CST.OpenSource.DiffTool
                     }
                 }
             });
-            
+
 
             if (!options.UseCache)
             {
-                foreach (var directory in locations)
+                foreach (string? directory in locations)
                 {
-                    Directory.Delete(directory, true);
+                    System.IO.Directory.Delete(directory, true);
                 }
-                foreach (var directory in locations2)
+                foreach (string? directory in locations2)
                 {
-                    Directory.Delete(directory, true);
+                    System.IO.Directory.Delete(directory, true);
                 }
             }
-            
+
             return outputBuilder;
         }
 
@@ -472,8 +484,8 @@ namespace Microsoft.CST.OpenSource.DiffTool
                 options.Before = options.Context;
                 options.After = options.Context;
             }
-            
-            var result = await DiffProjects(options);
+
+            IOutputBuilder? result = await DiffProjects(options);
 
             if (options.OutputLocation is null)
             {

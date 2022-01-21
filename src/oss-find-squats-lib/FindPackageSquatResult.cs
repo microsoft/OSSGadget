@@ -3,7 +3,6 @@
 namespace Microsoft.CST.OpenSource.FindSquats
 {
     using Microsoft.CST.OpenSource.FindSquats.Mutators;
-    using Microsoft.CST.OpenSource.Shared;
     using System.Collections.Generic;
     using System.Linq;
 

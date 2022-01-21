@@ -2,14 +2,17 @@
 
 using CommandLine;
 using CommandLine.Text;
-using Microsoft.CST.OpenSource.Model;
-using Microsoft.CST.OpenSource.Shared;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource
 {
+    using Extensions.DependencyInjection;
+    using Microsoft.CST.OpenSource.Model;
+    using Microsoft.CST.OpenSource.PackageManagers;
+    using System.Net.Http;
+
     public class MetadataTool : OSSGadget
     {
         public class Options
@@ -36,17 +39,19 @@ namespace Microsoft.CST.OpenSource
             private IEnumerable<string> targets = Array.Empty<string>();
         }
 
-        public MetadataTool() : base()
+        public MetadataTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
         {
         }
 
-        private static async Task<PackageMetadata?> GetPackageMetadata(PackageURL purl)
+        public MetadataTool(): this(new DefaultHttpClientFactory()) { }
+
+        private static async Task<PackageMetadata?> GetPackageMetadata(PackageURL purl, IHttpClientFactory httpClientFactory)
         {
             PackageMetadata? metadata = null;
             try
             {
                 // Use reflection to find the correct downloader class
-                var projectManager = ProjectManagerFactory.CreateProjectManager(purl, null);
+                BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, httpClientFactory);
                 if (projectManager != null)
                 {
                     metadata = await projectManager.GetPackageMetadata(purl);
@@ -67,7 +72,7 @@ namespace Microsoft.CST.OpenSource
         private static async Task Main(string[] args)
         {
             ShowToolBanner();
-            var metadataTool = new MetadataTool();
+            MetadataTool? metadataTool = new MetadataTool();
             await metadataTool.ParseOptions<Options>(args).WithParsedAsync(metadataTool.RunAsync);
         }
 
@@ -78,12 +83,12 @@ namespace Microsoft.CST.OpenSource
             PackageMetadata? metadata = null;
             if (options.Targets is IList<string> targetList && targetList.Count > 0)
             {
-                foreach (var target in targetList)
+                foreach (string? target in targetList)
                 {
                     try
                     {
-                        var purl = new PackageURL(target);
-                        metadata = await GetPackageMetadata(purl);
+                        PackageURL? purl = new PackageURL(target);
+                        metadata = await GetPackageMetadata(purl, HttpClientFactory);
                     }
                     catch (Exception ex)
                     {

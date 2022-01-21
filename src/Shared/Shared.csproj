@@ -43,6 +43,7 @@
     <PackageReference Include="CommandLineParser" Version="2.9.0-preview1" />
     <PackageReference Include="Crayon" Version="2.0.64" />
     <PackageReference Include="F23.StringSimilarity" Version="4.1.0" />
+    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.0.0-beta.74" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.39" />
     <PackageReference Include="Microsoft.CST.RecursiveExtractor" Version="1.1.5" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="6.0.0" />
@@ -64,5 +65,9 @@
   <ItemGroup>
     <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="" />
     <None Include="..\..\icon-128.png" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Shared-lib\Shared-lib.csproj" />
   </ItemGroup>
 </Project>

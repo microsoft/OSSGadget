@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using Microsoft.CST.OpenSource.Shared;
+using Microsoft.CST.OpenSource.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading.Tasks;
 

@@ -89,7 +89,7 @@ namespace Microsoft.CST.OpenSource
             ShowToolBanner();
             Console.WriteLine();
 
-            ReproducibleTool? reproducibleTool = new ReproducibleTool(new DefaultHttpClientFactory());
+            ReproducibleTool? reproducibleTool = new ReproducibleTool();
             await reproducibleTool.ParseOptions<Options>(args).WithParsedAsync(reproducibleTool.RunAsync);
         }
 

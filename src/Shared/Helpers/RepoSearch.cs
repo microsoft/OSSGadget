@@ -32,9 +32,8 @@ namespace Microsoft.CST.OpenSource.Shared
             HttpClientFactory = httpClientFactory;
         }
 
-        public RepoSearch()
+        public RepoSearch() : this(new DefaultHttpClientFactory())
         {
-            HttpClientFactory = new DefaultHttpClientFactory();
         }
 
         private IHttpClientFactory HttpClientFactory { get; }

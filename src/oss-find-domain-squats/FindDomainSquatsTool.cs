@@ -87,7 +87,7 @@ namespace Microsoft.CST.OpenSource.DomainSquats
         static async Task Main(string[] args)
         {
             ShowToolBanner();
-            FindDomainSquatsTool findSquatsTool = new(new DefaultHttpClientFactory());
+            FindDomainSquatsTool findSquatsTool = new();
             (string output, int numRegisteredSquats, int numUnregisteredSquats) = (string.Empty, 0, 0);
             await findSquatsTool.ParseOptions<Options>(args).WithParsedAsync<Options>(findSquatsTool.RunAsync);
         }

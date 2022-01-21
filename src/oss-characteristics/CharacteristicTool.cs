@@ -291,7 +291,7 @@ namespace Microsoft.CST.OpenSource
         {
             ShowToolBanner();
 
-            CharacteristicTool? characteristicTool = new CharacteristicTool(new DefaultHttpClientFactory());
+            CharacteristicTool? characteristicTool = new CharacteristicTool();
             await characteristicTool.ParseOptions<Options>(args).WithParsedAsync(characteristicTool.RunAsync);
         }
 

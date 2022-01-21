@@ -56,7 +56,7 @@ namespace Microsoft.CST.OpenSource
         {
             ShowToolBanner();
 
-            DetectCryptographyTool detectCryptographyTool = new DetectCryptographyTool(new DefaultHttpClientFactory());
+            DetectCryptographyTool detectCryptographyTool = new DetectCryptographyTool();
 
             detectCryptographyTool.ParseOptions(args);
 

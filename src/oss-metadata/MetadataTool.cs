@@ -43,6 +43,8 @@ namespace Microsoft.CST.OpenSource
         {
         }
 
+        public MetadataTool(): this(new DefaultHttpClientFactory()) { }
+
         private static async Task<PackageMetadata?> GetPackageMetadata(PackageURL purl, IHttpClientFactory httpClientFactory)
         {
             PackageMetadata? metadata = null;
@@ -70,7 +72,7 @@ namespace Microsoft.CST.OpenSource
         private static async Task Main(string[] args)
         {
             ShowToolBanner();
-            MetadataTool? metadataTool = new MetadataTool(new DefaultHttpClientFactory());
+            MetadataTool? metadataTool = new MetadataTool();
             await metadataTool.ParseOptions<Options>(args).WithParsedAsync(metadataTool.RunAsync);
         }
 

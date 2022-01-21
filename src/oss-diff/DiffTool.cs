@@ -98,7 +98,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
                 Console.ForegroundColor = originalColor;
             };
 
-            DiffTool? diffTool = new DiffTool(new DefaultHttpClientFactory());
+            DiffTool? diffTool = new DiffTool();
             await diffTool.ParseOptions<Options>(args).WithParsedAsync<Options>(diffTool.RunAsync);
         }
 

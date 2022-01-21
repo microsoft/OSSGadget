@@ -20,9 +20,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     public class BaseProjectManager
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        private string ENV_HTTPCLIENT_USER_AGENT = "OSSDL";
-
         /// <summary>
         /// Initializes a new instance of the <see cref="BaseProjectManager"/> class.
         /// </summary>
@@ -33,12 +30,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             HttpClientFactory = httpClientFactory;
         }
 
-        public BaseProjectManager(string destinationDirectory)
+        public BaseProjectManager(string destinationDirectory) : this(new DefaultHttpClientFactory(), destinationDirectory)
         {
-            EnvironmentHelper.OverrideEnvironmentVariables(this);
-            Options = new Dictionary<string, object>();
-            TopLevelExtractionDirectory = destinationDirectory;
-            HttpClientFactory = new DefaultHttpClientFactory(ENV_HTTPCLIENT_USER_AGENT);
         }
 
         /// <summary>

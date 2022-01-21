@@ -69,7 +69,7 @@ namespace Microsoft.CST.OpenSource
         {
             ShowToolBanner();
 
-            DownloadTool? downloadTool = new DownloadTool(new DefaultHttpClientFactory());
+            DownloadTool? downloadTool = new DownloadTool();
             ParserResult<Options>? opts = downloadTool.ParseOptions<Options>(args);
             if (opts.Value is null)
             {

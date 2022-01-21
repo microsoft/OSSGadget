@@ -265,7 +265,7 @@ namespace Microsoft.CST.OpenSource
         {
             ShowToolBanner();
 
-            DefoggerTool? defoggerTool = new DefoggerTool(new DefaultHttpClientFactory());
+            DefoggerTool? defoggerTool = new DefoggerTool();
             defoggerTool.ParseOptions(args);
 
             if (defoggerTool.Options["target"] is IList<string> targetList && targetList.Count > 0)

@@ -198,7 +198,7 @@ namespace Microsoft.CST.OpenSource
         private static async Task Main(string[] args)
         {
             ShowToolBanner();
-            RiskCalculatorTool? riskCalculator = new RiskCalculatorTool(new DefaultHttpClientFactory());
+            RiskCalculatorTool? riskCalculator = new RiskCalculatorTool();
             await riskCalculator.ParseOptions<Options>(args).WithParsedAsync(riskCalculator.RunAsync);
         }
 

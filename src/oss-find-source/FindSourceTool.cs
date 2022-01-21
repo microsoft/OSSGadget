@@ -27,7 +27,7 @@ namespace Microsoft.CST.OpenSource
         {
         }
 
-        public FindSourceTool() : base()
+        public FindSourceTool() : this(new DefaultHttpClientFactory())
         {
         }
 
@@ -156,7 +156,7 @@ namespace Microsoft.CST.OpenSource
 
         static async Task Main(string[] args)
         {
-            FindSourceTool findSourceTool = new FindSourceTool(new DefaultHttpClientFactory());
+            FindSourceTool findSourceTool = new FindSourceTool();
             await findSourceTool.ParseOptions<Options>(args).WithParsedAsync(findSourceTool.RunAsync);
         }
 

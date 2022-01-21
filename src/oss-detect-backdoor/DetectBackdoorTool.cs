@@ -74,7 +74,7 @@ namespace Microsoft.CST.OpenSource
         {
             ShowToolBanner();
 
-            DetectBackdoorTool? detectBackdoorTool = new DetectBackdoorTool(new DefaultHttpClientFactory());
+            DetectBackdoorTool? detectBackdoorTool = new DetectBackdoorTool();
             Options? parsedOptions = detectBackdoorTool.ParseOptions<Options>(args).Value;
             List<Dictionary<string, AnalyzeResult?>>? detectionResults = await detectBackdoorTool.RunAsync(parsedOptions);
 

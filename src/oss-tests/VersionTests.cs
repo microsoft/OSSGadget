@@ -12,12 +12,6 @@ namespace Microsoft.CST.OpenSource.Tests
     [TestClass]
     public class VersionTests
     {
-        [ClassInitialize()]
-        public static void ClassInit(TestContext context)
-        {
-            CommonInitialization.Initialize();
-        }
-
         [DataTestMethod]
         [DataRow("0.1,0.2,0.3", "0.3,0.2,0.1")]
         [DataRow("0.1,0.3,0.2", "0.3,0.2,0.1")]

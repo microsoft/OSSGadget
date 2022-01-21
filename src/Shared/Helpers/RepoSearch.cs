@@ -27,9 +27,6 @@ namespace Microsoft.CST.OpenSource.Shared
     /// </summary>
     public class RepoSearch
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        private string ENV_HTTPCLIENT_USER_AGENT = "OSSDL";
-
         public RepoSearch(IHttpClientFactory httpClientFactory)
         {
             HttpClientFactory = httpClientFactory;
@@ -37,8 +34,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
         public RepoSearch()
         {
-            EnvironmentHelper.OverrideEnvironmentVariables(this);
-            HttpClientFactory = new DefaultHttpClientFactory(ENV_HTTPCLIENT_USER_AGENT);
+            HttpClientFactory = new DefaultHttpClientFactory();
         }
 
         private IHttpClientFactory HttpClientFactory { get; }

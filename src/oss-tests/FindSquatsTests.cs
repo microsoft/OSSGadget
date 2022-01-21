@@ -14,11 +14,6 @@ namespace Microsoft.CST.OpenSource.Tests
     [TestClass]
     public class FindSquatsTest
     {
-        public FindSquatsTest()
-        {
-            CommonInitialization.Initialize();
-        }
-
         [DataTestMethod]
         [DataRow("pkg:nuget/Microsoft.CST.OAT", false)]
         [DataRow("pkg:npm/microsoft/microsoft-graph-library", false)]

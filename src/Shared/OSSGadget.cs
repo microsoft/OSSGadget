@@ -23,12 +23,10 @@ namespace Microsoft.CST.OpenSource
 
         public OSSGadget(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
         {
-            CommonInitialization.Initialize();
         }
 
         public OSSGadget() : base()
         {
-            CommonInitialization.Initialize();
         }
 
         /// <summary>

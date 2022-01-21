@@ -35,7 +35,7 @@ namespace Microsoft.CST.OpenSource
             Directory = directory;
         }
 
-        protected OssGadgetLib(string directory = ".") : this(new DefaultHttpClientFactory(ENV_HTTPCLIENT_USER_AGENT), directory)
+        protected OssGadgetLib(string directory = ".") : this(new DefaultHttpClientFactory(), directory)
         {
         }
 

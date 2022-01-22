@@ -2,6 +2,7 @@
 
 using DiffPlex.DiffBuilder;
 using DiffPlex.DiffBuilder.Model;
+using Microsoft.CST.OpenSource.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -222,37 +223,6 @@ namespace Microsoft.CST.OpenSource.Reproducibility
         }
 
         /// <summary>
-        /// Delete a directory, with retries in case of failure.
-        /// </summary>
-        /// <param name="directoryName">Directory to delete</param>
-        /// <param name="numTries">Number of attempts to make</param>
-        public static void DeleteDirectory(string directoryName, int numTries = 3)
-        {
-            if (!Directory.Exists(directoryName))
-            {
-                return;
-            }
-            int delayMs = 1000;
-
-            // Clean up our temporary directory
-            while (numTries > 0)
-            {
-                try
-                {
-                    Directory.Delete(directoryName, true);
-                    break;
-                }
-                catch (Exception)
-                {
-                    Logger.Debug("Error deleting [{0}], sleeping for {1} seconds.", directoryName, delayMs);
-                    Thread.Sleep(delayMs);
-                    delayMs *= 2;
-                    numTries--;
-                }
-            }
-        }
-
-        /// <summary>
         /// Attempts to "normalize" source code content by beautifying it. In some cases, this can
         /// remove trivial differences. Uses the NPM 'prettier' module within a docker container.
         /// </summary>
@@ -273,7 +243,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                 byte[]? bytes = File.ReadAllBytes(filename);
                 File.WriteAllBytes(tempFile, bytes);
 
-                bool runResult = OssReproducibleHelpers.RunCommand(tempDirectoryName, "docker", new[] {
+                bool runResult = RunCommand(tempDirectoryName, "docker", new[] {
                                             "run",
                                             "--rm",
                                             "--memory=1g",
@@ -284,7 +254,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
                                             Path.ChangeExtension("/repo/temp", extension)
                                        }, out string? stdout, out string? stderr);
 
-                OssReproducibleHelpers.DeleteDirectory(tempDirectoryName);
+                FileSystemHelper.RetryDeleteDirectory(tempDirectoryName);
                 if (stdout != null)
                 {
                     return stdout;

@@ -38,6 +38,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\oss-find-squats-lib\oss-find-squats-lib.csproj" />
-    <ProjectReference Include="..\Shared\Shared.CLI.csproj" />
+    <ProjectReference Include="..\Shared.CLI\Shared.CLI.csproj" />
   </ItemGroup>
 </Project>

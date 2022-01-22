@@ -21,6 +21,7 @@ using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
 namespace Microsoft.CST.OpenSource.DiffTool
 {
     using Extensions.DependencyInjection;
+    using Microsoft.CST.OpenSource.Helpers;
     using Microsoft.CST.OpenSource.PackageManagers;
     using System.Net.Http;
 
@@ -458,13 +459,9 @@ namespace Microsoft.CST.OpenSource.DiffTool
 
             if (!options.UseCache)
             {
-                foreach (string? directory in locations)
+                foreach (string? directory in locations.Concat(locations2))
                 {
-                    System.IO.Directory.Delete(directory, true);
-                }
-                foreach (string? directory in locations2)
-                {
-                    System.IO.Directory.Delete(directory, true);
+                    FileSystemHelper.RetryDeleteDirectory(directory);
                 }
             }
 

@@ -23,6 +23,7 @@ using Microsoft.CST.RecursiveExtractor;
 namespace Microsoft.CST.OpenSource
 {
     using Extensions.DependencyInjection;
+    using Microsoft.CST.OpenSource.Helpers;
     using Microsoft.CST.OpenSource.PackageManagers;
     using System.Net.Http;
 
@@ -99,17 +100,7 @@ namespace Microsoft.CST.OpenSource
                             results = await detectCryptographyTool.AnalyzeDirectory(path);
 
                             // Clean up after ourselves
-                            try
-                            {
-                                if (targetDirectoryName != null)
-                                {
-                                    System.IO.Directory.Delete(targetDirectoryName, true);
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Logger.Warn("Unable to delete {0}: {1}", targetDirectoryName, ex.Message);
-                            }
+
                         }
                         else
                         {
@@ -263,7 +254,7 @@ namespace Microsoft.CST.OpenSource
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
 
-            PackageDownloader? packageDownloader = new PackageDownloader(purl, HttpClientFactory, targetDirectoryName, doCaching);
+            PackageDownloader? packageDownloader = new(purl, HttpClientFactory, targetDirectoryName, doCaching);
             List<string>? directoryNames = await packageDownloader.DownloadPackageLocalCopy(purl, false, true);
             directoryNames = directoryNames.Distinct().ToList<string>();
 
@@ -278,23 +269,6 @@ namespace Microsoft.CST.OpenSource
                     {
                         analysisResults.AddRange(singleResult);
                     }
-
-                    Logger.Trace("Removing {0}", directoryName);
-                    try
-                    {
-                        if (System.IO.Directory.Exists(directoryName))
-                        {
-                            System.IO.Directory.Delete(directoryName, true);
-                        }
-                        else if (File.Exists(directoryName))
-                        {
-                            File.Delete(directoryName);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Warn("Error removing {0}: {1}", directoryName, ex.Message);
-                    }
                 }
             }
             else
@@ -302,7 +276,7 @@ namespace Microsoft.CST.OpenSource
                 Logger.Warn("Error downloading {0}.", purl.ToString());
             }
             packageDownloader.ClearPackageLocalCopyIfNoCaching();
-
+            packageDownloader.DeleteDestinationDirectoryIfTemp();
             return analysisResults.ToList();
         }
 
@@ -472,7 +446,7 @@ namespace Microsoft.CST.OpenSource
                 Logger.Error("No rules were specified, unable to continue.");
                 return analysisResults; // empty
             }
-            RuleProcessor? processor = new RuleProcessor(rules, new RuleProcessorOptions());
+            RuleProcessor processor = new RuleProcessor(rules, new RuleProcessorOptions());
 
             string[] fileList;
 

@@ -75,24 +75,24 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
         /// Generates mutations of the provided <see cref="PackageURL"/>
         /// with the mutators from <see cref="GetDefaultMutators(BaseProjectManager)"/>.
         /// </summary>
-        /// <param name="manager">The ProjectManager to use for checking the generated mutations.</param>
+        /// <param name="manager">The ProjectManager to use for generating mutations.</param>
         /// <param name="purl">The Target package to check for squats.</param>
         /// <param name="options">The options for enumerating squats.</param>
         /// <returns>An <see cref="IDictionary{T, V}"/> where the key is the mutated name, and the value is a <see cref="IList{Mutation}"/> representing each candidate squat.</returns>
-        public static IDictionary<string, IList<Mutation>>? EnumerateSquats(this BaseProjectManager manager, PackageURL purl, MutateOptions? options = null)
+        public static IDictionary<string, IList<Mutation>>? EnumerateSquatCandidates(this BaseProjectManager manager, PackageURL purl, MutateOptions? options = null)
         {
-            return manager.EnumerateSquats(purl, manager.GetDefaultMutators(), options);
+            return manager.EnumerateSquatCandidates(purl, manager.GetDefaultMutators(), options);
         }
 
         /// <summary>
         /// Generates <see cref="Mutation"/>s of the provided <see cref="PackageURL"/> with the provided <see cref="IEnumerable{IMutator}"/>.
         /// </summary>
-        /// <param name="manager">The ProjectManager to use for checking the generated mutations.</param>
+        /// <param name="manager">The ProjectManager to generate the mutations.</param>
         /// <param name="purl">The Target package to check for squats.</param>
         /// <param name="mutators">The mutators to use. Will ignore the default set of mutators.</param>
         /// <param name="options">The options for enumerating squats.</param>
         /// <returns>An <see cref="IDictionary{T, V}"/> where the key is the mutated name, and the value is a <see cref="IList{Mutation}"/> representing each candidate squat.</returns>
-        public static IDictionary<string, IList<Mutation>>? EnumerateSquats(this BaseProjectManager manager, PackageURL purl, IEnumerable<IMutator> mutators, MutateOptions? options = null)
+        public static IDictionary<string, IList<Mutation>>? EnumerateSquatCandidates(this BaseProjectManager manager, PackageURL purl, IEnumerable<IMutator> mutators, MutateOptions? options = null)
         {
             if (purl.Name is null || purl.Type is null)
             {
@@ -120,13 +120,15 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
         }
 
         /// <summary>
-        /// Asynchronously generates an <see cref="IList{FindPackageSquatResult}"/> of packages that exist from the <see cref="IDictionary{T, D}"/> of each candidate.
+        /// Asynchronously enumerates existing packages that exist from the <see cref="IDictionary{T, D}"/> of each candidate.
+        /// Use <see cref="EnumerateSquatCandidates(BaseProjectManager, PackageURL, IEnumerable{IMutator}, MutateOptions?)"/> to create the dictionary of <paramref name="candidateMutations"/>.
+        /// If <paramref name="candidateMutations"/> is null, will automatically generate the candidates using <see cref="EnumerateSquatCandidates(BaseProjectManager, PackageURL, IEnumerable{IMutator}, MutateOptions?)"/>.
         /// </summary>
         /// <param name="manager">The ProjectManager to use for checking the generated mutations.</param>
         /// <param name="purl">The Target package to check for squats.</param>
         /// <param name="candidateMutations">The <see cref="IList{Mutation}"/> representing each squatting candidate.</param>
         /// <param name="options">The options for enumerating squats.</param>
-        /// <returns>An <see cref="IAsyncEnumerable{FindPackageSquatResult}"/> representing each existing candidate squat, or null if none.</returns>
+        /// <returns>An <see cref="IAsyncEnumerable{FindPackageSquatResult}"/> with the packages that exist which match one of the <paramref name="candidateMutations"/>.</returns>
         public static async IAsyncEnumerable<FindPackageSquatResult> EnumerateExistingSquatsAsync(this BaseProjectManager manager, PackageURL purl, IDictionary<string, IList<Mutation>>? candidateMutations, MutateOptions? options = null)
         {
             if (purl.Name is null || purl.Type is null)
@@ -134,7 +136,12 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
                 yield break;
             }
 
-            if (candidateMutations?.Any() is true)
+            if (candidateMutations is null)
+            {
+                candidateMutations = manager.EnumerateSquatCandidates(purl, options);
+            }
+
+            if (candidateMutations is not null)
             {
                 foreach ((string mutatedName, IList<Mutation> mutations) in candidateMutations)
                 {
@@ -164,6 +171,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
                         yield return res;
                     }
                 }
+
             }
         }
     }

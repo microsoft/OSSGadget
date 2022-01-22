@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+using Microsoft.CST.OpenSource.Helpers;
 using Microsoft.CST.OpenSource.Shared;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -208,7 +209,6 @@ namespace Microsoft.CST.OpenSource.Tests
             try
             {
                 packageDownloader?.ClearPackageLocalCopyIfNoCaching();
-                Directory.Delete(tempDirectoryName, true);
             }
             catch (Exception)
             {
@@ -220,7 +220,10 @@ namespace Microsoft.CST.OpenSource.Tests
                     };
                 }
                 packageDownloader?.ClearPackageLocalCopyIfNoCaching();
-                Directory.Delete(tempDirectoryName, true);
+            }
+            finally
+            {
+                FileSystemHelper.RetryDeleteDirectory(tempDirectoryName);
             }
         }
 

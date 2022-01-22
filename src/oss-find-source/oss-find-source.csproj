@@ -33,7 +33,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Shared\Shared.CLI.csproj" />
+    <ProjectReference Include="..\Shared.CLI\Shared.CLI.csproj" />
   </ItemGroup>
 
   <ItemGroup>

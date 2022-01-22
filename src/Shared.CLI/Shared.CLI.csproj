@@ -3,11 +3,11 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>Microsoft.CST.OpenSource</RootNamespace>
-    <Description>OSS Gadget - Shared Functionality</Description>
+    <Description>OSS Gadget - Shared CLI Functionality</Description>
     <RepositoryType>GitHub</RepositoryType>
     <RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>
     <Configurations>Debug;Release</Configurations>
-    <AssemblyName>Shared</AssemblyName>
+    <AssemblyName>OSSGadget.Shared.Cli</AssemblyName>
     <LangVersion>10.0</LangVersion>
     <Nullable>enable</Nullable>
     <copyright>© Microsoft Corporation. All rights reserved.</copyright>
@@ -15,7 +15,7 @@
     <Company>Microsoft</Company>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageId>Microsoft.CST.OSSGadget.Shared</PackageId>
+    <PackageId>Microsoft.CST.OSSGadget.Shared.CLI</PackageId>
     <PackageVersion>0.0.0</PackageVersion>
     <PackageProjectUrl>https://github.com/Microsoft/OSSGadget</PackageProjectUrl>
     <PackageTags>Security Scanner</PackageTags>
@@ -57,17 +57,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="nlog.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="" />
     <None Include="..\..\icon-128.png" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Shared-lib\Shared-lib.csproj" />
+    <ProjectReference Include="..\Shared\Shared.Lib.csproj" />
   </ItemGroup>
 </Project>

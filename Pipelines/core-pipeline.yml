@@ -291,11 +291,11 @@ stages:
     parameters:
       jobName: 'check_changes_shared'
       tagName: 'code_changed'
-      pathArgument: 'Pipelines/nuget-build-job.yml,Pipelines/check-changes.yml,src/Shared/*'
+      pathArgument: 'Pipelines/nuget-build-job.yml,Pipelines/check-changes.yml,src/*'
   - template: templates/nuget-build-job.yml
     parameters:
       jobName: 'pack_shared'
-      projectPath: 'src/Shared/Shared.csproj'
+      projectPath: 'src/Shared/Shared.Lib.csproj'
       projectName: 'Shared'
       dependsOnArg: 'check_changes_shared'
       conditionedOnTag: 'code_changed'
@@ -310,7 +310,7 @@ stages:
     parameters:
       jobName: 'check_changes_oss_find_squats'
       tagName: 'code_changed'
-      pathArgument: 'Pipelines/nuget-build-job.yml,Pipelines/check-changes.yml,src/oss-find-squats/*,src/oss-find-squats-lib/*,src/Shared/*'
+      pathArgument: 'Pipelines/nuget-build-job.yml,Pipelines/check-changes.yml,src/*'
   - template: templates/nuget-build-job.yml
     parameters:
       jobName: 'pack_oss_find_squats'

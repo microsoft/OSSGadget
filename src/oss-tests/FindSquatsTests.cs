@@ -61,6 +61,34 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         [DataTestMethod]
+        [DataRow("pkg:npm/foo", "\"SquattedPackage\":{\"Name\":\"too\",")]
+        [DataRow("pkg:nuget/Microsoft.CST.OAT", "\"SquattedPackage\":{\"Name\":\"microsoft.cst.oat.net\",")]
+        public void ConvertToJson(string packageUrl, string expectedToFind)
+        {
+            PackageURL purl = new(packageUrl);
+            if (purl.Name is not null && purl.Type is not null)
+            {
+                BaseProjectManager? manager = ProjectManagerFactory.CreateProjectManager(purl, null);
+                if (manager is not null)
+                {
+                    foreach (IMutator mutator in manager.GetDefaultMutators())
+                    {
+                        foreach (Mutation mutation in mutator.Generate(purl.Name))
+                        {
+                            FindPackageSquatResult result = new(purl.Name, purl,
+                                new PackageURL(purl.Type, mutation.Mutated), new[] { mutation });
+                            if (result.ToJson().Contains(expectedToFind))
+                            {
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+            Assert.Fail($"Did not find expected mutation {expectedToFind}");
+        }
+
+        [DataTestMethod]
         [DataRow("pkg:npm/foo", typeof(UnicodeHomoglyphMutator))]
         [DataRow("pkg:nuget/Microsoft.CST.OAT", typeof(UnicodeHomoglyphMutator))]
         public void DontGenerateManagerSpecific(string packageUrl, Type notExpectedToFind)

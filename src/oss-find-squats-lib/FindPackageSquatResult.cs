@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+#pragma warning disable CS8618
 namespace Microsoft.CST.OpenSource.FindSquats
 {
     using Microsoft.CST.OpenSource.FindSquats.Mutators;
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text.Json;
@@ -19,6 +21,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
             SquattedPackage = squattedPackage;
             Mutations = mutations;
         }
+
         /// <summary>
         /// The name of the package
         /// </summary>
@@ -47,6 +50,17 @@ namespace Microsoft.CST.OpenSource.FindSquats
         public string ToJson()
         {
             return JsonSerializer.Serialize(this);
+        }
+
+        /// <summary>
+        /// Converts a json string into a <see cref="FindPackageSquatResult"/>.
+        /// </summary>
+        /// <param name="json">The json string representing the <see cref="FindPackageSquatResult"/>.</param>
+        /// <returns>A new <see cref="FindPackageSquatResult"/> constructed from the json string.</returns>
+        /// <exception cref="InvalidCastException">If the json string cannot be deserialized into a <see cref="FindPackageSquatResult"/>.</exception>
+        public static FindPackageSquatResult FromJsonString(string json)
+        {
+            return JsonSerializer.Deserialize<FindPackageSquatResult>(json) ?? throw new InvalidCastException();
         }
     }
 }

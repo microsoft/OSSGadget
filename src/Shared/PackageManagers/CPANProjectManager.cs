@@ -1,12 +1,13 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using AngleSharp.Html.Parser;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Net.Http;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
 
@@ -17,6 +18,10 @@ namespace Microsoft.CST.OpenSource.Shared
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_CPAN_ENDPOINT = "https://metacpan.org";
+
+        public CPANProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        {
+        }
 
         public CPANProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
@@ -37,7 +42,8 @@ namespace Microsoft.CST.OpenSource.Shared
                 return false;
             }
             string packageName = purl.Name;
-            return await CheckHttpCacheForPackage($"{ENV_CPAN_ENDPOINT}/release/{packageName}", useCache);
+            HttpClient httpClient = CreateHttpClient();
+            return await CheckHttpCacheForPackage(httpClient, $"{ENV_CPAN_ENDPOINT}/release/{packageName}", useCache);
         }
 
         /// <summary>
@@ -59,8 +65,9 @@ namespace Microsoft.CST.OpenSource.Shared
                 return downloadedPaths;
             }
             // Locate the URL
+            HttpClient httpClient = CreateHttpClient();
             string? packageVersionUrl = null;
-            string? html = await GetHttpStringCache($"{ENV_CPAN_ENDPOINT}/release/{packageName}");
+            string? html = await GetHttpStringCache(httpClient, $"{ENV_CPAN_ENDPOINT}/release/{packageName}");
             HtmlParser parser = new();
             AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(html);
             foreach (AngleSharp.Dom.IElement option in document.QuerySelectorAll("div.release select.extend option"))
@@ -93,7 +100,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
             Logger.Debug($"Downloading {packageVersionUrl}");
 
-            html = await GetHttpStringCache(packageVersionUrl);
+            html = await GetHttpStringCache(httpClient, packageVersionUrl);
             document = await parser.ParseDocumentAsync(html);
             foreach (AngleSharp.Dom.IElement? italic in document.QuerySelectorAll("li a i.fa-download"))
             {
@@ -104,7 +111,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
 
                 string? binaryUrl = anchor.GetAttribute("href");
-                System.Net.Http.HttpResponseMessage? result = await WebClient.GetAsync(binaryUrl);
+                System.Net.Http.HttpResponseMessage? result = await httpClient.GetAsync(binaryUrl);
                 result.EnsureSuccessStatusCode();
                 Logger.Debug("Downloading {0}...", purl);
 
@@ -142,8 +149,9 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 string packageName = purl.Name;
                 List<string> versionList = new();
+                HttpClient httpClient = CreateHttpClient();
 
-                string? html = await GetHttpStringCache($"{ENV_CPAN_ENDPOINT}/release/{packageName}");
+                string? html = await GetHttpStringCache(httpClient, $"{ENV_CPAN_ENDPOINT}/release/{packageName}");
                 HtmlParser parser = new();
                 AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(html);
                 foreach (AngleSharp.Dom.IElement option in document.QuerySelectorAll("div.release select.extend option"))
@@ -178,8 +186,9 @@ namespace Microsoft.CST.OpenSource.Shared
                 string? packageName = purl.Name;
                 if (packageName != null)
                 {
-                    string? contentRelease = await GetHttpStringCache($"{ENV_CPAN_ENDPOINT}/release/{packageName}");
-                    string? contentPod = await GetHttpStringCache($"{ENV_CPAN_ENDPOINT}/pod/{packageName.Replace("-", "::")}");
+                    HttpClient httpClient = CreateHttpClient();
+                    string? contentRelease = await GetHttpStringCache(httpClient, $"{ENV_CPAN_ENDPOINT}/release/{packageName}");
+                    string? contentPod = await GetHttpStringCache(httpClient, $"{ENV_CPAN_ENDPOINT}/pod/{packageName.Replace("-", "::")}");
                     return contentRelease + "\n" + contentPod;
                 }
                 else

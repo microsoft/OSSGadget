@@ -4,7 +4,6 @@ using CommandLine;
 using CommandLine.Text;
 using Microsoft.ApplicationInspector.Commands;
 using Microsoft.ApplicationInspector.RulesEngine;
-using Microsoft.CST.OpenSource.Shared;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,6 +13,9 @@ using static Crayon.Output;
 
 namespace Microsoft.CST.OpenSource
 {
+    using Extensions.DependencyInjection;
+    using System.Net.Http;
+
     public class DetectBackdoorTool : OSSGadget
     {
         public class Options
@@ -50,9 +52,13 @@ namespace Microsoft.CST.OpenSource
             public bool UseCache { get; set; }
         }
 
-        public DetectBackdoorTool() : base()
+        public DetectBackdoorTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
         {
             RULE_DIRECTORY = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "BackdoorRules");
+        }
+
+        public DetectBackdoorTool() : this(new DefaultHttpClientFactory())
+        {
         }
 
         /// <summary>
@@ -67,13 +73,14 @@ namespace Microsoft.CST.OpenSource
         private static async Task Main(string[] args)
         {
             ShowToolBanner();
-            var detectBackdoorTool = new DetectBackdoorTool();
-            var parsedOptions = detectBackdoorTool.ParseOptions<Options>(args).Value;
-            var detectionResults = await detectBackdoorTool.RunAsync(parsedOptions);
 
-            foreach (var result in detectionResults)
+            DetectBackdoorTool? detectBackdoorTool = new DetectBackdoorTool();
+            Options? parsedOptions = detectBackdoorTool.ParseOptions<Options>(args).Value;
+            List<Dictionary<string, AnalyzeResult?>>? detectionResults = await detectBackdoorTool.RunAsync(parsedOptions);
+
+            foreach (Dictionary<string, AnalyzeResult?>? result in detectionResults)
             {
-                foreach (var entry in result)
+                foreach (KeyValuePair<string, AnalyzeResult?> entry in result)
                 {
                     if (entry.Value == null || entry.Value.Metadata == null || entry.Value.Metadata.Matches == null)
                     {
@@ -82,11 +89,11 @@ namespace Microsoft.CST.OpenSource
 
                     if (parsedOptions.Format == "text")
                     {
-                        var matchEntries = entry.Value.Metadata.Matches.OrderByDescending(x => x.Confidence);
-                        var matchEntriesCount = matchEntries.Count();
+                        IOrderedEnumerable<MatchRecord>? matchEntries = entry.Value.Metadata.Matches.OrderByDescending(x => x.Confidence);
+                        int matchEntriesCount = matchEntries.Count();
                         int matchIndex = 1;
 
-                        foreach (var match in matchEntries)
+                        foreach (MatchRecord? match in matchEntries)
                         {
                             WriteMatch(match, matchIndex, matchEntriesCount);
                             matchIndex++;
@@ -96,12 +103,12 @@ namespace Microsoft.CST.OpenSource
 
                     void WriteMatch(MatchRecord match, int index, int matchCount)
                     {
-                        var filename = match.FileName;
+                        string? filename = match.FileName;
                         if (filename == null)
                         {
                             return;
                         }
-                        var sourcePathLength = entry.Value.Metadata.SourcePath?.Length;
+                        int? sourcePathLength = entry.Value.Metadata.SourcePath?.Length;
                         if (sourcePathLength.HasValue)
                         {
                             if (entry.Value.Metadata.SourcePath != null && filename.StartsWith(entry.Value.Metadata.SourcePath))
@@ -115,9 +122,9 @@ namespace Microsoft.CST.OpenSource
                         Console.WriteLine("  Severity: " + Cyan(match.Severity.ToString()) + ", Confidence: " + Cyan(match.Confidence.ToString()));
                         Console.WriteLine("  Filename: " + Yellow(filename));
                         Console.WriteLine("   Pattern: " + Green(match.MatchingPattern.Pattern));
-                        foreach (var line in match.Excerpt.Split(new[] {"\r", "\n", "\r\n"}, StringSplitOptions.None))
+                        foreach (string? line in match.Excerpt.Split(new[] {"\r", "\n", "\r\n"}, StringSplitOptions.None))
                         {
-                            var s = line;
+                            string? s = line;
                             if (s.Length > 100)
                             {
                                 s = s.Substring(0, 100);
@@ -134,7 +141,7 @@ namespace Microsoft.CST.OpenSource
         {
             if (options != null && options.Targets is IList<string> targetList && targetList.Count > 0)
             {
-                var characteristicTool = new CharacteristicTool();
+                CharacteristicTool? characteristicTool = new CharacteristicTool(HttpClientFactory);
                 CharacteristicTool.Options cOptions = new CharacteristicTool.Options
                 {
                     Targets = options.Targets,

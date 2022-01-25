@@ -62,7 +62,7 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("/foo/bar/quux.c", "baz/quux.c,bar/quux.c", "bar/quux.c")]
         public async Task CheckGetClosestMatch(string filename, string targets, string expectedTarget)
         {
-            IEnumerable<string>? results = Helpers.GetClosestFileMatch(filename, targets.Split(','));
+            IEnumerable<string>? results = OssReproducibleHelpers.GetClosestFileMatch(filename, targets.Split(','));
             Assert.IsNotNull(results);
 
             if (expectedTarget == null)

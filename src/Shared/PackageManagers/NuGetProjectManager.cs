@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using HtmlAgilityPack;
     using System;
@@ -20,6 +20,11 @@ namespace Microsoft.CST.OpenSource.Shared
 
         private string? RegistrationEndpoint { get; set; } = null;
 
+        public NuGetProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        {
+            GetRegistrationEndpointAsync().Wait();
+        }
+
         public NuGetProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
             GetRegistrationEndpointAsync().Wait();
@@ -38,7 +43,8 @@ namespace Microsoft.CST.OpenSource.Shared
 
             try
             {
-                JsonDocument doc = await GetJsonCache($"{ENV_NUGET_ENDPOINT_API}/v3/index.json");
+                HttpClient httpClient = CreateHttpClient();
+                JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_NUGET_ENDPOINT_API}/v3/index.json");
                 JsonElement.ArrayEnumerator resources = doc.RootElement.GetProperty("resources").EnumerateArray();
                 foreach (JsonElement resource in resources)
                 {
@@ -90,7 +96,8 @@ namespace Microsoft.CST.OpenSource.Shared
 
             try
             {
-                JsonDocument doc = await GetJsonCache($"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json");
+                HttpClient httpClient = CreateHttpClient();
+                JsonDocument doc = await GetJsonCache(httpClient, $"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json");
                 List<string> versionList = new();
                 foreach (JsonElement catalogPage in doc.RootElement.GetProperty("items").EnumerateArray())
                 {
@@ -103,7 +110,7 @@ namespace Microsoft.CST.OpenSource.Shared
                             if (version != null && version.Equals(packageVersion, StringComparison.InvariantCultureIgnoreCase))
                             {
                                 string? archive = catalogEntry.GetProperty("packageContent").GetString();
-                                HttpResponseMessage? result = await WebClient.GetAsync(archive);
+                                HttpResponseMessage? result = await httpClient.GetAsync(archive);
                                 result.EnsureSuccessStatusCode();
                                 Logger.Debug("Downloading {0}...", purl?.ToString());
 
@@ -134,7 +141,7 @@ namespace Microsoft.CST.OpenSource.Shared
                         string? subDocUrl = catalogPage.GetProperty("@id").GetString();
                         if (subDocUrl != null)
                         {
-                            JsonDocument subDoc = await GetJsonCache(subDocUrl);
+                            JsonDocument subDoc = await GetJsonCache(httpClient, subDocUrl);
                             foreach (JsonElement subCatalogPage in subDoc.RootElement.GetProperty("items").EnumerateArray())
                             {
                                 JsonElement catalogEntry = subCatalogPage.GetProperty("catalogEntry");
@@ -143,7 +150,7 @@ namespace Microsoft.CST.OpenSource.Shared
                                 if (version != null && version.Equals(packageVersion, StringComparison.InvariantCultureIgnoreCase))
                                 {
                                     string? archive = catalogEntry.GetProperty("packageContent").GetString();
-                                    HttpResponseMessage? result = await WebClient.GetAsync(archive);
+                                    HttpResponseMessage? result = await httpClient.GetAsync(archive);
                                     result.EnsureSuccessStatusCode();
                                     Logger.Debug("Downloading {0}...", purl?.ToString());
 
@@ -199,7 +206,9 @@ namespace Microsoft.CST.OpenSource.Shared
                 return false;
             }
             string packageName = purl.Name;
-            return await CheckJsonCacheForPackage($"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json", useCache);
+            HttpClient httpClient = CreateHttpClient();
+
+            return await CheckJsonCacheForPackage(httpClient, $"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json", useCache);
         }
 
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
@@ -213,9 +222,10 @@ namespace Microsoft.CST.OpenSource.Shared
 
             try
             {
+                HttpClient httpClient = CreateHttpClient();
                 string packageName = purl.Name;
 
-                JsonDocument doc = await GetJsonCache($"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json");
+                JsonDocument doc = await GetJsonCache(httpClient, $"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json");
                 List<string> versionList = new();
                 foreach (JsonElement catalogPage in doc.RootElement.GetProperty("items").EnumerateArray())
                 {
@@ -241,7 +251,7 @@ namespace Microsoft.CST.OpenSource.Shared
                         string? subDocUrl = catalogPage.GetProperty("@id").GetString();
                         if (subDocUrl != null)
                         {
-                            JsonDocument subDoc = await GetJsonCache(subDocUrl);
+                            JsonDocument subDoc = await GetJsonCache(httpClient, subDocUrl);
                             foreach (JsonElement subCatalogPage in subDoc.RootElement.GetProperty("items").EnumerateArray())
                             {
                                 JsonElement catalogEntry = subCatalogPage.GetProperty("catalogEntry");
@@ -282,7 +292,9 @@ namespace Microsoft.CST.OpenSource.Shared
                 {
                     return null;
                 }
-                string? content = await GetHttpStringCache($"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json");
+                HttpClient httpClient = CreateHttpClient();
+
+                string? content = await GetHttpStringCache(httpClient, $"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json");
                 return content;
             }
             catch (Exception ex)

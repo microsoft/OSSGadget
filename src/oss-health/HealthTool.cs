@@ -11,28 +11,34 @@ using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
 
 namespace Microsoft.CST.OpenSource
 {
+    using Extensions.DependencyInjection;
+    using Microsoft.CST.OpenSource.PackageManagers;
+    using System.Net.Http;
+
     public class HealthTool : OSSGadget
     {
-        public HealthTool() : base()
+        public HealthTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
         {
         }
-
+        public HealthTool() : this(new DefaultHttpClientFactory())
+        {
+        }
         public async Task<HealthMetrics?> CheckHealth(PackageURL purl)
         {
-            var packageManager = ProjectManagerFactory.CreateProjectManager(purl, null);
+            BaseProjectManager? packageManager = ProjectManagerFactory.CreateProjectManager(purl, HttpClientFactory);
 
             if (packageManager != null)
             {
-                var content = await packageManager.GetMetadata(purl);
+                string? content = await packageManager.GetMetadata(purl);
                 if (!string.IsNullOrWhiteSpace(content))
                 {
-                    RepoSearch repoSearcher = new RepoSearch();
-                    foreach (var (githubPurl, _) in await repoSearcher.ResolvePackageLibraryAsync(purl))
+                    RepoSearch repoSearcher = new RepoSearch(HttpClientFactory);
+                    foreach ((PackageURL githubPurl, double _) in await repoSearcher.ResolvePackageLibraryAsync(purl))
                     {
                         try
                         {
-                            var healthAlgorithm = new GitHubHealthAlgorithm(githubPurl);
-                            var health = await healthAlgorithm.GetHealth();
+                            GitHubHealthAlgorithm? healthAlgorithm = new GitHubHealthAlgorithm(githubPurl);
+                            HealthMetrics? health = await healthAlgorithm.GetHealth();
                             return health;
                         }
                         catch (Exception ex)
@@ -82,7 +88,7 @@ namespace Microsoft.CST.OpenSource
         private static async Task Main(string[] args)
         {
             ShowToolBanner();
-            var healthTool = new HealthTool();
+            HealthTool? healthTool = new HealthTool();
             await healthTool.ParseOptions<Options>(args).WithParsedAsync(healthTool.RunAsync);
         }
 
@@ -112,12 +118,12 @@ namespace Microsoft.CST.OpenSource
             IOutputBuilder outputBuilder = SelectFormat(options.Format ?? OutputFormat.text.ToString());
             if (options.Targets is IList<string> targetList && targetList.Count > 0)
             {
-                foreach (var target in targetList)
+                foreach (string? target in targetList)
                 {
                     try
                     {
-                        var purl = new PackageURL(target);
-                        var healthMetrics = CheckHealth(purl).Result;
+                        PackageURL? purl = new PackageURL(target);
+                        HealthMetrics? healthMetrics = CheckHealth(purl).Result;
                         if (healthMetrics == null)
                         {
                             Logger.Debug($"Cannot compute Health for {purl}");

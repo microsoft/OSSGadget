@@ -1,18 +1,23 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using AngleSharp.Html.Parser;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Net.Http;
     using System.Threading.Tasks;
 
     internal class CRANProjectManager : BaseProjectManager
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_CRAN_ENDPOINT = "https://cran.r-project.org";
+
+        public CRANProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        {
+        }
 
         public CRANProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
@@ -38,11 +43,12 @@ namespace Microsoft.CST.OpenSource.Shared
                 return downloadedPaths;
             }
 
+            HttpClient httpClient = CreateHttpClient();
             // Current Version
             try
             {
                 string url = $"{ENV_CRAN_ENDPOINT}/src/contrib/{packageName}_{packageVersion}.tar.gz";
-                System.Net.Http.HttpResponseMessage? result = await WebClient.GetAsync(url);
+                System.Net.Http.HttpResponseMessage? result = await httpClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
                 Logger.Debug("Downloading {0}...", purl);
 
@@ -77,7 +83,7 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 string url = $"{ENV_CRAN_ENDPOINT}/src/contrib/Archive/{packageName}/{packageName}_{packageVersion}.tar.gz";
-                System.Net.Http.HttpResponseMessage? result = await WebClient.GetAsync(url);
+                System.Net.Http.HttpResponseMessage? result = await httpClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
                 Logger.Debug("Downloading {0}...", purl);
 
@@ -112,9 +118,10 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 string packageName = purl.Name;
                 List<string> versionList = new();
+                HttpClient httpClient = CreateHttpClient();
 
                 // Get the latest version
-                System.Net.Http.HttpResponseMessage html = await WebClient.GetAsync($"{ENV_CRAN_ENDPOINT}/web/packages/{packageName}/index.html");
+                System.Net.Http.HttpResponseMessage html = await httpClient.GetAsync($"{ENV_CRAN_ENDPOINT}/web/packages/{packageName}/index.html");
                 html.EnsureSuccessStatusCode();
                 HtmlParser? parser = new();
                 AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(await html.Content.ReadAsStringAsync());
@@ -133,7 +140,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
 
                 // Get the remaining versions
-                html = await WebClient.GetAsync($"{ENV_CRAN_ENDPOINT}/src/contrib/Archive/{packageName}/");
+                html = await httpClient.GetAsync($"{ENV_CRAN_ENDPOINT}/src/contrib/Archive/{packageName}/");
                 html.EnsureSuccessStatusCode();
                 document = await parser.ParseDocumentAsync(await html.Content.ReadAsStringAsync());
                 tds = document.QuerySelectorAll("a");
@@ -162,7 +169,8 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 string? packageName = purl.Name;
-                string? content = await GetHttpStringCache($"{ENV_CRAN_ENDPOINT}/web/packages/{packageName}/index.html");
+                HttpClient httpClient = CreateHttpClient();
+                string? content = await GetHttpStringCache(httpClient, $"{ENV_CRAN_ENDPOINT}/web/packages/{packageName}/index.html");
                 return content;
             }
             catch (Exception ex)

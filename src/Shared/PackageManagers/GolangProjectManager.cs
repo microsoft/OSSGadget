@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.PackageManagers
 {
-    using Microsoft.CST.OpenSource.Model;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Net.Http;
     using System.Threading.Tasks;
 
     internal class GolangProjectManager : BaseProjectManager
@@ -16,6 +16,10 @@ namespace Microsoft.CST.OpenSource.Shared
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_GO_PKG_ENDPOINT = "https://pkg.go.dev";
+
+        public GolangProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        {
+        }
 
         public GolangProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
@@ -44,7 +48,9 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 string url = $"{ENV_GO_PROXY_ENDPOINT}/{packageNamespace.ToLowerInvariant()}/{packageName.ToLowerInvariant()}/@v/{packageVersion}.zip";
-                System.Net.Http.HttpResponseMessage result = await WebClient.GetAsync(url);
+                HttpClient httpClient = CreateHttpClient();
+
+                System.Net.Http.HttpResponseMessage result = await httpClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
                 Logger.Debug("Downloading {0}...", purl);
 
@@ -89,7 +95,9 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             string packageNamespaceLower = purl.Namespace.ToLowerInvariant();
             string packageNameLower = purl.Name.ToLowerInvariant();
-            return await CheckHttpCacheForPackage($"{ENV_GO_PROXY_ENDPOINT}/{packageNamespaceLower}/{packageNameLower}/@v/list", useCache);
+            HttpClient httpClient = CreateHttpClient();
+
+            return await CheckHttpCacheForPackage(httpClient, $"{ENV_GO_PROXY_ENDPOINT}/{packageNamespaceLower}/{packageNameLower}/@v/list", useCache);
         }
 
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
@@ -105,7 +113,9 @@ namespace Microsoft.CST.OpenSource.Shared
                 string? packageNamespaceLower = purl?.Namespace?.ToLowerInvariant();
                 string? packageNameLower = purl?.Name?.ToLowerInvariant();
                 List<string> versionList = new();
-                string? doc = await GetHttpStringCache($"{ENV_GO_PROXY_ENDPOINT}/{packageNamespaceLower}/{packageNameLower}/@v/list");
+                HttpClient httpClient = CreateHttpClient();
+
+                string? doc = await GetHttpStringCache(httpClient, $"{ENV_GO_PROXY_ENDPOINT}/{packageNamespaceLower}/{packageNameLower}/@v/list");
                 if (doc != null)
                 {
                     foreach (string line in doc.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
@@ -145,7 +155,9 @@ namespace Microsoft.CST.OpenSource.Shared
                     string latestVersion = versions.Last();
                     string packageNamespaceLower = purl.Namespace.ToLowerInvariant();
                     string packageNameLower = purl.Name.ToLowerInvariant();
-                    return await GetHttpStringCache($"{ENV_GO_PROXY_ENDPOINT}/{packageNamespaceLower}/{packageNameLower}/@v/{latestVersion}.mod");
+                    HttpClient httpClient = CreateHttpClient();
+
+                    return await GetHttpStringCache(httpClient, $"{ENV_GO_PROXY_ENDPOINT}/{packageNamespaceLower}/{packageNameLower}/@v/{latestVersion}.mod");
                 }
                 else
                 {

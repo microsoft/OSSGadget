@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using Microsoft.CST.OpenSource.Shared;
+using Microsoft.CST.OpenSource.Helpers;
 using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Health
@@ -12,7 +12,6 @@ namespace Microsoft.CST.OpenSource.Health
     {
         public BaseHealthAlgorithm()
         {
-            CommonInitialization.OverrideEnvironmentVariables(this);
         }
 
         public static double Clamp(double value, double min = 0, double max = 100)

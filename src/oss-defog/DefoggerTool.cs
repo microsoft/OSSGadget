@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using Microsoft.CST.OpenSource.Shared;
 using Microsoft.CST.RecursiveExtractor;
 using MimeTypes;
 using System;
@@ -13,6 +12,9 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource
 {
+    using Extensions.DependencyInjection;
+    using System.Net.Http;
+
     public class DefoggerTool : OSSGadget
     {
         /// <summary>
@@ -117,8 +119,8 @@ namespace Microsoft.CST.OpenSource
             if (input == null) { return ExecutableType.Unknown; }
             if (input.Length < 4) { return ExecutableType.None; }
 
-            var fourBytes = new byte[4];
-            var initialPosition = input.Position;
+            byte[]? fourBytes = new byte[4];
+            long initialPosition = input.Position;
 
             try
             {
@@ -262,25 +264,24 @@ namespace Microsoft.CST.OpenSource
         private static async Task Main(string[] args)
         {
             ShowToolBanner();
-            CommonInitialization.Initialize();
 
-            var defoggerTool = new DefoggerTool();
+            DefoggerTool? defoggerTool = new DefoggerTool();
             defoggerTool.ParseOptions(args);
 
             if (defoggerTool.Options["target"] is IList<string> targetList && targetList.Count > 0)
             {
-                foreach (var target in targetList)
+                foreach (string? target in targetList)
                 {
                     try
                     {
                         if (target.StartsWith("pkg:"))
                         {
-                            var purl = new PackageURL(target);
+                            PackageURL? purl = new PackageURL(target);
                             defoggerTool.AnalyzePackage(purl,
                                 (string?)defoggerTool.Options["download-directory"],
                                 (bool?)defoggerTool.Options["use-cache"] == true).Wait();
                         }
-                        else if (Directory.Exists(target))
+                        else if (System.IO.Directory.Exists(target))
                         {
                             defoggerTool.AnalyzeDirectory(target);
                         }
@@ -289,46 +290,46 @@ namespace Microsoft.CST.OpenSource
                             throw new Exception($"Invalid target: [{target}]");
                         }
 
-                        foreach (var finding in defoggerTool.Findings)
+                        foreach (EncodedString? finding in defoggerTool.Findings)
                         {
                             Logger.Info("[String] {0}: {1} -> {2}", finding.Filename, finding.EncodedText, finding.DecodedText);
                         }
 
-                        var binaryDir = (string?)defoggerTool.Options["save-found-binaries-to"];
-                        var binaryNumber = 0;
-                        foreach (var binaryFinding in defoggerTool.BinaryFindings)
+                        string? binaryDir = (string?)defoggerTool.Options["save-found-binaries-to"];
+                        int binaryNumber = 0;
+                        foreach (EncodedBinary? binaryFinding in defoggerTool.BinaryFindings)
                         {
                             Logger.Info("[Binary] {0}: {1} -> {2}", binaryFinding.Filename, binaryFinding.EncodedText, binaryFinding.Type);
                             if (binaryDir is string)
                             {
-                                Directory.CreateDirectory(binaryDir);
-                                var path = Path.Combine(binaryDir, binaryFinding.Filename, $"binary-{binaryNumber}");
+                                System.IO.Directory.CreateDirectory(binaryDir);
+                                string? path = Path.Combine(binaryDir, binaryFinding.Filename, $"binary-{binaryNumber}");
                                 Logger.Info("Saving to {0}", path);
-                                var fs = new FileStream(path, System.IO.FileMode.OpenOrCreate);
+                                FileStream? fs = new FileStream(path, System.IO.FileMode.OpenOrCreate);
                                 binaryFinding.DecodedBinary.CopyTo(fs);
                                 binaryNumber++;
                             }
                         }
 
-                        var archiveDir = (string?)defoggerTool.Options["save-archives-to"];
-                        var archiveNumber = 0;
-                        foreach (var archiveFinding in defoggerTool.ArchiveFindings)
+                        string? archiveDir = (string?)defoggerTool.Options["save-archives-to"];
+                        int archiveNumber = 0;
+                        foreach (EncodedArchive? archiveFinding in defoggerTool.ArchiveFindings)
                         {
                             Logger.Info("[Archive] {0}: {1} -> {2}", archiveFinding.Filename, archiveFinding.EncodedText, archiveFinding.Type);
                             if (archiveDir is string)
                             {
-                                Directory.CreateDirectory(archiveDir);
-                                var path = Path.Combine(archiveDir, archiveFinding.Filename, $"archive-{archiveNumber++}");
+                                System.IO.Directory.CreateDirectory(archiveDir);
+                                string? path = Path.Combine(archiveDir, archiveFinding.Filename, $"archive-{archiveNumber++}");
                                 Logger.Info("Saving to {0}", path);
-                                var fs = new FileStream(path, System.IO.FileMode.OpenOrCreate);
+                                FileStream? fs = new FileStream(path, System.IO.FileMode.OpenOrCreate);
                                 archiveFinding.DecodedArchive.CopyTo(fs);
                                 archiveNumber++;
                             }
                         }
 
-                        var blobDir = (string?)defoggerTool.Options["save-blobs-to"];
-                        var blobNumber = 0;
-                        foreach (var blobFinding in defoggerTool.NonTextFindings)
+                        string? blobDir = (string?)defoggerTool.Options["save-blobs-to"];
+                        int blobNumber = 0;
+                        foreach (EncodedBlob? blobFinding in defoggerTool.NonTextFindings)
                         {
                             if (defoggerTool.Options["report-blobs"] is bool x && x is true)
                             {
@@ -336,7 +337,7 @@ namespace Microsoft.CST.OpenSource
                             }
                             if (blobDir is string)
                             {
-                                var path = Path.Combine(blobDir, blobFinding.Filename, $"blob-{blobNumber++}");
+                                string? path = Path.Combine(blobDir, blobFinding.Filename, $"blob-{blobNumber++}");
                                 Logger.Info("Saving to {0}", path);
                                 File.WriteAllText(path, blobFinding.DecodedText);
                                 blobNumber++;
@@ -360,12 +361,16 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         /// Initializes a new DefoggerTool instance.
         /// </summary>
-        public DefoggerTool() : base()
+        public DefoggerTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
         {
             Findings = new List<EncodedString>();
             BinaryFindings = new List<EncodedBinary>();
             ArchiveFindings = new List<EncodedArchive>();
             NonTextFindings = new List<EncodedBlob>();
+        }
+
+        public DefoggerTool() : this(new DefaultHttpClientFactory())
+        {
         }
 
         /// <summary>
@@ -377,10 +382,10 @@ namespace Microsoft.CST.OpenSource
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
 
-            var packageDownloader = new PackageDownloader(purl, destinationDirectory, doCaching);
-            foreach (var directory in await packageDownloader.DownloadPackageLocalCopy(purl, false, true))
+            PackageDownloader? packageDownloader = new PackageDownloader(purl, HttpClientFactory, destinationDirectory, doCaching);
+            foreach (string? directory in await packageDownloader.DownloadPackageLocalCopy(purl, false, true))
             {
-                if (Directory.Exists(directory))
+                if (System.IO.Directory.Exists(directory))
                 {
                     AnalyzeDirectory(directory);
                 }
@@ -404,8 +409,8 @@ namespace Microsoft.CST.OpenSource
         public void AnalyzeDirectory(string directory)
         {
             Logger.Trace("AnalyzeDirectory({0})", directory);
-            var fileList = Directory.EnumerateFiles(directory, @"*.*", SearchOption.AllDirectories);
-            foreach (var filename in fileList)
+            IEnumerable<string>? fileList = System.IO.Directory.EnumerateFiles(directory, @"*.*", SearchOption.AllDirectories);
+            foreach (string? filename in fileList)
             {
                 try
                 {
@@ -426,7 +431,7 @@ namespace Microsoft.CST.OpenSource
         {
             Logger.Trace("AnalyzeFile({0})", filename);
 
-            var mimeType = MimeTypeMap.GetMimeType(Path.GetExtension(filename));
+            string? mimeType = MimeTypeMap.GetMimeType(Path.GetExtension(filename));
             if (IGNORE_MIME_REGEX.IsMatch(mimeType))
             {
                 Logger.Debug("Ignoring {0}; invalid MIME type: {1}", filename, mimeType);
@@ -434,7 +439,7 @@ namespace Microsoft.CST.OpenSource
             }
 
 #pragma warning disable SEC0116 // Path Tampering Unvalidated File Path
-            var fileContents = File.ReadAllText(filename);
+            string? fileContents = File.ReadAllText(filename);
 #pragma warning restore SEC0116 // Path Tampering Unvalidated File Path
 
             AnalyzeFile(filename, fileContents);
@@ -459,15 +464,15 @@ namespace Microsoft.CST.OpenSource
                 // what we want.
                 try
                 {
-                    var bytes = Convert.FromBase64String(match.Value);
+                    byte[]? bytes = Convert.FromBase64String(match.Value);
                     // Does the re-encoded string match?
-                    var reencoded = Convert.ToBase64String(bytes);
+                    string? reencoded = Convert.ToBase64String(bytes);
 
                     if (match.Value.Equals(reencoded))
                     {
-                        var entry = new FileEntry("bytes", new MemoryStream(bytes), new FileEntry(filename, new MemoryStream()));
+                        FileEntry? entry = new FileEntry("bytes", new MemoryStream(bytes), new FileEntry(filename, new MemoryStream()));
 
-                        var exeType = GetExecutableType(entry.Content);
+                        ExecutableType exeType = GetExecutableType(entry.Content);
 
                         if (exeType is not ExecutableType.None && exeType is not ExecutableType.Unknown)
                         {
@@ -475,14 +480,14 @@ namespace Microsoft.CST.OpenSource
                         }
                         else
                         {
-                            var archiveFileType = MiniMagic.DetectFileType(entry);
+                            ArchiveFileType archiveFileType = MiniMagic.DetectFileType(entry);
 
-                            var extractor = new Extractor();
+                            Extractor? extractor = new Extractor();
 
                             if (archiveFileType is not ArchiveFileType.UNKNOWN && archiveFileType is not ArchiveFileType.INVALID)
                             {
                                 ArchiveFindings.Add(new EncodedArchive(archiveFileType, filename, match.Value, entry.Content));
-                                foreach (var extractedEntry in extractor.Extract(entry, new ExtractorOptions() { MemoryStreamCutoff = int.MaxValue }))
+                                foreach (FileEntry? extractedEntry in extractor.Extract(entry, new ExtractorOptions() { MemoryStreamCutoff = int.MaxValue }))
                                 {
                                     exeType = GetExecutableType(extractedEntry.Content);
                                     if (exeType is not ExecutableType.None && exeType is not ExecutableType.Unknown)
@@ -491,14 +496,14 @@ namespace Microsoft.CST.OpenSource
                                     }
                                     else
                                     {
-                                        var zippedString = new StreamReader(extractedEntry.Content).ReadToEnd();
+                                        string? zippedString = new StreamReader(extractedEntry.Content).ReadToEnd();
                                         AnalyzeFile(extractedEntry.FullPath, zippedString);
                                     }
                                 }
                             }
                             else
                             {
-                                var decoded = Encoding.Default.GetString(bytes);
+                                string? decoded = Encoding.Default.GetString(bytes);
                                 if (HasNonTextContent(decoded))
                                 {
                                     NonTextFindings.Add(new EncodedBlob(
@@ -536,7 +541,7 @@ namespace Microsoft.CST.OpenSource
 
             foreach (Match match in HEX_REGEX.Matches(fileContents).Where(match => match != null))
             {
-                var decodedText = HexToString(match.Value);
+                string? decodedText = HexToString(match.Value);
 
                 // Bail out if the decoded string isn't interesting
                 if (!IsInterestingString(decodedText))
@@ -564,7 +569,7 @@ namespace Microsoft.CST.OpenSource
         {
             hex = hex.Trim();
             hex = hex.Replace("-", "");
-            var stringLength = hex.Length;
+            int stringLength = hex.Length;
 
             // Remove an initial '0x' prefix
             if (hex.StartsWith("0x", StringComparison.InvariantCultureIgnoreCase))
@@ -581,7 +586,7 @@ namespace Microsoft.CST.OpenSource
             }
             // Store enough bytes for half the length (hex digits are 4 bits)
             byte[] bytes = new byte[stringLength / 2];
-            for (var i = 0; i < stringLength; i += 2)
+            for (int i = 0; i < stringLength; i += 2)
             {
                 bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
             }
@@ -721,7 +726,7 @@ Usage: {ToolName} [options] package-url...
 positional arguments:
   package-url                   package url to analyze (required, multiple allowed), or directory.
 
-{BaseProjectManager.GetCommonSupportedHelpText()}
+{GetCommonSupportedHelpText()}
 
 optional arguments:
   --download-directory          the directory to download the package to

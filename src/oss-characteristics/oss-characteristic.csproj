@@ -34,7 +34,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\oss-download\oss-download.csproj" />
-    <ProjectReference Include="..\Shared\Shared.csproj" />
+    <ProjectReference Include="..\Shared.CLI\Shared.CLI.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,14 +1,12 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.PackageManagers
 {
-    using F23.StringSimilarity;
-    using Microsoft.CST.OpenSource.Model;
     using Microsoft.CST.RecursiveExtractor;
     using Microsoft.Extensions.Caching.Memory;
+    using Microsoft.CST.OpenSource.Model;
     using System;
     using System.Collections.Generic;
-    using System.Data;
     using System.IO;
     using System.Linq;
     using System.Net.Http;
@@ -16,27 +14,24 @@ namespace Microsoft.CST.OpenSource.Shared
     using System.Text.Json;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
+    using Utilities;
     using Version = SemanticVersioning.Version;
+    using Microsoft.CST.OpenSource.Helpers;
 
     public class BaseProjectManager
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="BaseProjectManager"/> class.
         /// </summary>
-        public BaseProjectManager(string destinationDirectory)
+        public BaseProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory)
         {
             Options = new Dictionary<string, object>();
-            CommonInitialization.OverrideEnvironmentVariables(this);
             TopLevelExtractionDirectory = destinationDirectory;
+            HttpClientFactory = httpClientFactory;
+        }
 
-            if (CommonInitialization.WebClient is HttpClient client)
-            {
-                WebClient = client;
-            }
-            else
-            {
-                throw new NullReferenceException(nameof(WebClient));
-            }
+        public BaseProjectManager(string destinationDirectory) : this(new DefaultHttpClientFactory(), destinationDirectory)
+        {
         }
 
         /// <summary>
@@ -48,6 +43,11 @@ namespace Microsoft.CST.OpenSource.Shared
         /// The location (directory) to extract files to.
         /// </summary>
         public string TopLevelExtractionDirectory { get; set; } = ".";
+
+        /// <summary>
+        /// The <see cref="IHttpClientFactory"/> for the manager.
+        /// </summary>
+        public IHttpClientFactory HttpClientFactory { get; }
 
         /// <summary>
         /// Extracts GitHub URLs from a given piece of text.
@@ -98,42 +98,15 @@ namespace Microsoft.CST.OpenSource.Shared
             return purlList.Distinct();
         }
 
-        public static string GetCommonSupportedHelpText()
-        {
-            string supportedHelpText = @"
-The package-url specifier is described at https://github.com/package-url/purl-spec:
-  pkg:cargo/rand                The latest version of Rand (via crates.io)
-  pkg:cocoapods/AFNetworking    The latest version of AFNetworking (via cocoapods.org)
-  pkg:composer/Smarty/Smarty    The latest version of Smarty (via Composer/ Packagist)
-  pkg:cpan/Apache-ACEProxy      The latest version of Apache::ACEProxy (via cpan.org)
-  pkg:cran/ACNE@0.8.0           Version 0.8.0 of ACNE (via cran.r-project.org)
-  pkg:gem/rubytree@*            All versions of RubyTree (via rubygems.org)
-  pkg:golang/sigs.k8s.io/yaml   The latest version of sigs.k8s.io/yaml (via proxy.golang.org)
-  pkg:github/Microsoft/DevSkim  The latest release of DevSkim (via GitHub)
-  pkg:hackage/a50@*             All versions of a50 (via hackage.haskell.org)
-  pkg:maven/org.apdplat/deep-qa The latest version of org.apdplat.deep-qa (via repo1.maven.org)
-  pkg:npm/express               The latest version of Express (via npm.org)
-  pkg:nuget/Newtonsoft.JSON     The latest version of Newtonsoft.JSON (via nuget.org)
-  pkg:pypi/django@1.11.1        Version 1.11.1 of Django (via pypi.org)
-  pkg:ubuntu/zerofree           The latest version of zerofree from Ubuntu (via packages.ubuntu.com)
-  pkg:vsm/MLNET/07              The latest version of MLNET.07 (from marketplace.visualstudio.com)
-  pkg:url/foo@1.0?url=<URL>     The direct URL <URL>
-";
-            return supportedHelpText;
-        }
-
-        public static List<string> GetCommonSupportedHelpTextLines()
-        {
-            return GetCommonSupportedHelpText().Split(Environment.NewLine).ToList<string>();
-        }
-
         /// <summary>
         /// Retrieves HTTP content from a given URI.
         /// </summary>
-        /// <param name="uri">URI to load.</param>
+        /// <param name="client">The <see cref="HttpClient"/> to make the request on.</param>
+        /// <param name="uri">The URI to load.</param>
         /// <param name="useCache">If cache should be used.</param>
-        /// <returns></returns>
-        public static async Task<string?> GetHttpStringCache(string uri, bool useCache = true, bool neverThrow = false)
+        /// <param name="neverThrow">If an exception gets raised, should it not be thrown.</param>
+        /// <returns>The string response from the http result content.</returns>
+        public static async Task<string?> GetHttpStringCache(HttpClient client, string uri, bool useCache = true, bool neverThrow = false)
         {
             Logger.Trace("GetHttpStringCache({0}, {1})", uri, useCache);
 
@@ -152,8 +125,8 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
                     }
                 }
 
-                HttpResponseMessage result = await WebClient.GetAsync(uri);
-                result.EnsureSuccessStatusCode();   // Don't cache error codes
+                HttpResponseMessage result = await client.GetAsync(uri);
+                result.EnsureSuccessStatusCode(); // Don't cache error codes.
                 long contentLength = result.Content.Headers.ContentLength ?? 8192;
                 resultString = await result.Content.ReadAsStringAsync();
 
@@ -178,29 +151,27 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         }
 
         /// <summary>
-        /// Checks <see cref="GetHttpStringCache(string, bool, bool)"/> to see if the package exists.
+        /// Checks <see cref="GetHttpStringCache(HttpClient, string, bool, bool)"/> to see if the package exists.
         /// </summary>
-        /// <param name="url">The URL to check</param>
+        /// <param name="client">The <see cref="HttpClient"/> to make the request on.</param>
+        /// <param name="url">The URL to check.</param>
         /// <param name="useCache">If cache should be used.</param>
         /// <returns>true if the package exists.</returns>
-        internal static async Task<bool> CheckHttpCacheForPackage(string url, bool useCache = true)
+        internal static async Task<bool> CheckHttpCacheForPackage(HttpClient client, string url, bool useCache = true)
         {
             Logger.Trace("CheckHttpCacheForPackage {0}", url);
             try
             {
-                // GetHttpStringCache throws an exception if it has trouble finding the package
-                _ = await GetHttpStringCache(url, useCache);
+                // GetHttpStringCache throws an exception if it has trouble finding the package.
+                _ = await GetHttpStringCache(client, url, useCache);
                 return true;
             }
             catch (Exception e)
             {
-                if (e is HttpRequestException httpEx)
+                if (e is HttpRequestException { StatusCode: System.Net.HttpStatusCode.NotFound })
                 {
-                    if (httpEx.StatusCode == System.Net.HttpStatusCode.NotFound)
-                    {
-                        Logger.Trace("Package not found: {0}");
-                        return false;
-                    }
+                    Logger.Trace("Package not found at: {0}", url);
+                    return false;
                 }
                 Logger.Debug("Unable to check if package {1} exists: {0}", e.Message, url);
             }
@@ -208,29 +179,27 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         }
 
         /// <summary>
-        /// Checks <see cref="GetJsonCache(string, bool)"/> to see if the package exists.
+        /// Checks <see cref="GetJsonCache(HttpClient, string, bool)"/> to see if the package exists.
         /// </summary>
-        /// <param name="url">The URL to check</param>
+        /// <param name="client">The <see cref="HttpClient"/> to make the request on.</param>
+        /// <param name="url">The URL to check.</param>
         /// <param name="useCache">If cache should be used.</param>
         /// <returns>true if the package exists.</returns>
-        internal static async Task<bool> CheckJsonCacheForPackage(string url, bool useCache = true)
+        internal static async Task<bool> CheckJsonCacheForPackage(HttpClient client, string url, bool useCache = true)
         {
             Logger.Trace("CheckJsonCacheForPackage {0}", url);
             try
             {
-                // GetJsonCache throws an exception if it has trouble finding the package
-                _ = await GetJsonCache(url, useCache);
+                // GetJsonCache throws an exception if it has trouble finding the package.
+                _ = await GetJsonCache(client, url, useCache);
                 return true;
             }
             catch (Exception e)
             {
-                if (e is HttpRequestException httpEx)
+                if (e is HttpRequestException { StatusCode: System.Net.HttpStatusCode.NotFound })
                 {
-                    if (httpEx.StatusCode == System.Net.HttpStatusCode.NotFound)
-                    {
-                        Logger.Trace("Package not found: {0}");
-                        return false;
-                    }
+                    Logger.Trace("Package not found at: {0}", url);
+                    return false;
                 }
                 Logger.Debug("Unable to check if package {1} exists: {0}", e.Message, url);
             }
@@ -240,10 +209,11 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         /// <summary>
         /// Retrieves JSON content from a given URI.
         /// </summary>
+        /// <param name="client">The <see cref="HttpClient"/> to make the request on.</param>
         /// <param name="uri">URI to load.</param>
         /// <param name="useCache">If cache should be used. If false will make a direct WebClient request.</param>
         /// <returns>Content, as a JsonDocument, possibly from cache.</returns>
-        public static async Task<JsonDocument> GetJsonCache(string uri, bool useCache = true)
+        public static async Task<JsonDocument> GetJsonCache(HttpClient client, string uri, bool useCache = true)
         {
             Logger.Trace("GetJsonCache({0}, {1})", uri, useCache);
             if (useCache)
@@ -256,9 +226,9 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
                     }
                 }
             }
-            Logger.Trace("Loading Uri");
-            HttpResponseMessage result = await WebClient.GetAsync(uri);
-            result.EnsureSuccessStatusCode();   // Don't cache error codes
+            Logger.Trace("Loading Uri...");
+            HttpResponseMessage result = await client.GetAsync(uri);
+            result.EnsureSuccessStatusCode(); // Don't cache error codes.
             long contentLength = result.Content.Headers.ContentLength ?? 8192;
             JsonDocument doc = await JsonDocument.ParseAsync(await result.Content.ReadAsStreamAsync());
 
@@ -274,15 +244,21 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
             return doc;
         }
 
+        /// <summary>
+        /// Sorts the versions of a package.
+        /// </summary>
+        /// <param name="versionList">The available list of versions on a package.</param>
+        /// <returns>The sorted list of versions.</returns>
         public static IEnumerable<string> SortVersions(IEnumerable<string> versionList)
         {
-            if (versionList == null || !versionList.Any())
+            List<string> versionListEnumerated = versionList.ToList();
+            if (!versionListEnumerated.Any())
             {
                 return Array.Empty<string>();
             }
 
             // Split Versions
-            List<List<string>> versionPartsList = versionList.Select(s => VersionComparer.Parse(s)).ToList();
+            List<List<string>> versionPartsList = versionListEnumerated.Select(VersionComparer.Parse).ToList();
             versionPartsList.Sort(new VersionComparer());
             return versionPartsList.Select(s => string.Join("", s));
         }
@@ -308,6 +284,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         /// </summary>
         /// <param name="directoryName">directory to extract content into (within TopLevelExtractionDirectory)</param>
         /// <param name="bytes">bytes to extract (should be an archive file)</param>
+        /// <param name="cached">If the archive has been cached.</param>
         /// <returns></returns>
         public async Task<string> ExtractArchive(string directoryName, byte[] bytes, bool cached = false)
         {
@@ -337,7 +314,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
             {
                 ExtractSelfOnFail = true,
                 Parallel = true
-                //MaxExtractedBytes = 1000 * 1000 * 10;  // 10 MB maximum package size
+                // MaxExtractedBytes = 1000 * 1000 * 10;  // 10 MB maximum package size
             };
             ExtractionStatusCode result = await extractor.ExtractToDirectoryAsync(TopLevelExtractionDirectory, dirBuilder.ToString(), new MemoryStream(bytes), extractorOptions);
             if (result == ExtractionStatusCode.Ok)
@@ -353,18 +330,18 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         }
 
         /// <summary>
-        /// Gets the latest version from the package metadata
+        /// Gets the latest version from the package metadata.
         /// </summary>
-        /// <param name="metadata"></param>
-        /// <returns></returns>
-        public Version? GetLatestVersion(JsonDocument? metadata)
+        /// <param name="metadata">The package metadata to parse.</param>
+        /// <returns>The latest version of the package.</returns>
+        public Version? GetLatestVersion(JsonDocument metadata)
         {
             List<Version> versions = GetVersions(metadata);
             return GetLatestVersion(versions);
         }
 
         /// <summary>
-        /// Check if the package exists in the respository.
+        /// Check if the package exists in the repository.
         /// </summary>
         /// <param name="purl">The PackageURL to check.</param>
         /// <param name="useCache">Ignored by <see cref="BaseProjectManager"/> but may be respected by inherited implementations.</param>
@@ -381,13 +358,13 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         }
 
         /// <summary>
-        /// overload for getting the latest version
+        /// Static overload for getting the latest version.
         /// </summary>
-        /// <param name="versions"></param>
-        /// <returns></returns>
+        /// <param name="versions">The list of versions.</param>
+        /// <returns>The latest version from the list.</returns>
         public static Version? GetLatestVersion(List<Version> versions)
         {
-            if (versions?.Count > 0)
+            if (versions.Any())
             {
                 Version? maxVersion = versions.Max();
                 return maxVersion;
@@ -399,12 +376,11 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         /// This method should return text reflecting metadata for the given package. There is no
         /// assumed format.
         /// </summary>
-        /// <param name="purl">PackageURL to search</param>
+        /// <param name="purl">PackageURL to search.</param>
         /// <returns>a string containing metadata.</returns>
         public virtual Task<string?> GetMetadata(PackageURL purl)
         {
-            string typeName = GetType().Name;
-            throw new NotImplementedException($"{typeName} does not implement GetMetadata.");
+            throw new NotImplementedException($"{GetType().Name} does not implement GetMetadata.");
         }
 
         /// <summary>
@@ -414,8 +390,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         /// <returns></returns>
         public virtual Uri? GetPackageAbsoluteUri(PackageURL purl)
         {
-            string typeName = GetType().Name;
-            throw new NotImplementedException($"{typeName} does not implement GetPackageAbsoluteUri.");
+            throw new NotImplementedException($"{GetType().Name} does not implement GetPackageAbsoluteUri.");
         }
 
         /// <summary>
@@ -514,14 +489,6 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
         /// <summary>
-        /// Static HttpClient for use in all HTTP connections. Class throws a NullExceptionError in
-        /// the constructor if this is null.
-        /// </summary>
-#nullable disable
-        protected static HttpClient WebClient { get; private set; }
-#nullable enable
-
-        /// <summary>
         /// Rank the source repo entry candidates by their edit distance.
         /// </summary>
         /// <param name="purl">the package</param>
@@ -539,7 +506,8 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
 
             // Simple regular expression, looking for GitHub URLs
             // TODO: Expand this to Bitbucket, GitLab, etc.
-            IEnumerable<PackageURL> sourceUrls = GitHubProjectManager.ExtractGitHubUris(purl, rawMetadataString);
+            // TODO: Bring this back, but like better.
+            /*IEnumerable<PackageURL> sourceUrls = GitHubProjectManager.ExtractGitHubUris(purl, rawMetadataString);
             if (sourceUrls != null && sourceUrls.Any())
             {
                 double baseScore = 0.8;     // Max confidence: 0.80
@@ -557,7 +525,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
 
                     sourceRepositoryMap.Add(group.Key, baseScore + similarityBoost + countBoost);
                 }
-            }
+            }*/
             return sourceRepositoryMap;
         }
 
@@ -570,6 +538,11 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         protected virtual Task<Dictionary<PackageURL, double>> SearchRepoUrlsInPackageMetadata(PackageURL purl, string metadata)
         {
             return Task.FromResult(new Dictionary<PackageURL, double>());
+        }
+
+        protected HttpClient CreateHttpClient()
+        {
+            return HttpClientFactory.CreateClient(GetType().Name);
         }
     }
 }

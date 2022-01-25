@@ -1,18 +1,24 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
+    using System.Net.Http;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
+    using Utilities;
 
     internal class GitHubProjectManager : BaseProjectManager
     {
         public static string ENV_GITHUB_ENDPOINT = "https://github.com";
+
+        public GitHubProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        {
+        }
 
         public GitHubProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
@@ -98,9 +104,9 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 string url = $"{ENV_GITHUB_ENDPOINT}/{packageNamespace}/{packageName}";
-                string fsNamespace = Utilities.NormalizeStringForFileSystem(packageNamespace);
-                string fsName = Utilities.NormalizeStringForFileSystem(packageName);
-                string fsVersion = Utilities.NormalizeStringForFileSystem(packageVersion);
+                string fsNamespace = OssUtilities.NormalizeStringForFileSystem(packageNamespace);
+                string fsName = OssUtilities.NormalizeStringForFileSystem(packageName);
+                string fsVersion = OssUtilities.NormalizeStringForFileSystem(packageVersion);
 
                 string relativeWorkingDirectory = string.IsNullOrWhiteSpace(packageVersion) ?
                                                 $"github-{fsNamespace}-{fsName}" :
@@ -135,7 +141,9 @@ namespace Microsoft.CST.OpenSource.Shared
                 foreach (string archiveUrl in archiveUrls)
                 {
                     Logger.Debug("Attemping to download {0}", archiveUrl);
-                    System.Net.Http.HttpResponseMessage? result = await WebClient.GetAsync(archiveUrl);
+                    HttpClient httpClient = CreateHttpClient();
+
+                    System.Net.Http.HttpResponseMessage? result = await httpClient.GetAsync(archiveUrl);
                     if (result.IsSuccessStatusCode)
                     {
                         Logger.Debug("Download successful.");

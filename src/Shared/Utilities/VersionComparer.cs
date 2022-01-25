@@ -1,5 +1,5 @@
 // Copyright (c) Microsoft Corporation. Licensed under the MIT License.
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.Utilities
 {
     using System;
     using System.Collections.Generic;
@@ -11,7 +11,8 @@ namespace Microsoft.CST.OpenSource.Shared
         /// Convert a version (string) to a list of version parts.
         /// Just splits into "numbers" and "non-numbers".
         /// </summary>
-        /// <param name="version"></param>
+        /// <param name="version">The version to parse.</param>
+        /// <returns>A list of the version parts.</returns>
         public static List<string> Parse(string version)
         {
             List<string> parts = new();

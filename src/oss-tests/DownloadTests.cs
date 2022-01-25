@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+using Microsoft.CST.OpenSource.Helpers;
 using Microsoft.CST.OpenSource.Shared;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -13,12 +14,6 @@ namespace Microsoft.CST.OpenSource.Tests
     [TestClass]
     public class DownloadTests
     {
-        [ClassInitialize()]
-        public static void ClassInit(TestContext context)
-        {
-            CommonInitialization.Initialize();
-        }
-
         [DataTestMethod]
         [DataRow("pkg:cargo/rand@0.7.3", "CARGO.toml", 1)]
         [DataRow("pkg:cargo/rand", "CARGO.toml", 1)]
@@ -214,7 +209,6 @@ namespace Microsoft.CST.OpenSource.Tests
             try
             {
                 packageDownloader?.ClearPackageLocalCopyIfNoCaching();
-                Directory.Delete(tempDirectoryName, true);
             }
             catch (Exception)
             {
@@ -226,7 +220,10 @@ namespace Microsoft.CST.OpenSource.Tests
                     };
                 }
                 packageDownloader?.ClearPackageLocalCopyIfNoCaching();
-                Directory.Delete(tempDirectoryName, true);
+            }
+            finally
+            {
+                FileSystemHelper.RetryDeleteDirectory(tempDirectoryName);
             }
         }
 
@@ -245,7 +242,7 @@ namespace Microsoft.CST.OpenSource.Tests
             {
                 try
                 {
-                    packageDownloader = new PackageDownloader(packageUrl, tempDirectoryName, doCache);
+                    packageDownloader = new PackageDownloader(packageUrl, null, tempDirectoryName, doCache);
                     packageDownloader.DownloadPackageLocalCopy(packageUrl, false, true).Wait();
                     break;
                 }

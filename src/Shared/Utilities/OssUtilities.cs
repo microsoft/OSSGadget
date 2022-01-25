@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.Utilities
 {
     using System;
     using System.Collections.Generic;
@@ -8,8 +8,10 @@ namespace Microsoft.CST.OpenSource.Shared
     using System.Linq;
     using System.Text.Json;
 
-    internal class Utilities
+    internal class OssUtilities
     {
+        private const int MAX_FIELD_LENGTH = 65535;
+
         public static JsonElement? GetJSONPropertyIfExists(JsonElement? element, string keyName)
         {
             if (element is JsonElement elem && !string.IsNullOrWhiteSpace(keyName))
@@ -36,12 +38,12 @@ namespace Microsoft.CST.OpenSource.Shared
         public static string GetMaxClippedLength(string str)
         {
             if (string.IsNullOrEmpty(str)) { return str; }
-            int MaxLength = Math.Min(str.Length, MAX_FIELD_LENGTH);
-            return str[0..MaxLength];
+            int maxLength = Math.Min(str.Length, MAX_FIELD_LENGTH);
+            return str[0..maxLength];
         }
 
         /// <summary>
-        ///     Convert a JSON array (or a csv string) into an POCO array
+        /// Convert a JSON array (or a csv string) into an POCO array
         /// </summary>
         /// <param name="jsonElement"> </param>
         /// <returns> </returns>
@@ -112,7 +114,5 @@ namespace Microsoft.CST.OpenSource.Shared
             string result = new((s.Select(ch => invalidChars.Contains(ch) ? '_' : ch) ?? Array.Empty<char>()).ToArray());
             return result;
         }
-
-        private const int MAX_FIELD_LENGTH = 65535;
     }
 }

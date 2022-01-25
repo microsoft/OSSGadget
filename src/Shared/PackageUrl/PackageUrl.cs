@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource
 {
     // This file was derived from the packageurl-dotnet package available at https://github.com/package-url/packageurl-dotnet.
 

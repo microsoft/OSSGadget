@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using Microsoft.Extensions.Caching.Memory;
     using System;
@@ -16,6 +16,10 @@ namespace Microsoft.CST.OpenSource.Shared
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_VS_MARKETPLACE_ENDPOINT = "https://marketplace.visualstudio.com";
+
+        public VSMProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        {
+        }
 
         public VSMProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
@@ -42,6 +46,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
             try
             {
+                HttpClient httpClient = CreateHttpClient();
                 Stream? resultStream = null;
                 string? cacheResult = GetCache(packageName);
                 if (cacheResult != null)
@@ -55,7 +60,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     requestMessage.Headers.Add("Accept", "application/json;api-version=3.0-preview.1");
                     string? postContent = $"{{filters:[{{criteria:[{{filterType:7,value:\"{packageName}\"}}],pageSize:1000,pageNumber:1,sortBy:0}}],flags:131}}";
                     requestMessage.Content = new StringContent(postContent, Encoding.UTF8, "application/json");
-                    HttpResponseMessage response = await WebClient.SendAsync(requestMessage);
+                    HttpResponseMessage response = await httpClient.SendAsync(requestMessage);
                     resultStream = await response.Content.ReadAsStreamAsync();
 
                     using StreamReader resultStreamReader = new(resultStream, leaveOpen: true);
@@ -118,7 +123,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
                                 try
                                 {
-                                    HttpResponseMessage downloadResult = await WebClient.GetAsync(source.GetString());
+                                    HttpResponseMessage downloadResult = await httpClient.GetAsync(source.GetString());
                                     downloadResult.EnsureSuccessStatusCode();
                                     string? targetName = $"vsm-{packageName}@{packageVersion}-{assetType}";
                                     string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
@@ -184,7 +189,9 @@ namespace Microsoft.CST.OpenSource.Shared
                     requestMessage.Headers.Add("Accept", "application/json;api-version=3.0-preview.1");
                     string postContent = $"{{filters:[{{criteria:[{{filterType:7,value:\"{packageName}\"}}],pageSize:1000,pageNumber:1,sortBy:0}}],flags:131}}";
                     requestMessage.Content = new StringContent(postContent, Encoding.UTF8, "application/json");
-                    HttpResponseMessage response = await WebClient.SendAsync(requestMessage);
+                    HttpClient httpClient = CreateHttpClient();
+
+                    HttpResponseMessage response = await httpClient.SendAsync(requestMessage);
                     resultStream = await response.Content.ReadAsStreamAsync();
                     using StreamReader resultStreamReader = new(resultStream, leaveOpen: true);
                     SetCache(packageName, resultStreamReader.ReadToEnd());
@@ -241,7 +248,9 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             try
             {
-                return await GetHttpStringCache($"{ENV_VS_MARKETPLACE_ENDPOINT}/items?itemName={purl.Namespace}/{purl.Name}");
+                HttpClient httpClient = CreateHttpClient();
+
+                return await GetHttpStringCache(httpClient, $"{ENV_VS_MARKETPLACE_ENDPOINT}/items?itemName={purl.Namespace}/{purl.Name}");
             }
             catch (Exception ex)
             {

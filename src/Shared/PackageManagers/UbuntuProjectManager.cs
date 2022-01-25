@@ -1,12 +1,13 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using AngleSharp.Html.Parser;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Net.Http;
     using System.Text;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
@@ -21,6 +22,10 @@ namespace Microsoft.CST.OpenSource.Shared
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_UBUNTU_POOL_NAMES = "main,universe,multiverse,restricted";
+
+        public UbuntuProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        {
+        }
 
         public UbuntuProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
@@ -37,6 +42,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
             List<string> downloadedPaths = new();
             HashSet<string> downloadedUrls = new();
+            HttpClient httpClient = CreateHttpClient();
 
             if (purl == null || purl.Name == null || purl.Version == null)
             {
@@ -57,7 +63,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
                 try
                 {
-                    string? html = await GetHttpStringCache(archiveBaseUrl, neverThrow: true);
+                    string? html = await GetHttpStringCache(httpClient, archiveBaseUrl, neverThrow: true);
                     if (html == null)
                     {
                         Logger.Debug("Error reading {0}", archiveBaseUrl);
@@ -78,7 +84,7 @@ namespace Microsoft.CST.OpenSource.Shared
                             }
                             Logger.Debug("Downloading binary: {0}", fullDownloadUrl);
 
-                            System.Net.Http.HttpResponseMessage downloadResult = await WebClient.GetAsync(fullDownloadUrl);
+                            System.Net.Http.HttpResponseMessage downloadResult = await httpClient.GetAsync(fullDownloadUrl);
                             if (!downloadResult.IsSuccessStatusCode)
                             {
                                 Logger.Debug("Error {0} downloading file {1}", downloadResult.StatusCode, fullDownloadUrl);
@@ -110,7 +116,7 @@ namespace Microsoft.CST.OpenSource.Shared
                         // them in the .dsc
                         else if (anchorHref.Contains(packageVersion) && anchorHref.EndsWith(".dsc"))
                         {
-                            string? dscContent = await GetHttpStringCache(archiveBaseUrl + "/" + anchorHref);
+                            string? dscContent = await GetHttpStringCache(httpClient, archiveBaseUrl + "/" + anchorHref);
                             if (dscContent == null)
                             {
                                 continue;
@@ -136,7 +142,7 @@ namespace Microsoft.CST.OpenSource.Shared
                                     }
                                     Logger.Debug("Downloading source code: {0}", fullDownloadUrl);
 
-                                    System.Net.Http.HttpResponseMessage downloadResult = await WebClient.GetAsync(fullDownloadUrl);
+                                    System.Net.Http.HttpResponseMessage downloadResult = await httpClient.GetAsync(fullDownloadUrl);
                                     if (!downloadResult.IsSuccessStatusCode)
                                     {
                                         Logger.Debug("Error {0} downloading file {1}", downloadResult.StatusCode, fullDownloadUrl);
@@ -180,6 +186,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             List<string> versionList = new();
             IEnumerable<string> availablePools = await GetPoolsForProject(purl);
+            HttpClient httpClient = CreateHttpClient();
             foreach (string pool in availablePools)
             {
                 string? archiveBaseUrl = await GetArchiveBaseUrlForProject(purl, pool);
@@ -194,7 +201,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 // Now load the archive page, which will show all of the versions in each of the .dsc files there.
                 try
                 {
-                    string? html = await GetHttpStringCache(archiveBaseUrl, neverThrow: true);
+                    string? html = await GetHttpStringCache(httpClient, archiveBaseUrl, neverThrow: true);
                     if (html == null)
                     {
                         continue;
@@ -206,7 +213,7 @@ namespace Microsoft.CST.OpenSource.Shared
                         if (anchorHref.EndsWith(".dsc"))
                         {
                             Logger.Debug("Found a .dsc file: {0}", anchorHref);
-                            string? dscContent = await GetHttpStringCache(archiveBaseUrl + "/" + anchorHref);
+                            string? dscContent = await GetHttpStringCache(httpClient, archiveBaseUrl + "/" + anchorHref);
                             foreach (string line in dscContent?.Split(new char[] { '\n', '\r' }) ?? Array.Empty<string>())
                             {
                                 if (line.StartsWith("Version:"))
@@ -245,12 +252,12 @@ namespace Microsoft.CST.OpenSource.Shared
             }
 
             StringBuilder metadataContent = new();
-
+            HttpClient httpClient = CreateHttpClient();
             foreach (string distroUrlPrefix in GetBaseURLs(purl))
             {
                 try
                 {
-                    string? html = await GetHttpStringCache(distroUrlPrefix, neverThrow: true);
+                    string? html = await GetHttpStringCache(httpClient, distroUrlPrefix, neverThrow: true);
                     if (html != null)
                     {
                         AngleSharp.Html.Dom.IHtmlDocument? document = await new HtmlParser().ParseDocumentAsync(html);
@@ -260,7 +267,7 @@ namespace Microsoft.CST.OpenSource.Shared
                             if (anchorHref.EndsWith(".dsc"))
                             {
                                 Logger.Debug("Found a .dsc file: {0}", anchorHref);
-                                string? dscContent = await GetHttpStringCache(distroUrlPrefix + anchorHref, neverThrow: true);
+                                string? dscContent = await GetHttpStringCache(httpClient, distroUrlPrefix + anchorHref, neverThrow: true);
                                 if (dscContent == null)
                                 {
                                     continue;
@@ -280,7 +287,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 {
                     try
                     {
-                        string? searchResults = await GetHttpStringCache($"{ENV_UBUNTU_ENDPOINT}/search?keywords={purl.Name}&searchon=names&exact=1&suite=all&section=all");
+                        string? searchResults = await GetHttpStringCache(httpClient, $"{ENV_UBUNTU_ENDPOINT}/search?keywords={purl.Name}&searchon=names&exact=1&suite=all&section=all");
                         HtmlParser parser = new();
                         AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(searchResults);
                         AngleSharp.Dom.IHtmlCollection<AngleSharp.Dom.IElement> anchorItems = document.QuerySelectorAll("a.resultlink");
@@ -288,7 +295,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
                         foreach (string metadataUrl in metadataUrlList)
                         {
-                            metadataContent.AppendLine(await GetHttpStringCache($"{ENV_UBUNTU_ENDPOINT}/{metadataUrl}"));
+                            metadataContent.AppendLine(await GetHttpStringCache(httpClient, $"{ENV_UBUNTU_ENDPOINT}/{metadataUrl}"));
                         }
                     }
                     catch (Exception ex)
@@ -325,7 +332,9 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             try
             {
-                string? html = await GetHttpStringCache($"{ENV_UBUNTU_ENDPOINT}/{pool}/{purl.Name}", neverThrow: true);
+                HttpClient httpClient = CreateHttpClient();
+
+                string? html = await GetHttpStringCache(httpClient, $"{ENV_UBUNTU_ENDPOINT}/{pool}/{purl.Name}", neverThrow: true);
                 if (html == null)
                 {
                     return null;
@@ -392,7 +401,9 @@ namespace Microsoft.CST.OpenSource.Shared
             HashSet<string> pools = new();
             try
             {
-                string? searchResults = await GetHttpStringCache($"{ENV_UBUNTU_ENDPOINT}/search?keywords={purl.Name}&searchon=names&exact=1&suite=all&section=all", neverThrow: true);
+                HttpClient httpClient = CreateHttpClient();
+
+                string? searchResults = await GetHttpStringCache(httpClient, $"{ENV_UBUNTU_ENDPOINT}/search?keywords={purl.Name}&searchon=names&exact=1&suite=all&section=all", neverThrow: true);
                 AngleSharp.Html.Dom.IHtmlDocument document = await new HtmlParser().ParseDocumentAsync(searchResults);
                 foreach (AngleSharp.Dom.IElement anchor in document.QuerySelectorAll("a.resultlink"))
                 {

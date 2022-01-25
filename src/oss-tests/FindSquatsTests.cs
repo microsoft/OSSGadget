@@ -3,6 +3,7 @@
 using Microsoft.CST.OpenSource.FindSquats;
 using Microsoft.CST.OpenSource.FindSquats.ExtensionMethods;
 using Microsoft.CST.OpenSource.FindSquats.Mutators;
+using Microsoft.CST.OpenSource.PackageManagers;
 using Microsoft.CST.OpenSource.Shared;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -13,11 +14,6 @@ namespace Microsoft.CST.OpenSource.Tests
     [TestClass]
     public class FindSquatsTest
     {
-        public FindSquatsTest()
-        {
-            CommonInitialization.Initialize();
-        }
-
         [DataTestMethod]
         [DataRow("pkg:nuget/Microsoft.CST.OAT", false)]
         [DataRow("pkg:npm/microsoft/microsoft-graph-library", false)]
@@ -35,7 +31,8 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         [DataTestMethod]
-        [DataRow("pkg:npm/foo", "foojs")]
+        [DataRow("pkg:npm/foo", "foojs")] // SuffixAdded, js
+        [DataRow("pkg:npm/lodash", "odash")] // RemovedCharacter, first character
         [DataRow("pkg:nuget/Microsoft.CST.OAT", "microsoft.cst.oat.net")]
         public void GenerateManagerSpecific(string packageUrl, string expectedToFind)
         {

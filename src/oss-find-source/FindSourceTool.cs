@@ -13,6 +13,9 @@ using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
 
 namespace Microsoft.CST.OpenSource
 {
+    using Extensions.DependencyInjection;
+    using System.Net.Http;
+
     public class FindSourceTool : OSSGadget
     {
         private static readonly HashSet<string> IGNORE_PURLS = new()
@@ -20,7 +23,11 @@ namespace Microsoft.CST.OpenSource
             "pkg:github/metacpan/metacpan-web"
         };
 
-        public FindSourceTool() : base()
+        public FindSourceTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        {
+        }
+
+        public FindSourceTool() : this(new DefaultHttpClientFactory())
         {
         }
 
@@ -28,7 +35,7 @@ namespace Microsoft.CST.OpenSource
         {
             Logger.Trace("FindSourceAsync({0})", purl);
 
-            var repositoryMap = new Dictionary<PackageURL, double>();
+            Dictionary<PackageURL, double>? repositoryMap = new Dictionary<PackageURL, double>();
 
             if (purl == null)
             {
@@ -36,24 +43,24 @@ namespace Microsoft.CST.OpenSource
                 return repositoryMap;
             }
 
-            var purlNoVersion = new PackageURL(purl.Type, purl.Namespace, purl.Name,
+            PackageURL? purlNoVersion = new PackageURL(purl.Type, purl.Namespace, purl.Name,
                                                null, purl.Qualifiers, purl.Subpath);
             Logger.Debug("Searching for source code for {0}", purlNoVersion.ToString());
 
             try
             {
-                RepoSearch repoSearcher = new RepoSearch();
-                var repos = await (repoSearcher.ResolvePackageLibraryAsync(purl) ??
+                RepoSearch repoSearcher = new RepoSearch(HttpClientFactory);
+                Dictionary<PackageURL, double>? repos = await (repoSearcher.ResolvePackageLibraryAsync(purl) ??
                     Task.FromResult(new Dictionary<PackageURL, double>()));
 
-                foreach (var ignorePurl in IGNORE_PURLS)
+                foreach (string? ignorePurl in IGNORE_PURLS)
                 {
                     repos.Remove(new PackageURL(ignorePurl));
                 }
 
                 if (repos.Any())
                 {
-                    foreach (var key in repos.Keys)
+                    foreach (PackageURL? key in repos.Keys)
                     {
                         repositoryMap[key] = repos[key];
                     }
@@ -110,9 +117,9 @@ namespace Microsoft.CST.OpenSource
         private static List<Result> GetSarifResults(PackageURL purl, List<KeyValuePair<PackageURL, double>> results)
         {
             List<Result> sarifResults = new List<Result>();
-            foreach (var result in results)
+            foreach (KeyValuePair<PackageURL, double> result in results)
             {
-                var confidence = result.Value * 100.0;
+                double confidence = result.Value * 100.0;
                 Result sarifResult = new Result()
                 {
                     Message = new Message()
@@ -138,9 +145,9 @@ namespace Microsoft.CST.OpenSource
         private static List<string> GetTextResults(List<KeyValuePair<PackageURL, double>> results)
         {
             List<string> stringOutput = new List<string>();
-            foreach (var result in results)
+            foreach (KeyValuePair<PackageURL, double> result in results)
             {
-                var confidence = result.Value * 100.0;
+                double confidence = result.Value * 100.0;
                 stringOutput.Add(
                     $"{confidence:0.0}%\thttps://github.com/{result.Key.Namespace}/{result.Key.Name} ({result.Key})");
             }
@@ -149,7 +156,7 @@ namespace Microsoft.CST.OpenSource
 
         static async Task Main(string[] args)
         {
-            var findSourceTool = new FindSourceTool();
+            FindSourceTool findSourceTool = new FindSourceTool();
             await findSourceTool.ParseOptions<Options>(args).WithParsedAsync(findSourceTool.RunAsync);
         }
 
@@ -200,7 +207,7 @@ namespace Microsoft.CST.OpenSource
         private async Task RunAsync(Options options)
         {
             // Save the console logger to restore it later if we are in single mode
-            var oldConfig = LogManager.Configuration.FindTargetByName("consoleLog");
+            NLog.Targets.Target? oldConfig = LogManager.Configuration.FindTargetByName("consoleLog");
             if (!options.Single)
             {
                 ShowToolBanner();
@@ -215,12 +222,13 @@ namespace Microsoft.CST.OpenSource
             IOutputBuilder outputBuilder = SelectFormat(options.Format);
             if (options.Targets is IList<string> targetList && targetList.Count > 0)
             {
-                foreach (var target in targetList)
+                foreach (string? target in targetList)
                 {
                     try
                     {
-                        var purl = new PackageURL(target);
-                        var results = FindSourceAsync(purl).Result.ToList();
+                        PackageURL? purl = new PackageURL(target);
+                        Dictionary<PackageURL, double> dictionary = await FindSourceAsync(purl);
+                        List<KeyValuePair<PackageURL, double>>? results = dictionary.ToList();
                         results.Sort((b, a) => a.Value.CompareTo(b.Value));
                         if (options.Single)
                         {

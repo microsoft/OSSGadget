@@ -4,9 +4,10 @@ namespace Microsoft.CST.OpenSource.FindSquats
 {
     using CommandLine;
     using CommandLine.Text;
+    using Extensions.DependencyInjection;
     using Microsoft.CodeAnalysis.Sarif;
-    using Microsoft.CST.OpenSource.FindSquats.ExtensionMethods;
     using Microsoft.CST.OpenSource.Shared;
+    using Mutators;
     using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
@@ -51,12 +52,14 @@ namespace Microsoft.CST.OpenSource.FindSquats
 
         }
 
-        public FindSquatsTool() : base()
+        public FindSquatsTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
         {
-            client = new HttpClient();
         }
 
-        readonly HttpClient client;
+        public FindSquatsTool() : this(new DefaultHttpClientFactory())
+        {
+        }
+
         static async Task Main(string[] args)
         {
             ShowToolBanner();
@@ -103,14 +106,11 @@ namespace Microsoft.CST.OpenSource.FindSquats
                     continue;
                 }
 
-                BaseProjectManager? manager = ProjectManagerFactory.CreateProjectManager(purl);
-                if (manager is null)
-                {
-                    Logger.Trace($"Could not generate valid ProjectManager from { purl }.");
-                    continue;
-                }
+                FindPackageSquats findPackageSquats = new FindPackageSquats(HttpClientFactory, purl);
 
-                await foreach (FindPackageSquatResult? potentialSquat in manager.EnumerateSquats(purl, checkerOptions))
+                IDictionary<string, IList<Mutation>>? potentialSquats = findPackageSquats.GenerateSquatCandidates(options: checkerOptions);
+
+                await foreach (FindPackageSquatResult? potentialSquat in findPackageSquats.FindExistingSquatsAsync(potentialSquats, checkerOptions))
                 {
                     foundSquats++;
                     if (!options.Quiet)

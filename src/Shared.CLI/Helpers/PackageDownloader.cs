@@ -2,25 +2,28 @@
 
 namespace Microsoft.CST.OpenSource
 {
-    using Microsoft.CST.OpenSource.Shared;
+    using Microsoft.CST.OpenSource.Helpers;
+    using Microsoft.CST.OpenSource.PackageManagers;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Net.Http;
     using System.Threading.Tasks;
 
     /// <summary>
-    ///     Class for managing the download of a single package
+    /// Class for managing the download of a single package.
     /// </summary>
     public class PackageDownloader
     {
         /// <summary>
-        ///     Constuctor - creates a class object for downloading packages
+        /// Constructor - creates a class object for downloading packages.
         /// </summary>
-        /// <param name="purl"> package to download </param>
-        /// <param name="destinationDir"> the directory where the package needs to be placed </param>
-        /// <param name="doCaching"> check and use the cache if it exists - create if not </param>
-        public PackageDownloader(PackageURL? purl, string? destinationDir = null, bool doCaching = false)
+        /// <param name="purl">The package to download.</param>
+        /// <param name="httpClientFactory">The <see cref="IHttpClientFactory"/> to use to make the client to use when downloading.</param>
+        /// <param name="destinationDir">The directory where the package needs to be downloaded to.</param>
+        /// <param name="doCaching">Check and use the cache if it exists - create if not.</param>
+        public PackageDownloader(PackageURL purl, IHttpClientFactory? httpClientFactory, string? destinationDir = null, bool doCaching = false)
         {
             if (purl == null)
             {
@@ -32,13 +35,20 @@ namespace Microsoft.CST.OpenSource
             actualCaching = (doCaching && !string.IsNullOrEmpty(destinationDir) && Directory.Exists(destinationDir));
 
             // if no destination specified, dump the package in the temp directory
-            destinationDirectory = string.IsNullOrEmpty(destinationDir) ?
-                Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()) : destinationDir;
+            if (string.IsNullOrEmpty(destinationDir))
+            {
+                usingTemp = true;
+                destinationDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            }
+            else
+            {
+                destinationDirectory = destinationDir;
+            }
 
-            packageManager = ProjectManagerFactory.CreateProjectManager(purl, destinationDirectory);
+            packageManager = ProjectManagerFactory.CreateProjectManager(purl, httpClientFactory, destinationDirectory);
             if (packageManager == null)
             {
-                // Cannot continue without package manager
+                // Cannot continue without a package manager.
                 throw new ArgumentException("Invalid Package URL type: {0}", purl.Type);
             }
             PackageVersions = new List<PackageURL>();
@@ -54,6 +64,19 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
+        /// Deletes the destination directory for this package downloader if no destination directory was provided to <see cref="PackageDownloader(PackageURL, IHttpClientFactory?, string?, bool)"/>
+        /// This can be used to clean up the temp folder that will be created when a path was not provided during creation.
+        /// Note that the downloader will no longer work after calling this method.
+        /// </summary>
+        public void DeleteDestinationDirectoryIfTemp()
+        {
+            if (usingTemp)
+            {
+                FileSystemHelper.RetryDeleteDirectory(destinationDirectory);
+            }
+        }
+
+        /// <summary>
         ///     Clears the cache directory
         /// </summary>
         public void ClearPackageLocalCopy()
@@ -65,7 +88,7 @@ namespace Microsoft.CST.OpenSource
                     if (Directory.Exists(packageDirectory))
                     {
                         Logger.Trace("Removing directory {0}", packageDirectory);
-                        Directory.Delete(packageDirectory, true);
+                        FileSystemHelper.RetryDeleteDirectory(packageDirectory);
                     }
                 }
             }
@@ -254,8 +277,11 @@ namespace Microsoft.CST.OpenSource
 
         // should we cache/check for the cache?
         private readonly bool doCache = false;
+        private bool usingTemp;
 
         private string destinationDirectory { get; set; }
+
+        private bool usingTempDir;
 
         // folders created
         private List<string> downloadPaths { get; set; } = new List<string>();

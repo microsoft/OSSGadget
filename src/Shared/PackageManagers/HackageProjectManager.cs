@@ -1,18 +1,23 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using AngleSharp.Html.Parser;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Net.Http;
     using System.Threading.Tasks;
 
     internal class HackageProjectManager : BaseProjectManager
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_HACKAGE_ENDPOINT = "https://hackage.haskell.org";
+
+        public HackageProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        {
+        }
 
         public HackageProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
@@ -42,7 +47,9 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 string url = $"{ENV_HACKAGE_ENDPOINT}/package/{packageName}-{packageVersion}/{packageName}-{packageVersion}.tar.gz";
-                System.Net.Http.HttpResponseMessage result = await WebClient.GetAsync(url);
+                HttpClient httpClient = CreateHttpClient();
+
+                System.Net.Http.HttpResponseMessage result = await httpClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
                 Logger.Debug("Downloading {0}...", purl.ToString());
 
@@ -82,7 +89,9 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 string packageName = purl.Name;
-                System.Net.Http.HttpResponseMessage? html = await WebClient.GetAsync($"{ENV_HACKAGE_ENDPOINT}/package/{packageName}");
+                HttpClient httpClient = CreateHttpClient();
+
+                System.Net.Http.HttpResponseMessage? html = await httpClient.GetAsync($"{ENV_HACKAGE_ENDPOINT}/package/{packageName}");
                 html.EnsureSuccessStatusCode();
                 HtmlParser parser = new();
                 AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(await html.Content.ReadAsStringAsync());
@@ -121,7 +130,9 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 string packageName = purl.Name;
-                return await GetHttpStringCache($"{ENV_HACKAGE_ENDPOINT}/package/{packageName}");
+                HttpClient httpClient = CreateHttpClient();
+
+                return await GetHttpStringCache(httpClient, $"{ENV_HACKAGE_ENDPOINT}/package/{packageName}");
             }
             catch (Exception ex)
             {

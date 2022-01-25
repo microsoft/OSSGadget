@@ -32,7 +32,8 @@
     <ProjectReference Include="..\oss-find-squats\oss-find-squats.csproj" />
     <ProjectReference Include="..\oss-health\oss-health.csproj" />
     <ProjectReference Include="..\oss-reproducible\oss-reproducible.csproj" />
-    <ProjectReference Include="..\Shared\Shared.csproj" />
+    <ProjectReference Include="..\Shared\Shared.Lib.csproj" />
+    <ProjectReference Include="..\Shared.CLI\Shared.CLI.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="TestData\Base64Zip.zip">

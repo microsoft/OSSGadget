@@ -2,13 +2,13 @@
 
 namespace Microsoft.CST.OpenSource.Model
 {
-    using Microsoft.CST.OpenSource.Shared;
     using Newtonsoft.Json;
     using Octokit;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using CSTRepository = Microsoft.CST.OpenSource.Model.Repository;
+    using Utilities;
+    using CSTRepository = Model.Repository;
     using GHRepository = Octokit.Repository;
 
     public class Repository
@@ -30,7 +30,7 @@ namespace Microsoft.CST.OpenSource.Model
         public bool? Archived { get; set; }
 
         [JsonProperty(PropertyName = "contributors", NullValueHandling = NullValueHandling.Ignore)]
-        public List<User>? Contributors { get; set; }
+        public List<Model.User>? Contributors { get; set; }
 
         [JsonProperty(PropertyName = "created_at", NullValueHandling = NullValueHandling.Ignore)]
         public DateTimeOffset? CreatedAt { get; set; }
@@ -54,19 +54,19 @@ namespace Microsoft.CST.OpenSource.Model
         public string? Language { get; set; }
 
         [JsonProperty(PropertyName = "licenses", NullValueHandling = NullValueHandling.Ignore)]
-        public List<License>? Licenses { get; set; }
+        public List<Model.License>? Licenses { get; set; }
 
         [JsonProperty(PropertyName = "linked_data", NullValueHandling = NullValueHandling.Ignore)]
         public LinkedData? LinkedData { get; set; }
 
         [JsonProperty(PropertyName = "maintainers", NullValueHandling = NullValueHandling.Ignore)]
-        public List<User>? Maintainers { get; set; }
+        public List<Model.User>? Maintainers { get; set; }
 
         [JsonProperty(PropertyName = "openissues_count", NullValueHandling = NullValueHandling.Ignore)]
         public int? OpenIssuesCount { get; set; }
 
         [JsonProperty(PropertyName = "owner", NullValueHandling = NullValueHandling.Ignore)]
-        public User? Owner { get; set; }
+        public Model.User? Owner { get; set; }
 
         [JsonProperty(PropertyName = "parent", NullValueHandling = NullValueHandling.Ignore)]
         public string? Parent { get; set; }
@@ -121,25 +121,25 @@ namespace Microsoft.CST.OpenSource.Model
                 Archived = ghRepository.Archived;
                 CreatedAt = ghRepository.CreatedAt;
                 UpdatedAt = ghRepository.UpdatedAt;
-                Description = Utilities.GetMaxClippedLength(ghRepository.Description);
+                Description = OssUtilities.GetMaxClippedLength(ghRepository.Description);
                 IsFork = ghRepository.Fork;
                 Forks = ghRepository.ForksCount;
-                Homepage = Utilities.GetMaxClippedLength(ghRepository.Homepage);
+                Homepage = OssUtilities.GetMaxClippedLength(ghRepository.Homepage);
                 Id = ghRepository.Id;
-                Language = Utilities.GetMaxClippedLength(ghRepository.Language);
+                Language = OssUtilities.GetMaxClippedLength(ghRepository.Language);
                 Name = ghRepository.Name;
                 OpenIssuesCount = ghRepository.OpenIssuesCount;
                 Parent = ghRepository.Parent?.Url;
                 PushedAt = ghRepository.PushedAt;
                 Size = ghRepository.Size;
                 FollowersCount = ghRepository.StargazersCount;
-                Uri = Utilities.GetMaxClippedLength(ghRepository.Url);
+                Uri = OssUtilities.GetMaxClippedLength(ghRepository.Url);
                 StakeholdersCount = ghRepository.WatchersCount;
 
                 if (ghRepository.License is not null)
                 {
-                    Licenses ??= new List<License>();
-                    Licenses.Add(new License()
+                    Licenses ??= new List<Model.License>();
+                    Licenses.Add(new Model.License()
                     {
                         Name = ghRepository.License.Name,
                         Url = ghRepository.License.Url,
@@ -147,7 +147,7 @@ namespace Microsoft.CST.OpenSource.Model
                     });
                 }
 
-                Owner ??= new User()
+                Owner ??= new Model.User()
                 {
                     Id = ghRepository.Owner.Id,
                     Name = ghRepository.Owner.Name,

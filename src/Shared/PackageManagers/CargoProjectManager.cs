@@ -1,11 +1,12 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Net.Http;
     using System.Text.Json;
     using System.Threading.Tasks;
 
@@ -16,6 +17,10 @@ namespace Microsoft.CST.OpenSource.Shared
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_CARGO_ENDPOINT_STATIC = "https://static.crates.io";
+
+        public CargoProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        {
+        }
 
         public CargoProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
@@ -54,7 +59,9 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
                 Logger.Debug("Downloading {0}", url);
 
-                System.Net.Http.HttpResponseMessage result = await WebClient.GetAsync(url);
+                HttpClient httpClient = CreateHttpClient();
+
+                System.Net.Http.HttpResponseMessage result = await httpClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
 
                 if (doExtract)
@@ -90,15 +97,16 @@ namespace Microsoft.CST.OpenSource.Shared
                 return false;
             }
             string packageName = purl.Name;
-            return await CheckJsonCacheForPackage($"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}", useCache);
+            HttpClient httpClient = CreateHttpClient();
+            return await CheckJsonCacheForPackage(httpClient, $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}", useCache);
         }
 
         /// <summary>
         ///     Enumerates all possible versions of the package identified by purl.
         /// </summary>
-        /// <param name="purl"> Package URL specifying the package. Version is ignored. </param>
+        /// <param name="purl">Package URL specifying the package. Version is ignored.</param>
         /// <returns> A list of package versions </returns>
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
+        public override async Task<IEnumerable<string>> EnumerateVersions( PackageURL purl)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
             if (purl == null || purl.Name is null)
@@ -109,7 +117,8 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 string? packageName = purl.Name;
-                JsonDocument doc = await GetJsonCache($"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}");
+                HttpClient httpClient = CreateHttpClient();
+                JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}");
                 List<string> versionList = new();
                 foreach (JsonElement versionObject in doc.RootElement.GetProperty("versions").EnumerateArray())
                 {
@@ -141,7 +150,8 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 string? packageName = purl.Name;
-                string? content = await GetHttpStringCache($"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}");
+                HttpClient httpClient = CreateHttpClient();
+                string? content = await GetHttpStringCache(httpClient, $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}");
                 return content;
             }
             catch (Exception ex)

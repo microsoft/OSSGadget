@@ -16,7 +16,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 
         public HashSet<char> Separators { get; set; } = DefaultSeparators.ToHashSet();
 
-        public static ImmutableHashSet<char> DefaultSeparators = ImmutableHashSet.Create(new[] { '.', '-', '_' });
+        public static ImmutableHashSet<char> DefaultSeparators { get => ImmutableHashSet.Create(new[] { '.', '-', '_' }); }
 
         /// <summary>
         /// Initializes a <see cref="SeparatorMutator"/> instance.
@@ -38,27 +38,33 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
             }
         }
 
-        public IEnumerable<Mutation> Generate(string arg)
+        /// <summary>
+        /// Generates mutations by replacing each candidate <see cref="Separators"/> with each other <see cref="Separators"/> and with <see cref="string.Empty"/>
+        /// For example: foo-js generates foo.js, foojs and foo_js
+        /// </summary>
+        /// <param name="target">String to mutate</param>
+        /// <returns>The generated mutations.</returns>
+        public IEnumerable<Mutation> Generate(string target)
         {
-            foreach (char s in Separators)
+            foreach (char separator in Separators)
             {
-                if (arg.Contains(s))
+                if (target.Contains(separator))
                 {
-                    IEnumerable<char>? rest = Separators.Except(new[] { s });
-                    foreach (char r in rest)
+                    IEnumerable<char>? otherSeparators = Separators.Except(new[] { separator });
+                    foreach (char otherSeparator in otherSeparators)
                     {
                         yield return new Mutation(
-                            mutated: arg.Replace(s, r),
-                            original: arg,
+                            mutated: target.Replace(separator, otherSeparator),
+                            original: target,
                             mutator: Kind,
-                            reason: $"Separator Changed: {s} => {r}");
+                            reason: $"Separator Changed: {separator} => {otherSeparator}");
                     }
 
                     yield return new Mutation(
-                        mutated: arg.Replace(s.ToString(), string.Empty),
-                        original: arg,
+                        mutated: target.Replace(separator.ToString(), string.Empty),
+                        original: target,
                         mutator: Kind,
-                        reason: $"Separator Removed {s}");
+                        reason: $"Separator Removed {separator}");
                 }
             }
         }

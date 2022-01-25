@@ -1,12 +1,13 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using AngleSharp.Html.Parser;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Net.Http;
     using System.Security.Cryptography;
     using System.Text;
     using System.Text.RegularExpressions;
@@ -22,6 +23,10 @@ namespace Microsoft.CST.OpenSource.Shared
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_COCOAPODS_METADATA_ENDPOINT = "https://cocoapods.org";
+
+        public CocoapodsProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        {
+        }
 
         public CocoapodsProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
@@ -52,8 +57,9 @@ namespace Microsoft.CST.OpenSource.Shared
                 return downloadedPaths;
             }
 
+            HttpClient httpClient = CreateHttpClient();
             string prefix = GetCocoapodsPrefix(packageName);
-            System.Text.Json.JsonDocument podspec = await GetJsonCache($"{ENV_COCOAPODS_SPECS_RAW_ENDPOINT}/Specs/{prefix}/{packageName}/{packageVersion}/{packageName}.podspec.json");
+            System.Text.Json.JsonDocument podspec = await GetJsonCache(httpClient, $"{ENV_COCOAPODS_SPECS_RAW_ENDPOINT}/Specs/{prefix}/{packageName}/{packageVersion}/{packageName}.podspec.json");
 
             if (podspec.RootElement.TryGetProperty("source", out System.Text.Json.JsonElement source))
             {
@@ -78,7 +84,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 if (url != null)
                 {
                     Logger.Debug("Downloading {0}...", purl);
-                    System.Net.Http.HttpResponseMessage result = await WebClient.GetAsync(url);
+                    System.Net.Http.HttpResponseMessage result = await httpClient.GetAsync(url);
                     result.EnsureSuccessStatusCode();
 
                     string targetName = $"cocoapods-{fileName}";
@@ -123,7 +129,9 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             string packageName = purl.Name;
             string prefix = GetCocoapodsPrefix(packageName ?? string.Empty);
-            return await CheckHttpCacheForPackage($"{ENV_COCOAPODS_SPECS_ENDPOINT}/Specs/{prefix}/{packageName}", useCache);
+            HttpClient httpClient = CreateHttpClient();
+
+            return await CheckHttpCacheForPackage(httpClient, $"{ENV_COCOAPODS_SPECS_ENDPOINT}/Specs/{prefix}/{packageName}", useCache);
         }
 
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
@@ -138,7 +146,8 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 string? packageName = purl.Name;
                 string? prefix = GetCocoapodsPrefix(packageName ?? string.Empty);
-                string? html = await GetHttpStringCache($"{ENV_COCOAPODS_SPECS_ENDPOINT}/Specs/{prefix}/{packageName}");
+                HttpClient httpClient = CreateHttpClient();
+                string? html = await GetHttpStringCache(httpClient, $"{ENV_COCOAPODS_SPECS_ENDPOINT}/Specs/{prefix}/{packageName}");
                 HtmlParser parser = new();
                 AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(html);
                 AngleSharp.Dom.IHtmlCollection<AngleSharp.Dom.IElement> navItems = document.QuerySelectorAll("div.Details a.js-navigation-open");
@@ -186,8 +195,9 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             try
             {
+                HttpClient httpClient = CreateHttpClient();
                 string? packageName = purl.Name;
-                string? cocoapodsWebContent = await GetHttpStringCache($"{ENV_COCOAPODS_METADATA_ENDPOINT}/pods/{packageName}");
+                string? cocoapodsWebContent = await GetHttpStringCache(httpClient, $"{ENV_COCOAPODS_METADATA_ENDPOINT}/pods/{packageName}");
                 string? podSpecContent = "";
 
                 HtmlParser parser = new();
@@ -200,7 +210,7 @@ namespace Microsoft.CST.OpenSource.Shared
                         string url = navItem.GetAttribute("href");
                         url = url.Replace("https://github.com", "https://raw.githubusercontent.com");
                         url = url.Replace("/Specs/blob/master/", "/Specs/master/");
-                        podSpecContent = await GetHttpStringCache(url);
+                        podSpecContent = await GetHttpStringCache(httpClient, url);
                     }
                 }
                 return cocoapodsWebContent + " " + podSpecContent;

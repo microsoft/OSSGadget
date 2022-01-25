@@ -1,14 +1,19 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Net.Http;
     using System.Threading.Tasks;
 
     internal class URLProjectManager : BaseProjectManager
     {
+        public URLProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        {
+        }
+
         public URLProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
         }
@@ -35,7 +40,9 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 Uri uri = new(url);
                 Logger.Debug("Downloading {0} ({1})...", purl, uri);
-                System.Net.Http.HttpResponseMessage? result = await WebClient.GetAsync(uri);
+                HttpClient httpClient = CreateHttpClient();
+
+                System.Net.Http.HttpResponseMessage? result = await httpClient.GetAsync(uri);
                 result.EnsureSuccessStatusCode();
 
                 string targetName = Path.GetFileName(uri.LocalPath);

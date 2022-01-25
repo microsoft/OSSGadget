@@ -1,11 +1,12 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Net.Http;
     using System.Threading.Tasks;
     using System.Xml;
 
@@ -13,6 +14,10 @@ namespace Microsoft.CST.OpenSource.Shared
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_MAVEN_ENDPOINT = "https://repo1.maven.org/maven2";
+
+        public MavenProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        {
+        }
 
         public MavenProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
@@ -44,7 +49,9 @@ namespace Microsoft.CST.OpenSource.Shared
                 foreach (string suffix in suffixes)
                 {
                     string url = $"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/{packageVersion}/{packageName}-{packageVersion}{suffix}.jar";
-                    System.Net.Http.HttpResponseMessage result = await WebClient.GetAsync(url);
+                    HttpClient httpClient = CreateHttpClient();
+
+                    System.Net.Http.HttpResponseMessage result = await httpClient.GetAsync(url);
                     result.EnsureSuccessStatusCode();
                     Logger.Debug($"Downloading {purl}...");
 
@@ -91,7 +98,9 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             string packageNamespace = purl.Namespace.Replace('.', '/');
             string packageName = purl.Name;
-            return await CheckHttpCacheForPackage($"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/maven-metadata.xml", useCache);
+            HttpClient httpClient = CreateHttpClient();
+
+            return await CheckHttpCacheForPackage(httpClient, $"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/maven-metadata.xml", useCache);
         }
 
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL? purl)
@@ -105,7 +114,9 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 string packageNamespace = purl.Namespace.Replace('.', '/');
                 string packageName = purl.Name;
-                string? content = await GetHttpStringCache($"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/maven-metadata.xml");
+                HttpClient httpClient = CreateHttpClient();
+
+                string? content = await GetHttpStringCache(httpClient, $"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/maven-metadata.xml");
                 List<string> versionList = new();
                 if (string.IsNullOrWhiteSpace(content))
                 {
@@ -136,18 +147,19 @@ namespace Microsoft.CST.OpenSource.Shared
             {
                 string? packageNamespace = purl?.Namespace?.Replace('.', '/');
                 string? packageName = purl?.Name;
+                HttpClient httpClient = CreateHttpClient();
                 if (purl?.Version == null)
                 {
                     foreach (string? version in await EnumerateVersions(purl))
                     {
-                        return await GetHttpStringCache($"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/{version}/{packageName}-{version}.pom");
+                        return await GetHttpStringCache(httpClient, $"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/{version}/{packageName}-{version}.pom");
                     }
                     throw new Exception("No version specified and unable to enumerate.");
                 }
                 else
                 {
                     string version = purl.Version;
-                    return await GetHttpStringCache($"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/{version}/{packageName}-{version}.pom");
+                    return await GetHttpStringCache(httpClient, $"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/{version}/{packageName}-{version}.pom");
                 }
             }
             catch (Exception ex)

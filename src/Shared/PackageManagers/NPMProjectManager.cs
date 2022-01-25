@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using Microsoft.CST.OpenSource.Model;
     using System;
@@ -10,12 +10,17 @@ namespace Microsoft.CST.OpenSource.Shared
     using System.Net.Http;
     using System.Text.Json;
     using System.Threading.Tasks;
+    using Utilities;
     using Version = SemanticVersioning.Version;
 
     public class NPMProjectManager : BaseProjectManager
     {
         public static string ENV_NPM_API_ENDPOINT { get; set; } = "https://registry.npmjs.org";
         public static string ENV_NPM_ENDPOINT { get; set; } = "https://www.npmjs.com";
+
+        public NPMProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        {
+        }
 
         public NPMProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
@@ -43,9 +48,10 @@ namespace Microsoft.CST.OpenSource.Shared
 
             try
             {
-                JsonDocument doc = await GetJsonCache($"{ENV_NPM_API_ENDPOINT}/{packageName}");
+                HttpClient httpClient = CreateHttpClient();
+                JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}");
                 string? tarball = doc.RootElement.GetProperty("versions").GetProperty(packageVersion).GetProperty("dist").GetProperty("tarball").GetString();
-                HttpResponseMessage result = await WebClient.GetAsync(tarball);
+                HttpResponseMessage result = await httpClient.GetAsync(tarball);
                 result.EnsureSuccessStatusCode();
                 Logger.Debug("Downloading {0}...", purl?.ToString());
                 string targetName = $"npm-{packageName}@{packageVersion}";
@@ -88,7 +94,9 @@ namespace Microsoft.CST.OpenSource.Shared
                 return false;
             }
             string packageName = purl.Name;
-            return await CheckJsonCacheForPackage($"{ENV_NPM_API_ENDPOINT}/{packageName}", useCache);
+            HttpClient httpClient = CreateHttpClient();
+
+            return await CheckJsonCacheForPackage(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}", useCache);
         }
 
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
@@ -102,7 +110,9 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 string packageName = purl.Name;
-                JsonDocument doc = await GetJsonCache($"{ENV_NPM_API_ENDPOINT}/{packageName}");
+                HttpClient httpClient = CreateHttpClient();
+
+                JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}");
                 List<string> versionList = new();
 
                 foreach (JsonProperty versionKey in doc.RootElement.GetProperty("versions").EnumerateObject())
@@ -143,7 +153,9 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 string? packageName = purl.Name;
-                string? content = await GetHttpStringCache($"{ENV_NPM_API_ENDPOINT}/{packageName}");
+                HttpClient httpClient = CreateHttpClient();
+
+                string? content = await GetHttpStringCache(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}");
                 return content;
             }
             catch (Exception ex)
@@ -205,7 +217,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     metadata.Package_Uri = $"{ENV_NPM_ENDPOINT}/package/{metadata.Name}";
                     metadata.VersionUri = $"{ENV_NPM_ENDPOINT}/package/{metadata.Name}/v/{metadata.PackageVersion}";
 
-                    JsonElement? distElement = Utilities.GetJSONPropertyIfExists(versionElement, "dist");
+                    JsonElement? distElement = OssUtilities.GetJSONPropertyIfExists(versionElement, "dist");
                     if (distElement?.GetProperty("tarball") is JsonElement tarballElement)
                     {
                         metadata.VersionDownloadUri = tarballElement.ToString() ??
@@ -225,14 +237,14 @@ namespace Microsoft.CST.OpenSource.Shared
                         });
                     }
                     // size
-                    if (Utilities.GetJSONPropertyIfExists(distElement, "unpackedSize") is JsonElement sizeElement &&
+                    if (OssUtilities.GetJSONPropertyIfExists(distElement, "unpackedSize") is JsonElement sizeElement &&
                         sizeElement.GetInt64() is long size)
                     {
                         metadata.Size = size;
                     }
 
                     // commit id
-                    if (Utilities.GetJSONPropertyStringIfExists(versionElement, "gitHead") is string gitHead &&
+                    if (OssUtilities.GetJSONPropertyStringIfExists(versionElement, "gitHead") is string gitHead &&
                         !string.IsNullOrWhiteSpace(gitHead))
                     {
                         metadata.CommitId = gitHead;
@@ -240,8 +252,8 @@ namespace Microsoft.CST.OpenSource.Shared
 
                     // install scripts
                     {
-                        if (Utilities.GetJSONEnumerator(Utilities.GetJSONPropertyIfExists(versionElement, "scripts"))
-                            is JsonElement.ArrayEnumerator enumerator &&
+                        if (OssUtilities.GetJSONEnumerator(OssUtilities.GetJSONPropertyIfExists(versionElement, "scripts"))
+                                is JsonElement.ArrayEnumerator enumerator &&
                             enumerator.Any())
                         {
                             metadata.Scripts ??= new List<Command>();
@@ -250,7 +262,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     }
 
                     // dependencies
-                    List<string>? dependencies = Utilities.ConvertJSONToList(Utilities.GetJSONPropertyIfExists(versionElement, "dependencies"));
+                    List<string>? dependencies = OssUtilities.ConvertJSONToList(OssUtilities.GetJSONPropertyIfExists(versionElement, "dependencies"));
                     if (dependencies is not null && dependencies.Count > 0)
                     {
                         metadata.Dependencies ??= new List<Dependency>();
@@ -258,13 +270,13 @@ namespace Microsoft.CST.OpenSource.Shared
                     }
 
                     // author(s)
-                    JsonElement? authorElement = Utilities.GetJSONPropertyIfExists(versionElement, "author");
+                    JsonElement? authorElement = OssUtilities.GetJSONPropertyIfExists(versionElement, "author");
                     User author = new();
                     if (authorElement is not null)
                     {
-                        author.Name = Utilities.GetJSONPropertyStringIfExists(authorElement, "name");
-                        author.Email = Utilities.GetJSONPropertyStringIfExists(authorElement, "email");
-                        author.Url = Utilities.GetJSONPropertyStringIfExists(authorElement, "url");
+                        author.Name = OssUtilities.GetJSONPropertyStringIfExists(authorElement, "name");
+                        author.Email = OssUtilities.GetJSONPropertyStringIfExists(authorElement, "email");
+                        author.Url = OssUtilities.GetJSONPropertyStringIfExists(authorElement, "url");
 
                         metadata.Authors ??= new List<User>();
                         metadata.Authors.Add(author);
@@ -272,7 +284,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
                     // maintainers
                     {
-                        JsonElement? maintainersElement = Utilities.GetJSONPropertyIfExists(versionElement, "maintainers");
+                        JsonElement? maintainersElement = OssUtilities.GetJSONPropertyIfExists(versionElement, "maintainers");
                         if (maintainersElement?.EnumerateArray() is JsonElement.ArrayEnumerator enumerator)
                         {
                             metadata.Maintainers ??= new List<User>();
@@ -281,9 +293,9 @@ namespace Microsoft.CST.OpenSource.Shared
                                 metadata.Maintainers.Add(
                                     new User
                                     {
-                                        Name = Utilities.GetJSONPropertyStringIfExists(element, "name"),
-                                        Email = Utilities.GetJSONPropertyStringIfExists(element, "email"),
-                                        Url = Utilities.GetJSONPropertyStringIfExists(element, "url")
+                                        Name = OssUtilities.GetJSONPropertyStringIfExists(element, "name"),
+                                        Email = OssUtilities.GetJSONPropertyStringIfExists(element, "email"),
+                                        Url = OssUtilities.GetJSONPropertyStringIfExists(element, "url")
                                     });
                             });
                         }
@@ -305,14 +317,14 @@ namespace Microsoft.CST.OpenSource.Shared
                     }
 
                     // keywords
-                    metadata.Keywords = Utilities.ConvertJSONToList(Utilities.GetJSONPropertyIfExists(versionElement, "keywords"));
+                    metadata.Keywords = OssUtilities.ConvertJSONToList(OssUtilities.GetJSONPropertyIfExists(versionElement, "keywords"));
 
                     // licenses
                     {
-                        if (Utilities.GetJSONEnumerator(Utilities.GetJSONPropertyIfExists(versionElement, "licenses"))
+                        if (OssUtilities.GetJSONEnumerator(OssUtilities.GetJSONPropertyIfExists(versionElement, "licenses"))
                                 is JsonElement.ArrayEnumerator enumeratorElement &&
-                                enumeratorElement.ToList() is List<JsonElement> enumerator &&
-                                enumerator.Any())
+                            enumeratorElement.ToList() is List<JsonElement> enumerator &&
+                            enumerator.Any())
                         {
                             metadata.Licenses ??= new List<License>();
                             // TODO: Convert/append SPIX_ID values?
@@ -320,8 +332,8 @@ namespace Microsoft.CST.OpenSource.Shared
                             {
                                 metadata.Licenses.Add(new License()
                                 {
-                                    Name = Utilities.GetJSONPropertyStringIfExists(license, "type"),
-                                    Url = Utilities.GetJSONPropertyStringIfExists(license, "url")
+                                    Name = OssUtilities.GetJSONPropertyStringIfExists(license, "type"),
+                                    Url = OssUtilities.GetJSONPropertyStringIfExists(license, "url")
                                 });
                             });
                         }
@@ -425,8 +437,8 @@ namespace Microsoft.CST.OpenSource.Shared
                 try
                 {
                     JsonElement repositoryJSON = notNullVersionJSON.GetProperty("repository");
-                    string? repoType = Utilities.GetJSONPropertyStringIfExists(repositoryJSON, "type")?.ToLower();
-                    string? repoURL = Utilities.GetJSONPropertyStringIfExists(repositoryJSON, "url");
+                    string? repoType = OssUtilities.GetJSONPropertyStringIfExists(repositoryJSON, "type")?.ToLower();
+                    string? repoURL = OssUtilities.GetJSONPropertyStringIfExists(repositoryJSON, "url");
 
                     // right now we deal with only github repos
                     if (repoType == "git" && repoURL is not null)

@@ -1,22 +1,26 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.PackageManagers
 {
-    using Microsoft.CST.OpenSource.Model;
+    using Model;
+    using NLog.LayoutRenderers.Wrappers;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Net.Http;
     using System.Text.Json;
     using System.Threading.Tasks;
-    using License = Microsoft.CST.OpenSource.Model.License;
-    using Repository = Microsoft.CST.OpenSource.Model.Repository;
-    using User = Microsoft.CST.OpenSource.Model.User;
+    using Utilities;
     using Version = SemanticVersioning.Version;
 
     internal class PyPIProjectManager : BaseProjectManager
     {
         public static string ENV_PYPI_ENDPOINT { get; set; } = "https://pypi.org";
+
+        public PyPIProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        {
+        }
 
         public PyPIProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
@@ -43,7 +47,9 @@ namespace Microsoft.CST.OpenSource.Shared
 
             try
             {
-                JsonDocument? doc = await GetJsonCache($"{ENV_PYPI_ENDPOINT}/pypi/{packageName}/json");
+                HttpClient httpClient = CreateHttpClient();
+
+                JsonDocument? doc = await GetJsonCache(httpClient, $"{ENV_PYPI_ENDPOINT}/pypi/{packageName}/json");
 
                 if (!doc.RootElement.TryGetProperty("releases", out JsonElement releases))
                 {
@@ -63,7 +69,7 @@ namespace Microsoft.CST.OpenSource.Shared
                             continue;   // Missing a package type
                         }
 
-                        System.Net.Http.HttpResponseMessage result = await WebClient.GetAsync(release.GetProperty("url").GetString());
+                        System.Net.Http.HttpResponseMessage result = await httpClient.GetAsync(release.GetProperty("url").GetString());
                         result.EnsureSuccessStatusCode();
                         string targetName = $"pypi-{packageType}-{packageName}@{packageVersion}";
                         string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
@@ -106,7 +112,9 @@ namespace Microsoft.CST.OpenSource.Shared
                 return false;
             }
             string packageName = purl.Name;
-            return await CheckJsonCacheForPackage($"{ENV_PYPI_ENDPOINT}/pypi/{packageName}/json", useCache);
+            HttpClient httpClient = CreateHttpClient();
+
+            return await CheckJsonCacheForPackage(httpClient, $"{ENV_PYPI_ENDPOINT}/pypi/{packageName}/json", useCache);
         }
 
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
@@ -120,7 +128,9 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 string packageName = purl.Name;
-                JsonDocument doc = await GetJsonCache($"{ENV_PYPI_ENDPOINT}/pypi/{packageName}/json");
+                HttpClient httpClient = CreateHttpClient();
+
+                JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_PYPI_ENDPOINT}/pypi/{packageName}/json");
                 List<string> versionList = new();
                 if (doc.RootElement.TryGetProperty("releases", out JsonElement releases))
                 {
@@ -155,7 +165,9 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             try
             {
-                return await GetHttpStringCache($"{ENV_PYPI_ENDPOINT}/pypi/{purl.Name}/json");
+                HttpClient httpClient = CreateHttpClient();
+
+                return await GetHttpStringCache(httpClient, $"{ENV_PYPI_ENDPOINT}/pypi/{purl.Name}/json");
             }
             catch (Exception ex)
             {
@@ -176,22 +188,22 @@ namespace Microsoft.CST.OpenSource.Shared
 
             JsonElement infoElement = root.GetProperty("info");
 
-            metadata.Name = Utilities.GetJSONPropertyStringIfExists(infoElement, "name");
-            metadata.Description = Utilities.GetJSONPropertyStringIfExists(infoElement, "description");
-            string? summary = Utilities.GetJSONPropertyStringIfExists(infoElement, "summary");
+            metadata.Name = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "name");
+            metadata.Description = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "description");
+            string? summary = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "summary");
             if (string.IsNullOrWhiteSpace(metadata.Description))
             { // longer string might be the actual description
                 metadata.Description = summary;
             }
             metadata.PackageManagerUri = ENV_PYPI_ENDPOINT;
-            metadata.Package_Uri = Utilities.GetJSONPropertyStringIfExists(infoElement, "package_url");
-            metadata.Keywords = Utilities.ConvertJSONToList(Utilities.GetJSONPropertyIfExists(infoElement, "keywords"));
+            metadata.Package_Uri = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "package_url");
+            metadata.Keywords = OssUtilities.ConvertJSONToList(OssUtilities.GetJSONPropertyIfExists(infoElement, "keywords"));
 
             // author
             User author = new()
             {
-                Name = Utilities.GetJSONPropertyStringIfExists(infoElement, "author"),
-                Email = Utilities.GetJSONPropertyStringIfExists(infoElement, "author_email"),
+                Name = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "author"),
+                Email = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "author_email"),
             };
             metadata.Authors ??= new List<Model.User>();
             metadata.Authors.Add(author);
@@ -199,8 +211,8 @@ namespace Microsoft.CST.OpenSource.Shared
             // maintainers
             User maintainer = new()
             {
-                Name = Utilities.GetJSONPropertyStringIfExists(infoElement, "maintainer"),
-                Email = Utilities.GetJSONPropertyStringIfExists(infoElement, "maintainer_email"),
+                Name = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "maintainer"),
+                Email = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "maintainer_email"),
             };
             metadata.Maintainers ??= new List<User>();
             metadata.Maintainers.Add(maintainer);
@@ -221,7 +233,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
 
             // license
-            string? licenseType = Utilities.GetJSONPropertyStringIfExists(infoElement, "license");
+            string? licenseType = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "license");
             if (!string.IsNullOrWhiteSpace(licenseType))
             {
                 metadata.Licenses ??= new List<License>();
@@ -255,7 +267,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     // fill the version specific entries
 
                     // digests
-                    if (Utilities.GetJSONPropertyIfExists(versionElement, "digests")?.EnumerateObject()
+                    if (OssUtilities.GetJSONPropertyIfExists(versionElement, "digests")?.EnumerateObject()
                         is JsonElement.ObjectEnumerator digests)
                     {
                         metadata.Signature ??= new List<Digest>();
@@ -270,7 +282,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     }
 
                     // downloads
-                    if (Utilities.GetJSONPropertyIfExists(versionElement, "downloads")?.GetInt64() is long downloads
+                    if (OssUtilities.GetJSONPropertyIfExists(versionElement, "downloads")?.GetInt64() is long downloads
                         && downloads != -1)
                     {
                         metadata.Downloads ??= new Downloads()
@@ -279,11 +291,11 @@ namespace Microsoft.CST.OpenSource.Shared
                         };
                     }
 
-                    metadata.Size = Utilities.GetJSONPropertyIfExists(versionElement, "size")?.GetInt64();
-                    metadata.UploadTime = Utilities.GetJSONPropertyStringIfExists(versionElement, "upload_time");
-                    metadata.Active = !Utilities.GetJSONPropertyIfExists(versionElement, "yanked")?.GetBoolean();
+                    metadata.Size = OssUtilities.GetJSONPropertyIfExists(versionElement, "size")?.GetInt64();
+                    metadata.UploadTime = OssUtilities.GetJSONPropertyStringIfExists(versionElement, "upload_time");
+                    metadata.Active = !OssUtilities.GetJSONPropertyIfExists(versionElement, "yanked")?.GetBoolean();
                     metadata.VersionUri = $"{ENV_PYPI_ENDPOINT}/project/{purl.Name}/{purl.Version}";
-                    metadata.VersionDownloadUri = Utilities.GetJSONPropertyStringIfExists(versionElement, "url");
+                    metadata.VersionDownloadUri = OssUtilities.GetJSONPropertyStringIfExists(versionElement, "url");
                 }
             }
 
@@ -370,6 +382,22 @@ namespace Microsoft.CST.OpenSource.Shared
                         {
                             mapping.Add(packageUrls.First(), 1.0F);
                             return mapping;
+                        }
+                    }
+                    else if (property.Name.Equals("project_urls"))
+                    {
+                        if (property.Value.TryGetProperty("Source",out JsonElement jsonElement))
+                        {
+                            string? sourceLoc = jsonElement.GetString();
+                            if (sourceLoc != null)
+                            {
+                                IEnumerable<PackageURL>? packageUrls = GitHubProjectManager.ExtractGitHubPackageURLs(sourceLoc);
+                                if (packageUrls != null && packageUrls.Any())
+                                {
+                                    mapping.Add(packageUrls.First(), 1.0F);
+                                    return mapping;
+                                }
+                            }
                         }
                     }
                 }

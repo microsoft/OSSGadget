@@ -1,17 +1,23 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Net.Http;
     using System.Threading.Tasks;
+    using Utilities;
 
     internal class ComposerProjectManager : BaseProjectManager
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_COMPOSER_ENDPOINT = "https://repo.packagist.org";
+
+        public ComposerProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        {
+        }
 
         public ComposerProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
@@ -40,7 +46,8 @@ namespace Microsoft.CST.OpenSource.Shared
 
             try
             {
-                System.Text.Json.JsonDocument doc = await GetJsonCache($"{ENV_COMPOSER_ENDPOINT}/p/{packageNamespace}/{packageName}.json");
+                HttpClient httpClient = CreateHttpClient();
+                System.Text.Json.JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_COMPOSER_ENDPOINT}/p/{packageNamespace}/{packageName}.json");
                 foreach (System.Text.Json.JsonProperty topObject in doc.RootElement.GetProperty("packages").EnumerateObject())
                 {
                     foreach (System.Text.Json.JsonProperty versionObject in topObject.Value.EnumerateObject())
@@ -50,13 +57,13 @@ namespace Microsoft.CST.OpenSource.Shared
                             continue;
                         }
                         string? url = versionObject.Value.GetProperty("dist").GetProperty("url").GetString();
-                        System.Net.Http.HttpResponseMessage? result = await WebClient.GetAsync(url);
+                        System.Net.Http.HttpResponseMessage? result = await httpClient.GetAsync(url);
                         result.EnsureSuccessStatusCode();
                         Logger.Debug("Downloading {0}...", purl);
 
-                        string fsNamespace = Utilities.NormalizeStringForFileSystem(packageNamespace);
-                        string fsName = Utilities.NormalizeStringForFileSystem(packageName);
-                        string fsVersion = Utilities.NormalizeStringForFileSystem(packageVersion);
+                        string fsNamespace = OssUtilities.NormalizeStringForFileSystem(packageNamespace);
+                        string fsName = OssUtilities.NormalizeStringForFileSystem(packageName);
+                        string fsVersion = OssUtilities.NormalizeStringForFileSystem(packageVersion);
 
                         string targetName = $"composer-{fsNamespace}-{fsName}@{fsVersion}";
                         string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
@@ -104,7 +111,9 @@ namespace Microsoft.CST.OpenSource.Shared
                 return false;
             }
             string packageName = purl.Name;
-            return await CheckJsonCacheForPackage($"{ENV_COMPOSER_ENDPOINT}/p/{packageName}.json", useCache);
+            HttpClient httpClient = CreateHttpClient();
+
+            return await CheckJsonCacheForPackage(httpClient, $"{ENV_COMPOSER_ENDPOINT}/p/{packageName}.json", useCache);
         }
 
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
@@ -126,7 +135,9 @@ namespace Microsoft.CST.OpenSource.Shared
 
             try
             {
-                System.Text.Json.JsonDocument doc = await GetJsonCache($"{ENV_COMPOSER_ENDPOINT}/p/{packageName}.json");
+                HttpClient httpClient = CreateHttpClient();
+
+                System.Text.Json.JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_COMPOSER_ENDPOINT}/p/{packageName}.json");
 
                 foreach (System.Text.Json.JsonProperty topObject in doc.RootElement.GetProperty("packages").EnumerateObject())
                 {
@@ -150,7 +161,9 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 string packageName = $"{purl.Namespace}/{purl.Name}";
-                return await GetHttpStringCache($"{ENV_COMPOSER_ENDPOINT}/p/{packageName}.json");
+                HttpClient httpClient = CreateHttpClient();
+
+                return await GetHttpStringCache(httpClient, $"{ENV_COMPOSER_ENDPOINT}/p/{packageName}.json");
             }
             catch (Exception ex)
             {

@@ -26,6 +26,7 @@ namespace Microsoft.CST.OpenSource
     using System.IO;
     using System.Net;
     using System.Text;
+    using System.Text.Json.Serialization;
     using System.Text.RegularExpressions;
 
     /// <summary>
@@ -75,6 +76,7 @@ namespace Microsoft.CST.OpenSource
         /// </param>
         /// @param qualifiers an array of key/value pair qualifiers @param subpath the subpath string
         /// <exception cref="FormatException"> Thrown when parsing fails. </exception>
+        [JsonConstructor]
         public PackageURL(string? type, string? @namespace, string? name, string? version, SortedDictionary<string, string>? qualifiers, string? subpath)
         {
             Type = ValidateType(type);

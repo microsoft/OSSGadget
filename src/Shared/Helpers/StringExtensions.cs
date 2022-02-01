@@ -2,6 +2,8 @@
 
 namespace Microsoft.CST.OpenSource.Helpers
 {
+    using System.Diagnostics.CodeAnalysis;
+
     /// <summary>
     /// A utilities class for string extension functions.
     /// </summary>
@@ -28,6 +30,16 @@ namespace Microsoft.CST.OpenSource.Helpers
             {
                 return str;
             }
+        }
+
+        public static bool IsBlank([NotNullWhen(false)]this string? str)
+        {
+            return string.IsNullOrWhiteSpace(str);
+        }
+
+        public static bool IsNotBlank([NotNullWhen(true)]this string? str)
+        {
+            return !str.IsBlank();
         }
     }
 }

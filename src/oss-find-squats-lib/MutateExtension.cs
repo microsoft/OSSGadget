@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
 {
+    using Helpers;
     using Microsoft.CST.OpenSource.FindSquats.Mutators;
     using Microsoft.CST.OpenSource.PackageManagers;
     using System;
@@ -101,17 +102,24 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
 
             Dictionary<string, IList<Mutation>>? generatedMutations = new();
 
+            // Check to see if it is a scoped npm package to generate candidates for.
+            bool isScoped = purl.Namespace.IsNotBlank() && purl.Type.Equals("npm", StringComparison.OrdinalIgnoreCase);
+            string nameToMutate = isScoped ? (purl.Namespace!).Substring(1) : purl.Name;
+
             foreach (IMutator mutator in mutators)
             {
-                foreach (Mutation mutation in mutator.Generate(purl.Name))
+                foreach (Mutation mutation in mutator.Generate(nameToMutate))
                 {
-                    if (generatedMutations.ContainsKey(mutation.Mutated))
+                    // Construct the mutated name if the package was scoped.
+                    string mutated = isScoped ? $"@{mutation.Mutated}/{purl.Name}" : mutation.Mutated;
+
+                    if (generatedMutations.ContainsKey(mutated))
                     {
-                        generatedMutations[mutation.Mutated].Add(mutation);
+                        generatedMutations[mutated].Add(mutation);
                     }
                     else
                     {
-                        generatedMutations[mutation.Mutated] = new List<Mutation>() { mutation };
+                        generatedMutations[mutated] = new List<Mutation> { mutation };
                     }
                 }
             }

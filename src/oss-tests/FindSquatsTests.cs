@@ -4,9 +4,9 @@ using Microsoft.CST.OpenSource.FindSquats;
 using Microsoft.CST.OpenSource.FindSquats.ExtensionMethods;
 using Microsoft.CST.OpenSource.FindSquats.Mutators;
 using Microsoft.CST.OpenSource.PackageManagers;
-using Microsoft.CST.OpenSource.Shared;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Tests
@@ -28,6 +28,25 @@ namespace Microsoft.CST.OpenSource.Tests
             };
             (string output, int numSquats) result = await fst.RunAsync(options);
             Assert.IsTrue(expectedToHaveSquats ? result.numSquats > 0 : result.numSquats == 0);
+        }
+
+        [DataTestMethod]
+        [DataRow("pkg:npm/%40angular/core", "@engular/core", "@angullar/core")]
+        [DataRow("pkg:npm/lodash", "odash", "lodah")]
+        [DataRow("pkg:npm/%40babel/runtime", "@abel/runtime", "@bable/runtime")]
+        public void ScopedNpmPackageSquats(string packageUrl, params string[] expectedSquats)
+        {
+            FindPackageSquats findPackageSquats =
+                new(new DefaultHttpClientFactory(), new PackageURL(packageUrl));
+
+            IDictionary<string, IList<Mutation>>? squatsCandidates = findPackageSquats.GenerateSquatCandidates();
+
+            Assert.IsNotNull(squatsCandidates);
+
+            foreach (string expectedSquat in expectedSquats)
+            {
+                Assert.IsTrue(squatsCandidates.ContainsKey(expectedSquat));
+            }
         }
 
         [DataTestMethod]

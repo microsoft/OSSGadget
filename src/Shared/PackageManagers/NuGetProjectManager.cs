@@ -3,6 +3,7 @@
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using HtmlAgilityPack;
+    using Model;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -10,6 +11,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Net.Http;
     using System.Text.Json;
     using System.Threading.Tasks;
+    using Utilities;
+    using Version = SemanticVersioning.Version;
+
 
     public class NuGetProjectManager : BaseProjectManager
     {
@@ -303,12 +307,208 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 return null;
             }
         }
+        
+        public async Task<JsonElement?> GetVersionUriMetadata(string versionUri)
+        {
+            try
+            {
+                HttpClient httpClient = CreateHttpClient();
+
+                string? content = await GetHttpStringCache(httpClient, versionUri);
+                if (string.IsNullOrEmpty(content)) { return null; }
+
+                // convert NuGet package data to normalized form
+                JsonDocument contentJSON = JsonDocument.Parse(content);
+                return contentJSON.RootElement;
+            }
+            catch (Exception ex)
+            {
+                Logger.Debug(ex, $"Error fetching - {versionUri}: {ex.Message}");
+                return null;
+            }
+        }
 
         public override Uri GetPackageAbsoluteUri(PackageURL purl)
         {
             return new Uri($"{ENV_NUGET_HOMEPAGE}/{purl?.Name}");
         }
+        
+        /// <inheritdoc />
+        public override async Task<PackageMetadata> GetPackageMetadata(PackageURL purl)
+        {
+            PackageMetadata metadata = new();
+            string? content = await GetMetadata(purl);
+            if (string.IsNullOrEmpty(content)) { return metadata; }
 
+            // convert NuGet package data to normalized form
+            JsonDocument contentJSON = JsonDocument.Parse(content);
+            JsonElement root = contentJSON.RootElement;
+            JsonElement latestCatalogEntry = GetLatestCatalogEntry(root);
+
+            metadata.Name = latestCatalogEntry.GetProperty("id").GetString();
+            metadata.Description = latestCatalogEntry.GetProperty("description").GetString();
+            
+            // Title is different than name or description for NuGet packages, not always used.
+            // metadata.Title = GetLatestCatalogEntry(root).GetProperty("title").GetString();
+
+            metadata.PackageManagerUri = ENV_NUGET_ENDPOINT_API;
+            metadata.Platform = "NUGET";
+            metadata.Language = "C#";
+            // metadata.SpokenLanguage = GetLatestCatalogEntry(root).GetProperty("language").GetString();
+            metadata.Package_Uri = $"{metadata.PackageManagerUri}/{metadata.Name?.ToLower()}/index.json";
+
+            List<Version> versions = GetVersions(contentJSON);
+            Version? latestVersion = GetLatestVersion(versions);
+
+            if (purl.Version != null)
+            {
+                // find the version object from the collection
+                metadata.PackageVersion = purl.Version;
+            }
+            else
+            {
+                metadata.PackageVersion = latestVersion is null ? purl.Version : latestVersion.ToString();
+            }
+
+            // if we found any version at all, get the info
+            if (metadata.PackageVersion != null)
+            {
+                Version versionToGet = new(metadata.PackageVersion);
+                JsonElement? versionElement = GetVersionElement(contentJSON, versionToGet);
+                if (versionElement != null)
+                {
+                    // redo the generic values to version specific values
+                    metadata.VersionUri = OssUtilities.GetJSONPropertyStringIfExists(versionElement, "@id");
+
+                    JsonElement versionContent = await this.GetVersionUriMetadata(metadata.VersionUri!) ?? throw new InvalidOperationException();
+                    
+                    // Get the artifact contents url
+                    JsonElement? packageContent = OssUtilities.GetJSONPropertyIfExists(versionElement, "packageContent");
+                    if (packageContent != null)
+                    {
+                        metadata.VersionDownloadUri = packageContent.ToString();
+                    }
+                    
+                    // size and hash from versionContent
+                    metadata.Size = versionContent.GetProperty("packageSize").GetInt64();
+                    metadata.Signature ??= new List<Digest>();
+                    metadata.Signature.Add(new Digest
+                    {
+                        Algorithm = OssUtilities.GetJSONPropertyStringIfExists(versionContent, "packageHashAlgorithm"),
+                        Signature = OssUtilities.GetJSONPropertyStringIfExists(versionContent, "packageHash"),
+                    });
+
+                    // dependencies
+                    List<string>? dependencies = OssUtilities.ConvertJSONToList(OssUtilities.GetJSONPropertyIfExists(versionElement, "dependencies"));
+                    if (dependencies is not null && dependencies.Count > 0)
+                    {
+                        metadata.Dependencies ??= new List<Dependency>();
+                        dependencies.ForEach((dependency) => metadata.Dependencies.Add(new Dependency() { Package = dependency }));
+                    }
+
+                    // author(s)
+                    JsonElement? authorElement = OssUtilities.GetJSONPropertyIfExists(versionElement, "authors");
+                    User author = new();
+                    if (authorElement is not null)
+                    {
+                        author.Name = authorElement?.GetString();
+                        // TODO: User email and url
+                        // author.Email = OssUtilities.GetJSONPropertyStringIfExists(authorElement, "email");
+                        // author.Url = OssUtilities.GetJSONPropertyStringIfExists(authorElement, "url");
+
+                        metadata.Authors ??= new List<User>();
+                        metadata.Authors.Add(author);
+                    }
+
+                    // TODO: maintainers
+
+                    // TODO: repository
+
+                    // keywords
+                    metadata.Keywords = OssUtilities.ConvertJSONToList(OssUtilities.GetJSONPropertyIfExists(versionElement, "tags"));
+
+                    // licenses
+                    metadata.Licenses ??= new List<License>();
+                    metadata.Licenses.Add(new License()
+                    {
+                        Name = OssUtilities.GetJSONPropertyStringIfExists(versionElement, "licenseExpression"),
+                        Url = OssUtilities.GetJSONPropertyStringIfExists(versionElement, "licenseUrl")
+                    });
+                    
+                    // publishing info
+                    metadata.UploadTime = OssUtilities.GetJSONPropertyStringIfExists(versionElement, "published");
+                }
+            }
+
+            if (latestVersion is not null)
+            {
+                metadata.LatestPackageVersion = latestVersion.ToString();
+            }
+
+            return metadata;
+        }
+
+        public JsonElement GetLatestCatalogEntry(JsonElement root)
+        {
+            return root.GetProperty("items").EnumerateArray().Last() // Last CatalogPage
+                .GetProperty("items").EnumerateArray().Last() // Last Package
+                .GetProperty("catalogEntry"); // Get the entry for the most recent package version
+        }
+        
+        public override JsonElement? GetVersionElement(JsonDocument? contentJSON, Version desiredVersion)
+        {
+            if (contentJSON is null) { return null; }
+            JsonElement root = contentJSON.RootElement;
+
+            try
+            {
+                JsonElement catalogPages = root.GetProperty("items");
+                foreach (JsonElement page in catalogPages.EnumerateArray())
+                {
+                    JsonElement entries = page.GetProperty("items");
+                    foreach (JsonElement entry in entries.EnumerateArray())
+                    {
+                        string version = entry.GetProperty("catalogEntry").GetProperty("version").GetString() 
+                                         ?? throw new InvalidOperationException();
+                        if (string.Equals(version, desiredVersion.ToString(), StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            return entry.GetProperty("catalogEntry");
+                        }
+                    }
+                }
+            }
+            catch (KeyNotFoundException) { return null; }
+            catch (InvalidOperationException) { return null; }
+
+            return null;
+        }
+
+        public override List<Version> GetVersions(JsonDocument? contentJSON)
+        {
+            List<Version> allVersions = new();
+            if (contentJSON is null) { return allVersions; }
+
+            JsonElement root = contentJSON.RootElement;
+            try
+            {
+                JsonElement catalogPages = root.GetProperty("items");
+                foreach (JsonElement page in catalogPages.EnumerateArray())
+                {
+                    JsonElement entries = page.GetProperty("items");
+                    foreach (JsonElement entry in entries.EnumerateArray())
+                    {
+                        string version = entry.GetProperty("catalogEntry").GetProperty("version").GetString() 
+                                         ?? throw new InvalidOperationException();
+                        allVersions.Add(new Version(version));
+                    }
+                }
+            }
+            catch (KeyNotFoundException) { return allVersions; }
+            catch (InvalidOperationException) { return allVersions; }
+
+            return allVersions;
+        }
+        
         protected override async Task<Dictionary<PackageURL, double>> SearchRepoUrlsInPackageMetadata(PackageURL purl, string metadata)
         {
             Dictionary<PackageURL, double> mapping = new();

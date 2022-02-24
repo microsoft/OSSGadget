@@ -170,11 +170,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return new Uri($"{ENV_NPM_API_ENDPOINT}/package/{purl?.Name}");
         }
 
-        /// <summary>
-        /// Gets the structured metadata for the npm package
-        /// </summary>
-        /// <param name="purl">PackageURL to retrieve metadata for</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public override async Task<PackageMetadata> GetPackageMetadata(PackageURL purl)
         {
             PackageMetadata metadata = new();

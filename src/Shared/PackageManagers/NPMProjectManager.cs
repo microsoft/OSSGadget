@@ -254,14 +254,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     }
 
                     // install scripts
+                    List<string>? scripts = OssUtilities.ConvertJSONToList(OssUtilities.GetJSONPropertyIfExists(versionElement, "scripts"));
+                    if (scripts is not null && scripts.Count > 0)
                     {
-                        if (OssUtilities.GetJSONEnumerator(OssUtilities.GetJSONPropertyIfExists(versionElement, "scripts"))
-                                is JsonElement.ArrayEnumerator enumerator &&
-                            enumerator.Any())
-                        {
-                            metadata.Scripts ??= new List<Command>();
-                            enumerator.ToList().ForEach((element) => metadata.Scripts.Add(new Command { CommandLine = element.ToString() }));
-                        }
+                        metadata.Scripts ??= new List<Command>();
+                        scripts.ForEach((element) => metadata.Scripts.Add(new Command { CommandLine = element }));
                     }
 
                     // dependencies
@@ -286,22 +283,20 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     }
 
                     // maintainers
+                    JsonElement? maintainersElement = OssUtilities.GetJSONPropertyIfExists(versionElement, "maintainers");
+                    if (maintainersElement?.EnumerateArray() is JsonElement.ArrayEnumerator maintainerEnumerator)
                     {
-                        JsonElement? maintainersElement = OssUtilities.GetJSONPropertyIfExists(versionElement, "maintainers");
-                        if (maintainersElement?.EnumerateArray() is JsonElement.ArrayEnumerator enumerator)
+                        metadata.Maintainers ??= new List<User>();
+                        maintainerEnumerator.ToList().ForEach((element) =>
                         {
-                            metadata.Maintainers ??= new List<User>();
-                            enumerator.ToList().ForEach((element) =>
-                            {
-                                metadata.Maintainers.Add(
-                                    new User
-                                    {
-                                        Name = OssUtilities.GetJSONPropertyStringIfExists(element, "name"),
-                                        Email = OssUtilities.GetJSONPropertyStringIfExists(element, "email"),
-                                        Url = OssUtilities.GetJSONPropertyStringIfExists(element, "url")
-                                    });
-                            });
-                        }
+                            metadata.Maintainers.Add(
+                                new User
+                                {
+                                    Name = OssUtilities.GetJSONPropertyStringIfExists(element, "name"),
+                                    Email = OssUtilities.GetJSONPropertyStringIfExists(element, "email"),
+                                    Url = OssUtilities.GetJSONPropertyStringIfExists(element, "url")
+                                });
+                        });
                     }
 
                     // repository

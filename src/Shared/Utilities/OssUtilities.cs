@@ -81,7 +81,7 @@ namespace Microsoft.CST.OpenSource.Utilities
         {
             if (jsonElement is not null && jsonElement?.ToString() is string str && !string.IsNullOrEmpty(str))
             {
-                if (str.Contains("["))
+                if (str.StartsWith("["))
                 {
                     if (jsonElement?.EnumerateArray() is JsonElement.ArrayEnumerator enumerator)
                     {

@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Helpers;
     using HtmlAgilityPack;
     using Model;
     using NuGet.Packaging;
@@ -417,7 +418,15 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     // TODO: maintainers
 
                     // repository
-                    NuspecReader? nuspecReader = GetNuspec(purl);
+                    PackageURL nuspecPurl = purl;
+
+                    // If no version specified, get it for the latest version
+                    if (nuspecPurl.Version.IsBlank())
+                    {
+                        nuspecPurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, metadata.PackageVersion,
+                            purl.Qualifiers, purl.Subpath);
+                    }
+                    NuspecReader? nuspecReader = GetNuspec(nuspecPurl);
                     RepositoryMetadata? repositoryMetadata = nuspecReader?.GetRepositoryMetadata();
                     if (repositoryMetadata != null)
                     {

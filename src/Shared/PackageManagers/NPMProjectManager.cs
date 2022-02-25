@@ -232,6 +232,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                             Signature = pair[1]
                         });
                     }
+                    
+                    // check for typescript
+                    List<string>? devDependencies = OssUtilities.ConvertJSONToList(OssUtilities.GetJSONPropertyIfExists(versionElement, "devDependencies"));
+                    if (devDependencies is not null && devDependencies.Count > 0 && devDependencies.Any(stringToCheck => stringToCheck.Contains("\"typescript\":")))
+                    {
+                        metadata.Language = "TypeScript";
+                    }
+                    
                     // size
                     if (OssUtilities.GetJSONPropertyIfExists(distElement, "unpackedSize") is JsonElement sizeElement &&
                         sizeElement.GetInt64() is long size)

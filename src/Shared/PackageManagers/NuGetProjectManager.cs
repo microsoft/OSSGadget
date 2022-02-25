@@ -4,6 +4,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using HtmlAgilityPack;
     using Model;
+    using NuGet.Packaging;
+    using NuGet.Packaging.Core;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -398,14 +400,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                         Signature = OssUtilities.GetJSONPropertyStringIfExists(versionContent, "packageHash"),
                     });
 
-                    // dependencies
-                    List<string>? dependencies = OssUtilities.ConvertJSONToList(OssUtilities.GetJSONPropertyIfExists(versionElement, "dependencies"));
-                    if (dependencies is not null && dependencies.Count > 0)
-                    {
-                        metadata.Dependencies ??= new List<Dependency>();
-                        dependencies.ForEach((dependency) => metadata.Dependencies.Add(new Dependency() { Package = dependency }));
-                    }
-
                     // author(s)
                     JsonElement? authorElement = OssUtilities.GetJSONPropertyIfExists(versionElement, "authors");
                     User author = new();
@@ -422,7 +416,36 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
                     // TODO: maintainers
 
-                    // TODO: repository
+                    // repository
+                    NuspecReader? nuspecReader = GetNuspec(purl);
+                    RepositoryMetadata? repositoryMetadata = nuspecReader?.GetRepositoryMetadata();
+                    if (repositoryMetadata != null)
+                    {
+                        if (GitHubProjectManager.IsGitHubRepoUrl(repositoryMetadata.Url, out PackageURL? githubPurl))
+                        {
+                            Repository repository = new()
+                            {
+                                Type = "github"
+                            };
+                        
+                            await repository.ExtractRepositoryMetadata(githubPurl!);
+
+                            metadata.Repository ??= new List<Repository>();
+                            metadata.Repository.Add(repository);
+                        }
+                    }
+                    
+                    // dependencies
+                    IList<PackageDependencyGroup>? dependencyGroups = nuspecReader?.GetDependencyGroups().ToList();
+                    if (dependencyGroups is not null && dependencyGroups.Any())
+                    {
+                        metadata.Dependencies ??= new List<Dependency>();
+
+                        foreach (PackageDependencyGroup dependencyGroup in dependencyGroups)
+                        {
+                            dependencyGroup.Packages.ToList().ForEach((dependency) => metadata.Dependencies.Add(new Dependency() { Package = dependency.ToString(), Framework = dependencyGroup.TargetFramework.ToString()}));
+                        }
+                    }
 
                     // keywords
                     metadata.Keywords = OssUtilities.ConvertJSONToList(OssUtilities.GetJSONPropertyIfExists(versionElement, "tags"));
@@ -550,6 +573,25 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             // if nothing worked, return empty
             return mapping;
+        }
+
+
+        private NuspecReader? GetNuspec(PackageURL purl)
+        {
+            string uri = $"{ENV_NUGET_ENDPOINT_API}/v3-flatcontainer/{purl.Name.ToLower()}/{purl.Version}/{purl.Name.ToLower()}.nuspec";
+            try
+            {
+                using HttpClient httpClient = this.CreateHttpClient();
+                HttpResponseMessage response = httpClient.GetAsync(uri).GetAwaiter().GetResult();
+                using (Stream stream = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult())
+                {
+                    return new(stream);
+                }
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]

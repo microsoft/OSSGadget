@@ -182,6 +182,9 @@ namespace Microsoft.CST.OpenSource.Model
     {
         [JsonProperty(PropertyName = "package", NullValueHandling = NullValueHandling.Ignore)]
         public string? Package { get; set; }
+        
+        [JsonProperty(PropertyName = "framework", NullValueHandling = NullValueHandling.Ignore)]
+        public string? Framework { get; set; }
     }
 
     public class Command

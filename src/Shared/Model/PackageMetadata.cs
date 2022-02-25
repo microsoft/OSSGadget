@@ -87,7 +87,10 @@ namespace Microsoft.CST.OpenSource.Model
         public List<User>? Maintainers { get; set; }
 
         [JsonProperty(PropertyName = "package_uri", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Package_Uri { get; set; }
+        public string? PackageUri { get; set; }
+
+        [JsonProperty(PropertyName = "api_package_uri", NullValueHandling = NullValueHandling.Ignore)]
+        public string? ApiPackageUri { get; set; }
 
         [JsonProperty(PropertyName = "package_manager_uri", NullValueHandling = NullValueHandling.Ignore)]
         public string? PackageManagerUri { get; set; }
@@ -124,6 +127,9 @@ namespace Microsoft.CST.OpenSource.Model
 
         [JsonProperty(PropertyName = "version_uri", NullValueHandling = NullValueHandling.Ignore)]
         public string? VersionUri { get; set; }
+
+        [JsonProperty(PropertyName = "api_version_uri", NullValueHandling = NullValueHandling.Ignore)]
+        public string? ApiVersionUri { get; set; }
 
         [JsonProperty(PropertyName = "active_flag", NullValueHandling = NullValueHandling.Ignore)]
         public bool? Active { get; set; }

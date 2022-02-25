@@ -167,7 +167,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         public override Uri GetPackageAbsoluteUri(PackageURL purl)
         {
-            return new Uri($"{ENV_NPM_API_ENDPOINT}/package/{purl?.Name}");
+            return new Uri($"{ENV_NPM_API_ENDPOINT}/{purl?.Name}");
         }
 
         /// <inheritdoc />
@@ -187,7 +187,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             metadata.PackageManagerUri = ENV_NPM_ENDPOINT;
             metadata.Platform = "NPM";
             metadata.Language = "JavaScript";
-            metadata.Package_Uri = $"{metadata.PackageManagerUri}/package/{metadata.Name}";
+            metadata.PackageUri = $"{metadata.PackageManagerUri}/package/{metadata.Name}";
+            metadata.ApiPackageUri = $"{ENV_NPM_API_ENDPOINT}/{metadata.Name}";
 
             List<Version> versions = GetVersions(contentJSON);
             Version? latestVersion = GetLatestVersion(versions);
@@ -210,8 +211,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 if (versionElement != null)
                 {
                     // redo the generic values to version specific values
-                    metadata.Package_Uri = $"{ENV_NPM_ENDPOINT}/package/{metadata.Name}";
+                    metadata.PackageUri = $"{ENV_NPM_ENDPOINT}/package/{metadata.Name}";
                     metadata.VersionUri = $"{ENV_NPM_ENDPOINT}/package/{metadata.Name}/v/{metadata.PackageVersion}";
+                    metadata.ApiVersionUri = $"{ENV_NPM_API_ENDPOINT}/{metadata.Name}/{metadata.PackageVersion}";
 
                     JsonElement? distElement = OssUtilities.GetJSONPropertyIfExists(versionElement, "dist");
                     if (distElement?.GetProperty("tarball") is JsonElement tarballElement)

@@ -22,6 +22,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_NUGET_ENDPOINT_API = "https://api.nuget.org";
+        public static string ENV_NUGET_ENDPOINT = "https://www.nuget.org";
 
         private readonly string NUGET_DEFAULT_REGISTRATION_ENDPOINT = "https://api.nuget.org/v3/registration5-gz-semver2/";
 
@@ -354,11 +355,12 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             // Title is different than name or description for NuGet packages, not always used.
             // metadata.Title = GetLatestCatalogEntry(root).GetProperty("title").GetString();
 
-            metadata.PackageManagerUri = ENV_NUGET_ENDPOINT_API;
+            metadata.PackageManagerUri = ENV_NUGET_ENDPOINT;
             metadata.Platform = "NUGET";
             metadata.Language = "C#";
             // metadata.SpokenLanguage = GetLatestCatalogEntry(root).GetProperty("language").GetString();
-            metadata.Package_Uri = $"{metadata.PackageManagerUri}/{metadata.Name?.ToLower()}/index.json";
+            metadata.PackageUri = $"{metadata.PackageManagerUri}/packages/{metadata.Name?.ToLower()}";
+            metadata.ApiPackageUri = $"{RegistrationEndpoint}{metadata.Name?.ToLower()}/index.json";
 
             List<Version> versions = GetVersions(contentJSON);
             Version? latestVersion = GetLatestVersion(versions);
@@ -381,9 +383,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 if (versionElement != null)
                 {
                     // redo the generic values to version specific values
-                    metadata.VersionUri = OssUtilities.GetJSONPropertyStringIfExists(versionElement, "@id");
+                    metadata.VersionUri = $"{metadata.PackageManagerUri}/packages/{metadata.Name?.ToLower()}/{versionToGet}";
+                    metadata.ApiVersionUri = OssUtilities.GetJSONPropertyStringIfExists(versionElement, "@id");
 
-                    JsonElement versionContent = await this.GetVersionUriMetadata(metadata.VersionUri!) ?? throw new InvalidOperationException();
+                    JsonElement versionContent = await this.GetVersionUriMetadata(metadata.ApiVersionUri!) ?? throw new InvalidOperationException();
                     
                     // Get the artifact contents url
                     JsonElement? packageContent = OssUtilities.GetJSONPropertyIfExists(versionElement, "packageContent");

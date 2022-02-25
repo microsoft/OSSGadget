@@ -239,6 +239,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                         metadata.Size = size;
                     }
 
+                    // homepage
+                    if (OssUtilities.GetJSONPropertyStringIfExists(versionElement, "homepage") is string homepage &&
+                        !string.IsNullOrWhiteSpace(homepage))
+                    {
+                        metadata.Homepage = homepage;
+                    }
+                    
                     // commit id
                     if (OssUtilities.GetJSONPropertyStringIfExists(versionElement, "gitHead") is string gitHead &&
                         !string.IsNullOrWhiteSpace(gitHead))

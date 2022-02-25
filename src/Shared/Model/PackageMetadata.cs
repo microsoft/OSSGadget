@@ -91,6 +91,9 @@ namespace Microsoft.CST.OpenSource.Model
 
         [JsonProperty(PropertyName = "package_manager_uri", NullValueHandling = NullValueHandling.Ignore)]
         public string? PackageManagerUri { get; set; }
+        
+        [JsonProperty(PropertyName = "homepage", NullValueHandling = NullValueHandling.Ignore)]
+        public string? Homepage { get; set; }
 
         [JsonProperty(PropertyName = "package_version", NullValueHandling = NullValueHandling.Ignore)]
         public string? PackageVersion { get; set; }

@@ -400,6 +400,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                         Algorithm = OssUtilities.GetJSONPropertyStringIfExists(versionContent, "packageHashAlgorithm"),
                         Signature = OssUtilities.GetJSONPropertyStringIfExists(versionContent, "packageHash"),
                     });
+                    
+                    // homepage
+                    metadata.Homepage = OssUtilities.GetJSONPropertyStringIfExists(versionContent, "projectUrl");
 
                     // author(s)
                     JsonElement? authorElement = OssUtilities.GetJSONPropertyIfExists(versionElement, "authors");

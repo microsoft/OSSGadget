@@ -67,7 +67,7 @@ namespace Microsoft.CST.OpenSource.Tests
                     {
                         foreach (Mutation mutation in mutator.Generate(purl.Name))
                         {
-                            if (mutation.Mutated.Equals(expectedToFind))
+                            if (mutation.Mutated.Equals(expectedToFind, StringComparison.OrdinalIgnoreCase))
                             {
                                 return;
                             }

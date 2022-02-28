@@ -2,7 +2,11 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Helpers;
     using HtmlAgilityPack;
+    using Model;
+    using NuGet.Packaging;
+    using NuGet.Packaging.Core;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -10,11 +14,15 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Net.Http;
     using System.Text.Json;
     using System.Threading.Tasks;
+    using Utilities;
+    using Version = SemanticVersioning.Version;
+
 
     public class NuGetProjectManager : BaseProjectManager
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_NUGET_ENDPOINT_API = "https://api.nuget.org";
+        public static string ENV_NUGET_ENDPOINT = "https://www.nuget.org";
 
         private readonly string NUGET_DEFAULT_REGISTRATION_ENDPOINT = "https://api.nuget.org/v3/registration5-gz-semver2/";
 
@@ -303,12 +311,242 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 return null;
             }
         }
+        
+        public async Task<JsonElement?> GetVersionUriMetadata(string versionUri)
+        {
+            try
+            {
+                HttpClient httpClient = CreateHttpClient();
+
+                string? content = await GetHttpStringCache(httpClient, versionUri);
+                if (string.IsNullOrEmpty(content)) { return null; }
+
+                // convert NuGet package data to normalized form
+                JsonDocument contentJSON = JsonDocument.Parse(content);
+                return contentJSON.RootElement;
+            }
+            catch (Exception ex)
+            {
+                Logger.Debug(ex, $"Error fetching - {versionUri}: {ex.Message}");
+                return null;
+            }
+        }
 
         public override Uri GetPackageAbsoluteUri(PackageURL purl)
         {
             return new Uri($"{ENV_NUGET_HOMEPAGE}/{purl?.Name}");
         }
+        
+        /// <inheritdoc />
+        public override async Task<PackageMetadata> GetPackageMetadata(PackageURL purl)
+        {
+            PackageMetadata metadata = new();
+            string? content = await GetMetadata(purl);
+            if (string.IsNullOrEmpty(content)) { return metadata; }
 
+            // convert NuGet package data to normalized form
+            JsonDocument contentJSON = JsonDocument.Parse(content);
+            JsonElement root = contentJSON.RootElement;
+            JsonElement latestCatalogEntry = GetLatestCatalogEntry(root);
+
+            metadata.Name = latestCatalogEntry.GetProperty("id").GetString();
+            metadata.Description = latestCatalogEntry.GetProperty("description").GetString();
+            
+            // Title is different than name or description for NuGet packages, not always used.
+            // metadata.Title = GetLatestCatalogEntry(root).GetProperty("title").GetString();
+
+            metadata.PackageManagerUri = ENV_NUGET_ENDPOINT;
+            metadata.Platform = "NUGET";
+            metadata.Language = "C#";
+            // metadata.SpokenLanguage = GetLatestCatalogEntry(root).GetProperty("language").GetString();
+            metadata.PackageUri = $"{metadata.PackageManagerUri}/packages/{metadata.Name?.ToLower()}";
+            metadata.ApiPackageUri = $"{RegistrationEndpoint}{metadata.Name?.ToLower()}/index.json";
+
+            List<Version> versions = GetVersions(contentJSON);
+            Version? latestVersion = GetLatestVersion(versions);
+
+            if (purl.Version != null)
+            {
+                // find the version object from the collection
+                metadata.PackageVersion = purl.Version;
+            }
+            else
+            {
+                metadata.PackageVersion = latestVersion is null ? purl.Version : latestVersion.ToString();
+            }
+
+            // if we found any version at all, get the info
+            if (metadata.PackageVersion != null)
+            {
+                Version versionToGet = new(metadata.PackageVersion);
+                JsonElement? versionElement = GetVersionElement(contentJSON, versionToGet);
+                if (versionElement != null)
+                {
+                    // redo the generic values to version specific values
+                    metadata.VersionUri = $"{metadata.PackageManagerUri}/packages/{metadata.Name?.ToLower()}/{versionToGet}";
+                    metadata.ApiVersionUri = OssUtilities.GetJSONPropertyStringIfExists(versionElement, "@id");
+
+                    JsonElement versionContent = await this.GetVersionUriMetadata(metadata.ApiVersionUri!) ?? throw new InvalidOperationException();
+                    
+                    // Get the artifact contents url
+                    JsonElement? packageContent = OssUtilities.GetJSONPropertyIfExists(versionElement, "packageContent");
+                    if (packageContent != null)
+                    {
+                        metadata.VersionDownloadUri = packageContent.ToString();
+                    }
+                    
+                    // size and hash from versionContent
+                    metadata.Size = versionContent.GetProperty("packageSize").GetInt64();
+                    metadata.Signature ??= new List<Digest>();
+                    metadata.Signature.Add(new Digest
+                    {
+                        Algorithm = OssUtilities.GetJSONPropertyStringIfExists(versionContent, "packageHashAlgorithm"),
+                        Signature = OssUtilities.GetJSONPropertyStringIfExists(versionContent, "packageHash"),
+                    });
+                    
+                    // homepage
+                    metadata.Homepage = OssUtilities.GetJSONPropertyStringIfExists(versionContent, "projectUrl");
+
+                    // author(s)
+                    JsonElement? authorElement = OssUtilities.GetJSONPropertyIfExists(versionElement, "authors");
+                    User author = new();
+                    if (authorElement is not null)
+                    {
+                        author.Name = authorElement?.GetString();
+                        // TODO: User email and url
+                        // author.Email = OssUtilities.GetJSONPropertyStringIfExists(authorElement, "email");
+                        // author.Url = OssUtilities.GetJSONPropertyStringIfExists(authorElement, "url");
+
+                        metadata.Authors ??= new List<User>();
+                        metadata.Authors.Add(author);
+                    }
+
+                    // TODO: maintainers
+
+                    // repository
+                    PackageURL nuspecPurl = purl;
+
+                    // If no version specified, get it for the latest version
+                    if (nuspecPurl.Version.IsBlank())
+                    {
+                        nuspecPurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, metadata.PackageVersion,
+                            purl.Qualifiers, purl.Subpath);
+                    }
+                    NuspecReader? nuspecReader = GetNuspec(nuspecPurl);
+                    RepositoryMetadata? repositoryMetadata = nuspecReader?.GetRepositoryMetadata();
+                    if (repositoryMetadata != null)
+                    {
+                        if (GitHubProjectManager.IsGitHubRepoUrl(repositoryMetadata.Url, out PackageURL? githubPurl))
+                        {
+                            Repository repository = new()
+                            {
+                                Type = "github"
+                            };
+                        
+                            await repository.ExtractRepositoryMetadata(githubPurl!);
+
+                            metadata.Repository ??= new List<Repository>();
+                            metadata.Repository.Add(repository);
+                        }
+                    }
+                    
+                    // dependencies
+                    IList<PackageDependencyGroup>? dependencyGroups = nuspecReader?.GetDependencyGroups().ToList();
+                    if (dependencyGroups is not null && dependencyGroups.Any())
+                    {
+                        metadata.Dependencies ??= new List<Dependency>();
+
+                        foreach (PackageDependencyGroup dependencyGroup in dependencyGroups)
+                        {
+                            dependencyGroup.Packages.ToList().ForEach((dependency) => metadata.Dependencies.Add(new Dependency() { Package = dependency.ToString(), Framework = dependencyGroup.TargetFramework.ToString()}));
+                        }
+                    }
+
+                    // keywords
+                    metadata.Keywords = OssUtilities.ConvertJSONToList(OssUtilities.GetJSONPropertyIfExists(versionElement, "tags"));
+
+                    // licenses
+                    metadata.Licenses ??= new List<License>();
+                    metadata.Licenses.Add(new License()
+                    {
+                        Name = OssUtilities.GetJSONPropertyStringIfExists(versionElement, "licenseExpression"),
+                        Url = OssUtilities.GetJSONPropertyStringIfExists(versionElement, "licenseUrl")
+                    });
+                    
+                    // publishing info
+                    metadata.UploadTime = OssUtilities.GetJSONPropertyStringIfExists(versionElement, "published");
+                }
+            }
+
+            if (latestVersion is not null)
+            {
+                metadata.LatestPackageVersion = latestVersion.ToString();
+            }
+
+            return metadata;
+        }
+
+        public JsonElement GetLatestCatalogEntry(JsonElement root)
+        {
+            return root.GetProperty("items").EnumerateArray().Last() // Last CatalogPage
+                .GetProperty("items").EnumerateArray().Last() // Last Package
+                .GetProperty("catalogEntry"); // Get the entry for the most recent package version
+        }
+        
+        public override JsonElement? GetVersionElement(JsonDocument? contentJSON, Version desiredVersion)
+        {
+            if (contentJSON is null) { return null; }
+            JsonElement root = contentJSON.RootElement;
+
+            try
+            {
+                JsonElement catalogPages = root.GetProperty("items");
+                foreach (JsonElement page in catalogPages.EnumerateArray())
+                {
+                    JsonElement entries = page.GetProperty("items");
+                    foreach (JsonElement entry in entries.EnumerateArray())
+                    {
+                        string version = entry.GetProperty("catalogEntry").GetProperty("version").GetString() 
+                                         ?? throw new InvalidOperationException();
+                        if (string.Equals(version, desiredVersion.ToString(), StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            return entry.GetProperty("catalogEntry");
+                        }
+                    }
+                }
+            }
+            catch (KeyNotFoundException) { return null; }
+            catch (InvalidOperationException) { return null; }
+
+            return null;
+        }
+
+        public override List<Version> GetVersions(JsonDocument? contentJSON)
+        {
+            List<Version> allVersions = new();
+            if (contentJSON is null) { return allVersions; }
+
+            JsonElement root = contentJSON.RootElement;
+            try
+            {
+                JsonElement catalogPages = root.GetProperty("items");
+                foreach (JsonElement page in catalogPages.EnumerateArray())
+                {
+                    JsonElement entries = page.GetProperty("items");
+                    foreach (JsonElement entry in entries.EnumerateArray())
+                    {
+                        string version = entry.GetProperty("catalogEntry").GetProperty("version").GetString() 
+                                         ?? throw new InvalidOperationException();
+                        allVersions.Add(new Version(version));
+                    }
+                }
+            }
+            catch (KeyNotFoundException) { return allVersions; }
+            catch (InvalidOperationException) { return allVersions; }
+
+            return allVersions;
+        }
+        
         protected override async Task<Dictionary<PackageURL, double>> SearchRepoUrlsInPackageMetadata(PackageURL purl, string metadata)
         {
             Dictionary<PackageURL, double> mapping = new();
@@ -350,6 +588,25 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             // if nothing worked, return empty
             return mapping;
+        }
+
+
+        private NuspecReader? GetNuspec(PackageURL purl)
+        {
+            string uri = $"{ENV_NUGET_ENDPOINT_API}/v3-flatcontainer/{purl.Name.ToLower()}/{purl.Version}/{purl.Name.ToLower()}.nuspec";
+            try
+            {
+                using HttpClient httpClient = this.CreateHttpClient();
+                HttpResponseMessage response = httpClient.GetAsync(uri).GetAwaiter().GetResult();
+                using (Stream stream = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult())
+                {
+                    return new(stream);
+                }
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]

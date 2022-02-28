@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Helpers;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -232,6 +233,33 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public override Uri GetPackageAbsoluteUri(PackageURL purl)
         {
             return new Uri($"{ENV_GITHUB_ENDPOINT}/{purl.Namespace}/{purl.Name}");
+        }
+        
+        /// <summary>
+        /// Gets if the URL is a GitHub repo URL.
+        /// </summary>
+        /// <param name="url">A URL to check if it's from GitHub.</param>
+        /// <param name="purl">The variable to set the purl of if it is a GitHub repo.</param>
+        /// <returns>If the url is a GitHubRepo.</returns>
+        public static bool IsGitHubRepoUrl(string url, out PackageURL? purl)
+        {
+            Check.NotNull(nameof(url), url);
+            purl = null;
+
+            if (url.Contains(ENV_GITHUB_ENDPOINT))
+            {
+                try
+                {
+                    purl = ParseUri(new Uri(url));
+                }
+                catch (ArgumentException)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+            return false;
         }
 
         private static readonly Regex GithubExtractorRegex = new(

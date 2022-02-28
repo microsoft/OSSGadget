@@ -167,14 +167,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         public override Uri GetPackageAbsoluteUri(PackageURL purl)
         {
-            return new Uri($"{ENV_NPM_API_ENDPOINT}/package/{purl?.Name}");
+            return new Uri($"{ENV_NPM_API_ENDPOINT}/{purl?.Name}");
         }
 
-        /// <summary>
-        /// Gets the structured metadata for the npm package
-        /// </summary>
-        /// <param name="purl">PackageURL to retrieve metadata for</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public override async Task<PackageMetadata> GetPackageMetadata(PackageURL purl)
         {
             PackageMetadata metadata = new();
@@ -191,7 +187,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             metadata.PackageManagerUri = ENV_NPM_ENDPOINT;
             metadata.Platform = "NPM";
             metadata.Language = "JavaScript";
-            metadata.Package_Uri = $"{metadata.PackageManagerUri}/package/{metadata.Name}";
+            metadata.PackageUri = $"{metadata.PackageManagerUri}/package/{metadata.Name}";
+            metadata.ApiPackageUri = $"{ENV_NPM_API_ENDPOINT}/{metadata.Name}";
 
             List<Version> versions = GetVersions(contentJSON);
             Version? latestVersion = GetLatestVersion(versions);
@@ -214,8 +211,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 if (versionElement != null)
                 {
                     // redo the generic values to version specific values
-                    metadata.Package_Uri = $"{ENV_NPM_ENDPOINT}/package/{metadata.Name}";
+                    metadata.PackageUri = $"{ENV_NPM_ENDPOINT}/package/{metadata.Name}";
                     metadata.VersionUri = $"{ENV_NPM_ENDPOINT}/package/{metadata.Name}/v/{metadata.PackageVersion}";
+                    metadata.ApiVersionUri = $"{ENV_NPM_API_ENDPOINT}/{metadata.Name}/{metadata.PackageVersion}";
 
                     JsonElement? distElement = OssUtilities.GetJSONPropertyIfExists(versionElement, "dist");
                     if (distElement?.GetProperty("tarball") is JsonElement tarballElement)
@@ -236,6 +234,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                             Signature = pair[1]
                         });
                     }
+                    
+                    // check for typescript
+                    List<string>? devDependencies = OssUtilities.ConvertJSONToList(OssUtilities.GetJSONPropertyIfExists(versionElement, "devDependencies"));
+                    if (devDependencies is not null && devDependencies.Count > 0 && devDependencies.Any(stringToCheck => stringToCheck.Contains("\"typescript\":")))
+                    {
+                        metadata.Language = "TypeScript";
+                    }
+                    
                     // size
                     if (OssUtilities.GetJSONPropertyIfExists(distElement, "unpackedSize") is JsonElement sizeElement &&
                         sizeElement.GetInt64() is long size)
@@ -243,6 +249,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                         metadata.Size = size;
                     }
 
+                    // homepage
+                    if (OssUtilities.GetJSONPropertyStringIfExists(versionElement, "homepage") is string homepage &&
+                        !string.IsNullOrWhiteSpace(homepage))
+                    {
+                        metadata.Homepage = homepage;
+                    }
+                    
                     // commit id
                     if (OssUtilities.GetJSONPropertyStringIfExists(versionElement, "gitHead") is string gitHead &&
                         !string.IsNullOrWhiteSpace(gitHead))
@@ -251,14 +264,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     }
 
                     // install scripts
+                    List<string>? scripts = OssUtilities.ConvertJSONToList(OssUtilities.GetJSONPropertyIfExists(versionElement, "scripts"));
+                    if (scripts is not null && scripts.Count > 0)
                     {
-                        if (OssUtilities.GetJSONEnumerator(OssUtilities.GetJSONPropertyIfExists(versionElement, "scripts"))
-                                is JsonElement.ArrayEnumerator enumerator &&
-                            enumerator.Any())
-                        {
-                            metadata.Scripts ??= new List<Command>();
-                            enumerator.ToList().ForEach((element) => metadata.Scripts.Add(new Command { CommandLine = element.ToString() }));
-                        }
+                        metadata.Scripts ??= new List<Command>();
+                        scripts.ForEach((element) => metadata.Scripts.Add(new Command { CommandLine = element }));
                     }
 
                     // dependencies
@@ -283,22 +293,20 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     }
 
                     // maintainers
+                    JsonElement? maintainersElement = OssUtilities.GetJSONPropertyIfExists(versionElement, "maintainers");
+                    if (maintainersElement?.EnumerateArray() is JsonElement.ArrayEnumerator maintainerEnumerator)
                     {
-                        JsonElement? maintainersElement = OssUtilities.GetJSONPropertyIfExists(versionElement, "maintainers");
-                        if (maintainersElement?.EnumerateArray() is JsonElement.ArrayEnumerator enumerator)
+                        metadata.Maintainers ??= new List<User>();
+                        maintainerEnumerator.ToList().ForEach((element) =>
                         {
-                            metadata.Maintainers ??= new List<User>();
-                            enumerator.ToList().ForEach((element) =>
-                            {
-                                metadata.Maintainers.Add(
-                                    new User
-                                    {
-                                        Name = OssUtilities.GetJSONPropertyStringIfExists(element, "name"),
-                                        Email = OssUtilities.GetJSONPropertyStringIfExists(element, "email"),
-                                        Url = OssUtilities.GetJSONPropertyStringIfExists(element, "url")
-                                    });
-                            });
-                        }
+                            metadata.Maintainers.Add(
+                                new User
+                                {
+                                    Name = OssUtilities.GetJSONPropertyStringIfExists(element, "name"),
+                                    Email = OssUtilities.GetJSONPropertyStringIfExists(element, "email"),
+                                    Url = OssUtilities.GetJSONPropertyStringIfExists(element, "url")
+                                });
+                        });
                     }
 
                     // repository

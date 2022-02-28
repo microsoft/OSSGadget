@@ -196,7 +196,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 metadata.Description = summary;
             }
             metadata.PackageManagerUri = ENV_PYPI_ENDPOINT;
-            metadata.Package_Uri = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "package_url");
+            metadata.PackageUri = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "package_url");
             metadata.Keywords = OssUtilities.ConvertJSONToList(OssUtilities.GetJSONPropertyIfExists(infoElement, "keywords"));
 
             // author

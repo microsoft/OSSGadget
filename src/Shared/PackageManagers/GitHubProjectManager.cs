@@ -2,7 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
-    using PackageUrl;
+    using Helpers;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;

@@ -396,8 +396,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <summary>
         /// Return a normalized package metadata.
         /// </summary>
-        /// <param name="purl"></param>
-        /// <returns></returns>
+        /// <param name="purl">The <see cref="PackageURL"/> to get the normalized metadata for.</param>
+        /// <returns>A <see cref="GetPackageMetadata"/> object representing this <see cref="PackageURL"/>.</returns>
         public virtual Task<PackageMetadata> GetPackageMetadata(PackageURL purl)
         {
             string typeName = GetType().Name;

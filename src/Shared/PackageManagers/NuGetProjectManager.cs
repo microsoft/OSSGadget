@@ -4,6 +4,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using Helpers;
     using HtmlAgilityPack;
+    using PackageUrl;
     using Model;
     using NuGet.Packaging;
     using NuGet.Packaging.Core;

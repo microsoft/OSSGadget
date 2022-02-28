@@ -4,6 +4,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using Model;
     using NLog.LayoutRenderers.Wrappers;
+    using PackageUrl;
     using System;
     using System.Collections.Generic;
     using System.IO;

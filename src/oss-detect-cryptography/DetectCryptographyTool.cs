@@ -22,9 +22,8 @@ using Microsoft.CST.RecursiveExtractor;
 
 namespace Microsoft.CST.OpenSource
 {
-    using Extensions.DependencyInjection;
-    using Microsoft.CST.OpenSource.Helpers;
     using Microsoft.CST.OpenSource.PackageManagers;
+    using PackageUrl;
     using System.Net.Http;
 
     public class DetectCryptographyTool : OSSGadget

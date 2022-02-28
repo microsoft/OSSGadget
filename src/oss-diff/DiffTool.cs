@@ -20,9 +20,9 @@ using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
 
 namespace Microsoft.CST.OpenSource.DiffTool
 {
-    using Extensions.DependencyInjection;
     using Microsoft.CST.OpenSource.Helpers;
     using Microsoft.CST.OpenSource.PackageManagers;
+    using PackageUrl;
     using System.Net.Http;
 
     class DiffTool : OSSGadget

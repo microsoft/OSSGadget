@@ -3,6 +3,7 @@
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using Microsoft.Extensions.Caching.Memory;
+    using PackageUrl;
     using System;
     using System.Collections.Generic;
     using System.IO;

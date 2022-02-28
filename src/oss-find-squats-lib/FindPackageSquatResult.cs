@@ -4,6 +4,7 @@
 namespace Microsoft.CST.OpenSource.FindSquats
 {
     using Microsoft.CST.OpenSource.FindSquats.Mutators;
+    using PackageUrl;
     using System;
     using System.Collections.Generic;
     using System.Linq;

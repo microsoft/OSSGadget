@@ -3,6 +3,7 @@
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using HtmlAgilityPack;
+    using PackageUrl;
     using System;
     using System.Collections.Generic;
     using System.IO;

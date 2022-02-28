@@ -8,6 +8,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
     using Microsoft.CST.OpenSource.Helpers;
     using Microsoft.CST.OpenSource.PackageManagers;
     using Mutators;
+    using PackageUrl;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;

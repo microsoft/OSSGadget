@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Tests
 {
+    using PackageUrl;
+
     [TestClass]
     public class DownloadTests
     {

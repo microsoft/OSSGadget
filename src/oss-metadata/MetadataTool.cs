@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource
 {
-    using Extensions.DependencyInjection;
     using Microsoft.CST.OpenSource.Model;
     using Microsoft.CST.OpenSource.PackageManagers;
+    using PackageUrl;
     using System.Net.Http;
 
     public class MetadataTool : OSSGadget

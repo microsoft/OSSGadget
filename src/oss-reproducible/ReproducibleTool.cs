@@ -14,10 +14,10 @@ using static Crayon.Output;
 
 namespace Microsoft.CST.OpenSource
 {
-    using Extensions.DependencyInjection;
     using System.Net.Http;
     using Microsoft.CST.OpenSource;
     using Microsoft.CST.OpenSource.Helpers;
+    using PackageUrl;
 
     public enum DiffTechnique
     {

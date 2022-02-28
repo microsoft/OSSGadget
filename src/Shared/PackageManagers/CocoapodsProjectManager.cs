@@ -3,6 +3,8 @@
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using AngleSharp.Html.Parser;
+    using Extensions;
+    using PackageUrl;
     using System;
     using System.Collections.Generic;
     using System.IO;

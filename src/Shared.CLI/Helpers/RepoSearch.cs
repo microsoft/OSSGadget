@@ -5,6 +5,7 @@ namespace Microsoft.CST.OpenSource.Shared
     using Microsoft.CST.OpenSource.Helpers;
     using Microsoft.CST.OpenSource.PackageManagers;
     using NLog;
+    using PackageUrl;
     using System;
     using System.Collections.Generic;
     using System.Linq;

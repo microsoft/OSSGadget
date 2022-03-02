@@ -79,8 +79,8 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         [DataTestMethod]
-        [DataRow("pkg:npm/foo", "\"SquattedPackage\":{\"Name\":\"too\",")]
-        [DataRow("pkg:nuget/Microsoft.CST.OAT", "\"SquattedPackage\":{\"Name\":\"microsoft.cst.oat.net\",")]
+        [DataRow("pkg:npm/foo", "pkg:npm/too")]
+        [DataRow("pkg:nuget/Microsoft.CST.OAT", "pkg:nuget/microsoft.cst.oat.net")]
         public void ConvertToAndFromJson(string packageUrl, string expectedToFind)
         {
             PackageURL purl = new(packageUrl);
@@ -96,10 +96,10 @@ namespace Microsoft.CST.OpenSource.Tests
                             FindPackageSquatResult result = new(purl.Name, purl,
                                 new PackageURL(purl.Type, mutation.Mutated), new[] { mutation });
                             string jsonResult = result.ToJson();
-                            if (jsonResult.Contains(expectedToFind))
+                            if (jsonResult.Contains(expectedToFind, StringComparison.OrdinalIgnoreCase))
                             {
                                 FindPackageSquatResult fromJson = FindPackageSquatResult.FromJsonString(jsonResult);
-                                if (fromJson.PackageName == purl.Name)
+                                if (fromJson.PackageName.Equals(purl.Name, StringComparison.OrdinalIgnoreCase))
                                 {
                                     return;
                                 }

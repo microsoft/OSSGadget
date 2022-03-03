@@ -10,7 +10,6 @@ namespace Microsoft.CST.OpenSource.Tests
     using PackageManagers;
     using PackageUrl;
     using System;
-    using System.Text.Json;
 
     [TestClass]
     public class SharedTests

@@ -11,13 +11,9 @@ namespace Microsoft.CST.OpenSource.Tests
     [TestClass]
     public class PackageUrlExtensionsTests
     {
-        public PackageUrlExtensionsTests()
-        {
-        }
-
         [DataTestMethod]
-        [DataRow("pkg:npm/lodash@4.17.15", "")]
-        // [DataRow("pkg:npm/lodash@4.17.15")]
+        [DataRow("pkg:npm/lodash@4.17.15", "pkg-npm-lodash@4.17.15")]
+        [DataRow("pkg:nuget/newtonsoft.json", "pkg-nuget-newtonsoft.json")]
         public async Task ToStringFilenameSucceeds(string packageUrlString, string filename)
         {
             PackageURL packageUrl = new(packageUrlString);

@@ -50,11 +50,11 @@ namespace Microsoft.CST.OpenSource.Tests
             Assert.AreEqual("Lodash modular utilities.", metadata.Description);
             Assert.AreEqual("4.17.15", metadata.PackageVersion);
 
-            string? metadataJson = JsonSerializer.Serialize(metadata);
+            string? metadataJson = metadata.ToString();
             
             Assert.IsTrue(metadataJson.Contains("Lodash modular utilities."));
 
-            PackageMetadata metadataFromJson = JsonSerializer.Deserialize<PackageMetadata>(metadataJson) ?? throw new InvalidOperationException("Can't deserialize the metadata json.");
+            PackageMetadata metadataFromJson = PackageMetadata.FromJson(metadataJson) ?? throw new InvalidOperationException("Can't deserialize the metadata json.");
             
             Assert.AreEqual("lodash", metadataFromJson.Name);
             Assert.AreEqual("Lodash modular utilities.", metadataFromJson.Description);

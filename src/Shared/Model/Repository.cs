@@ -4,6 +4,7 @@ namespace Microsoft.CST.OpenSource.Model
 {
     using Newtonsoft.Json;
     using Octokit;
+    using PackageUrl;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;

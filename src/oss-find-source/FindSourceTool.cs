@@ -13,7 +13,7 @@ using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
 
 namespace Microsoft.CST.OpenSource
 {
-    using Extensions.DependencyInjection;
+    using PackageUrl;
     using System.Net.Http;
 
     public class FindSourceTool : OSSGadget

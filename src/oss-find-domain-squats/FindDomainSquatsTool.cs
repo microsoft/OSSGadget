@@ -4,7 +4,6 @@ namespace Microsoft.CST.OpenSource.DomainSquats
 {
     using CommandLine;
     using CommandLine.Text;
-    using Extensions.DependencyInjection;
     using Microsoft.CodeAnalysis.Sarif;
     using Microsoft.CST.OpenSource.Shared;
     using System;

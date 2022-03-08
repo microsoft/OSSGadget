@@ -13,6 +13,8 @@ using System.Text.Json.Serialization;
 
 namespace Microsoft.CST.OpenSource.Reproducibility
 {
+    using PackageUrl;
+
     public enum StrategyPriority
     {
         None = 0,

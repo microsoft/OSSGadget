@@ -9,6 +9,8 @@ using System.Text.RegularExpressions;
 
 namespace Microsoft.CST.OpenSource.Reproducibility
 {
+    using PackageUrl;
+
     internal class IgnoreFilter
     {
         private static readonly List<string> FilterText;

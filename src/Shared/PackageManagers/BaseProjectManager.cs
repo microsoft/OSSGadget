@@ -16,7 +16,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Threading.Tasks;
     using Utilities;
     using Version = SemanticVersioning.Version;
-    using Microsoft.CST.OpenSource.Helpers;
+    using PackageUrl;
 
     public class BaseProjectManager
     {

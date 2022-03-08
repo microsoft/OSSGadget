@@ -4,11 +4,11 @@ namespace Microsoft.CST.OpenSource.FindSquats
 {
     using CommandLine;
     using CommandLine.Text;
-    using Extensions.DependencyInjection;
     using Microsoft.CodeAnalysis.Sarif;
     using Microsoft.CST.OpenSource.Shared;
     using Mutators;
     using Newtonsoft.Json;
+    using PackageUrl;
     using System;
     using System.Collections.Generic;
     using System.IO;

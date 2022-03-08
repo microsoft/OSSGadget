@@ -16,7 +16,7 @@ using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
 
 namespace Microsoft.CST.OpenSource
 {
-    using Extensions.DependencyInjection;
+    using PackageUrl;
     using System.Net.Http;
 
     public class CharacteristicTool : OSSGadget

@@ -13,7 +13,6 @@ using static Crayon.Output;
 
 namespace Microsoft.CST.OpenSource
 {
-    using Extensions.DependencyInjection;
     using System.Net.Http;
 
     public class DetectBackdoorTool : OSSGadget

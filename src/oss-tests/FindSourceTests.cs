@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Tests
 {
+    using PackageUrl;
+    using System;
+
     [TestClass]
     public class FindSourceTests
     {
@@ -98,7 +101,7 @@ namespace Microsoft.CST.OpenSource.Tests
 
             foreach (KeyValuePair<PackageURL, double> resultEntry in results)
             {
-                if (resultEntry.Key.Equals(targetPurl))
+                if (resultEntry.Key.ToString().Equals(targetPurl.ToString(), StringComparison.OrdinalIgnoreCase))
                 {
                     success = true;
                 }

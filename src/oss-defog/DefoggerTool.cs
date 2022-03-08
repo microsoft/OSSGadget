@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource
 {
-    using Extensions.DependencyInjection;
+    using PackageUrl;
     using System.Net.Http;
 
     public class DefoggerTool : OSSGadget

@@ -9,6 +9,8 @@ using System.Linq;
 
 namespace Microsoft.CST.OpenSource.Reproducibility
 {
+    using PackageUrl;
+
     /// <summary>
     /// This strategy identifies packages as reproducible if running `npm pack` on the source
     /// repository produces a file that matches the content of the package downloaded from the registry.

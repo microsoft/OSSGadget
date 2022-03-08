@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Helpers;
     using Microsoft.CST.OpenSource.Model;
     using System;
     using System.Collections.Generic;
@@ -152,7 +153,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
             try
             {
-                string? packageName = purl.Name;
+                string? packageName = purl.Namespace != null ? $"@{purl.Namespace}/{purl.Name}" : purl.Name;
                 HttpClient httpClient = CreateHttpClient();
 
                 string? content = await GetHttpStringCache(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}");
@@ -182,7 +183,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             JsonElement root = contentJSON.RootElement;
 
             metadata.Name = root.GetProperty("name").GetString();
-            metadata.Description = root.GetProperty("description").GetString();
+            metadata.Description = OssUtilities.GetJSONPropertyStringIfExists(root, "description");
 
             metadata.PackageManagerUri = ENV_NPM_ENDPOINT;
             metadata.Platform = "NPM";
@@ -215,11 +216,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     metadata.VersionUri = $"{ENV_NPM_ENDPOINT}/package/{metadata.Name}/v/{metadata.PackageVersion}";
                     metadata.ApiVersionUri = $"{ENV_NPM_API_ENDPOINT}/{metadata.Name}/{metadata.PackageVersion}";
 
+                    // sometimes the description is only on the version level
+                    metadata.Description ??= OssUtilities.GetJSONPropertyStringIfExists(versionElement, "description");
+                    
                     JsonElement? distElement = OssUtilities.GetJSONPropertyIfExists(versionElement, "dist");
                     if (distElement?.GetProperty("tarball") is JsonElement tarballElement)
                     {
-                        metadata.VersionDownloadUri = tarballElement.ToString() ??
-                        $"{ENV_NPM_API_ENDPOINT}/{metadata.Name}/-/{metadata.Name}-{metadata.PackageVersion}.tgz";
+                        metadata.VersionDownloadUri = tarballElement.ToString().IsBlank() ?
+                        $"{ENV_NPM_API_ENDPOINT}/{metadata.Name}/-/{metadata.Name}-{metadata.PackageVersion}.tgz" : tarballElement.ToString();
                     }
 
                     if (distElement?.GetProperty("integrity") is JsonElement integrityElement &&
@@ -280,7 +284,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     }
 
                     // author(s)
-                    JsonElement? authorElement = OssUtilities.GetJSONPropertyIfExists(versionElement, "author");
+                    JsonElement? authorElement = OssUtilities.GetJSONPropertyIfExists(versionElement, "_npmUser");
                     User author = new();
                     if (authorElement is not null)
                     {

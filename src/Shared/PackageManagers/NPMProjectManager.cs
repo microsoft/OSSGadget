@@ -216,8 +216,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     metadata.VersionUri = $"{ENV_NPM_ENDPOINT}/package/{metadata.Name}/v/{metadata.PackageVersion}";
                     metadata.ApiVersionUri = $"{ENV_NPM_API_ENDPOINT}/{metadata.Name}/{metadata.PackageVersion}";
 
-                    // sometimes the description is only on the version level
-                    metadata.Description ??= OssUtilities.GetJSONPropertyStringIfExists(versionElement, "description");
+                    // prioritize the version level description
+                    if (OssUtilities.GetJSONPropertyStringIfExists(versionElement, "description") is string description)
+                    {
+                        metadata.Description = description;
+                    }
                     
                     JsonElement? distElement = OssUtilities.GetJSONPropertyIfExists(versionElement, "dist");
                     if (distElement?.GetProperty("tarball") is JsonElement tarballElement)

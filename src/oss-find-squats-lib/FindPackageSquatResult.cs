@@ -3,7 +3,6 @@
 #pragma warning disable CS8618
 namespace Microsoft.CST.OpenSource.FindSquats
 {
-    using Microsoft.CST.OpenSource.Helpers;
     using Microsoft.CST.OpenSource.FindSquats.Mutators;
     using PackageUrl;
     using System;
@@ -17,15 +16,6 @@ namespace Microsoft.CST.OpenSource.FindSquats
     /// </summary>
     public class FindPackageSquatResult
     {
-        // Custom json serialization converter for PackageURLs
-        private static JsonSerializerOptions _serializeOptions = new()
-        {
-            Converters =
-            {
-                new PackageUrlJsonConverter()
-            }
-        };
-
         public FindPackageSquatResult(string packageName, PackageURL packageUrl, PackageURL squattedPackage, IEnumerable<Mutation> mutations)
         {
             PackageName = packageName;
@@ -65,7 +55,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
         /// <returns>A json string representing this instance of <see cref="FindPackageSquatResult"/>.</returns>
         public string ToJson()
         {
-            return JsonSerializer.Serialize(this, _serializeOptions);
+            return JsonSerializer.Serialize(this, OssGadgetJsonSerializer.Options);
         }
 
         /// <summary>
@@ -76,7 +66,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
         /// <exception cref="InvalidCastException">If the json string cannot be deserialized into a <see cref="FindPackageSquatResult"/>.</exception>
         public static FindPackageSquatResult FromJsonString(string json)
         {
-            return JsonSerializer.Deserialize<FindPackageSquatResult>(json, _serializeOptions) ?? throw new InvalidCastException();
+            return JsonSerializer.Deserialize<FindPackageSquatResult>(json, OssGadgetJsonSerializer.Options) ?? throw new InvalidCastException();
         }
     }
 }

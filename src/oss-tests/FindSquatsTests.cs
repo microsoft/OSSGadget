@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Tests
 {
+    using Extensions;
     using PackageUrl;
 
     [TestClass]
@@ -33,9 +34,10 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         [DataTestMethod]
-        [DataRow("pkg:npm/%40angular/core", "@engular/core", "@angullar/core")]
+        [DataRow("pkg:npm/angular/core", "engular/core", "angullar/core")]
+        [DataRow("pkg:npm/%40angular/core", "@engular/core", "@angullar/core")] // back compat check
         [DataRow("pkg:npm/lodash", "odash", "lodah")]
-        [DataRow("pkg:npm/%40babel/runtime", "@abel/runtime", "@bable/runtime")]
+        [DataRow("pkg:npm/babel/runtime", "abel/runtime", "bable/runtime")]
         public void ScopedNpmPackageSquats(string packageUrl, params string[] expectedSquats)
         {
             FindPackageSquats findPackageSquats =
@@ -54,7 +56,8 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataTestMethod]
         [DataRow("pkg:npm/foo", "foojs")] // SuffixAdded, js
         [DataRow("pkg:npm/lodash", "odash")] // RemovedCharacter, first character
-        [DataRow("pkg:nuget/Microsoft.CST.OAT", "microsoft.cst.oat.net")]
+        [DataRow("pkg:npm/angular/core", "anguular/core")] // DoubleHit, third character
+        [DataRow("pkg:nuget/Microsoft.CST.OAT", "microsoft.cst.oat.net")] // SuffixAdded, .net
         public void GenerateManagerSpecific(string packageUrl, string expectedToFind)
         {
             PackageURL purl = new(packageUrl);
@@ -63,9 +66,9 @@ namespace Microsoft.CST.OpenSource.Tests
                 BaseProjectManager? manager = ProjectManagerFactory.CreateProjectManager(purl, null);
                 if (manager is not null)
                 {
-                    foreach (IMutator mutator in manager.GetDefaultMutators())
+                    foreach ((string _, IList<Mutation> mutations) in manager.EnumerateSquatCandidates(purl)!)
                     {
-                        foreach (Mutation mutation in mutator.Generate(purl.Name))
+                        foreach (Mutation mutation in mutations)
                         {
                             if (mutation.Mutated.Equals(expectedToFind, StringComparison.OrdinalIgnoreCase))
                             {
@@ -80,6 +83,7 @@ namespace Microsoft.CST.OpenSource.Tests
 
         [DataTestMethod]
         [DataRow("pkg:npm/foo", "pkg:npm/too")]
+        [DataRow("pkg:npm/angular/core", "pkg:npm/anngular/core")]
         [DataRow("pkg:nuget/Microsoft.CST.OAT", "pkg:nuget/microsoft.cst.oat.net")]
         public void ConvertToAndFromJson(string packageUrl, string expectedToFind)
         {
@@ -89,17 +93,17 @@ namespace Microsoft.CST.OpenSource.Tests
                 BaseProjectManager? manager = ProjectManagerFactory.CreateProjectManager(purl, null);
                 if (manager is not null)
                 {
-                    foreach (IMutator mutator in manager.GetDefaultMutators())
+                    foreach ((string _, IList<Mutation> mutations) in manager.EnumerateSquatCandidates(purl)!)
                     {
-                        foreach (Mutation mutation in mutator.Generate(purl.Name))
+                        foreach (Mutation mutation in mutations)
                         {
-                            FindPackageSquatResult result = new(purl.Name, purl,
+                            FindPackageSquatResult result = new(purl.GetFullName(), purl,
                                 new PackageURL(purl.Type, mutation.Mutated), new[] { mutation });
                             string jsonResult = result.ToJson();
                             if (jsonResult.Contains(expectedToFind, StringComparison.OrdinalIgnoreCase))
                             {
                                 FindPackageSquatResult fromJson = FindPackageSquatResult.FromJsonString(jsonResult);
-                                if (fromJson.PackageName.Equals(purl.Name, StringComparison.OrdinalIgnoreCase))
+                                if (fromJson.PackageName.Equals(purl.GetFullName(), StringComparison.OrdinalIgnoreCase))
                                 {
                                     return;
                                 }
@@ -113,6 +117,7 @@ namespace Microsoft.CST.OpenSource.Tests
 
         [DataTestMethod]
         [DataRow("pkg:npm/foo", typeof(UnicodeHomoglyphMutator))]
+        [DataRow("pkg:npm/foo/bar", typeof(UnicodeHomoglyphMutator))]
         [DataRow("pkg:nuget/Microsoft.CST.OAT", typeof(UnicodeHomoglyphMutator))]
         public void DontGenerateManagerSpecific(string packageUrl, Type notExpectedToFind)
         {

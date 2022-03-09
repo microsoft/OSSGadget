@@ -1,0 +1,41 @@
+'C#':
+  beautifiers:
+    - Pretty Diff
+  indent_size: 4
+CSS:
+  beautifiers:
+    - Prettier
+    - Pretty Diff
+    - JS-Beautify
+    - CSScomb
+  indent_size: 4
+  max_preserve_newlines: 1
+HTML:
+  beautifiers:
+    - Pretty Diff
+    - JS-Beautify
+JSON:
+  beautifiers:
+    - Prettier
+    - Pretty Diff
+    - JS-Beautify
+JavaScript:
+  beautifiers:
+    - Prettier
+    - Pretty Diff
+    - JS-Beautify
+    - ESLint
+Visualforce: !<tag:yaml.org,2002:js/undefined> ''
+TypeScript:
+  beautifiers:
+    - Prettier
+    - Pretty Diff
+    - TSLint
+  indent_size: 4
+XML:
+  beautifiers:
+    - Pretty Diff
+    - JS-Beautify
+Markdown:
+  beautifiers:
+    - Prettier

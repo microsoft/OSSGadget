@@ -5,29 +5,47 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 {
     using Helpers;
     using Model;
+    using Moq;
     using oss;
     using PackageManagers;
+    using PackageUrl;
+    using RichardSzalay.MockHttp;
     using System.Collections.Generic;
+    using System.Net;
+    using System.Net.Http;
     using System.Threading.Tasks;
     using VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
     public class NPMProjectManagerTests
     {
-        private readonly IDictionary<string, string> packages = new Dictionary<string, string>()
+        private readonly IDictionary<string, string> _packages = new Dictionary<string, string>()
         {
-            { "lodash", Resources.lodash_json },
-            { "angular/core", Resources.angular_core_json },
-            { "ds-modal", Resources.ds_modal_json },
-            { "monorepolint", Resources.monorepolint_json },
-            { "rly-cli", Resources.rly_cli_json },
+            { "https://registry.npmjs.org/lodash", Resources.lodash_json },
+            { "https://registry.npmjs.org/@angular/core", Resources.angular_core_json },
+            { "https://registry.npmjs.org/ds-modal", Resources.ds_modal_json },
+            { "https://registry.npmjs.org/monorepolint", Resources.monorepolint_json },
+            { "https://registry.npmjs.org/rly-cli", Resources.rly_cli_json },
         };
 
         private NPMProjectManager ProjectManager;
         
         public NPMProjectManagerTests()
         {
-            ProjectManager = new NPMProjectManager(".");
+            Mock<IHttpClientFactory> mockFactory = new();
+            
+            MockHttpMessageHandler mockHttp = new();
+
+            foreach ((string url, string json) in _packages)
+            {
+                MockHttpFetchResponse(HttpStatusCode.OK, url, json, mockHttp);
+            }
+ 
+            mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
+            
+            ProjectManager = new NPMProjectManager(mockFactory.Object, ".");
+            
+
         }
 
         [DataTestMethod]
@@ -45,6 +63,17 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             Assert.AreEqual(packageName, metadata.Name);
             Assert.AreEqual(purl.Version, metadata.PackageVersion);
             Assert.AreEqual(description, metadata.Description);
+        }
+        
+        private static void MockHttpFetchResponse(
+            HttpStatusCode statusCode,
+            string url,
+            string content,
+            MockHttpMessageHandler httpMock)
+        {
+            httpMock
+                .When(HttpMethod.Get, url)
+                .Respond(statusCode, "application/json", content);
         }
     }
 }

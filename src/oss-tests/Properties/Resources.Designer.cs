@@ -79,7 +79,7 @@ namespace oss {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {&quot;_id&quot;:&quot;lodash&quot;,&quot;_rev&quot;:&quot;2650-7b310ba0ce49a17115204773ce251b7f&quot;,&quot;name&quot;:&quot;lodash&quot;,&quot;description&quot;:&quot;Lodash modular utilities.&quot;,&quot;dist-tags&quot;:{&quot;latest&quot;:&quot;4.17.21&quot;},&quot;versions&quot;:{&quot;0.1.0&quot;:{&quot;name&quot;:&quot;lodash&quot;,&quot;version&quot;:&quot;0.1.0&quot;,&quot;description&quot;:&quot;A drop-in replacement for Underscore.js that delivers up to 8x performance improvements, bug fixes, and additional features.&quot;,&quot;homepage&quot;:&quot;https://github.com/bestiejs/lodash&quot;,&quot;main&quot;:&quot;lodash&quot;,&quot;keywords&quot;:[&quot;browser&quot;,&quot;client&quot;,&quot;functional&quot;,&quot;performance&quot;,&quot;server&quot;,&quot;speed&quot;,&quot;util&quot;],&quot;licenses&quot;:[{&quot;t [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to {}.
         /// </summary>
         internal static string lodash_json {
             get {

@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
 {
+    using Extensions;
     using Helpers;
     using Microsoft.CST.OpenSource.FindSquats.Mutators;
     using Microsoft.CST.OpenSource.PackageManagers;
@@ -101,10 +102,10 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
                 return null;
             }
 
-            Dictionary<string, IList<Mutation>>? generatedMutations = new();
+            Dictionary<string, IList<Mutation>> generatedMutations = new();
 
             // Check to see if it is a scoped npm package to generate candidates for.
-            bool isScoped = purl.Namespace.IsNotBlank() && purl.Type.Equals("npm", StringComparison.OrdinalIgnoreCase);
+            bool isScoped = purl.HasNamespace();
             string nameToMutate = isScoped ? purl.Namespace : purl.Name;
 
             foreach (IMutator mutator in mutators)
@@ -114,17 +115,13 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
                     // Construct the mutated name if the package was scoped.
                     string mutated = isScoped ? $"{mutation.Mutated}/{purl.Name}" : mutation.Mutated;
                     string original = isScoped ? $"{purl.Namespace}/{purl.Name}" : purl.Name;
-
-                    Mutation calculatedMutation = new(mutated, original, mutation.Reason, mutation.Mutator);
                     
-                    if (generatedMutations.ContainsKey(mutated))
+                    if (!generatedMutations.ContainsKey(mutated))
                     {
-                        generatedMutations[mutated].Add(calculatedMutation);
+                        generatedMutations[mutated] = new List<Mutation>();
                     }
-                    else
-                    {
-                        generatedMutations[mutated] = new List<Mutation> { calculatedMutation };
-                    }
+
+                    generatedMutations[mutated].Add(new Mutation(mutated, original, mutation.Reason, mutation.Mutator));
                 }
             }
 

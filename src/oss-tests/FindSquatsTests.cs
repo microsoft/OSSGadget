@@ -35,6 +35,7 @@ namespace Microsoft.CST.OpenSource.Tests
 
         [DataTestMethod]
         [DataRow("pkg:npm/angular/core", "engular/core", "angullar/core")]
+        [DataRow("pkg:npm/%40angular/core", "@engular/core", "@angullar/core")] // back compat check
         [DataRow("pkg:npm/lodash", "odash", "lodah")]
         [DataRow("pkg:npm/babel/runtime", "abel/runtime", "bable/runtime")]
         public void ScopedNpmPackageSquats(string packageUrl, params string[] expectedSquats)
@@ -96,13 +97,13 @@ namespace Microsoft.CST.OpenSource.Tests
                     {
                         foreach (Mutation mutation in mutations)
                         {
-                            FindPackageSquatResult result = new(purl.GetNameWithScope(), purl,
+                            FindPackageSquatResult result = new(purl.GetFullName(), purl,
                                 new PackageURL(purl.Type, mutation.Mutated), new[] { mutation });
                             string jsonResult = result.ToJson();
                             if (jsonResult.Contains(expectedToFind, StringComparison.OrdinalIgnoreCase))
                             {
                                 FindPackageSquatResult fromJson = FindPackageSquatResult.FromJsonString(jsonResult);
-                                if (fromJson.PackageName.Equals(purl.GetNameWithScope(), StringComparison.OrdinalIgnoreCase))
+                                if (fromJson.PackageName.Equals(purl.GetFullName(), StringComparison.OrdinalIgnoreCase))
                                 {
                                     return;
                                 }

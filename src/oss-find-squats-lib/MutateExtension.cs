@@ -5,6 +5,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
     using Helpers;
     using Microsoft.CST.OpenSource.FindSquats.Mutators;
     using Microsoft.CST.OpenSource.PackageManagers;
+    using PackageUrl;
     using System;
     using System.Collections.Generic;
     using System.Linq;

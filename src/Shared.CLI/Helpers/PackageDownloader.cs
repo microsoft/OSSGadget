@@ -2,8 +2,10 @@
 
 namespace Microsoft.CST.OpenSource
 {
+    using Extensions;
     using Microsoft.CST.OpenSource.Helpers;
     using Microsoft.CST.OpenSource.PackageManagers;
+    using PackageUrl;
     using System;
     using System.Collections.Generic;
     using System.IO;

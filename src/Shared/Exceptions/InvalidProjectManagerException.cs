@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.Exceptions
 {
+    using PackageUrl;
     using System;
 
     /// <summary>

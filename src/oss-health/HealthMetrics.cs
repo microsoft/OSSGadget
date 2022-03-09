@@ -13,6 +13,8 @@ using System.Text.RegularExpressions;
 
 namespace Microsoft.CST.OpenSource.Health
 {
+    using PackageUrl;
+
     public class HealthMetrics
     {
         public double ReleaseHealth;

@@ -149,6 +149,16 @@ namespace Microsoft.CST.OpenSource.Model
         {
             return JsonConvert.SerializeObject(this, Formatting.Indented);
         }
+        
+        /// <summary>
+        /// Converts the json/ToString() output of PackageMetadata into a PackageMetadata object.
+        /// </summary>
+        /// <param name="json">The JSON representation of a <see cref="PackageMetadata"/> object.</param>
+        /// <returns>The <see cref="PackageMetadata"/> object constructed from the json.</returns>
+        public static PackageMetadata? FromJson(string json)
+        {
+            return JsonConvert.DeserializeObject<PackageMetadata>(json);
+        }
     }
 
     public class User

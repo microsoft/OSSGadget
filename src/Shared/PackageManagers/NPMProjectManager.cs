@@ -4,6 +4,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using Helpers;
     using Microsoft.CST.OpenSource.Model;
+    using PackageUrl;
     using System;
     using System.Collections.Generic;
     using System.IO;

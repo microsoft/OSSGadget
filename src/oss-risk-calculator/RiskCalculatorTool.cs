@@ -17,7 +17,7 @@ using Microsoft.ApplicationInspector.RulesEngine;
 
 namespace Microsoft.CST.OpenSource
 {
-    using Extensions.DependencyInjection;
+    using PackageUrl;
     using System.Net.Http;
 
     public class RiskCalculatorTool : OSSGadget

@@ -176,9 +176,8 @@ namespace Microsoft.CST.OpenSource.Tests
             List<FindPackageSquatResult> existingMutations = await findPackageSquats.FindExistingSquatsAsync(squatCandidates).ToListAsync();
             Assert.IsNotNull(existingMutations);
             Assert.IsTrue(existingMutations.Any());
-            List<string> resultingMutationNames = existingMutations.Select(m => m.PackageUrl.ToString()).ToList();
-            Assert.IsTrue(!squattingPackages.Except(resultingMutationNames!).Any() &&
-                        squattingPackages.Length == resultingMutationNames.Count);
+            string[] resultingMutationNames = existingMutations.Select(m => m.PackageUrl.ToString()).ToArray();
+            CollectionAssert.AreEquivalent(squattingPackages, resultingMutationNames);
         }
         
         [TestMethod]
@@ -186,7 +185,7 @@ namespace Microsoft.CST.OpenSource.Tests
         {
             // arrange
             PackageURL foo = new("pkg:npm/foo");
-            string foohUrl = GetRegistryUrl(foo);
+            string fooUrl = GetRegistryUrl(foo);
 
             string[] squattingPackages = new[]
             {
@@ -199,7 +198,7 @@ namespace Microsoft.CST.OpenSource.Tests
             Mock<IHttpClientFactory> mockFactory = new();
 
             using MockHttpMessageHandler httpMock = new();
-            MockHttpFetchResponse(HttpStatusCode.OK, foohUrl, httpMock);
+            MockHttpFetchResponse(HttpStatusCode.OK, fooUrl, httpMock);
 
             MockSquattedPackages(httpMock, foo, squattingPackages);
 
@@ -212,9 +211,8 @@ namespace Microsoft.CST.OpenSource.Tests
             List<FindPackageSquatResult> existingMutations = await findPackageSquats.FindExistingSquatsAsync(squatCandidates).ToListAsync();
             Assert.IsNotNull(existingMutations);
             Assert.IsTrue(existingMutations.Any());
-            List<string> resultingMutationNames = existingMutations.Select(m => m.PackageUrl.ToString()).ToList();
-            Assert.IsTrue(!squattingPackages.Except(resultingMutationNames!).Any() &&
-                          squattingPackages.Length == resultingMutationNames.Count);
+            string[] resultingMutationNames = existingMutations.Select(m => m.PackageUrl.ToString()).ToArray();
+            CollectionAssert.AreEquivalent(squattingPackages, resultingMutationNames);
         }
 
         [TestMethod]
@@ -250,9 +248,8 @@ namespace Microsoft.CST.OpenSource.Tests
             List<FindPackageSquatResult> existingMutations = await findPackageSquats.FindExistingSquatsAsync(squatCandidates).ToListAsync();
             Assert.IsNotNull(existingMutations);
             Assert.IsTrue(existingMutations.Any());
-            List<string> resultingMutationNames = existingMutations.Select(m => m.PackageUrl.ToString()).ToList();
-            Assert.IsTrue(!squattingPackages.Except(resultingMutationNames!).Any() &&
-                          squattingPackages.Length == resultingMutationNames.Count);
+            string[] resultingMutationNames = existingMutations.Select(m => m.PackageUrl.ToString()).ToArray();
+            CollectionAssert.AreEquivalent(squattingPackages, resultingMutationNames);
         }
 
         [TestMethod]
@@ -288,9 +285,8 @@ namespace Microsoft.CST.OpenSource.Tests
             List<FindPackageSquatResult> existingMutations = await findPackageSquats.FindExistingSquatsAsync(squatCandidates).ToListAsync();
             Assert.IsNotNull(existingMutations);
             Assert.IsTrue(existingMutations.Any());
-            List<string> resultingMutationNames = existingMutations.Select(m => m.PackageUrl.ToString()).ToList();
-            Assert.IsTrue(!squattingPackages.Except(resultingMutationNames!).Any() &&
-                          squattingPackages.Length == resultingMutationNames.Count);
+            string[] resultingMutationNames = existingMutations.Select(m => m.PackageUrl.ToString()).ToArray();
+            CollectionAssert.AreEquivalent(squattingPackages, resultingMutationNames);
         }
         
         private static void MockHttpFetchResponse(

@@ -6,6 +6,7 @@ using Helpers;
 using System.IO;
 using System.Text.RegularExpressions;
 using PackageUrl;
+using System;
 
 public static class PackageUrlExtension
 {
@@ -32,6 +33,15 @@ public static class PackageUrlExtension
     /// <returns>The full name.</returns>
     public static string GetFullName(this PackageURL packageUrl)
     {
-        return packageUrl.HasNamespace() ? $"{packageUrl.Namespace}/{packageUrl.Name}" : packageUrl.Name;
+        if (!packageUrl.HasNamespace())
+        {
+            return packageUrl.Name;
+        }
+
+        string? namespaceStr = packageUrl.Type.Equals("npm", StringComparison.OrdinalIgnoreCase)
+            ? $"@{packageUrl.Namespace}"
+            : packageUrl.Namespace;
+        return $"{namespaceStr}/{packageUrl.Name}";
+
     }
 }

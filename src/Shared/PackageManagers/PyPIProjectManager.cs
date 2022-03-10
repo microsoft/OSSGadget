@@ -15,7 +15,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using Utilities;
     using Version = SemanticVersioning.Version;
 
-    internal class PyPIProjectManager : BaseProjectManager
+    public class PyPIProjectManager : BaseProjectManager
     {
         public static string ENV_PYPI_ENDPOINT { get; set; } = "https://pypi.org";
 

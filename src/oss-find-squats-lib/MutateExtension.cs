@@ -113,15 +113,17 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
                 foreach (Mutation mutation in mutator.Generate(nameToMutate))
                 {
                     // Construct the mutated name if the package was scoped.
-                    string mutated = isScoped ? $"{mutation.Mutated}/{purl.Name}" : mutation.Mutated;
-                    string original = isScoped ? $"{purl.Namespace}/{purl.Name}" : purl.Name;
+                    string? newNamespace = isScoped ? mutation.Mutated : null;
+                    string newName = isScoped ? purl.Name : mutation.Mutated;
+                    PackageURL mutatedPurl = new PackageURL(purl.Type, newNamespace, newName, null, null, null);
+                    string mutated = mutatedPurl.ToString();
                     
                     if (!generatedMutations.ContainsKey(mutated))
                     {
                         generatedMutations[mutated] = new List<Mutation>();
                     }
 
-                    generatedMutations[mutated].Add(new Mutation(mutated, original, mutation.Reason, mutation.Mutator));
+                    generatedMutations[mutated].Add(new Mutation(mutated, purl.ToString(), mutation.Reason, mutation.Mutator));
                 }
             }
 
@@ -158,14 +160,14 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
                     {
                         Thread.Sleep(options.SleepDelay);
                     }
-                    PackageURL candidatePurl = new(purl.Type, mutatedName);
+                    PackageURL candidatePurl = new(mutatedName);
                     FindPackageSquatResult? res = null;
                     try
                     {
                         if (await manager.PackageExists(candidatePurl))
                         {
                             res = new FindPackageSquatResult(
-                                packageName: mutatedName,
+                                packageName: candidatePurl.GetFullName(),
                                 packageUrl: candidatePurl,
                                 squattedPackage: purl,
                                 mutations: mutations);

@@ -12,7 +12,12 @@ using System.Threading.Tasks;
 namespace Microsoft.CST.OpenSource.Tests
 {
     using Extensions;
+    using Moq;
     using PackageUrl;
+    using RichardSzalay.MockHttp;
+    using System.Linq;
+    using System.Net;
+    using System.Net.Http;
 
     [TestClass]
     public class FindSquatsTest
@@ -34,10 +39,10 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         [DataTestMethod]
-        [DataRow("pkg:npm/angular/core", "engular/core", "angullar/core")]
-        [DataRow("pkg:npm/%40angular/core", "@engular/core", "@angullar/core")] // back compat check
-        [DataRow("pkg:npm/lodash", "odash", "lodah")]
-        [DataRow("pkg:npm/babel/runtime", "abel/runtime", "bable/runtime")]
+        [DataRow("pkg:npm/angular/core", "pkg:npm/engular/core", "pkg:npm/angullar/core")]
+        [DataRow("pkg:npm/%40angular/core", "pkg:npm/%40engular/core", "pkg:npm/%40angullar/core")] // back compat check
+        [DataRow("pkg:npm/lodash", "pkg:npm/odash", "pkg:npm/lodah")]
+        [DataRow("pkg:npm/babel/runtime", "pkg:npm/abel/runtime", "pkg:npm/bable/runtime")]
         public void ScopedNpmPackageSquats(string packageUrl, params string[] expectedSquats)
         {
             FindPackageSquats findPackageSquats =
@@ -54,10 +59,10 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         [DataTestMethod]
-        [DataRow("pkg:npm/foo", "foojs")] // SuffixAdded, js
-        [DataRow("pkg:npm/lodash", "odash")] // RemovedCharacter, first character
-        [DataRow("pkg:npm/angular/core", "anguular/core")] // DoubleHit, third character
-        [DataRow("pkg:nuget/Microsoft.CST.OAT", "microsoft.cst.oat.net")] // SuffixAdded, .net
+        [DataRow("pkg:npm/foo", "pkg:npm/foojs")] // SuffixAdded, js
+        [DataRow("pkg:npm/lodash", "pkg:npm/odash")] // RemovedCharacter, first character
+        [DataRow("pkg:npm/angular/core", "pkg:npm/anguular/core")] // DoubleHit, third character
+        [DataRow("pkg:nuget/Microsoft.CST.OAT", "pkg:nuget/microsoft.cst.oat.net")] // SuffixAdded, .net
         public void GenerateManagerSpecific(string packageUrl, string expectedToFind)
         {
             PackageURL purl = new(packageUrl);
@@ -136,6 +141,187 @@ namespace Microsoft.CST.OpenSource.Tests
                     }
                 }
             }
+        }
+        
+        [TestMethod]
+        public async Task LodashMutations_Succeeds_Async()
+        {
+            // arrange
+            PackageURL lodash = new("pkg:npm/lodash@4.17.15");
+            string lodashUrl = GetRegistryUrl(lodash);
+
+            string[] squattingPackages = new[]
+            {
+                "pkg:npm/iodash", // ["AsciiHomoglyph","CloseLetters"]
+                "pkg:npm/jodash", // ["AsciiHomoglyph"]
+                "pkg:npm/1odash", // ["AsciiHomoglyph"]
+                "pkg:npm/ledash", // ["AsciiHomoglyph","VowelSwap"]
+                "pkg:npm/ladash", // ["AsciiHomoglyph","VowelSwap"]
+                "pkg:npm/l0dash", // ["AsciiHomoglyph","CloseLetters"]
+            };
+
+            Mock<IHttpClientFactory> mockFactory = new();
+
+            using MockHttpMessageHandler httpMock = new();
+            MockHttpFetchResponse(HttpStatusCode.OK, lodashUrl, httpMock);
+
+            MockSquattedPackages(httpMock, lodash, squattingPackages);
+
+            mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpMock.ToHttpClient());
+
+            FindPackageSquats findPackageSquats = new(mockFactory.Object, lodash);
+
+            // act
+            IDictionary<string, IList<Mutation>>? squatCandidates = findPackageSquats.GenerateSquatCandidates();
+            List<FindPackageSquatResult> existingMutations = await findPackageSquats.FindExistingSquatsAsync(squatCandidates).ToListAsync();
+            Assert.IsNotNull(existingMutations);
+            Assert.IsTrue(existingMutations.Any());
+            List<string> resultingMutationNames = existingMutations.Select(m => m.PackageUrl.ToString()).ToList();
+            Assert.IsTrue(!squattingPackages.Except(resultingMutationNames!).Any() &&
+                        squattingPackages.Length == resultingMutationNames.Count);
+        }
+        
+        [TestMethod]
+        public async Task FooMutations_Succeeds_Async()
+        {
+            // arrange
+            PackageURL foo = new("pkg:npm/foo");
+            string foohUrl = GetRegistryUrl(foo);
+
+            string[] squattingPackages = new[]
+            {
+                "pkg:npm/too", // ["AsciiHomoglyph", "CloseLetters"]
+                "pkg:npm/goo", // ["CloseLetters"]
+                "pkg:npm/foojs", // ["Suffix"]
+                "pkg:npm/fooo", // ["DoubleHit"]
+            };
+
+            Mock<IHttpClientFactory> mockFactory = new();
+
+            using MockHttpMessageHandler httpMock = new();
+            MockHttpFetchResponse(HttpStatusCode.OK, foohUrl, httpMock);
+
+            MockSquattedPackages(httpMock, foo, squattingPackages);
+
+            mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpMock.ToHttpClient());
+
+            FindPackageSquats findPackageSquats = new(mockFactory.Object, foo);
+
+            // act
+            IDictionary<string, IList<Mutation>>? squatCandidates = findPackageSquats.GenerateSquatCandidates();
+            List<FindPackageSquatResult> existingMutations = await findPackageSquats.FindExistingSquatsAsync(squatCandidates).ToListAsync();
+            Assert.IsNotNull(existingMutations);
+            Assert.IsTrue(existingMutations.Any());
+            List<string> resultingMutationNames = existingMutations.Select(m => m.PackageUrl.ToString()).ToList();
+            Assert.IsTrue(!squattingPackages.Except(resultingMutationNames!).Any() &&
+                          squattingPackages.Length == resultingMutationNames.Count);
+        }
+
+        [TestMethod]
+        public async Task NewtonsoftMutations_Succeeds_Async()
+        {
+            // arrange
+            PackageURL newtonsoft = new("pkg:nuget/newtonsoft.json@12.0.2");
+            string newtonsoftUrl = GetRegistryUrl(newtonsoft);
+
+            string[] squattingPackages = new[]
+            {
+                "pkg:nuget/newtons0ft.json", // ["AsciiHomoglyph","CloseLetters"]
+                "pkg:nuget/newtousoft.json", // ["AsciiHomoglyph"]
+                "pkg:nuget/newtonsoft.jsan", // ["AsciiHomoglyph","VowelSwap"]
+                "pkg:nuget/mewtonsoft.json", // ["AsciiHomoglyph","BitFlip","CloseLetters"]
+                "pkg:nuget/bewtonsoft.json", // ["CloseLetters"]
+                "pkg:nuget/newtohsoft.json", // ["CloseLetters"]
+            };
+
+            Mock<IHttpClientFactory> mockFactory = new();
+
+            using MockHttpMessageHandler httpMock = new();
+            MockHttpFetchResponse(HttpStatusCode.OK, newtonsoftUrl, httpMock);
+
+            MockSquattedPackages(httpMock, newtonsoft, squattingPackages);
+
+            mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpMock.ToHttpClient());
+
+            FindPackageSquats findPackageSquats = new(mockFactory.Object, newtonsoft);
+
+            // act
+            IDictionary<string, IList<Mutation>>? squatCandidates = findPackageSquats.GenerateSquatCandidates();
+            List<FindPackageSquatResult> existingMutations = await findPackageSquats.FindExistingSquatsAsync(squatCandidates).ToListAsync();
+            Assert.IsNotNull(existingMutations);
+            Assert.IsTrue(existingMutations.Any());
+            List<string> resultingMutationNames = existingMutations.Select(m => m.PackageUrl.ToString()).ToList();
+            Assert.IsTrue(!squattingPackages.Except(resultingMutationNames!).Any() &&
+                          squattingPackages.Length == resultingMutationNames.Count);
+        }
+
+        [TestMethod]
+        public async Task ScopedPackage_Succeeds_Async()
+        {
+            // arrange
+            PackageURL angularCore = new PackageURL("pkg:npm/angular/core@13.0.0");
+            string angularCoreUrl = GetRegistryUrl(angularCore);
+
+            string[] squattingPackages = new[]
+            {
+                "pkg:npm/anngular/core", // ["DoubleHit","Duplicator"]
+                "pkg:npm/angullar/core", // ["DoubleHit","Duplicator"]
+                "pkg:npm/angu1ar/core", //  ["AsciiHomoglyph"]
+                "pkg:npm/anbular/core", // ["CloseLetters"]
+                "pkg:npm/angula/core", // ["RemovedCharacter"]
+                "pkg:npm/angularjs/core", // ["Suffix"]
+            };
+
+            Mock<IHttpClientFactory> mockFactory = new();
+
+            using MockHttpMessageHandler httpMock = new();
+            MockHttpFetchResponse(HttpStatusCode.OK, angularCoreUrl, httpMock);
+
+            MockSquattedPackages(httpMock, angularCore, squattingPackages);
+
+            mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpMock.ToHttpClient());
+
+            FindPackageSquats findPackageSquats = new(mockFactory.Object, angularCore);
+
+            // act
+            IDictionary<string, IList<Mutation>>? squatCandidates = findPackageSquats.GenerateSquatCandidates();
+            List<FindPackageSquatResult> existingMutations = await findPackageSquats.FindExistingSquatsAsync(squatCandidates).ToListAsync();
+            Assert.IsNotNull(existingMutations);
+            Assert.IsTrue(existingMutations.Any());
+            List<string> resultingMutationNames = existingMutations.Select(m => m.PackageUrl.ToString()).ToList();
+            Assert.IsTrue(!squattingPackages.Except(resultingMutationNames!).Any() &&
+                          squattingPackages.Length == resultingMutationNames.Count);
+        }
+        
+        private static void MockHttpFetchResponse(
+            HttpStatusCode statusCode,
+            string url,
+            MockHttpMessageHandler httpMock)
+        {
+            httpMock
+                .When(HttpMethod.Get, url)
+                .Respond(statusCode, "application/json", "{}");
+        }
+        
+        private static void MockSquattedPackages(MockHttpMessageHandler httpMock, PackageURL purl, string[] squattedPurls)
+        {
+            foreach (PackageURL mutatedPackage in squattedPurls.Select(mutatedPurl => new PackageURL(mutatedPurl)))
+            {
+                string url = GetRegistryUrl(mutatedPackage);
+                MockHttpFetchResponse(HttpStatusCode.OK, url, httpMock);
+            }
+        }
+        
+        private static string GetRegistryUrl(PackageURL purl)
+        {
+            return purl.Type switch
+            {
+                "npm" => $"{NPMProjectManager.ENV_NPM_API_ENDPOINT}/{purl.GetFullName()}",
+                "nuget" => $"{NuGetProjectManager.NUGET_DEFAULT_REGISTRATION_ENDPOINT}{purl.Name.ToLowerInvariant()}/index.json",
+                "pypi" => $"{PyPIProjectManager.ENV_PYPI_ENDPOINT}/pypi/{purl.Name}/json",
+                _ => throw new NotSupportedException(
+                    $"{purl.Type} packages are not currently supported."),
+            };
         }
     }
 }

@@ -113,15 +113,17 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
                 foreach (Mutation mutation in mutator.Generate(nameToMutate))
                 {
                     // Construct the mutated name if the package was scoped.
-                    string mutated = isScoped ? $"{mutation.Mutated}/{purl.Name}" : mutation.Mutated;
-                    string original = isScoped ? $"{purl.Namespace}/{purl.Name}" : purl.Name;
+                    string? mutationNamespace = isScoped ? mutation.Mutated : null;
+                    string mutationName = isScoped ? purl.Name : mutation.Mutated;
+                    PackageURL mutatedPurl = new(purl.Type, mutationNamespace, mutationName, null, null, null);
+                    string mutatedPurlString = mutatedPurl.ToString();
                     
-                    if (!generatedMutations.ContainsKey(mutated))
+                    if (!generatedMutations.ContainsKey(mutatedPurlString))
                     {
-                        generatedMutations[mutated] = new List<Mutation>();
+                        generatedMutations[mutatedPurlString] = new List<Mutation>();
                     }
 
-                    generatedMutations[mutated].Add(new Mutation(mutated, original, mutation.Reason, mutation.Mutator));
+                    generatedMutations[mutatedPurlString].Add(new Mutation(mutatedPurlString, purl.ToString(), mutation.Reason, mutation.Mutator));
                 }
             }
 
@@ -152,28 +154,30 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
 
             if (candidateMutations is not null)
             {
-                foreach ((string mutatedName, IList<Mutation> mutations) in candidateMutations)
+                foreach ((string candidatePurlString, IList<Mutation> mutations) in candidateMutations)
                 {
                     if (options?.SleepDelay > 0)
                     {
                         Thread.Sleep(options.SleepDelay);
                     }
-                    PackageURL candidatePurl = new(purl.Type, mutatedName);
+                    // Create the purl from the mutation to see if it exists.
+                    PackageURL candidatePurl = new(candidatePurlString);
                     FindPackageSquatResult? res = null;
                     try
                     {
-                        if (await manager.PackageExists(candidatePurl))
+                        if (await manager.PackageExists(candidatePurl, false))
                         {
+                            // The candidate mutation exists on the package registry.
                             res = new FindPackageSquatResult(
-                                packageName: mutatedName,
-                                packageUrl: candidatePurl,
-                                squattedPackage: purl,
+                                mutatedPackageName: candidatePurl.GetFullName(),
+                                mutatedPackageUrl: candidatePurl,
+                                originalPackageUrl: purl,
                                 mutations: mutations);
                         }
                     }
                     catch (Exception e)
                     {
-                        Logger.Trace($"Could not check if package exists. Package {mutatedName} likely doesn't exist. {e.Message}:{e.StackTrace}");
+                        Logger.Trace($"Could not determine if package exists. Package {candidatePurlString} likely doesn't exist. {e.Message}:{e.StackTrace}");
                     }
                     if (res is not null)
                     {

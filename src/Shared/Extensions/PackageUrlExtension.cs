@@ -6,6 +6,7 @@ using Helpers;
 using System.IO;
 using System.Text.RegularExpressions;
 using PackageUrl;
+using System;
 
 public static class PackageUrlExtension
 {
@@ -24,14 +25,28 @@ public static class PackageUrlExtension
     /// Gets the package's full name including namespace if applicable.
     /// </summary>
     /// <example>
-    /// lodash -> lodash
-    /// @angular/core -> angular/core
+    /// pkg:npm/lodash -> lodash
+    /// pkg:npm/angular/core -> @angular/core
+    /// pkg:nuget/newtonsoft.json -> newtonsoft.json
     /// </example>
-    /// <remarks>Doesn't contain any prefix to the namespace, so no @ for scoped npm packages for example.</remarks>
+    /// <remarks>
+    /// The full name response isn't compatible with putting this name back into a <see cref="PackageURL"/>
+    /// as it contains the namespace if there is one.
+    /// </remarks>
     /// <param name="packageUrl">The <see cref="PackageURL"/> to get the full name for.</param>
     /// <returns>The full name.</returns>
     public static string GetFullName(this PackageURL packageUrl)
     {
-        return packageUrl.HasNamespace() ? $"{packageUrl.Namespace}/{packageUrl.Name}" : packageUrl.Name;
+        if (!packageUrl.HasNamespace())
+        {
+            return packageUrl.Name;
+        }
+
+        // The full name for scoped npm packages should have an '@' at the beginning.
+        string? namespaceStr = packageUrl.Type.Equals("npm", StringComparison.OrdinalIgnoreCase)
+            ? $"@{packageUrl.Namespace}"
+            : packageUrl.Namespace;
+        return $"{namespaceStr}/{packageUrl.Name}";
+
     }
 }

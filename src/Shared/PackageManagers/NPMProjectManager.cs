@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Extensions;
     using Helpers;
     using Microsoft.CST.OpenSource.Model;
     using PackageUrl;
@@ -95,7 +96,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 Logger.Trace("Provided PackageURL was null.");
                 return false;
             }
-            string packageName = purl.Name;
+            string packageName = purl.GetFullName();
             HttpClient httpClient = CreateHttpClient();
 
             return await CheckJsonCacheForPackage(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}", useCache);
@@ -111,7 +112,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             try
             {
-                string packageName = purl.Name;
+                string packageName = purl.GetFullName();
                 HttpClient httpClient = CreateHttpClient();
 
                 JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}");

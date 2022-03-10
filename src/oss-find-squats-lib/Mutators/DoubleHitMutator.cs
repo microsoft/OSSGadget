@@ -20,6 +20,12 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 
                 foreach (char c in n)
                 {
+                    // We don't want mutations like pkg:npm//lodash, that is the same as pkg:npm/lodash
+                    if (i == 0 && c == '/')
+                    {
+                        continue;
+                    }
+
                     yield return new Mutation(
                         mutated: string.Concat(arg[..i], c, arg[i..]),
                         original: arg,

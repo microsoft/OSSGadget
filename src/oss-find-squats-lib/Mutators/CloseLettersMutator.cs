@@ -22,6 +22,12 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 
                 foreach (char c in n)
                 {
+                    // We don't want mutations like pkg:npm//odash mutated from pkg:npm/lodash that is the same as pkg:npm/odash
+                    if (i == 0 && c == '/')
+                    {
+                        continue;
+                    }
+
                     yield return new Mutation(
                         mutated: arg.ReplaceCharAtPosition(c, i),
                         original: arg,

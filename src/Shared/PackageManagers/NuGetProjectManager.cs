@@ -22,9 +22,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     public class NuGetProjectManager : BaseProjectManager
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        public static string ENV_NUGET_ENDPOINT_API = "https://api.nuget.org";
-        public static string ENV_NUGET_ENDPOINT = "https://www.nuget.org";
-        public static string NUGET_DEFAULT_REGISTRATION_ENDPOINT = "https://api.nuget.org/v3/registration5-gz-semver2/";
+        public const string ENV_NUGET_ENDPOINT_API = "https://api.nuget.org";
+        public const string ENV_NUGET_ENDPOINT = "https://www.nuget.org";
+        public const string NUGET_DEFAULT_REGISTRATION_ENDPOINT = "https://api.nuget.org/v3/registration5-gz-semver2/";
 
         private string? RegistrationEndpoint { get; set; } = null;
 

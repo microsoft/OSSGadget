@@ -113,17 +113,17 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
                 foreach (Mutation mutation in mutator.Generate(nameToMutate))
                 {
                     // Construct the mutated name if the package was scoped.
-                    string? newNamespace = isScoped ? mutation.Mutated : null;
-                    string newName = isScoped ? purl.Name : mutation.Mutated;
-                    PackageURL mutatedPurl = new PackageURL(purl.Type, newNamespace, newName, null, null, null);
-                    string mutated = mutatedPurl.ToString();
+                    string? mutationNamespace = isScoped ? mutation.Mutated : null;
+                    string mutationName = isScoped ? purl.Name : mutation.Mutated;
+                    PackageURL mutatedPurl = new(purl.Type, mutationNamespace, mutationName, null, null, null);
+                    string mutatedPurlString = mutatedPurl.ToString();
                     
-                    if (!generatedMutations.ContainsKey(mutated))
+                    if (!generatedMutations.ContainsKey(mutatedPurlString))
                     {
-                        generatedMutations[mutated] = new List<Mutation>();
+                        generatedMutations[mutatedPurlString] = new List<Mutation>();
                     }
 
-                    generatedMutations[mutated].Add(new Mutation(mutated, purl.ToString(), mutation.Reason, mutation.Mutator));
+                    generatedMutations[mutatedPurlString].Add(new Mutation(mutatedPurlString, purl.ToString(), mutation.Reason, mutation.Mutator));
                 }
             }
 

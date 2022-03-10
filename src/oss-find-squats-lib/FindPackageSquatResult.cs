@@ -16,32 +16,35 @@ namespace Microsoft.CST.OpenSource.FindSquats
     /// </summary>
     public class FindPackageSquatResult
     {
-        public FindPackageSquatResult(string packageName, PackageURL packageUrl, PackageURL squattedPackage, IEnumerable<Mutation> mutations)
+        
+        [JsonConstructor]
+        public FindPackageSquatResult(string mutatedPackageName, PackageURL mutatedPackageUrl, PackageURL originalPackageUrl, IEnumerable<Mutation> mutations)
         {
-            PackageName = packageName;
-            PackageUrl = packageUrl;
-            SquattedPackage = squattedPackage;
+            MutatedPackageName = mutatedPackageName;
+            MutatedPackageUrl = mutatedPackageUrl;
+            OriginalPackageUrl = originalPackageUrl;
             Mutations = mutations;
         }
 
         /// <summary>
-        /// The name of the package
+        /// The squatting package name.
         /// </summary>
         [JsonInclude]
-        public string PackageName { get; }
+        public string MutatedPackageName { get; }
         /// <summary>
-        /// The <see cref="PackageURL"/> with uniquely identifying information for the package in its repository.
+        /// The <see cref="PackageURL"/> with that is squatting on the OriginalPackageUrl.
         /// </summary>
         [JsonInclude]
-        public PackageURL PackageUrl { get; }
+        public PackageURL MutatedPackageUrl { get; }
         /// <summary>
-        /// The <see cref="PackageURL"/> with uniquely identifying information for the package that appears to be squatted.
+        /// The <see cref="PackageURL"/> with uniquely identifying information for the original package that the squat was found on.
         /// </summary>
         [JsonInclude]
-        public PackageURL SquattedPackage { get; }
+        public PackageURL OriginalPackageUrl { get; }
         /// <summary>
         /// The reasons this detection was made
         /// </summary>
+        [JsonIgnore]
         public IEnumerable<string> Rules => Mutations.Select(x => x.Reason);
         /// <summary>
         /// The <see cref="Mutation"/>s that generated this PackageName

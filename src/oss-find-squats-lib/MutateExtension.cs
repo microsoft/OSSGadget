@@ -154,28 +154,30 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
 
             if (candidateMutations is not null)
             {
-                foreach ((string mutatedName, IList<Mutation> mutations) in candidateMutations)
+                foreach ((string candidatePurlString, IList<Mutation> mutations) in candidateMutations)
                 {
                     if (options?.SleepDelay > 0)
                     {
                         Thread.Sleep(options.SleepDelay);
                     }
-                    PackageURL candidatePurl = new(mutatedName);
+                    // Create the purl from the mutation to see if it exists.
+                    PackageURL candidatePurl = new(candidatePurlString);
                     FindPackageSquatResult? res = null;
                     try
                     {
                         if (await manager.PackageExists(candidatePurl, false))
                         {
+                            // The candidate mutation exists on the package registry.
                             res = new FindPackageSquatResult(
-                                packageName: candidatePurl.GetFullName(),
-                                packageUrl: candidatePurl,
-                                squattedPackage: purl,
+                                mutatedPackageName: candidatePurl.GetFullName(),
+                                mutatedPackageUrl: candidatePurl,
+                                originalPackageUrl: purl,
                                 mutations: mutations);
                         }
                     }
                     catch (Exception e)
                     {
-                        Logger.Trace($"Could not check if package exists. Package {mutatedName} likely doesn't exist. {e.Message}:{e.StackTrace}");
+                        Logger.Trace($"Could not determine if package exists. Package {candidatePurlString} likely doesn't exist. {e.Message}:{e.StackTrace}");
                     }
                     if (res is not null)
                     {

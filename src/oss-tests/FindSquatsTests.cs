@@ -98,20 +98,19 @@ namespace Microsoft.CST.OpenSource.Tests
                 BaseProjectManager? manager = ProjectManagerFactory.CreateProjectManager(purl, null);
                 if (manager is not null)
                 {
-                    foreach ((string _, IList<Mutation> mutations) in manager.EnumerateSquatCandidates(purl)!)
+                    foreach ((string mutationPurlString, IList<Mutation> mutations) in manager.EnumerateSquatCandidates(purl)!)
                     {
-                        foreach (Mutation mutation in mutations)
+                        PackageURL mutationPurl = new(mutationPurlString);
+                        FindPackageSquatResult result = new(mutationPurl.GetFullName(), mutationPurl,
+                            purl, mutations);
+                        string jsonResult = result.ToJson();
+                        if (jsonResult.Contains(expectedToFind, StringComparison.OrdinalIgnoreCase))
                         {
-                            FindPackageSquatResult result = new(purl.GetFullName(), purl,
-                                new PackageURL(purl.Type, mutation.Mutated), new[] { mutation });
-                            string jsonResult = result.ToJson();
-                            if (jsonResult.Contains(expectedToFind, StringComparison.OrdinalIgnoreCase))
+                            FindPackageSquatResult fromJson = FindPackageSquatResult.FromJsonString(jsonResult);
+                            if (fromJson.OriginalPackageUrl.ToString().Equals(purl.ToString(), StringComparison.OrdinalIgnoreCase)
+                                && fromJson.MutatedPackageUrl.ToString().Equals(expectedToFind, StringComparison.OrdinalIgnoreCase))
                             {
-                                FindPackageSquatResult fromJson = FindPackageSquatResult.FromJsonString(jsonResult);
-                                if (fromJson.PackageName.Equals(purl.GetFullName(), StringComparison.OrdinalIgnoreCase))
-                                {
-                                    return;
-                                }
+                                return;
                             }
                         }
                     }
@@ -176,7 +175,7 @@ namespace Microsoft.CST.OpenSource.Tests
             List<FindPackageSquatResult> existingMutations = await findPackageSquats.FindExistingSquatsAsync(squatCandidates).ToListAsync();
             Assert.IsNotNull(existingMutations);
             Assert.IsTrue(existingMutations.Any());
-            string[] resultingMutationNames = existingMutations.Select(m => m.PackageUrl.ToString()).ToArray();
+            string[] resultingMutationNames = existingMutations.Select(m => m.MutatedPackageUrl.ToString()).ToArray();
             CollectionAssert.AreEquivalent(squattingPackages, resultingMutationNames);
         }
         
@@ -211,7 +210,7 @@ namespace Microsoft.CST.OpenSource.Tests
             List<FindPackageSquatResult> existingMutations = await findPackageSquats.FindExistingSquatsAsync(squatCandidates).ToListAsync();
             Assert.IsNotNull(existingMutations);
             Assert.IsTrue(existingMutations.Any());
-            string[] resultingMutationNames = existingMutations.Select(m => m.PackageUrl.ToString()).ToArray();
+            string[] resultingMutationNames = existingMutations.Select(m => m.MutatedPackageUrl.ToString()).ToArray();
             CollectionAssert.AreEquivalent(squattingPackages, resultingMutationNames);
         }
 
@@ -248,7 +247,7 @@ namespace Microsoft.CST.OpenSource.Tests
             List<FindPackageSquatResult> existingMutations = await findPackageSquats.FindExistingSquatsAsync(squatCandidates).ToListAsync();
             Assert.IsNotNull(existingMutations);
             Assert.IsTrue(existingMutations.Any());
-            string[] resultingMutationNames = existingMutations.Select(m => m.PackageUrl.ToString()).ToArray();
+            string[] resultingMutationNames = existingMutations.Select(m => m.MutatedPackageUrl.ToString()).ToArray();
             CollectionAssert.AreEquivalent(squattingPackages, resultingMutationNames);
         }
 
@@ -285,7 +284,7 @@ namespace Microsoft.CST.OpenSource.Tests
             List<FindPackageSquatResult> existingMutations = await findPackageSquats.FindExistingSquatsAsync(squatCandidates).ToListAsync();
             Assert.IsNotNull(existingMutations);
             Assert.IsTrue(existingMutations.Any());
-            string[] resultingMutationNames = existingMutations.Select(m => m.PackageUrl.ToString()).ToArray();
+            string[] resultingMutationNames = existingMutations.Select(m => m.MutatedPackageUrl.ToString()).ToArray();
             CollectionAssert.AreEquivalent(squattingPackages, resultingMutationNames);
         }
         

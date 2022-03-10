@@ -10,7 +10,7 @@ using System.Text.Json.Serialization;
 public class PackageUrlJsonConverter : JsonConverter<PackageURL>
 {
     /// <summary>
-    /// Read the PackageURL as a string back to the object.
+    /// Read the <see cref="PackageURL"/> as a string back to the object.
     /// </summary>
     /// <param name="reader">The <see cref="Utf8JsonReader"/> to get the json string.</param>
     /// <param name="typeToConvert">The Type to convert to.</param>
@@ -22,7 +22,7 @@ public class PackageUrlJsonConverter : JsonConverter<PackageURL>
         JsonSerializerOptions options) => new(reader.GetString());
 
     /// <summary>
-    /// Write the PackageURL as a string instead of converting it to a json object itself.
+    /// Write the <see cref="PackageURL"/> as a string instead of converting it to a json object itself.
     /// </summary>
     /// <param name="writer">The <see cref="Utf8JsonWriter"/> to write the json string.</param>
     /// <param name="packageUrl">The <see cref="PackageURL"/> to write.</param>

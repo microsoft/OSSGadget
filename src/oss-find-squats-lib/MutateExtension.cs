@@ -164,7 +164,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
                     FindPackageSquatResult? res = null;
                     try
                     {
-                        if (await manager.PackageExists(candidatePurl))
+                        if (await manager.PackageExists(candidatePurl, false))
                         {
                             res = new FindPackageSquatResult(
                                 packageName: candidatePurl.GetFullName(),

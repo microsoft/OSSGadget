@@ -225,13 +225,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     }
                     
                     JsonElement? distElement = OssUtilities.GetJSONPropertyIfExists(versionElement, "dist");
-                    if (OssUtilities.GetJSONPropertyIfExists(versionElement, "tarball") is JsonElement tarballElement)
+                    if (OssUtilities.GetJSONPropertyIfExists(distElement, "tarball") is JsonElement tarballElement)
                     {
                         metadata.VersionDownloadUri = tarballElement.ToString().IsBlank() ?
                         $"{ENV_NPM_API_ENDPOINT}/{metadata.Name}/-/{metadata.Name}-{metadata.PackageVersion}.tgz" : tarballElement.ToString();
                     }
 
-                    if (OssUtilities.GetJSONPropertyIfExists(versionElement, "integrity") is JsonElement integrityElement &&
+                    if (OssUtilities.GetJSONPropertyIfExists(distElement, "integrity") is JsonElement integrityElement &&
                         integrityElement.ToString() is string integrity &&
                         integrity.Split('-') is string[] pair &&
                         pair.Length == 2)
@@ -244,18 +244,18 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                         });
                     }
                     
-                    // check for typescript
-                    List<string>? devDependencies = OssUtilities.ConvertJSONToList(OssUtilities.GetJSONPropertyIfExists(versionElement, "devDependencies"));
-                    if (devDependencies is not null && devDependencies.Count > 0 && devDependencies.Any(stringToCheck => stringToCheck.Contains("\"typescript\":")))
-                    {
-                        metadata.Language = "TypeScript";
-                    }
-                    
                     // size
                     if (OssUtilities.GetJSONPropertyIfExists(distElement, "unpackedSize") is JsonElement sizeElement &&
                         sizeElement.GetInt64() is long size)
                     {
                         metadata.Size = size;
+                    }
+
+                    // check for typescript
+                    List<string>? devDependencies = OssUtilities.ConvertJSONToList(OssUtilities.GetJSONPropertyIfExists(versionElement, "devDependencies"));
+                    if (devDependencies is not null && devDependencies.Count > 0 && devDependencies.Any(stringToCheck => stringToCheck.Contains("\"typescript\":")))
+                    {
+                        metadata.Language = "TypeScript";
                     }
 
                     // homepage

@@ -453,11 +453,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {
                 try
                 {
-                    if (notNullVersionJSON.GetProperty("repository").ValueKind == JsonValueKind.Object)
+                    if (!notNullVersionJSON.TryGetProperty("repository", out JsonElement repository))
                     {
-                        JsonElement? repositoryJSON = OssUtilities.GetJSONPropertyIfExists(notNullVersionJSON, "repository");
-                        string? repoType = OssUtilities.GetJSONPropertyStringIfExists(repositoryJSON, "type")?.ToLower();
-                        string? repoURL = OssUtilities.GetJSONPropertyStringIfExists(repositoryJSON, "url");
+                        return mapping;
+                    }
+                    if (repository.ValueKind == JsonValueKind.Object)
+                    {
+                        string? repoType = OssUtilities.GetJSONPropertyStringIfExists(repository, "type")?.ToLower();
+                        string? repoURL = OssUtilities.GetJSONPropertyStringIfExists(repository, "url");
 
                         // right now we deal with only github repos
                         if (repoType == "git" && repoURL is not null)
@@ -465,11 +468,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                             PackageURL gitPURL = GitHubProjectManager.ParseUri(new Uri(repoURL));
                             // we got a repository value the author specified in the metadata - so no
                             // further processing needed
-                            if (gitPURL != null)
-                            {
-                                mapping.Add(gitPURL, 1.0F);
-                                return mapping;
-                            }
+                            mapping.Add(gitPURL, 1.0F);
+                            return mapping;
                         }
                     }
                 }

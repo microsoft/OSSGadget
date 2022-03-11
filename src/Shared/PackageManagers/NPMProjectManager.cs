@@ -225,13 +225,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     }
                     
                     JsonElement? distElement = OssUtilities.GetJSONPropertyIfExists(versionElement, "dist");
-                    if (distElement?.GetProperty("tarball") is JsonElement tarballElement)
+                    if (OssUtilities.GetJSONPropertyIfExists(versionElement, "tarball") is JsonElement tarballElement)
                     {
                         metadata.VersionDownloadUri = tarballElement.ToString().IsBlank() ?
                         $"{ENV_NPM_API_ENDPOINT}/{metadata.Name}/-/{metadata.Name}-{metadata.PackageVersion}.tgz" : tarballElement.ToString();
                     }
 
-                    if (distElement?.GetProperty("integrity") is JsonElement integrityElement &&
+                    if (OssUtilities.GetJSONPropertyIfExists(versionElement, "integrity") is JsonElement integrityElement &&
                         integrityElement.ToString() is string integrity &&
                         integrity.Split('-') is string[] pair &&
                         pair.Length == 2)
@@ -453,20 +453,23 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {
                 try
                 {
-                    JsonElement repositoryJSON = notNullVersionJSON.GetProperty("repository");
-                    string? repoType = OssUtilities.GetJSONPropertyStringIfExists(repositoryJSON, "type")?.ToLower();
-                    string? repoURL = OssUtilities.GetJSONPropertyStringIfExists(repositoryJSON, "url");
-
-                    // right now we deal with only github repos
-                    if (repoType == "git" && repoURL is not null)
+                    if (notNullVersionJSON.GetProperty("repository").ValueKind == JsonValueKind.Object)
                     {
-                        PackageURL gitPURL = GitHubProjectManager.ParseUri(new Uri(repoURL));
-                        // we got a repository value the author specified in the metadata - so no
-                        // further processing needed
-                        if (gitPURL != null)
+                        JsonElement? repositoryJSON = OssUtilities.GetJSONPropertyIfExists(notNullVersionJSON, "repository");
+                        string? repoType = OssUtilities.GetJSONPropertyStringIfExists(repositoryJSON, "type")?.ToLower();
+                        string? repoURL = OssUtilities.GetJSONPropertyStringIfExists(repositoryJSON, "url");
+
+                        // right now we deal with only github repos
+                        if (repoType == "git" && repoURL is not null)
                         {
-                            mapping.Add(gitPURL, 1.0F);
-                            return mapping;
+                            PackageURL gitPURL = GitHubProjectManager.ParseUri(new Uri(repoURL));
+                            // we got a repository value the author specified in the metadata - so no
+                            // further processing needed
+                            if (gitPURL != null)
+                            {
+                                mapping.Add(gitPURL, 1.0F);
+                                return mapping;
+                            }
                         }
                     }
                 }

@@ -26,6 +26,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             { "https://registry.npmjs.org/ds-modal", Resources.ds_modal_json },
             { "https://registry.npmjs.org/monorepolint", Resources.monorepolint_json },
             { "https://registry.npmjs.org/rly-cli", Resources.rly_cli_json },
+            { "https://registry.npmjs.org/example", Resources.minimum_json_json },
         };
 
         private NPMProjectManager ProjectManager;
@@ -53,6 +54,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         [DataRow("pkg:npm/angular/core@13.2.5", "Angular - the core framework")] // Scoped package
         [DataRow("pkg:npm/ds-modal@0.0.2", "")] // No Description at package level, and empty string description on version level
         [DataRow("pkg:npm/monorepolint@0.4.0")] // No Author property, and No Description
+        [DataRow("pkg:npm/example@0.0.0")] // Pretty much only name, and version
         [DataRow("pkg:npm/rly-cli@0.0.2", "RLY CLI allows you to setup fungilble SPL tokens and call Rally token programs from the command line.")] // Author property is an empty string
         public async Task MetadataSucceeds(string purlString, string? description = null)
         {

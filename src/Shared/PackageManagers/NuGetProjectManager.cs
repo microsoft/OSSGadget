@@ -396,7 +396,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     }
                     
                     // size and hash from versionContent
-                    metadata.Size = versionContent.GetProperty("packageSize").GetInt64();
+                    metadata.Size = OssUtilities.GetJSONPropertyIfExists(versionContent, "packageSize")?.GetInt64();
                     metadata.Signature ??= new List<Digest>();
                     metadata.Signature.Add(new Digest
                     {

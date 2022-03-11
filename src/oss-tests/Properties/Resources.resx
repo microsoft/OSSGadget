@@ -33,4 +33,7 @@
     <data name="rly-cli.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
         <value>..\TestData\NPM\rly-cli.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </data>
+    <data name="minimum_json.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>..\TestData\NPM\minimum_json.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </data>
 </root>

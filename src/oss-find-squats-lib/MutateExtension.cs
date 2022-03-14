@@ -165,7 +165,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
                     FindPackageSquatResult? res = null;
                     try
                     {
-                        if (await manager.PackageExists(candidatePurl, false))
+                        if (await manager.PackageExists(candidatePurl, useCache: false))
                         {
                             // The candidate mutation exists on the package registry.
                             res = new FindPackageSquatResult(

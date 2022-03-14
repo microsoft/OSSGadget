@@ -150,7 +150,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
             try
             {
-                IEnumerable<string> versions = await EnumerateVersions(purl, true);
+                IEnumerable<string> versions = await EnumerateVersions(purl);
                 if (versions.Any())
                 {
                     string latestVersion = versions.Last();

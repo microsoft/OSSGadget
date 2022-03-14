@@ -151,7 +151,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 HttpClient httpClient = CreateHttpClient();
                 if (purl?.Version == null)
                 {
-                    foreach (string? version in await EnumerateVersions(purl, true))
+                    foreach (string? version in await EnumerateVersions(purl))
                     {
                         return await GetHttpStringCache(httpClient, $"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/{version}/{packageName}-{version}.pom");
                     }

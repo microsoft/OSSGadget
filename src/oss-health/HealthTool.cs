@@ -29,7 +29,7 @@ namespace Microsoft.CST.OpenSource
 
             if (packageManager != null)
             {
-                string? content = await packageManager.GetMetadata(purl, false);
+                string? content = await packageManager.GetMetadata(purl, useCache: false);
                 if (!string.IsNullOrWhiteSpace(content))
                 {
                     RepoSearch repoSearcher = new RepoSearch(HttpClientFactory);

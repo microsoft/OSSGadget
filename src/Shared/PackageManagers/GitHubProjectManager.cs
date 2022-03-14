@@ -132,7 +132,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     });
                 }
                 PackageURL purlNoVersion = new(purl!.Type, purl.Namespace, purl.Name, null, purl.Qualifiers, purl.Subpath);
-                foreach (string v in EnumerateVersions(purlNoVersion, true).Result)
+                foreach (string v in EnumerateVersions(purlNoVersion).Result)
                 {
                     if (Regex.IsMatch(purl.Version!, @"(^|[^\d\.])" + Regex.Escape(v)))
                     {

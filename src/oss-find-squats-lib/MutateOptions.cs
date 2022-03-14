@@ -13,7 +13,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
         public int SleepDelay { get; set; }
 
         /// <summary>
-        /// If the cache should be used when checking if mutations exist..
+        /// If the cache should be used when checking if mutations exist.
         /// </summary>
         public bool UseCache { get; set; } = true;
     }

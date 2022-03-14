@@ -29,7 +29,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             { "https://registry.npmjs.org/example", Resources.minimum_json_json },
         };
 
-        private NPMProjectManager ProjectManager;
+        private readonly NPMProjectManager _projectManager;
         
         public NPMProjectManagerTests()
         {
@@ -44,7 +44,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
  
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
             
-            ProjectManager = new NPMProjectManager(mockFactory.Object, ".");
+            _projectManager = new NPMProjectManager(mockFactory.Object, ".");
         }
 
         [DataTestMethod]
@@ -57,7 +57,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public async Task MetadataSucceeds(string purlString, string? description = null)
         {
             PackageURL purl = new(purlString);
-            PackageMetadata metadata = await ProjectManager.GetPackageMetadata(purl, useCache: false);
+            PackageMetadata metadata = await _projectManager.GetPackageMetadata(purl, useCache: false);
 
             string? packageName = purl.Namespace.IsNotBlank() ? $"@{purl.Namespace}/{purl.Name}" : purl.Name;
             Assert.AreEqual(packageName, metadata.Name);

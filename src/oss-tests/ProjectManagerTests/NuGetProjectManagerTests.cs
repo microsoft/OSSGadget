@@ -24,7 +24,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             { "https://api.nuget.org/v3/catalog0/data/2022.03.11.23.17.27/razorengine.4.2.3-beta1.json", Resources.razorengine_4_2_3_beta1_json },
         };
 
-        private NuGetProjectManager ProjectManager;
+        private readonly NuGetProjectManager _projectManager;
         
         public NuGetProjectManagerTests()
         {
@@ -39,7 +39,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
  
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
             
-            ProjectManager = new NuGetProjectManager(mockFactory.Object, ".");
+            _projectManager = new NuGetProjectManager(mockFactory.Object, ".");
         }
 
         [DataTestMethod]
@@ -47,7 +47,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public async Task MetadataSucceeds(string purlString, string? description = null)
         {
             PackageURL purl = new(purlString);
-            PackageMetadata metadata = await ProjectManager.GetPackageMetadata(purl, useCache: false);
+            PackageMetadata metadata = await _projectManager.GetPackageMetadata(purl, useCache: false);
 
             Assert.AreEqual(purl.Name, metadata.Name, ignoreCase: true);
             Assert.AreEqual(purl.Version, metadata.PackageVersion);

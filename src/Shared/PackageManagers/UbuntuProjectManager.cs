@@ -203,7 +203,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 // Now load the archive page, which will show all of the versions in each of the .dsc files there.
                 try
                 {
-                    string? html = await GetHttpStringCache(httpClient, archiveBaseUrl, neverThrow: true);
+                    string? html = await GetHttpStringCache(httpClient, archiveBaseUrl, useCache: useCache, neverThrow: true);
                     if (html == null)
                     {
                         continue;
@@ -289,7 +289,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 {
                     try
                     {
-                        string? searchResults = await GetHttpStringCache(httpClient, $"{ENV_UBUNTU_ENDPOINT}/search?keywords={purl.Name}&searchon=names&exact=1&suite=all&section=all");
+                        string? searchResults = await GetHttpStringCache(httpClient, $"{ENV_UBUNTU_ENDPOINT}/search?keywords={purl.Name}&searchon=names&exact=1&suite=all&section=all", useCache);
                         HtmlParser parser = new();
                         AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(searchResults);
                         AngleSharp.Dom.IHtmlCollection<AngleSharp.Dom.IElement> anchorItems = document.QuerySelectorAll("a.resultlink");

@@ -87,6 +87,7 @@ namespace Microsoft.CST.OpenSource
                     try
                     {
                         PackageURL purl = new(target);
+                        Console.WriteLine($"Metadata for: {purl}");
                         PackageMetadata? metadata = await GetPackageMetadata(purl, HttpClientFactory);
                         Console.WriteLine(metadata?.ToString());
                     }
@@ -94,7 +95,6 @@ namespace Microsoft.CST.OpenSource
                     {
                         Logger.Warn(ex, "Error processing {0}: {1}", target, ex.Message);
                     }
-                    Console.WriteLine();
                 }
             }
 

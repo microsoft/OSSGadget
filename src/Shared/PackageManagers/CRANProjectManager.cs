@@ -107,6 +107,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return downloadedPaths;
         }
 
+        /// <inheritdoc />
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
@@ -171,7 +172,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {
                 string? packageName = purl.Name;
                 HttpClient httpClient = CreateHttpClient();
-                string? content = await GetHttpStringCache(httpClient, $"{ENV_CRAN_ENDPOINT}/web/packages/{packageName}/index.html");
+                string? content = await GetHttpStringCache(httpClient, $"{ENV_CRAN_ENDPOINT}/web/packages/{packageName}/index.html", useCache);
                 return content;
             }
             catch (Exception ex)

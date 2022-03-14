@@ -273,6 +273,12 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             throw new NotImplementedException("BaseProjectManager does not implement DownloadVersion.");
         }
 
+        /// <summary>
+        /// Enumerates all possible versions of the package identified by purl.
+        /// </summary>
+        /// <param name="purl">Package URL specifying the package. Version is ignored.</param>
+        /// <param name="useCache">If the cache should be used when looking for the versions.</param>
+        /// <returns> A list of package version numbers.</returns>
         public virtual Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
         {
             throw new NotImplementedException("BaseProjectManager does not implement EnumerateVersions.");
@@ -344,7 +350,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// Check if the package exists in the repository.
         /// </summary>
         /// <param name="purl">The PackageURL to check.</param>
-        /// <param name="useCache">Ignored by <see cref="BaseProjectManager"/> but may be respected by inherited implementations.</param>
+        /// <param name="useCache">If the cache should be checked for the existence of this package.</param>
         /// <returns>True if the package is confirmed to exist in the repository. False otherwise.</returns>
         public virtual async Task<bool> PackageExists(PackageURL purl, bool useCache = true)
         {

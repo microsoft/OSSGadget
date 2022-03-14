@@ -138,7 +138,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
         /// <param name="manager">The ProjectManager to use for checking the generated mutations.</param>
         /// <param name="purl">The Target package to check for squats.</param>
         /// <param name="candidateMutations">The <see cref="IList{Mutation}"/> representing each squatting candidate.</param>
-        /// <param name="options">The options for enumerating squats.</param>
+        /// <param name="options">The options for enumerating through existing squats.</param>
         /// <returns>An <see cref="IAsyncEnumerable{FindPackageSquatResult}"/> with the packages that exist which match one of the <paramref name="candidateMutations"/>.</returns>
         public static async IAsyncEnumerable<FindPackageSquatResult> EnumerateExistingSquatsAsync(this BaseProjectManager manager, PackageURL purl, IDictionary<string, IList<Mutation>>? candidateMutations, MutateOptions? options = null)
         {
@@ -156,16 +156,23 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
             {
                 foreach ((string candidatePurlString, IList<Mutation> mutations) in candidateMutations)
                 {
+                    bool useCache = true;
                     if (options?.SleepDelay > 0)
                     {
                         Thread.Sleep(options.SleepDelay);
                     }
+
+                    if (options?.UseCache == false)
+                    {
+                        useCache = false;
+                    }
+
                     // Create the purl from the mutation to see if it exists.
                     PackageURL candidatePurl = new(candidatePurlString);
                     FindPackageSquatResult? res = null;
                     try
                     {
-                        if (await manager.PackageExists(candidatePurl, useCache: false))
+                        if (await manager.PackageExists(candidatePurl, useCache))
                         {
                             // The candidate mutation exists on the package registry.
                             res = new FindPackageSquatResult(

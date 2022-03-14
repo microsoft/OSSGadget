@@ -171,6 +171,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return downloadedPaths;
         }
 
+        /// <inheritdoc />
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
         {
             try

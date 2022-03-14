@@ -199,12 +199,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return downloadedPaths;
         }
 
-        /// <summary>
-        /// Check if the package exists in the respository.
-        /// </summary>
-        /// <param name="purl">The PackageURL to check.</param>
-        /// <param name="useCache">If cache should be used.</param>
-        /// <returns>True if the package is confirmed to exist in the repository. False otherwise.</returns>
+        /// <inheritdoc />
         public override async Task<bool> PackageExists(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("PackageExists {0}", purl?.ToString());
@@ -219,6 +214,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return await CheckJsonCacheForPackage(httpClient, $"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json", useCache);
         }
 
+        /// <inheritdoc />
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());

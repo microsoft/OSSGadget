@@ -180,6 +180,43 @@ namespace Microsoft.CST.OpenSource.Tests
         }
         
         [TestMethod]
+        public async Task LodashMutations_NoCache_Succeeds_Async()
+        {
+            // arrange
+            PackageURL lodash = new("pkg:npm/lodash@4.17.15");
+            string lodashUrl = GetRegistryUrl(lodash);
+
+            string[] squattingPackages = new[]
+            {
+                "pkg:npm/iodash", // ["AsciiHomoglyph","CloseLetters"]
+                "pkg:npm/jodash", // ["AsciiHomoglyph"]
+                "pkg:npm/1odash", // ["AsciiHomoglyph"]
+                "pkg:npm/ledash", // ["AsciiHomoglyph","VowelSwap"]
+                "pkg:npm/ladash", // ["AsciiHomoglyph","VowelSwap"]
+                "pkg:npm/l0dash", // ["AsciiHomoglyph","CloseLetters"]
+            };
+
+            Mock<IHttpClientFactory> mockFactory = new();
+
+            using MockHttpMessageHandler httpMock = new();
+            MockHttpFetchResponse(HttpStatusCode.OK, lodashUrl, httpMock);
+
+            MockSquattedPackages(httpMock, lodash, squattingPackages);
+
+            mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpMock.ToHttpClient());
+
+            FindPackageSquats findPackageSquats = new(mockFactory.Object, lodash);
+
+            // act
+            IDictionary<string, IList<Mutation>>? squatCandidates = findPackageSquats.GenerateSquatCandidates();
+            List<FindPackageSquatResult> existingMutations = await findPackageSquats.FindExistingSquatsAsync(squatCandidates, new MutateOptions(){UseCache = false}).ToListAsync();
+            Assert.IsNotNull(existingMutations);
+            Assert.IsTrue(existingMutations.Any());
+            string[] resultingMutationNames = existingMutations.Select(m => m.MutatedPackageUrl.ToString()).ToArray();
+            CollectionAssert.AreEquivalent(squattingPackages, resultingMutationNames);
+        }
+        
+        [TestMethod]
         public async Task FooMutations_Succeeds_Async()
         {
             // arrange

@@ -177,6 +177,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return downloadedPaths;
         }
 
+        /// <inheritdoc />
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
@@ -258,7 +259,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {
                 try
                 {
-                    string? html = await GetHttpStringCache(httpClient, distroUrlPrefix, neverThrow: true);
+                    string? html = await GetHttpStringCache(httpClient, distroUrlPrefix, useCache: useCache, neverThrow: true);
                     if (html != null)
                     {
                         AngleSharp.Html.Dom.IHtmlDocument? document = await new HtmlParser().ParseDocumentAsync(html);

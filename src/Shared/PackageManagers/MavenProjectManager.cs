@@ -83,12 +83,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return downloadedPaths;
         }
 
-        /// <summary>
-        /// Check if the package exists in the respository.
-        /// </summary>
-        /// <param name="purl">The PackageURL to check.</param>
-        /// <param name="useCache">If cache should be used.</param>
-        /// <returns>True if the package is confirmed to exist in the repository. False otherwise.</returns>
+        /// <inheritdoc />
         public override async Task<bool> PackageExists(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("PackageExists {0}", purl?.ToString());
@@ -104,6 +99,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return await CheckHttpCacheForPackage(httpClient, $"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/maven-metadata.xml", useCache);
         }
 
+        /// <inheritdoc />
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
@@ -151,16 +147,16 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 HttpClient httpClient = CreateHttpClient();
                 if (purl?.Version == null)
                 {
-                    foreach (string? version in await EnumerateVersions(purl))
+                    foreach (string? version in await EnumerateVersions(purl, useCache))
                     {
-                        return await GetHttpStringCache(httpClient, $"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/{version}/{packageName}-{version}.pom");
+                        return await GetHttpStringCache(httpClient, $"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/{version}/{packageName}-{version}.pom", useCache);
                     }
                     throw new Exception("No version specified and unable to enumerate.");
                 }
                 else
                 {
                     string version = purl.Version;
-                    return await GetHttpStringCache(httpClient, $"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/{version}/{packageName}-{version}.pom");
+                    return await GetHttpStringCache(httpClient, $"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/{version}/{packageName}-{version}.pom", useCache);
                 }
             }
             catch (Exception ex)

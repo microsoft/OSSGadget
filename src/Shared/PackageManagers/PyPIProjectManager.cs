@@ -173,6 +173,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
         }
 
+        /// <inheritdoc />
         public override async Task<PackageMetadata> GetPackageMetadata(PackageURL purl, bool useCache = true)
         {
             PackageMetadata metadata = new();

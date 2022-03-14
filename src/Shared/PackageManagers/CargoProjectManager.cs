@@ -133,12 +133,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
         }
 
-        /// <summary>
-        ///     Gathers metadata (in no specific format) about the package.
-        /// </summary>
-        /// <param name="purl"> Package URL for the package </param>
-        /// <param name="useCache"></param>
-        /// <returns> Metadata as a string </returns>
+        /// <inheritdoc />
         public override async Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
         {
             try

@@ -113,7 +113,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 string packageName = purl.Name;
                 HttpClient httpClient = CreateHttpClient();
 
-                string? content = await GetHttpStringCache(httpClient, $"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/maven-metadata.xml");
+                string? content = await GetHttpStringCache(httpClient, $"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/maven-metadata.xml", useCache);
                 List<string> versionList = new();
                 if (string.IsNullOrWhiteSpace(content))
                 {

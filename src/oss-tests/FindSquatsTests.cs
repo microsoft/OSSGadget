@@ -172,7 +172,7 @@ namespace Microsoft.CST.OpenSource.Tests
 
             // act
             IDictionary<string, IList<Mutation>>? squatCandidates = findPackageSquats.GenerateSquatCandidates();
-            List<FindPackageSquatResult> existingMutations = await findPackageSquats.FindExistingSquatsAsync(squatCandidates).ToListAsync();
+            List<FindPackageSquatResult> existingMutations = await findPackageSquats.FindExistingSquatsAsync(squatCandidates, new MutateOptions(){UseCache = false}).ToListAsync();
             Assert.IsNotNull(existingMutations);
             Assert.IsTrue(existingMutations.Any());
             string[] resultingMutationNames = existingMutations.Select(m => m.MutatedPackageUrl.ToString()).ToArray();
@@ -244,7 +244,7 @@ namespace Microsoft.CST.OpenSource.Tests
 
             // act
             IDictionary<string, IList<Mutation>>? squatCandidates = findPackageSquats.GenerateSquatCandidates();
-            List<FindPackageSquatResult> existingMutations = await findPackageSquats.FindExistingSquatsAsync(squatCandidates).ToListAsync();
+            List<FindPackageSquatResult> existingMutations = await findPackageSquats.FindExistingSquatsAsync(squatCandidates, new MutateOptions(){UseCache = false}).ToListAsync();
             Assert.IsNotNull(existingMutations);
             Assert.IsTrue(existingMutations.Any());
             string[] resultingMutationNames = existingMutations.Select(m => m.MutatedPackageUrl.ToString()).ToArray();
@@ -281,7 +281,7 @@ namespace Microsoft.CST.OpenSource.Tests
 
             // act
             IDictionary<string, IList<Mutation>>? squatCandidates = findPackageSquats.GenerateSquatCandidates();
-            List<FindPackageSquatResult> existingMutations = await findPackageSquats.FindExistingSquatsAsync(squatCandidates).ToListAsync();
+            List<FindPackageSquatResult> existingMutations = await findPackageSquats.FindExistingSquatsAsync(squatCandidates, new MutateOptions(){UseCache = false}).ToListAsync();
             Assert.IsNotNull(existingMutations);
             Assert.IsTrue(existingMutations.Any());
             string[] resultingMutationNames = existingMutations.Select(m => m.MutatedPackageUrl.ToString()).ToArray();
@@ -318,7 +318,7 @@ namespace Microsoft.CST.OpenSource.Tests
 
             // act
             IDictionary<string, IList<Mutation>>? squatCandidates = findPackageSquats.GenerateSquatCandidates();
-            List<FindPackageSquatResult> existingMutations = await findPackageSquats.FindExistingSquatsAsync(squatCandidates).ToListAsync();
+            List<FindPackageSquatResult> existingMutations = await findPackageSquats.FindExistingSquatsAsync(squatCandidates, new MutateOptions(){UseCache = false}).ToListAsync();
             Assert.IsNotNull(existingMutations);
             Assert.IsTrue(existingMutations.Any());
             string[] resultingMutationNames = existingMutations.Select(m => m.MutatedPackageUrl.ToString()).ToArray();

@@ -107,8 +107,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         ///     Enumerates all possible versions of the package identified by purl.
         /// </summary>
         /// <param name="purl">Package URL specifying the package. Version is ignored.</param>
+        /// <param name="useCache"></param>
         /// <returns> A list of package versions </returns>
-        public override async Task<IEnumerable<string>> EnumerateVersions( PackageURL purl)
+        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
             if (purl == null || purl.Name is null)
@@ -146,8 +147,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         ///     Gathers metadata (in no specific format) about the package.
         /// </summary>
         /// <param name="purl"> Package URL for the package </param>
+        /// <param name="useCache"></param>
         /// <returns> Metadata as a string </returns>
-        public override async Task<string?> GetMetadata(PackageURL purl)
+        public override async Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
         {
             try
             {

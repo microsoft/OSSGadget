@@ -132,7 +132,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     });
                 }
                 PackageURL purlNoVersion = new(purl!.Type, purl.Namespace, purl.Name, null, purl.Qualifiers, purl.Subpath);
-                foreach (string v in EnumerateVersions(purlNoVersion).Result)
+                foreach (string v in EnumerateVersions(purlNoVersion, true).Result)
                 {
                     if (Regex.IsMatch(purl.Version!, @"(^|[^\d\.])" + Regex.Escape(v)))
                     {
@@ -171,7 +171,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return downloadedPaths;
         }
 
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
+        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
         {
             try
             {
@@ -225,7 +225,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
         }
 
-        public override async Task<string?> GetMetadata(PackageURL purl)
+        public override async Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
         {
             await Task.CompletedTask;
             return $"https://github.com/{purl.Namespace}/{purl.Name}";

@@ -47,7 +47,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public async Task MetadataSucceeds(string purlString, string? description = null)
         {
             PackageURL purl = new(purlString);
-            PackageMetadata metadata = await ProjectManager.GetPackageMetadata(purl);
+            PackageMetadata metadata = await ProjectManager.GetPackageMetadata(purl, false);
 
             Assert.AreEqual(purl.Name, metadata.Name, ignoreCase: true);
             Assert.AreEqual(purl.Version, metadata.PackageVersion);

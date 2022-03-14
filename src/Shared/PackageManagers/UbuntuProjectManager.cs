@@ -177,7 +177,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return downloadedPaths;
         }
 
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
+        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
 
@@ -243,7 +243,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return SortVersions(versionList.Distinct());
         }
 
-        public override async Task<string?> GetMetadata(PackageURL purl)
+        public override async Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("GetMetadata {0}", purl?.ToString());
 

@@ -101,7 +101,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return await CheckHttpCacheForPackage(httpClient, $"{ENV_GO_PROXY_ENDPOINT}/{packageNamespaceLower}/{packageNameLower}/@v/list", useCache);
         }
 
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
+        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
             if (purl == null)
@@ -142,7 +142,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
         }
 
-        public override async Task<string?> GetMetadata(PackageURL purl)
+        public override async Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
         {
             if (purl is null || purl.Name is null || purl.Namespace is null)
             {
@@ -150,7 +150,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
             try
             {
-                IEnumerable<string> versions = await EnumerateVersions(purl);
+                IEnumerable<string> versions = await EnumerateVersions(purl, true);
                 if (versions.Any())
                 {
                     string latestVersion = versions.Last();

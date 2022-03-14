@@ -104,7 +104,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return await CheckHttpCacheForPackage(httpClient, $"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/maven-metadata.xml", useCache);
         }
 
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL? purl)
+        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
             if (purl is null || purl.Name is null || purl.Namespace is null)
@@ -142,7 +142,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
         }
 
-        public override async Task<string?> GetMetadata(PackageURL purl)
+        public override async Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
         {
             try
             {
@@ -151,7 +151,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 HttpClient httpClient = CreateHttpClient();
                 if (purl?.Version == null)
                 {
-                    foreach (string? version in await EnumerateVersions(purl))
+                    foreach (string? version in await EnumerateVersions(purl, true))
                     {
                         return await GetHttpStringCache(httpClient, $"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/{version}/{packageName}-{version}.pom");
                     }

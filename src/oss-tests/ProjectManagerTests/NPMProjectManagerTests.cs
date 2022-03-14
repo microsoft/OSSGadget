@@ -57,7 +57,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public async Task MetadataSucceeds(string purlString, string? description = null)
         {
             PackageURL purl = new(purlString);
-            PackageMetadata metadata = await ProjectManager.GetPackageMetadata(purl);
+            PackageMetadata metadata = await ProjectManager.GetPackageMetadata(purl, false);
 
             string? packageName = purl.Namespace.IsNotBlank() ? $"@{purl.Namespace}/{purl.Name}" : purl.Name;
             Assert.AreEqual(packageName, metadata.Name);

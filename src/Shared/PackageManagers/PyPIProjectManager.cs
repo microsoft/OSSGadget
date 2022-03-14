@@ -118,7 +118,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return await CheckJsonCacheForPackage(httpClient, $"{ENV_PYPI_ENDPOINT}/pypi/{packageName}/json", useCache);
         }
 
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
+        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
             if (purl == null || purl.Name is null)
@@ -131,7 +131,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 string packageName = purl.Name;
                 HttpClient httpClient = CreateHttpClient();
 
-                JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_PYPI_ENDPOINT}/pypi/{packageName}/json");
+                JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_PYPI_ENDPOINT}/pypi/{packageName}/json", useCache);
                 List<string> versionList = new();
                 if (doc.RootElement.TryGetProperty("releases", out JsonElement releases))
                 {
@@ -162,13 +162,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
         }
 
-        public override async Task<string?> GetMetadata(PackageURL purl)
+        public override async Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
         {
             try
             {
                 HttpClient httpClient = CreateHttpClient();
 
-                return await GetHttpStringCache(httpClient, $"{ENV_PYPI_ENDPOINT}/pypi/{purl.Name}/json", false);
+                return await GetHttpStringCache(httpClient, $"{ENV_PYPI_ENDPOINT}/pypi/{purl.Name}/json", useCache);
             }
             catch (Exception ex)
             {
@@ -177,10 +177,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
         }
 
-        public override async Task<PackageMetadata> GetPackageMetadata(PackageURL purl)
+        public override async Task<PackageMetadata> GetPackageMetadata(PackageURL purl, bool useCache = true)
         {
             PackageMetadata metadata = new();
-            string? content = await GetMetadata(purl);
+            string? content = await GetMetadata(purl, useCache);
             if (string.IsNullOrEmpty(content)) { return metadata; }
 
             // convert NPM package data to normalized form

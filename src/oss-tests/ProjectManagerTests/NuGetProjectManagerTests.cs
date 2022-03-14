@@ -22,11 +22,6 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         {
             { "https://api.nuget.org/v3/registration5-gz-semver2/razorengine/index.json", Resources.razorengine_json },
             { "https://api.nuget.org/v3/catalog0/data/2022.03.11.23.17.27/razorengine.4.2.3-beta1.json", Resources.razorengine_4_2_3_beta1_json },
-            // { "https://registry.npmjs.org/@angular/core", Resources.angular_core_json },
-            // { "https://registry.npmjs.org/ds-modal", Resources.ds_modal_json },
-            // { "https://registry.npmjs.org/monorepolint", Resources.monorepolint_json },
-            // { "https://registry.npmjs.org/rly-cli", Resources.rly_cli_json },
-            // { "https://registry.npmjs.org/example", Resources.minimum_json_json },
         };
 
         private NuGetProjectManager ProjectManager;

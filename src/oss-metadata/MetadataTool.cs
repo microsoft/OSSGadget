@@ -80,22 +80,22 @@ namespace Microsoft.CST.OpenSource
         {
             // select output destination and format
             SelectOutput(options.OutputFile);
-            PackageMetadata? metadata = null;
             if (options.Targets is IList<string> targetList && targetList.Count > 0)
             {
                 foreach (string? target in targetList)
                 {
                     try
                     {
-                        PackageURL? purl = new PackageURL(target);
-                        metadata = await GetPackageMetadata(purl, HttpClientFactory);
+                        PackageURL purl = new(target);
+                        PackageMetadata? metadata = await GetPackageMetadata(purl, HttpClientFactory);
+                        Console.WriteLine(metadata?.ToString());
                     }
                     catch (Exception ex)
                     {
                         Logger.Warn(ex, "Error processing {0}: {1}", target, ex.Message);
                     }
+                    Console.WriteLine();
                 }
-                Console.WriteLine(metadata?.ToString());
             }
 
             RestoreOutput();

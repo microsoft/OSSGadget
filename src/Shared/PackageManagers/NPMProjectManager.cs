@@ -158,7 +158,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 string? packageName = purl.Namespace != null ? $"@{purl.Namespace}/{purl.Name}" : purl.Name;
                 HttpClient httpClient = CreateHttpClient();
 
-                string? content = await GetHttpStringCache(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}");
+                string? content = await GetHttpStringCache(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}", false);
                 return content;
             }
             catch (Exception ex)

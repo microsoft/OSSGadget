@@ -168,7 +168,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {
                 HttpClient httpClient = CreateHttpClient();
 
-                return await GetHttpStringCache(httpClient, $"{ENV_PYPI_ENDPOINT}/pypi/{purl.Name}/json");
+                return await GetHttpStringCache(httpClient, $"{ENV_PYPI_ENDPOINT}/pypi/{purl.Name}/json", false);
             }
             catch (Exception ex)
             {

@@ -302,7 +302,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 }
                 HttpClient httpClient = CreateHttpClient();
 
-                string? content = await GetHttpStringCache(httpClient, $"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json");
+                string? content = await GetHttpStringCache(httpClient, $"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json", false);
                 return content;
             }
             catch (Exception ex)
@@ -318,7 +318,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {
                 HttpClient httpClient = CreateHttpClient();
 
-                string? content = await GetHttpStringCache(httpClient, versionUri);
+                string? content = await GetHttpStringCache(httpClient, versionUri, false);
                 if (string.IsNullOrEmpty(content)) { return null; }
 
                 // convert NuGet package data to normalized form
@@ -596,7 +596,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             string uri = $"{ENV_NUGET_ENDPOINT_API}/v3-flatcontainer/{purl.Name.ToLower()}/{purl.Version}/{purl.Name.ToLower()}.nuspec";
             try
             {
-                using HttpClient httpClient = this.CreateHttpClient();
+                HttpClient httpClient = this.CreateHttpClient();
                 HttpResponseMessage response = httpClient.GetAsync(uri).GetAwaiter().GetResult();
                 using (Stream stream = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult())
                 {

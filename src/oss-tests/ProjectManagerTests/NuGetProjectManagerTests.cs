@@ -3,7 +3,6 @@
 
 namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 {
-    using Helpers;
     using Model;
     using Moq;
     using oss;
@@ -17,21 +16,22 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
     using VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
-    public class NPMProjectManagerTests
+    public class NuGetProjectManagerTests
     {
         private readonly IDictionary<string, string> _packages = new Dictionary<string, string>()
         {
-            { "https://registry.npmjs.org/lodash", Resources.lodash_json },
-            { "https://registry.npmjs.org/@angular/core", Resources.angular_core_json },
-            { "https://registry.npmjs.org/ds-modal", Resources.ds_modal_json },
-            { "https://registry.npmjs.org/monorepolint", Resources.monorepolint_json },
-            { "https://registry.npmjs.org/rly-cli", Resources.rly_cli_json },
-            { "https://registry.npmjs.org/example", Resources.minimum_json_json },
+            { "https://api.nuget.org/v3/registration5-gz-semver2/razorengine/index.json", Resources.razorengine_json },
+            { "https://api.nuget.org/v3/catalog0/data/2022.03.11.23.17.27/razorengine.4.2.3-beta1.json", Resources.razorengine_4_2_3_beta1_json },
+            // { "https://registry.npmjs.org/@angular/core", Resources.angular_core_json },
+            // { "https://registry.npmjs.org/ds-modal", Resources.ds_modal_json },
+            // { "https://registry.npmjs.org/monorepolint", Resources.monorepolint_json },
+            // { "https://registry.npmjs.org/rly-cli", Resources.rly_cli_json },
+            // { "https://registry.npmjs.org/example", Resources.minimum_json_json },
         };
 
-        private NPMProjectManager ProjectManager;
+        private NuGetProjectManager ProjectManager;
         
-        public NPMProjectManagerTests()
+        public NuGetProjectManagerTests()
         {
             Mock<IHttpClientFactory> mockFactory = new();
             
@@ -44,23 +44,17 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
  
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
             
-            ProjectManager = new NPMProjectManager(mockFactory.Object, ".");
+            ProjectManager = new NuGetProjectManager(mockFactory.Object, ".");
         }
 
         [DataTestMethod]
-        [DataRow("pkg:npm/lodash@4.17.15", "Lodash modular utilities.")] // Normal package
-        [DataRow("pkg:npm/angular/core@13.2.5", "Angular - the core framework")] // Scoped package
-        [DataRow("pkg:npm/ds-modal@0.0.2", "")] // No Description at package level, and empty string description on version level
-        [DataRow("pkg:npm/monorepolint@0.4.0")] // No Author property, and No Description
-        [DataRow("pkg:npm/example@0.0.0")] // Pretty much only name, and version
-        [DataRow("pkg:npm/rly-cli@0.0.2", "RLY CLI allows you to setup fungilble SPL tokens and call Rally token programs from the command line.")] // Author property is an empty string
+        [DataRow("pkg:nuget/razorengine@4.2.3-beta1", "RazorEngine - A Templating Engine based on the Razor parser.")] // Normal package
         public async Task MetadataSucceeds(string purlString, string? description = null)
         {
             PackageURL purl = new(purlString);
             PackageMetadata metadata = await ProjectManager.GetPackageMetadata(purl);
 
-            string? packageName = purl.Namespace.IsNotBlank() ? $"@{purl.Namespace}/{purl.Name}" : purl.Name;
-            Assert.AreEqual(packageName, metadata.Name);
+            Assert.AreEqual(purl.Name, metadata.Name, ignoreCase: true);
             Assert.AreEqual(purl.Version, metadata.PackageVersion);
             Assert.AreEqual(description, metadata.Description);
         }

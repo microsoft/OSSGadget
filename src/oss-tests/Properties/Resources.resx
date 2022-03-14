@@ -36,4 +36,10 @@
     <data name="minimum_json.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
         <value>..\TestData\NPM\minimum_json.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </data>
+    <data name="razorengine.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>..\TestData\NuGet\razorengine.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </data>
+    <data name="razorengine.4.2.3-beta1.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>..\TestData\NuGet\razorengine.4.2.3-beta1.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </data>
 </root>

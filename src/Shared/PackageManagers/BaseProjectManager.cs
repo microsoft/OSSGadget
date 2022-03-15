@@ -262,6 +262,24 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             versionPartsList.Sort(new VersionComparer());
             return versionPartsList.Select(s => string.Join("", s));
         }
+        
+        /// <summary>
+        /// Sorts the versions of a package, based on when they were published.
+        /// </summary>
+        /// <param name="versionDictionary">The dictionary of versions (key) and published DateTime (value).</param>
+        /// <returns>The sorted list of versions by when they were published.</returns>
+        public static IEnumerable<string> SortVersionsWithDate(IDictionary<string, DateTime> versionDictionary)
+        {
+            List<KeyValuePair<string, DateTime>> versionList = versionDictionary.ToList();
+
+            versionList.Sort((pair1, pair2) => pair2.Value.CompareTo(pair1.Value));
+            if (!versionList.Any())
+            {
+                return Array.Empty<string>();
+            }
+            
+            return versionList.Select(kvp => kvp.Key).Distinct();
+        }
 
         /// <summary>
         /// Downloads a given PackageURL and extracts it locally to a directory.

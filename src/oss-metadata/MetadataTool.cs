@@ -31,6 +31,10 @@ namespace Microsoft.CST.OpenSource
             [Option('o', "output-file", Required = false, Default = "",
                 HelpText = "send the command output to a file instead of stdout")]
             public string OutputFile { get; set; } = "";
+            
+            [Option('c', "useCache", Required = false, Default = false,
+                HelpText = "Should metadata use the cache, and get cached?")]
+            public bool UseCache { get; set; } = false;
 
             [Value(0, Required = true,
                 HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze
@@ -45,7 +49,7 @@ namespace Microsoft.CST.OpenSource
 
         public MetadataTool(): this(new DefaultHttpClientFactory()) { }
 
-        private static async Task<PackageMetadata?> GetPackageMetadata(PackageURL purl, IHttpClientFactory httpClientFactory)
+        private static async Task<PackageMetadata?> GetPackageMetadata(PackageURL purl, IHttpClientFactory httpClientFactory, bool useCache = true)
         {
             PackageMetadata? metadata = null;
             try
@@ -54,7 +58,7 @@ namespace Microsoft.CST.OpenSource
                 BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, httpClientFactory);
                 if (projectManager != null)
                 {
-                    metadata = await projectManager.GetPackageMetadata(purl);
+                    metadata = await projectManager.GetPackageMetadata(purl, useCache);
                 }
             }
             catch (Exception ex)
@@ -80,22 +84,22 @@ namespace Microsoft.CST.OpenSource
         {
             // select output destination and format
             SelectOutput(options.OutputFile);
-            PackageMetadata? metadata = null;
             if (options.Targets is IList<string> targetList && targetList.Count > 0)
             {
                 foreach (string? target in targetList)
                 {
                     try
                     {
-                        PackageURL? purl = new PackageURL(target);
-                        metadata = await GetPackageMetadata(purl, HttpClientFactory);
+                        PackageURL purl = new(target);
+                        Logger.Info($"Collecting metadata for {purl}");
+                        PackageMetadata? metadata = await GetPackageMetadata(purl, HttpClientFactory, options.UseCache);
+                        Logger.Info(metadata?.ToString());
                     }
                     catch (Exception ex)
                     {
                         Logger.Warn(ex, "Error processing {0}: {1}", target, ex.Message);
                     }
                 }
-                Console.WriteLine(metadata?.ToString());
             }
 
             RestoreOutput();

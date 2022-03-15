@@ -82,12 +82,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return downloadedPaths;
         }
 
-        /// <summary>
-        /// Check if the package exists in the respository.
-        /// </summary>
-        /// <param name="purl">The PackageURL to check.</param>
-        /// <param name="useCache">If cache should be used.</param>
-        /// <returns>True if the package is confirmed to exist in the repository. False otherwise.</returns>
+        /// <inheritdoc />
         public override async Task<bool> PackageExists(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("PackageExists {0}", purl?.ToString());
@@ -102,7 +97,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return await CheckJsonCacheForPackage(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}", useCache);
         }
 
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
+        /// <inheritdoc />
+        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
             if (purl == null || purl.Name is null)
@@ -115,7 +111,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 string packageName = purl.GetFullName();
                 HttpClient httpClient = CreateHttpClient();
 
-                JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}");
+                JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}", useCache);
                 List<string> versionList = new();
 
                 foreach (JsonProperty versionKey in doc.RootElement.GetProperty("versions").EnumerateObject())
@@ -151,14 +147,15 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return GetVersionElement(contentJSON, maxVersion);
         }
 
-        public override async Task<string?> GetMetadata(PackageURL purl)
+        /// <inheritdoc />
+        public override async Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
         {
             try
             {
                 string? packageName = purl.Namespace != null ? $"@{purl.Namespace}/{purl.Name}" : purl.Name;
                 HttpClient httpClient = CreateHttpClient();
 
-                string? content = await GetHttpStringCache(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}");
+                string? content = await GetHttpStringCache(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}", useCache);
                 return content;
             }
             catch (Exception ex)
@@ -174,10 +171,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
-        public override async Task<PackageMetadata> GetPackageMetadata(PackageURL purl)
+        public override async Task<PackageMetadata> GetPackageMetadata(PackageURL purl, bool useCache = true)
         {
             PackageMetadata metadata = new();
-            string? content = await GetMetadata(purl);
+            string? content = await GetMetadata(purl, useCache);
             if (string.IsNullOrEmpty(content)) { return metadata; }
 
             // convert NPM package data to normalized form
@@ -225,13 +222,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     }
                     
                     JsonElement? distElement = OssUtilities.GetJSONPropertyIfExists(versionElement, "dist");
-                    if (distElement?.GetProperty("tarball") is JsonElement tarballElement)
+                    if (OssUtilities.GetJSONPropertyIfExists(distElement, "tarball") is JsonElement tarballElement)
                     {
                         metadata.VersionDownloadUri = tarballElement.ToString().IsBlank() ?
-                        $"{ENV_NPM_API_ENDPOINT}/{metadata.Name}/-/{metadata.Name}-{metadata.PackageVersion}.tgz" : tarballElement.ToString();
+                            $"{ENV_NPM_API_ENDPOINT}/{metadata.Name}/-/{metadata.Name}-{metadata.PackageVersion}.tgz"
+                            : tarballElement.ToString();
                     }
 
-                    if (distElement?.GetProperty("integrity") is JsonElement integrityElement &&
+                    if (OssUtilities.GetJSONPropertyIfExists(distElement, "integrity") is JsonElement integrityElement &&
                         integrityElement.ToString() is string integrity &&
                         integrity.Split('-') is string[] pair &&
                         pair.Length == 2)
@@ -244,18 +242,18 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                         });
                     }
                     
-                    // check for typescript
-                    List<string>? devDependencies = OssUtilities.ConvertJSONToList(OssUtilities.GetJSONPropertyIfExists(versionElement, "devDependencies"));
-                    if (devDependencies is not null && devDependencies.Count > 0 && devDependencies.Any(stringToCheck => stringToCheck.Contains("\"typescript\":")))
-                    {
-                        metadata.Language = "TypeScript";
-                    }
-                    
                     // size
                     if (OssUtilities.GetJSONPropertyIfExists(distElement, "unpackedSize") is JsonElement sizeElement &&
                         sizeElement.GetInt64() is long size)
                     {
                         metadata.Size = size;
+                    }
+
+                    // check for typescript
+                    List<string>? devDependencies = OssUtilities.ConvertJSONToList(OssUtilities.GetJSONPropertyIfExists(versionElement, "devDependencies"));
+                    if (devDependencies is not null && devDependencies.Count > 0 && devDependencies.Any(stringToCheck => stringToCheck.Contains("\"typescript\":")))
+                    {
+                        metadata.Language = "TypeScript";
                     }
 
                     // homepage
@@ -453,18 +451,21 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {
                 try
                 {
-                    JsonElement repositoryJSON = notNullVersionJSON.GetProperty("repository");
-                    string? repoType = OssUtilities.GetJSONPropertyStringIfExists(repositoryJSON, "type")?.ToLower();
-                    string? repoURL = OssUtilities.GetJSONPropertyStringIfExists(repositoryJSON, "url");
-
-                    // right now we deal with only github repos
-                    if (repoType == "git" && repoURL is not null)
+                    if (!notNullVersionJSON.TryGetProperty("repository", out JsonElement repository))
                     {
-                        PackageURL gitPURL = GitHubProjectManager.ParseUri(new Uri(repoURL));
-                        // we got a repository value the author specified in the metadata - so no
-                        // further processing needed
-                        if (gitPURL != null)
+                        return mapping;
+                    }
+                    if (repository.ValueKind == JsonValueKind.Object)
+                    {
+                        string? repoType = OssUtilities.GetJSONPropertyStringIfExists(repository, "type")?.ToLower();
+                        string? repoURL = OssUtilities.GetJSONPropertyStringIfExists(repository, "url");
+
+                        // right now we deal with only github repos
+                        if (repoType == "git" && repoURL is not null)
                         {
+                            PackageURL gitPURL = GitHubProjectManager.ParseUri(new Uri(repoURL));
+                            // we got a repository value the author specified in the metadata - so no
+                            // further processing needed
                             mapping.Add(gitPURL, 1.0F);
                             return mapping;
                         }

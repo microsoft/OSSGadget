@@ -97,12 +97,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return downloadedPaths;
         }
 
-        /// <summary>
-        /// Check if the package exists in the respository.
-        /// </summary>
-        /// <param name="purl">The PackageURL to check.</param>
-        /// <param name="useCache">If cache should be used.</param>
-        /// <returns>True if the package is confirmed to exist in the repository. False otherwise.</returns>
+        /// <inheritdoc />
         public override async Task<bool> PackageExists(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("PackageExists {0}", purl?.ToString());
@@ -117,7 +112,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return await CheckJsonCacheForPackage(httpClient, $"{ENV_COMPOSER_ENDPOINT}/p/{packageName}.json", useCache);
         }
 
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
+        /// <inheritdoc />
+        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
             if (purl == null)
@@ -157,14 +153,15 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
         }
 
-        public override async Task<string?> GetMetadata(PackageURL purl)
+        /// <inheritdoc />
+        public override async Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
         {
             try
             {
                 string packageName = $"{purl.Namespace}/{purl.Name}";
                 HttpClient httpClient = CreateHttpClient();
 
-                return await GetHttpStringCache(httpClient, $"{ENV_COMPOSER_ENDPOINT}/p/{packageName}.json");
+                return await GetHttpStringCache(httpClient, $"{ENV_COMPOSER_ENDPOINT}/p/{packageName}.json", useCache);
             }
             catch (Exception ex)
             {

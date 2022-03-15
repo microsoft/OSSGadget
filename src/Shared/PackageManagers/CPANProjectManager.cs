@@ -28,12 +28,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
         }
 
-        /// <summary>
-        /// Check if the package exists in the respository.
-        /// </summary>
-        /// <param name="purl">The PackageURL to check.</param>
-        /// <param name="useCache">If cache should be used.</param>
-        /// <returns>True if the package is confirmed to exist in the repository. False otherwise.</returns>
+        /// <inheritdoc />
         public override async Task<bool> PackageExists(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("PackageExists {0}", purl?.ToString());
@@ -137,8 +132,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
             return downloadedPaths;
         }
-
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
+        
+        /// <inheritdoc />
+        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
             if (purl == null || purl.Name is null)
@@ -180,7 +176,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
         }
 
-        public override async Task<string?> GetMetadata(PackageURL purl)
+        /// <inheritdoc />
+        public override async Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
         {
             try
             {
@@ -188,8 +185,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 if (packageName != null)
                 {
                     HttpClient httpClient = CreateHttpClient();
-                    string? contentRelease = await GetHttpStringCache(httpClient, $"{ENV_CPAN_ENDPOINT}/release/{packageName}");
-                    string? contentPod = await GetHttpStringCache(httpClient, $"{ENV_CPAN_ENDPOINT}/pod/{packageName.Replace("-", "::")}");
+                    string? contentRelease = await GetHttpStringCache(httpClient, $"{ENV_CPAN_ENDPOINT}/release/{packageName}", useCache);
+                    string? contentPod = await GetHttpStringCache(httpClient, $"{ENV_CPAN_ENDPOINT}/pod/{packageName.Replace("-", "::")}", useCache);
                     return contentRelease + "\n" + contentPod;
                 }
                 else

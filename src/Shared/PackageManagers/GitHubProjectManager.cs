@@ -171,7 +171,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return downloadedPaths;
         }
 
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
+        /// <inheritdoc />
+        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
         {
             try
             {
@@ -225,7 +226,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
         }
 
-        public override async Task<string?> GetMetadata(PackageURL purl)
+        /// <inheritdoc />
+        public override async Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
         {
             await Task.CompletedTask;
             return $"https://github.com/{purl.Namespace}/{purl.Name}";

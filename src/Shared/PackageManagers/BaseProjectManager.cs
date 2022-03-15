@@ -273,7 +273,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             throw new NotImplementedException("BaseProjectManager does not implement DownloadVersion.");
         }
 
-        public virtual Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
+        /// <summary>
+        /// Enumerates all possible versions of the package identified by purl.
+        /// </summary>
+        /// <param name="purl">Package URL specifying the package. Version is ignored.</param>
+        /// <param name="useCache">If the cache should be used when looking for the versions.</param>
+        /// <returns> A list of package version numbers.</returns>
+        public virtual Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
         {
             throw new NotImplementedException("BaseProjectManager does not implement EnumerateVersions.");
         }
@@ -344,7 +350,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// Check if the package exists in the repository.
         /// </summary>
         /// <param name="purl">The PackageURL to check.</param>
-        /// <param name="useCache">Ignored by <see cref="BaseProjectManager"/> but may be respected by inherited implementations.</param>
+        /// <param name="useCache">If the cache should be checked for the existence of this package.</param>
         /// <returns>True if the package is confirmed to exist in the repository. False otherwise.</returns>
         public virtual async Task<bool> PackageExists(PackageURL purl, bool useCache = true)
         {
@@ -354,7 +360,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 Logger.Trace("Provided PackageURL was null.");
                 return false;
             }
-            return (await EnumerateVersions(purl)).Any();
+            return (await EnumerateVersions(purl, useCache)).Any();
         }
 
         /// <summary>
@@ -377,8 +383,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// assumed format.
         /// </summary>
         /// <param name="purl">PackageURL to search.</param>
+        /// <param name="useCache">If the metadata should be retrieved from the cache, if it is available.</param>
         /// <returns>a string containing metadata.</returns>
-        public virtual Task<string?> GetMetadata(PackageURL purl)
+        public virtual Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
         {
             throw new NotImplementedException($"{GetType().Name} does not implement GetMetadata.");
         }
@@ -397,8 +404,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// Return a normalized package metadata.
         /// </summary>
         /// <param name="purl">The <see cref="PackageURL"/> to get the normalized metadata for.</param>
+        /// <param name="useCache">If the <see cref="PackageMetadata"/> should be retrieved from the cache, if it is available.</param>
         /// <returns>A <see cref="GetPackageMetadata"/> object representing this <see cref="PackageURL"/>.</returns>
-        public virtual Task<PackageMetadata> GetPackageMetadata(PackageURL purl)
+        public virtual Task<PackageMetadata> GetPackageMetadata(PackageURL purl, bool useCache = true)
         {
             string typeName = GetType().Name;
             throw new NotImplementedException($"{typeName} does not implement GetPackageMetadata.");
@@ -435,14 +443,15 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// doesn't work, do a search across the metadata to find probable source repository urls
         /// </summary>
         /// <param name="purl">PackageURL to search</param>
+        /// <param name="useCache">If the source repository should be returned from the cache, if available.</param>
         /// <returns>
         /// A dictionary, mapping each possible repo source entry to its probability/empty dictionary
         /// </returns>
-        public async Task<Dictionary<PackageURL, double>> IdentifySourceRepository(PackageURL purl)
+        public async Task<Dictionary<PackageURL, double>> IdentifySourceRepository(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("IdentifySourceRepository({0})", purl);
 
-            string rawMetadataString = await GetMetadata(purl) ?? string.Empty;
+            string rawMetadataString = await GetMetadata(purl, useCache) ?? string.Empty;
             Dictionary<PackageURL, double> sourceRepositoryMap = new();
 
             // Check the specific PackageManager-specific implementation first

@@ -199,12 +199,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return downloadedPaths;
         }
 
-        /// <summary>
-        /// Check if the package exists in the respository.
-        /// </summary>
-        /// <param name="purl">The PackageURL to check.</param>
-        /// <param name="useCache">If cache should be used.</param>
-        /// <returns>True if the package is confirmed to exist in the repository. False otherwise.</returns>
+        /// <inheritdoc />
         public override async Task<bool> PackageExists(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("PackageExists {0}", purl?.ToString());
@@ -219,7 +214,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return await CheckJsonCacheForPackage(httpClient, $"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json", useCache);
         }
 
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
+        /// <inheritdoc />
+        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
 
@@ -233,7 +229,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 HttpClient httpClient = CreateHttpClient();
                 string packageName = purl.Name;
 
-                JsonDocument doc = await GetJsonCache(httpClient, $"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json");
+                JsonDocument doc = await GetJsonCache(httpClient, $"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json", useCache);
                 List<string> versionList = new();
                 foreach (JsonElement catalogPage in doc.RootElement.GetProperty("items").EnumerateArray())
                 {
@@ -291,7 +287,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
         }
 
-        public override async Task<string?> GetMetadata(PackageURL purl)
+        /// <inheritdoc />
+        public override async Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
         {
             try
             {
@@ -302,7 +299,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 }
                 HttpClient httpClient = CreateHttpClient();
 
-                string? content = await GetHttpStringCache(httpClient, $"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json");
+                string? content = await GetHttpStringCache(httpClient, $"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json", useCache);
                 return content;
             }
             catch (Exception ex)
@@ -312,13 +309,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
         }
         
-        public async Task<JsonElement?> GetVersionUriMetadata(string versionUri)
+        public async Task<JsonElement?> GetVersionUriMetadata(string versionUri, bool useCache = true)
         {
             try
             {
                 HttpClient httpClient = CreateHttpClient();
 
-                string? content = await GetHttpStringCache(httpClient, versionUri);
+                string? content = await GetHttpStringCache(httpClient, versionUri, useCache);
                 if (string.IsNullOrEmpty(content)) { return null; }
 
                 // convert NuGet package data to normalized form
@@ -338,10 +335,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
         
         /// <inheritdoc />
-        public override async Task<PackageMetadata> GetPackageMetadata(PackageURL purl)
+        public override async Task<PackageMetadata> GetPackageMetadata(PackageURL purl, bool useCache = true)
         {
             PackageMetadata metadata = new();
-            string? content = await GetMetadata(purl);
+            string? content = await GetMetadata(purl, useCache);
             if (string.IsNullOrEmpty(content)) { return metadata; }
 
             // convert NuGet package data to normalized form
@@ -386,7 +383,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     metadata.VersionUri = $"{metadata.PackageManagerUri}/packages/{metadata.Name?.ToLower()}/{versionToGet}";
                     metadata.ApiVersionUri = OssUtilities.GetJSONPropertyStringIfExists(versionElement, "@id");
 
-                    JsonElement versionContent = await this.GetVersionUriMetadata(metadata.ApiVersionUri!) ?? throw new InvalidOperationException();
+                    JsonElement versionContent = await this.GetVersionUriMetadata(metadata.ApiVersionUri!, useCache) ?? throw new InvalidOperationException();
                     
                     // Get the artifact contents url
                     JsonElement? packageContent = OssUtilities.GetJSONPropertyIfExists(versionElement, "packageContent");
@@ -396,7 +393,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     }
                     
                     // size and hash from versionContent
-                    metadata.Size = versionContent.GetProperty("packageSize").GetInt64();
+                    metadata.Size = OssUtilities.GetJSONPropertyIfExists(versionContent, "packageSize")?.GetInt64();
                     metadata.Signature ??= new List<Digest>();
                     metadata.Signature.Add(new Digest
                     {
@@ -596,7 +593,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             string uri = $"{ENV_NUGET_ENDPOINT_API}/v3-flatcontainer/{purl.Name.ToLower()}/{purl.Version}/{purl.Name.ToLower()}.nuspec";
             try
             {
-                using HttpClient httpClient = this.CreateHttpClient();
+                HttpClient httpClient = this.CreateHttpClient();
                 HttpResponseMessage response = httpClient.GetAsync(uri).GetAwaiter().GetResult();
                 using (Stream stream = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult())
                 {

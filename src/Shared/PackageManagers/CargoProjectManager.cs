@@ -84,12 +84,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return downloadedPaths;
         }
 
-        /// <summary>
-        /// Check if the package exists in the respository.
-        /// </summary>
-        /// <param name="purl">The PackageURL to check.</param>
-        /// <param name="useCache">If cache should be used.</param>
-        /// <returns>True if the package is confirmed to exist in the repository. False otherwise.</returns>
+        /// <inheritdoc />
         public override async Task<bool> PackageExists(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("PackageExists {0}", purl?.ToString());
@@ -103,12 +98,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return await CheckJsonCacheForPackage(httpClient, $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}", useCache);
         }
 
-        /// <summary>
-        ///     Enumerates all possible versions of the package identified by purl.
-        /// </summary>
-        /// <param name="purl">Package URL specifying the package. Version is ignored.</param>
-        /// <returns> A list of package versions </returns>
-        public override async Task<IEnumerable<string>> EnumerateVersions( PackageURL purl)
+        /// <inheritdoc />
+        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
             if (purl == null || purl.Name is null)
@@ -142,18 +133,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
         }
 
-        /// <summary>
-        ///     Gathers metadata (in no specific format) about the package.
-        /// </summary>
-        /// <param name="purl"> Package URL for the package </param>
-        /// <returns> Metadata as a string </returns>
-        public override async Task<string?> GetMetadata(PackageURL purl)
+        /// <inheritdoc />
+        public override async Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
         {
             try
             {
                 string? packageName = purl.Name;
                 HttpClient httpClient = CreateHttpClient();
-                string? content = await GetHttpStringCache(httpClient, $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}");
+                string? content = await GetHttpStringCache(httpClient, $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}", useCache);
                 return content;
             }
             catch (Exception ex)

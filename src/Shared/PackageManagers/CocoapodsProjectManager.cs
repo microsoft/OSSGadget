@@ -115,12 +115,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return downloadedPaths;
         }
 
-        /// <summary>
-        /// Check if the package exists in the respository.
-        /// </summary>
-        /// <param name="purl">The PackageURL to check.</param>
-        /// <param name="useCache">If cache should be used.</param>
-        /// <returns>True if the package is confirmed to exist in the repository. False otherwise.</returns>
+        /// <inheritdoc />
         public override async Task<bool> PackageExists(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("PackageExists {0}", purl?.ToString());
@@ -136,7 +131,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return await CheckHttpCacheForPackage(httpClient, $"{ENV_COCOAPODS_SPECS_ENDPOINT}/Specs/{prefix}/{packageName}", useCache);
         }
 
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
+        /// <inheritdoc />
+        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
             if (purl == null)
@@ -193,13 +189,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return prefix;
         }
 
-        public override async Task<string?> GetMetadata(PackageURL purl)
+        /// <inheritdoc />
+        public override async Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
         {
             try
             {
                 HttpClient httpClient = CreateHttpClient();
                 string? packageName = purl.Name;
-                string? cocoapodsWebContent = await GetHttpStringCache(httpClient, $"{ENV_COCOAPODS_METADATA_ENDPOINT}/pods/{packageName}");
+                string? cocoapodsWebContent = await GetHttpStringCache(httpClient, $"{ENV_COCOAPODS_METADATA_ENDPOINT}/pods/{packageName}", useCache);
                 string? podSpecContent = "";
 
                 HtmlParser parser = new();

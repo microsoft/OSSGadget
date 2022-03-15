@@ -177,7 +177,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return downloadedPaths;
         }
 
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
+        /// <inheritdoc />
+        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
 
@@ -202,7 +203,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 // Now load the archive page, which will show all of the versions in each of the .dsc files there.
                 try
                 {
-                    string? html = await GetHttpStringCache(httpClient, archiveBaseUrl, neverThrow: true);
+                    string? html = await GetHttpStringCache(httpClient, archiveBaseUrl, useCache: useCache, neverThrow: true);
                     if (html == null)
                     {
                         continue;
@@ -243,7 +244,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return SortVersions(versionList.Distinct());
         }
 
-        public override async Task<string?> GetMetadata(PackageURL purl)
+        public override async Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("GetMetadata {0}", purl?.ToString());
 
@@ -258,7 +259,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {
                 try
                 {
-                    string? html = await GetHttpStringCache(httpClient, distroUrlPrefix, neverThrow: true);
+                    string? html = await GetHttpStringCache(httpClient, distroUrlPrefix, useCache: useCache, neverThrow: true);
                     if (html != null)
                     {
                         AngleSharp.Html.Dom.IHtmlDocument? document = await new HtmlParser().ParseDocumentAsync(html);
@@ -288,7 +289,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 {
                     try
                     {
-                        string? searchResults = await GetHttpStringCache(httpClient, $"{ENV_UBUNTU_ENDPOINT}/search?keywords={purl.Name}&searchon=names&exact=1&suite=all&section=all");
+                        string? searchResults = await GetHttpStringCache(httpClient, $"{ENV_UBUNTU_ENDPOINT}/search?keywords={purl.Name}&searchon=names&exact=1&suite=all&section=all", useCache);
                         HtmlParser parser = new();
                         AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(searchResults);
                         AngleSharp.Dom.IHtmlCollection<AngleSharp.Dom.IElement> anchorItems = document.QuerySelectorAll("a.resultlink");

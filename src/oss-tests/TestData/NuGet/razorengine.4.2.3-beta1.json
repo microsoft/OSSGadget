@@ -1,0 +1,148 @@
+{
+  "@id": "https://api.nuget.org/v3/catalog0/data/2022.03.11.23.17.27/razorengine.4.2.3-beta1.json",
+  "@type": [
+    "PackageDetails",
+    "catalog:Permalink"
+  ],
+  "authors": "Matthew Abbott, Ben Dornis, Matthias Dittrich",
+  "catalog:commitId": "c6bb0713-e534-4b16-8fdc-e199a77a6d73",
+  "catalog:commitTimeStamp": "2022-03-11T23:17:27.9312336Z",
+  "copyright": "Copyright 2015",
+  "created": "2015-10-06T17:53:46.37Z",
+  "description": "RazorEngine - A Templating Engine based on the Razor parser.",
+  "id": "RazorEngine",
+  "isPrerelease": true,
+  "lastEdited": "2022-03-11T23:16:57.773Z",
+  "licenseUrl": "https://github.com/Antaris/RazorEngine/blob/master/LICENSE.md",
+  "listed": true,
+  "packageHash": "UD85NR8qDWi+fSoCCwFqqEmHSl7i4whNrg3TFA1cmj+dyLMkf4UrPKO4YNrYfJUw9YdNWU6PSzapg7B3FS7hgA==",
+  "packageHashAlgorithm": "SHA512",
+  "packageSize": 161364,
+  "projectUrl": "https://github.com/Antaris/RazorEngine",
+  "published": "2015-10-06T17:53:46.37Z",
+  "releaseNotes": "Template Run performance optimizations (https://github.com/Antaris/RazorEngine/pull/328)\nUpdate to Razor4-beta7 (https://github.com/Antaris/RazorEngine/pull/319)",
+  "requireLicenseAcceptance": false,
+  "summary": "Simple templating using Razor syntax.",
+  "title": "RazorEngine",
+  "verbatimVersion": "4.2.3-beta1",
+  "version": "4.2.3-beta1",
+  "dependencyGroups": [
+    {
+      "@id": "https://api.nuget.org/v3/catalog0/data/2022.03.11.23.17.27/razorengine.4.2.3-beta1.json#dependencygroup",
+      "@type": "PackageDependencyGroup",
+      "dependencies": [
+        {
+          "@id": "https://api.nuget.org/v3/catalog0/data/2022.03.11.23.17.27/razorengine.4.2.3-beta1.json#dependencygroup/microsoft.aspnet.razor",
+          "@type": "PackageDependency",
+          "id": "Microsoft.AspNet.Razor",
+          "range": "[4.0.0-beta7, 4.0.0-beta7]"
+        }
+      ]
+    }
+  ],
+  "packageEntries": [
+    {
+      "@id": "https://api.nuget.org/v3/catalog0/data/2022.03.11.23.17.27/razorengine.4.2.3-beta1.json#RazorEngine.nuspec",
+      "@type": "PackageEntry",
+      "compressedLength": 530,
+      "fullName": "RazorEngine.nuspec",
+      "length": 1160,
+      "name": "RazorEngine.nuspec"
+    },
+    {
+      "@id": "https://api.nuget.org/v3/catalog0/data/2022.03.11.23.17.27/razorengine.4.2.3-beta1.json#lib/net45/RazorEngine.dll",
+      "@type": "PackageEntry",
+      "compressedLength": 106102,
+      "fullName": "lib/net45/RazorEngine.dll",
+      "length": 279552,
+      "name": "RazorEngine.dll"
+    },
+    {
+      "@id": "https://api.nuget.org/v3/catalog0/data/2022.03.11.23.17.27/razorengine.4.2.3-beta1.json#lib/net45/RazorEngine.xml",
+      "@type": "PackageEntry",
+      "compressedLength": 38642,
+      "fullName": "lib/net45/RazorEngine.xml",
+      "length": 435244,
+      "name": "RazorEngine.xml"
+    },
+    {
+      "@id": "https://api.nuget.org/v3/catalog0/data/2022.03.11.23.17.27/razorengine.4.2.3-beta1.json#LICENSE.md",
+      "@type": "PackageEntry",
+      "compressedLength": 3537,
+      "fullName": "LICENSE.md",
+      "length": 9505,
+      "name": "LICENSE.md"
+    },
+    {
+      "@id": "https://api.nuget.org/v3/catalog0/data/2022.03.11.23.17.27/razorengine.4.2.3-beta1.json#.signature.p7s",
+      "@type": "PackageEntry",
+      "compressedLength": 9493,
+      "fullName": ".signature.p7s",
+      "length": 9493,
+      "name": ".signature.p7s"
+    }
+  ],
+  "tags": [
+    "C#",
+    "razor",
+    "template",
+    "engine",
+    "programming"
+  ],
+  "vulnerabilities": [
+    {
+      "@id": "https://api.nuget.org/v3/catalog0/data/2022.03.11.23.17.27/razorengine.4.2.3-beta1.json#vulnerability/GitHub/12424",
+      "@type": "Vulnerability",
+      "advisoryUrl": "https://github.com/advisories/GHSA-ph3v-2hq5-5qfq",
+      "severity": "1"
+    }
+  ],
+  "@context": {
+    "@vocab": "http://schema.nuget.org/schema#",
+    "catalog": "http://schema.nuget.org/catalog#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dependencies": {
+      "@id": "dependency",
+      "@container": "@set"
+    },
+    "dependencyGroups": {
+      "@id": "dependencyGroup",
+      "@container": "@set"
+    },
+    "packageEntries": {
+      "@id": "packageEntry",
+      "@container": "@set"
+    },
+    "packageTypes": {
+      "@id": "packageType",
+      "@container": "@set"
+    },
+    "supportedFrameworks": {
+      "@id": "supportedFramework",
+      "@container": "@set"
+    },
+    "tags": {
+      "@id": "tag",
+      "@container": "@set"
+    },
+    "vulnerabilities": {
+      "@id": "vulnerability",
+      "@container": "@set"
+    },
+    "published": {
+      "@type": "xsd:dateTime"
+    },
+    "created": {
+      "@type": "xsd:dateTime"
+    },
+    "lastEdited": {
+      "@type": "xsd:dateTime"
+    },
+    "catalog:commitTimeStamp": {
+      "@type": "xsd:dateTime"
+    },
+    "reasons": {
+      "@container": "@set"
+    }
+  }
+}

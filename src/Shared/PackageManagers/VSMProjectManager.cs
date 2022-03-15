@@ -160,7 +160,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return downloadedPaths;
         }
 
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
+        /// <inheritdoc />
+        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
 
@@ -245,13 +246,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
         }
 
-        public override async Task<string?> GetMetadata(PackageURL purl)
+        public override async Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
         {
             try
             {
                 HttpClient httpClient = CreateHttpClient();
 
-                return await GetHttpStringCache(httpClient, $"{ENV_VS_MARKETPLACE_ENDPOINT}/items?itemName={purl.Namespace}/{purl.Name}");
+                return await GetHttpStringCache(httpClient, $"{ENV_VS_MARKETPLACE_ENDPOINT}/items?itemName={purl.Namespace}/{purl.Name}", useCache);
             }
             catch (Exception ex)
             {

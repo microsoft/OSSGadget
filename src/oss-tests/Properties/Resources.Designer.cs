@@ -79,11 +79,20 @@ namespace oss {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {}.
+        ///   Looks up a localized string similar to {&quot;_id&quot;:&quot;lodash&quot;,&quot;_rev&quot;:&quot;2650-7b310ba0ce49a17115204773ce251b7f&quot;,&quot;name&quot;:&quot;lodash&quot;,&quot;description&quot;:&quot;Lodash modular utilities.&quot;,&quot;dist-tags&quot;:{&quot;latest&quot;:&quot;4.17.21&quot;},&quot;versions&quot;:{&quot;0.1.0&quot;:{&quot;name&quot;:&quot;lodash&quot;,&quot;version&quot;:&quot;0.1.0&quot;,&quot;description&quot;:&quot;A drop-in replacement for Underscore.js that delivers up to 8x performance improvements, bug fixes, and additional features.&quot;,&quot;homepage&quot;:&quot;https://github.com/bestiejs/lodash&quot;,&quot;main&quot;:&quot;lodash&quot;,&quot;keywords&quot;:[&quot;browser&quot;,&quot;client&quot;,&quot;functional&quot;,&quot;performance&quot;,&quot;server&quot;,&quot;speed&quot;,&quot;util&quot;],&quot;licenses&quot;:[{&quot;t [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string lodash_json {
             get {
                 return ResourceManager.GetString("lodash.json", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;_id&quot;:&quot;example&quot;,&quot;name&quot;:&quot;example&quot;,&quot;dist-tags&quot;:{&quot;latest&quot;:&quot;0.0.0&quot;},&quot;versions&quot;:{&quot;0.0.0&quot;:{&quot;name&quot;:&quot;example&quot;,&quot;version&quot;:&quot;0.0.0&quot;,&quot;_id&quot;:&quot;example@0.0.0&quot;,&quot;_npmVersion&quot;:&quot;1.0.0&quot;,&quot;_npmUser&quot;:{&quot;name&quot;:&quot;test&quot;,&quot;email&quot;:&quot;test@microsoft.com&quot;}}}}.
+        /// </summary>
+        internal static string minimum_json_json {
+            get {
+                return ResourceManager.GetString("minimum_json.json", resourceCulture);
             }
         }
         
@@ -93,6 +102,35 @@ namespace oss {
         internal static string monorepolint_json {
             get {
                 return ResourceManager.GetString("monorepolint.json", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  &quot;@id&quot;: &quot;https://api.nuget.org/v3/catalog0/data/2022.03.11.23.17.27/razorengine.4.2.3-beta1.json&quot;,
+        ///  &quot;@type&quot;: [
+        ///    &quot;PackageDetails&quot;,
+        ///    &quot;catalog:Permalink&quot;
+        ///  ],
+        ///  &quot;authors&quot;: &quot;Matthew Abbott, Ben Dornis, Matthias Dittrich&quot;,
+        ///  &quot;catalog:commitId&quot;: &quot;c6bb0713-e534-4b16-8fdc-e199a77a6d73&quot;,
+        ///  &quot;catalog:commitTimeStamp&quot;: &quot;2022-03-11T23:17:27.9312336Z&quot;,
+        ///  &quot;copyright&quot;: &quot;Copyright 2015&quot;,
+        ///  &quot;created&quot;: &quot;2015-10-06T17:53:46.37Z&quot;,
+        ///  &quot;description&quot;: &quot;RazorEngine - A Templating Engine based on the Razor parser [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string razorengine_4_2_3_beta1_json {
+            get {
+                return ResourceManager.GetString("razorengine.4.2.3-beta1.json", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;@id&quot;:&quot;https://api.nuget.org/v3/registration5-gz-semver2/razorengine/index.json&quot;,&quot;@type&quot;:[&quot;catalog:CatalogRoot&quot;,&quot;PackageRegistration&quot;,&quot;catalog:Permalink&quot;],&quot;commitId&quot;:&quot;b44e2827-f5db-4ba2-bb8c-5e538ad0e7b1&quot;,&quot;commitTimeStamp&quot;:&quot;2022-03-11T23:18:21.9196828+00:00&quot;,&quot;count&quot;:2,&quot;items&quot;:[{&quot;@id&quot;:&quot;https://api.nuget.org/v3/registration5-gz-semver2/razorengine/index.json#page/2.1.0/4.1.5-beta1&quot;,&quot;@type&quot;:&quot;catalog:CatalogPage&quot;,&quot;commitId&quot;:&quot;b44e2827-f5db-4ba2-bb8c-5e538ad0e7b1&quot;,&quot;commitTimeStamp&quot;:&quot;2022-03-11T23:18:21.9196828+0 [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string razorengine_json {
+            get {
+                return ResourceManager.GetString("razorengine.json", resourceCulture);
             }
         }
         

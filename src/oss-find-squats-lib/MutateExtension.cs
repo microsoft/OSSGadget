@@ -156,15 +156,9 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
             {
                 foreach ((string candidatePurlString, IList<Mutation> mutations) in candidateMutations)
                 {
-                    bool useCache = true;
                     if (options?.SleepDelay > 0)
                     {
                         Thread.Sleep(options.SleepDelay);
-                    }
-
-                    if (options?.UseCache == false)
-                    {
-                        useCache = false;
                     }
 
                     // Create the purl from the mutation to see if it exists.
@@ -172,7 +166,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
                     FindPackageSquatResult? res = null;
                     try
                     {
-                        if (await manager.PackageExists(candidatePurl, useCache))
+                        if (await manager.PackageExists(candidatePurl, options?.UseCache ?? true))
                         {
                             // The candidate mutation exists on the package registry.
                             res = new FindPackageSquatResult(

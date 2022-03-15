@@ -91,9 +91,9 @@ namespace Microsoft.CST.OpenSource
                     try
                     {
                         PackageURL purl = new(target);
-                        Console.WriteLine($"Metadata for: {purl}");
+                        Logger.Info($"Collecting metadata for {purl}");
                         PackageMetadata? metadata = await GetPackageMetadata(purl, HttpClientFactory, options.UseCache);
-                        Console.WriteLine(metadata?.ToString());
+                        Logger.Info(metadata?.ToString());
                     }
                     catch (Exception ex)
                     {

@@ -10,6 +10,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
     using PackageUrl;
     using RichardSzalay.MockHttp;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
@@ -52,6 +53,17 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             Assert.AreEqual(purl.Name, metadata.Name, ignoreCase: true);
             Assert.AreEqual(purl.Version, metadata.PackageVersion);
             Assert.AreEqual(description, metadata.Description);
+        }
+        
+        [DataTestMethod]
+        [DataRow("pkg:nuget/razorengine", 84, "4.5.1-alpha001")]
+        public async Task EnumerateVersionsSucceeds(string purlString, int count, string latestVersion)
+        {
+            PackageURL purl = new(purlString);
+            List<string> versions = (await _projectManager.EnumerateVersions(purl, useCache: false)).ToList();
+
+            Assert.AreEqual(count, versions.Count);
+            Assert.AreEqual(latestVersion, versions.First());
         }
         
         private static void MockHttpFetchResponse(

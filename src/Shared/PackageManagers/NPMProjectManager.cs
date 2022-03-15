@@ -147,6 +147,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return GetVersionElement(contentJSON, maxVersion);
         }
 
+        /// <inheritdoc />
         public override async Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
         {
             try

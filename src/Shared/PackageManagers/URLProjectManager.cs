@@ -86,6 +86,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             };
         }
 
+        /// <inheritdoc />
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         public override async Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously

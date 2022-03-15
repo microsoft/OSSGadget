@@ -226,6 +226,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
         }
 
+        /// <inheritdoc />
         public override async Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
         {
             await Task.CompletedTask;

@@ -33,6 +33,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         private string? RegistrationEndpoint { get; set; } = null;
 
+        private SourceCacheContext _sourceCacheContext = new();
+        private SourceRepository _sourceRepository = NuGet.Protocol.Core.Types.Repository.Factory.GetCoreV3("https://api.nuget.org/v3/index.json");
+
         public NuGetProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
         {
             GetRegistrationEndpointAsync().Wait();
@@ -109,35 +112,45 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             try
             {
-                HttpClient httpClient = CreateHttpClient();
-                JsonDocument doc = await GetJsonCache(httpClient, $"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json");
-                JsonElement? catalogEntry = await GetCatalogEntry(doc, purl);
-                if(catalogEntry is not null) {
-                    string? archive = catalogEntry?.GetProperty("packageContent").GetString();
-                    HttpResponseMessage? result = await httpClient.GetAsync(archive);
-                    result.EnsureSuccessStatusCode();
-                    Logger.Debug("Downloading {0}...", purl?.ToString());
+                CancellationToken cancellationToken = CancellationToken.None;
 
-                    string? targetName = $"nuget-{packageName}@{packageVersion}";
-                    string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
-                    if (doExtract && Directory.Exists(extractionPath) && cached == true)
-                    {
-                        downloadedPaths.Add(extractionPath);
-                        return downloadedPaths;
-                    }
+                FindPackageByIdResource resource = await _sourceRepository.GetResourceAsync<FindPackageByIdResource>();
 
-                    if (doExtract)
-                    {
-                        downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync(), cached));
-                    }
-                    else
-                    {
-                        targetName += Path.GetExtension(archive) ?? "";
-                        await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
-                        downloadedPaths.Add(targetName);
-                    }
+                PackageIdentity packageIdentity = new(purl.Name, NuGetVersion.Parse(purl.Version));
+
+                IPackageDownloader? downloader = await resource.GetPackageDownloaderAsync(
+                    packageIdentity,
+                    _sourceCacheContext,
+                    NullLogger.Instance, 
+                    cancellationToken);
+                
+                string? targetName = $"nuget-{packageName}@{packageVersion}";
+                string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
+                if (doExtract && Directory.Exists(extractionPath) && cached)
+                {
+                    downloadedPaths.Add(extractionPath);
                     return downloadedPaths;
                 }
+
+                
+                if (doExtract)
+                {
+                    IEnumerable<string>? files = await downloader.CoreReader.GetFilesAsync(extractionPath, cancellationToken);
+                    if (files is not null && files.Any())
+                    {
+                        downloadedPaths.Add(extractionPath);
+                    }
+                }
+                else
+                {
+                    targetName += ".nupkg";
+                    string filePath = Path.Combine(TopLevelExtractionDirectory, targetName);
+                    if (await downloader.CopyNupkgFileToAsync(filePath, cancellationToken))
+                    {
+                        downloadedPaths.Add(filePath);
+                    }
+                }
+                return downloadedPaths;
             }
             catch (Exception ex)
             {
@@ -173,16 +186,17 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             try
             {
-                HttpClient httpClient = CreateHttpClient();
-                string packageName = purl.Name;
+                CancellationToken cancellationToken = CancellationToken.None;
 
-                JsonDocument doc = await GetJsonCache(httpClient, $"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json", useCache);
+                FindPackageByIdResource resource = await _sourceRepository.GetResourceAsync<FindPackageByIdResource>();
+
+                IEnumerable<NuGetVersion> versions = await resource.GetAllVersionsAsync(
+                    purl.Name,
+                    _sourceCacheContext,
+                    NullLogger.Instance, 
+                    cancellationToken);
                 
-                // Get the list of versions from all catalog entries, including pagination.
-                IEnumerable<string> versionList = (await GetCatalogEntries(doc, purl)).Select(e => e.Key);
-                
-                // Sort the versions after getting only the distinct elements.
-                return SortVersions(versionList.Distinct());
+                return versions.Select(v => v.ToString());
             }
             catch (Exception ex)
             {
@@ -223,61 +237,58 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
             CancellationToken cancellationToken = CancellationToken.None;
 
-            SourceCacheContext cache = new SourceCacheContext();
-            SourceRepository repository = NuGet.Protocol.Core.Types.Repository.Factory.GetCoreV3("https://api.nuget.org/v3/index.json");
-            PackageMetadataResource resource = await repository.GetResourceAsync<PackageMetadataResource>();
+            PackageMetadataResource resource = await _sourceRepository.GetResourceAsync<PackageMetadataResource>();
 
-            IEnumerable<IPackageSearchMetadata> packages = await resource.GetMetadataAsync(
-                purl.Name,
-                includePrerelease: true,
-                includeUnlisted: false,
-                cache,
-                NullLogger.Instance,
-                cancellationToken);
+            string latestVersion = (await EnumerateVersions(purl, useCache)).Last();
 
-            IEnumerable<IPackageSearchMetadata> packagesList = packages.ToList();
-            PackageSearchMetadataRegistration? packageVersion = packagesList.Single(p => p.Identity.Version.OriginalVersion == purl.Version) as PackageSearchMetadataRegistration;
+            PackageIdentity packageIdentity = !string.IsNullOrEmpty(purl.Version) ? 
+                new PackageIdentity(purl.Name, NuGetVersion.Parse(purl.Version)) : 
+                new PackageIdentity(purl.Name, NuGetVersion.Parse(latestVersion));
+            
+            PackageSearchMetadataRegistration? packageVersion = await resource.GetMetadataAsync(
+                packageIdentity,
+                _sourceCacheContext,
+                NullLogger.Instance, 
+                cancellationToken) as PackageSearchMetadataRegistration;
 
             if (packageVersion is null)
             {
                 throw new NullReferenceException();
             }
+
             PackageMetadata metadata = new();
 
             metadata.Name = packageVersion.PackageId;
             metadata.Description = packageVersion.Description;
-            
+
             // Title is different than name or description for NuGet packages, not always used.
-            // metadata.Title = GetLatestCatalogEntry(root).GetProperty("title").GetString();
+            // metadata.Title = packageVersion.Title;
 
             metadata.PackageManagerUri = ENV_NUGET_ENDPOINT_API;
             metadata.Platform = "NUGET";
             metadata.Language = "C#";
-            metadata.PackageUri = $"{metadata.PackageManagerUri}/packages/{metadata.Name?.ToLowerInvariant()}";
+            metadata.PackageUri = $"{ENV_NUGET_HOMEPAGE}/{metadata.Name?.ToLowerInvariant()}";
             metadata.ApiPackageUri = $"{RegistrationEndpoint}{metadata.Name?.ToLowerInvariant()}/index.json";
 
-            IEnumerable<Version> versions = packagesList.Select(p => new Version(p.Identity.Version.ToString()));
-            Version? latestVersion = GetLatestVersion(versions.ToList());
-
-            metadata.PackageVersion = purl.Version ?? latestVersion?.ToString();
+            metadata.PackageVersion = purl.Version ?? latestVersion;
+            metadata.LatestPackageVersion = latestVersion;
 
             // if we found any version at all, get the info
             if (metadata.PackageVersion != null)
             {
-                Version versionToGet = new(metadata.PackageVersion);
                 string? nameLowercase = metadata.Name?.ToLowerInvariant();
 
                 // Set the version specific URI values.
-                metadata.VersionUri = $"{metadata.PackageManagerUri}/packages/{nameLowercase}/{versionToGet}";
+                metadata.VersionUri = $"{metadata.PackageManagerUri}/packages/{nameLowercase}/{metadata.PackageVersion}";
                 metadata.ApiVersionUri = packageVersion.CatalogUri.ToString();
                 
                 // Construct the artifact contents url.
-                metadata.VersionDownloadUri = GetNupkgUrl(purl);
+                metadata.VersionDownloadUri = GetNupkgUrl(metadata.Name!, metadata.PackageVersion);
 
                 // TODO: size and hash
 
                 // homepage
-                metadata.Homepage = packageVersion.ProjectUrl.ToString();
+                metadata.Homepage = packageVersion.ProjectUrl?.ToString();
 
                 // author(s)
                 string? author = packageVersion.Authors;
@@ -289,17 +300,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
                 // TODO: maintainers
 
+                // .nuspec parsing
+
                 // repository
-                PackageURL nuspecPurl = purl;
-
-                // If no version specified, get it for the latest version
-                if (nuspecPurl.Version.IsBlank())
-                {
-                    nuspecPurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, metadata.PackageVersion,
-                        purl.Qualifiers, purl.Subpath);
-                }
-
-                NuspecReader? nuspecReader = GetNuspec(nuspecPurl);
+                NuspecReader? nuspecReader = GetNuspec(metadata.Name!, metadata.PackageVersion);
                 RepositoryMetadata? repositoryMetadata = nuspecReader?.GetRepositoryMetadata();
                 if (repositoryMetadata != null)
                 {
@@ -318,14 +322,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 }
                 
                 // dependencies
-                IList<PackageDependencyGroup>? dependencyGroups = nuspecReader?.GetDependencyGroups().ToList();
-                if (dependencyGroups is not null && dependencyGroups.Any())
+                IList<PackageDependencyGroup> dependencyGroups = packageVersion.DependencySets.ToList();
+                if (dependencyGroups.Any())
                 {
                     metadata.Dependencies ??= new List<Dependency>();
 
                     foreach (PackageDependencyGroup dependencyGroup in dependencyGroups)
                     {
-                        dependencyGroup.Packages.ToList().ForEach((dependency) => metadata.Dependencies.Add(new Dependency() { Package = dependency.ToString(), Framework = dependencyGroup.TargetFramework.ToString()}));
+                        dependencyGroup.Packages.ToList().ForEach((dependency) => metadata.Dependencies.Add(new Dependency() { Package = dependency.ToString(), Framework = dependencyGroup.TargetFramework?.ToString()}));
                     }
                 }
 
@@ -345,11 +349,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
                 // publishing info
                 metadata.UploadTime = packageVersion.Published?.ToString("MM/dd/yy HH:mm:ss zz");
-            }
-
-            if (latestVersion is not null)
-            {
-                metadata.LatestPackageVersion = latestVersion.ToString();
             }
 
             return metadata;
@@ -448,26 +447,29 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <summary>
         /// Helper method to get the URL to download a NuGet package's .nupkg.
         /// </summary>
-        /// <param name="purl">The <see cref="PackageURL"/> to get the .nupkg for.</param>
+        /// <param name="id">The id/name of the package to get the .nupkg for.</param>
+        /// <param name="version">The version of the package to get the .nupkg for.</param>
         /// <returns>The URL for the nupkg file.</returns>
-        private static string GetNupkgUrl(PackageURL purl)
+        private static string GetNupkgUrl(string id, string version)
         {
-            string lowerId = purl.Name.ToLowerInvariant();
-            string lowerVersion = NuGetVersion.Parse(purl.Version).ToNormalizedString().ToLowerInvariant();
+            string lowerId = id.ToLowerInvariant();
+            string lowerVersion = NuGetVersion.Parse(version).ToNormalizedString().ToLowerInvariant();
             string url = $"{NUGET_DEFAULT_CONTENT_ENDPOINT.TrimEnd('/')}/{lowerId}/{lowerVersion}/{lowerId}.{lowerVersion}.nupkg";
             return url;
         }
         
-        private NuspecReader? GetNuspec(PackageURL purl)
+        private NuspecReader? GetNuspec(string id, string version)
         {
-            string uri = $"{NUGET_DEFAULT_CONTENT_ENDPOINT}{purl.Name.ToLower()}/{purl.Version}/{purl.Name.ToLower()}.nuspec";
+            string lowerId = id.ToLowerInvariant();
+            string lowerVersion = NuGetVersion.Parse(version).ToNormalizedString().ToLowerInvariant();
+            string uri = $"{NUGET_DEFAULT_CONTENT_ENDPOINT.TrimEnd('/')}/{lowerId}/{lowerVersion}/{lowerId}.nuspec";
             try
             {
                 HttpClient httpClient = this.CreateHttpClient();
                 HttpResponseMessage response = httpClient.GetAsync(uri).GetAwaiter().GetResult();
                 using (Stream stream = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult())
                 {
-                    return new(stream);
+                    return new NuspecReader(stream);
                 }
             }
             catch

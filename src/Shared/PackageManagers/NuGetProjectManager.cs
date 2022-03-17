@@ -93,8 +93,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <summary>
         /// Download one NuGet package and extract it to the target directory.
         /// </summary>
-        /// <param name="purl"> Package URL of the package to download. </param>
-        /// <returns> n/a </returns>
+        /// <remarks>The target directory is defined when creating the <see cref="NuGetProjectManager"/> in the subdirectory named `nuget-{packagename}@{packageversion}`</remarks>
+        /// <param name="purl">The <see cref="PackageURL"/> of the package to download.</param>
+        /// <param name="doExtract">If the contents of the .nupkg should be extracted into a directory.</param>
+        /// <param name="cached">If the downloaded contents should be retrieved from the cache if they exist there.</param>
+        /// <returns>An IEnumerable list of the path(s) the contents were downloaded to.</returns>
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl.ToString());
@@ -147,7 +150,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 {
                     targetName += ".nupkg";
                     string filePath = Path.Combine(TopLevelExtractionDirectory, targetName);
-                    await File.WriteAllBytesAsync(targetName, packageStream.ToArray());
+                    await File.WriteAllBytesAsync(filePath, packageStream.ToArray());
                     downloadedPaths.Add(filePath);
                 }
 
@@ -169,10 +172,19 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 Logger.Trace("Provided PackageURL was null.");
                 return false;
             }
-            string packageName = purl.Name;
-            HttpClient httpClient = CreateHttpClient();
 
-            return await CheckJsonCacheForPackage(httpClient, $"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json", useCache);
+            CancellationToken cancellationToken = CancellationToken.None;
+
+            FindPackageByIdResource resource = await _sourceRepository.GetResourceAsync<FindPackageByIdResource>();
+
+            bool exists = await resource.DoesPackageExistAsync(
+                purl.Name,
+                NuGetVersion.Parse(purl.Version),
+                _sourceCacheContext,
+                NullLogger.Instance, 
+                cancellationToken);
+
+            return exists;
         }
 
         /// <inheritdoc />
@@ -212,15 +224,29 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
             try
             {
-                string? packageName = purl?.Name;
+                string? packageName = purl.Name;
                 if (packageName == null)
                 {
                     return null;
                 }
-                HttpClient httpClient = CreateHttpClient();
 
-                string? content = await GetHttpStringCache(httpClient, $"{RegistrationEndpoint}{packageName.ToLowerInvariant()}/index.json", useCache);
-                return content;
+                CancellationToken cancellationToken = CancellationToken.None;
+
+                PackageMetadataResource resource = await _sourceRepository.GetResourceAsync<PackageMetadataResource>();
+
+                string latestVersion = (await EnumerateVersions(purl, useCache)).Last();
+
+                PackageIdentity packageIdentity = !string.IsNullOrEmpty(purl.Version) ? 
+                    new PackageIdentity(purl.Name, NuGetVersion.Parse(purl.Version)) : 
+                    new PackageIdentity(purl.Name, NuGetVersion.Parse(latestVersion));
+            
+                PackageSearchMetadataRegistration? packageVersion = await resource.GetMetadataAsync(
+                    packageIdentity,
+                    _sourceCacheContext,
+                    NullLogger.Instance, 
+                    cancellationToken) as PackageSearchMetadataRegistration;
+
+                return packageVersion?.ToJson();
             }
             catch (Exception ex)
             {
@@ -354,96 +380,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
 
             return metadata;
-        }
-
-        private async Task<JsonElement?> GetCatalogEntry(JsonDocument doc, PackageURL purl)
-        {
-            Dictionary<string, JsonElement> entries = await GetCatalogEntries(doc, purl, true);
-            if (entries.Count == 1 && entries.First().Key == purl.Version)
-            {
-                return entries.First().Value;
-            }
-
-            return null;
-        }
-
-        private async Task<Dictionary<string, JsonElement>> GetCatalogEntries(JsonDocument doc, PackageURL purl, bool specificVersion = false)
-        {
-            Dictionary<string, JsonElement> catalogEntries = new();
-            string? packageName = purl.Name;
-            string? packageVersion = purl.Version;
-            HttpClient httpClient = CreateHttpClient();
-            foreach (JsonElement catalogPage in doc.RootElement.GetProperty("items").EnumerateArray())
-            {
-                if (catalogPage.TryGetProperty("items", out JsonElement itemElement))
-                {
-                    foreach (JsonElement item in itemElement.EnumerateArray())
-                    {
-                        (string Version, JsonElement Element)? entry = GetCatalogEntryFromItem(item, packageName);
-                        if (entry == null) continue;
-                        if (specificVersion && entry.Value.Version == packageVersion)
-                        {
-                            return new Dictionary<string, JsonElement>()
-                            {
-                                { entry.Value.Version, entry.Value.Element }
-                            };
-                        }
-
-                        if(!specificVersion)
-                        {
-                            catalogEntries.Add(entry.Value.Version, entry.Value.Element);
-                        }
-
-                    }
-                }
-                else
-                {
-                    string? subDocUrl = catalogPage.GetProperty("@id").GetString();
-                    if (subDocUrl != null)
-                    {
-                        JsonDocument subDoc = await GetJsonCache(httpClient, subDocUrl);
-                        foreach (JsonElement item in subDoc.RootElement.GetProperty("items").EnumerateArray())
-                        {
-                            (string Version, JsonElement Element)? entry = GetCatalogEntryFromItem(item, packageName);
-                            if (entry == null) continue;
-                            if (specificVersion && entry.Value.Version == packageVersion)
-                            {
-                                return new Dictionary<string, JsonElement>()
-                                {
-                                    { entry.Value.Version, entry.Value.Element }
-                                };
-                            }
-
-                            if(!specificVersion)
-                            {
-                                catalogEntries.Add(entry.Value.Version, entry.Value.Element);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        Logger.Debug("Catalog identifier was null.");
-                    }
-                }
-            }
-
-            return catalogEntries;
-        }
-
-        private static (string Version, JsonElement Element)? GetCatalogEntryFromItem(JsonElement item, string packageName)
-        {
-            JsonElement catalogEntry = item.GetProperty("catalogEntry");
-            string? version = catalogEntry.GetProperty("version").GetString();
-            if (version != null)
-            {
-                Logger.Debug("Identified {0} version {1}.", packageName, version);
-                return (version, catalogEntry);
-            }
-
-            Logger.Debug("Identified {0} version NULL. This might indicate a parsing error.",
-                packageName);
-
-            return null;
         }
 
         /// <summary>

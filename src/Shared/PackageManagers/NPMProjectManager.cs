@@ -112,19 +112,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 HttpClient httpClient = CreateHttpClient();
 
                 JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}", useCache);
-                Dictionary<string, DateTime> versionDictionary = new();
-                if(doc.RootElement.TryGetProperty("time", out JsonElement time))
-                {
-                    foreach (JsonProperty versionKey in time.EnumerateObject())
-                    {
-                        if (!versionKey.NameEquals("modified") && !versionKey.NameEquals("created"))
-                        {
-                            Logger.Debug("Identified {0} version {1}, published on {2}.", packageName, versionKey.Name, versionKey.Value.GetString());
-                            versionDictionary.TryAdd(versionKey.Name, DateTime.Parse(versionKey.Value.GetString()));
-                        }
-                    }
-                }
-
                 List<string> versionList = new();
 
                 foreach (JsonProperty versionKey in doc.RootElement.GetProperty("versions").EnumerateObject())
@@ -132,28 +119,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     Logger.Debug("Identified {0} version {1}.", packageName, versionKey.Name);
                     versionList.Add(versionKey.Name);
                 }
-
                 string? latestVersion = doc.RootElement.GetProperty("dist-tags").GetProperty("latest").GetString();
                 if (!string.IsNullOrWhiteSpace(latestVersion))
                 {
                     Logger.Debug("Identified {0} version {1}.", packageName, latestVersion);
                     versionList.Add(latestVersion);
                 }
-
-                foreach ((string version, _) in versionDictionary)
-                {
-                    if (!versionList.Contains(version))
-                    {
-                        versionDictionary.Remove(version);
-                    }
-                }
-
-                if (!versionDictionary.Any())
-                {
-                    return SortVersions(versionList.Distinct());
-                }
-            
-                return SortVersionsWithDate(versionDictionary);
+                return SortVersions(versionList.Distinct());
             }
             catch (Exception ex)
             {

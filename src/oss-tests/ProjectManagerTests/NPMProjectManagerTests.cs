@@ -11,6 +11,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
     using PackageUrl;
     using RichardSzalay.MockHttp;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
@@ -63,6 +64,22 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             Assert.AreEqual(packageName, metadata.Name);
             Assert.AreEqual(purl.Version, metadata.PackageVersion);
             Assert.AreEqual(description, metadata.Description);
+        }
+        
+        [DataTestMethod]
+        [DataRow("pkg:npm/lodash@4.17.15", 114, "4.17.21")]
+        [DataRow("pkg:npm/angular/core@13.2.5", 566, "13.3.0-rc.0")]
+        [DataRow("pkg:npm/ds-modal@0.0.2", 3, "0.0.2")]
+        [DataRow("pkg:npm/monorepolint@0.4.0", 88, "0.5.0-alpha.81")]
+        [DataRow("pkg:npm/example@0.0.0", 1, "0.0.0")]
+        [DataRow("pkg:npm/rly-cli@0.0.2", 4, "0.0.4")]
+        public async Task EnumerateVersionsSucceeds(string purlString, int count, string latestVersion)
+        {
+            PackageURL purl = new(purlString);
+            List<string> versions = (await _projectManager.EnumerateVersions(purl, useCache: false)).ToList();
+
+            Assert.AreEqual(count, versions.Count);
+            Assert.AreEqual(latestVersion, versions.First());
         }
         
         private static void MockHttpFetchResponse(

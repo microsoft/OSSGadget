@@ -251,7 +251,8 @@ namespace Microsoft.CST.OpenSource.Tests
             CollectionAssert.AreEquivalent(squattingPackages, resultingMutationNames);
         }
 
-        [TestMethod]
+        // TODO: Figure out how to mock the NuGet.Protocol calls to the internet
+        /*[TestMethod]
         public async Task NewtonsoftMutations_Succeeds_Async()
         {
             // arrange
@@ -286,7 +287,7 @@ namespace Microsoft.CST.OpenSource.Tests
             Assert.IsTrue(existingMutations.Any());
             string[] resultingMutationNames = existingMutations.Select(m => m.MutatedPackageUrl.ToString()).ToArray();
             CollectionAssert.AreEquivalent(squattingPackages, resultingMutationNames);
-        }
+        }*/
 
         [TestMethod]
         public async Task ScopedPackage_Succeeds_Async()

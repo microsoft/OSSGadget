@@ -2,11 +2,8 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
-    using Helpers;
-    using HtmlAgilityPack;
     using PackageUrl;
     using Model;
-    using NuGet.Common;
     using NuGet.Packaging;
     using NuGet.Packaging.Core;
     using NuGet.Protocol;
@@ -20,6 +17,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
+    using Utilities;
     using Repository = Model.Repository;
 
     public class NuGetProjectManager : BaseProjectManager
@@ -35,14 +33,18 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         private SourceCacheContext _sourceCacheContext = new();
         private SourceRepository _sourceRepository = NuGet.Protocol.Core.Types.Repository.Factory.GetCoreV3("https://api.nuget.org/v3/index.json");
 
+        private NuGetLogger _logger;
+
         public NuGetProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
         {
             GetRegistrationEndpointAsync().Wait();
+            _logger = new NuGetLogger(Logger);
         }
 
         public NuGetProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
             GetRegistrationEndpointAsync().Wait();
+            _logger = new NuGetLogger(Logger);
         }
 
         /// <summary>
@@ -133,7 +135,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     NuGetVersion.Parse(purl.Version),
                     packageStream,
                     _sourceCacheContext,
-                    NullLogger.Instance, 
+                    _logger, 
                     cancellationToken);
 
                 // If the .nupkg wasn't downloaded.
@@ -182,7 +184,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     purl.Name,
                     NuGetVersion.Parse(purl.Version),
                     _sourceCacheContext,
-                    NullLogger.Instance, 
+                    _logger, 
                     cancellationToken);
 
                 return exists;
@@ -190,7 +192,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             IEnumerable<NuGetVersion> versions = await resource.GetAllVersionsAsync(
                 purl.Name,
                 _sourceCacheContext,
-                NullLogger.Instance, 
+                _logger, 
                 cancellationToken);
 
             return versions.Any();
@@ -215,7 +217,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 IEnumerable<NuGetVersion> versions = await resource.GetAllVersionsAsync(
                     purl.Name,
                     _sourceCacheContext,
-                    NullLogger.Instance, 
+                    _logger, 
                     cancellationToken);
 
                 // Sort versions, highest first, lowest last.
@@ -258,7 +260,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 PackageSearchMetadataRegistration? packageVersion = await resource.GetMetadataAsync(
                     packageIdentity,
                     _sourceCacheContext,
-                    NullLogger.Instance, 
+                    _logger, 
                     cancellationToken) as PackageSearchMetadataRegistration;
 
                 return packageVersion?.ToJson();
@@ -291,7 +293,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             PackageSearchMetadataRegistration? packageVersion = await resource.GetMetadataAsync(
                 packageIdentity,
                 _sourceCacheContext,
-                NullLogger.Instance, 
+                _logger, 
                 cancellationToken) as PackageSearchMetadataRegistration;
 
             if (packageVersion is null)

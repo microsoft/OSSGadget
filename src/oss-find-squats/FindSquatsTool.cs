@@ -8,6 +8,9 @@ namespace Microsoft.CST.OpenSource.FindSquats
     using Microsoft.CST.OpenSource.Shared;
     using Mutators;
     using Newtonsoft.Json;
+    using NLog;
+    using NLog.Config;
+    using NLog.Targets;
     using PackageUrl;
     using System;
     using System.Collections.Generic;
@@ -65,8 +68,23 @@ namespace Microsoft.CST.OpenSource.FindSquats
             ShowToolBanner();
             FindSquatsTool findSquatsTool = new();
             (string output, int numSquats) = (string.Empty, 0);
+            
+            LoggingConfiguration config = new();
+
+            // Targets log to Console
+            ConsoleTarget logconsole = new()
+            {
+                Layout = "${uppercase:${level}} - ${message}",
+            };
+
             await findSquatsTool.ParseOptions<Options>(args).WithParsedAsync(async options =>
             {
+                // Rules for mapping loggers to targets
+                config.AddRule(options.Quiet ? LogLevel.Warn : LogLevel.Info, LogLevel.Fatal, logconsole);
+
+                // Apply config           
+                LogManager.Configuration = config;
+                
                 (output, numSquats) = await findSquatsTool.RunAsync(options);
                 if (string.IsNullOrEmpty(options.OutputFile))
                 {

@@ -21,7 +21,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Threading;
     using System.Threading.Tasks;
     using Repository = Model.Repository;
-    using Version = SemanticVersioning.Version;
 
     public class NuGetProjectManager : BaseProjectManager
     {
@@ -116,15 +115,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
                 FindPackageByIdResource resource = await _sourceRepository.GetResourceAsync<FindPackageByIdResource>();
 
-                PackageIdentity packageIdentity = new(purl.Name, NuGetVersion.Parse(purl.Version));
-
-                IPackageDownloader? downloader = await resource.GetPackageDownloaderAsync(
-                    packageIdentity,
-                    _sourceCacheContext,
-                    NullLogger.Instance, 
-                    cancellationToken);
-                
-                string? targetName = $"nuget-{packageName}@{packageVersion}";
+                string targetName = $"nuget-{packageName}@{packageVersion}";
                 string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                 if (doExtract && Directory.Exists(extractionPath) && cached)
                 {
@@ -132,24 +123,34 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     return downloadedPaths;
                 }
 
-                
+                using MemoryStream packageStream = new MemoryStream();
+
+                bool downloaded = await resource.CopyNupkgToStreamAsync(
+                    purl.Name,
+                    NuGetVersion.Parse(purl.Version),
+                    packageStream,
+                    _sourceCacheContext,
+                    NullLogger.Instance, 
+                    cancellationToken);
+
+                // If the .nupkg wasn't downloaded.
+                if (!downloaded)
+                {
+                    return downloadedPaths;
+                }
+
                 if (doExtract)
                 {
-                    IEnumerable<string>? files = await downloader.CoreReader.GetFilesAsync(extractionPath, cancellationToken);
-                    if (files is not null && files.Any())
-                    {
-                        downloadedPaths.Add(extractionPath);
-                    }
+                    downloadedPaths.Add(await ExtractArchive(targetName, packageStream.ToArray(), cached));
                 }
                 else
                 {
                     targetName += ".nupkg";
                     string filePath = Path.Combine(TopLevelExtractionDirectory, targetName);
-                    if (await downloader.CopyNupkgFileToAsync(filePath, cancellationToken))
-                    {
-                        downloadedPaths.Add(filePath);
-                    }
+                    await File.WriteAllBytesAsync(targetName, packageStream.ToArray());
+                    downloadedPaths.Add(filePath);
                 }
+
                 return downloadedPaths;
             }
             catch (Exception ex)
@@ -195,8 +196,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     _sourceCacheContext,
                     NullLogger.Instance, 
                     cancellationToken);
-                
-                return versions.Select(v => v.ToString());
+
+                // Sort versions, highest first, lowest last.
+                return SortVersions(versions.Select(v => v.ToString()));
             }
             catch (Exception ex)
             {

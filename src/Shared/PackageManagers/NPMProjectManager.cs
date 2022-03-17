@@ -112,18 +112,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 HttpClient httpClient = CreateHttpClient();
 
                 JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}", useCache);
-                Dictionary<string, DateTime> versionDictionary = new();
-                if(doc.RootElement.TryGetProperty("time", out JsonElement time))
-                {
-                    foreach (JsonProperty versionKey in time.EnumerateObject())
-                    {
-                        if (!versionKey.NameEquals("modified") && !versionKey.NameEquals("created"))
-                        {
-                            Logger.Debug("Identified {0} version {1}, published on {2}.", packageName, versionKey.Name, versionKey.Value.GetString());
-                            versionDictionary.TryAdd(versionKey.Name, DateTime.Parse(versionKey.Value.GetString()));
-                        }
-                    }
-                }
 
                 List<string> versionList = new();
 
@@ -140,15 +128,21 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     versionList.Add(latestVersion);
                 }
 
-                foreach ((string version, _) in versionDictionary)
+                if (!doc.RootElement.TryGetProperty("time", out JsonElement time))
                 {
-                    if (!versionList.Contains(version))
-                    {
-                        versionDictionary.Remove(version);
-                    }
+                    return SortVersions(versionList.Distinct());
                 }
 
-                return !versionDictionary.Any() ? SortVersions(versionList.Distinct()) : SortVersionsWithDate(versionDictionary);
+                Dictionary<string, DateTime> versionDictionary = new ();
+                foreach (JsonProperty versionKey in time.EnumerateObject().Where(versionKey => versionList.Contains(versionKey.Name)))
+                {
+                    Logger.Debug("Identified {0} version {1}, published on {2}.", packageName, versionKey.Name, versionKey.Value.GetString());
+                    versionDictionary.TryAdd(versionKey.Name, DateTime.Parse(versionKey.Value.GetString()));
+                }
+
+                return SortVersionsByDateDescending(versionDictionary);
+                
+
             }
             catch (Exception ex)
             {
@@ -503,21 +497,16 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
 
         /// <summary>
-        /// Sorts the versions of a package, based on when they were published.
+        /// Sorts the versions of a package, based on when they were published in descending order.
         /// </summary>
         /// <param name="versionDictionary">The dictionary of versions (key) and published DateTime (value).</param>
         /// <returns>The sorted list of versions by when they were published.</returns>
-        private static IEnumerable<string> SortVersionsWithDate(IDictionary<string, DateTime> versionDictionary)
+        private static IEnumerable<string> SortVersionsByDateDescending(IDictionary<string, DateTime> versionDictionary)
         {
-            List<KeyValuePair<string, DateTime>> versionList = versionDictionary.ToList();
-
-            versionList.Sort((pair1, pair2) => pair2.Value.CompareTo(pair1.Value));
-            if (!versionList.Any())
-            {
-                return Array.Empty<string>();
-            }
-
-            return versionList.Select(kvp => kvp.Key).Distinct();
+            return versionDictionary
+                .OrderByDescending(pair => pair.Value)
+                .Select(pair => pair.Key)
+                .Distinct();
         }
 
         /// <summary>

@@ -245,7 +245,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <summary>
-        /// Sorts the versions of a package.
+        /// Sorts the versions of a package in descending order.
         /// </summary>
         /// <param name="versionList">The available list of versions on a package.</param>
         /// <returns>The sorted list of versions.</returns>

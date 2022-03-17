@@ -382,9 +382,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// This method should return text reflecting metadata for the given package. There is no
         /// assumed format.
         /// </summary>
-        /// <param name="purl">PackageURL to search.</param>
+        /// <param name="purl">The <see cref="PackageURL"/> to get the metadata for.</param>
         /// <param name="useCache">If the metadata should be retrieved from the cache, if it is available.</param>
-        /// <returns>a string containing metadata.</returns>
+        /// <remarks>If no version specified, defaults to latest version.</remarks>
+        /// <returns>A string representing the <see cref="PackageURL"/>'s metadata.</returns>
         public virtual Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
         {
             throw new NotImplementedException($"{GetType().Name} does not implement GetMetadata.");
@@ -405,6 +406,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// </summary>
         /// <param name="purl">The <see cref="PackageURL"/> to get the normalized metadata for.</param>
         /// <param name="useCache">If the <see cref="PackageMetadata"/> should be retrieved from the cache, if it is available.</param>
+        /// <remarks>If no version specified, defaults to latest version.</remarks>
         /// <returns>A <see cref="GetPackageMetadata"/> object representing this <see cref="PackageURL"/>.</returns>
         public virtual Task<PackageMetadata> GetPackageMetadata(PackageURL purl, bool useCache = true)
         {

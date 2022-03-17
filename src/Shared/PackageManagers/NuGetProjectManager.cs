@@ -172,19 +172,28 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 Logger.Trace("Provided PackageURL was null.");
                 return false;
             }
-
             CancellationToken cancellationToken = CancellationToken.None;
 
             FindPackageByIdResource resource = await _sourceRepository.GetResourceAsync<FindPackageByIdResource>();
+            
+            if (!string.IsNullOrEmpty(purl.Version))
+            {
+                bool exists = await resource.DoesPackageExistAsync(
+                    purl.Name,
+                    NuGetVersion.Parse(purl.Version),
+                    _sourceCacheContext,
+                    NullLogger.Instance, 
+                    cancellationToken);
 
-            bool exists = await resource.DoesPackageExistAsync(
+                return exists;
+            }
+            IEnumerable<NuGetVersion> versions = await resource.GetAllVersionsAsync(
                 purl.Name,
-                NuGetVersion.Parse(purl.Version),
                 _sourceCacheContext,
                 NullLogger.Instance, 
                 cancellationToken);
 
-            return exists;
+            return versions.Any();
         }
 
         /// <inheritdoc />
@@ -234,12 +243,18 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
                 PackageMetadataResource resource = await _sourceRepository.GetResourceAsync<PackageMetadataResource>();
 
-                string latestVersion = (await EnumerateVersions(purl, useCache)).Last();
+                PackageIdentity? packageIdentity;
 
-                PackageIdentity packageIdentity = !string.IsNullOrEmpty(purl.Version) ? 
-                    new PackageIdentity(purl.Name, NuGetVersion.Parse(purl.Version)) : 
-                    new PackageIdentity(purl.Name, NuGetVersion.Parse(latestVersion));
-            
+                if (string.IsNullOrEmpty(purl.Version))
+                {
+                    string latestVersion = (await EnumerateVersions(purl, useCache)).First();
+                    packageIdentity = new PackageIdentity(purl.Name, NuGetVersion.Parse(latestVersion));
+                }
+                else
+                {
+                    packageIdentity = new PackageIdentity(purl.Name, NuGetVersion.Parse(purl.Version));
+                }
+
                 PackageSearchMetadataRegistration? packageVersion = await resource.GetMetadataAsync(
                     packageIdentity,
                     _sourceCacheContext,
@@ -267,7 +282,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             PackageMetadataResource resource = await _sourceRepository.GetResourceAsync<PackageMetadataResource>();
 
-            string latestVersion = (await EnumerateVersions(purl, useCache)).Last();
+            string latestVersion = (await EnumerateVersions(purl, useCache)).First();
 
             PackageIdentity packageIdentity = !string.IsNullOrEmpty(purl.Version) ? 
                 new PackageIdentity(purl.Name, NuGetVersion.Parse(purl.Version)) : 
@@ -289,9 +304,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             metadata.Name = packageVersion.PackageId;
             metadata.Description = packageVersion.Description;
 
-            // Title is different than name or description for NuGet packages, not always used.
-            // metadata.Title = packageVersion.Title;
-
             metadata.PackageManagerUri = ENV_NUGET_ENDPOINT_API;
             metadata.Platform = "NUGET";
             metadata.Language = "C#";
@@ -301,85 +313,114 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             metadata.PackageVersion = purl.Version ?? latestVersion;
             metadata.LatestPackageVersion = latestVersion;
 
-            // if we found any version at all, get the info
-            if (metadata.PackageVersion != null)
-            {
-                string? nameLowercase = metadata.Name?.ToLowerInvariant();
-
-                // Set the version specific URI values.
-                metadata.VersionUri = $"{metadata.PackageManagerUri}/packages/{nameLowercase}/{metadata.PackageVersion}";
-                metadata.ApiVersionUri = packageVersion.CatalogUri.ToString();
-                
-                // Construct the artifact contents url.
-                metadata.VersionDownloadUri = GetNupkgUrl(metadata.Name!, metadata.PackageVersion);
-
-                // TODO: size and hash
-
-                // homepage
-                metadata.Homepage = packageVersion.ProjectUrl?.ToString();
-
-                // author(s)
-                string? author = packageVersion.Authors;
-                if (author is not null)
-                {
-                    metadata.Authors ??= new List<User>();
-                    metadata.Authors.Add(new User(){Name = author});
-                }
-
-                // TODO: maintainers
-
-                // .nuspec parsing
-
-                // repository
-                NuspecReader? nuspecReader = GetNuspec(metadata.Name!, metadata.PackageVersion);
-                RepositoryMetadata? repositoryMetadata = nuspecReader?.GetRepositoryMetadata();
-                if (repositoryMetadata != null)
-                {
-                    if (GitHubProjectManager.IsGitHubRepoUrl(repositoryMetadata.Url, out PackageURL? githubPurl))
-                    {
-                        Repository ghRepository = new()
-                        {
-                            Type = "github"
-                        };
-                    
-                        await ghRepository.ExtractRepositoryMetadata(githubPurl!);
-
-                        metadata.Repository ??= new List<Repository>();
-                        metadata.Repository.Add(ghRepository);
-                    }
-                }
-                
-                // dependencies
-                IList<PackageDependencyGroup> dependencyGroups = packageVersion.DependencySets.ToList();
-                if (dependencyGroups.Any())
-                {
-                    metadata.Dependencies ??= new List<Dependency>();
-
-                    foreach (PackageDependencyGroup dependencyGroup in dependencyGroups)
-                    {
-                        dependencyGroup.Packages.ToList().ForEach((dependency) => metadata.Dependencies.Add(new Dependency() { Package = dependency.ToString(), Framework = dependencyGroup.TargetFramework?.ToString()}));
-                    }
-                }
-
-                // keywords
-                metadata.Keywords = new List<string>(packageVersion.Tags.Split(", "));
-
-                // licenses
-                if (packageVersion.LicenseMetadata is not null)
-                {
-                    metadata.Licenses ??= new List<License>();
-                    metadata.Licenses.Add(new License()
-                    {
-                        Name = packageVersion.LicenseMetadata.License,
-                        Url = packageVersion.LicenseMetadata.LicenseUrl.ToString()
-                    });
-                }
-
-                // publishing info
-                metadata.UploadTime = packageVersion.Published?.ToString("MM/dd/yy HH:mm:ss zz");
-            }
+            // Get the metadata for either the specified package version, or the latest package version
+            await UpdateVersionMetadata(metadata, packageVersion);
 
             return metadata;
+        }
+
+        /// <summary>
+        /// Updates the package version specific values in <see cref="PackageMetadata"/>.
+        /// </summary>
+        /// <param name="metadata">The <see cref="PackageMetadata"/> object to update with the values for this version.</param>
+        /// <param name="packageVersion">The <see cref="PackageSearchMetadataRegistration"/> representing this version.</param>
+        private async Task UpdateVersionMetadata(PackageMetadata metadata, PackageSearchMetadataRegistration packageVersion)
+        {
+            if (metadata.PackageVersion is null)
+            {
+                return;
+            }
+
+            string? nameLowercase = metadata.Name?.ToLowerInvariant();
+
+            // Set the version specific URI values.
+            metadata.VersionUri = $"{metadata.PackageManagerUri}/packages/{nameLowercase}/{metadata.PackageVersion}";
+            metadata.ApiVersionUri = packageVersion.CatalogUri.ToString();
+            
+            // Construct the artifact contents url.
+            metadata.VersionDownloadUri = GetNupkgUrl(metadata.Name!, metadata.PackageVersion);
+
+            // TODO: size and hash
+
+            // Homepage url
+            metadata.Homepage = packageVersion.ProjectUrl?.ToString();
+
+            // Authors and Maintainers
+            UpdateMetadataAuthorsAndMaintainers(metadata, packageVersion);
+
+            // Repository
+            await UpdateMetadataRepository(metadata);
+            
+            // Dependencies
+            IList<PackageDependencyGroup> dependencyGroups = packageVersion.DependencySets.ToList();
+            if (dependencyGroups.Any())
+            {
+                metadata.Dependencies ??= new List<Dependency>();
+
+                foreach (PackageDependencyGroup dependencyGroup in dependencyGroups)
+                {
+                    dependencyGroup.Packages.ToList().ForEach((dependency) => metadata.Dependencies.Add(new Dependency() { Package = dependency.ToString(), Framework = dependencyGroup.TargetFramework?.ToString()}));
+                }
+            }
+
+            // Keywords
+            metadata.Keywords = new List<string>(packageVersion.Tags.Split(", "));
+
+            // Licenses
+            if (packageVersion.LicenseMetadata is not null)
+            {
+                metadata.Licenses ??= new List<License>();
+                metadata.Licenses.Add(new License()
+                {
+                    Name = packageVersion.LicenseMetadata.License,
+                    Url = packageVersion.LicenseMetadata.LicenseUrl.ToString()
+                });
+            }
+
+            // publishing info
+            metadata.UploadTime = packageVersion.Published?.ToString("MM/dd/yy HH:mm:ss zz");
+        }
+
+        /// <summary>
+        /// Updates the author(s) and maintainer(s) in <see cref="PackageMetadata"/> for this package version.
+        /// </summary>
+        /// <param name="metadata">The <see cref="PackageMetadata"/> object to set the author(s) and maintainer(s) for this version.</param>
+        /// <param name="packageVersion">The <see cref="PackageSearchMetadataRegistration"/> representing this version.</param>
+        private static void UpdateMetadataAuthorsAndMaintainers(PackageMetadata metadata, PackageSearchMetadataRegistration packageVersion)
+        {
+            // Author(s)
+            string? authors = packageVersion.Authors;
+            if (authors is not null)
+            {
+                metadata.Authors ??= new List<User>();
+                authors.Split(", ").ToList()
+                    .ForEach(author => metadata.Authors.Add(new User() { Name = author }));
+            }
+
+            // TODO: Maintainers
+        }
+
+        /// <summary>
+        /// Updates the <see cref="Repository"/> for this package version in the <see cref="PackageMetadata"/>.
+        /// </summary>
+        /// <param name="metadata">The <see cref="PackageMetadata"/> object to update with the values for this version.</param>
+        private async Task UpdateMetadataRepository(PackageMetadata metadata)
+        {
+            NuspecReader? nuspecReader = GetNuspec(metadata.Name!, metadata.PackageVersion!);
+            RepositoryMetadata? repositoryMetadata = nuspecReader?.GetRepositoryMetadata();
+
+            if (repositoryMetadata != null && GitHubProjectManager.IsGitHubRepoUrl(repositoryMetadata.Url, out PackageURL? githubPurl))
+            {
+                Repository ghRepository = new()
+                {
+                    Type = "github"
+                };
+                
+                await ghRepository.ExtractRepositoryMetadata(githubPurl!);
+
+                metadata.Repository ??= new List<Repository>();
+                metadata.Repository.Add(ghRepository);
+            }
         }
 
         /// <summary>
@@ -394,6 +435,46 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             string lowerVersion = NuGetVersion.Parse(version).ToNormalizedString().ToLowerInvariant();
             string url = $"{NUGET_DEFAULT_CONTENT_ENDPOINT.TrimEnd('/')}/{lowerId}/{lowerVersion}/{lowerId}.{lowerVersion}.nupkg";
             return url;
+        }
+
+        /// <summary>
+        /// Searches the package manager metadata to figure out the source code repository.
+        /// </summary>
+        /// <param name="purl">The <see cref="PackageURL"/> that we need to find the source code repository.</param>
+        /// <param name="metadata">The json representation of this package's metadata.</param>
+        /// <remarks>If no version specified, defaults to latest version.</remarks>
+        /// <returns>
+        /// A dictionary, mapping each possible repo source entry to its probability/empty dictionary
+        /// </returns>
+        protected override async Task<Dictionary<PackageURL, double>> SearchRepoUrlsInPackageMetadata(PackageURL purl, string metadata)
+        {
+            Dictionary<PackageURL, double> mapping = new();
+            try
+            {
+                string? version = purl.Version;
+                if (string.IsNullOrEmpty(version))
+                {
+                    version = (await EnumerateVersions(purl)).First();
+                }
+                NuspecReader? nuspecReader = GetNuspec(purl.Name, version);
+                RepositoryMetadata? repositoryMetadata = nuspecReader?.GetRepositoryMetadata();
+                if (repositoryMetadata != null && GitHubProjectManager.IsGitHubRepoUrl(repositoryMetadata.Url, out PackageURL? githubPurl))
+                {
+                    if (githubPurl != null)
+                    {
+                        mapping.Add(githubPurl, 1.0F);
+                    }
+                }
+                
+                return mapping;
+            }
+            catch (Exception ex)
+            {
+                Logger.Debug(ex, $"Error fetching/parsing NuGet repository metadata: {ex.Message}");
+            }
+
+            // If nothing worked, return the default empty dictionary
+            return mapping;
         }
         
         private NuspecReader? GetNuspec(string id, string version)

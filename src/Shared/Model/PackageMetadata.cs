@@ -3,6 +3,7 @@
 namespace Microsoft.CST.OpenSource.Model
 {
     using Newtonsoft.Json;
+    using System;
     using System.Collections.Generic;
 
     public class Downloads
@@ -177,6 +178,17 @@ namespace Microsoft.CST.OpenSource.Model
 
         [JsonProperty(PropertyName = "url", NullValueHandling = NullValueHandling.Ignore)]
         public string? Url { get; set; }
+
+        protected bool Equals(User other) => Active == other.Active && Email == other.Email && Id == other.Id && Name == other.Name && Url == other.Url;
+
+        public override bool Equals(object? obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            return obj.GetType() == this.GetType() && Equals((User) obj);
+        }
+
+        public override int GetHashCode() => HashCode.Combine(Active, Email, Id, Name, Url);
     }
 
     public class Version

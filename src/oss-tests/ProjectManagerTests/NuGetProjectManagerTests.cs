@@ -44,8 +44,8 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         }
 
         [DataTestMethod]
-        [DataRow("pkg:nuget/razorengine@4.2.3-beta1", "RazorEngine - A Templating Engine based on the Razor parser.")] // Normal package
-        public async Task MetadataSucceeds(string purlString, string? description = null)
+        [DataRow("pkg:nuget/razorengine@4.2.3-beta1", "RazorEngine - A Templating Engine based on the Razor parser.", "Matthew Abbott, Ben Dornis, Matthias Dittrich")] // Normal package
+        public async Task MetadataSucceeds(string purlString, string? description = null, string? authors = null)
         {
             PackageURL purl = new(purlString);
             PackageMetadata metadata = await _projectManager.GetPackageMetadata(purl, useCache: false);
@@ -53,6 +53,11 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             Assert.AreEqual(purl.Name, metadata.Name, ignoreCase: true);
             Assert.AreEqual(purl.Version, metadata.PackageVersion);
             Assert.AreEqual(description, metadata.Description);
+            if (!string.IsNullOrEmpty(authors))
+            {
+                List<User> authorsList = authors.Split(", ").Select(author => new User() { Name = author }).ToList();
+                CollectionAssert.AreEquivalent(authorsList, metadata.Authors);
+            }
         }
         
         [DataTestMethod]

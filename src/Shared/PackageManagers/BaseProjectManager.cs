@@ -274,8 +274,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <summary>
-        /// Enumerates all possible versions of the package identified by purl.
+        /// Enumerates all possible versions of the package identified by purl, in descending order.
         /// </summary>
+        /// <remarks>The latest version is always first, then it is sorted by SemVer in descending order.</remarks>
         /// <param name="purl">Package URL specifying the package. Version is ignored.</param>
         /// <param name="useCache">If the cache should be used when looking for the versions.</param>
         /// <returns> A list of package version numbers.</returns>

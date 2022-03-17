@@ -122,26 +122,25 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 }
 
                 string? latestVersion = doc.RootElement.GetProperty("dist-tags").GetProperty("latest").GetString();
-                if (!string.IsNullOrWhiteSpace(latestVersion))
-                {
-                    Logger.Debug("Identified {0} version {1}.", packageName, latestVersion);
-                    versionList.Add(latestVersion);
-                }
-
-                if (!doc.RootElement.TryGetProperty("time", out JsonElement time))
+                
+                // If there was no "latest" property for some reason.
+                if (string.IsNullOrWhiteSpace(latestVersion))
                 {
                     return SortVersions(versionList.Distinct());
                 }
 
-                Dictionary<string, DateTime> versionDictionary = new ();
-                foreach (JsonProperty versionKey in time.EnumerateObject().Where(versionKey => versionList.Contains(versionKey.Name)))
-                {
-                    Logger.Debug("Identified {0} version {1}, published on {2}.", packageName, versionKey.Name, versionKey.Value.GetString());
-                    versionDictionary.TryAdd(versionKey.Name, DateTime.Parse(versionKey.Value.GetString()));
-                }
+                Logger.Debug("Identified {0} latest version as {1}.", packageName, latestVersion);
 
-                return SortVersionsByDateDescending(versionDictionary);
+                // Remove the latest version from the list of versions, so we can add it after sorting.
+                versionList.Remove(latestVersion);
                 
+                // Sort the list of distinct versions.
+                List<string> sortedList = SortVersions(versionList.Distinct()).ToList();
+                
+                // Insert the latest version at the beginning of the list.
+                sortedList.Insert(0, latestVersion);
+
+                return sortedList;
 
             }
             catch (Exception ex)
@@ -493,20 +492,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
 
             return mapping;
-        }
-
-
-        /// <summary>
-        /// Sorts the versions of a package, based on when they were published in descending order.
-        /// </summary>
-        /// <param name="versionDictionary">The dictionary of versions (key) and published DateTime (value).</param>
-        /// <returns>The sorted list of versions by when they were published.</returns>
-        private static IEnumerable<string> SortVersionsByDateDescending(IDictionary<string, DateTime> versionDictionary)
-        {
-            return versionDictionary
-                .OrderByDescending(pair => pair.Value)
-                .Select(pair => pair.Key)
-                .Distinct();
         }
 
         /// <summary>

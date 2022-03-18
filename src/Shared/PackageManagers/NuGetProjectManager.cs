@@ -2,12 +2,12 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Contracts;
     using PackageUrl;
     using Model;
     using NuGet.Packaging;
     using NuGet.Packaging.Core;
     using NuGet.Protocol;
-    using NuGet.Protocol.Core.Types;
     using NuGet.Versioning;
     using System;
     using System.Collections.Generic;
@@ -15,7 +15,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Linq;
     using System.Net.Http;
     using System.Text.Json;
-    using System.Threading;
     using System.Threading.Tasks;
     using Utilities;
     using Repository = Model.Repository;
@@ -30,21 +29,18 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         private string? RegistrationEndpoint { get; set; } = null;
 
-        private SourceCacheContext _sourceCacheContext = new();
-        private SourceRepository _sourceRepository = NuGet.Protocol.Core.Types.Repository.Factory.GetCoreV3("https://api.nuget.org/v3/index.json");
-
-        private NuGetLogger _logger;
+        private INuGetProvider _nuGetProvider;
 
         public NuGetProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
         {
             GetRegistrationEndpointAsync().Wait();
-            _logger = new NuGetLogger(Logger);
+            _nuGetProvider = new NuGetProvider(Logger);
         }
 
         public NuGetProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
             GetRegistrationEndpointAsync().Wait();
-            _logger = new NuGetLogger(Logger);
+            _nuGetProvider = new NuGetProvider(Logger);
         }
 
         /// <summary>
@@ -116,10 +112,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             try
             {
-                CancellationToken cancellationToken = CancellationToken.None;
-
-                FindPackageByIdResource resource = await _sourceRepository.GetResourceAsync<FindPackageByIdResource>();
-
                 string targetName = $"nuget-{packageName}@{packageVersion}";
                 string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                 if (doExtract && Directory.Exists(extractionPath) && cached)
@@ -128,32 +120,12 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     return downloadedPaths;
                 }
 
-                using MemoryStream packageStream = new MemoryStream();
+                string? downloaded =
+                    await _nuGetProvider.DownloadNupkgAsync(this, purl, extractionPath, doExtract, cached: cached);
 
-                bool downloaded = await resource.CopyNupkgToStreamAsync(
-                    purl.Name,
-                    NuGetVersion.Parse(purl.Version),
-                    packageStream,
-                    _sourceCacheContext,
-                    _logger, 
-                    cancellationToken);
-
-                // If the .nupkg wasn't downloaded.
-                if (!downloaded)
+                if (!string.IsNullOrWhiteSpace(downloaded))
                 {
-                    return downloadedPaths;
-                }
-
-                if (doExtract)
-                {
-                    downloadedPaths.Add(await ExtractArchive(targetName, packageStream.ToArray(), cached));
-                }
-                else
-                {
-                    targetName += ".nupkg";
-                    string filePath = Path.Combine(TopLevelExtractionDirectory, targetName);
-                    await File.WriteAllBytesAsync(filePath, packageStream.ToArray());
-                    downloadedPaths.Add(filePath);
+                    downloadedPaths.Add(downloaded);
                 }
 
                 return downloadedPaths;
@@ -174,28 +146,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 Logger.Trace("Provided PackageURL was null.");
                 return false;
             }
-            CancellationToken cancellationToken = CancellationToken.None;
 
-            FindPackageByIdResource resource = await _sourceRepository.GetResourceAsync<FindPackageByIdResource>();
-            
-            if (!string.IsNullOrEmpty(purl.Version))
-            {
-                bool exists = await resource.DoesPackageExistAsync(
-                    purl.Name,
-                    NuGetVersion.Parse(purl.Version),
-                    _sourceCacheContext,
-                    _logger, 
-                    cancellationToken);
-
-                return exists;
-            }
-            IEnumerable<NuGetVersion> versions = await resource.GetAllVersionsAsync(
-                purl.Name,
-                _sourceCacheContext,
-                _logger, 
-                cancellationToken);
-
-            return versions.Any();
+            return await _nuGetProvider.DoesPackageExistAsync(purl, useCache: useCache);
         }
 
         /// <inheritdoc />
@@ -210,15 +162,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             try
             {
-                CancellationToken cancellationToken = CancellationToken.None;
-
-                FindPackageByIdResource resource = await _sourceRepository.GetResourceAsync<FindPackageByIdResource>();
-
-                IEnumerable<NuGetVersion> versions = await resource.GetAllVersionsAsync(
-                    purl.Name,
-                    _sourceCacheContext,
-                    _logger, 
-                    cancellationToken);
+                IEnumerable<NuGetVersion> versions = await _nuGetProvider.GetAllVersionsAsync(purl, useCache: useCache);
 
                 // Sort versions, highest first, lowest last.
                 return SortVersions(versions.Select(v => v.ToString()));
@@ -240,11 +184,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 {
                     return null;
                 }
-
-                CancellationToken cancellationToken = CancellationToken.None;
-
-                PackageMetadataResource resource = await _sourceRepository.GetResourceAsync<PackageMetadataResource>();
-
+                
                 PackageIdentity? packageIdentity;
 
                 if (string.IsNullOrEmpty(purl.Version))
@@ -257,11 +197,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     packageIdentity = new PackageIdentity(purl.Name, NuGetVersion.Parse(purl.Version));
                 }
 
-                PackageSearchMetadataRegistration? packageVersion = await resource.GetMetadataAsync(
-                    packageIdentity,
-                    _sourceCacheContext,
-                    _logger, 
-                    cancellationToken) as PackageSearchMetadataRegistration;
+                PackageSearchMetadataRegistration? packageVersion =
+                    await _nuGetProvider.GetMetadataAsync(packageIdentity, useCache: useCache);
 
                 return packageVersion?.ToJson();
             }
@@ -280,21 +217,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <inheritdoc />
         public override async Task<PackageMetadata> GetPackageMetadata(PackageURL purl, bool useCache = true)
         {
-            CancellationToken cancellationToken = CancellationToken.None;
-
-            PackageMetadataResource resource = await _sourceRepository.GetResourceAsync<PackageMetadataResource>();
-
             string latestVersion = (await EnumerateVersions(purl, useCache)).First();
 
             PackageIdentity packageIdentity = !string.IsNullOrEmpty(purl.Version) ? 
                 new PackageIdentity(purl.Name, NuGetVersion.Parse(purl.Version)) : 
                 new PackageIdentity(purl.Name, NuGetVersion.Parse(latestVersion));
-            
-            PackageSearchMetadataRegistration? packageVersion = await resource.GetMetadataAsync(
-                packageIdentity,
-                _sourceCacheContext,
-                _logger, 
-                cancellationToken) as PackageSearchMetadataRegistration;
+
+            PackageSearchMetadataRegistration? packageVersion =
+                await _nuGetProvider.GetMetadataAsync(packageIdentity, useCache: useCache);
 
             if (packageVersion is null)
             {

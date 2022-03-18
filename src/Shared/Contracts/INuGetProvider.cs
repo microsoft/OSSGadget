@@ -2,14 +2,17 @@
 
 namespace Microsoft.CST.OpenSource.Contracts;
 
+using Model;
 using NuGet.Packaging.Core;
 using NuGet.Protocol;
 using NuGet.Versioning;
 using PackageManagers;
 using PackageUrl;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Version = System.Version;
 
 /// <summary>
 /// The interface to mock for NuGet.Protocol related methods we use.
@@ -43,15 +46,16 @@ public interface INuGetProvider
     /// <param name="packageUrl">The <see cref="PackageURL"/> to get all the available versions for.</param>
     /// <param name="useCache">If the cache should be checked for the available versions of this package.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to be used in the method call, defaults to <see cref="CancellationToken.None"/>.</param>
-    /// <returns>An <see cref="IEnumerable{NuGetVersion}"/> of all of the versions.</returns>
-    Task<IEnumerable<NuGetVersion>> GetAllVersionsAsync(PackageURL packageUrl, bool useCache = true, CancellationToken cancellationToken = default);
+    /// <returns>An <see cref="IEnumerable{String}"/> of all of the versions.</returns>
+    Task<IEnumerable<string>> GetAllVersionsAsync(PackageURL packageUrl, bool useCache = true, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the <see cref="PackageSearchMetadataRegistration"/> for this package version.
     /// </summary>
-    /// <param name="packageIdentity">The NuGet <see cref="PackageIdentity"/>. Requires a version.</param>
+    /// <param name="packageUrl">The <see cref="PackageURL"/>. Requires a version.</param>
     /// <param name="useCache">If the cache should be checked for the metadata of this package.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to be used in the method call, defaults to <see cref="CancellationToken.None"/>.</param>
-    /// <returns>The <see cref="PackageSearchMetadataRegistration"/> for this package version.</returns>
-    Task<PackageSearchMetadataRegistration?> GetMetadataAsync(PackageIdentity packageIdentity, bool useCache = true, CancellationToken cancellationToken = default);
+    /// <returns>The <see cref="NuGetMetadata"/> for this package version.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if there was no version in packageUrl</exception>
+    Task<NuGetMetadata?> GetMetadataAsync(PackageURL packageUrl, bool useCache = true, CancellationToken cancellationToken = default);
 }

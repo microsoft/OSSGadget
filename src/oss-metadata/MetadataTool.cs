@@ -12,6 +12,7 @@ namespace Microsoft.CST.OpenSource
     using Microsoft.CST.OpenSource.PackageManagers;
     using PackageUrl;
     using System.Net.Http;
+    using Utilities;
 
     public class MetadataTool : OSSGadget
     {
@@ -55,7 +56,7 @@ namespace Microsoft.CST.OpenSource
             try
             {
                 // Use reflection to find the correct downloader class
-                BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, httpClientFactory);
+                BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManagerWithProvider(purl, new NuGetProvider(), httpClientFactory);
                 if (projectManager != null)
                 {
                     metadata = await projectManager.GetPackageMetadata(purl, useCache);

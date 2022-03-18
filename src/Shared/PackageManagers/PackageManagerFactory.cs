@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Contracts;
     using PackageUrl;
     using System;
     using System.Collections.Generic;
@@ -68,6 +69,57 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     if (ctor != null)
                     {
                         BaseProjectManager? _downloader = (BaseProjectManager)ctor.Invoke(new object?[] { destinationDirectory });
+                        return _downloader;
+                    }
+                }
+
+            }
+
+            return null;
+        }
+        
+        /// <summary>
+        /// Get an appropriate project manager for package given its PackageURL, with a provider.
+        /// </summary>
+        /// <param name="purl">The <see cref="PackageURL"/> for the package to create the project manager for.</param>
+        /// <param name="nuGetProvider">The <see cref="INuGetProvider"/> for to make calls with.</param>
+        /// <param name="httpClientFactory"> The <see cref="IHttpClientFactory"/> for the project manager to use for making Http Clients to make web requests.</param>
+        /// <param name="destinationDirectory">The directory to use to store any downloaded packages.</param>
+        /// <returns> BaseProjectManager object </returns>
+        public static BaseProjectManager? CreateProjectManagerWithProvider(PackageURL purl, INuGetProvider nuGetProvider, IHttpClientFactory? httpClientFactory = null, string? destinationDirectory = null)
+        {
+            if (projectManagers.Count == 0)
+            {
+                projectManagers.AddRange(typeof(BaseProjectManager).Assembly.GetTypes()
+               .Where(type => type.IsSubclassOf(typeof(BaseProjectManager))));
+            }
+            // Use reflection to find the correct package management class
+            Type? downloaderClass = projectManagers
+               .Where(type => type.Name.Equals($"{purl.Type}ProjectManager",
+                                               StringComparison.InvariantCultureIgnoreCase))
+               .FirstOrDefault();
+
+            if (downloaderClass != null)
+            {
+                if (downloaderClass != typeof(NuGetProjectManager))
+                {
+                    return CreateProjectManager(purl, httpClientFactory, destinationDirectory);
+                }
+                if (httpClientFactory != null)
+                {
+                    System.Reflection.ConstructorInfo? ctor = downloaderClass.GetConstructor(new[] { typeof(IHttpClientFactory), typeof(string), typeof(INuGetProvider) });
+                    if (ctor != null)
+                    {
+                        NuGetProjectManager _downloader = (NuGetProjectManager)ctor.Invoke(new object?[] { httpClientFactory, destinationDirectory, nuGetProvider });
+                        return _downloader;
+                    }
+                }
+                else
+                {
+                    System.Reflection.ConstructorInfo? ctor = downloaderClass.GetConstructor(new[] { typeof(string), typeof(INuGetProvider) });
+                    if (ctor != null)
+                    {
+                        NuGetProjectManager _downloader = (NuGetProjectManager)ctor.Invoke(new object?[] { destinationDirectory, nuGetProvider });
                         return _downloader;
                     }
                 }

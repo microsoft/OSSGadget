@@ -4,31 +4,32 @@ namespace Microsoft.CST.OpenSource.Utilities;
 
 using Microsoft.CST.OpenSource.Contracts;
 using Microsoft.CST.OpenSource.PackageManagers;
+using Model;
 using NLog;
 using NuGet.Packaging.Core;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 using PackageUrl;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Repository = NuGet.Protocol.Core.Types.Repository;
 
 public class NuGetProvider : INuGetProvider
 {
     private SourceCacheContext _sourceCacheContext = new();
     private SourceRepository _sourceRepository = Repository.Factory.GetCoreV3("https://api.nuget.org/v3/index.json");
-    private NuGetLogger _logger;
+    private NuGetLogger _logger = new(LogManager.GetCurrentClassLogger());
 
     /// <summary>
     /// Instantiates a new <see cref="NuGetProvider"/>.
     /// </summary>
-    /// <param name="logger">The <see cref="NLog.Logger"/> to use as a <see cref="NuGet.Common.ILogger"/></param>
-    public NuGetProvider(Logger logger)
+    public NuGetProvider()
     {
-        _logger = new NuGetLogger(logger);
     }
 
     /// <inheritdoc />
@@ -95,7 +96,7 @@ public class NuGetProvider : INuGetProvider
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<NuGetVersion>> GetAllVersionsAsync(PackageURL packageUrl,
+    public async Task<IEnumerable<string>> GetAllVersionsAsync(PackageURL packageUrl,
         bool useCache = true, CancellationToken cancellationToken = default)
     {
         FindPackageByIdResource resource = await _sourceRepository.GetResourceAsync<FindPackageByIdResource>();
@@ -106,14 +107,20 @@ public class NuGetProvider : INuGetProvider
             _logger, 
             cancellationToken);
 
-        return versions;
+        return versions.Select(v => v.ToString());
     }
 
     /// <inheritdoc />
-    public async Task<PackageSearchMetadataRegistration?> GetMetadataAsync(PackageIdentity packageIdentity,
+    public async Task<NuGetMetadata?> GetMetadataAsync(PackageURL packageUrl,
         bool useCache = true, CancellationToken cancellationToken = default)
     {
         PackageMetadataResource resource = await _sourceRepository.GetResourceAsync<PackageMetadataResource>();
+        if (string.IsNullOrWhiteSpace(packageUrl.Version))
+        {
+            throw new ArgumentNullException(nameof(packageUrl.Version), "There was no version on the PackageURL");
+        }
+
+        PackageIdentity packageIdentity = new(packageUrl.Name, NuGetVersion.Parse(packageUrl.Version));
 
         PackageSearchMetadataRegistration? packageVersion = await resource.GetMetadataAsync(
             packageIdentity,
@@ -121,6 +128,6 @@ public class NuGetProvider : INuGetProvider
             _logger, 
             cancellationToken) as PackageSearchMetadataRegistration;
 
-        return packageVersion;
+        return packageVersion != null ? new NuGetMetadata(packageVersion) : null;
     }
 }

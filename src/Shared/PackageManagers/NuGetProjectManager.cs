@@ -7,7 +7,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using Model;
     using NuGet.Packaging;
     using NuGet.Packaging.Core;
-    using NuGet.Protocol;
     using NuGet.Versioning;
     using System;
     using System.Collections.Generic;
@@ -16,7 +15,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Net.Http;
     using System.Text.Json;
     using System.Threading.Tasks;
-    using Utilities;
     using Repository = Model.Repository;
 
     public class NuGetProjectManager : BaseProjectManager
@@ -29,18 +27,18 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         private string? RegistrationEndpoint { get; set; } = null;
 
-        private INuGetProvider _nuGetProvider;
+        private readonly INuGetProvider _nuGetProvider;
 
-        public NuGetProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        public NuGetProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory, INuGetProvider nuGetProvider) : base(httpClientFactory, destinationDirectory)
         {
             GetRegistrationEndpointAsync().Wait();
-            _nuGetProvider = new NuGetProvider(Logger);
+            _nuGetProvider = nuGetProvider;
         }
 
-        public NuGetProjectManager(string destinationDirectory) : base(destinationDirectory)
+        public NuGetProjectManager(string destinationDirectory, INuGetProvider nuGetProvider) : base(destinationDirectory)
         {
             GetRegistrationEndpointAsync().Wait();
-            _nuGetProvider = new NuGetProvider(Logger);
+            _nuGetProvider = nuGetProvider;
         }
 
         /// <summary>
@@ -162,10 +160,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             try
             {
-                IEnumerable<NuGetVersion> versions = await _nuGetProvider.GetAllVersionsAsync(purl, useCache: useCache);
+                IEnumerable<string> versions = await _nuGetProvider.GetAllVersionsAsync(purl, useCache: useCache);
 
                 // Sort versions, highest first, lowest last.
-                return SortVersions(versions.Select(v => v.ToString()));
+                return SortVersions(versions);
             }
             catch (Exception ex)
             {
@@ -180,27 +178,26 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             try
             {
                 string? packageName = purl.Name;
+                string? packageVersion = purl.Version;
                 if (packageName == null)
                 {
                     return null;
                 }
-                
-                PackageIdentity? packageIdentity;
 
-                if (string.IsNullOrEmpty(purl.Version))
+                // If no package version provided, default to the latest version.
+                if (string.IsNullOrWhiteSpace(packageVersion))
                 {
                     string latestVersion = (await EnumerateVersions(purl, useCache)).First();
-                    packageIdentity = new PackageIdentity(purl.Name, NuGetVersion.Parse(latestVersion));
-                }
-                else
-                {
-                    packageIdentity = new PackageIdentity(purl.Name, NuGetVersion.Parse(purl.Version));
+                    packageVersion = latestVersion;
                 }
 
-                PackageSearchMetadataRegistration? packageVersion =
-                    await _nuGetProvider.GetMetadataAsync(packageIdentity, useCache: useCache);
-
-                return packageVersion?.ToJson();
+                // Construct a new PackageURL that's guaranteed to have a  version.
+                PackageURL purlWithVersion = new (purl.Type, purl.Namespace, packageName, packageVersion, purl.Qualifiers, purl.Subpath);
+                
+                NuGetMetadata? packageVersionMetadata =
+                    await _nuGetProvider.GetMetadataAsync(purlWithVersion, useCache: useCache);
+                
+                return packageVersionMetadata?.ToJson();
             }
             catch (Exception ex)
             {
@@ -219,12 +216,12 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
             string latestVersion = (await EnumerateVersions(purl, useCache)).First();
 
-            PackageIdentity packageIdentity = !string.IsNullOrEmpty(purl.Version) ? 
-                new PackageIdentity(purl.Name, NuGetVersion.Parse(purl.Version)) : 
-                new PackageIdentity(purl.Name, NuGetVersion.Parse(latestVersion));
+            // Construct a new PackageURL that's guaranteed to have a version, the latest version is used if no version was provided.
+            PackageURL purlWithVersion = !string.IsNullOrWhiteSpace(purl.Version) ? 
+                purl : new PackageURL(purl.Type, purl.Namespace, purl.Name, latestVersion, purl.Qualifiers, purl.Subpath);
 
-            PackageSearchMetadataRegistration? packageVersion =
-                await _nuGetProvider.GetMetadataAsync(packageIdentity, useCache: useCache);
+            NuGetMetadata? packageVersion =
+                await _nuGetProvider.GetMetadataAsync(purlWithVersion, useCache: useCache);
 
             if (packageVersion is null)
             {
@@ -255,8 +252,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// Updates the package version specific values in <see cref="PackageMetadata"/>.
         /// </summary>
         /// <param name="metadata">The <see cref="PackageMetadata"/> object to update with the values for this version.</param>
-        /// <param name="packageVersion">The <see cref="PackageSearchMetadataRegistration"/> representing this version.</param>
-        private async Task UpdateVersionMetadata(PackageMetadata metadata, PackageSearchMetadataRegistration packageVersion)
+        /// <param name="packageVersion">The <see cref="NuGetMetadata"/> representing this version.</param>
+        private async Task UpdateVersionMetadata(PackageMetadata metadata, NuGetMetadata packageVersion)
         {
             if (metadata.PackageVersion is null)
             {
@@ -317,8 +314,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// Updates the author(s) and maintainer(s) in <see cref="PackageMetadata"/> for this package version.
         /// </summary>
         /// <param name="metadata">The <see cref="PackageMetadata"/> object to set the author(s) and maintainer(s) for this version.</param>
-        /// <param name="packageVersion">The <see cref="PackageSearchMetadataRegistration"/> representing this version.</param>
-        private static void UpdateMetadataAuthorsAndMaintainers(PackageMetadata metadata, PackageSearchMetadataRegistration packageVersion)
+        /// <param name="packageVersion">The <see cref="NuGetMetadata"/> representing this version.</param>
+        private static void UpdateMetadataAuthorsAndMaintainers(PackageMetadata metadata, NuGetMetadata packageVersion)
         {
             // Author(s)
             string? authors = packageVersion.Authors;

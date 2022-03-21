@@ -12,6 +12,7 @@ namespace Microsoft.CST.OpenSource
     using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using Utilities;
 
     /// <summary>
     /// Class for managing the download of a single package.
@@ -47,7 +48,7 @@ namespace Microsoft.CST.OpenSource
                 destinationDirectory = destinationDir;
             }
 
-            packageManager = ProjectManagerFactory.CreateProjectManager(purl, httpClientFactory, destinationDirectory);
+            packageManager = ProjectManagerFactory.CreateProjectManagerWithProvider(purl, new NuGetProvider(), httpClientFactory, destinationDirectory);
             if (packageManager == null)
             {
                 // Cannot continue without a package manager.

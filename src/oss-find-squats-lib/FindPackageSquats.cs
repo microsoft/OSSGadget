@@ -23,7 +23,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
 
         public BaseProjectManager? ProjectManager { get;  }
 
-        public FindPackageSquats(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider, PackageURL packageUrl, string directory = ".")
+        public FindPackageSquats(IHttpClientFactory httpClientFactory, PackageURL packageUrl, IManagerProvider<IManagerMetadata>? provider = null, string directory = ".")
             : base(httpClientFactory, directory)
         {
             PackageUrl = packageUrl;

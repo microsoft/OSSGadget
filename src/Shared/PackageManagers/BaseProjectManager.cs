@@ -2,9 +2,11 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Contracts;
     using Microsoft.CST.RecursiveExtractor;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.CST.OpenSource.Model;
+    using Model.Providers;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -23,14 +25,23 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <summary>
         /// Initializes a new instance of the <see cref="BaseProjectManager"/> class.
         /// </summary>
-        public BaseProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory)
+        public BaseProjectManager(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider, string destinationDirectory)
         {
             Options = new Dictionary<string, object>();
             TopLevelExtractionDirectory = destinationDirectory;
             HttpClientFactory = httpClientFactory;
+            Provider = provider;
         }
 
-        public BaseProjectManager(string destinationDirectory) : this(new DefaultHttpClientFactory(), destinationDirectory)
+        public BaseProjectManager(IManagerProvider<IManagerMetadata> provider, string destinationDirectory) : this(new DefaultHttpClientFactory(), provider, destinationDirectory)
+        {
+        }
+        
+        public BaseProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : this(httpClientFactory, new BaseProvider(), destinationDirectory)
+        {
+        }
+        
+        public BaseProjectManager(string destinationDirectory) : this(new DefaultHttpClientFactory(), new BaseProvider(), destinationDirectory)
         {
         }
 
@@ -48,6 +59,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// The <see cref="IHttpClientFactory"/> for the manager.
         /// </summary>
         public IHttpClientFactory HttpClientFactory { get; }
+        
+        /// <summary>
+        /// The <see cref="IManagerProvider{IManagerMetadata}"/> for the manager.
+        /// </summary>
+        public IManagerProvider<IManagerMetadata> Provider { get; }
 
         /// <summary>
         /// Extracts GitHub URLs from a given piece of text.

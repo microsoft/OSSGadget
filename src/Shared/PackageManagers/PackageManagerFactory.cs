@@ -17,9 +17,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <param name="httpClientFactory">The Http cliend factory for making http clients to make requests with.</param>
         /// <param name="destinationDirectory">The directory to use to store any downloaded packages.</param>
         /// <returns></returns>
-        public static BaseProjectManager CreateBaseProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory)
+        public static BaseProjectManager CreateBaseProjectManager(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider, string destinationDirectory)
         {
-            return new BaseProjectManager(httpClientFactory, destinationDirectory);
+            return new BaseProjectManager(httpClientFactory, provider, destinationDirectory);
         }
 
         /// <summary>
@@ -27,9 +27,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// </summary>
         /// <param name="destinationDirectory">The directory to use to store any downloaded packages.</param>
         /// <returns></returns>
-        public static BaseProjectManager CreateBaseProjectManager(string destinationDirectory)
+        public static BaseProjectManager CreateBaseProjectManager(IManagerProvider<IManagerMetadata> provider, string destinationDirectory)
         {
-            return new BaseProjectManager(destinationDirectory);
+            return new BaseProjectManager(provider, destinationDirectory);
         }
 
         /// <summary>
@@ -37,6 +37,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// </summary>
         /// <param name="purl">The <see cref="PackageURL"/> for the package to create the project manager for.</param>
         /// <param name="httpClientFactory"> The <see cref="IHttpClientFactory"/> for the project manager to use for making Http Clients to make web requests.</param>
+        /// <param name="managerProvider">The <see cref="IManagerProvider{IManagerMetadata}"/> for this manager.</param>
         /// <param name="destinationDirectory">The directory to use to store any downloaded packages.</param>
         /// <returns> BaseProjectManager object </returns>
         public static BaseProjectManager? CreateProjectManager(PackageURL purl, IHttpClientFactory? httpClientFactory = null, IManagerProvider<IManagerMetadata>? managerProvider = null, string? destinationDirectory = null)
@@ -56,19 +57,19 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {
                 if (httpClientFactory != null)
                 {
-                    System.Reflection.ConstructorInfo? ctor = downloaderClass.GetConstructor(new[] { typeof(IHttpClientFactory), typeof(string) });
+                    System.Reflection.ConstructorInfo? ctor = downloaderClass.GetConstructor(new[] { typeof(IHttpClientFactory), typeof(IManagerProvider<IManagerMetadata>), typeof(string) });
                     if (ctor != null)
                     {
-                        BaseProjectManager? _downloader = (BaseProjectManager)ctor.Invoke(new object?[] { httpClientFactory, destinationDirectory });
+                        BaseProjectManager? _downloader = (BaseProjectManager)ctor.Invoke(new object?[] { httpClientFactory, managerProvider, destinationDirectory });
                         return _downloader;
                     }
                 }
                 else
                 {
-                    System.Reflection.ConstructorInfo? ctor = downloaderClass.GetConstructor(new[] { typeof(string) });
+                    System.Reflection.ConstructorInfo? ctor = downloaderClass.GetConstructor(new[] { typeof(IManagerProvider<>), typeof(string) });
                     if (ctor != null)
                     {
-                        BaseProjectManager? _downloader = (BaseProjectManager)ctor.Invoke(new object?[] { destinationDirectory });
+                        BaseProjectManager? _downloader = (BaseProjectManager)ctor.Invoke(new object?[] { managerProvider, destinationDirectory });
                         return _downloader;
                     }
                 }

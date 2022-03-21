@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.FindSquats
 {
+    using Contracts;
     using ExtensionMethods;
     using Microsoft.CST.OpenSource;
     using Microsoft.CST.OpenSource.Exceptions;
@@ -15,7 +16,6 @@ namespace Microsoft.CST.OpenSource.FindSquats
 
     public class FindPackageSquats : OssGadgetLib
     {
-
         /// <summary>
         /// The <see cref="PackageURL"/> to find squats for.
         /// </summary>
@@ -23,11 +23,11 @@ namespace Microsoft.CST.OpenSource.FindSquats
 
         public BaseProjectManager? ProjectManager { get;  }
 
-        public FindPackageSquats(IHttpClientFactory httpClientFactory, PackageURL packageUrl, string directory = ".")
+        public FindPackageSquats(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider, PackageURL packageUrl, string directory = ".")
             : base(httpClientFactory, directory)
         {
             PackageUrl = packageUrl;
-            ProjectManager = ProjectManagerFactory.CreateProjectManager(packageUrl, httpClientFactory);
+            ProjectManager = ProjectManagerFactory.CreateProjectManager(packageUrl, httpClientFactory, provider, directory);
             if (ProjectManager is null)
             {
                 Logger.Trace($"Could not generate valid ProjectManager from { packageUrl }.");

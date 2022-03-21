@@ -19,7 +19,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Utilities;
 
-public class NuGetProvider : IManagerProvider<NuGetMetadata>
+public class NuGetProvider : BaseProvider
 {
     private SourceCacheContext _sourceCacheContext = new();
     private SourceRepository _sourceRepository = Repository.Factory.GetCoreV3("https://api.nuget.org/v3/index.json");
@@ -32,8 +32,8 @@ public class NuGetProvider : IManagerProvider<NuGetMetadata>
     {
     }
 
-    /// <inheritdoc />
-    public async Task<string?> DownloadAsync(BaseProjectManager projectManager, PackageURL packageUrl, string targetDirectory, bool doExtract,
+    /// <inheritdoc cref="IManagerProvider{T}" />
+    public new async Task<string?> DownloadAsync(BaseProjectManager projectManager, PackageURL packageUrl, string targetDirectory, bool doExtract,
         bool cached = false, CancellationToken cancellationToken = default)
     {
         FindPackageByIdResource resource = await _sourceRepository.GetResourceAsync<FindPackageByIdResource>();
@@ -66,8 +66,8 @@ public class NuGetProvider : IManagerProvider<NuGetMetadata>
         return filePath;
     }
 
-    /// <inheritdoc />
-    public async Task<bool> DoesPackageExistAsync(PackageURL packageUrl,
+    /// <inheritdoc cref="IManagerProvider{T}" />
+    public new async Task<bool> DoesPackageExistAsync(PackageURL packageUrl,
         bool useCache = true, CancellationToken cancellationToken = default)
     {
         FindPackageByIdResource resource = await _sourceRepository.GetResourceAsync<FindPackageByIdResource>();
@@ -95,8 +95,8 @@ public class NuGetProvider : IManagerProvider<NuGetMetadata>
         return versions.Any();
     }
 
-    /// <inheritdoc />
-    public async Task<IEnumerable<string>> GetAllVersionsAsync(PackageURL packageUrl,
+    /// <inheritdoc cref="IManagerProvider{T}" />
+    public new async Task<IEnumerable<string>> GetAllVersionsAsync(PackageURL packageUrl,
         bool useCache = true, CancellationToken cancellationToken = default)
     {
         FindPackageByIdResource resource = await _sourceRepository.GetResourceAsync<FindPackageByIdResource>();
@@ -110,8 +110,8 @@ public class NuGetProvider : IManagerProvider<NuGetMetadata>
         return versions.Select(v => v.ToString());
     }
 
-    /// <inheritdoc />
-    public async Task<NuGetMetadata?> GetMetadataAsync(PackageURL packageUrl,
+    /// <inheritdoc cref="IManagerProvider{T}" />
+    public new async Task<NuGetMetadata?> GetMetadataAsync(PackageURL packageUrl,
         bool useCache = true, CancellationToken cancellationToken = default)
     {
         PackageMetadataResource resource = await _sourceRepository.GetResourceAsync<PackageMetadataResource>();

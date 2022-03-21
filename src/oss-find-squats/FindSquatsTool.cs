@@ -6,6 +6,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
     using CommandLine.Text;
     using Microsoft.CodeAnalysis.Sarif;
     using Microsoft.CST.OpenSource.Shared;
+    using Model.Providers;
     using Mutators;
     using Newtonsoft.Json;
     using PackageUrl;
@@ -106,7 +107,14 @@ namespace Microsoft.CST.OpenSource.FindSquats
                     continue;
                 }
 
-                FindPackageSquats findPackageSquats = new FindPackageSquats(HttpClientFactory, purl);
+                BaseProvider? provider = ProviderFactory.CreateProvider(purl);
+                if (provider is null)
+                {
+                    Logger.Trace($"Could not generate valid Provider from { target }.");
+                    continue;
+                }
+
+                FindPackageSquats findPackageSquats = new FindPackageSquats(HttpClientFactory, provider, purl);
 
                 IDictionary<string, IList<Mutation>>? potentialSquats = findPackageSquats.GenerateSquatCandidates(options: checkerOptions);
 

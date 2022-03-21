@@ -24,22 +24,6 @@ namespace Microsoft.CST.OpenSource.Tests
     public class FindSquatsTest
     {
         [DataTestMethod]
-        [DataRow("pkg:nuget/Microsoft.CST.OAT", false)]
-        [DataRow("pkg:npm/microsoft/microsoft-graph-library", false)]
-        [DataRow("pkg:npm/foo", true)]
-        public async Task DetectSquats(string packageUrl, bool expectedToHaveSquats)
-        {
-            FindSquatsTool fst = new();
-            FindSquatsTool.Options options = new()
-            {
-                Quiet = true,
-                Targets = new string[] { packageUrl }
-            };
-            (string output, int numSquats) result = await fst.RunAsync(options);
-            Assert.IsTrue(expectedToHaveSquats ? result.numSquats > 0 : result.numSquats == 0);
-        }
-
-        [DataTestMethod]
         [DataRow("pkg:npm/angular/core", "pkg:npm/engular/core", "pkg:npm/angullar/core")]
         [DataRow("pkg:npm/%40angular/core", "pkg:npm/%40engular/core", "pkg:npm/%40angullar/core")] // back compat check
         [DataRow("pkg:npm/lodash", "pkg:npm/odash", "pkg:npm/lodah")]

@@ -3,6 +3,7 @@
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using Contracts;
+    using Model.Providers;
     using PackageUrl;
     using System;
     using System.Collections.Generic;
@@ -57,20 +58,44 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {
                 if (httpClientFactory != null)
                 {
-                    System.Reflection.ConstructorInfo? ctor = downloaderClass.GetConstructor(new[] { typeof(IHttpClientFactory), typeof(IManagerProvider<IManagerMetadata>), typeof(string) });
-                    if (ctor != null)
+                    if (managerProvider != null)
                     {
-                        BaseProjectManager? _downloader = (BaseProjectManager)ctor.Invoke(new object?[] { httpClientFactory, managerProvider, destinationDirectory });
-                        return _downloader;
+                        System.Reflection.ConstructorInfo? ctor = downloaderClass.GetConstructor(new[] { typeof(IHttpClientFactory), typeof(IManagerProvider<IManagerMetadata>), typeof(string) });
+                        if (ctor != null)
+                        {
+                            BaseProjectManager? _downloader = (BaseProjectManager)ctor.Invoke(new object?[] { httpClientFactory, managerProvider, destinationDirectory });
+                            return _downloader;
+                        }
+                    }
+                    else
+                    {
+                        System.Reflection.ConstructorInfo? ctor = downloaderClass.GetConstructor(new[] { typeof(IHttpClientFactory), typeof(string) });
+                        if (ctor != null)
+                        {
+                            BaseProjectManager? _downloader = (BaseProjectManager)ctor.Invoke(new object?[] { httpClientFactory, destinationDirectory });
+                            return _downloader;
+                        }
                     }
                 }
                 else
                 {
-                    System.Reflection.ConstructorInfo? ctor = downloaderClass.GetConstructor(new[] { typeof(IManagerProvider<>), typeof(string) });
-                    if (ctor != null)
+                    if (managerProvider != null)
                     {
-                        BaseProjectManager? _downloader = (BaseProjectManager)ctor.Invoke(new object?[] { managerProvider, destinationDirectory });
-                        return _downloader;
+                        System.Reflection.ConstructorInfo? ctor = downloaderClass.GetConstructor(new[] { typeof(IManagerProvider<IManagerMetadata>), typeof(string) });
+                        if (ctor != null)
+                        {
+                            BaseProjectManager? _downloader = (BaseProjectManager)ctor.Invoke(new object?[] { managerProvider, destinationDirectory });
+                            return _downloader;
+                        }
+                    }
+                    else
+                    {
+                        System.Reflection.ConstructorInfo? ctor = downloaderClass.GetConstructor(new[] { typeof(string) });
+                        if (ctor != null)
+                        {
+                            BaseProjectManager? _downloader = (BaseProjectManager)ctor.Invoke(new object?[] { destinationDirectory });
+                            return _downloader;
+                        }
                     }
                 }
 

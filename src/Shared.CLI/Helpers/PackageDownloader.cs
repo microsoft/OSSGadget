@@ -51,7 +51,7 @@ namespace Microsoft.CST.OpenSource
             if (packageManager == null)
             {
                 // Cannot continue without a package manager.
-                throw new ArgumentException("Invalid Package URL type: {0}", purl.Type);
+                throw new ArgumentException($"Invalid Package URL type: {purl.Type}", nameof(purl.Type));
             }
             PackageVersions = new List<PackageURL>();
             if (purl.Version == null || purl.Version.Equals("*"))

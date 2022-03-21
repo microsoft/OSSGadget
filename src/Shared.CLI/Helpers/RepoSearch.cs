@@ -11,6 +11,7 @@ namespace Microsoft.CST.OpenSource.Shared
     using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using Utilities;
 
     /// <summary>
     ///     Find out the source code repository for a given package, by applying various algorithms.
@@ -62,7 +63,7 @@ namespace Microsoft.CST.OpenSource.Shared
             Logger.Debug("Searching for source code for: {0}", purlNoVersion.ToString());
 
             // Use reflection to find the correct downloader class
-            BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, HttpClientFactory);
+            BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManagerWithProvider(purl, new NuGetProvider(),  HttpClientFactory);
 
             if (projectManager != null)
             {

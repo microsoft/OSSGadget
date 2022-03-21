@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Contracts;
     using PackageUrl;
     using System;
     using System.Collections.Generic;
@@ -38,7 +39,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <param name="httpClientFactory"> The <see cref="IHttpClientFactory"/> for the project manager to use for making Http Clients to make web requests.</param>
         /// <param name="destinationDirectory">The directory to use to store any downloaded packages.</param>
         /// <returns> BaseProjectManager object </returns>
-        public static BaseProjectManager? CreateProjectManager(PackageURL purl, IHttpClientFactory? httpClientFactory = null, string? destinationDirectory = null)
+        public static BaseProjectManager? CreateProjectManager(PackageURL purl, IHttpClientFactory? httpClientFactory = null, IManagerProvider<IManagerMetadata>? managerProvider = null, string? destinationDirectory = null)
         {
             if (projectManagers.Count == 0)
             {

@@ -45,7 +45,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
  
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
             
-            _projectManager = new NPMProjectManager(mockFactory.Object, new BaseProvider(), ".");
+            _projectManager = new NPMProjectManager(mockFactory.Object, null, ".");
         }
 
         [DataTestMethod]

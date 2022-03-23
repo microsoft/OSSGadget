@@ -50,7 +50,7 @@ namespace Microsoft.CST.OpenSource
 
             try
             {
-                RepoSearch repoSearcher = new RepoSearch(HttpClientFactory);
+                RepoSearch repoSearcher = new RepoSearch(HttpClientFactory, Provider);
                 Dictionary<PackageURL, double>? repos = await (repoSearcher.ResolvePackageLibraryAsync(purl) ??
                     Task.FromResult(new Dictionary<PackageURL, double>()));
 

@@ -1,13 +1,11 @@
 // Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-
 namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 {
     using Contracts;
     using Helpers;
     using Model;
     using Model.Metadata;
-    using Model.Providers;
     using Moq;
     using Newtonsoft.Json;
     using oss;

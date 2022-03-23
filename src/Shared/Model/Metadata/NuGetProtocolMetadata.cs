@@ -17,12 +17,8 @@ using System.Threading.Tasks;
 /// <summary>
 /// A class to represent Package Metadata for a NuGet package.
 /// </summary>
-public class NuGetMetadata : IManagerMetadata, IPackageSearchMetadata
+public class NuGetMetadata : IManagerMetadata
 {
-    public Task<PackageDeprecationMetadata> GetDeprecationMetadataAsync() => throw new NotImplementedException();
-
-    public Task<IEnumerable<VersionInfo>> GetVersionsAsync() => throw new NotImplementedException();
-
     [JsonProperty(PropertyName = JsonProperties.Authors)]
     [JsonConverter(typeof(MetadataFieldConverter))]
     public string Authors { get; private set; }
@@ -44,7 +40,7 @@ public class NuGetMetadata : IManagerMetadata, IPackageSearchMetadata
     public Uri IconUrl { get; private set; }
 
     [JsonIgnore]
-    public PackageIdentity Identity => new(PackageId, new NuGetVersion(Version));
+    public PackageIdentity Identity => new(Name, new NuGetVersion(Version));
 
     [JsonProperty(PropertyName = JsonProperties.Version)]
     public string Version { get; private set; }
@@ -76,7 +72,7 @@ public class NuGetMetadata : IManagerMetadata, IPackageSearchMetadata
     public string Owners { get; private set; }
 
     [JsonProperty(PropertyName = JsonProperties.PackageId)]
-    public string PackageId { get; private set; }
+    public string Name { get; private set; }
 
     [JsonProperty(PropertyName = JsonProperties.RequireLicenseAcceptance, DefaultValueHandling = DefaultValueHandling.Populate)]
     [DefaultValue(false)]
@@ -108,7 +104,9 @@ public class NuGetMetadata : IManagerMetadata, IPackageSearchMetadata
     [JsonProperty(PropertyName = JsonProperties.SubjectId)]
     public Uri CatalogUri { get; private set; }
 
-    // Constructor for json deserialization
+    /// <summary>
+    /// Initialize an instance of <see cref="NuGetMetadata"/> using the <see cref="JsonConstructorAttribute"/>.
+    /// </summary>
     [JsonConstructor]
 #pragma warning disable CS8618
     public NuGetMetadata()
@@ -126,7 +124,7 @@ public class NuGetMetadata : IManagerMetadata, IPackageSearchMetadata
         Description = registration.Description;
         DownloadCount = registration.DownloadCount;
         IconUrl = registration.IconUrl;
-        PackageId = registration.PackageId;
+        Name = registration.PackageId;
         Version = registration.Version.ToString();
         LicenseUrl = registration.LicenseUrl;
         ProjectUrl = registration.ProjectUrl;
@@ -164,5 +162,4 @@ public class NuGetMetadata : IManagerMetadata, IPackageSearchMetadata
     {
         return JsonConvert.DeserializeObject<NuGetMetadata>(json);
     }
-
 } 

@@ -2,7 +2,15 @@
 
 namespace Microsoft.CST.OpenSource.Contracts;
 
-public class IManagerMetadata
+public interface IManagerMetadata
 {
-    
+    /// <summary>
+    /// The name of the package.
+    /// </summary>
+    public string Name { get; }
+
+    /// <summary>
+    /// The version of the package.
+    /// </summary>
+    public string Version { get; }
 }

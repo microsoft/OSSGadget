@@ -232,7 +232,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             PackageMetadata metadata = new();
 
-            metadata.Name = packageVersion.PackageId;
+            metadata.Name = packageVersion.Name;
             metadata.Description = packageVersion.Description;
 
             metadata.PackageManagerUri = ENV_NUGET_ENDPOINT_API;

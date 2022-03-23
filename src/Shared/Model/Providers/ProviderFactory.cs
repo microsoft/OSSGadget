@@ -2,55 +2,43 @@
 
 namespace Microsoft.CST.OpenSource.Model.Providers;
 
-using Contracts;
 using PackageUrl;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 
 public static class ProviderFactory
 {
     /// <summary>
-    /// Create a <see cref="BaseProvider"/>.
+    /// Get an appropriate implementation of <see cref="BaseProvider"/> for the project manager in the provided
+    /// <see cref="PackageURL"/>. If no implementation of <see cref="BaseProvider"/> exists for this manager, returns null.
     /// </summary>
-    /// <returns>A new <see cref="BaseProvider"/>.</returns>
-    public static BaseProvider CreateBaseProvider()
-    {
-        return new BaseProvider();
-    }
-
-    /// <summary>
-    /// Get an appropriate project manager for package given its PackageURL.
-    /// </summary>
-    /// <param name="purl">The <see cref="PackageURL"/> for the package to create the project manager for.</param>
-    /// <param name="httpClientFactory"> The <see cref="IHttpClientFactory"/> for the project manager to use for making Http Clients to make web requests.</param>
-    /// <param name="managerProvider">The <see cref="IManagerProvider{IManagerMetadata}"/> for this manager.</param>
-    /// <param name="destinationDirectory">The directory to use to store any downloaded packages.</param>
-    /// <returns> BaseProjectManager object </returns>
+    /// <param name="purl">The <see cref="PackageURL"/> for the package to create the provider for.</param>
+    /// <returns>An implementation of <see cref="BaseProvider"/> for this project manager, or null.</returns>
     public static BaseProvider? CreateProvider(PackageURL purl)
     {
-        if (managerProviders.Count == 0)
+        if (ManagerProviders.Count == 0)
         {
-            managerProviders.AddRange(typeof(BaseProvider).Assembly.GetTypes()
+            ManagerProviders.AddRange(typeof(BaseProvider).Assembly.GetTypes()
                 .Where(type => type.IsSubclassOf(typeof(BaseProvider))));
         }
 
         // Use reflection to find the correct provider class
-        Type? providerClass = managerProviders
+        Type? providerClass = ManagerProviders
             .FirstOrDefault(type => type.Name.Equals($"{purl.Type}Provider",
                 StringComparison.InvariantCultureIgnoreCase));
 
-        if (providerClass != null)
+        if (providerClass == null)
         {
-            BaseProvider? _provider = Activator.CreateInstance(providerClass) as BaseProvider;
-
-            return _provider;
+            return null;
         }
 
-        return null;
+        BaseProvider? provider = Activator.CreateInstance(providerClass) as BaseProvider;
+
+        return provider;
+
     }
 
     // do reflection only once
-    private static readonly List<Type> managerProviders = new();
+    private static readonly List<Type> ManagerProviders = new();
 }

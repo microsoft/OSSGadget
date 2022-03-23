@@ -21,9 +21,9 @@ using Utilities;
 
 public class NuGetProvider : BaseProvider
 {
-    private SourceCacheContext _sourceCacheContext = new();
-    private SourceRepository _sourceRepository = Repository.Factory.GetCoreV3("https://api.nuget.org/v3/index.json");
-    private NuGetLogger _logger = new(LogManager.GetCurrentClassLogger());
+    private readonly SourceCacheContext _sourceCacheContext = new();
+    private readonly SourceRepository _sourceRepository = Repository.Factory.GetCoreV3("https://api.nuget.org/v3/index.json");
+    private readonly NuGetLogger _logger = new(LogManager.GetCurrentClassLogger());
 
     /// <summary>
     /// Instantiates a new <see cref="NuGetProvider"/>.
@@ -32,7 +32,7 @@ public class NuGetProvider : BaseProvider
     {
     }
 
-    /// <inheritdoc cref="IManagerProvider{T}" />
+    /// <inheritdoc />
     public override async Task<string?> DownloadAsync(BaseProjectManager projectManager, PackageURL packageUrl, string targetDirectory, bool doExtract,
         bool cached = false, CancellationToken cancellationToken = default)
     {
@@ -66,7 +66,7 @@ public class NuGetProvider : BaseProvider
         return filePath;
     }
 
-    /// <inheritdoc cref="IManagerProvider{T}" />
+    /// <inheritdoc />
     public override async Task<bool> DoesPackageExistAsync(PackageURL packageUrl,
         bool useCache = true, CancellationToken cancellationToken = default)
     {
@@ -95,7 +95,7 @@ public class NuGetProvider : BaseProvider
         return versions.Any();
     }
 
-    /// <inheritdoc cref="IManagerProvider{T}" />
+    /// <inheritdoc />
     public override async Task<IEnumerable<string>> GetAllVersionsAsync(PackageURL packageUrl,
         bool useCache = true, CancellationToken cancellationToken = default)
     {
@@ -110,7 +110,7 @@ public class NuGetProvider : BaseProvider
         return versions.Select(v => v.ToString());
     }
 
-    /// <inheritdoc cref="IManagerProvider{T}" />
+    /// <inheritdoc />
     public override async Task<IManagerMetadata?> GetMetadataAsync(PackageURL packageUrl,
         bool useCache = true, CancellationToken cancellationToken = default)
     {

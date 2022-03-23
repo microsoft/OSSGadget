@@ -28,7 +28,7 @@ public interface IManagerProvider<T>
     Task<string?> DownloadAsync(BaseProjectManager projectManager, PackageURL packageUrl, string targetDirectory, bool doExtract, bool cached = false, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Checks to see if a package exists. If provided a version, it checks for that specific version.
+    /// Checks to see if a package exists. If provided a version, it checks for existence of that specific version.
     /// </summary>
     /// <param name="packageUrl">The <see cref="PackageURL"/> to check.</param>
     /// <param name="useCache">If the cache should be checked for the existence of this package.</param>
@@ -37,22 +37,22 @@ public interface IManagerProvider<T>
     Task<bool> DoesPackageExistAsync(PackageURL packageUrl, bool useCache = true, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets all the versions of a package.
+    /// Gets all versions of a package.
     /// </summary>
-    /// <param name="packageUrl">The <see cref="PackageURL"/> to get all the available versions for.</param>
+    /// <param name="packageUrl">The <see cref="PackageURL"/> to get all available versions for.</param>
     /// <param name="useCache">If the cache should be checked for the available versions of this package.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to be used in the method call, defaults to <see cref="CancellationToken.None"/>.</param>
-    /// <returns>An <see cref="IEnumerable{String}"/> of all of the versions.</returns>
+    /// <returns>An <see cref="IEnumerable{String}"/> of all of the versions for this package.</returns>
     Task<IEnumerable<string>> GetAllVersionsAsync(PackageURL packageUrl, bool useCache = true, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets the Metadata for this package version.
+    /// Gets the <see cref="T"/> for this package version.
     /// </summary>
     /// <param name="packageUrl">The <see cref="PackageURL"/>. Requires a version.</param>
     /// <param name="useCache">If the cache should be checked for the metadata of this package.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to be used in the method call, defaults to <see cref="CancellationToken.None"/>.</param>
     /// <returns>The <see cref="T"/> for this package version. Or null if none was found.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if there was no version in packageUrl</exception>
+    /// <exception cref="ArgumentNullException">Thrown if there was no version in <paramref name="packageUrl"/>.</exception>
     Task<T?> GetMetadataAsync(PackageURL packageUrl, bool useCache = true,
         CancellationToken cancellationToken = default);
 } 

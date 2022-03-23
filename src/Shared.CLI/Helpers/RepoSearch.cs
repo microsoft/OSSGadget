@@ -30,6 +30,11 @@ namespace Microsoft.CST.OpenSource.Shared
     /// </summary>
     public class RepoSearch
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RepoSearch"/> class.
+        /// </summary>
+        /// <param name="httpClientFactory">The <see cref="IHttpClientFactory"/> to generate an <see cref="HttpClient"/> with.</param>
+        /// <param name="provider">The <see cref="IManagerProvider{IManagerMetadata}"/> to make calls to the manager registry with.</param>
         public RepoSearch(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata>? provider = null)
         {
             HttpClientFactory = httpClientFactory;
@@ -40,7 +45,7 @@ namespace Microsoft.CST.OpenSource.Shared
         {
         }
         
-        public RepoSearch() : this(new DefaultHttpClientFactory(), new BaseProvider())
+        public RepoSearch() : this(new DefaultHttpClientFactory())
         {
         }
 

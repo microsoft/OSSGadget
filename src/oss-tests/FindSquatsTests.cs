@@ -164,7 +164,7 @@ namespace Microsoft.CST.OpenSource.Tests
             using MockHttpMessageHandler httpMock = new();
             MockHttpFetchResponse(HttpStatusCode.OK, lodashUrl, httpMock);
 
-            MockSquattedPackages(httpMock, lodash, squattingPackages);
+            MockSquattedPackages(httpMock, squattingPackages);
 
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpMock.ToHttpClient());
 
@@ -201,7 +201,7 @@ namespace Microsoft.CST.OpenSource.Tests
             using MockHttpMessageHandler httpMock = new();
             MockHttpFetchResponse(HttpStatusCode.OK, lodashUrl, httpMock);
 
-            MockSquattedPackages(httpMock, lodash, squattingPackages);
+            MockSquattedPackages(httpMock, squattingPackages);
 
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpMock.ToHttpClient());
 
@@ -236,7 +236,7 @@ namespace Microsoft.CST.OpenSource.Tests
             using MockHttpMessageHandler httpMock = new();
             MockHttpFetchResponse(HttpStatusCode.OK, fooUrl, httpMock);
 
-            MockSquattedPackages(httpMock, foo, squattingPackages);
+            MockSquattedPackages(httpMock, squattingPackages);
 
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpMock.ToHttpClient());
 
@@ -273,7 +273,7 @@ namespace Microsoft.CST.OpenSource.Tests
             using MockHttpMessageHandler httpMock = new();
             MockHttpFetchResponse(HttpStatusCode.OK, newtonsoftUrl, httpMock);
 
-            MockSquattedPackages(httpMock, newtonsoft, squattingPackages);
+            MockSquattedPackages(httpMock, squattingPackages);
 
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpMock.ToHttpClient());
 
@@ -303,6 +303,7 @@ namespace Microsoft.CST.OpenSource.Tests
                 "pkg:npm/anbular/core", // ["CloseLetters"]
                 "pkg:npm/angula/core", // ["RemovedCharacter"]
                 "pkg:npm/angularjs/core", // ["Suffix"]
+                "pkg:npm/core", // ["Removed namespace."]
             };
 
             Mock<IHttpClientFactory> mockFactory = new();
@@ -310,7 +311,7 @@ namespace Microsoft.CST.OpenSource.Tests
             using MockHttpMessageHandler httpMock = new();
             MockHttpFetchResponse(HttpStatusCode.OK, angularCoreUrl, httpMock);
 
-            MockSquattedPackages(httpMock, angularCore, squattingPackages);
+            MockSquattedPackages(httpMock, squattingPackages);
 
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpMock.ToHttpClient());
 
@@ -335,7 +336,7 @@ namespace Microsoft.CST.OpenSource.Tests
                 .Respond(statusCode, "application/json", "{}");
         }
         
-        private static void MockSquattedPackages(MockHttpMessageHandler httpMock, PackageURL purl, string[] squattedPurls)
+        private static void MockSquattedPackages(MockHttpMessageHandler httpMock, string[] squattedPurls)
         {
             foreach (PackageURL mutatedPackage in squattedPurls.Select(mutatedPurl => new PackageURL(mutatedPurl)))
             {

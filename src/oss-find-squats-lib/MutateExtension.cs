@@ -130,7 +130,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
             }
 
             PackageURL purlWithoutNamespace = 
-                new(purl.Type, null, purl.Name, purl.Version, purl.Qualifiers, purl.Subpath);
+                new(purl.Type, null, purl.Name, null, null, null);
             if (!generatedMutations.ContainsKey(purlWithoutNamespace.ToString()))
             {
                 generatedMutations[purlWithoutNamespace.ToString()] = new List<Mutation>();

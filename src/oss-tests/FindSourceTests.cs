@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Tests
 {
+    using Model.Providers;
     using PackageUrl;
     using System;
 
@@ -94,8 +95,9 @@ namespace Microsoft.CST.OpenSource.Tests
             // for initialization
             FindSourceTool tool = new();
 
-            RepoSearch searchTool = new();
-            Dictionary<PackageURL, double>? results = await searchTool.ResolvePackageLibraryAsync(new PackageURL(purl));
+            PackageURL packageUrl = new PackageURL(purl);
+            RepoSearch searchTool = new(ProviderFactory.CreateProvider(packageUrl));
+            Dictionary<PackageURL, double>? results = await searchTool.ResolvePackageLibraryAsync(packageUrl);
             PackageURL? targetPurl = new(targetResult);
             bool success = false;
 

@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Contracts;
     using PackageUrl;
     using System;
     using System.Collections.Generic;
@@ -16,7 +17,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_MAVEN_ENDPOINT = "https://repo1.maven.org/maven2";
 
-        public MavenProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        public MavenProjectManager(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider, string destinationDirectory) : base(httpClientFactory, provider, destinationDirectory)
+        {
+        }
+        
+        public MavenProjectManager(IManagerProvider<IManagerMetadata> provider, string destinationDirectory) : base(provider, destinationDirectory)
         {
         }
 

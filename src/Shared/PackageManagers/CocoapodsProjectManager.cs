@@ -3,6 +3,7 @@
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using AngleSharp.Html.Parser;
+    using Contracts;
     using Extensions;
     using PackageUrl;
     using System;
@@ -26,7 +27,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_COCOAPODS_METADATA_ENDPOINT = "https://cocoapods.org";
 
-        public CocoapodsProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        public CocoapodsProjectManager(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider, string destinationDirectory) : base(httpClientFactory, provider, destinationDirectory)
+        {
+        }
+        
+        public CocoapodsProjectManager(IManagerProvider<IManagerMetadata> provider, string destinationDirectory) : base(provider, destinationDirectory)
         {
         }
 

@@ -32,6 +32,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
             GetRegistrationEndpointAsync().Wait();
         }
+        
+        public NuGetProjectManager(IManagerProvider<IManagerMetadata> provider, string destinationDirectory) : base(provider, destinationDirectory)
+        {
+            GetRegistrationEndpointAsync().Wait();
+        }
 
         public NuGetProjectManager(string destinationDirectory) : base(destinationDirectory)
         {

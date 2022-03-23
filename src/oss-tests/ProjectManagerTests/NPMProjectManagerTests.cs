@@ -4,6 +4,7 @@
 namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 {
     using Model;
+    using Model.Providers;
     using Moq;
     using OpenSource.Helpers;
     using oss;
@@ -44,7 +45,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
  
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
             
-            _projectManager = new NPMProjectManager(mockFactory.Object, ".");
+            _projectManager = new NPMProjectManager(mockFactory.Object, new BaseProvider(), ".");
         }
 
         [DataTestMethod]

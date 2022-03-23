@@ -245,7 +245,7 @@ namespace Microsoft.CST.OpenSource.Tests
             {
                 try
                 {
-                    packageDownloader = new PackageDownloader(packageUrl, null, new BaseProvider(), tempDirectoryName, doCache);
+                    packageDownloader = new PackageDownloader(packageUrl, null, new NuGetProvider(), tempDirectoryName, doCache);
                     packageDownloader.DownloadPackageLocalCopy(packageUrl, false, true).Wait();
                     break;
                 }

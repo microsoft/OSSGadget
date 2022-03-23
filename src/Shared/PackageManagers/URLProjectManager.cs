@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Contracts;
     using PackageUrl;
     using System;
     using System.Collections.Generic;
@@ -11,7 +12,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     internal class URLProjectManager : BaseProjectManager
     {
-        public URLProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        public URLProjectManager(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider, string destinationDirectory) : base(httpClientFactory, provider, destinationDirectory)
+        {
+        }
+        
+        public URLProjectManager(IManagerProvider<IManagerMetadata> provider, string destinationDirectory) : base(provider, destinationDirectory)
         {
         }
 

@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Contracts;
     using Model;
     using NLog.LayoutRenderers.Wrappers;
     using PackageUrl;
@@ -19,7 +20,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     {
         public static string ENV_PYPI_ENDPOINT { get; set; } = "https://pypi.org";
 
-        public PyPIProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        public PyPIProjectManager(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider, string destinationDirectory) : base(httpClientFactory, provider, destinationDirectory)
+        {
+        }
+        
+        public PyPIProjectManager(IManagerProvider<IManagerMetadata> provider, string destinationDirectory) : base(provider, destinationDirectory)
         {
         }
 

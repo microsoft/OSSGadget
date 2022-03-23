@@ -39,7 +39,7 @@ namespace Microsoft.CST.OpenSource
         protected OssGadgetLib(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider, string directory = ".")
         {
             HttpClientFactory = Check.NotNull(nameof(httpClientFactory), httpClientFactory);
-            Provider = Check.NotNull(nameof(provider), provider);
+            Provider = provider;
             Directory = directory;
         }
 

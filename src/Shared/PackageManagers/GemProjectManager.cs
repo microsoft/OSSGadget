@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Contracts;
     using PackageUrl;
     using System;
     using System.Collections.Generic;
@@ -17,7 +18,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public static string ENV_RUBYGEMS_ENDPOINT = "https://rubygems.org";
         public static string ENV_RUBYGEMS_ENDPOINT_API = "https://api.rubygems.org";
 
-        public GemProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        public GemProjectManager(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider, string destinationDirectory) : base(httpClientFactory, provider, destinationDirectory)
+        {
+        }
+        
+        public GemProjectManager(IManagerProvider<IManagerMetadata> provider, string destinationDirectory) : base(provider, destinationDirectory)
         {
         }
 

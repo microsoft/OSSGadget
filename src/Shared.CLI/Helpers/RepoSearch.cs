@@ -2,8 +2,10 @@
 
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using Contracts;
     using Microsoft.CST.OpenSource.Helpers;
     using Microsoft.CST.OpenSource.PackageManagers;
+    using Model.Providers;
     using NLog;
     using PackageUrl;
     using System;
@@ -28,16 +30,23 @@ namespace Microsoft.CST.OpenSource.Shared
     /// </summary>
     public class RepoSearch
     {
-        public RepoSearch(IHttpClientFactory httpClientFactory)
+        public RepoSearch(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata>? provider = null)
         {
             HttpClientFactory = httpClientFactory;
+            Provider = provider;
         }
 
-        public RepoSearch() : this(new DefaultHttpClientFactory())
+        public RepoSearch(IManagerProvider<IManagerMetadata>? provider) : this(new DefaultHttpClientFactory(), provider)
+        {
+        }
+        
+        public RepoSearch() : this(new DefaultHttpClientFactory(), new BaseProvider())
         {
         }
 
         private IHttpClientFactory HttpClientFactory { get; }
+        
+        private IManagerProvider<IManagerMetadata>? Provider { get; }
 
         /// <summary>
         ///     try to resolve the source code for an npm package through different means
@@ -62,7 +71,7 @@ namespace Microsoft.CST.OpenSource.Shared
             Logger.Debug("Searching for source code for: {0}", purlNoVersion.ToString());
 
             // Use reflection to find the correct downloader class
-            BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, HttpClientFactory);
+            BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, HttpClientFactory, Provider);
 
             if (projectManager != null)
             {

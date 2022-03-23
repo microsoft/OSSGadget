@@ -68,10 +68,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     }
                     else
                     {
-                        System.Reflection.ConstructorInfo? ctor = downloaderClass.GetConstructor(new[] { typeof(IHttpClientFactory), typeof(string) });
+                        System.Reflection.ConstructorInfo? ctor = downloaderClass.GetConstructor(new[] { typeof(IHttpClientFactory), typeof(IManagerProvider<IManagerMetadata>), typeof(string) });
                         if (ctor != null)
                         {
-                            BaseProjectManager? _downloader = (BaseProjectManager)ctor.Invoke(new object?[] { httpClientFactory, destinationDirectory });
+                            BaseProjectManager? _downloader = (BaseProjectManager)ctor.Invoke(new object?[] { httpClientFactory, new BaseProvider(), destinationDirectory });
                             return _downloader;
                         }
                     }

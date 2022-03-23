@@ -141,7 +141,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 sortedList.Insert(0, latestVersion);
 
                 return sortedList;
-
             }
             catch (Exception ex)
             {

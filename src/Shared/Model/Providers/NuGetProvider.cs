@@ -117,7 +117,7 @@ public class NuGetProvider : BaseProvider
         PackageMetadataResource resource = await _sourceRepository.GetResourceAsync<PackageMetadataResource>();
         if (string.IsNullOrWhiteSpace(packageUrl.Version))
         {
-            throw new ArgumentNullException(nameof(packageUrl.Version), "There was no version on the PackageURL");
+            throw new ArgumentException("There was no version on the PackageURL.", nameof(packageUrl));
         }
 
         PackageIdentity packageIdentity = new(packageUrl.Name, NuGetVersion.Parse(packageUrl.Version));

@@ -53,12 +53,12 @@ namespace Microsoft.CST.OpenSource
             public bool UseCache { get; set; }
         }
 
-        public DetectBackdoorTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider) : base(httpClientFactory, provider)
+        public DetectBackdoorTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata>? provider = null) : base(httpClientFactory, provider)
         {
             RULE_DIRECTORY = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "BackdoorRules");
         }
 
-        public DetectBackdoorTool() : this(new DefaultHttpClientFactory(), new BaseProvider())
+        public DetectBackdoorTool() : this(new DefaultHttpClientFactory())
         {
         }
 

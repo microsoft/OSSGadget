@@ -54,11 +54,11 @@ namespace Microsoft.CST.OpenSource.FindSquats
 
         }
 
-        public FindSquatsTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider) : base(httpClientFactory, provider)
+        public FindSquatsTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata>? provider = null) : base(httpClientFactory, provider)
         {
         }
 
-        public FindSquatsTool() : this(new DefaultHttpClientFactory(), new BaseProvider())
+        public FindSquatsTool() : this(new DefaultHttpClientFactory())
         {
         }
 
@@ -108,9 +108,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
                     continue;
                 }
 
-                BaseProvider? provider = ProviderFactory.CreateProvider(purl);
-
-                FindPackageSquats findPackageSquats = new FindPackageSquats(HttpClientFactory, purl, provider);
+                FindPackageSquats findPackageSquats = new FindPackageSquats(HttpClientFactory, purl, Provider);
 
                 IDictionary<string, IList<Mutation>>? potentialSquats = findPackageSquats.GenerateSquatCandidates(options: checkerOptions);
 

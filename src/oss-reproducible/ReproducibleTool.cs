@@ -77,10 +77,10 @@ namespace Microsoft.CST.OpenSource
             public bool LeaveIntermediateFiles { get; set; }
         }
 
-        public ReproducibleTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider) : base(httpClientFactory, provider)
+        public ReproducibleTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata>? provider = null) : base(httpClientFactory, provider)
         {
         }
-        public ReproducibleTool() : this(new DefaultHttpClientFactory(), new BaseProvider())
+        public ReproducibleTool() : this(new DefaultHttpClientFactory())
         {
         }
         /// <summary>

@@ -36,14 +36,14 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         protected string Directory { get; }
 
-        protected OssGadgetLib(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider, string directory = ".")
+        protected OssGadgetLib(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata>? provider = null, string directory = ".")
         {
             HttpClientFactory = Check.NotNull(nameof(httpClientFactory), httpClientFactory);
             Provider = provider;
             Directory = directory;
         }
 
-        protected OssGadgetLib(string directory = ".") : this(new DefaultHttpClientFactory(), new BaseProvider(), directory)
+        protected OssGadgetLib(string directory = ".") : this(new DefaultHttpClientFactory(), null, directory)
         {
         }
 

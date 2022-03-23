@@ -238,11 +238,11 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        public DetectCryptographyTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider) : base(httpClientFactory, provider)
+        public DetectCryptographyTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata>? provider = null) : base(httpClientFactory, provider)
         {
         }
 
-        public DetectCryptographyTool() : this(new DefaultHttpClientFactory(), new BaseProvider())
+        public DetectCryptographyTool() : this(new DefaultHttpClientFactory())
         {
         }
 

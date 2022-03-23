@@ -363,7 +363,7 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         /// Initializes a new DefoggerTool instance.
         /// </summary>
-        public DefoggerTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider) : base(httpClientFactory, provider)
+        public DefoggerTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata>? provider = null) : base(httpClientFactory, provider)
         {
             Findings = new List<EncodedString>();
             BinaryFindings = new List<EncodedBinary>();
@@ -371,7 +371,7 @@ namespace Microsoft.CST.OpenSource
             NonTextFindings = new List<EncodedBlob>();
         }
 
-        public DefoggerTool() : this(new DefaultHttpClientFactory(), new BaseProvider())
+        public DefoggerTool() : this(new DefaultHttpClientFactory())
         {
         }
 

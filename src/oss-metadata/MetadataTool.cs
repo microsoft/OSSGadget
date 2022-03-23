@@ -45,19 +45,19 @@ namespace Microsoft.CST.OpenSource
             private IEnumerable<string> targets = Array.Empty<string>();
         }
 
-        public MetadataTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider) : base(httpClientFactory, provider)
+        public MetadataTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata>? provider = null) : base(httpClientFactory, provider)
         {
         }
 
-        public MetadataTool(): this(new DefaultHttpClientFactory(), new BaseProvider()) { }
+        public MetadataTool(): this(new DefaultHttpClientFactory()) { }
 
-        private static async Task<PackageMetadata?> GetPackageMetadata(PackageURL purl, IHttpClientFactory httpClientFactory, bool useCache = true)
+        private static async Task<PackageMetadata?> GetPackageMetadata(PackageURL purl, IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata>? provider = null, bool useCache = true)
         {
             PackageMetadata? metadata = null;
             try
             {
                 // Use reflection to find the correct downloader class
-                BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, httpClientFactory);
+                BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, httpClientFactory, provider);
                 if (projectManager != null)
                 {
                     metadata = await projectManager.GetPackageMetadata(purl, useCache);
@@ -94,7 +94,7 @@ namespace Microsoft.CST.OpenSource
                     {
                         PackageURL purl = new(target);
                         Logger.Info($"Collecting metadata for {purl}");
-                        PackageMetadata? metadata = await GetPackageMetadata(purl, HttpClientFactory, options.UseCache);
+                        PackageMetadata? metadata = await GetPackageMetadata(purl, HttpClientFactory, Provider, options.UseCache);
                         Logger.Info(metadata?.ToString());
                     }
                     catch (Exception ex)

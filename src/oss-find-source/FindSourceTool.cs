@@ -25,11 +25,11 @@ namespace Microsoft.CST.OpenSource
             "pkg:github/metacpan/metacpan-web"
         };
 
-        public FindSourceTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider) : base(httpClientFactory, provider)
+        public FindSourceTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata>? provider = null) : base(httpClientFactory, provider)
         {
         }
 
-        public FindSourceTool() : this(new DefaultHttpClientFactory(), new BaseProvider())
+        public FindSourceTool() : this(new DefaultHttpClientFactory())
         {
         }
 

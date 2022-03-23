@@ -87,11 +87,11 @@ namespace Microsoft.CST.OpenSource.DiffTool
             public IEnumerable<string> Targets { get; set; } = Array.Empty<string>();
         }
 
-        public DiffTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider) : base(httpClientFactory, provider)
+        public DiffTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata>? provider = null) : base(httpClientFactory, provider)
         {
         }
 
-        public DiffTool() : this (new DefaultHttpClientFactory(), new BaseProvider()) { }
+        public DiffTool() : this (new DefaultHttpClientFactory()) { }
 
         static async Task Main(string[] args)
         {

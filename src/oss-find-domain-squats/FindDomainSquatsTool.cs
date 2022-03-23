@@ -78,7 +78,7 @@ namespace Microsoft.CST.OpenSource.DomainSquats
             public IEnumerable<string>? Targets { get; set; }
         }
 
-        public FindDomainSquatsTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory, new BaseProvider())
+        public FindDomainSquatsTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
         {
         }
 

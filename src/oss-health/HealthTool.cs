@@ -19,22 +19,22 @@ namespace Microsoft.CST.OpenSource
 
     public class HealthTool : OSSGadget
     {
-        public HealthTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider) : base(httpClientFactory, provider)
+        public HealthTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata>? provider = null) : base(httpClientFactory, provider)
         {
         }
-        public HealthTool() : this(new DefaultHttpClientFactory(), new BaseProvider())
+        public HealthTool() : this(new DefaultHttpClientFactory())
         {
         }
         public async Task<HealthMetrics?> CheckHealth(PackageURL purl)
         {
-            BaseProjectManager? packageManager = ProjectManagerFactory.CreateProjectManager(purl, HttpClientFactory);
+            BaseProjectManager? packageManager = ProjectManagerFactory.CreateProjectManager(purl, HttpClientFactory, Provider);
 
             if (packageManager != null)
             {
                 string? content = await packageManager.GetMetadata(purl);
                 if (!string.IsNullOrWhiteSpace(content))
                 {
-                    RepoSearch repoSearcher = new RepoSearch(HttpClientFactory);
+                    RepoSearch repoSearcher = new RepoSearch(HttpClientFactory, Provider);
                     foreach ((PackageURL githubPurl, double _) in await repoSearcher.ResolvePackageLibraryAsync(purl))
                     {
                         try

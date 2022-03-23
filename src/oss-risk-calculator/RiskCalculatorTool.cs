@@ -69,11 +69,11 @@ namespace Microsoft.CST.OpenSource
             public bool UseCache { get; set; }
         }
 
-        public RiskCalculatorTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider) : base(httpClientFactory, provider)
+        public RiskCalculatorTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata>? provider = null) : base(httpClientFactory, provider)
         {
         }
 
-        public RiskCalculatorTool() : this(new DefaultHttpClientFactory(), new BaseProvider())
+        public RiskCalculatorTool() : this(new DefaultHttpClientFactory())
         {
         }
 

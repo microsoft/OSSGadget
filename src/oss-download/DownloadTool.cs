@@ -57,11 +57,11 @@ namespace Microsoft.CST.OpenSource
             public bool UseCache { get; set; }
         }
 
-        public DownloadTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider) : base(httpClientFactory, provider)
+        public DownloadTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata>? provider = null) : base(httpClientFactory, provider)
         {
         }
 
-        public DownloadTool() : this(new DefaultHttpClientFactory(), new NuGetProvider()) { }
+        public DownloadTool() : this(new DefaultHttpClientFactory()) { }
 
         /// <summary>
         ///     Main entrypoint for the download program.

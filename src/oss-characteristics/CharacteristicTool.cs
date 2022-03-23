@@ -75,11 +75,11 @@ namespace Microsoft.CST.OpenSource
             public FailureLevel SarifLevel { get; set; } = FailureLevel.Note;
         }
 
-        public CharacteristicTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider) : base(httpClientFactory, provider)
+        public CharacteristicTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata>? provider = null) : base(httpClientFactory, provider)
         {
         }
 
-        public CharacteristicTool() : this(new DefaultHttpClientFactory(), new BaseProvider()) 
+        public CharacteristicTool() : this(new DefaultHttpClientFactory()) 
         {
         }
 

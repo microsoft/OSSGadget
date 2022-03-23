@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 namespace Microsoft.CST.OpenSource
 {
     using Contracts;
-    using Model.Providers;
     using PackageUrl;
     using System.Net.Http;
+
     public class DownloadTool : OSSGadget
     {
         public enum ErrorCode

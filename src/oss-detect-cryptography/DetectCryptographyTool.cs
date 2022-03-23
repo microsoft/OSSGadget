@@ -24,7 +24,6 @@ namespace Microsoft.CST.OpenSource
 {
     using Contracts;
     using Microsoft.CST.OpenSource.PackageManagers;
-    using Model.Providers;
     using PackageUrl;
     using System.Net.Http;
 
@@ -94,7 +93,7 @@ namespace Microsoft.CST.OpenSource
                             {
                                 targetDirectoryName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                             }
-                            BaseProjectManager projectManager = ProjectManagerFactory.CreateBaseProjectManager(detectCryptographyTool.HttpClientFactory, new NuGetProvider(), targetDirectoryName);
+                            BaseProjectManager projectManager = ProjectManagerFactory.CreateBaseProjectManager(detectCryptographyTool.HttpClientFactory, detectCryptographyTool.Provider, targetDirectoryName);
 
                             string? path = await projectManager.ExtractArchive("temp", File.ReadAllBytes(target));
 

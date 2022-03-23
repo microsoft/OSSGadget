@@ -16,9 +16,7 @@ namespace Microsoft.CST.OpenSource
 {
     using Contracts;
     using System.Net.Http;
-    using Microsoft.CST.OpenSource;
     using Microsoft.CST.OpenSource.Helpers;
-    using Model.Providers;
     using PackageUrl;
 
     public enum DiffTechnique

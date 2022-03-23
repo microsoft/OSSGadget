@@ -14,7 +14,6 @@ using static Crayon.Output;
 namespace Microsoft.CST.OpenSource
 {
     using Contracts;
-    using Model.Providers;
     using System.Net.Http;
 
     public class DetectBackdoorTool : OSSGadget

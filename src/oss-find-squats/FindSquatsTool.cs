@@ -7,7 +7,6 @@ namespace Microsoft.CST.OpenSource.FindSquats
     using Contracts;
     using Microsoft.CodeAnalysis.Sarif;
     using Microsoft.CST.OpenSource.Shared;
-    using Model.Providers;
     using Mutators;
     using Newtonsoft.Json;
     using PackageUrl;

@@ -18,7 +18,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <param name="httpClientFactory">The Http cliend factory for making http clients to make requests with.</param>
         /// <param name="destinationDirectory">The directory to use to store any downloaded packages.</param>
         /// <returns></returns>
-        public static BaseProjectManager CreateBaseProjectManager(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider, string destinationDirectory)
+        public static BaseProjectManager CreateBaseProjectManager(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata>? provider, string destinationDirectory)
         {
             return new BaseProjectManager(httpClientFactory, provider, destinationDirectory);
         }
@@ -28,7 +28,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// </summary>
         /// <param name="destinationDirectory">The directory to use to store any downloaded packages.</param>
         /// <returns></returns>
-        public static BaseProjectManager CreateBaseProjectManager(IManagerProvider<IManagerMetadata> provider, string destinationDirectory)
+        public static BaseProjectManager CreateBaseProjectManager(IManagerProvider<IManagerMetadata>? provider, string destinationDirectory)
         {
             return new BaseProjectManager(provider, destinationDirectory);
         }

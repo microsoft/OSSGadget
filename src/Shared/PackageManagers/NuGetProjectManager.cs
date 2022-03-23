@@ -28,12 +28,12 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         private string? RegistrationEndpoint { get; set; } = null;
 
-        public NuGetProjectManager(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider, string destinationDirectory) : base(httpClientFactory, provider, destinationDirectory)
+        public NuGetProjectManager(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata>? provider, string destinationDirectory) : base(httpClientFactory, provider, destinationDirectory)
         {
             GetRegistrationEndpointAsync().Wait();
         }
         
-        public NuGetProjectManager(IManagerProvider<IManagerMetadata> provider, string destinationDirectory) : base(provider, destinationDirectory)
+        public NuGetProjectManager(IManagerProvider<IManagerMetadata>? provider, string destinationDirectory) : base(provider, destinationDirectory)
         {
             GetRegistrationEndpointAsync().Wait();
         }

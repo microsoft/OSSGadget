@@ -22,11 +22,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public static string ENV_NPM_API_ENDPOINT { get; set; } = "https://registry.npmjs.org";
         public static string ENV_NPM_ENDPOINT { get; set; } = "https://www.npmjs.com";
 
-        public NPMProjectManager(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider, string destinationDirectory) : base(httpClientFactory, provider, destinationDirectory)
+        public NPMProjectManager(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata>? provider, string destinationDirectory) : base(httpClientFactory, provider, destinationDirectory)
         {
         }
         
-        public NPMProjectManager(IManagerProvider<IManagerMetadata> provider, string destinationDirectory) : base(provider, destinationDirectory)
+        public NPMProjectManager(IManagerProvider<IManagerMetadata>? provider, string destinationDirectory) : base(provider, destinationDirectory)
         {
         }
 

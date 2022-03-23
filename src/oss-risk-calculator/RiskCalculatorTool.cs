@@ -17,6 +17,8 @@ using Microsoft.ApplicationInspector.RulesEngine;
 
 namespace Microsoft.CST.OpenSource
 {
+    using Contracts;
+    using Model.Providers;
     using PackageUrl;
     using System.Net.Http;
 
@@ -67,11 +69,11 @@ namespace Microsoft.CST.OpenSource
             public bool UseCache { get; set; }
         }
 
-        public RiskCalculatorTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        public RiskCalculatorTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider) : base(httpClientFactory, provider)
         {
         }
 
-        public RiskCalculatorTool() : this(new DefaultHttpClientFactory())
+        public RiskCalculatorTool() : this(new DefaultHttpClientFactory(), new BaseProvider())
         {
         }
 
@@ -87,14 +89,14 @@ namespace Microsoft.CST.OpenSource
         {
             Logger.Trace("CalculateRisk({0})", purl.ToString());
 
-            CharacteristicTool? characteristicTool = new CharacteristicTool(HttpClientFactory);
+            CharacteristicTool? characteristicTool = new CharacteristicTool(HttpClientFactory, Provider);
             CharacteristicTool.Options? cOptions = new CharacteristicTool.Options();
             Dictionary<string, AnalyzeResult?>? characteristics = characteristicTool.AnalyzePackage(cOptions, purl, targetDirectory, doCaching).Result;
             double aggregateRisk = 0.0;
 
             if (checkHealth)
             {
-                HealthTool? healthTool = new HealthTool(HttpClientFactory);
+                HealthTool? healthTool = new HealthTool(HttpClientFactory, Provider);
                 HealthMetrics? healthMetrics = await healthTool.CheckHealth(purl);
                 if (healthMetrics == null)
                 {

@@ -22,6 +22,7 @@ using Microsoft.CST.RecursiveExtractor;
 
 namespace Microsoft.CST.OpenSource
 {
+    using Contracts;
     using Microsoft.CST.OpenSource.PackageManagers;
     using Model.Providers;
     using PackageUrl;
@@ -237,11 +238,11 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        public DetectCryptographyTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        public DetectCryptographyTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider) : base(httpClientFactory, provider)
         {
         }
 
-        public DetectCryptographyTool() : this(new DefaultHttpClientFactory())
+        public DetectCryptographyTool() : this(new DefaultHttpClientFactory(), new BaseProvider())
         {
         }
 
@@ -254,7 +255,7 @@ namespace Microsoft.CST.OpenSource
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
 
-            PackageDownloader? packageDownloader = new(purl, HttpClientFactory, targetDirectoryName, doCaching);
+            PackageDownloader? packageDownloader = new(purl, HttpClientFactory, Provider, targetDirectoryName, doCaching);
             List<string>? directoryNames = await packageDownloader.DownloadPackageLocalCopy(purl, false, true);
             directoryNames = directoryNames.Distinct().ToList<string>();
 

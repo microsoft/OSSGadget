@@ -38,9 +38,8 @@ public static class ProviderFactory
 
         // Use reflection to find the correct provider class
         Type? providerClass = managerProviders
-            .Where(type => type.Name.Equals($"{purl.Type}Provider",
-                StringComparison.InvariantCultureIgnoreCase))
-            .FirstOrDefault();
+            .FirstOrDefault(type => type.Name.Equals($"{purl.Type}Provider",
+                StringComparison.InvariantCultureIgnoreCase));
 
         if (providerClass != null)
         {

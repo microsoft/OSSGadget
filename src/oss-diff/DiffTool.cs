@@ -20,8 +20,10 @@ using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
 
 namespace Microsoft.CST.OpenSource.DiffTool
 {
+    using Contracts;
     using Microsoft.CST.OpenSource.Helpers;
     using Microsoft.CST.OpenSource.PackageManagers;
+    using Model.Providers;
     using PackageUrl;
     using System.Net.Http;
 
@@ -85,11 +87,11 @@ namespace Microsoft.CST.OpenSource.DiffTool
             public IEnumerable<string> Targets { get; set; } = Array.Empty<string>();
         }
 
-        public DiffTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        public DiffTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider) : base(httpClientFactory, provider)
         {
         }
 
-        public DiffTool() : this (new DefaultHttpClientFactory()) { }
+        public DiffTool() : this (new DefaultHttpClientFactory(), new BaseProvider()) { }
 
         static async Task Main(string[] args)
         {

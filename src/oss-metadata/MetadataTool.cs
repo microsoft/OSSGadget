@@ -8,8 +8,10 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource
 {
+    using Contracts;
     using Microsoft.CST.OpenSource.Model;
     using Microsoft.CST.OpenSource.PackageManagers;
+    using Model.Providers;
     using PackageUrl;
     using System.Net.Http;
 
@@ -43,11 +45,11 @@ namespace Microsoft.CST.OpenSource
             private IEnumerable<string> targets = Array.Empty<string>();
         }
 
-        public MetadataTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        public MetadataTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider) : base(httpClientFactory, provider)
         {
         }
 
-        public MetadataTool(): this(new DefaultHttpClientFactory()) { }
+        public MetadataTool(): this(new DefaultHttpClientFactory(), new BaseProvider()) { }
 
         private static async Task<PackageMetadata?> GetPackageMetadata(PackageURL purl, IHttpClientFactory httpClientFactory, bool useCache = true)
         {

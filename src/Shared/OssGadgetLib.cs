@@ -2,9 +2,11 @@
 
 namespace Microsoft.CST.OpenSource
 {
+    using Contracts;
     using Helpers;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Http;
+    using Model.Providers;
     using System;
     using System.Net.Http;
 
@@ -17,6 +19,11 @@ namespace Microsoft.CST.OpenSource
         /// The <see cref="IHttpClientFactory"/> to be used by classes that implement <see cref="OssGadgetLib"/>.
         /// </summary>
         protected IHttpClientFactory HttpClientFactory { get; }
+        
+        /// <summary>
+        /// The <see cref="IManagerProvider{IManagerMetadata}"/> to be used by classes that implement <see cref="OssGadgetLib"/>.
+        /// </summary>
+        protected IManagerProvider<IManagerMetadata> Provider { get; }
 
         /// <summary>
         /// The <see cref="NLog.ILogger"/> for this class.
@@ -29,13 +36,14 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         protected string Directory { get; }
 
-        protected OssGadgetLib(IHttpClientFactory httpClientFactory, string directory = ".")
+        protected OssGadgetLib(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider, string directory = ".")
         {
             HttpClientFactory = Check.NotNull(nameof(httpClientFactory), httpClientFactory);
+            Provider = Check.NotNull(nameof(provider), provider);
             Directory = directory;
         }
 
-        protected OssGadgetLib(string directory = ".") : this(new DefaultHttpClientFactory(), directory)
+        protected OssGadgetLib(string directory = ".") : this(new DefaultHttpClientFactory(), new BaseProvider(), directory)
         {
         }
 

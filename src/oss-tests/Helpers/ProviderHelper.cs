@@ -12,10 +12,10 @@ using System.Threading;
 public static class ProviderHelper
 {
     /// <summary>
-    /// Set up the <see cref="IManagerProvider{IManagerMetadata}"/> for this test run.
+    /// Set up the <see cref="Mock{IManagerProvider{IManagerMetadata}}"/> for this test run.
     /// </summary>
     /// <param name="purl">The <see cref="PackageURL"/> to use when configuring the mocked calls for this manager.</param>
-    public static IManagerProvider<IManagerMetadata>? SetupProvider(PackageURL purl, IManagerMetadata? metadata = null, IEnumerable<string>? versions = null, IEnumerable<string>? validSquats = null)
+    public static Mock<IManagerProvider<IManagerMetadata>>? SetupProvider(PackageURL purl, IManagerMetadata? metadata = null, IEnumerable<string>? versions = null, IEnumerable<string>? validSquats = null)
     {
         Mock<IManagerProvider<IManagerMetadata>> mockProvider = new();
 
@@ -47,6 +47,6 @@ public static class ProviderHelper
             It.Is<PackageURL>(p => p.Name.Equals(purl.Name)), It.IsAny<bool>(), It.IsAny<CancellationToken>()).Result).Returns(
             true);
 
-        return mockProvider.Object;
+        return mockProvider;
     }
 }

@@ -11,16 +11,18 @@ using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
 
 namespace Microsoft.CST.OpenSource
 {
+    using Contracts;
     using Microsoft.CST.OpenSource.PackageManagers;
+    using Model.Providers;
     using PackageUrl;
     using System.Net.Http;
 
     public class HealthTool : OSSGadget
     {
-        public HealthTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        public HealthTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider) : base(httpClientFactory, provider)
         {
         }
-        public HealthTool() : this(new DefaultHttpClientFactory())
+        public HealthTool() : this(new DefaultHttpClientFactory(), new BaseProvider())
         {
         }
         public async Task<HealthMetrics?> CheckHealth(PackageURL purl)

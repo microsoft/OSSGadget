@@ -13,6 +13,8 @@ using static Crayon.Output;
 
 namespace Microsoft.CST.OpenSource
 {
+    using Contracts;
+    using Model.Providers;
     using System.Net.Http;
 
     public class DetectBackdoorTool : OSSGadget
@@ -51,12 +53,12 @@ namespace Microsoft.CST.OpenSource
             public bool UseCache { get; set; }
         }
 
-        public DetectBackdoorTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        public DetectBackdoorTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider) : base(httpClientFactory, provider)
         {
             RULE_DIRECTORY = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "BackdoorRules");
         }
 
-        public DetectBackdoorTool() : this(new DefaultHttpClientFactory())
+        public DetectBackdoorTool() : this(new DefaultHttpClientFactory(), new BaseProvider())
         {
         }
 
@@ -140,7 +142,7 @@ namespace Microsoft.CST.OpenSource
         {
             if (options != null && options.Targets is IList<string> targetList && targetList.Count > 0)
             {
-                CharacteristicTool? characteristicTool = new CharacteristicTool(HttpClientFactory);
+                CharacteristicTool? characteristicTool = new CharacteristicTool(HttpClientFactory, Provider);
                 CharacteristicTool.Options cOptions = new CharacteristicTool.Options
                 {
                     Targets = options.Targets,

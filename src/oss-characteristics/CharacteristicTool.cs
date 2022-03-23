@@ -16,6 +16,8 @@ using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
 
 namespace Microsoft.CST.OpenSource
 {
+    using Contracts;
+    using Model.Providers;
     using PackageUrl;
     using System.Net.Http;
 
@@ -73,11 +75,11 @@ namespace Microsoft.CST.OpenSource
             public FailureLevel SarifLevel { get; set; } = FailureLevel.Note;
         }
 
-        public CharacteristicTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        public CharacteristicTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider) : base(httpClientFactory, provider)
         {
         }
 
-        public CharacteristicTool() : this(new DefaultHttpClientFactory()) 
+        public CharacteristicTool() : this(new DefaultHttpClientFactory(), new BaseProvider()) 
         {
         }
 
@@ -140,7 +142,7 @@ namespace Microsoft.CST.OpenSource
 
             Dictionary<string, AnalyzeResult?>? analysisResults = new Dictionary<string, AnalyzeResult?>();
 
-            PackageDownloader? packageDownloader = new PackageDownloader(purl, HttpClientFactory, targetDirectoryName, doCaching);
+            PackageDownloader? packageDownloader = new PackageDownloader(purl, HttpClientFactory, Provider, targetDirectoryName, doCaching);
             // ensure that the cache directory has the required package, download it otherwise
             List<string>? directoryNames = await packageDownloader.DownloadPackageLocalCopy(purl,
                 false,

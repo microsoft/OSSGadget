@@ -33,7 +33,7 @@ public class NuGetProvider : BaseProvider
     }
 
     /// <inheritdoc cref="IManagerProvider{T}" />
-    public new async Task<string?> DownloadAsync(BaseProjectManager projectManager, PackageURL packageUrl, string targetDirectory, bool doExtract,
+    public override async Task<string?> DownloadAsync(BaseProjectManager projectManager, PackageURL packageUrl, string targetDirectory, bool doExtract,
         bool cached = false, CancellationToken cancellationToken = default)
     {
         FindPackageByIdResource resource = await _sourceRepository.GetResourceAsync<FindPackageByIdResource>();
@@ -67,7 +67,7 @@ public class NuGetProvider : BaseProvider
     }
 
     /// <inheritdoc cref="IManagerProvider{T}" />
-    public new async Task<bool> DoesPackageExistAsync(PackageURL packageUrl,
+    public override async Task<bool> DoesPackageExistAsync(PackageURL packageUrl,
         bool useCache = true, CancellationToken cancellationToken = default)
     {
         FindPackageByIdResource resource = await _sourceRepository.GetResourceAsync<FindPackageByIdResource>();
@@ -96,7 +96,7 @@ public class NuGetProvider : BaseProvider
     }
 
     /// <inheritdoc cref="IManagerProvider{T}" />
-    public new async Task<IEnumerable<string>> GetAllVersionsAsync(PackageURL packageUrl,
+    public override async Task<IEnumerable<string>> GetAllVersionsAsync(PackageURL packageUrl,
         bool useCache = true, CancellationToken cancellationToken = default)
     {
         FindPackageByIdResource resource = await _sourceRepository.GetResourceAsync<FindPackageByIdResource>();
@@ -111,7 +111,7 @@ public class NuGetProvider : BaseProvider
     }
 
     /// <inheritdoc cref="IManagerProvider{T}" />
-    public new async Task<NuGetMetadata?> GetMetadataAsync(PackageURL packageUrl,
+    public override async Task<IManagerMetadata?> GetMetadataAsync(PackageURL packageUrl,
         bool useCache = true, CancellationToken cancellationToken = default)
     {
         PackageMetadataResource resource = await _sourceRepository.GetResourceAsync<PackageMetadataResource>();

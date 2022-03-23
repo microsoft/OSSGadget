@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource
 {
+    using Contracts;
     using Extensions;
     using Microsoft.CST.OpenSource.Helpers;
     using Microsoft.CST.OpenSource.PackageManagers;
@@ -23,9 +24,10 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         /// <param name="purl">The package to download.</param>
         /// <param name="httpClientFactory">The <see cref="IHttpClientFactory"/> to use to make the client to use when downloading.</param>
+        /// <param name="provider">The <see cref="IManagerProvider{IManagerMetadata}"/> to use.</param>
         /// <param name="destinationDir">The directory where the package needs to be downloaded to.</param>
         /// <param name="doCaching">Check and use the cache if it exists - create if not.</param>
-        public PackageDownloader(PackageURL purl, IHttpClientFactory? httpClientFactory, string? destinationDir = null, bool doCaching = false)
+        public PackageDownloader(PackageURL purl, IHttpClientFactory? httpClientFactory, IManagerProvider<IManagerMetadata>? provider = null, string? destinationDir = null, bool doCaching = false)
         {
             if (purl == null)
             {
@@ -47,7 +49,7 @@ namespace Microsoft.CST.OpenSource
                 destinationDirectory = destinationDir;
             }
 
-            packageManager = ProjectManagerFactory.CreateProjectManager(purl, httpClientFactory, destinationDirectory: destinationDirectory);
+            packageManager = ProjectManagerFactory.CreateProjectManager(purl, httpClientFactory, provider, destinationDirectory);
             if (packageManager == null)
             {
                 // Cannot continue without a package manager.

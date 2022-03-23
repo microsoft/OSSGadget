@@ -13,6 +13,8 @@ using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
 
 namespace Microsoft.CST.OpenSource
 {
+    using Contracts;
+    using Model.Providers;
     using PackageUrl;
     using System.Net.Http;
 
@@ -23,11 +25,11 @@ namespace Microsoft.CST.OpenSource
             "pkg:github/metacpan/metacpan-web"
         };
 
-        public FindSourceTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        public FindSourceTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider) : base(httpClientFactory, provider)
         {
         }
 
-        public FindSourceTool() : this(new DefaultHttpClientFactory())
+        public FindSourceTool() : this(new DefaultHttpClientFactory(), new BaseProvider())
         {
         }
 

@@ -4,6 +4,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
 {
     using CommandLine;
     using CommandLine.Text;
+    using Contracts;
     using Microsoft.CodeAnalysis.Sarif;
     using Microsoft.CST.OpenSource.Shared;
     using Model.Providers;
@@ -53,11 +54,11 @@ namespace Microsoft.CST.OpenSource.FindSquats
 
         }
 
-        public FindSquatsTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        public FindSquatsTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata> provider) : base(httpClientFactory, provider)
         {
         }
 
-        public FindSquatsTool() : this(new DefaultHttpClientFactory())
+        public FindSquatsTool() : this(new DefaultHttpClientFactory(), new BaseProvider())
         {
         }
 
@@ -108,11 +109,6 @@ namespace Microsoft.CST.OpenSource.FindSquats
                 }
 
                 BaseProvider? provider = ProviderFactory.CreateProvider(purl);
-                if (provider is null)
-                {
-                    Logger.Trace($"Could not generate valid Provider from { target }.");
-                    continue;
-                }
 
                 FindPackageSquats findPackageSquats = new FindPackageSquats(HttpClientFactory, purl, provider);
 

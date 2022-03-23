@@ -50,9 +50,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
             // Use reflection to find the correct package management class
             Type? downloaderClass = projectManagers
-               .Where(type => type.Name.Equals($"{purl.Type}ProjectManager",
-                                               StringComparison.InvariantCultureIgnoreCase))
-               .FirstOrDefault();
+                .FirstOrDefault(type => type.Name.Equals($"{purl.Type}ProjectManager",
+                    StringComparison.InvariantCultureIgnoreCase));
 
             if (downloaderClass != null)
             {

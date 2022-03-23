@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Tests
 {
+    using Model.Providers;
     using PackageUrl;
 
     [TestClass]
@@ -244,7 +245,7 @@ namespace Microsoft.CST.OpenSource.Tests
             {
                 try
                 {
-                    packageDownloader = new PackageDownloader(packageUrl, null, tempDirectoryName, doCache);
+                    packageDownloader = new PackageDownloader(packageUrl, null, new BaseProvider(), tempDirectoryName, doCache);
                     packageDownloader.DownloadPackageLocalCopy(packageUrl, false, true).Wait();
                     break;
                 }

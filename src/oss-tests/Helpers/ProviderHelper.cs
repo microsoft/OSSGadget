@@ -12,10 +12,16 @@ using System.Threading;
 public static class ProviderHelper
 {
     /// <summary>
-    /// Set up the <see cref="Mock{IManagerProvider{IManagerMetadata}}"/> for this test run.
+    /// Set up a mock of <see cref="IManagerProvider{IManagerMetadata}"/> for this test run.
     /// </summary>
     /// <param name="purl">The <see cref="PackageURL"/> to use when configuring the mocked calls for this manager.</param>
-    public static Mock<IManagerProvider<IManagerMetadata>>? SetupProvider(PackageURL purl, IManagerMetadata? metadata = null, IEnumerable<string>? versions = null, IEnumerable<string>? validSquats = null)
+    /// <param name="metadata">The <see cref="IManagerMetadata"/> to use when returning the call to
+    /// <see cref="IManagerProvider{IManagerMetadata}.GetMetadataAsync"/>.</param>
+    /// <param name="versions">The list of versions to return when mocking the call 
+    /// to <see cref="IManagerProvider{IManagerMetadata}.GetAllVersionsAsync"/>.</param>
+    /// <param name="validSquats">The list of squats to populate the mock to <see cref="IManagerProvider{IManagerMetadata}.DoesPackageExistAsync"/>.</param>
+    /// <returns>A Mocked <see cref="IManagerProvider{IManagerMetadata}"/>.</returns>
+    public static Mock<IManagerProvider<IManagerMetadata>> SetupProvider(PackageURL purl, IManagerMetadata? metadata = null, IEnumerable<string>? versions = null, IEnumerable<string>? validSquats = null)
     {
         Mock<IManagerProvider<IManagerMetadata>> mockProvider = new();
 
@@ -28,9 +34,14 @@ public static class ProviderHelper
 
         if (versions is not null)
         {
+            IEnumerable<string> versionsArray = versions as string[] ?? versions.ToArray();
             mockProvider.Setup(provider => provider.GetAllVersionsAsync(
                 It.Is<PackageURL>(p => p.Name.Equals(purl.Name)), It.IsAny<bool>(), It.IsAny<CancellationToken>()).Result).Returns(
-                versions);
+                versionsArray);
+
+            mockProvider.Setup(provider => provider.GetLatestVersionAsync(
+                It.Is<PackageURL>(p => p.Name.Equals(purl.Name)), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()).Result).Returns(
+                versionsArray.Last());
         }
         
         if (validSquats is not null)

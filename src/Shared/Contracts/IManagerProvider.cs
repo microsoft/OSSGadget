@@ -46,6 +46,16 @@ public interface IManagerProvider<T>
     Task<IEnumerable<string>> GetAllVersionsAsync(PackageURL packageUrl, bool useCache = true, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets the latest version of a package.
+    /// </summary>
+    /// <param name="packageUrl">The <see cref="PackageURL"/> to get the latest version for.</param>
+    /// <param name="includePrerelease">If pre-release/beta versions should be included.</param>
+    /// <param name="useCache">If the cache should be checked for the latest of this package.</param>
+    /// <param name="cancellationToken">The <see cref="CancellationToken"/> to be used in the method call, defaults to <see cref="CancellationToken.None"/>.</param>
+    /// <returns>The latest version of the <paramref name="packageUrl"/>.</returns>
+    Task<string> GetLatestVersionAsync(PackageURL packageUrl, bool includePrerelease = false, bool useCache = true, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets the <see cref="T"/> for this package version.
     /// </summary>
     /// <param name="packageUrl">The <see cref="PackageURL"/>. Requires a version.</param>

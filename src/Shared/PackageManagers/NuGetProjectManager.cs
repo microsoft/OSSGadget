@@ -189,7 +189,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 // If no package version provided, default to the latest version.
                 if (string.IsNullOrWhiteSpace(packageVersion))
                 {
-                    string latestVersion = (await EnumerateVersions(purl, useCache)).First();
+                    string latestVersion = await Provider.GetLatestVersionAsync(purl);
                     packageVersion = latestVersion;
                 }
 
@@ -216,7 +216,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <inheritdoc />
         public override async Task<PackageMetadata> GetPackageMetadata(PackageURL purl, bool useCache = true)
         {
-            string latestVersion = (await EnumerateVersions(purl, useCache)).First();
+            string latestVersion = await Provider.GetLatestVersionAsync(purl);
 
             // Construct a new PackageURL that's guaranteed to have a version, the latest version is used if no version was provided.
             PackageURL purlWithVersion = !string.IsNullOrWhiteSpace(purl.Version) ? 
@@ -236,7 +236,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             metadata.PackageUri = $"{ENV_NUGET_HOMEPAGE}/{packageVersionMetadata.Name.ToLowerInvariant()}";
             metadata.ApiPackageUri = $"{RegistrationEndpoint}{packageVersionMetadata.Name.ToLowerInvariant()}/index.json";
 
-            metadata.PackageVersion = purl.Version ?? latestVersion;
+            metadata.PackageVersion = purlWithVersion.Version;
             metadata.LatestPackageVersion = latestVersion;
 
             // Get the metadata for either the specified package version, or the latest package version
@@ -279,15 +279,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             // Dependencies
             IList<PackageDependencyGroup> dependencyGroups = packageVersionMetadata.DependencySets.ToList();
-            if (dependencyGroups.Any())
-            {
-                metadata.Dependencies ??= new List<Dependency>();
-
-                foreach (PackageDependencyGroup dependencyGroup in dependencyGroups)
-                {
-                    dependencyGroup.Packages.ToList().ForEach((dependency) => metadata.Dependencies.Add(new Dependency() { Package = dependency.ToString(), Framework = dependencyGroup.TargetFramework?.ToString()}));
-                }
-            }
+            metadata.Dependencies ??= dependencyGroups.SelectMany(group => group.Packages, (dependencyGroup, package) => new { dependencyGroup, package})
+                .Select(dependencyGroupAndPackage => new Dependency() { Package = dependencyGroupAndPackage.package.ToString(), Framework = dependencyGroupAndPackage.dependencyGroup.TargetFramework?.ToString()})
+                .ToList();
 
             // Keywords
             metadata.Keywords = new List<string>(packageVersionMetadata.Tags.Split(", "));

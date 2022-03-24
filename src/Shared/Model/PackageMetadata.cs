@@ -162,33 +162,22 @@ namespace Microsoft.CST.OpenSource.Model
         }
     }
 
-    public class User
+    public record User
     {
         [JsonProperty(PropertyName = "active_flag", NullValueHandling = NullValueHandling.Ignore)]
-        public bool? Active { get; set; }
+        public bool? Active { get; init; }
 
         [JsonProperty(PropertyName = "email", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Email { get; set; }
+        public string? Email { get; init; }
 
         [JsonProperty(PropertyName = "Id", NullValueHandling = NullValueHandling.Ignore)]
-        public int? Id { get; set; }
+        public int? Id { get; init; }
 
         [JsonProperty(PropertyName = "name", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Name { get; set; }
+        public string? Name { get; init; }
 
         [JsonProperty(PropertyName = "url", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Url { get; set; }
-
-        protected bool Equals(User other) => Active == other.Active && Email == other.Email && Id == other.Id && Name == other.Name && Url == other.Url;
-
-        public override bool Equals(object? obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            return obj.GetType() == this.GetType() && Equals((User) obj);
-        }
-
-        public override int GetHashCode() => HashCode.Combine(Active, Email, Id, Name, Url);
+        public string? Url { get; init; }
     }
 
     public class Version

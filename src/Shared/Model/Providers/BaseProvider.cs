@@ -23,5 +23,10 @@ public class BaseProvider : IManagerProvider<IManagerMetadata>
     public virtual Task<IEnumerable<string>> GetAllVersionsAsync(PackageURL packageUrl, bool useCache = true, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
 
     /// <inheritdoc />
+    public virtual Task<string> GetLatestVersionAsync(PackageURL packageUrl, bool includePrerelease = false, bool useCache = true,
+        CancellationToken cancellationToken = default) =>
+        throw new System.NotImplementedException();
+
+    /// <inheritdoc />
     public virtual Task<IManagerMetadata?> GetMetadataAsync(PackageURL packageUrl, bool useCache = true, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
 }

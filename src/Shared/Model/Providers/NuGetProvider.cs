@@ -109,6 +109,21 @@ public class NuGetProvider : BaseProvider
 
         return versions.Select(v => v.ToString());
     }
+    
+    /// <inheritdoc />
+    public override async Task<string> GetLatestVersionAsync(PackageURL packageUrl, bool includePrerelease = false, bool useCache = true,
+        CancellationToken cancellationToken = default)
+    {
+        FindPackageByIdResource resource = await _sourceRepository.GetResourceAsync<FindPackageByIdResource>();
+
+        IEnumerable<NuGetVersion> versions = await resource.GetAllVersionsAsync(
+            packageUrl.Name,
+            _sourceCacheContext,
+            _logger, 
+            cancellationToken);
+
+        return versions.Last().ToString();
+    }
 
     /// <inheritdoc />
     public override async Task<IManagerMetadata?> GetMetadataAsync(PackageURL packageUrl,

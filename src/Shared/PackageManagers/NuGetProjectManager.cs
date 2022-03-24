@@ -6,7 +6,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using PackageUrl;
     using Model;
     using Model.Metadata;
-    using Model.Providers;
     using NuGet.Packaging;
     using NuGet.Packaging.Core;
     using NuGet.Versioning;
@@ -89,13 +88,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <summary>
-        /// Download one NuGet package and extract it to the target directory.
+        /// Download one NuGet package to the target directory and (optionally) extract it.
         /// </summary>
         /// <remarks>The target directory is defined when creating the <see cref="NuGetProjectManager"/> in the subdirectory named `nuget-{packagename}@{packageversion}`</remarks>
         /// <param name="purl">The <see cref="PackageURL"/> of the package to download.</param>
         /// <param name="doExtract">If the contents of the .nupkg should be extracted into a directory.</param>
         /// <param name="cached">If the downloaded contents should be retrieved from the cache if they exist there.</param>
-        /// <returns>An IEnumerable list of the path(s) the contents were downloaded to.</returns>
+        /// <returns>An <see cref="IEnumerable{String}"/> list of the path(s) the contents were downloaded to.</returns>
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl.ToString());

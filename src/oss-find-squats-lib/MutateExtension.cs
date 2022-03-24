@@ -11,6 +11,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
+    using System.Web;
 
     /// <summary>
     /// This class contains extension methods to find potentially squatted packages in BaseProjectManager derived classes.
@@ -113,8 +114,8 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
                 foreach (Mutation mutation in mutator.Generate(nameToMutate))
                 {
                     // Construct the mutated name if the package was scoped.
-                    string? mutationNamespace = isScoped ? mutation.Mutated : null;
-                    string mutationName = isScoped ? purl.Name : mutation.Mutated;
+                    string? mutationNamespace = HttpUtility.UrlEncode(isScoped ? mutation.Mutated : null);
+                    string mutationName = HttpUtility.UrlEncode(isScoped ? purl.Name : mutation.Mutated);
                     PackageURL mutatedPurl = new(purl.Type, mutationNamespace, mutationName, null, null, null);
                     string mutatedPurlString = mutatedPurl.ToString();
                     

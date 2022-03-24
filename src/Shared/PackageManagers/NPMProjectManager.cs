@@ -101,7 +101,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
-            if (purl == null || purl.Name is null)
+            if (purl?.Name is null)
             {
                 return new List<string>();
             }
@@ -112,6 +112,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 HttpClient httpClient = CreateHttpClient();
 
                 JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}", useCache);
+
                 List<string> versionList = new();
 
                 foreach (JsonProperty versionKey in doc.RootElement.GetProperty("versions").EnumerateObject())
@@ -119,13 +120,27 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     Logger.Debug("Identified {0} version {1}.", packageName, versionKey.Name);
                     versionList.Add(versionKey.Name);
                 }
+
                 string? latestVersion = doc.RootElement.GetProperty("dist-tags").GetProperty("latest").GetString();
-                if (!string.IsNullOrWhiteSpace(latestVersion))
+                
+                // If there was no "latest" property for some reason.
+                if (string.IsNullOrWhiteSpace(latestVersion))
                 {
-                    Logger.Debug("Identified {0} version {1}.", packageName, latestVersion);
-                    versionList.Add(latestVersion);
+                    return SortVersions(versionList.Distinct());
                 }
-                return SortVersions(versionList.Distinct());
+
+                Logger.Debug("Identified {0} latest version as {1}.", packageName, latestVersion);
+
+                // Remove the latest version from the list of versions, so we can add it after sorting.
+                versionList.Remove(latestVersion);
+                
+                // Sort the list of distinct versions.
+                List<string> sortedList = SortVersions(versionList.Distinct()).ToList();
+                
+                // Insert the latest version at the beginning of the list.
+                sortedList.Insert(0, latestVersion);
+
+                return sortedList;
             }
             catch (Exception ex)
             {

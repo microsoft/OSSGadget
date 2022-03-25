@@ -113,14 +113,17 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
                 foreach (Mutation mutation in mutator.Generate(nameToMutate))
                 {
                     // Construct the mutated name if the package has a namespace.
-                    Mutation newMutation = CreateMutation(purl, hasNamespace, mutation);
-                    
-                    if (!generatedMutations.ContainsKey(newMutation.Mutated))
+                    string? mutationNamespace = hasNamespace ? mutation.Mutated : null;
+                    string mutationName = hasNamespace ? purl.Name : mutation.Mutated;
+                    PackageURL mutatedPurl = new(purl.Type, mutationNamespace, mutationName, null, null, null);
+                    string mutatedPurlString = mutatedPurl.ToString();
+
+                    if (!generatedMutations.ContainsKey(mutatedPurlString))
                     {
-                        generatedMutations[newMutation.Mutated] = new List<Mutation>();
+                        generatedMutations[mutatedPurlString] = new List<Mutation>();
                     }
 
-                    generatedMutations[newMutation.Mutated].Add(newMutation);
+                    generatedMutations[mutatedPurlString].Add(new Mutation(mutatedPurlString, purl.ToString(), mutation.Reason, mutation.Mutator));
                 }
             }
 
@@ -129,27 +132,16 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
                 return generatedMutations;
             }
 
-            PackageURL purlWithoutNamespace = 
-                new(purl.Type, null, purl.Name, null, null, null);
-            if (!generatedMutations.ContainsKey(purlWithoutNamespace.ToString()))
+            // If the package has a namespace, make a mutation with the namespace removed.
+            Mutation namespaceMutation = new RemoveNamespaceMutator().Generate(purl.GetFullName()).First();
+            if (!generatedMutations.ContainsKey(namespaceMutation.ToString()))
             {
-                generatedMutations[purlWithoutNamespace.ToString()] = new List<Mutation>();
+                generatedMutations[namespaceMutation.ToString()] = new List<Mutation>();
             }
 
-            generatedMutations[purlWithoutNamespace.ToString()].Add(new Mutation(purlWithoutNamespace.ToString(), purl.ToString(), "Removed namespace.", MutatorType.RemovedNamespace));
+            generatedMutations[namespaceMutation.ToString()].Add(namespaceMutation);
 
             return generatedMutations;
-        }
-
-        private static Mutation CreateMutation(PackageURL purl, bool hasNamespace, Mutation mutation)
-        {
-            // Construct the mutated name if the package has a namespace.
-            string? mutationNamespace = hasNamespace ? mutation.Mutated : null;
-            string mutationName = hasNamespace ? purl.Name : mutation.Mutated;
-            PackageURL mutatedPurl = new(purl.Type, mutationNamespace, mutationName, null, null, null);
-            string mutatedPurlString = mutatedPurl.ToString();
-
-            return new Mutation(mutatedPurlString, purl.ToString(), mutation.Reason, mutation.Mutator);
         }
 
         /// <summary>

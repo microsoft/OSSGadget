@@ -18,7 +18,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
             PackageURL purl = new(arg);
             
             yield return new Mutation(
-                    mutated: purl.UpdateNames(purl.Name, null).ToString(), // Just the package name, no namespace.
+                    mutated: purl.CreateWithNewNames(purl.Name, null).ToString(), // Just the package name, no namespace.
                     original: arg,
                     mutator: Kind,
                     reason: $"Namespace removed: {purl.Namespace}"); // The package's namespace that was removed.

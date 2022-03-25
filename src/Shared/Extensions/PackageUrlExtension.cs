@@ -17,11 +17,11 @@ public static class PackageUrlExtension
     /// </summary>
     /// <param name="packageUrl">The <see cref="PackageURL"/> to get the type from.</param>
     /// <param name="name">The new name.</param>
-    /// <param name="namespaceStr">The new namespace if one was provided, otherwise the <paramref name="packageUrl"/>'s namespace.</param>
+    /// <param name="namespaceStr">The new namespace if one was provided, otherwise null.</param>
     /// <returns>A new <see cref="PackageURL"/> with a new name, and a new namespace if provided.</returns>
     public static PackageURL CreateWithNewNames(this PackageURL packageUrl, string name, string? namespaceStr = null)
     {
-        return new PackageURL(packageUrl.Type, namespaceStr ?? packageUrl.Namespace, name, null, null, null);
+        return new PackageURL(packageUrl.Type, namespaceStr, name, null, null, null);
     }
 
     public static string ToStringFilename(this PackageURL packageUrl)

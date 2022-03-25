@@ -115,15 +115,9 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
                     // Construct the mutated name if the package has a namespace.
                     string? mutationNamespace = hasNamespace ? mutation.Mutated : null;
                     string mutationName = hasNamespace ? purl.Name : mutation.Mutated;
-                    PackageURL mutatedPurl = new(purl.Type, mutationNamespace, mutationName, null, null, null);
-                    string mutatedPurlString = mutatedPurl.ToString();
+                    string mutatedPurlString = purl.CreateWithNewNames(mutationName, mutationNamespace).ToString();
 
-                    if (!generatedMutations.ContainsKey(mutatedPurlString))
-                    {
-                        generatedMutations[mutatedPurlString] = new List<Mutation>();
-                    }
-
-                    generatedMutations[mutatedPurlString].Add(new Mutation(mutatedPurlString, purl.ToString(), mutation.Reason, mutation.Mutator));
+                    generatedMutations.AddMutation(new Mutation(mutatedPurlString, purl.ToString(), mutation.Reason, mutation.Mutator));
                 }
             }
 
@@ -133,13 +127,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
             }
 
             // If the package has a namespace, make a mutation with the namespace removed.
-            Mutation namespaceMutation = new RemoveNamespaceMutator().Generate(purl.GetFullName()).First();
-            if (!generatedMutations.ContainsKey(namespaceMutation.ToString()))
-            {
-                generatedMutations[namespaceMutation.ToString()] = new List<Mutation>();
-            }
-
-            generatedMutations[namespaceMutation.ToString()].Add(namespaceMutation);
+            generatedMutations.AddMutation(new RemoveNamespaceMutator().Generate(purl.ToString()).First());
 
             return generatedMutations;
         }
@@ -201,6 +189,24 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
                 }
 
             }
+        }
+
+        /// <summary>
+        /// Adds a <see cref="Mutation"/> to the dictionary of generated mutations.
+        /// </summary>
+        /// <param name="generatedMutations">The dictionary of generated mutations to add <paramref name="mutation"/> to.</param>
+        /// <param name="mutation">The <see cref="Mutation"/> to add to the dictionary.</param>
+        private static void AddMutation(this IDictionary<string, IList<Mutation>> generatedMutations, Mutation mutation)
+        {
+            string mutationString = mutation.Mutated;
+            
+            // Check to see if the given mutation exists in the dictionary already.
+            if (!generatedMutations.ContainsKey(mutationString))
+            {
+                generatedMutations[mutationString] = new List<Mutation>();
+            }
+
+            generatedMutations[mutationString].Add(mutation);
         }
     }
 }

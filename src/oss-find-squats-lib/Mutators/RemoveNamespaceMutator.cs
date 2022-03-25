@@ -2,6 +2,8 @@
 
 namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 {
+    using Extensions;
+    using PackageUrl;
     using System.Collections.Generic;
 
     /// <summary>
@@ -13,12 +15,13 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 
         public IEnumerable<Mutation> Generate(string arg)
         {
-            string[] packageSplit = arg.Split('/', 2);
+            PackageURL purl = new(arg);
+            
             yield return new Mutation(
-                    mutated: packageSplit[1], // Just the package name, no namespace.
+                    mutated: purl.UpdateNames(purl.Name, null).ToString(), // Just the package name, no namespace.
                     original: arg,
                     mutator: Kind,
-                    reason: $"Namespace removed: {packageSplit[0]}"); // The package's namespace that was removed.
+                    reason: $"Namespace removed: {purl.Namespace}"); // The package's namespace that was removed.
         }
     }
 }

@@ -22,7 +22,7 @@ namespace Microsoft.CST.OpenSource
         public static string ToolName { get => GetToolName() ?? ""; }
         public static string ToolVersion { get => GetToolVersion() ?? ""; }
 
-        public OSSGadget(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata>? provider = null) : base(httpClientFactory, provider)
+        public OSSGadget(IManagerProviderFactory managerProviderFactory) : base(managerProviderFactory)
         {
         }
 

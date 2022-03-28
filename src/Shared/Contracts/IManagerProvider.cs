@@ -6,6 +6,7 @@ using PackageManagers;
 using PackageUrl;
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,6 +16,8 @@ using System.Threading.Tasks;
 /// </summary>
 public interface IManagerProvider<T>
 {
+    public IHttpClientFactory HttpClientFactory { get; }
+
     /// <summary>
     /// Downloads the file(s) associated with a given <see cref="PackageURL"/>, and optionally extracts it if downloading an archive.
     /// </summary>
@@ -65,4 +68,6 @@ public interface IManagerProvider<T>
     /// <exception cref="ArgumentException">Thrown if there was no version in <paramref name="packageUrl"/>.</exception>
     Task<T?> GetMetadataAsync(PackageURL packageUrl, bool useCache = true,
         CancellationToken cancellationToken = default);
+
+    HttpClient CreateHttpClient();
 } 

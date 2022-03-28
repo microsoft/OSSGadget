@@ -14,8 +14,8 @@ using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
 namespace Microsoft.CST.OpenSource
 {
     using Contracts;
+    using Model.Providers;
     using PackageUrl;
-    using System.Net.Http;
 
     public class FindSourceTool : OSSGadget
     {
@@ -24,11 +24,11 @@ namespace Microsoft.CST.OpenSource
             "pkg:github/metacpan/metacpan-web"
         };
 
-        public FindSourceTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata>? provider = null) : base(httpClientFactory, provider)
+        public FindSourceTool(IManagerProviderFactory managerProviderFactory) : base(managerProviderFactory)
         {
         }
 
-        public FindSourceTool() : this(new DefaultHttpClientFactory())
+        public FindSourceTool() : this(new ProviderFactory())
         {
         }
 
@@ -50,7 +50,7 @@ namespace Microsoft.CST.OpenSource
 
             try
             {
-                RepoSearch repoSearcher = new RepoSearch(HttpClientFactory, Provider);
+                RepoSearch repoSearcher = new RepoSearch(ManagerProviderFactory);
                 Dictionary<PackageURL, double>? repos = await (repoSearcher.ResolvePackageLibraryAsync(purl) ??
                     Task.FromResult(new Dictionary<PackageURL, double>()));
 

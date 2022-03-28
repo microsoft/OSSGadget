@@ -11,6 +11,7 @@ namespace Microsoft.CST.OpenSource
     using Contracts;
     using Microsoft.CST.OpenSource.Model;
     using Microsoft.CST.OpenSource.PackageManagers;
+    using Model.Providers;
     using PackageUrl;
     using System.Net.Http;
 
@@ -44,19 +45,19 @@ namespace Microsoft.CST.OpenSource
             private IEnumerable<string> targets = Array.Empty<string>();
         }
 
-        public MetadataTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata>? provider = null) : base(httpClientFactory, provider)
+        public MetadataTool(IManagerProviderFactory managerProviderFactory) : base(managerProviderFactory)
         {
         }
 
-        public MetadataTool(): this(new DefaultHttpClientFactory()) { }
+        public MetadataTool(): this(new ProviderFactory()) { }
 
-        private static async Task<PackageMetadata?> GetPackageMetadata(PackageURL purl, IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata>? provider = null, bool useCache = true)
+        private static async Task<PackageMetadata?> GetPackageMetadata(PackageURL purl, IManagerProviderFactory managerProviderFactory, bool useCache = true)
         {
             PackageMetadata? metadata = null;
             try
             {
                 // Use reflection to find the correct downloader class
-                BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, httpClientFactory, provider);
+                BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, managerProviderFactory);
                 if (projectManager != null)
                 {
                     metadata = await projectManager.GetPackageMetadata(purl, useCache);
@@ -93,7 +94,7 @@ namespace Microsoft.CST.OpenSource
                     {
                         PackageURL purl = new(target);
                         Logger.Info($"Collecting metadata for {purl}");
-                        PackageMetadata? metadata = await GetPackageMetadata(purl, HttpClientFactory, Provider, options.UseCache);
+                        PackageMetadata? metadata = await GetPackageMetadata(purl, ManagerProviderFactory, options.UseCache);
                         Logger.Info(metadata?.ToString());
                     }
                     catch (Exception ex)

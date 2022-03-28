@@ -20,11 +20,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     {
         public static string ENV_PYPI_ENDPOINT { get; set; } = "https://pypi.org";
 
-        public PyPIProjectManager(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata>? provider, string destinationDirectory) : base(httpClientFactory, provider, destinationDirectory)
-        {
-        }
-        
-        public PyPIProjectManager(IManagerProvider<IManagerMetadata>? provider, string destinationDirectory) : base(provider, destinationDirectory)
+        public PyPIProjectManager(IManagerProvider<IManagerMetadata> provider, string destinationDirectory) : base(provider, destinationDirectory)
         {
         }
 

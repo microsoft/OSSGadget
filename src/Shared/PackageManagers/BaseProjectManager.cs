@@ -25,23 +25,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <summary>
         /// Initializes a new instance of the <see cref="BaseProjectManager"/> class.
         /// </summary>
-        public BaseProjectManager(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata>? provider, string destinationDirectory)
+        public BaseProjectManager(IManagerProvider<IManagerMetadata> provider, string destinationDirectory)
         {
             Options = new Dictionary<string, object>();
             TopLevelExtractionDirectory = destinationDirectory;
-            HttpClientFactory = httpClientFactory;
             Provider = provider;
         }
 
-        public BaseProjectManager(IManagerProvider<IManagerMetadata>? provider, string destinationDirectory) : this(new DefaultHttpClientFactory(), provider, destinationDirectory)
-        {
-        }
-        
-        public BaseProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : this(httpClientFactory, new BaseProvider(), destinationDirectory)
-        {
-        }
-        
-        public BaseProjectManager(string destinationDirectory) : this(new DefaultHttpClientFactory(), null, destinationDirectory)
+        public BaseProjectManager(string destinationDirectory) : this(new BaseProvider(), destinationDirectory)
         {
         }
 
@@ -56,14 +47,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public string TopLevelExtractionDirectory { get; set; } = ".";
 
         /// <summary>
-        /// The <see cref="IHttpClientFactory"/> for the manager.
-        /// </summary>
-        public IHttpClientFactory HttpClientFactory { get; }
-        
-        /// <summary>
         /// The <see cref="IManagerProvider{IManagerMetadata}"/> for the manager.
         /// </summary>
-        public IManagerProvider<IManagerMetadata>? Provider { get; }
+        public IManagerProvider<IManagerMetadata> Provider { get; }
 
         /// <summary>
         /// Extracts GitHub URLs from a given piece of text.
@@ -570,7 +556,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         protected HttpClient CreateHttpClient()
         {
-            return HttpClientFactory.CreateClient(GetType().Name);
+            return Provider.CreateHttpClient();
         }
     }
 }

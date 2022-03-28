@@ -5,7 +5,6 @@ namespace Microsoft.CST.OpenSource
     using Contracts;
     using Helpers;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Http;
     using Model.Providers;
     using System;
     using System.Net.Http;
@@ -16,14 +15,9 @@ namespace Microsoft.CST.OpenSource
         protected static string ENV_HTTPCLIENT_USER_AGENT = "OSSDL";
 
         /// <summary>
-        /// The <see cref="IHttpClientFactory"/> to be used by classes that implement <see cref="OssGadgetLib"/>.
+        /// The <see cref="IManagerProviderFactory"/> to be used by classes that implement <see cref="OssGadgetLib"/>.
         /// </summary>
-        protected IHttpClientFactory HttpClientFactory { get; }
-        
-        /// <summary>
-        /// The <see cref="IManagerProvider{IManagerMetadata}"/> to be used by classes that implement <see cref="OssGadgetLib"/>.
-        /// </summary>
-        protected IManagerProvider<IManagerMetadata> Provider { get; }
+        protected IManagerProviderFactory ManagerProviderFactory { get; }
 
         /// <summary>
         /// The <see cref="NLog.ILogger"/> for this class.
@@ -36,14 +30,13 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         protected string Directory { get; }
 
-        protected OssGadgetLib(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata>? provider = null, string directory = ".")
+        protected OssGadgetLib(IManagerProviderFactory managerProviderFactory, string directory = ".")
         {
-            HttpClientFactory = Check.NotNull(nameof(httpClientFactory), httpClientFactory);
-            Provider = provider;
+            ManagerProviderFactory = Check.NotNull(nameof(managerProviderFactory), managerProviderFactory);
             Directory = directory;
         }
 
-        protected OssGadgetLib(string directory = ".") : this(new DefaultHttpClientFactory(), null, directory)
+        protected OssGadgetLib(string directory = ".") : this(new ProviderFactory(), directory)
         {
         }
 

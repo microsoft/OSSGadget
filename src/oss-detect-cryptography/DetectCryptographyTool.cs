@@ -24,8 +24,8 @@ namespace Microsoft.CST.OpenSource
 {
     using Contracts;
     using Microsoft.CST.OpenSource.PackageManagers;
+    using Model.Providers;
     using PackageUrl;
-    using System.Net.Http;
 
     public class DetectCryptographyTool : OSSGadget
     {
@@ -93,7 +93,7 @@ namespace Microsoft.CST.OpenSource
                             {
                                 targetDirectoryName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                             }
-                            BaseProjectManager projectManager = ProjectManagerFactory.CreateBaseProjectManager(detectCryptographyTool.HttpClientFactory, detectCryptographyTool.Provider, targetDirectoryName);
+                            BaseProjectManager projectManager = ProjectManagerFactory.CreateBaseProjectManager(ProviderFactory.CreateBaseProvider(detectCryptographyTool.ManagerProviderFactory.HttpClientFactory), targetDirectoryName);
 
                             string? path = await projectManager.ExtractArchive("temp", File.ReadAllBytes(target));
 
@@ -237,11 +237,11 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        public DetectCryptographyTool(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata>? provider = null) : base(httpClientFactory, provider)
+        public DetectCryptographyTool(IManagerProviderFactory managerProviderFactory) : base(managerProviderFactory)
         {
         }
 
-        public DetectCryptographyTool() : this(new DefaultHttpClientFactory())
+        public DetectCryptographyTool() : this(new ProviderFactory())
         {
         }
 
@@ -254,7 +254,7 @@ namespace Microsoft.CST.OpenSource
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
 
-            PackageDownloader? packageDownloader = new(purl, HttpClientFactory, Provider, targetDirectoryName, doCaching);
+            PackageDownloader? packageDownloader = new(purl, ManagerProviderFactory, targetDirectoryName, doCaching);
             List<string>? directoryNames = await packageDownloader.DownloadPackageLocalCopy(purl, false, true);
             directoryNames = directoryNames.Distinct().ToList<string>();
 

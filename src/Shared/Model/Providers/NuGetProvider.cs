@@ -15,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Utilities;
@@ -28,8 +29,9 @@ public class NuGetProvider : BaseProvider
     /// <summary>
     /// Instantiates a new <see cref="NuGetProvider"/>.
     /// </summary>
-    public NuGetProvider()
+    public NuGetProvider(IHttpClientFactory? httpClientFactory = null)
     {
+        HttpClientFactory = httpClientFactory ?? new DefaultHttpClientFactory();
     }
 
     /// <inheritdoc />

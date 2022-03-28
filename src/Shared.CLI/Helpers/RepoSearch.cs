@@ -3,15 +3,12 @@
 namespace Microsoft.CST.OpenSource.Shared
 {
     using Contracts;
-    using Microsoft.CST.OpenSource.Helpers;
     using Microsoft.CST.OpenSource.PackageManagers;
     using Model.Providers;
-    using NLog;
     using PackageUrl;
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net.Http;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -33,25 +30,17 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <summary>
         /// Initializes a new instance of the <see cref="RepoSearch"/> class.
         /// </summary>
-        /// <param name="httpClientFactory">The <see cref="IHttpClientFactory"/> to generate an <see cref="HttpClient"/> with.</param>
-        /// <param name="provider">The <see cref="IManagerProvider{IManagerMetadata}"/> to make calls to the manager registry with.</param>
-        public RepoSearch(IHttpClientFactory httpClientFactory, IManagerProvider<IManagerMetadata>? provider = null)
+        /// <param name="managerProviderFactory">The <see cref="IManagerProviderFactory"/> to generate the <see cref="IManagerProvider{IManagerMetadata}"/> with.</param>
+        public RepoSearch(IManagerProviderFactory managerProviderFactory)
         {
-            HttpClientFactory = httpClientFactory;
-            Provider = provider;
+            ManagerProviderFactory = managerProviderFactory;
         }
 
-        public RepoSearch(IManagerProvider<IManagerMetadata>? provider) : this(new DefaultHttpClientFactory(), provider)
-        {
-        }
-        
-        public RepoSearch() : this(new DefaultHttpClientFactory())
+        public RepoSearch() : this(new ProviderFactory())
         {
         }
 
-        private IHttpClientFactory HttpClientFactory { get; }
-        
-        private IManagerProvider<IManagerMetadata>? Provider { get; }
+        private IManagerProviderFactory ManagerProviderFactory { get; }
 
         /// <summary>
         ///     try to resolve the source code for an npm package through different means
@@ -76,7 +65,7 @@ namespace Microsoft.CST.OpenSource.Shared
             Logger.Debug("Searching for source code for: {0}", purlNoVersion.ToString());
 
             // Use reflection to find the correct downloader class
-            BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, HttpClientFactory, Provider);
+            BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, ManagerProviderFactory);
 
             if (projectManager != null)
             {

@@ -68,10 +68,12 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public async Task MetadataSucceeds(string purlString, string? description = null, string? authors = null, string? latestVersion = null)
         {
             PackageURL purl = new(purlString);
-            IManagerProvider<IManagerMetadata>? provider = ProviderHelper.SetupProvider(purl,
+            IManagerProvider<IManagerMetadata>? provider = ProviderHelper.SetupProvider(
+                _mockFactory.Object,
+                purl,
                 NuGetMetadata.FromJson(_metadata[purl.ToString()]),
-                JsonConvert.DeserializeObject<IEnumerable<string>>(_versions[purl.ToString()]))?.Object;
-            _projectManager = new NuGetProjectManager(_mockFactory.Object, provider, ".");
+                JsonConvert.DeserializeObject<IEnumerable<string>>(_versions[purl.ToString()]));
+            _projectManager = new NuGetProjectManager(provider, ".");
 
             PackageMetadata metadata = await _projectManager.GetPackageMetadata(purl, useCache: false);
 
@@ -94,11 +96,12 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public async Task EnumerateVersionsSucceeds(string purlString, int count, string latestVersion)
         {
             PackageURL purl = new(purlString);
-            IManagerProvider<IManagerMetadata>? provider = ProviderHelper.SetupProvider(purl,
+            IManagerProvider<IManagerMetadata>? provider = ProviderHelper.SetupProvider(
+                _mockFactory.Object,
+                purl,
                 NuGetMetadata.FromJson(_metadata[purl.ToString()]),
-                JsonConvert.DeserializeObject<IEnumerable<string>>(_versions[purl.ToString()]))
-                ?.Object;
-            _projectManager = new NuGetProjectManager(_mockFactory.Object, provider, ".");
+                JsonConvert.DeserializeObject<IEnumerable<string>>(_versions[purl.ToString()]));
+            _projectManager = new NuGetProjectManager(provider, ".");
 
             List<string> versions = (await _projectManager.EnumerateVersions(purl, useCache: false)).ToList();
 

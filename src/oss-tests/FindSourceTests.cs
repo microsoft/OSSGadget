@@ -96,7 +96,7 @@ namespace Microsoft.CST.OpenSource.Tests
             FindSourceTool tool = new();
 
             PackageURL packageUrl = new PackageURL(purl);
-            RepoSearch searchTool = new(ProviderFactory.CreateProvider(packageUrl));
+            RepoSearch searchTool = new();
             Dictionary<PackageURL, double>? results = await searchTool.ResolvePackageLibraryAsync(packageUrl);
             PackageURL? targetPurl = new(targetResult);
             bool success = false;

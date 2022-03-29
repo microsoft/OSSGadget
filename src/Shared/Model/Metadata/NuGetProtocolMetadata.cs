@@ -107,7 +107,7 @@ public record NuGetMetadata : IManagerMetadata
     /// <summary>
     /// Initialize an instance of <see cref="NuGetMetadata"/> using the <see cref="JsonConstructorAttribute"/>.
     /// </summary>
-    /// <remarks>Necessary for unit test implementation.</remarks>
+    /// <remarks>Necessary for unit test implementation of json serialization and deserialization.</remarks>
     [JsonConstructor]
 #pragma warning disable CS8618
     public NuGetMetadata()
@@ -143,24 +143,5 @@ public record NuGetMetadata : IManagerMetadata
         LicenseMetadata = registration.LicenseMetadata;
         Vulnerabilities = registration.Vulnerabilities;
         CatalogUri = registration.CatalogUri;
-    }
-
-    /// <summary>
-    /// Serialize this instance of <see cref="NuGetMetadata"/> into a json string.
-    /// </summary>
-    /// <returns>A json string representing this object.</returns>
-    public string ToJson()
-    {
-        return JsonConvert.SerializeObject(this);
-    }
-
-    /// <summary>
-    /// Deserialize a json string into a <see cref="NuGetMetadata"/> object.
-    /// </summary>
-    /// <param name="json">The json string representing a <see cref="NuGetMetadata"/>.</param>
-    /// <returns>The <see cref="NuGetMetadata"/> constructed from json.</returns>
-    public static NuGetMetadata? FromJson(string json)
-    {
-        return JsonConvert.DeserializeObject<NuGetMetadata>(json);
     }
 } 

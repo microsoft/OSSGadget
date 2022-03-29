@@ -7,10 +7,10 @@ public interface IManagerMetadata
     /// <summary>
     /// The name of the package.
     /// </summary>
-    public string Name { get; }
+    string Name { get; }
 
     /// <summary>
     /// The version of the package.
     /// </summary>
-    public string Version { get; }
+    string Version { get; }
 }

@@ -11,7 +11,7 @@ public interface IManagerProviderFactory
     /// <summary>
     /// The <see cref="IHttpClientFactory"/> to put into any <see cref="IManagerProvider{T}"/> created.
     /// </summary>
-    public IHttpClientFactory HttpClientFactory { get; }
+    IHttpClientFactory HttpClientFactory { get; }
 
     /// <summary>
     /// Creates a new provider that inherits <see cref="BaseProvider"/> or returns the <see cref="BaseProvider"/> if none inherit it.

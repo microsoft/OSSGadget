@@ -71,7 +71,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             IManagerProvider? provider = ProviderHelper.SetupProvider(
                 _mockFactory.Object,
                 purl,
-                NuGetMetadata.FromJson(_metadata[purl.ToString()]),
+                JsonConvert.DeserializeObject<NuGetMetadata>(_metadata[purl.ToString()]),
                 JsonConvert.DeserializeObject<IEnumerable<string>>(_versions[purl.ToString()]));
             _projectManager = new NuGetProjectManager(provider, ".");
 
@@ -99,7 +99,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             IManagerProvider? provider = ProviderHelper.SetupProvider(
                 _mockFactory.Object,
                 purl,
-                NuGetMetadata.FromJson(_metadata[purl.ToString()]),
+                JsonConvert.DeserializeObject<NuGetMetadata>(_metadata[purl.ToString()]),
                 JsonConvert.DeserializeObject<IEnumerable<string>>(_versions[purl.ToString()]));
             _projectManager = new NuGetProjectManager(provider, ".");
 

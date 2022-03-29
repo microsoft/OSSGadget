@@ -192,8 +192,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 
                 NuGetMetadata? packageVersionMetadata =
                     await Provider.GetMetadataAsync(purlWithVersion, useCache: useCache) as NuGetMetadata;
-                
-                return packageVersionMetadata?.ToJson();
+
+                return JsonSerializer.Serialize(packageVersionMetadata);
             }
             catch (Exception ex)
             {

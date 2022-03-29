@@ -286,7 +286,7 @@ namespace Microsoft.CST.OpenSource.Tests
 
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpMock.ToHttpClient());
 
-            BaseProvider provider = ProviderHelper.SetupProvider(mockFactory.Object, newtonsoft, validSquats: squattingPackages) as BaseProvider ?? throw new InvalidOperationException();
+            BaseProvider provider = ProviderHelper.SetupProvider(mockFactory.Object, newtonsoft, validSquats: squattingPackages) ?? throw new InvalidOperationException();
             IManagerProviderFactory? providerFactory = ProviderHelper.SetupProviderFactory(mockFactory.Object, newtonsoft, provider).Object;
             FindPackageSquats findPackageSquats = new(providerFactory, newtonsoft);
 

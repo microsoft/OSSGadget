@@ -16,6 +16,9 @@ public class BaseProvider : IManagerProvider<IManagerMetadata>
     {
         HttpClientFactory = httpClientFactory ?? new DefaultHttpClientFactory();
     }
+    
+    public BaseProvider() : this(new DefaultHttpClientFactory())
+    {}
 
     /// <inheritdoc />
     public IHttpClientFactory HttpClientFactory { get; protected init; }

@@ -27,7 +27,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_COCOAPODS_METADATA_ENDPOINT = "https://cocoapods.org";
 
-        public CocoapodsProjectManager(IManagerProvider<IManagerMetadata> provider, string destinationDirectory) : base(provider, destinationDirectory)
+        public CocoapodsProjectManager(IManagerProvider provider, string destinationDirectory) : base(provider, destinationDirectory)
         {
         }
 

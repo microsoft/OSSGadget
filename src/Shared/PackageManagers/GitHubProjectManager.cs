@@ -19,7 +19,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     {
         public static string ENV_GITHUB_ENDPOINT = "https://github.com";
 
-        public GitHubProjectManager(IManagerProvider<IManagerMetadata> provider, string destinationDirectory) : base(provider, destinationDirectory)
+        public GitHubProjectManager(IManagerProvider provider, string destinationDirectory) : base(provider, destinationDirectory)
         {
         }
 

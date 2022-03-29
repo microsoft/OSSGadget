@@ -13,7 +13,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     internal class URLProjectManager : BaseProjectManager
     {
 
-        public URLProjectManager(IManagerProvider<IManagerMetadata> provider, string destinationDirectory) : base(provider, destinationDirectory)
+        public URLProjectManager(IManagerProvider provider, string destinationDirectory) : base(provider, destinationDirectory)
         {
         }
 

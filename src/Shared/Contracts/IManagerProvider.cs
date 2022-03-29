@@ -14,10 +14,10 @@ using System.Threading.Tasks;
 /// The interface to implement project manager specific methods.
 /// Useful for mocking when doing unit tests.
 /// </summary>
-public interface IManagerProvider<T>
+public interface IManagerProvider
 {
     /// <summary>
-    /// The <see cref="IHttpClientFactory"/> for this <see cref="IManagerProvider{T}"/> to make <see cref="HttpClient"/>s with.
+    /// The <see cref="IHttpClientFactory"/> for this <see cref="IManagerProvider"/> to make <see cref="HttpClient"/>s with.
     /// </summary>
     public IHttpClientFactory HttpClientFactory { get; }
 
@@ -69,7 +69,7 @@ public interface IManagerProvider<T>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to be used in the method call, defaults to <see cref="CancellationToken.None"/>.</param>
     /// <returns>The <see cref="T"/> for this package version. Or null if none was found.</returns>
     /// <exception cref="ArgumentException">Thrown if there was no version in <paramref name="packageUrl"/>.</exception>
-    Task<T?> GetMetadataAsync(PackageURL packageUrl, bool useCache = true,
+    Task<IManagerMetadata?> GetMetadataAsync(PackageURL packageUrl, bool useCache = true,
         CancellationToken cancellationToken = default);
 
     

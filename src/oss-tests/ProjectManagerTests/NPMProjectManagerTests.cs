@@ -6,10 +6,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
     using Contracts;
     using Helpers;
     using Model;
-    using Model.Metadata;
-    using Model.Providers;
     using Moq;
-    using Newtonsoft.Json;
     using OpenSource.Helpers;
     using oss;
     using PackageManagers;
@@ -49,7 +46,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             }
  
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
-            IManagerProvider<IManagerMetadata>? provider = ProviderHelper.SetupProvider(mockFactory.Object);
+            IManagerProvider? provider = ProviderHelper.SetupProvider(mockFactory.Object);
             
             _projectManager = new NPMProjectManager(provider, ".");
         }

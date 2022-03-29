@@ -18,7 +18,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <param name="managerProvider">The <see cref="IManagerProvider{IManagerMetadata}"/> to for this project manager.</param>
         /// <param name="destinationDirectory">The directory to use to store any downloaded packages.</param>
         /// <returns></returns>
-        public static BaseProjectManager CreateBaseProjectManager(IManagerProvider<IManagerMetadata> managerProvider, string destinationDirectory)
+        public static BaseProjectManager CreateBaseProjectManager(IManagerProvider managerProvider, string destinationDirectory)
         {
             return new BaseProjectManager(managerProvider, destinationDirectory);
         }
@@ -57,7 +57,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             if (managerClass != null)
             {
-                System.Reflection.ConstructorInfo? ctor = managerClass.GetConstructor(new[] { typeof(IManagerProvider<IManagerMetadata>), typeof(string) });
+                System.Reflection.ConstructorInfo? ctor = managerClass.GetConstructor(new[] { typeof(IManagerProvider), typeof(string) });
                 if (ctor != null)
                 {
                     BaseProjectManager? projectManager = (BaseProjectManager)ctor.Invoke(new object?[] { provider, destinationDirectory });

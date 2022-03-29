@@ -68,7 +68,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public async Task MetadataSucceeds(string purlString, string? description = null, string? authors = null, string? latestVersion = null)
         {
             PackageURL purl = new(purlString);
-            IManagerProvider<IManagerMetadata>? provider = ProviderHelper.SetupProvider(
+            IManagerProvider? provider = ProviderHelper.SetupProvider(
                 _mockFactory.Object,
                 purl,
                 NuGetMetadata.FromJson(_metadata[purl.ToString()]),
@@ -96,7 +96,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public async Task EnumerateVersionsSucceeds(string purlString, int count, string latestVersion)
         {
             PackageURL purl = new(purlString);
-            IManagerProvider<IManagerMetadata>? provider = ProviderHelper.SetupProvider(
+            IManagerProvider? provider = ProviderHelper.SetupProvider(
                 _mockFactory.Object,
                 purl,
                 NuGetMetadata.FromJson(_metadata[purl.ToString()]),

@@ -25,7 +25,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <summary>
         /// Initializes a new instance of the <see cref="BaseProjectManager"/> class.
         /// </summary>
-        public BaseProjectManager(IManagerProvider<IManagerMetadata> provider, string destinationDirectory)
+        public BaseProjectManager(IManagerProvider provider, string destinationDirectory)
         {
             Options = new Dictionary<string, object>();
             TopLevelExtractionDirectory = destinationDirectory;
@@ -49,7 +49,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <summary>
         /// The <see cref="IManagerProvider{IManagerMetadata}"/> for the manager.
         /// </summary>
-        public IManagerProvider<IManagerMetadata> Provider { get; }
+        public IManagerProvider Provider { get; }
 
         /// <summary>
         /// Extracts GitHub URLs from a given piece of text.

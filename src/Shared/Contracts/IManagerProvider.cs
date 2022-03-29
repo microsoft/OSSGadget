@@ -16,6 +16,9 @@ using System.Threading.Tasks;
 /// </summary>
 public interface IManagerProvider<T>
 {
+    /// <summary>
+    /// The <see cref="IHttpClientFactory"/> for this <see cref="IManagerProvider{T}"/> to make <see cref="HttpClient"/>s with.
+    /// </summary>
     public IHttpClientFactory HttpClientFactory { get; }
 
     /// <summary>
@@ -69,5 +72,10 @@ public interface IManagerProvider<T>
     Task<T?> GetMetadataAsync(PackageURL packageUrl, bool useCache = true,
         CancellationToken cancellationToken = default);
 
+    
+    /// <summary>
+    /// Creates a new <see cref="HttpClient"/> from the <see cref="HttpClientFactory"/>.
+    /// </summary>
+    /// <returns>A new <see cref="HttpClient"/>.</returns>
     HttpClient CreateHttpClient();
 } 

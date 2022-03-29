@@ -20,7 +20,8 @@ public class BaseProvider : IManagerProvider<IManagerMetadata>
     public BaseProvider() : this(new DefaultHttpClientFactory())
     {}
 
-    public IHttpClientFactory HttpClientFactory { get; internal init; }
+    /// <inheritdoc />
+    public IHttpClientFactory HttpClientFactory { get; protected init; }
 
     /// <inheritdoc />
     public virtual Task<string?> DownloadAsync(BaseProjectManager projectManager, PackageURL packageUrl, string targetDirectory, bool doExtract,
@@ -41,6 +42,7 @@ public class BaseProvider : IManagerProvider<IManagerMetadata>
     /// <inheritdoc />
     public virtual Task<IManagerMetadata?> GetMetadataAsync(PackageURL packageUrl, bool useCache = true, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
     
+    /// <inheritdoc />
     public virtual HttpClient CreateHttpClient()
     {
         return HttpClientFactory.CreateClient(GetType().Name);

@@ -93,7 +93,7 @@ namespace Microsoft.CST.OpenSource
                             {
                                 targetDirectoryName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                             }
-                            BaseProjectManager projectManager = ProjectManagerFactory.CreateBaseProjectManager(ProviderFactory.CreateBaseProvider(detectCryptographyTool.ManagerProviderFactory.HttpClientFactory), targetDirectoryName);
+                            BaseProjectManager projectManager = ProjectManagerFactory.CreateBaseProjectManager(ProviderFactory.CreateBaseProvider(), targetDirectoryName);
 
                             string? path = await projectManager.ExtractArchive("temp", File.ReadAllBytes(target));
 

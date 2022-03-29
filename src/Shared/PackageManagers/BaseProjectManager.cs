@@ -556,7 +556,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         protected HttpClient CreateHttpClient()
         {
-            return Provider.CreateHttpClient();
+            return Provider.CreateHttpClient(GetType().Name);
         }
     }
 }

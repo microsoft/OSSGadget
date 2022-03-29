@@ -12,13 +12,10 @@ using System.Threading.Tasks;
 
 public class BaseProvider : IManagerProvider<IManagerMetadata>
 {
-    public BaseProvider(IHttpClientFactory httpClientFactory)
+    public BaseProvider(IHttpClientFactory? httpClientFactory = null)
     {
-        HttpClientFactory = httpClientFactory;
+        HttpClientFactory = httpClientFactory ?? new DefaultHttpClientFactory();
     }
-
-    public BaseProvider() : this(new DefaultHttpClientFactory())
-    {}
 
     /// <inheritdoc />
     public IHttpClientFactory HttpClientFactory { get; protected init; }
@@ -43,8 +40,8 @@ public class BaseProvider : IManagerProvider<IManagerMetadata>
     public virtual Task<IManagerMetadata?> GetMetadataAsync(PackageURL packageUrl, bool useCache = true, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
     
     /// <inheritdoc />
-    public virtual HttpClient CreateHttpClient()
+    public virtual HttpClient CreateHttpClient(string? manager = null)
     {
-        return HttpClientFactory.CreateClient(GetType().Name);
+        return HttpClientFactory.CreateClient(manager ?? GetType().Name);
     }
 }

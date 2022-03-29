@@ -49,19 +49,19 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
 
             // Use reflection to find the correct package management class
-            Type? downloaderClass = projectManagers
+            Type? managerClass = projectManagers
                 .FirstOrDefault(type => type.Name.Equals($"{purl.Type}ProjectManager",
                     StringComparison.InvariantCultureIgnoreCase));
 
             BaseProvider provider = managerProviderFactory?.CreateProvider(purl) ?? new BaseProvider();
 
-            if (downloaderClass != null)
+            if (managerClass != null)
             {
-                System.Reflection.ConstructorInfo? ctor = downloaderClass.GetConstructor(new[] { typeof(IManagerProvider<IManagerMetadata>), typeof(string) });
+                System.Reflection.ConstructorInfo? ctor = managerClass.GetConstructor(new[] { typeof(IManagerProvider<IManagerMetadata>), typeof(string) });
                 if (ctor != null)
                 {
-                    BaseProjectManager? _downloader = (BaseProjectManager)ctor.Invoke(new object?[] { provider, destinationDirectory });
-                    return _downloader;
+                    BaseProjectManager? projectManager = (BaseProjectManager)ctor.Invoke(new object?[] { provider, destinationDirectory });
+                    return projectManager;
                 }
             }
 

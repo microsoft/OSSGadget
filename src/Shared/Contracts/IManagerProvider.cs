@@ -76,6 +76,7 @@ public interface IManagerProvider<T>
     /// <summary>
     /// Creates a new <see cref="HttpClient"/> from the <see cref="HttpClientFactory"/>.
     /// </summary>
+    /// <param name="manager">The name of the manager using this provider.</param>
     /// <returns>A new <see cref="HttpClient"/>.</returns>
-    HttpClient CreateHttpClient();
+    HttpClient CreateHttpClient(string? manager = null);
 } 

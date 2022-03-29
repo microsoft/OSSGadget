@@ -11,6 +11,7 @@ using System.Net.Http;
 
 public class ProviderFactory : IManagerProviderFactory
 {
+    /// <inheritdoc />
     public IHttpClientFactory HttpClientFactory { get; }
 
     public ProviderFactory(IHttpClientFactory? httpClientFactory = null)
@@ -19,24 +20,15 @@ public class ProviderFactory : IManagerProviderFactory
     }
 
     /// <summary>
-    /// Create a <see cref="BaseProvider"/>.
+    /// Creates a <see cref="BaseProvider"/>.
     /// </summary>
-    /// <param name="httpClientFactory">The <see cref="IHttpClientFactory"/> to use in the <see cref="BaseProvider"/>.</param>
+    /// <param name="httpClientFactory">The <see cref="IHttpClientFactory"/> to use in the <see cref="BaseProvider"/>. Defaults to null.</param>
     /// <returns>A new <see cref="BaseProvider"/>.</returns>
-    public static BaseProvider CreateBaseProvider(IHttpClientFactory httpClientFactory)
+    public static BaseProvider CreateBaseProvider(IHttpClientFactory? httpClientFactory = null)
     {
         return new BaseProvider(httpClientFactory);
     }
 
-    /// <summary>
-    /// Create a <see cref="BaseProvider"/>.
-    /// </summary>
-    /// <returns>A new <see cref="BaseProvider"/>.</returns>
-    public static BaseProvider CreateBaseProvider()
-    {
-        return new BaseProvider();
-    }
-    
     /// <summary>
     /// Get an appropriate implementation of <see cref="BaseProvider"/> for the project manager in the provided
     /// <see cref="PackageURL"/>. If no implementation of <see cref="BaseProvider"/> exists for this manager, returns null.

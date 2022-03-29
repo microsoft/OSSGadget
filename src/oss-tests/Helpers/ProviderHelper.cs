@@ -60,6 +60,7 @@ public static class ProviderHelper
         {
             if (metadata is not null)
             {
+                // Mock the metadata call if metadata was provided.
                 mockProvider.Setup(provider => provider.GetMetadataAsync(
                     It.Is<PackageURL>(p => p.Name.Equals(purl.Name) && (purl.Version == null || p.Version.Equals(purl.Version))), It.IsAny<bool>(), It.IsAny<CancellationToken>()).Result).Returns(
                     metadata);
@@ -67,11 +68,13 @@ public static class ProviderHelper
 
             if (versions is not null)
             {
+                // Mock the list of versions if the list was provided.
                 IEnumerable<string> versionsArray = versions as string[] ?? versions.ToArray();
                 mockProvider.Setup(provider => provider.GetAllVersionsAsync(
                     It.Is<PackageURL>(p => p.Name.Equals(purl.Name)), It.IsAny<bool>(), It.IsAny<CancellationToken>()).Result).Returns(
                     versionsArray);
 
+                // Mock the call to GetLatestVersionAsync to be the last version in the list that was provided.
                 mockProvider.Setup(provider => provider.GetLatestVersionAsync(
                     It.Is<PackageURL>(p => p.Name.Equals(purl.Name)), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()).Result).Returns(
                     versionsArray.Last());
@@ -79,7 +82,8 @@ public static class ProviderHelper
         
             if (validSquats is not null)
             {
-                foreach (PackageURL squatPurl in validSquats.Select((squatPurlString) => new PackageURL(squatPurlString)))
+                // Mock the other packages that "exist" if a list of "valid" squats was provided.
+                foreach (PackageURL squatPurl in validSquats.Select(squatPurlString => new PackageURL(squatPurlString)))
                 {
                     mockProvider.Setup(provider => provider.DoesPackageExistAsync(
                         It.Is<PackageURL>(p => p.Name.Equals(squatPurl.Name)), It.IsAny<bool>(), It.IsAny<CancellationToken>()).Result).Returns(
@@ -87,14 +91,16 @@ public static class ProviderHelper
                 }
             }
 
+            // Mock that this package exists.
             mockProvider.Setup(provider => provider.DoesPackageExistAsync(
                 It.Is<PackageURL>(p => p.Name.Equals(purl.Name)), It.IsAny<bool>(), It.IsAny<CancellationToken>()).Result).Returns(
                 true);   
         }
 
-        // mockProvider.Setup(provider => provider.HttpClientFactory).Returns(httpClientFactory);
-        mockProvider.Setup(provider => provider.CreateHttpClient()).Returns(httpClientFactory.CreateClient());
+        // Mock the http client from the mocked http client factory.
+        mockProvider.Setup(provider => provider.CreateHttpClient(It.IsAny<string>())).Returns(httpClientFactory.CreateClient());
 
+        // Return the mocked provider.
         return mockProvider.Object;
     }
 }

@@ -35,7 +35,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             { "pkg:nuget/razorengine", Resources.razorengine_latest_metadata_json },
         };
         
-        // Map PackageURLS to the list of versions as json.
+        // Map PackageURLs to the list of versions as json.
         private readonly IDictionary<string, string> _versions = new Dictionary<string, string>()
         {
             { "pkg:nuget/razorengine@4.2.3-beta1", Resources.razorengine_versions_json },

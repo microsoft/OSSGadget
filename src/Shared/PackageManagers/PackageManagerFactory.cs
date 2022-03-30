@@ -32,8 +32,17 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             Type? managerClass = projectManagers
                 .FirstOrDefault(type => type.Name.Equals($"{purl.Type}ProjectManager",
                     StringComparison.InvariantCultureIgnoreCase));
+            
+            IManagerProvider? provider = null;
 
-            IManagerProvider? provider = managerProviderFactory?.CreateProvider(purl);
+            try
+            {
+                provider = managerProviderFactory?.CreateProvider(purl);
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
 
             if (managerClass != null)
             {

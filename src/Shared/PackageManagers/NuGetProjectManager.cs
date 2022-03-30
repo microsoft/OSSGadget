@@ -86,12 +86,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// Download one NuGet package to the target directory and (optionally) extract it.
         /// </summary>
         /// <remarks>The target directory is defined when creating the <see cref="NuGetProjectManager"/> in the subdirectory named `nuget-{packagename}@{packageversion}`</remarks>
-        /// <param name="purl">The <see cref="PackageURL"/> of the package to download.</param>
+        /// <param name="purl">The <see cref="PackageURL"/> of the package to download, requires a version.</param>
         /// <param name="doExtract">If the contents of the .nupkg should be extracted into a directory.</param>
         /// <param name="cached">If the downloaded contents should be retrieved from the cache if they exist there.</param>
         /// <returns>An <see cref="IEnumerable{String}"/> list of the path(s) the contents were downloaded to.</returns>
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
+            ArgumentNullException.ThrowIfNull(purl, nameof(purl));
             Logger.Trace("DownloadVersion {0}", purl.ToString());
 
             string packageName = purl.Name;
@@ -100,7 +101,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
             {
-                Logger.Debug("Unable to download [{0} {1}]. Both must be defined.", packageName, packageVersion);
+                Logger.Debug("Unable to download [{0} {1}]. Both name and version must be defined.", packageName, packageVersion);
                 return downloadedPaths;
             }
 

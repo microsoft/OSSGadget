@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 namespace Microsoft.CST.OpenSource
 {
     using Contracts;
-    using Model.Providers;
     using PackageUrl;
+    using System.Net.Http;
 
     public class DownloadTool : OSSGadget
     {
@@ -57,11 +57,15 @@ namespace Microsoft.CST.OpenSource
             public bool UseCache { get; set; }
         }
 
-        public DownloadTool(IManagerProviderFactory managerProviderFactory) : base(managerProviderFactory)
+        public DownloadTool(IManagerProviderFactory managerProviderFactory, IHttpClientFactory httpClientFactory) : base(managerProviderFactory, httpClientFactory)
         {
         }
 
-        public DownloadTool() : this(new ProviderFactory()) { }
+        public DownloadTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        {
+        }
+
+        public DownloadTool() : this(new DefaultHttpClientFactory()) { }
 
         /// <summary>
         ///     Main entrypoint for the download program.
@@ -101,7 +105,7 @@ namespace Microsoft.CST.OpenSource
                         PackageURL? purl = new PackageURL(target);
                         string downloadDirectory = options.DownloadDirectory == "." ? System.IO.Directory.GetCurrentDirectory() : options.DownloadDirectory;
                         bool useCache = options.UseCache;
-                        PackageDownloader? packageDownloader = new PackageDownloader(purl, ManagerProviderFactory, downloadDirectory, useCache);
+                        PackageDownloader? packageDownloader = new PackageDownloader(purl, HttpClientFactory, ManagerProviderFactory, downloadDirectory, useCache);
 
                         List<string>? downloadResults = await packageDownloader.DownloadPackageLocalCopy(purl, options.DownloadMetadataOnly, options.Extract);
                         foreach (string? downloadPath in downloadResults)

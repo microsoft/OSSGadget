@@ -23,7 +23,6 @@ namespace Microsoft.CST.OpenSource.DiffTool
     using Contracts;
     using Microsoft.CST.OpenSource.Helpers;
     using Microsoft.CST.OpenSource.PackageManagers;
-    using Model.Providers;
     using PackageUrl;
     using System.Net.Http;
 
@@ -87,11 +86,15 @@ namespace Microsoft.CST.OpenSource.DiffTool
             public IEnumerable<string> Targets { get; set; } = Array.Empty<string>();
         }
 
-        public DiffTool(IManagerProviderFactory managerProviderFactory) : base(managerProviderFactory)
+        public DiffTool(IManagerProviderFactory managerProviderFactory, IHttpClientFactory httpClientFactory) : base(managerProviderFactory, httpClientFactory)
         {
         }
 
-        public DiffTool() : this (new ProviderFactory()) { }
+        public DiffTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        {
+        }
+
+        public DiffTool() : this (new DefaultHttpClientFactory()) { }
 
         static async Task Main(string[] args)
         {
@@ -123,7 +126,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
             try
             {
                 PackageURL purl1 = new PackageURL(options.Targets.First());
-                BaseProjectManager? manager = ProjectManagerFactory.CreateProjectManager(purl1, ManagerProviderFactory, options.DownloadDirectory ?? Path.GetTempPath());
+                BaseProjectManager? manager = ProjectManagerFactory.CreateProjectManager(purl1, ManagerProviderFactory, HttpClientFactory, options.DownloadDirectory ?? Path.GetTempPath());
 
                 if (manager is not null)
                 {
@@ -157,7 +160,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
             try
             {
                 PackageURL purl2 = new PackageURL(options.Targets.Last());
-                BaseProjectManager? manager2 = ProjectManagerFactory.CreateProjectManager(purl2, ManagerProviderFactory, options.DownloadDirectory ?? Path.GetTempPath());
+                BaseProjectManager? manager2 = ProjectManagerFactory.CreateProjectManager(purl2, ManagerProviderFactory, HttpClientFactory, options.DownloadDirectory ?? Path.GetTempPath());
 
                 if (manager2 is not null)
                 {

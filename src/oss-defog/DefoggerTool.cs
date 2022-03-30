@@ -15,6 +15,7 @@ namespace Microsoft.CST.OpenSource
     using Contracts;
     using Model.Providers;
     using PackageUrl;
+    using System.Net.Http;
 
     public class DefoggerTool : OSSGadget
     {
@@ -362,7 +363,7 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         /// Initializes a new DefoggerTool instance.
         /// </summary>
-        public DefoggerTool(IManagerProviderFactory managerProviderFactory) : base(managerProviderFactory)
+        public DefoggerTool(IManagerProviderFactory managerProviderFactory, IHttpClientFactory httpClientFactory) : base(managerProviderFactory, httpClientFactory)
         {
             Findings = new List<EncodedString>();
             BinaryFindings = new List<EncodedBinary>();
@@ -370,7 +371,11 @@ namespace Microsoft.CST.OpenSource
             NonTextFindings = new List<EncodedBlob>();
         }
 
-        public DefoggerTool() : this(new ProviderFactory())
+        public DefoggerTool(IHttpClientFactory httpClientFactory) : this(new ManagerProviderFactory(), httpClientFactory)
+        {
+        }
+
+        public DefoggerTool() : this(new DefaultHttpClientFactory())
         {
         }
 
@@ -383,7 +388,7 @@ namespace Microsoft.CST.OpenSource
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
 
-            PackageDownloader? packageDownloader = new PackageDownloader(purl, ManagerProviderFactory, destinationDirectory, doCaching);
+            PackageDownloader? packageDownloader = new PackageDownloader(purl, HttpClientFactory, ManagerProviderFactory, destinationDirectory, doCaching);
             foreach (string? directory in await packageDownloader.DownloadPackageLocalCopy(purl, false, true))
             {
                 if (System.IO.Directory.Exists(directory))

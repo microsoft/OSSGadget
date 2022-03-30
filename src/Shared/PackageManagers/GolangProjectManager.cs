@@ -19,7 +19,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_GO_PKG_ENDPOINT = "https://pkg.go.dev";
 
-        public GolangProjectManager(IManagerProvider provider, string destinationDirectory) : base(provider, destinationDirectory)
+        public GolangProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory, IManagerProvider? provider = null) : base(httpClientFactory, destinationDirectory, provider)
         {
         }
 
@@ -65,7 +65,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 }
                 if (doExtract)
                 {
-                    downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync(), cached));
+                    downloadedPaths.Add(await ExtractArchive(TopLevelExtractionDirectory, targetName, await result.Content.ReadAsByteArrayAsync(), cached));
                 }
                 else
                 {

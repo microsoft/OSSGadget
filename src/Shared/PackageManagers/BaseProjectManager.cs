@@ -6,7 +6,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using Microsoft.CST.RecursiveExtractor;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.CST.OpenSource.Model;
-    using Model.Providers;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -25,14 +24,15 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <summary>
         /// Initializes a new instance of the <see cref="BaseProjectManager"/> class.
         /// </summary>
-        public BaseProjectManager(IManagerProvider provider, string destinationDirectory)
+        public BaseProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory, IManagerProvider? managerProvider = null)
         {
             Options = new Dictionary<string, object>();
             TopLevelExtractionDirectory = destinationDirectory;
-            Provider = provider;
+            HttpClientFactory = httpClientFactory;
+            ManagerProvider = managerProvider;
         }
 
-        public BaseProjectManager(string destinationDirectory) : this(new BaseProvider(), destinationDirectory)
+        public BaseProjectManager(string destinationDirectory) : this(new DefaultHttpClientFactory(), destinationDirectory)
         {
         }
 
@@ -47,9 +47,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public string TopLevelExtractionDirectory { get; set; } = ".";
 
         /// <summary>
-        /// The <see cref="IManagerProvider{IManagerMetadata}"/> for the manager.
+        /// The <see cref="IHttpClientFactory"/> for the manager.
         /// </summary>
-        public IManagerProvider Provider { get; }
+        public IHttpClientFactory HttpClientFactory { get; }
+        
+        /// <summary>
+        /// The <see cref="IManagerProvider"/> for the manager.
+        /// </summary>
+        public IManagerProvider? ManagerProvider { get; }
 
         /// <summary>
         /// Extracts GitHub URLs from a given piece of text.
@@ -291,15 +296,16 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// Extracts an archive (given by 'bytes') into a directory named 'directoryName',
         /// recursively, using RecursiveExtractor.
         /// </summary>
-        /// <param name="directoryName">directory to extract content into (within TopLevelExtractionDirectory)</param>
+        /// <param name="topLevelDirectory">The top level directory content should be extracted to.</param>
+        /// <param name="directoryName">directory to extract content into (within <paramref name="topLevelDirectory"/>)</param>
         /// <param name="bytes">bytes to extract (should be an archive file)</param>
         /// <param name="cached">If the archive has been cached.</param>
         /// <returns></returns>
-        public async Task<string> ExtractArchive(string directoryName, byte[] bytes, bool cached = false)
+        public static async Task<string> ExtractArchive(string topLevelDirectory, string directoryName, byte[] bytes, bool cached = false)
         {
             Logger.Trace("ExtractArchive({0}, <bytes> len={1})", directoryName, bytes.Length);
 
-            Directory.CreateDirectory(TopLevelExtractionDirectory);
+            Directory.CreateDirectory(topLevelDirectory);
 
             StringBuilder dirBuilder = new(directoryName);
 
@@ -308,14 +314,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 dirBuilder.Replace(c, '-');    // ignore: lgtm [cs/string-concatenation-in-loop]
             }
 
-            string fullTargetPath = Path.Combine(TopLevelExtractionDirectory, dirBuilder.ToString());
+            string fullTargetPath = Path.Combine(topLevelDirectory, dirBuilder.ToString());
 
             if (!cached)
             {
                 while (Directory.Exists(fullTargetPath) || File.Exists(fullTargetPath))
                 {
                     dirBuilder.Append("-" + DateTime.Now.Ticks);
-                    fullTargetPath = Path.Combine(TopLevelExtractionDirectory, dirBuilder.ToString());
+                    fullTargetPath = Path.Combine(topLevelDirectory, dirBuilder.ToString());
                 }
             }
             Extractor extractor = new();
@@ -325,7 +331,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 Parallel = true
                 // MaxExtractedBytes = 1000 * 1000 * 10;  // 10 MB maximum package size
             };
-            ExtractionStatusCode result = await extractor.ExtractToDirectoryAsync(TopLevelExtractionDirectory, dirBuilder.ToString(), new MemoryStream(bytes), extractorOptions);
+            ExtractionStatusCode result = await extractor.ExtractToDirectoryAsync(topLevelDirectory, dirBuilder.ToString(), new MemoryStream(bytes), extractorOptions);
             if (result == ExtractionStatusCode.Ok)
             {
                 Logger.Debug("Archive extracted to {0}", fullTargetPath);
@@ -556,7 +562,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         protected HttpClient CreateHttpClient()
         {
-            return Provider.CreateHttpClient(GetType().Name);
+            return HttpClientFactory.CreateClient(GetType().Name);
         }
     }
 }

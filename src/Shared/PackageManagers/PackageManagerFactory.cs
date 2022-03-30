@@ -13,34 +13,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     public static class ProjectManagerFactory
     {
         /// <summary>
-        /// Create a BaseProjectManager.
-        /// </summary>
-        /// <param name="managerProvider">The <see cref="IManagerProvider{IManagerMetadata}"/> to for this project manager.</param>
-        /// <param name="destinationDirectory">The directory to use to store any downloaded packages.</param>
-        /// <returns></returns>
-        public static BaseProjectManager CreateBaseProjectManager(IManagerProvider managerProvider, string destinationDirectory)
-        {
-            return new BaseProjectManager(managerProvider, destinationDirectory);
-        }
-
-        /// <summary>
-        /// Create a BaseProjectManager.
-        /// </summary>
-        /// <param name="destinationDirectory">The directory to use to store any downloaded packages.</param>
-        /// <returns></returns>
-        public static BaseProjectManager CreateBaseProjectManager(string destinationDirectory)
-        {
-            return new BaseProjectManager(new BaseProvider(), destinationDirectory);
-        }
-
-        /// <summary>
         /// Get an appropriate project manager for package given its PackageURL.
         /// </summary>
         /// <param name="purl">The <see cref="PackageURL"/> for the package to create the project manager for.</param>
         /// <param name="managerProviderFactory"> The <see cref="IManagerProviderFactory"/> for the project manager to use for making the package manager's provider.</param>
+        /// <param name="httpClientFactory"> The <see cref="IHttpClientFactory"/> for the project manager.</param>
         /// <param name="destinationDirectory">The directory to use to store any downloaded packages.</param>
         /// <returns>A new <see cref="BaseProjectManager"/> object implementation.</returns>
-        public static BaseProjectManager? CreateProjectManager(PackageURL purl, IManagerProviderFactory? managerProviderFactory = null, string? destinationDirectory = null)
+        public static BaseProjectManager? CreateProjectManager(PackageURL purl, IManagerProviderFactory? managerProviderFactory = null, IHttpClientFactory? httpClientFactory = null, string? destinationDirectory = null)
         {
             if (projectManagers.Count == 0)
             {
@@ -53,16 +33,29 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 .FirstOrDefault(type => type.Name.Equals($"{purl.Type}ProjectManager",
                     StringComparison.InvariantCultureIgnoreCase));
 
-            BaseProvider provider = managerProviderFactory?.CreateProvider(purl) ?? new BaseProvider();
+            IManagerProvider? provider = managerProviderFactory?.CreateProvider(purl);
 
             if (managerClass != null)
             {
-                System.Reflection.ConstructorInfo? ctor = managerClass.GetConstructor(new[] { typeof(IManagerProvider), typeof(string) });
-                if (ctor != null)
+                if (httpClientFactory != null)
                 {
-                    BaseProjectManager? projectManager = (BaseProjectManager)ctor.Invoke(new object?[] { provider, destinationDirectory });
-                    return projectManager;
+                    System.Reflection.ConstructorInfo? ctor = managerClass.GetConstructor(new[] { typeof(IHttpClientFactory), typeof(string), typeof(IManagerProvider) });
+                    if (ctor != null)
+                    {
+                        BaseProjectManager? projectManager = (BaseProjectManager)ctor.Invoke(new object?[] { httpClientFactory, destinationDirectory, provider });
+                        return projectManager;
+                    }
                 }
+                else
+                {
+                    System.Reflection.ConstructorInfo? ctor = managerClass.GetConstructor(new[] { typeof(string) });
+                    if (ctor != null)
+                    {
+                        BaseProjectManager? projectManager = (BaseProjectManager)ctor.Invoke(new object?[] { destinationDirectory });
+                        return projectManager;
+                    }
+                }
+
             }
 
             return null;

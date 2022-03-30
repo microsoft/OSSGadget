@@ -19,7 +19,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_VS_MARKETPLACE_ENDPOINT = "https://marketplace.visualstudio.com";
 
-        public VSMProjectManager(IManagerProvider provider, string destinationDirectory) : base(provider, destinationDirectory)
+        public VSMProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory, IManagerProvider? provider = null) : base(httpClientFactory, destinationDirectory, provider)
         {
         }
 
@@ -136,7 +136,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                                     }
                                     if (doExtract)
                                     {
-                                        downloadedPaths.Add(await ExtractArchive(targetName, await downloadResult.Content.ReadAsByteArrayAsync(), cached));
+                                        downloadedPaths.Add(await ExtractArchive(TopLevelExtractionDirectory, targetName, await downloadResult.Content.ReadAsByteArrayAsync(), cached));
                                     }
                                     else
                                     {

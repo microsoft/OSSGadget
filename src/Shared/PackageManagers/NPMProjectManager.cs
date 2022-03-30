@@ -22,7 +22,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public static string ENV_NPM_API_ENDPOINT { get; set; } = "https://registry.npmjs.org";
         public static string ENV_NPM_ENDPOINT { get; set; } = "https://www.npmjs.com";
 
-        public NPMProjectManager(IManagerProvider provider, string destinationDirectory) : base(provider, destinationDirectory)
+        public NPMProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory, IManagerProvider? provider = null) : base(httpClientFactory, destinationDirectory, provider)
         {
         }
 
@@ -67,7 +67,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 }
                 if (doExtract)
                 {
-                    downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync(), cached));
+                    downloadedPaths.Add(await ExtractArchive(TopLevelExtractionDirectory, targetName, await result.Content.ReadAsByteArrayAsync(), cached));
                 }
                 else
                 {

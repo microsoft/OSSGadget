@@ -27,7 +27,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         private string? RegistrationEndpoint { get; set; } = null;
 
-        public NuGetProjectManager(IManagerProvider provider, string destinationDirectory) : base(provider, destinationDirectory)
+        public NuGetProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory, IManagerProvider? provider = null) : base(httpClientFactory, destinationDirectory, provider)
         {
             GetRegistrationEndpointAsync().Wait();
         }
@@ -94,7 +94,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
             Logger.Trace("DownloadVersion {0}", purl.ToString());
 
-            string? packageName = purl.Name;
+            string packageName = purl.Name;
             string? packageVersion = purl.Version;
             List<string> downloadedPaths = new();
 
@@ -115,7 +115,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 }
 
                 string? downloaded =
-                    await Provider.DownloadAsync(this, purl, extractionPath, doExtract, cached: cached);
+                    await ManagerProvider.DownloadAsync(purl, TopLevelExtractionDirectory, targetName, doExtract, cached: cached);
 
                 if (!string.IsNullOrWhiteSpace(downloaded))
                 {
@@ -141,7 +141,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 return false;
             }
 
-            return await Provider.DoesPackageExistAsync(purl, useCache: useCache);
+            return await ManagerProvider.DoesPackageExistAsync(purl, useCache: useCache);
         }
 
         /// <inheritdoc />
@@ -149,14 +149,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
             Logger.Trace("EnumerateVersions {0}", purl.ToString());
 
-            if (purl.Name is null)
+            if (string.IsNullOrWhiteSpace(purl.Name))
             {
                 return new List<string>();
             }
 
             try
             {
-                IEnumerable<string> versions = await Provider.GetAllVersionsAsync(purl, useCache: useCache);
+                IEnumerable<string> versions = await ManagerProvider.GetAllVersionsAsync(purl, useCache: useCache);
 
                 // Sort versions, highest first, lowest last.
                 return SortVersions(versions);
@@ -183,7 +183,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 // If no package version provided, default to the latest version.
                 if (string.IsNullOrWhiteSpace(packageVersion))
                 {
-                    string latestVersion = await Provider.GetLatestVersionAsync(purl);
+                    string latestVersion = await ManagerProvider.GetLatestVersionAsync(purl);
                     packageVersion = latestVersion;
                 }
 
@@ -191,7 +191,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 PackageURL purlWithVersion = new (purl.Type, purl.Namespace, packageName, packageVersion, purl.Qualifiers, purl.Subpath);
                 
                 NuGetMetadata? packageVersionMetadata =
-                    await Provider.GetMetadataAsync(purlWithVersion, useCache: useCache) as NuGetMetadata;
+                    await ManagerProvider.GetMetadataAsync(purlWithVersion, useCache: useCache) as NuGetMetadata;
 
                 return JsonSerializer.Serialize(packageVersionMetadata);
             }
@@ -210,14 +210,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <inheritdoc />
         public override async Task<PackageMetadata> GetPackageMetadata(PackageURL purl, bool useCache = true)
         {
-            string latestVersion = await Provider.GetLatestVersionAsync(purl);
+            string latestVersion = await ManagerProvider.GetLatestVersionAsync(purl);
 
             // Construct a new PackageURL that's guaranteed to have a version, the latest version is used if no version was provided.
             PackageURL purlWithVersion = !string.IsNullOrWhiteSpace(purl.Version) ? 
                 purl : new PackageURL(purl.Type, purl.Namespace, purl.Name, latestVersion, purl.Qualifiers, purl.Subpath);
 
             NuGetMetadata packageVersionMetadata =
-                await Provider.GetMetadataAsync(purlWithVersion, useCache: useCache) as NuGetMetadata ?? throw new InvalidOperationException($"The metadata for {purlWithVersion} was null.");
+                await ManagerProvider.GetMetadataAsync(purlWithVersion, useCache: useCache) as NuGetMetadata ?? throw new InvalidOperationException($"The metadata for {purlWithVersion} was null.");
 
             PackageMetadata metadata = new();
 
@@ -311,7 +311,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     .ForEach(author => metadata.Authors.Add(new User() { Name = author }));
             }
 
-            // TODO: Maintainers
+            // TODO: Collect the data about a package's maintainers as well.
         }
 
         /// <summary>

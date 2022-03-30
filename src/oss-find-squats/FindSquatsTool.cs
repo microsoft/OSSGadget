@@ -7,7 +7,6 @@ namespace Microsoft.CST.OpenSource.FindSquats
     using Contracts;
     using Microsoft.CodeAnalysis.Sarif;
     using Microsoft.CST.OpenSource.Shared;
-    using Model.Providers;
     using Mutators;
     using Newtonsoft.Json;
     using PackageUrl;
@@ -54,11 +53,15 @@ namespace Microsoft.CST.OpenSource.FindSquats
 
         }
 
-        public FindSquatsTool(IManagerProviderFactory managerProviderFactory) : base(managerProviderFactory)
+        public FindSquatsTool(IManagerProviderFactory managerProviderFactory, IHttpClientFactory httpClientFactory) : base(managerProviderFactory, httpClientFactory)
         {
         }
 
-        public FindSquatsTool() : this(new ProviderFactory())
+        public FindSquatsTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        {
+        }
+
+        public FindSquatsTool() : this(new DefaultHttpClientFactory())
         {
         }
 
@@ -108,7 +111,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
                     continue;
                 }
 
-                FindPackageSquats findPackageSquats = new FindPackageSquats(ManagerProviderFactory, purl);
+                FindPackageSquats findPackageSquats = new FindPackageSquats(ManagerProviderFactory, HttpClientFactory, purl);
 
                 IDictionary<string, IList<Mutation>>? potentialSquats = findPackageSquats.GenerateSquatCandidates(options: checkerOptions);
 

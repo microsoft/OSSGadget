@@ -9,6 +9,7 @@ namespace Microsoft.CST.OpenSource.Shared
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net.Http;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -30,15 +31,19 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <summary>
         /// Initializes a new instance of the <see cref="RepoSearch"/> class.
         /// </summary>
-        /// <param name="managerProviderFactory">The <see cref="IManagerProviderFactory"/> to generate the <see cref="IManagerProvider{IManagerMetadata}"/> with.</param>
-        public RepoSearch(IManagerProviderFactory managerProviderFactory)
+        /// <param name="httpClientFactory">The <see cref="IHttpClientFactory"/>.</param>
+        /// <param name="managerProviderFactory">The <see cref="IManagerProviderFactory"/> to generate the <see cref="IManagerProvider"/> with.</param>
+        public RepoSearch(IHttpClientFactory httpClientFactory, IManagerProviderFactory? managerProviderFactory = null)
         {
-            ManagerProviderFactory = managerProviderFactory;
+            HttpClientFactory = httpClientFactory;
+            ManagerProviderFactory = managerProviderFactory ?? new ManagerProviderFactory();
         }
 
-        public RepoSearch() : this(new ProviderFactory())
+        public RepoSearch() : this(new DefaultHttpClientFactory())
         {
         }
+
+        private IHttpClientFactory HttpClientFactory { get; }
 
         private IManagerProviderFactory ManagerProviderFactory { get; }
 
@@ -65,7 +70,7 @@ namespace Microsoft.CST.OpenSource.Shared
             Logger.Debug("Searching for source code for: {0}", purlNoVersion.ToString());
 
             // Use reflection to find the correct downloader class
-            BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, ManagerProviderFactory);
+            BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, ManagerProviderFactory, HttpClientFactory);
 
             if (projectManager != null)
             {

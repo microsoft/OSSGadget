@@ -49,7 +49,7 @@ namespace Microsoft.CST.OpenSource.Tests
         public void ScopedNpmPackageSquats(string packageUrl, params string[] expectedSquats)
         {
             FindPackageSquats findPackageSquats =
-                new(new ProviderFactory(), new PackageURL(packageUrl));
+                new(new ManagerProviderFactory(), new DefaultHttpClientFactory(), new PackageURL(packageUrl));
 
             IDictionary<string, IList<Mutation>>? squatsCandidates = findPackageSquats.GenerateSquatCandidates();
 
@@ -171,9 +171,7 @@ namespace Microsoft.CST.OpenSource.Tests
 
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpMock.ToHttpClient());
 
-            IManagerProviderFactory? providerFactory = ProviderHelper.SetupProviderFactory(mockFactory.Object, lodash).Object;
-
-            FindPackageSquats findPackageSquats = new(providerFactory, lodash);
+            FindPackageSquats findPackageSquats = new(new ManagerProviderFactory(), mockFactory.Object, lodash);
 
             // act
             IDictionary<string, IList<Mutation>>? squatCandidates = findPackageSquats.GenerateSquatCandidates();
@@ -210,9 +208,7 @@ namespace Microsoft.CST.OpenSource.Tests
 
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpMock.ToHttpClient());
 
-            IManagerProviderFactory? providerFactory = ProviderHelper.SetupProviderFactory(mockFactory.Object, lodash).Object;
-
-            FindPackageSquats findPackageSquats = new(providerFactory, lodash);
+            FindPackageSquats findPackageSquats = new(new ManagerProviderFactory(), mockFactory.Object, lodash);
 
             // act
             IDictionary<string, IList<Mutation>>? squatCandidates = findPackageSquats.GenerateSquatCandidates();
@@ -247,9 +243,7 @@ namespace Microsoft.CST.OpenSource.Tests
 
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpMock.ToHttpClient());
 
-            IManagerProviderFactory? providerFactory = ProviderHelper.SetupProviderFactory(mockFactory.Object, foo).Object;
-
-            FindPackageSquats findPackageSquats = new(providerFactory, foo);
+            FindPackageSquats findPackageSquats = new(new ManagerProviderFactory(), mockFactory.Object, foo);
 
             // act
             IDictionary<string, IList<Mutation>>? squatCandidates = findPackageSquats.GenerateSquatCandidates();
@@ -286,9 +280,10 @@ namespace Microsoft.CST.OpenSource.Tests
 
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpMock.ToHttpClient());
 
-            BaseProvider provider = ProviderHelper.SetupProvider(mockFactory.Object, newtonsoft, validSquats: squattingPackages) ?? throw new InvalidOperationException();
-            IManagerProviderFactory? providerFactory = ProviderHelper.SetupProviderFactory(mockFactory.Object, newtonsoft, provider).Object;
-            FindPackageSquats findPackageSquats = new(providerFactory, newtonsoft);
+            IManagerProvider provider = ProviderHelper.SetupProvider(newtonsoft, validSquats: squattingPackages) ?? throw new InvalidOperationException();
+            IManagerProviderFactory? providerFactory = ProviderHelper.SetupProviderFactory(newtonsoft, provider).Object;
+
+            FindPackageSquats findPackageSquats = new(providerFactory, mockFactory.Object, newtonsoft);
 
             // act
             IDictionary<string, IList<Mutation>>? squatCandidates = findPackageSquats.GenerateSquatCandidates();
@@ -325,9 +320,7 @@ namespace Microsoft.CST.OpenSource.Tests
 
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpMock.ToHttpClient());
 
-            IManagerProviderFactory? providerFactory = ProviderHelper.SetupProviderFactory(mockFactory.Object, angularCore).Object;
-
-            FindPackageSquats findPackageSquats = new(providerFactory, angularCore);
+            FindPackageSquats findPackageSquats = new(new ManagerProviderFactory(), mockFactory.Object, angularCore);
 
             // act
             IDictionary<string, IList<Mutation>>? squatCandidates = findPackageSquats.GenerateSquatCandidates();

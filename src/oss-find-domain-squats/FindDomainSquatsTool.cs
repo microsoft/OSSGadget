@@ -16,7 +16,6 @@ namespace Microsoft.CST.OpenSource.DomainSquats
     using Whois;
     using System.Text.RegularExpressions;
     using Microsoft.CST.OpenSource.FindSquats.Mutators;
-    using Model.Providers;
     using System.Net.Http;
 
     public class FindDomainSquatsTool : OSSGadget
@@ -78,7 +77,7 @@ namespace Microsoft.CST.OpenSource.DomainSquats
             public IEnumerable<string>? Targets { get; set; }
         }
 
-        public FindDomainSquatsTool(IHttpClientFactory httpClientFactory) : base(new ProviderFactory(httpClientFactory))
+        public FindDomainSquatsTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
         {
         }
 

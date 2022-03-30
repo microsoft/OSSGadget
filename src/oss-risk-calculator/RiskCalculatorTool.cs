@@ -20,6 +20,7 @@ namespace Microsoft.CST.OpenSource
     using Contracts;
     using Model.Providers;
     using PackageUrl;
+    using System.Net.Http;
 
     public class RiskCalculatorTool : OSSGadget
     {
@@ -68,11 +69,11 @@ namespace Microsoft.CST.OpenSource
             public bool UseCache { get; set; }
         }
 
-        public RiskCalculatorTool(IManagerProviderFactory managerProviderFactory) : base(managerProviderFactory)
+        public RiskCalculatorTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
         {
         }
 
-        public RiskCalculatorTool() : this(new ProviderFactory())
+        public RiskCalculatorTool() : this(new DefaultHttpClientFactory())
         {
         }
 
@@ -88,14 +89,14 @@ namespace Microsoft.CST.OpenSource
         {
             Logger.Trace("CalculateRisk({0})", purl.ToString());
 
-            CharacteristicTool? characteristicTool = new CharacteristicTool(ManagerProviderFactory);
+            CharacteristicTool? characteristicTool = new CharacteristicTool(HttpClientFactory);
             CharacteristicTool.Options? cOptions = new CharacteristicTool.Options();
             Dictionary<string, AnalyzeResult?>? characteristics = characteristicTool.AnalyzePackage(cOptions, purl, targetDirectory, doCaching).Result;
             double aggregateRisk = 0.0;
 
             if (checkHealth)
             {
-                HealthTool? healthTool = new HealthTool(ManagerProviderFactory);
+                HealthTool? healthTool = new HealthTool(HttpClientFactory);
                 HealthMetrics? healthMetrics = await healthTool.CheckHealth(purl);
                 if (healthMetrics == null)
                 {

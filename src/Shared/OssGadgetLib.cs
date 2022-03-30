@@ -20,6 +20,11 @@ namespace Microsoft.CST.OpenSource
         protected IManagerProviderFactory ManagerProviderFactory { get; }
 
         /// <summary>
+        /// The <see cref="IHttpClientFactory"/> to be used by classes that implement <see cref="OssGadgetLib"/>.
+        /// </summary>
+        protected IHttpClientFactory HttpClientFactory { get; }
+
+        /// <summary>
         /// The <see cref="NLog.ILogger"/> for this class.
         /// </summary>
         protected NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
@@ -30,13 +35,18 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         protected string Directory { get; }
 
-        protected OssGadgetLib(IManagerProviderFactory managerProviderFactory, string directory = ".")
+        protected OssGadgetLib(IManagerProviderFactory managerProviderFactory, IHttpClientFactory httpClientFactory, string directory = ".")
         {
             ManagerProviderFactory = Check.NotNull(nameof(managerProviderFactory), managerProviderFactory);
+            HttpClientFactory = Check.NotNull(nameof(httpClientFactory), httpClientFactory);
             Directory = directory;
         }
 
-        protected OssGadgetLib(string directory = ".") : this(new ProviderFactory(), directory)
+        protected OssGadgetLib(IHttpClientFactory httpClientFactory, string directory = ".") : this(new ManagerProviderFactory(), httpClientFactory, directory)
+        {
+        }
+        
+        protected OssGadgetLib(string directory = ".") : this(new ManagerProviderFactory(), new DefaultHttpClientFactory(), directory)
         {
         }
 

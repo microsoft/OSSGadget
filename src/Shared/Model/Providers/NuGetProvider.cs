@@ -15,12 +15,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Utilities;
 
-public class NuGetProvider : BaseProvider
+public class NuGetProvider : IManagerProvider
 {
     private readonly SourceCacheContext _sourceCacheContext = new();
     private readonly SourceRepository _sourceRepository = Repository.Factory.GetCoreV3("https://api.nuget.org/v3/index.json");
@@ -29,14 +28,18 @@ public class NuGetProvider : BaseProvider
     /// <summary>
     /// Instantiates a new <see cref="NuGetProvider"/>.
     /// </summary>
-    public NuGetProvider(IHttpClientFactory? httpClientFactory = null)
+    public NuGetProvider()
     {
-        HttpClientFactory = httpClientFactory ?? new DefaultHttpClientFactory();
     }
 
     /// <inheritdoc />
-    public override async Task<string?> DownloadAsync(BaseProjectManager projectManager, PackageURL packageUrl, string targetDirectory, bool doExtract,
-        bool cached = false, CancellationToken cancellationToken = default)
+    public async Task<string?> DownloadAsync(
+        PackageURL packageUrl,
+        string topLevelDirectory,
+        string targetDirectory,
+        bool doExtract,
+        bool cached = false,
+        CancellationToken cancellationToken = default)
     {
         FindPackageByIdResource resource = await _sourceRepository.GetResourceAsync<FindPackageByIdResource>();
 
@@ -60,7 +63,7 @@ public class NuGetProvider : BaseProvider
         // If we want to extract the contents of the .nupkg, send it to ExtractArchive.
         if (doExtract)
         {
-            return await projectManager.ExtractArchive(targetDirectory, packageStream.ToArray(), cached);
+            return await BaseProjectManager.ExtractArchive(topLevelDirectory, targetDirectory, packageStream.ToArray(), cached);
         }
 
         string filePath = Path.ChangeExtension(targetDirectory, ".nupkg");
@@ -69,8 +72,10 @@ public class NuGetProvider : BaseProvider
     }
 
     /// <inheritdoc />
-    public override async Task<bool> DoesPackageExistAsync(PackageURL packageUrl,
-        bool useCache = true, CancellationToken cancellationToken = default)
+    public async Task<bool> DoesPackageExistAsync(
+        PackageURL packageUrl,
+        bool useCache = true,
+        CancellationToken cancellationToken = default)
     {
         FindPackageByIdResource resource = await _sourceRepository.GetResourceAsync<FindPackageByIdResource>();
 
@@ -98,8 +103,10 @@ public class NuGetProvider : BaseProvider
     }
 
     /// <inheritdoc />
-    public override async Task<IEnumerable<string>> GetAllVersionsAsync(PackageURL packageUrl,
-        bool useCache = true, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<string>> GetAllVersionsAsync(
+        PackageURL packageUrl,
+        bool useCache = true,
+        CancellationToken cancellationToken = default)
     {
         FindPackageByIdResource resource = await _sourceRepository.GetResourceAsync<FindPackageByIdResource>();
 
@@ -113,7 +120,10 @@ public class NuGetProvider : BaseProvider
     }
     
     /// <inheritdoc />
-    public override async Task<string> GetLatestVersionAsync(PackageURL packageUrl, bool includePrerelease = false, bool useCache = true,
+    public async Task<string> GetLatestVersionAsync(
+        PackageURL packageUrl,
+        bool includePrerelease = false,
+        bool useCache = true,
         CancellationToken cancellationToken = default)
     {
         FindPackageByIdResource resource = await _sourceRepository.GetResourceAsync<FindPackageByIdResource>();
@@ -128,8 +138,10 @@ public class NuGetProvider : BaseProvider
     }
 
     /// <inheritdoc />
-    public override async Task<IManagerMetadata?> GetMetadataAsync(PackageURL packageUrl,
-        bool useCache = true, CancellationToken cancellationToken = default)
+    public async Task<IManagerMetadata?> GetMetadataAsync(
+        PackageURL packageUrl,
+        bool useCache = true,
+        CancellationToken cancellationToken = default)
     {
         PackageMetadataResource resource = await _sourceRepository.GetResourceAsync<PackageMetadataResource>();
         if (string.IsNullOrWhiteSpace(packageUrl.Version))

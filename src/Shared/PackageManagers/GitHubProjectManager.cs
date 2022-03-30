@@ -19,7 +19,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     {
         public static string ENV_GITHUB_ENDPOINT = "https://github.com";
 
-        public GitHubProjectManager(IManagerProvider provider, string destinationDirectory) : base(provider, destinationDirectory)
+        public GitHubProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory, IManagerProvider? provider = null) : base(httpClientFactory, destinationDirectory, provider)
         {
         }
 
@@ -152,7 +152,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                         Logger.Debug("Download successful.");
                         if (doExtract)
                         {
-                            downloadedPaths.Add(await ExtractArchive(relativeWorkingDirectory, await result.Content.ReadAsByteArrayAsync(), cached));
+                            downloadedPaths.Add(await ExtractArchive(TopLevelExtractionDirectory, relativeWorkingDirectory, await result.Content.ReadAsByteArrayAsync(), cached));
                         }
                         else
                         {

@@ -24,8 +24,8 @@ namespace Microsoft.CST.OpenSource
 {
     using Contracts;
     using Microsoft.CST.OpenSource.PackageManagers;
-    using Model.Providers;
     using PackageUrl;
+    using System.Net.Http;
 
     public class DetectCryptographyTool : OSSGadget
     {
@@ -93,9 +93,8 @@ namespace Microsoft.CST.OpenSource
                             {
                                 targetDirectoryName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                             }
-                            BaseProjectManager projectManager = ProjectManagerFactory.CreateBaseProjectManager(ProviderFactory.CreateBaseProvider(), targetDirectoryName);
 
-                            string? path = await projectManager.ExtractArchive("temp", File.ReadAllBytes(target));
+                            string? path = await BaseProjectManager.ExtractArchive(targetDirectoryName, "temp", File.ReadAllBytes(target));
 
                             results = await detectCryptographyTool.AnalyzeDirectory(path);
 
@@ -237,11 +236,15 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        public DetectCryptographyTool(IManagerProviderFactory managerProviderFactory) : base(managerProviderFactory)
+        public DetectCryptographyTool(IManagerProviderFactory managerProviderFactory, IHttpClientFactory httpClientFactory) : base(managerProviderFactory, httpClientFactory)
         {
         }
 
-        public DetectCryptographyTool() : this(new ProviderFactory())
+        public DetectCryptographyTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        {
+        }
+
+        public DetectCryptographyTool() : this(new DefaultHttpClientFactory())
         {
         }
 
@@ -254,7 +257,7 @@ namespace Microsoft.CST.OpenSource
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
 
-            PackageDownloader? packageDownloader = new(purl, ManagerProviderFactory, targetDirectoryName, doCaching);
+            PackageDownloader? packageDownloader = new(purl, HttpClientFactory, ManagerProviderFactory, targetDirectoryName, doCaching);
             List<string>? directoryNames = await packageDownloader.DownloadPackageLocalCopy(purl, false, true);
             directoryNames = directoryNames.Distinct().ToList<string>();
 

@@ -13,7 +13,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     internal class URLProjectManager : BaseProjectManager
     {
 
-        public URLProjectManager(IManagerProvider provider, string destinationDirectory) : base(provider, destinationDirectory)
+        public URLProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory, IManagerProvider? provider = null) : base(httpClientFactory, destinationDirectory, provider)
         {
         }
 
@@ -57,7 +57,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 }
                 if (doExtract)
                 {
-                    downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync(), cached));
+                    downloadedPaths.Add(await ExtractArchive(TopLevelExtractionDirectory, targetName, await result.Content.ReadAsByteArrayAsync(), cached));
                 }
                 else
                 {

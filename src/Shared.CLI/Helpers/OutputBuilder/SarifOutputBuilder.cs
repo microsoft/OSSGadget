@@ -22,8 +22,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <summary>
         /// Build a SARIF Result.Location object for the purl package
         /// </summary>
-        /// <param name="purl"></param>
-        /// <returns>Location list with single location object</returns>
+        /// <param name="purl">The <see cref="PackageURL"/> to build the location for.</param>
         /// <returns>Location list with single location object</returns>
         public static List<Location> BuildPurlLocation(PackageURL purl)
         {

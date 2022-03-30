@@ -4,7 +4,6 @@ namespace Microsoft.CST.OpenSource.Shared
 {
     using Contracts;
     using Microsoft.CST.OpenSource.PackageManagers;
-    using Model.Providers;
     using PackageUrl;
     using System;
     using System.Collections.Generic;
@@ -32,11 +31,11 @@ namespace Microsoft.CST.OpenSource.Shared
         /// Initializes a new instance of the <see cref="RepoSearch"/> class.
         /// </summary>
         /// <param name="httpClientFactory">The <see cref="IHttpClientFactory"/>.</param>
-        /// <param name="managerProviderFactory">The <see cref="IManagerProviderFactory"/> to generate the <see cref="IManagerProvider"/> with.</param>
-        public RepoSearch(IHttpClientFactory httpClientFactory, IManagerProviderFactory? managerProviderFactory = null)
+        /// <param name="projectManagerFactory">The <see cref="ProjectManagerFactory"/> to generate the project managers with.</param>
+        public RepoSearch(IHttpClientFactory httpClientFactory, ProjectManagerFactory? projectManagerFactory = null)
         {
             HttpClientFactory = httpClientFactory;
-            ManagerProviderFactory = managerProviderFactory ?? new ManagerProviderFactory();
+            ProjectManagerFactory = projectManagerFactory ?? new ProjectManagerFactory(httpClientFactory);
         }
 
         public RepoSearch() : this(new DefaultHttpClientFactory())
@@ -45,7 +44,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
         private IHttpClientFactory HttpClientFactory { get; }
 
-        private IManagerProviderFactory ManagerProviderFactory { get; }
+        private ProjectManagerFactory ProjectManagerFactory { get; }
 
         /// <summary>
         ///     try to resolve the source code for an npm package through different means
@@ -70,7 +69,7 @@ namespace Microsoft.CST.OpenSource.Shared
             Logger.Debug("Searching for source code for: {0}", purlNoVersion.ToString());
 
             // Use reflection to find the correct downloader class
-            BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, ManagerProviderFactory, HttpClientFactory);
+            BaseProjectManager? projectManager = ProjectManagerFactory.GetProjectManager(purl);
 
             if (projectManager != null)
             {

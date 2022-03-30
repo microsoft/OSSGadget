@@ -13,7 +13,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     internal class URLProjectManager : BaseProjectManager
     {
 
-        public URLProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory, IManagerProvider? provider = null) : base(httpClientFactory, destinationDirectory, provider)
+        public URLProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
         {
         }
 

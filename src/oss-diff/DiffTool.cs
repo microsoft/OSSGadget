@@ -20,7 +20,6 @@ using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
 
 namespace Microsoft.CST.OpenSource.DiffTool
 {
-    using Contracts;
     using Microsoft.CST.OpenSource.Helpers;
     using Microsoft.CST.OpenSource.PackageManagers;
     using PackageUrl;
@@ -86,7 +85,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
             public IEnumerable<string> Targets { get; set; } = Array.Empty<string>();
         }
 
-        public DiffTool(IManagerProviderFactory managerProviderFactory, IHttpClientFactory httpClientFactory) : base(managerProviderFactory, httpClientFactory)
+        public DiffTool(ProjectManagerFactory projectManagerFactory, IHttpClientFactory httpClientFactory) : base(projectManagerFactory, httpClientFactory)
         {
         }
 
@@ -126,7 +125,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
             try
             {
                 PackageURL purl1 = new PackageURL(options.Targets.First());
-                BaseProjectManager? manager = ProjectManagerFactory.CreateProjectManager(purl1, ManagerProviderFactory, HttpClientFactory, options.DownloadDirectory ?? Path.GetTempPath());
+                BaseProjectManager? manager = ProjectManagerFactory.GetProjectManager(purl1, options.DownloadDirectory ?? Path.GetTempPath());
 
                 if (manager is not null)
                 {
@@ -160,7 +159,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
             try
             {
                 PackageURL purl2 = new PackageURL(options.Targets.Last());
-                BaseProjectManager? manager2 = ProjectManagerFactory.CreateProjectManager(purl2, ManagerProviderFactory, HttpClientFactory, options.DownloadDirectory ?? Path.GetTempPath());
+                BaseProjectManager? manager2 = ProjectManagerFactory.GetProjectManager(purl2, options.DownloadDirectory ?? Path.GetTempPath());
 
                 if (manager2 is not null)
                 {

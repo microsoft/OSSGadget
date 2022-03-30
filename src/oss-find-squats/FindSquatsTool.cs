@@ -4,11 +4,11 @@ namespace Microsoft.CST.OpenSource.FindSquats
 {
     using CommandLine;
     using CommandLine.Text;
-    using Contracts;
     using Microsoft.CodeAnalysis.Sarif;
     using Microsoft.CST.OpenSource.Shared;
     using Mutators;
     using Newtonsoft.Json;
+    using PackageManagers;
     using PackageUrl;
     using System;
     using System.Collections.Generic;
@@ -53,7 +53,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
 
         }
 
-        public FindSquatsTool(IManagerProviderFactory managerProviderFactory, IHttpClientFactory httpClientFactory) : base(managerProviderFactory, httpClientFactory)
+        public FindSquatsTool(ProjectManagerFactory projectManagerFactory, IHttpClientFactory httpClientFactory) : base(projectManagerFactory, httpClientFactory)
         {
         }
 
@@ -111,7 +111,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
                     continue;
                 }
 
-                FindPackageSquats findPackageSquats = new FindPackageSquats(ManagerProviderFactory, HttpClientFactory, purl);
+                FindPackageSquats findPackageSquats = new FindPackageSquats(ProjectManagerFactory, HttpClientFactory, purl);
 
                 IDictionary<string, IList<Mutation>>? potentialSquats = findPackageSquats.GenerateSquatCandidates(options: checkerOptions);
 

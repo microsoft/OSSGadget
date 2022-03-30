@@ -6,6 +6,7 @@ namespace Microsoft.CST.OpenSource
     using Helpers;
     using Microsoft.Extensions.DependencyInjection;
     using Model.Providers;
+    using PackageManagers;
     using System;
     using System.Net.Http;
 
@@ -15,9 +16,9 @@ namespace Microsoft.CST.OpenSource
         protected static string ENV_HTTPCLIENT_USER_AGENT = "OSSDL";
 
         /// <summary>
-        /// The <see cref="IManagerProviderFactory"/> to be used by classes that implement <see cref="OssGadgetLib"/>.
+        /// The <see cref="ProjectManagerFactory"/> to be used by classes that implement <see cref="OssGadgetLib"/>.
         /// </summary>
-        protected IManagerProviderFactory ManagerProviderFactory { get; }
+        protected ProjectManagerFactory ProjectManagerFactory { get; }
 
         /// <summary>
         /// The <see cref="IHttpClientFactory"/> to be used by classes that implement <see cref="OssGadgetLib"/>.
@@ -29,24 +30,17 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         protected NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
 
-        /// <summary>
-        /// The directory to save files to.
-        /// Defaults to the directory the code is running in.
-        /// </summary>
-        protected string Directory { get; }
-
-        protected OssGadgetLib(IManagerProviderFactory managerProviderFactory, IHttpClientFactory httpClientFactory, string directory = ".")
+        protected OssGadgetLib(ProjectManagerFactory projectManagerFactory, IHttpClientFactory httpClientFactory)
         {
-            ManagerProviderFactory = Check.NotNull(nameof(managerProviderFactory), managerProviderFactory);
+            ProjectManagerFactory = Check.NotNull(nameof(projectManagerFactory), projectManagerFactory);
             HttpClientFactory = Check.NotNull(nameof(httpClientFactory), httpClientFactory);
-            Directory = directory;
         }
 
-        protected OssGadgetLib(IHttpClientFactory httpClientFactory, string directory = ".") : this(new ManagerProviderFactory(), httpClientFactory, directory)
+        protected OssGadgetLib(IHttpClientFactory httpClientFactory, string directory = ".") : this(new ProjectManagerFactory(httpClientFactory, destinationDirectory: directory), httpClientFactory)
         {
         }
         
-        protected OssGadgetLib(string directory = ".") : this(new ManagerProviderFactory(), new DefaultHttpClientFactory(), directory)
+        protected OssGadgetLib(string directory = ".") : this(new ProjectManagerFactory(destinationDirectory: directory), new DefaultHttpClientFactory())
         {
         }
 

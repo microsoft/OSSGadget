@@ -6,6 +6,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using PackageUrl;
     using Model;
     using Model.Metadata;
+    using Model.Providers;
     using NuGet.Packaging;
     using NuGet.Packaging.Core;
     using NuGet.Versioning;
@@ -26,14 +27,17 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         private const string NUGET_DEFAULT_CONTENT_ENDPOINT = "https://api.nuget.org/v3-flatcontainer/";
 
         private string? RegistrationEndpoint { get; set; } = null;
+        private IManagerProvider ManagerProvider { get; }
 
-        public NuGetProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory, IManagerProvider? provider = null) : base(httpClientFactory, destinationDirectory, provider)
+        public NuGetProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory, IManagerProvider? provider = null) : base(httpClientFactory, destinationDirectory)
         {
+            ManagerProvider = provider ?? new NuGetProvider();
             GetRegistrationEndpointAsync().Wait();
         }
 
         public NuGetProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
+            ManagerProvider = new NuGetProvider();
             GetRegistrationEndpointAsync().Wait();
         }
 

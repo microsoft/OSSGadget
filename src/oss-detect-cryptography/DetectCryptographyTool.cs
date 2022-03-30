@@ -236,7 +236,7 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        public DetectCryptographyTool(IManagerProviderFactory managerProviderFactory, IHttpClientFactory httpClientFactory) : base(managerProviderFactory, httpClientFactory)
+        public DetectCryptographyTool(ProjectManagerFactory projectManagerFactory, IHttpClientFactory httpClientFactory) : base(projectManagerFactory, httpClientFactory)
         {
         }
 
@@ -257,7 +257,7 @@ namespace Microsoft.CST.OpenSource
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
 
-            PackageDownloader? packageDownloader = new(purl, HttpClientFactory, ManagerProviderFactory, targetDirectoryName, doCaching);
+            PackageDownloader? packageDownloader = new(purl, ProjectManagerFactory, targetDirectoryName, doCaching);
             List<string>? directoryNames = await packageDownloader.DownloadPackageLocalCopy(purl, false, true);
             directoryNames = directoryNames.Distinct().ToList<string>();
 

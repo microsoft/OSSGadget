@@ -11,7 +11,6 @@ using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
 
 namespace Microsoft.CST.OpenSource
 {
-    using Contracts;
     using Microsoft.CST.OpenSource.PackageManagers;
     using PackageUrl;
     using System.Net.Http;
@@ -19,7 +18,7 @@ namespace Microsoft.CST.OpenSource
     public class HealthTool : OSSGadget
     {
         
-        public HealthTool(IManagerProviderFactory managerProviderFactory, IHttpClientFactory httpClientFactory) : base(managerProviderFactory, httpClientFactory)
+        public HealthTool(ProjectManagerFactory projectManagerFactory, IHttpClientFactory httpClientFactory) : base(projectManagerFactory, httpClientFactory)
         {
         }
 
@@ -32,14 +31,14 @@ namespace Microsoft.CST.OpenSource
         }
         public async Task<HealthMetrics?> CheckHealth(PackageURL purl)
         {
-            BaseProjectManager? packageManager = ProjectManagerFactory.CreateProjectManager(purl, ManagerProviderFactory, HttpClientFactory);
+            BaseProjectManager? packageManager = ProjectManagerFactory.GetProjectManager(purl);
 
             if (packageManager != null)
             {
                 string? content = await packageManager.GetMetadata(purl);
                 if (!string.IsNullOrWhiteSpace(content))
                 {
-                    RepoSearch repoSearcher = new RepoSearch(HttpClientFactory);
+                    RepoSearch repoSearcher = new RepoSearch(HttpClientFactory, ProjectManagerFactory);
                     foreach ((PackageURL githubPurl, double _) in await repoSearcher.ResolvePackageLibraryAsync(purl))
                     {
                         try

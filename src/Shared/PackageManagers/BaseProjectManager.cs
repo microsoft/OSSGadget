@@ -24,12 +24,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <summary>
         /// Initializes a new instance of the <see cref="BaseProjectManager"/> class.
         /// </summary>
-        public BaseProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory, IManagerProvider? managerProvider = null)
+        public BaseProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory)
         {
             Options = new Dictionary<string, object>();
             TopLevelExtractionDirectory = destinationDirectory;
             HttpClientFactory = httpClientFactory;
-            ManagerProvider = managerProvider;
         }
 
         public BaseProjectManager(string destinationDirectory) : this(new DefaultHttpClientFactory(), destinationDirectory)
@@ -50,11 +49,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// The <see cref="IHttpClientFactory"/> for the manager.
         /// </summary>
         public IHttpClientFactory HttpClientFactory { get; }
-        
-        /// <summary>
-        /// The <see cref="IManagerProvider"/> for the manager.
-        /// </summary>
-        public IManagerProvider? ManagerProvider { get; }
 
         /// <summary>
         /// Extracts GitHub URLs from a given piece of text.

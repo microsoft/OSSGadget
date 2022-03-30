@@ -17,7 +17,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_MAVEN_ENDPOINT = "https://repo1.maven.org/maven2";
 
-        public MavenProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory, IManagerProvider? provider = null) : base(httpClientFactory, destinationDirectory, provider)
+        public MavenProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
         {
         }
 

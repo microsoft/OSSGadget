@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource
 {
-    using Contracts;
+    using PackageManagers;
     using PackageUrl;
     using System.Net.Http;
 
@@ -57,7 +57,7 @@ namespace Microsoft.CST.OpenSource
             public bool UseCache { get; set; }
         }
 
-        public DownloadTool(IManagerProviderFactory managerProviderFactory, IHttpClientFactory httpClientFactory) : base(managerProviderFactory, httpClientFactory)
+        public DownloadTool(ProjectManagerFactory projectManagerFactory, IHttpClientFactory httpClientFactory) : base(projectManagerFactory, httpClientFactory)
         {
         }
 
@@ -105,7 +105,7 @@ namespace Microsoft.CST.OpenSource
                         PackageURL? purl = new PackageURL(target);
                         string downloadDirectory = options.DownloadDirectory == "." ? System.IO.Directory.GetCurrentDirectory() : options.DownloadDirectory;
                         bool useCache = options.UseCache;
-                        PackageDownloader? packageDownloader = new PackageDownloader(purl, HttpClientFactory, ManagerProviderFactory, downloadDirectory, useCache);
+                        PackageDownloader? packageDownloader = new PackageDownloader(purl, ProjectManagerFactory, downloadDirectory, useCache);
 
                         List<string>? downloadResults = await packageDownloader.DownloadPackageLocalCopy(purl, options.DownloadMetadataOnly, options.Extract);
                         foreach (string? downloadPath in downloadResults)

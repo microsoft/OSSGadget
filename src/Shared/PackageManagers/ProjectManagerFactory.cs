@@ -3,7 +3,6 @@
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using Contracts;
-    using Model.Providers;
     using PackageUrl;
     using System;
     using System.Collections.Generic;

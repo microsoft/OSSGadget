@@ -3,11 +3,11 @@
 namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
 {
     using Extensions;
-    using Helpers;
     using Microsoft.CST.OpenSource.FindSquats.Mutators;
     using Microsoft.CST.OpenSource.PackageManagers;
     using PackageUrl;
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
@@ -32,6 +32,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
             new DuplicatorMutator(),
             new PrefixMutator(),
             new RemovedCharacterMutator(),
+            new RemoveNamespaceMutator(),
             new SeparatorMutator(),
             new SuffixMutator(),
             new SwapOrderOfLettersMutator(),
@@ -90,6 +91,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
         /// <summary>
         /// Generates <see cref="Mutation"/>s of the provided <see cref="PackageURL"/> with the provided <see cref="IEnumerable{IMutator}"/>.
         /// </summary>
+        /// <remarks>If the <paramref name="purl"/> has a namespace, the mutations will be done on the namespace, not the name.</remarks>
         /// <param name="manager">The ProjectManager to generate the mutations.</param>
         /// <param name="purl">The Target package to check for squats.</param>
         /// <param name="mutators">The mutators to use. Will ignore the default set of mutators.</param>
@@ -102,32 +104,19 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
                 return null;
             }
 
-            Dictionary<string, IList<Mutation>> generatedMutations = new();
-
-            // Check to see if the package has a namespace to generate candidates for.
-            bool hasNamespace = purl.HasNamespace();
-            string nameToMutate = hasNamespace ? purl.Namespace : purl.Name;
+            ConcurrentDictionary<string, IList<Mutation>> generatedMutations = new();
 
             foreach (IMutator mutator in mutators)
             {
-                foreach (Mutation mutation in mutator.Generate(nameToMutate))
+                foreach (Mutation mutation in mutator.Generate(purl))
                 {
-                    // Construct the mutated name if the package has a namespace.
-                    string? mutationNamespace = hasNamespace ? mutation.Mutated : null;
-                    string mutationName = hasNamespace ? purl.Name : mutation.Mutated;
-                    string mutatedPurlString = purl.CreateWithNewNames(mutationName, mutationNamespace).ToString();
-
-                    generatedMutations.AddMutation(new Mutation(mutatedPurlString, purl.ToString(), mutation.Reason, mutation.Mutator));
+                    generatedMutations.AddOrUpdate(mutation.Mutated, new List<Mutation>() { mutation }, (_, list) =>
+                        {
+                            list.Add(mutation);
+                            return list;
+                        });
                 }
             }
-
-            if (!hasNamespace)
-            {
-                return generatedMutations;
-            }
-
-            // If the package has a namespace, make a mutation with the namespace removed.
-            generatedMutations.AddMutation(new RemoveNamespaceMutator().Generate(purl.ToString()).First());
 
             return generatedMutations;
         }
@@ -189,24 +178,6 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
                 }
 
             }
-        }
-
-        /// <summary>
-        /// Adds a <see cref="Mutation"/> to the dictionary of generated mutations.
-        /// </summary>
-        /// <param name="generatedMutations">The dictionary of generated mutations to add <paramref name="mutation"/> to.</param>
-        /// <param name="mutation">The <see cref="Mutation"/> to add to the dictionary.</param>
-        private static void AddMutation(this IDictionary<string, IList<Mutation>> generatedMutations, Mutation mutation)
-        {
-            string mutationString = mutation.Mutated;
-            
-            // Check to see if the given mutation exists in the dictionary already.
-            if (!generatedMutations.ContainsKey(mutationString))
-            {
-                generatedMutations[mutationString] = new List<Mutation>();
-            }
-
-            generatedMutations[mutationString].Add(mutation);
         }
     }
 }

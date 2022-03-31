@@ -2,7 +2,6 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
-    using Contracts;
     using Microsoft.Extensions.Caching.Memory;
     using PackageUrl;
     using System;

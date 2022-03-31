@@ -2,7 +2,6 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
-    using Contracts;
     using Extensions;
     using PackageUrl;
     using System;

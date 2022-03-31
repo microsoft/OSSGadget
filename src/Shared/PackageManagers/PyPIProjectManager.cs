@@ -2,7 +2,6 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
-    using Contracts;
     using Model;
     using NLog.LayoutRenderers.Wrappers;
     using PackageUrl;

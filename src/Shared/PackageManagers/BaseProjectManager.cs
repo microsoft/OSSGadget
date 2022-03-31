@@ -18,7 +18,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using Version = SemanticVersioning.Version;
     using PackageUrl;
 
-    public class BaseProjectManager
+    public abstract class BaseProjectManager
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="BaseProjectManager"/> class.

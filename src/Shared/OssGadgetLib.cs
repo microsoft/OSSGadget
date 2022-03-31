@@ -27,18 +27,25 @@ namespace Microsoft.CST.OpenSource
         /// The <see cref="NLog.ILogger"/> for this class.
         /// </summary>
         protected NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
+        
+        /// <summary>
+        /// The directory to save files to.
+        /// Defaults to the directory the code is running in.
+        /// </summary>
+        protected string Directory { get; }
 
-        protected OssGadgetLib(ProjectManagerFactory projectManagerFactory, IHttpClientFactory httpClientFactory)
+        protected OssGadgetLib(ProjectManagerFactory projectManagerFactory, IHttpClientFactory httpClientFactory, string directory = ".")
         {
             ProjectManagerFactory = Check.NotNull(nameof(projectManagerFactory), projectManagerFactory);
             HttpClientFactory = Check.NotNull(nameof(httpClientFactory), httpClientFactory);
+            Directory = directory;
         }
 
-        protected OssGadgetLib(IHttpClientFactory httpClientFactory, string directory = ".") : this(new ProjectManagerFactory(httpClientFactory, destinationDirectory: directory), httpClientFactory)
+        protected OssGadgetLib(IHttpClientFactory httpClientFactory, string directory = ".") : this(new ProjectManagerFactory(httpClientFactory), httpClientFactory, directory)
         {
         }
         
-        protected OssGadgetLib(string directory = ".") : this(new ProjectManagerFactory(destinationDirectory: directory), new DefaultHttpClientFactory())
+        protected OssGadgetLib(string directory = ".") : this(new ProjectManagerFactory(), new DefaultHttpClientFactory(), directory)
         {
         }
 

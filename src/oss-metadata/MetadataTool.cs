@@ -55,7 +55,7 @@ namespace Microsoft.CST.OpenSource
             try
             {
                 // Use reflection to find the correct downloader class
-                BaseProjectManager? projectManager = projectManagerFactory.GetProjectManager(purl);
+                BaseProjectManager? projectManager = projectManagerFactory.CreateProjectManager(purl);
                 if (projectManager != null)
                 {
                     metadata = await projectManager.GetPackageMetadata(purl, useCache);

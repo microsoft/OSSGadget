@@ -8,10 +8,8 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource
 {
-    using Contracts;
     using Microsoft.CST.OpenSource.Model;
     using Microsoft.CST.OpenSource.PackageManagers;
-    using Model.Providers;
     using PackageUrl;
     using System.Net.Http;
 

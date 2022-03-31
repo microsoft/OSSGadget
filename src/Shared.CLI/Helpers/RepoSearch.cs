@@ -2,7 +2,6 @@
 
 namespace Microsoft.CST.OpenSource.Shared
 {
-    using Contracts;
     using Microsoft.CST.OpenSource.PackageManagers;
     using PackageUrl;
     using System;

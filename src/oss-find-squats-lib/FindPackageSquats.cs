@@ -2,7 +2,6 @@
 
 namespace Microsoft.CST.OpenSource.FindSquats
 {
-    using Contracts;
     using ExtensionMethods;
     using Microsoft.CST.OpenSource;
     using Microsoft.CST.OpenSource.Exceptions;

@@ -16,7 +16,6 @@ using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
 
 namespace Microsoft.CST.OpenSource
 {
-    using Contracts;
     using PackageManagers;
     using PackageUrl;
     using System.Net.Http;

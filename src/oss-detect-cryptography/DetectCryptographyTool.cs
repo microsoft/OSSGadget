@@ -22,7 +22,6 @@ using Microsoft.CST.RecursiveExtractor;
 
 namespace Microsoft.CST.OpenSource
 {
-    using Contracts;
     using Microsoft.CST.OpenSource.PackageManagers;
     using PackageUrl;
     using System.Net.Http;

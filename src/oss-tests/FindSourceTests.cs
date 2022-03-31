@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Tests
 {
-    using Model.Providers;
     using PackageUrl;
     using System;
 

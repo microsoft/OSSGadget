@@ -2,10 +2,8 @@
 
 namespace Microsoft.CST.OpenSource
 {
-    using Contracts;
     using Helpers;
     using Microsoft.Extensions.DependencyInjection;
-    using Model.Providers;
     using PackageManagers;
     using System;
     using System.Net.Http;

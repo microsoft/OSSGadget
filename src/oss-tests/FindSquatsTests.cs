@@ -14,7 +14,6 @@ namespace Microsoft.CST.OpenSource.Tests
     using Contracts;
     using Extensions;
     using Helpers;
-    using Model.Providers;
     using Moq;
     using PackageUrl;
     using RichardSzalay.MockHttp;

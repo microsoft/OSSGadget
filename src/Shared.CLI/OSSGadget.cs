@@ -4,7 +4,6 @@ namespace Microsoft.CST.OpenSource
 {
     using CommandLine;
     using CommandLine.Text;
-    using Contracts;
     using Microsoft.CST.OpenSource.Helpers;
     using Microsoft.CST.OpenSource.Shared;
     using PackageManagers;

@@ -15,7 +15,6 @@ using static Crayon.Output;
 namespace Microsoft.CST.OpenSource
 {
     using Microsoft.CST.OpenSource.Helpers;
-    using PackageManagers;
     using PackageUrl;
     using System.Net.Http;
 

@@ -10,104 +10,93 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     public class ProjectManagerFactory
     {
+        /// <summary>
+        /// The delegate to use when defining the function to create a project manager with.
+        /// The only runtime parameter we need is the destination directory. Everything else can be defined in the constructor.
+        /// </summary>
+        private delegate BaseProjectManager? ConstructProjectManager(string destinationDirectory = ".");
 
-        private delegate BaseProjectManager? ConstructProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory = ".", IManagerProvider? managerProvider = null);
-
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IManagerProvider? _nuGetProvider;
-        
         /// <summary>
         /// The dictionary of project managers.
         /// </summary>
-        private static readonly Dictionary<string, ConstructProjectManager> ProjectManagers =
-            new(StringComparer.InvariantCultureIgnoreCase)
+        private readonly Dictionary<string, ConstructProjectManager> _projectManagers;
+
+        /// <summary>
+        /// Initializes a new instance of a <see cref="ProjectManagerFactory"/>.
+        /// </summary>
+        /// <param name="httpClientFactoryParam">The <see cref="IHttpClientFactory"/> to use in the project managers.</param>
+        /// <param name="nuGetProvider">The <see cref="IManagerProvider"/> to use in the <see cref="NuGetProjectManager"/>.</param>
+        public ProjectManagerFactory(IHttpClientFactory? httpClientFactoryParam = null, IManagerProvider? nuGetProvider = null)
+        {
+            // If the httpClientFactory parameter is null, set the factory to the DefaultHttpClientFactory.
+            IHttpClientFactory httpClientFactory = httpClientFactoryParam ?? new DefaultHttpClientFactory();
+            _projectManagers = new Dictionary<string, ConstructProjectManager>(StringComparer.InvariantCultureIgnoreCase)
             {
                 {
-                    nameof(CargoProjectManager),
-                    (httpClientFactory, destinationDirectory, _) =>
+                    nameof(CargoProjectManager), destinationDirectory =>
                         new CargoProjectManager(httpClientFactory, destinationDirectory)
                 },
                 {
-                    nameof(CocoapodsProjectManager),
-                    (httpClientFactory, destinationDirectory, _) =>
+                    nameof(CocoapodsProjectManager), destinationDirectory =>
                         new CocoapodsProjectManager(httpClientFactory, destinationDirectory)
                 },
                 {
-                    nameof(ComposerProjectManager),
-                    (httpClientFactory, destinationDirectory, _) =>
+                    nameof(ComposerProjectManager), destinationDirectory =>
                         new ComposerProjectManager(httpClientFactory, destinationDirectory)
                 },
                 {
-                    nameof(CPANProjectManager),
-                    (httpClientFactory, destinationDirectory, _) =>
+                    nameof(CPANProjectManager), destinationDirectory =>
                         new CPANProjectManager(httpClientFactory, destinationDirectory)
                 },
                 {
-                    nameof(CRANProjectManager),
-                    (httpClientFactory, destinationDirectory, _) =>
+                    nameof(CRANProjectManager), destinationDirectory =>
                         new CRANProjectManager(httpClientFactory, destinationDirectory)
                 },
                 {
-                    nameof(GemProjectManager),
-                    (httpClientFactory, destinationDirectory, _) =>
+                    nameof(GemProjectManager), destinationDirectory =>
                         new GemProjectManager(httpClientFactory, destinationDirectory)
                 },
                 {
-                    nameof(GitHubProjectManager),
-                    (httpClientFactory, destinationDirectory, _) =>
+                    nameof(GitHubProjectManager), destinationDirectory =>
                         new GitHubProjectManager(httpClientFactory, destinationDirectory)
                 },
                 {
-                    nameof(GolangProjectManager),
-                    (httpClientFactory, destinationDirectory, _) =>
+                    nameof(GolangProjectManager), destinationDirectory =>
                         new GolangProjectManager(httpClientFactory, destinationDirectory)
                 },
                 {
-                    nameof(HackageProjectManager),
-                    (httpClientFactory, destinationDirectory, _) =>
+                    nameof(HackageProjectManager), destinationDirectory =>
                         new HackageProjectManager(httpClientFactory, destinationDirectory)
                 },
                 {
-                    nameof(MavenProjectManager),
-                    (httpClientFactory, destinationDirectory, _) =>
+                    nameof(MavenProjectManager), destinationDirectory =>
                         new MavenProjectManager(httpClientFactory, destinationDirectory)
                 },
                 {
-                    nameof(NPMProjectManager),
-                    (httpClientFactory, destinationDirectory, _) =>
+                    nameof(NPMProjectManager), destinationDirectory =>
                         new NPMProjectManager(httpClientFactory, destinationDirectory)
                 },
                 {
-                    nameof(NuGetProjectManager),
-                    (httpClientFactory, destinationDirectory, managerProvider) =>
-                        new NuGetProjectManager(httpClientFactory, destinationDirectory, managerProvider)
+                    nameof(NuGetProjectManager), destinationDirectory =>
+                        new NuGetProjectManager(httpClientFactory, destinationDirectory, nuGetProvider) // Add the NuGetProvider to the NuGetProjectManager.
                 },
                 {
-                    nameof(PyPIProjectManager),
-                    (httpClientFactory, destinationDirectory, _) =>
+                    nameof(PyPIProjectManager), destinationDirectory =>
                         new PyPIProjectManager(httpClientFactory, destinationDirectory)
                 },
                 {
-                    nameof(UbuntuProjectManager),
-                    (httpClientFactory, destinationDirectory, _) =>
+                    nameof(UbuntuProjectManager), destinationDirectory =>
                         new UbuntuProjectManager(httpClientFactory, destinationDirectory)
                 },
                 {
-                    nameof(URLProjectManager),
-                    (httpClientFactory, destinationDirectory, _) =>
+                    nameof(URLProjectManager), destinationDirectory =>
                         new URLProjectManager(httpClientFactory, destinationDirectory)
                 },
                 {
-                    nameof(VSMProjectManager),
-                    (httpClientFactory, destinationDirectory, _) =>
+                    nameof(VSMProjectManager), destinationDirectory =>
                         new VSMProjectManager(httpClientFactory, destinationDirectory)
                 },
             };
-
-        public ProjectManagerFactory(IHttpClientFactory? httpClientFactory = null, IManagerProvider? nuGetProvider = null)
-        {
-            _httpClientFactory = httpClientFactory ?? new DefaultHttpClientFactory();
-            _nuGetProvider = nuGetProvider;
         }
 
         /// <summary>
@@ -115,25 +104,24 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// </summary>
         /// <param name="purl">The <see cref="PackageURL"/> for the package to create the project manager for.</param>
         /// <param name="destinationDirectory">The new destination directory, if provided.</param>
-        /// <param name="httpClientFactory"></param>
-        /// <param name="nuGetProvider"></param>
         /// <returns>The implementation of <see cref="BaseProjectManager"/> for this <paramref name="purl"/>'s type.</returns>
-        public virtual BaseProjectManager? CreateProjectManager(PackageURL purl, string destinationDirectory = ".", IHttpClientFactory? httpClientFactory = null, IManagerProvider? nuGetProvider = null)
+        public BaseProjectManager? CreateProjectManager(PackageURL purl, string destinationDirectory = ".")
         {
-            ConstructProjectManager? projectManager = ProjectManagers.GetValueOrDefault($"{purl.Type}ProjectManager");
+            ConstructProjectManager? projectManager = _projectManagers.GetValueOrDefault($"{purl.Type}ProjectManager");
 
-            return projectManager?.Invoke(httpClientFactory ?? this._httpClientFactory, destinationDirectory, nuGetProvider ?? this._nuGetProvider);
+            return projectManager?.Invoke(destinationDirectory);
         }
 
         /// <summary>
-        /// Add static method to just get a project manager for one time use.
+        /// Add static method to just get a <see cref="BaseProjectManager"/> implementation.
         /// </summary>
         /// <param name="packageUrl">The <see cref="PackageURL"/> to get a project manager for.</param>
         /// <param name="httpClientFactory">The <see cref="IHttpClientFactory"/> to optionally add.</param>
-        /// <returns>A new project manager.</returns>
-        public static BaseProjectManager? GetProjectManager(PackageURL packageUrl, IHttpClientFactory? httpClientFactory = null)
+        /// <param name="nuGetProvider">The <see cref="IManagerProvider"/> to use in the <see cref="NuGetProjectManager"/>.</param>
+        /// <returns>A new <see cref="BaseProjectManager"/> implementation.</returns>
+        public static BaseProjectManager? GetProjectManager(PackageURL packageUrl, IHttpClientFactory? httpClientFactory = null, IManagerProvider? nuGetProvider = null)
         {
-            return new ProjectManagerFactory(httpClientFactory).CreateProjectManager(packageUrl);
+            return new ProjectManagerFactory(httpClientFactory, nuGetProvider).CreateProjectManager(packageUrl);
         }
     }
 }

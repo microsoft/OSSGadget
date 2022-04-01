@@ -26,7 +26,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
             : base(projectManagerFactory, httpClientFactory)
         {
             PackageUrl = packageUrl;
-            ProjectManager = projectManagerFactory.CreateProjectManager(packageUrl, httpClientFactory: httpClientFactory);
+            ProjectManager = projectManagerFactory.CreateProjectManager(packageUrl);
             if (ProjectManager is null)
             {
                 Logger.Trace($"Could not generate valid ProjectManager from { packageUrl }.");

@@ -6,7 +6,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using PackageUrl;
     using Model;
     using Model.Metadata;
-    using Model.Providers;
+    using Model.PackageActions;
     using NuGet.Packaging;
     using NuGet.Packaging.Core;
     using NuGet.Versioning;
@@ -27,17 +27,17 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         private const string NUGET_DEFAULT_CONTENT_ENDPOINT = "https://api.nuget.org/v3-flatcontainer/";
 
         private string? RegistrationEndpoint { get; set; } = null;
-        private IManagerProvider ManagerProvider { get; }
+        private IManagerPackageActions ManagerPackageActions { get; }
 
-        public NuGetProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory, IManagerProvider? provider = null) : base(httpClientFactory, destinationDirectory)
+        public NuGetProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory, IManagerPackageActions? managerPackageActions = null) : base(httpClientFactory, destinationDirectory)
         {
-            ManagerProvider = provider ?? new NuGetProvider();
+            ManagerPackageActions = managerPackageActions ?? new NuGetPackageActions();
             GetRegistrationEndpointAsync().Wait();
         }
 
         public NuGetProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
-            ManagerProvider = new NuGetProvider();
+            ManagerPackageActions = new NuGetPackageActions();
             GetRegistrationEndpointAsync().Wait();
         }
 
@@ -120,7 +120,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 }
 
                 string? downloaded =
-                    await ManagerProvider.DownloadAsync(purl, TopLevelExtractionDirectory, targetName, doExtract, cached: cached);
+                    await ManagerPackageActions.DownloadAsync(purl, TopLevelExtractionDirectory, targetName, doExtract, cached: cached);
 
                 if (!string.IsNullOrWhiteSpace(downloaded))
                 {
@@ -146,7 +146,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 return false;
             }
 
-            return await ManagerProvider.DoesPackageExistAsync(purl, useCache: useCache);
+            return await ManagerPackageActions.DoesPackageExistAsync(purl, useCache: useCache);
         }
 
         /// <inheritdoc />
@@ -161,7 +161,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             try
             {
-                IEnumerable<string> versions = await ManagerProvider.GetAllVersionsAsync(purl, useCache: useCache);
+                IEnumerable<string> versions = await ManagerPackageActions.GetAllVersionsAsync(purl, useCache: useCache);
 
                 // Sort versions, highest first, lowest last.
                 return SortVersions(versions);
@@ -188,7 +188,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 // If no package version provided, default to the latest version.
                 if (string.IsNullOrWhiteSpace(packageVersion))
                 {
-                    string latestVersion = await ManagerProvider.GetLatestVersionAsync(purl);
+                    string latestVersion = await ManagerPackageActions.GetLatestVersionAsync(purl);
                     packageVersion = latestVersion;
                 }
 
@@ -196,7 +196,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 PackageURL purlWithVersion = new (purl.Type, purl.Namespace, packageName, packageVersion, purl.Qualifiers, purl.Subpath);
                 
                 NuGetMetadata? packageVersionMetadata =
-                    await ManagerProvider.GetMetadataAsync(purlWithVersion, useCache: useCache) as NuGetMetadata;
+                    await ManagerPackageActions.GetMetadataAsync(purlWithVersion, useCache: useCache) as NuGetMetadata;
 
                 return JsonSerializer.Serialize(packageVersionMetadata);
             }
@@ -215,14 +215,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <inheritdoc />
         public override async Task<PackageMetadata> GetPackageMetadata(PackageURL purl, bool useCache = true)
         {
-            string latestVersion = await ManagerProvider.GetLatestVersionAsync(purl);
+            string latestVersion = await ManagerPackageActions.GetLatestVersionAsync(purl);
 
             // Construct a new PackageURL that's guaranteed to have a version, the latest version is used if no version was provided.
             PackageURL purlWithVersion = !string.IsNullOrWhiteSpace(purl.Version) ? 
                 purl : new PackageURL(purl.Type, purl.Namespace, purl.Name, latestVersion, purl.Qualifiers, purl.Subpath);
 
             NuGetMetadata packageVersionMetadata =
-                await ManagerProvider.GetMetadataAsync(purlWithVersion, useCache: useCache) as NuGetMetadata ?? throw new InvalidOperationException($"The metadata for {purlWithVersion} was null.");
+                await ManagerPackageActions.GetMetadataAsync(purlWithVersion, useCache: useCache) as NuGetMetadata ?? throw new InvalidOperationException($"The metadata for {purlWithVersion} was null.");
 
             PackageMetadata metadata = new();
 

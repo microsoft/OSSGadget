@@ -9,28 +9,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
-public static class ProviderHelper
+public static class PackageActionsHelper
 {
     /// <summary>
-    /// Set up a mock of <see cref="IManagerProvider"/> for this test run.
+    /// Set up a mock of <see cref="IManagerPackageActions"/> for this test run.
     /// </summary>
     /// <param name="purl">The <see cref="PackageURL"/> to use when configuring the mocked calls for this manager.</param>
     /// <param name="metadata">The <see cref="IManagerMetadata"/> to use when returning the call to
-    /// <see cref="IManagerProvider.GetMetadataAsync"/>.</param>
+    /// <see cref="IManagerPackageActions.GetMetadataAsync"/>.</param>
     /// <param name="versions">The list of versions to return when mocking the call 
-    /// to <see cref="IManagerProvider.GetAllVersionsAsync"/>.</param>
-    /// <param name="validSquats">The list of squats to populate the mock to <see cref="IManagerProvider.DoesPackageExistAsync"/>.</param>
-    /// <returns>A Mocked <see cref="IManagerProvider"/>.</returns>
-    public static IManagerProvider SetupProvider(PackageURL? purl = null, IManagerMetadata? metadata = null, IEnumerable<string>? versions = null, IEnumerable<string>? validSquats = null)
+    /// to <see cref="IManagerPackageActions.GetAllVersionsAsync"/>.</param>
+    /// <param name="validSquats">The list of squats to populate the mock to <see cref="IManagerPackageActions.DoesPackageExistAsync"/>.</param>
+    /// <returns>A Mocked <see cref="IManagerPackageActions"/>.</returns>
+    public static IManagerPackageActions SetupPackageActions(PackageURL? purl = null, IManagerMetadata? metadata = null, IEnumerable<string>? versions = null, IEnumerable<string>? validSquats = null)
     {
-        Mock<IManagerProvider> mockProvider = new();
+        Mock<IManagerPackageActions> mockPackageActions = new();
 
         if (purl is not null)
         {
             if (metadata is not null)
             {
                 // Mock the metadata call if metadata was provided.
-                mockProvider.Setup(provider => provider.GetMetadataAsync(
+                mockPackageActions.Setup(actions => actions.GetMetadataAsync(
                     It.Is<PackageURL>(p => p.Name.Equals(purl.Name) && (purl.Version == null || p.Version.Equals(purl.Version))), It.IsAny<bool>(), It.IsAny<CancellationToken>()).Result).Returns(
                     metadata);
             }
@@ -39,12 +39,12 @@ public static class ProviderHelper
             {
                 // Mock the list of versions if the list was provided.
                 IEnumerable<string> versionsArray = versions as string[] ?? versions.ToArray();
-                mockProvider.Setup(provider => provider.GetAllVersionsAsync(
+                mockPackageActions.Setup(actions => actions.GetAllVersionsAsync(
                     It.Is<PackageURL>(p => p.Name.Equals(purl.Name)), It.IsAny<bool>(), It.IsAny<CancellationToken>()).Result).Returns(
                     versionsArray);
 
                 // Mock the call to GetLatestVersionAsync to be the last version in the list that was provided.
-                mockProvider.Setup(provider => provider.GetLatestVersionAsync(
+                mockPackageActions.Setup(actions => actions.GetLatestVersionAsync(
                     It.Is<PackageURL>(p => p.Name.Equals(purl.Name)), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()).Result).Returns(
                     versionsArray.Last());
             }
@@ -54,19 +54,19 @@ public static class ProviderHelper
                 // Mock the other packages that "exist" if a list of "valid" squats was provided.
                 foreach (PackageURL squatPurl in validSquats.Select(squatPurlString => new PackageURL(squatPurlString)))
                 {
-                    mockProvider.Setup(provider => provider.DoesPackageExistAsync(
+                    mockPackageActions.Setup(actions => actions.DoesPackageExistAsync(
                         It.Is<PackageURL>(p => p.Name.Equals(squatPurl.Name)), It.IsAny<bool>(), It.IsAny<CancellationToken>()).Result).Returns(
                         true);
                 }
             }
 
             // Mock that this package exists.
-            mockProvider.Setup(provider => provider.DoesPackageExistAsync(
+            mockPackageActions.Setup(actions => actions.DoesPackageExistAsync(
                 It.Is<PackageURL>(p => p.Name.Equals(purl.Name)), It.IsAny<bool>(), It.IsAny<CancellationToken>()).Result).Returns(
                 true);   
         }
 
-        // Return the mocked provider.
-        return mockProvider.Object;
+        // Return the mocked package actions object.
+        return mockPackageActions.Object;
     }
 }

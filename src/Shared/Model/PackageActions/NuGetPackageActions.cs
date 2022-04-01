@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-namespace Microsoft.CST.OpenSource.Model.Providers;
+namespace Microsoft.CST.OpenSource.Model.PackageActions;
 
 using Contracts;
 using Metadata;
@@ -19,16 +19,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using Utilities;
 
-public class NuGetProvider : IManagerProvider
+public class NuGetPackageActions : IManagerPackageActions
 {
     private readonly SourceCacheContext _sourceCacheContext = new();
     private readonly SourceRepository _sourceRepository = Repository.Factory.GetCoreV3("https://api.nuget.org/v3/index.json");
     private readonly NuGetLogger _logger = new(LogManager.GetCurrentClassLogger());
 
     /// <summary>
-    /// Instantiates a new <see cref="NuGetProvider"/>.
+    /// Instantiates a new <see cref="NuGetPackageActions"/>.
     /// </summary>
-    public NuGetProvider()
+    public NuGetPackageActions()
     {
     }
 

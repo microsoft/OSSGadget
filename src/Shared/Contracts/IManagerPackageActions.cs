@@ -9,10 +9,9 @@ using System.Threading;
 using System.Threading.Tasks;
 
 /// <summary>
-/// The interface to implement project manager specific methods.
-/// Useful for mocking when doing unit tests.
+/// The interface to implement project manager specific actions.
 /// </summary>
-public interface IManagerProvider
+public interface IManagerPackageActions
 {
     /// <summary>
     /// Downloads the file(s) associated with a given <see cref="PackageURL"/>, and optionally extracts it if downloading an archive.

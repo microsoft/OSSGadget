@@ -68,11 +68,11 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public async Task MetadataSucceeds(string purlString, string? description = null, string? authors = null, string? latestVersion = null)
         {
             PackageURL purl = new(purlString);
-            IManagerProvider? provider = ProviderHelper.SetupProvider(
+            IManagerPackageActions? managerPackageActions = PackageActionsHelper.SetupPackageActions(
                 purl,
                 JsonConvert.DeserializeObject<NuGetMetadata>(_metadata[purl.ToString()]),
                 JsonConvert.DeserializeObject<IEnumerable<string>>(_versions[purl.ToString()]));
-            _projectManager = new NuGetProjectManager(_mockFactory.Object, ".", provider);
+            _projectManager = new NuGetProjectManager(_mockFactory.Object, ".", managerPackageActions);
 
             PackageMetadata metadata = await _projectManager.GetPackageMetadata(purl, useCache: false);
 
@@ -95,11 +95,11 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public async Task EnumerateVersionsSucceeds(string purlString, int count, string latestVersion)
         {
             PackageURL purl = new(purlString);
-            IManagerProvider? provider = ProviderHelper.SetupProvider(
+            IManagerPackageActions? managerPackageActions = PackageActionsHelper.SetupPackageActions(
                 purl,
                 JsonConvert.DeserializeObject<NuGetMetadata>(_metadata[purl.ToString()]),
                 JsonConvert.DeserializeObject<IEnumerable<string>>(_versions[purl.ToString()]));
-            _projectManager = new NuGetProjectManager(_mockFactory.Object, ".", provider);
+            _projectManager = new NuGetProjectManager(_mockFactory.Object, ".", managerPackageActions);
 
             List<string> versions = (await _projectManager.EnumerateVersions(purl, useCache: false)).ToList();
 

@@ -3,11 +3,11 @@
 namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
 {
     using Extensions;
-    using Helpers;
     using Microsoft.CST.OpenSource.FindSquats.Mutators;
     using Microsoft.CST.OpenSource.PackageManagers;
     using PackageUrl;
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
@@ -32,6 +32,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
             new DuplicatorMutator(),
             new PrefixMutator(),
             new RemovedCharacterMutator(),
+            new RemoveNamespaceMutator(),
             new SeparatorMutator(),
             new SuffixMutator(),
             new SwapOrderOfLettersMutator(),
@@ -90,6 +91,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
         /// <summary>
         /// Generates <see cref="Mutation"/>s of the provided <see cref="PackageURL"/> with the provided <see cref="IEnumerable{IMutator}"/>.
         /// </summary>
+        /// <remarks>If the <paramref name="purl"/> has a namespace, the mutations will be done on the namespace, not the name.</remarks>
         /// <param name="manager">The ProjectManager to generate the mutations.</param>
         /// <param name="purl">The Target package to check for squats.</param>
         /// <param name="mutators">The mutators to use. Will ignore the default set of mutators.</param>
@@ -102,28 +104,17 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
                 return null;
             }
 
-            Dictionary<string, IList<Mutation>> generatedMutations = new();
-
-            // Check to see if it is a scoped npm package to generate candidates for.
-            bool isScoped = purl.HasNamespace();
-            string nameToMutate = isScoped ? purl.Namespace : purl.Name;
+            ConcurrentDictionary<string, IList<Mutation>> generatedMutations = new();
 
             foreach (IMutator mutator in mutators)
             {
-                foreach (Mutation mutation in mutator.Generate(nameToMutate))
+                foreach (Mutation mutation in mutator.Generate(purl))
                 {
-                    // Construct the mutated name if the package was scoped.
-                    string? mutationNamespace = isScoped ? mutation.Mutated : null;
-                    string mutationName = isScoped ? purl.Name : mutation.Mutated;
-                    PackageURL mutatedPurl = new(purl.Type, mutationNamespace, mutationName, null, null, null);
-                    string mutatedPurlString = mutatedPurl.ToString();
-                    
-                    if (!generatedMutations.ContainsKey(mutatedPurlString))
-                    {
-                        generatedMutations[mutatedPurlString] = new List<Mutation>();
-                    }
-
-                    generatedMutations[mutatedPurlString].Add(new Mutation(mutatedPurlString, purl.ToString(), mutation.Reason, mutation.Mutator));
+                    generatedMutations.AddOrUpdate(mutation.Mutated, new List<Mutation>() { mutation }, (_, list) =>
+                        {
+                            list.Add(mutation);
+                            return list;
+                        });
                 }
             }
 

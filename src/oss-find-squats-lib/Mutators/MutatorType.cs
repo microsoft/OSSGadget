@@ -48,6 +48,10 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
         /// </summary>
         RemovedCharacter,
         /// <summary>
+        /// A mutator which removes the namespace.
+        /// </summary>
+        RemovedNamespace,
+        /// <summary>
         /// The <see cref="SeparatorMutator"/> mutator.
         /// </summary>
         Separator,

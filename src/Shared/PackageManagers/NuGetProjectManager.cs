@@ -29,9 +29,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         private string? RegistrationEndpoint { get; set; } = null;
         private IManagerPackageActions ManagerPackageActions { get; }
 
-        public NuGetProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory, IManagerPackageActions? managerPackageActions = null) : base(httpClientFactory, destinationDirectory)
+        public NuGetProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory, IManagerPackageActions nugetPackageActions) : base(httpClientFactory, destinationDirectory)
         {
-            ManagerPackageActions = managerPackageActions ?? new NuGetPackageActions();
+            ManagerPackageActions = nugetPackageActions;
             GetRegistrationEndpointAsync().Wait();
         }
 

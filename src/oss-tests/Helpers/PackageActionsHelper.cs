@@ -15,13 +15,13 @@ public static class PackageActionsHelper
     /// Set up a mock of <see cref="IManagerPackageActions"/> for this test run.
     /// </summary>
     /// <param name="purl">The <see cref="PackageURL"/> to use when configuring the mocked calls for this manager.</param>
-    /// <param name="metadata">The <see cref="IManagerMetadata"/> to use when returning the call to
+    /// <param name="metadata">The <see cref="IManagerPackageVersionMetadata"/> to use when returning the call to
     /// <see cref="IManagerPackageActions.GetMetadataAsync"/>.</param>
     /// <param name="versions">The list of versions to return when mocking the call 
     /// to <see cref="IManagerPackageActions.GetAllVersionsAsync"/>.</param>
     /// <param name="validSquats">The list of squats to populate the mock to <see cref="IManagerPackageActions.DoesPackageExistAsync"/>.</param>
     /// <returns>A Mocked <see cref="IManagerPackageActions"/>.</returns>
-    public static IManagerPackageActions SetupPackageActions(PackageURL? purl = null, IManagerMetadata? metadata = null, IEnumerable<string>? versions = null, IEnumerable<string>? validSquats = null)
+    public static IManagerPackageActions SetupPackageActions(PackageURL? purl = null, IManagerPackageVersionMetadata? metadata = null, IEnumerable<string>? versions = null, IEnumerable<string>? validSquats = null)
     {
         Mock<IManagerPackageActions> mockPackageActions = new();
 

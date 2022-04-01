@@ -70,7 +70,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             PackageURL purl = new(purlString);
             IManagerPackageActions? managerPackageActions = PackageActionsHelper.SetupPackageActions(
                 purl,
-                JsonConvert.DeserializeObject<NuGetMetadata>(_metadata[purl.ToString()]),
+                JsonConvert.DeserializeObject<NuGetPackageVersionPackageVersionMetadata>(_metadata[purl.ToString()]),
                 JsonConvert.DeserializeObject<IEnumerable<string>>(_versions[purl.ToString()]));
             _projectManager = new NuGetProjectManager(_mockFactory.Object, ".", managerPackageActions);
 
@@ -97,7 +97,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             PackageURL purl = new(purlString);
             IManagerPackageActions? managerPackageActions = PackageActionsHelper.SetupPackageActions(
                 purl,
-                JsonConvert.DeserializeObject<NuGetMetadata>(_metadata[purl.ToString()]),
+                JsonConvert.DeserializeObject<NuGetPackageVersionPackageVersionMetadata>(_metadata[purl.ToString()]),
                 JsonConvert.DeserializeObject<IEnumerable<string>>(_versions[purl.ToString()]));
             _projectManager = new NuGetProjectManager(_mockFactory.Object, ".", managerPackageActions);
 

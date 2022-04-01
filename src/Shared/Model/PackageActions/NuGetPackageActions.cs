@@ -25,13 +25,6 @@ public class NuGetPackageActions : IManagerPackageActions
     private readonly SourceRepository _sourceRepository = Repository.Factory.GetCoreV3("https://api.nuget.org/v3/index.json");
     private readonly NuGetLogger _logger = new(LogManager.GetCurrentClassLogger());
 
-    /// <summary>
-    /// Instantiates a new <see cref="NuGetPackageActions"/>.
-    /// </summary>
-    public NuGetPackageActions()
-    {
-    }
-
     /// <inheritdoc />
     public async Task<string?> DownloadAsync(
         PackageURL packageUrl,
@@ -138,7 +131,7 @@ public class NuGetPackageActions : IManagerPackageActions
     }
 
     /// <inheritdoc />
-    public async Task<IManagerMetadata?> GetMetadataAsync(
+    public async Task<IManagerPackageVersionMetadata?> GetMetadataAsync(
         PackageURL packageUrl,
         bool useCache = true,
         CancellationToken cancellationToken = default)
@@ -157,6 +150,6 @@ public class NuGetPackageActions : IManagerPackageActions
             _logger, 
             cancellationToken) as PackageSearchMetadataRegistration;
 
-        return packageVersion != null ? new NuGetMetadata(packageVersion) : null;
+        return packageVersion != null ? new NuGetPackageVersionPackageVersionMetadata(packageVersion) : null;
     }
 }

@@ -195,8 +195,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 // Construct a new PackageURL that's guaranteed to have a  version.
                 PackageURL purlWithVersion = new (purl.Type, purl.Namespace, packageName, packageVersion, purl.Qualifiers, purl.Subpath);
                 
-                NuGetMetadata? packageVersionMetadata =
-                    await ManagerPackageActions.GetMetadataAsync(purlWithVersion, useCache: useCache) as NuGetMetadata;
+                NuGetPackageVersionPackageVersionMetadata? packageVersionMetadata =
+                    await ManagerPackageActions.GetMetadataAsync(purlWithVersion, useCache: useCache) as NuGetPackageVersionPackageVersionMetadata;
 
                 return JsonSerializer.Serialize(packageVersionMetadata);
             }
@@ -221,25 +221,25 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             PackageURL purlWithVersion = !string.IsNullOrWhiteSpace(purl.Version) ? 
                 purl : new PackageURL(purl.Type, purl.Namespace, purl.Name, latestVersion, purl.Qualifiers, purl.Subpath);
 
-            NuGetMetadata packageVersionMetadata =
-                await ManagerPackageActions.GetMetadataAsync(purlWithVersion, useCache: useCache) as NuGetMetadata ?? throw new InvalidOperationException($"The metadata for {purlWithVersion} was null.");
+            NuGetPackageVersionPackageVersionMetadata packageVersionPackageVersionPackageVersionPackageVersionMetadata =
+                await ManagerPackageActions.GetMetadataAsync(purlWithVersion, useCache: useCache) as NuGetPackageVersionPackageVersionMetadata ?? throw new InvalidOperationException($"The metadata for {purlWithVersion} was null.");
 
             PackageMetadata metadata = new();
 
-            metadata.Name = packageVersionMetadata.Name;
-            metadata.Description = packageVersionMetadata.Description;
+            metadata.Name = packageVersionPackageVersionPackageVersionPackageVersionMetadata.Name;
+            metadata.Description = packageVersionPackageVersionPackageVersionPackageVersionMetadata.Description;
 
             metadata.PackageManagerUri = ENV_NUGET_ENDPOINT_API;
             metadata.Platform = "NUGET";
             metadata.Language = "C#";
-            metadata.PackageUri = $"{ENV_NUGET_HOMEPAGE}/{packageVersionMetadata.Name.ToLowerInvariant()}";
-            metadata.ApiPackageUri = $"{RegistrationEndpoint}{packageVersionMetadata.Name.ToLowerInvariant()}/index.json";
+            metadata.PackageUri = $"{ENV_NUGET_HOMEPAGE}/{packageVersionPackageVersionPackageVersionPackageVersionMetadata.Name.ToLowerInvariant()}";
+            metadata.ApiPackageUri = $"{RegistrationEndpoint}{packageVersionPackageVersionPackageVersionPackageVersionMetadata.Name.ToLowerInvariant()}/index.json";
 
             metadata.PackageVersion = purlWithVersion.Version;
             metadata.LatestPackageVersion = latestVersion;
 
             // Get the metadata for either the specified package version, or the latest package version
-            await UpdateVersionMetadata(metadata, packageVersionMetadata);
+            await UpdateVersionMetadata(metadata, packageVersionPackageVersionPackageVersionPackageVersionMetadata);
 
             return metadata;
         }
@@ -248,67 +248,67 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// Updates the package version specific values in <see cref="PackageMetadata"/>.
         /// </summary>
         /// <param name="metadata">The <see cref="PackageMetadata"/> object to update with the values for this version.</param>
-        /// <param name="packageVersionMetadata">The <see cref="NuGetMetadata"/> representing this version.</param>
-        private async Task UpdateVersionMetadata(PackageMetadata metadata, NuGetMetadata packageVersionMetadata)
+        /// <param name="packageVersionPackageVersionPackageVersionPackageVersionMetadata">The <see cref="NuGetPackageVersionPackageVersionMetadata"/> representing this version.</param>
+        private async Task UpdateVersionMetadata(PackageMetadata metadata, NuGetPackageVersionPackageVersionMetadata packageVersionPackageVersionPackageVersionPackageVersionMetadata)
         {
             if (metadata.PackageVersion is null)
             {
                 return;
             }
 
-            string nameLowercase = packageVersionMetadata.Name.ToLowerInvariant();
+            string nameLowercase = packageVersionPackageVersionPackageVersionPackageVersionMetadata.Name.ToLowerInvariant();
 
             // Set the version specific URI values.
             metadata.VersionUri = $"{metadata.PackageManagerUri}/packages/{nameLowercase}/{metadata.PackageVersion}";
-            metadata.ApiVersionUri = packageVersionMetadata.CatalogUri.ToString();
+            metadata.ApiVersionUri = packageVersionPackageVersionPackageVersionPackageVersionMetadata.CatalogUri.ToString();
             
             // Construct the artifact contents url.
-            metadata.VersionDownloadUri = GetNupkgUrl(packageVersionMetadata.Name, metadata.PackageVersion);
+            metadata.VersionDownloadUri = GetNupkgUrl(packageVersionPackageVersionPackageVersionPackageVersionMetadata.Name, metadata.PackageVersion);
 
             // TODO: size and hash
 
             // Homepage url
-            metadata.Homepage = packageVersionMetadata.ProjectUrl?.ToString();
+            metadata.Homepage = packageVersionPackageVersionPackageVersionPackageVersionMetadata.ProjectUrl?.ToString();
 
             // Authors and Maintainers
-            UpdateMetadataAuthorsAndMaintainers(metadata, packageVersionMetadata);
+            UpdateMetadataAuthorsAndMaintainers(metadata, packageVersionPackageVersionPackageVersionPackageVersionMetadata);
 
             // Repository
             await UpdateMetadataRepository(metadata);
 
             // Dependencies
-            IList<PackageDependencyGroup> dependencyGroups = packageVersionMetadata.DependencySets.ToList();
+            IList<PackageDependencyGroup> dependencyGroups = packageVersionPackageVersionPackageVersionPackageVersionMetadata.DependencySets.ToList();
             metadata.Dependencies ??= dependencyGroups.SelectMany(group => group.Packages, (dependencyGroup, package) => new { dependencyGroup, package})
                 .Select(dependencyGroupAndPackage => new Dependency() { Package = dependencyGroupAndPackage.package.ToString(), Framework = dependencyGroupAndPackage.dependencyGroup.TargetFramework?.ToString()})
                 .ToList();
 
             // Keywords
-            metadata.Keywords = new List<string>(packageVersionMetadata.Tags.Split(", "));
+            metadata.Keywords = new List<string>(packageVersionPackageVersionPackageVersionPackageVersionMetadata.Tags.Split(", "));
 
             // Licenses
-            if (packageVersionMetadata.LicenseMetadata is not null)
+            if (packageVersionPackageVersionPackageVersionPackageVersionMetadata.LicenseMetadata is not null)
             {
                 metadata.Licenses ??= new List<License>();
                 metadata.Licenses.Add(new License()
                 {
-                    Name = packageVersionMetadata.LicenseMetadata.License,
-                    Url = packageVersionMetadata.LicenseMetadata.LicenseUrl.ToString()
+                    Name = packageVersionPackageVersionPackageVersionPackageVersionMetadata.LicenseMetadata.License,
+                    Url = packageVersionPackageVersionPackageVersionPackageVersionMetadata.LicenseMetadata.LicenseUrl.ToString()
                 });
             }
 
             // publishing info
-            metadata.UploadTime = packageVersionMetadata.Published?.ToString("MM/dd/yy HH:mm:ss zz");
+            metadata.UploadTime = packageVersionPackageVersionPackageVersionPackageVersionMetadata.Published?.ToString("MM/dd/yy HH:mm:ss zz");
         }
 
         /// <summary>
         /// Updates the author(s) and maintainer(s) in <see cref="PackageMetadata"/> for this package version.
         /// </summary>
         /// <param name="metadata">The <see cref="PackageMetadata"/> object to set the author(s) and maintainer(s) for this version.</param>
-        /// <param name="packageVersionMetadata">The <see cref="NuGetMetadata"/> representing this version.</param>
-        private static void UpdateMetadataAuthorsAndMaintainers(PackageMetadata metadata, NuGetMetadata packageVersionMetadata)
+        /// <param name="packageVersionPackageVersionPackageVersionPackageVersionMetadata">The <see cref="NuGetPackageVersionPackageVersionMetadata"/> representing this version.</param>
+        private static void UpdateMetadataAuthorsAndMaintainers(PackageMetadata metadata, NuGetPackageVersionPackageVersionMetadata packageVersionPackageVersionPackageVersionPackageVersionMetadata)
         {
             // Author(s)
-            string? authors = packageVersionMetadata.Authors;
+            string? authors = packageVersionPackageVersionPackageVersionPackageVersionMetadata.Authors;
             if (authors is not null)
             {
                 metadata.Authors ??= new List<User>();

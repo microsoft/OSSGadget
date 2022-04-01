@@ -2,7 +2,10 @@
 
 namespace Microsoft.CST.OpenSource.Contracts;
 
-public interface IManagerMetadata
+/// <summary>
+/// An interface representing the metadata returned from a project manager's API for a package version's metadata, won't contain extra or calculated properties.
+/// </summary>
+public interface IManagerPackageVersionMetadata
 {
     /// <summary>
     /// The name of the package.

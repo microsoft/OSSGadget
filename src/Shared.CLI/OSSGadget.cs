@@ -4,7 +4,6 @@ namespace Microsoft.CST.OpenSource
 {
     using CommandLine;
     using CommandLine.Text;
-    using Microsoft.CST.OpenSource.Helpers;
     using Microsoft.CST.OpenSource.Shared;
     using PackageManagers;
     using System;
@@ -22,7 +21,7 @@ namespace Microsoft.CST.OpenSource
         public static string ToolName { get => GetToolName() ?? ""; }
         public static string ToolVersion { get => GetToolVersion() ?? ""; }
 
-        public OSSGadget(ProjectManagerFactory projectManagerFactory, IHttpClientFactory httpClientFactory) : base(projectManagerFactory, httpClientFactory)
+        public OSSGadget(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
         {
         }
 

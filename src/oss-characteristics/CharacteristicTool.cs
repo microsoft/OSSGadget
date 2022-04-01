@@ -74,7 +74,7 @@ namespace Microsoft.CST.OpenSource
             public FailureLevel SarifLevel { get; set; } = FailureLevel.Note;
         }
 
-        public CharacteristicTool(ProjectManagerFactory projectManagerFactory, IHttpClientFactory httpClientFactory) : base(projectManagerFactory, httpClientFactory)
+        public CharacteristicTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
         {
         }
 
@@ -82,7 +82,7 @@ namespace Microsoft.CST.OpenSource
         {
         }
 
-        public CharacteristicTool() : this(new DefaultHttpClientFactory()) 
+        public CharacteristicTool() : this(new ProjectManagerFactory()) 
         {
         }
 

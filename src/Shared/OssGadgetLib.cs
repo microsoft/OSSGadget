@@ -19,11 +19,6 @@ namespace Microsoft.CST.OpenSource
         protected ProjectManagerFactory ProjectManagerFactory { get; }
 
         /// <summary>
-        /// The <see cref="IHttpClientFactory"/> to be used by classes that implement <see cref="OssGadgetLib"/>.
-        /// </summary>
-        protected IHttpClientFactory HttpClientFactory { get; }
-
-        /// <summary>
         /// The <see cref="NLog.ILogger"/> for this class.
         /// </summary>
         protected NLog.ILogger Logger { get; set; } = NLog.LogManager.GetCurrentClassLogger();
@@ -34,18 +29,17 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         protected string Directory { get; }
 
-        protected OssGadgetLib(ProjectManagerFactory projectManagerFactory, IHttpClientFactory httpClientFactory, string directory = ".")
+        protected OssGadgetLib(ProjectManagerFactory projectManagerFactory, string directory = ".")
         {
             ProjectManagerFactory = Check.NotNull(nameof(projectManagerFactory), projectManagerFactory);
-            HttpClientFactory = Check.NotNull(nameof(httpClientFactory), httpClientFactory);
             Directory = directory;
         }
 
-        protected OssGadgetLib(IHttpClientFactory httpClientFactory, string directory = ".") : this(new ProjectManagerFactory(httpClientFactory), httpClientFactory, directory)
+        protected OssGadgetLib(IHttpClientFactory httpClientFactory, string directory = ".") : this(new ProjectManagerFactory(httpClientFactory), directory)
         {
         }
         
-        protected OssGadgetLib(string directory = ".") : this(new ProjectManagerFactory(), new DefaultHttpClientFactory(), directory)
+        protected OssGadgetLib(string directory = ".") : this(new ProjectManagerFactory(), directory)
         {
         }
 

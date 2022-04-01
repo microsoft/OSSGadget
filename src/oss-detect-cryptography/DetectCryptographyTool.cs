@@ -235,7 +235,7 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        public DetectCryptographyTool(ProjectManagerFactory projectManagerFactory, IHttpClientFactory httpClientFactory) : base(projectManagerFactory, httpClientFactory)
+        public DetectCryptographyTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
         {
         }
 
@@ -243,7 +243,7 @@ namespace Microsoft.CST.OpenSource
         {
         }
 
-        public DetectCryptographyTool() : this(new DefaultHttpClientFactory())
+        public DetectCryptographyTool() : this(new ProjectManagerFactory())
         {
         }
 

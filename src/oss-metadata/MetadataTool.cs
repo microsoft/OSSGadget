@@ -11,7 +11,6 @@ namespace Microsoft.CST.OpenSource
     using Microsoft.CST.OpenSource.Model;
     using Microsoft.CST.OpenSource.PackageManagers;
     using PackageUrl;
-    using System.Net.Http;
 
     public class MetadataTool : OSSGadget
     {
@@ -43,11 +42,11 @@ namespace Microsoft.CST.OpenSource
             private IEnumerable<string> targets = Array.Empty<string>();
         }
 
-        public MetadataTool(ProjectManagerFactory projectManagerFactory, IHttpClientFactory httpClientFactory) : base(projectManagerFactory, httpClientFactory)
+        public MetadataTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
         {
         }
 
-        public MetadataTool(): this(new ProjectManagerFactory(), new DefaultHttpClientFactory()) { }
+        public MetadataTool(): this(new ProjectManagerFactory()) { }
 
         private static async Task<PackageMetadata?> GetPackageMetadata(PackageURL purl, ProjectManagerFactory projectManagerFactory, bool useCache = true)
         {

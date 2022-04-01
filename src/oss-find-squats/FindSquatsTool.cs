@@ -53,7 +53,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
 
         }
 
-        public FindSquatsTool(ProjectManagerFactory projectManagerFactory, IHttpClientFactory httpClientFactory) : base(projectManagerFactory, httpClientFactory)
+        public FindSquatsTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
         {
         }
 
@@ -61,7 +61,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
         {
         }
 
-        public FindSquatsTool() : this(new DefaultHttpClientFactory())
+        public FindSquatsTool() : this(new ProjectManagerFactory())
         {
         }
 
@@ -111,7 +111,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
                     continue;
                 }
 
-                FindPackageSquats findPackageSquats = new FindPackageSquats(ProjectManagerFactory, HttpClientFactory, purl);
+                FindPackageSquats findPackageSquats = new FindPackageSquats(ProjectManagerFactory, purl);
 
                 IDictionary<string, IList<Mutation>>? potentialSquats = findPackageSquats.GenerateSquatCandidates(options: checkerOptions);
 

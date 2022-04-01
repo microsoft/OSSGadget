@@ -15,6 +15,7 @@ using static Crayon.Output;
 namespace Microsoft.CST.OpenSource
 {
     using Microsoft.CST.OpenSource.Helpers;
+    using PackageManagers;
     using PackageUrl;
     using System.Net.Http;
 
@@ -74,11 +75,15 @@ namespace Microsoft.CST.OpenSource
             public bool LeaveIntermediateFiles { get; set; }
         }
 
+        public ReproducibleTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
+        {
+        }
+
         public ReproducibleTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
         {
         }
 
-        public ReproducibleTool() : this(new DefaultHttpClientFactory())
+        public ReproducibleTool() : this(new ProjectManagerFactory())
         {
         }
 
@@ -270,7 +275,7 @@ namespace Microsoft.CST.OpenSource
 
                     // Locate the source
                     Console.WriteLine("Locating source...");
-                    FindSourceTool? findSourceTool = new FindSourceTool(HttpClientFactory);
+                    FindSourceTool? findSourceTool = new FindSourceTool(ProjectManagerFactory);
                     Dictionary<PackageURL, double>? sourceMap = await findSourceTool.FindSourceAsync(purl);
                     if (sourceMap.Any())
                     {

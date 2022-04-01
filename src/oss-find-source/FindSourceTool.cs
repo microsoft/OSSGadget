@@ -24,7 +24,7 @@ namespace Microsoft.CST.OpenSource
             "pkg:github/metacpan/metacpan-web"
         };
 
-        public FindSourceTool(ProjectManagerFactory projectManagerFactory, IHttpClientFactory httpClientFactory) : base(projectManagerFactory, httpClientFactory)
+        public FindSourceTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
         {
         }
 
@@ -32,7 +32,7 @@ namespace Microsoft.CST.OpenSource
         {
         }
 
-        public FindSourceTool() : this(new DefaultHttpClientFactory())
+        public FindSourceTool() : this(new ProjectManagerFactory())
         {
         }
 
@@ -54,7 +54,7 @@ namespace Microsoft.CST.OpenSource
 
             try
             {
-                RepoSearch repoSearcher = new RepoSearch(HttpClientFactory, ProjectManagerFactory);
+                RepoSearch repoSearcher = new RepoSearch(ProjectManagerFactory);
                 Dictionary<PackageURL, double>? repos = await (repoSearcher.ResolvePackageLibraryAsync(purl) ??
                     Task.FromResult(new Dictionary<PackageURL, double>()));
 

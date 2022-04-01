@@ -57,7 +57,7 @@ namespace Microsoft.CST.OpenSource
             public bool UseCache { get; set; }
         }
 
-        public DownloadTool(ProjectManagerFactory projectManagerFactory, IHttpClientFactory httpClientFactory) : base(projectManagerFactory, httpClientFactory)
+        public DownloadTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
         {
         }
 
@@ -65,7 +65,7 @@ namespace Microsoft.CST.OpenSource
         {
         }
 
-        public DownloadTool() : this(new DefaultHttpClientFactory()) { }
+        public DownloadTool() : this(new ProjectManagerFactory()) { }
 
         /// <summary>
         ///     Main entrypoint for the download program.

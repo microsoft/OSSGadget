@@ -18,7 +18,7 @@ namespace Microsoft.CST.OpenSource
     public class HealthTool : OSSGadget
     {
         
-        public HealthTool(ProjectManagerFactory projectManagerFactory, IHttpClientFactory httpClientFactory) : base(projectManagerFactory, httpClientFactory)
+        public HealthTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
         {
         }
 
@@ -26,7 +26,7 @@ namespace Microsoft.CST.OpenSource
         {
         }
 
-        public HealthTool() : this(new DefaultHttpClientFactory())
+        public HealthTool() : this(new ProjectManagerFactory())
         {
         }
         public async Task<HealthMetrics?> CheckHealth(PackageURL purl)
@@ -38,7 +38,7 @@ namespace Microsoft.CST.OpenSource
                 string? content = await packageManager.GetMetadata(purl);
                 if (!string.IsNullOrWhiteSpace(content))
                 {
-                    RepoSearch repoSearcher = new RepoSearch(HttpClientFactory, ProjectManagerFactory);
+                    RepoSearch repoSearcher = new RepoSearch(ProjectManagerFactory);
                     foreach ((PackageURL githubPurl, double _) in await repoSearcher.ResolvePackageLibraryAsync(purl))
                     {
                         try

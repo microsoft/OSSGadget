@@ -85,7 +85,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
             public IEnumerable<string> Targets { get; set; } = Array.Empty<string>();
         }
 
-        public DiffTool(ProjectManagerFactory projectManagerFactory, IHttpClientFactory httpClientFactory) : base(projectManagerFactory, httpClientFactory)
+        public DiffTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
         {
         }
 
@@ -93,7 +93,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
         {
         }
 
-        public DiffTool() : this (new DefaultHttpClientFactory()) { }
+        public DiffTool() : this (new ProjectManagerFactory()) { }
 
         static async Task Main(string[] args)
         {

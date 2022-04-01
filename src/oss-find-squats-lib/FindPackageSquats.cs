@@ -11,7 +11,6 @@ namespace Microsoft.CST.OpenSource.FindSquats
     using PackageUrl;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net.Http;
 
     public class FindPackageSquats : OssGadgetLib
     {
@@ -22,8 +21,8 @@ namespace Microsoft.CST.OpenSource.FindSquats
 
         public BaseProjectManager? ProjectManager { get;  }
 
-        public FindPackageSquats(ProjectManagerFactory projectManagerFactory, IHttpClientFactory httpClientFactory, PackageURL packageUrl)
-            : base(projectManagerFactory, httpClientFactory)
+        public FindPackageSquats(ProjectManagerFactory projectManagerFactory, PackageURL packageUrl)
+            : base(projectManagerFactory)
         {
             PackageUrl = packageUrl;
             ProjectManager = projectManagerFactory.CreateProjectManager(packageUrl);

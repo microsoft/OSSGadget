@@ -362,7 +362,7 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         /// Initializes a new DefoggerTool instance.
         /// </summary>
-        public DefoggerTool(ProjectManagerFactory projectManagerFactory, IHttpClientFactory httpClientFactory) : base(projectManagerFactory, httpClientFactory)
+        public DefoggerTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
         {
             Findings = new List<EncodedString>();
             BinaryFindings = new List<EncodedBinary>();
@@ -370,11 +370,11 @@ namespace Microsoft.CST.OpenSource
             NonTextFindings = new List<EncodedBlob>();
         }
 
-        public DefoggerTool(IHttpClientFactory httpClientFactory) : this(new ProjectManagerFactory(httpClientFactory), httpClientFactory)
+        public DefoggerTool(IHttpClientFactory httpClientFactory) : this(new ProjectManagerFactory(httpClientFactory))
         {
         }
 
-        public DefoggerTool() : this(new DefaultHttpClientFactory())
+        public DefoggerTool() : this(new ProjectManagerFactory())
         {
         }
 

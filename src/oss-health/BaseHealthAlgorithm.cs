@@ -12,6 +12,7 @@ namespace Microsoft.CST.OpenSource.Health
     {
         public BaseHealthAlgorithm()
         {
+            EnvironmentHelper.OverrideEnvironmentVariables(this);
         }
 
         public static double Clamp(double value, double min = 0, double max = 100)

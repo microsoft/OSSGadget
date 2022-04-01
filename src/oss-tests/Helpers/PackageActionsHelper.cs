@@ -9,21 +9,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
-public static class PackageActionsHelper
+public static class PackageActionsHelper<T, TM> where TM : class, IManagerPackageVersionMetadata where T : class, IManagerPackageActions<TM>
 {
     /// <summary>
-    /// Set up a mock of <see cref="IManagerPackageActions"/> for this test run.
+    /// Set up a mock of <see cref="T"/> for this test run.
     /// </summary>
     /// <param name="purl">The <see cref="PackageURL"/> to use when configuring the mocked calls for this manager.</param>
     /// <param name="metadata">The <see cref="IManagerPackageVersionMetadata"/> to use when returning the call to
-    /// <see cref="IManagerPackageActions.GetMetadataAsync"/>.</param>
+    /// <see cref="T"/>.</param>
     /// <param name="versions">The list of versions to return when mocking the call 
-    /// to <see cref="IManagerPackageActions.GetAllVersionsAsync"/>.</param>
-    /// <param name="validSquats">The list of squats to populate the mock to <see cref="IManagerPackageActions.DoesPackageExistAsync"/>.</param>
-    /// <returns>A Mocked <see cref="IManagerPackageActions"/>.</returns>
-    public static IManagerPackageActions SetupPackageActions(PackageURL? purl = null, IManagerPackageVersionMetadata? metadata = null, IEnumerable<string>? versions = null, IEnumerable<string>? validSquats = null)
+    /// to <see cref="T"/>.</param>
+    /// <param name="validSquats">The list of squats to populate the mock to <see cref="T"/>.</param>
+    /// <returns>A Mocked <see cref="TM"/>.</returns>
+    public static T? SetupPackageActions(PackageURL? purl = null, TM? metadata = null, IEnumerable<string>? versions = null, IEnumerable<string>? validSquats = null) 
     {
-        Mock<IManagerPackageActions> mockPackageActions = new();
+        Mock<T> mockPackageActions = new();
 
         if (purl is not null)
         {
@@ -67,6 +67,6 @@ public static class PackageActionsHelper
         }
 
         // Return the mocked package actions object.
-        return mockPackageActions.Object;
+        return mockPackageActions.Object as T;
     }
 }

@@ -6,6 +6,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
     using Helpers;
     using Model;
     using Model.Metadata;
+    using Model.PackageActions;
     using Moq;
     using Newtonsoft.Json;
     using oss;
@@ -68,11 +69,11 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public async Task MetadataSucceeds(string purlString, string? description = null, string? authors = null, string? latestVersion = null)
         {
             PackageURL purl = new(purlString);
-            IManagerPackageActions? managerPackageActions = PackageActionsHelper.SetupPackageActions(
+            NuGetPackageActions? nugetPackageActions = PackageActionsHelper<NuGetPackageActions, NuGetPackageVersionMetadata>.SetupPackageActions(
                 purl,
-                JsonConvert.DeserializeObject<NuGetPackageVersionPackageVersionMetadata>(_metadata[purl.ToString()]),
+                JsonConvert.DeserializeObject<NuGetPackageVersionMetadata>(_metadata[purl.ToString()]),
                 JsonConvert.DeserializeObject<IEnumerable<string>>(_versions[purl.ToString()]));
-            _projectManager = new NuGetProjectManager(_mockFactory.Object, ".", managerPackageActions);
+            _projectManager = new NuGetProjectManager(_mockFactory.Object, ".", nugetPackageActions);
 
             PackageMetadata metadata = await _projectManager.GetPackageMetadata(purl, useCache: false);
 
@@ -95,11 +96,11 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public async Task EnumerateVersionsSucceeds(string purlString, int count, string latestVersion)
         {
             PackageURL purl = new(purlString);
-            IManagerPackageActions? managerPackageActions = PackageActionsHelper.SetupPackageActions(
+            NuGetPackageActions? nugetPackageActions = PackageActionsHelper<NuGetPackageActions, NuGetPackageVersionMetadata>.SetupPackageActions(
                 purl,
-                JsonConvert.DeserializeObject<NuGetPackageVersionPackageVersionMetadata>(_metadata[purl.ToString()]),
+                JsonConvert.DeserializeObject<NuGetPackageVersionMetadata>(_metadata[purl.ToString()]),
                 JsonConvert.DeserializeObject<IEnumerable<string>>(_versions[purl.ToString()]));
-            _projectManager = new NuGetProjectManager(_mockFactory.Object, ".", managerPackageActions);
+            _projectManager = new NuGetProjectManager(_mockFactory.Object, ".", nugetPackageActions);
 
             List<string> versions = (await _projectManager.EnumerateVersions(purl, useCache: false)).ToList();
 

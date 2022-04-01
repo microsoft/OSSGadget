@@ -19,7 +19,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Utilities;
 
-public class NuGetPackageActions : IManagerPackageActions
+public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMetadata>
 {
     private readonly SourceCacheContext _sourceCacheContext = new();
     private readonly SourceRepository _sourceRepository = Repository.Factory.GetCoreV3("https://api.nuget.org/v3/index.json");
@@ -131,7 +131,7 @@ public class NuGetPackageActions : IManagerPackageActions
     }
 
     /// <inheritdoc />
-    public async Task<IManagerPackageVersionMetadata?> GetMetadataAsync(
+    public async Task<NuGetPackageVersionMetadata?> GetMetadataAsync(
         PackageURL packageUrl,
         bool useCache = true,
         CancellationToken cancellationToken = default)
@@ -150,6 +150,6 @@ public class NuGetPackageActions : IManagerPackageActions
             _logger, 
             cancellationToken) as PackageSearchMetadataRegistration;
 
-        return packageVersion != null ? new NuGetPackageVersionPackageVersionMetadata(packageVersion) : null;
+        return packageVersion != null ? new NuGetPackageVersionMetadata(packageVersion) : null;
     }
 }

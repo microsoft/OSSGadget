@@ -15,7 +15,7 @@ using System.ComponentModel;
 /// <summary>
 /// A class to represent Package Metadata for a NuGet package version.
 /// </summary>
-public record NuGetPackageVersionPackageVersionMetadata : IManagerPackageVersionMetadata
+public record NuGetPackageVersionMetadata : IManagerPackageVersionMetadata
 {
     [JsonProperty(PropertyName = JsonProperties.Authors)]
     [JsonConverter(typeof(MetadataFieldConverter))]
@@ -103,20 +103,20 @@ public record NuGetPackageVersionPackageVersionMetadata : IManagerPackageVersion
     public Uri CatalogUri { get; init; }
 
     /// <summary>
-    /// Initialize an instance of <see cref="NuGetPackageVersionPackageVersionMetadata"/> using the <see cref="JsonConstructorAttribute"/>.
+    /// Initialize an instance of <see cref="NuGetPackageVersionMetadata"/> using the <see cref="JsonConstructorAttribute"/>.
     /// </summary>
     /// <remarks>Necessary for unit test implementation of json serialization and deserialization.</remarks>
     [JsonConstructor]
 #pragma warning disable CS8618
-    public NuGetPackageVersionPackageVersionMetadata()
+    public NuGetPackageVersionMetadata()
 #pragma warning restore CS8618
     {}
 
     /// <summary>
-    /// Initialize an instance of <see cref="NuGetPackageVersionPackageVersionMetadata"/> using values from a <see cref="PackageSearchMetadataRegistration"/>.
+    /// Initialize an instance of <see cref="NuGetPackageVersionMetadata"/> using values from a <see cref="PackageSearchMetadataRegistration"/>.
     /// </summary>
     /// <param name="registration">The <see cref="PackageSearchMetadataRegistration"/> to get the values from.</param>
-    public NuGetPackageVersionPackageVersionMetadata(PackageSearchMetadataRegistration registration)
+    public NuGetPackageVersionMetadata(PackageSearchMetadataRegistration registration)
     {
         Authors = registration.Authors;
         DependencySetsInternal = registration.DependencySets;

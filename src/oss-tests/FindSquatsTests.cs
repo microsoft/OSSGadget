@@ -14,6 +14,8 @@ namespace Microsoft.CST.OpenSource.Tests
     using Contracts;
     using Extensions;
     using Helpers;
+    using Model.Metadata;
+    using Model.PackageActions;
     using Moq;
     using PackageUrl;
     using RichardSzalay.MockHttp;
@@ -281,7 +283,7 @@ namespace Microsoft.CST.OpenSource.Tests
 
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpMock.ToHttpClient());
 
-            IManagerPackageActions packageActions = PackageActionsHelper.SetupPackageActions(newtonsoft, validSquats: squattingPackages) ?? throw new InvalidOperationException();
+            NuGetPackageActions packageActions = PackageActionsHelper<NuGetPackageActions, NuGetPackageVersionMetadata>.SetupPackageActions(newtonsoft, validSquats: squattingPackages) ?? throw new InvalidOperationException();
             FindPackageSquats findPackageSquats = new(new ProjectManagerFactory(mockFactory.Object, nugetPackageActions: packageActions), newtonsoft);
 
             // act

@@ -26,8 +26,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// Initializes a new instance of a <see cref="ProjectManagerFactory"/>.
         /// </summary>
         /// <param name="httpClientFactoryParam">The <see cref="IHttpClientFactory"/> to use in the project managers.</param>
-        /// <param name="nugetPackageActions">The <see cref="IManagerPackageActions"/> to use in the <see cref="NuGetProjectManager"/>.</param>
-        public ProjectManagerFactory(IHttpClientFactory? httpClientFactoryParam = null, IManagerPackageActions? nugetPackageActions = null)
+        /// <param name="nugetPackageActions">The <see cref="NuGetPackageActions"/> to use in the <see cref="NuGetProjectManager"/>.</param>
+        public ProjectManagerFactory(IHttpClientFactory? httpClientFactoryParam = null, NuGetPackageActions? nugetPackageActions = null)
         {
             // If the httpClientFactory parameter is null, set the factory to the DefaultHttpClientFactory.
             IHttpClientFactory httpClientFactory = httpClientFactoryParam ?? new DefaultHttpClientFactory();
@@ -118,9 +118,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// </summary>
         /// <param name="packageUrl">The <see cref="PackageURL"/> to get a project manager for.</param>
         /// <param name="httpClientFactory">The <see cref="IHttpClientFactory"/> to optionally add.</param>
-        /// <param name="nugetPackageActions">The <see cref="IManagerPackageActions"/> to use in the <see cref="NuGetProjectManager"/>.</param>
+        /// <param name="nugetPackageActions">The <see cref="NuGetPackageActions"/> to use in the <see cref="NuGetProjectManager"/>.</param>
         /// <returns>A new <see cref="BaseProjectManager"/> implementation.</returns>
-        public static BaseProjectManager? GetProjectManager(PackageURL packageUrl, IHttpClientFactory? httpClientFactory = null, IManagerPackageActions? nugetPackageActions = null)
+        public static BaseProjectManager? GetProjectManager(PackageURL packageUrl, IHttpClientFactory? httpClientFactory = null, NuGetPackageActions? nugetPackageActions = null)
         {
             return new ProjectManagerFactory(httpClientFactory, nugetPackageActions).CreateProjectManager(packageUrl);
         }

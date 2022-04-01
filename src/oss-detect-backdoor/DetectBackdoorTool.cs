@@ -36,7 +36,7 @@ namespace Microsoft.CST.OpenSource
             public string DownloadDirectory { get; set; } = ".";
 
             [Option('f', "format", Required = false, Default = "text",
-                HelpText = "selct the output format(text|sarifv1|sarifv2)")]
+                HelpText = "specify the output format(text|sarifv1|sarifv2)")]
             public string Format { get; set; } = "text";
 
             [Option('o', "output-file", Required = false, Default = "",

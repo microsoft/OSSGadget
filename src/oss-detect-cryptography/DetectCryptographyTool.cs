@@ -730,7 +730,7 @@ optional arguments:
   --disable-default-rules       do not load default, built-in rules.
   --download-directory          the directory to download the package to
   --use-cache                   do not download the package if it is already present in the destination directory
-  --format                      selct the output format (text|sarifv1|sarifv2). (default is text)
+  --format                      specify the output format (text|sarifv1|sarifv2). (default is text)
   --output-file                 send the command output to a file instead of stdout
   --help                        show this help message and exit
   --version                     show version of this tool

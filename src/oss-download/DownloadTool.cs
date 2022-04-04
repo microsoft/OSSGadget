@@ -61,7 +61,7 @@ namespace Microsoft.CST.OpenSource
         {
         }
 
-        public DownloadTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        public DownloadTool(IHttpClientFactory httpClientFactory) : this(new ProjectManagerFactory(httpClientFactory))
         {
         }
 

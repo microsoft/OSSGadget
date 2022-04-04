@@ -25,14 +25,6 @@ namespace Microsoft.CST.OpenSource
         {
         }
 
-        public OSSGadget(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
-        {
-        }
-
-        public OSSGadget() : base()
-        {
-        }
-
         /// <summary>
         /// Logger for this class
         /// </summary>

@@ -72,7 +72,7 @@ namespace Microsoft.CST.OpenSource
         {
         }
 
-        public RiskCalculatorTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        public RiskCalculatorTool(IHttpClientFactory httpClientFactory) : this(new ProjectManagerFactory(httpClientFactory))
         {
         }
 

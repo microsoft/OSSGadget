@@ -89,7 +89,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
         {
         }
 
-        public DiffTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        public DiffTool(IHttpClientFactory httpClientFactory) : this(new ProjectManagerFactory(httpClientFactory))
         {
         }
 

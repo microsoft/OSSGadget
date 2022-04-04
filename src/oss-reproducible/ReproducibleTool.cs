@@ -79,7 +79,7 @@ namespace Microsoft.CST.OpenSource
         {
         }
 
-        public ReproducibleTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        public ReproducibleTool(IHttpClientFactory httpClientFactory) : this(new ProjectManagerFactory(httpClientFactory))
         {
         }
 

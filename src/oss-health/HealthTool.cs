@@ -22,7 +22,7 @@ namespace Microsoft.CST.OpenSource
         {
         }
 
-        public HealthTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        public HealthTool(IHttpClientFactory httpClientFactory) : this(new ProjectManagerFactory(httpClientFactory))
         {
         }
 

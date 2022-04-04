@@ -11,7 +11,6 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
-    using System.Web;
 
     /// <summary>
     /// This class contains extension methods to find potentially squatted packages in BaseProjectManager derived classes.

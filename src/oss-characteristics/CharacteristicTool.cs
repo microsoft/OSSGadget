@@ -78,7 +78,7 @@ namespace Microsoft.CST.OpenSource
         {
         }
 
-        public CharacteristicTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        public CharacteristicTool(IHttpClientFactory httpClientFactory) : this(new ProjectManagerFactory(httpClientFactory))
         {
         }
 

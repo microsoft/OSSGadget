@@ -239,7 +239,7 @@ namespace Microsoft.CST.OpenSource
         {
         }
 
-        public DetectCryptographyTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        public DetectCryptographyTool(IHttpClientFactory httpClientFactory) : this(new ProjectManagerFactory(httpClientFactory))
         {
         }
 

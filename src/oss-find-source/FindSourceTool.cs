@@ -28,7 +28,7 @@ namespace Microsoft.CST.OpenSource
         {
         }
 
-        public FindSourceTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        public FindSourceTool(IHttpClientFactory httpClientFactory) : this(new ProjectManagerFactory(httpClientFactory))
         {
         }
 

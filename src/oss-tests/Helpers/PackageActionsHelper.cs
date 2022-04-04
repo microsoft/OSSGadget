@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
-public static class PackageActionsHelper<T, TM> where TM : class, IManagerPackageVersionMetadata where T : class, IManagerPackageActions<TM>
+public static class PackageActionsHelper<T, TM> where TM : IManagerPackageVersionMetadata where T : class, IManagerPackageActions<TM>
 {
     /// <summary>
     /// Set up a mock of <see cref="T"/> for this test run.
@@ -21,7 +21,7 @@ public static class PackageActionsHelper<T, TM> where TM : class, IManagerPackag
     /// to <see cref="T"/>.</param>
     /// <param name="validSquats">The list of squats to populate the mock to <see cref="T"/>.</param>
     /// <returns>A Mocked <see cref="TM"/>.</returns>
-    public static T? SetupPackageActions(PackageURL? purl = null, TM? metadata = null, IEnumerable<string>? versions = null, IEnumerable<string>? validSquats = null) 
+    public static T? SetupPackageActions(PackageURL? purl = null, TM? metadata = default, IEnumerable<string>? versions = null, IEnumerable<string>? validSquats = null) 
     {
         Mock<T> mockPackageActions = new();
 

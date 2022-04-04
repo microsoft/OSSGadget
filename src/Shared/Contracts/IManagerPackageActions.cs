@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 /// <summary>
 /// The interface to implement project manager specific actions.
 /// </summary>
-public interface IManagerPackageActions<T> where T : class, IManagerPackageVersionMetadata
+public interface IManagerPackageActions<T> where T : IManagerPackageVersionMetadata
 {
     /// <summary>
     /// Downloads the file(s) associated with a given <see cref="PackageURL"/>, and optionally extracts it if downloading an archive.
@@ -26,7 +26,7 @@ public interface IManagerPackageActions<T> where T : class, IManagerPackageVersi
     Task<string?> DownloadAsync(PackageURL packageUrl, string topLevelDirectory, string targetDirectory, bool doExtract, bool cached = false, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Checks to see if a package exists. If provided a version, it checks for existence of that specific version.
+    /// Checks to see if a package exists. If provided a version, it checks for existence of that specific version only.
     /// </summary>
     /// <param name="packageUrl">The <see cref="PackageURL"/> to check.</param>
     /// <param name="useCache">If the cache should be checked for the existence of this package.</param>

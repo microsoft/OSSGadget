@@ -27,17 +27,17 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         private const string NUGET_DEFAULT_CONTENT_ENDPOINT = "https://api.nuget.org/v3-flatcontainer/";
 
         private string? RegistrationEndpoint { get; set; } = null;
-        private NuGetPackageActions NuGetPackageActions { get; }
+        private NuGetPackageActions _nuGetPackageActions { get; }
 
         public NuGetProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory, NuGetPackageActions nugetPackageActions) : base(httpClientFactory, destinationDirectory)
         {
-            NuGetPackageActions = nugetPackageActions;
+            _nuGetPackageActions = nugetPackageActions;
             GetRegistrationEndpointAsync().Wait();
         }
 
         public NuGetProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
-            NuGetPackageActions = new NuGetPackageActions();
+            _nuGetPackageActions = new NuGetPackageActions();
             GetRegistrationEndpointAsync().Wait();
         }
 
@@ -120,7 +120,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 }
 
                 string? downloaded =
-                    await NuGetPackageActions.DownloadAsync(purl, TopLevelExtractionDirectory, targetName, doExtract, cached: cached);
+                    await _nuGetPackageActions.DownloadAsync(purl, TopLevelExtractionDirectory, targetName, doExtract, cached: cached);
 
                 if (!string.IsNullOrWhiteSpace(downloaded))
                 {
@@ -146,7 +146,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 return false;
             }
 
-            return await NuGetPackageActions.DoesPackageExistAsync(purl, useCache: useCache);
+            return await _nuGetPackageActions.DoesPackageExistAsync(purl, useCache: useCache);
         }
 
         /// <inheritdoc />
@@ -161,7 +161,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             try
             {
-                IEnumerable<string> versions = await NuGetPackageActions.GetAllVersionsAsync(purl, useCache: useCache);
+                IEnumerable<string> versions = await _nuGetPackageActions.GetAllVersionsAsync(purl, useCache: useCache);
 
                 // Sort versions, highest first, lowest last.
                 return SortVersions(versions);
@@ -188,7 +188,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 // If no package version provided, default to the latest version.
                 if (string.IsNullOrWhiteSpace(packageVersion))
                 {
-                    string latestVersion = await NuGetPackageActions.GetLatestVersionAsync(purl);
+                    string latestVersion = await _nuGetPackageActions.GetLatestVersionAsync(purl);
                     packageVersion = latestVersion;
                 }
 
@@ -196,7 +196,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 PackageURL purlWithVersion = new (purl.Type, purl.Namespace, packageName, packageVersion, purl.Qualifiers, purl.Subpath);
                 
                 NuGetPackageVersionMetadata? packageVersionMetadata =
-                    await NuGetPackageActions.GetMetadataAsync(purlWithVersion, useCache: useCache) as NuGetPackageVersionMetadata;
+                    await _nuGetPackageActions.GetMetadataAsync(purlWithVersion, useCache: useCache);
 
                 return JsonSerializer.Serialize(packageVersionMetadata);
             }
@@ -213,33 +213,38 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
         
         /// <inheritdoc />
-        public override async Task<PackageMetadata> GetPackageMetadata(PackageURL purl, bool useCache = true)
+        public override async Task<PackageMetadata?> GetPackageMetadata(PackageURL purl, bool useCache = true)
         {
-            string latestVersion = await NuGetPackageActions.GetLatestVersionAsync(purl);
+            string latestVersion = await _nuGetPackageActions.GetLatestVersionAsync(purl);
 
             // Construct a new PackageURL that's guaranteed to have a version, the latest version is used if no version was provided.
             PackageURL purlWithVersion = !string.IsNullOrWhiteSpace(purl.Version) ? 
                 purl : new PackageURL(purl.Type, purl.Namespace, purl.Name, latestVersion, purl.Qualifiers, purl.Subpath);
 
-            NuGetPackageVersionMetadata packageVersionPackageVersionMetadata =
-                await NuGetPackageActions.GetMetadataAsync(purlWithVersion, useCache: useCache) as NuGetPackageVersionMetadata ?? throw new InvalidOperationException($"The metadata for {purlWithVersion} was null.");
+            NuGetPackageVersionMetadata? packageVersionMetadata =
+                await _nuGetPackageActions.GetMetadataAsync(purlWithVersion, useCache: useCache);
+
+            if (packageVersionMetadata is null)
+            {
+                return null;
+            }
 
             PackageMetadata metadata = new();
 
-            metadata.Name = packageVersionPackageVersionMetadata.Name;
-            metadata.Description = packageVersionPackageVersionMetadata.Description;
+            metadata.Name = packageVersionMetadata.Name;
+            metadata.Description = packageVersionMetadata.Description;
 
             metadata.PackageManagerUri = ENV_NUGET_ENDPOINT_API;
             metadata.Platform = "NUGET";
             metadata.Language = "C#";
-            metadata.PackageUri = $"{ENV_NUGET_HOMEPAGE}/{packageVersionPackageVersionMetadata.Name.ToLowerInvariant()}";
-            metadata.ApiPackageUri = $"{RegistrationEndpoint}{packageVersionPackageVersionMetadata.Name.ToLowerInvariant()}/index.json";
+            metadata.PackageUri = $"{ENV_NUGET_HOMEPAGE}/{packageVersionMetadata.Name.ToLowerInvariant()}";
+            metadata.ApiPackageUri = $"{RegistrationEndpoint}{packageVersionMetadata.Name.ToLowerInvariant()}/index.json";
 
             metadata.PackageVersion = purlWithVersion.Version;
             metadata.LatestPackageVersion = latestVersion;
 
             // Get the metadata for either the specified package version, or the latest package version
-            await UpdateVersionMetadata(metadata, packageVersionPackageVersionMetadata);
+            await UpdateVersionMetadata(metadata, packageVersionMetadata);
 
             return metadata;
         }

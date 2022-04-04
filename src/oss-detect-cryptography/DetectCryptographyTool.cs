@@ -93,7 +93,7 @@ namespace Microsoft.CST.OpenSource
                                 targetDirectoryName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                             }
 
-                            string? path = await BaseProjectManager.ExtractArchive(targetDirectoryName, "temp", File.ReadAllBytes(target));
+                            string? path = await BaseProjectManager.ExtractArchiveAsync(targetDirectoryName, "temp", File.ReadAllBytes(target));
 
                             results = await detectCryptographyTool.AnalyzeDirectory(path);
 

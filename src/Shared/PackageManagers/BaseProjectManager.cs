@@ -294,7 +294,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <param name="bytes">bytes to extract (should be an archive file)</param>
         /// <param name="cached">If the archive has been cached.</param>
         /// <returns></returns>
-        public static async Task<string> ExtractArchive(string topLevelDirectory, string directoryName, byte[] bytes, bool cached = false)
+        public static async Task<string> ExtractArchiveAsync(string topLevelDirectory, string directoryName, byte[] bytes, bool cached = false)
         {
             Logger.Trace("ExtractArchive({0}, <bytes> len={1})", directoryName, bytes.Length);
 
@@ -410,7 +410,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <param name="useCache">If the <see cref="PackageMetadata"/> should be retrieved from the cache, if it is available.</param>
         /// <remarks>If no version specified, defaults to latest version.</remarks>
         /// <returns>A <see cref="PackageMetadata"/> object representing this <see cref="PackageURL"/>.</returns>
-        public virtual Task<PackageMetadata> GetPackageMetadata(PackageURL purl, bool useCache = true)
+        public virtual Task<PackageMetadata?> GetPackageMetadata(PackageURL purl, bool useCache = true)
         {
             string typeName = GetType().Name;
             throw new NotImplementedException($"{typeName} does not implement GetPackageMetadata.");

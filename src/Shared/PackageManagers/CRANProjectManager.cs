@@ -62,7 +62,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 }
                 if (doExtract)
                 {
-                    downloadedPaths.Add(await ExtractArchive(TopLevelExtractionDirectory, targetName, await result.Content.ReadAsByteArrayAsync(), cached));
+                    downloadedPaths.Add(await ExtractArchiveAsync(TopLevelExtractionDirectory, targetName, await result.Content.ReadAsByteArrayAsync(), cached));
                 }
                 else
                 {
@@ -91,7 +91,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 string targetName = $"cran-{packageName}@{packageVersion}";
                 if (doExtract)
                 {
-                    downloadedPaths.Add(await ExtractArchive(TopLevelExtractionDirectory, targetName, await result.Content.ReadAsByteArrayAsync(), cached));
+                    downloadedPaths.Add(await ExtractArchiveAsync(TopLevelExtractionDirectory, targetName, await result.Content.ReadAsByteArrayAsync(), cached));
                 }
                 else
                 {

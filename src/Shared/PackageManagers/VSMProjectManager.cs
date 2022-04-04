@@ -135,7 +135,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                                     }
                                     if (doExtract)
                                     {
-                                        downloadedPaths.Add(await ExtractArchive(TopLevelExtractionDirectory, targetName, await downloadResult.Content.ReadAsByteArrayAsync(), cached));
+                                        downloadedPaths.Add(await ExtractArchiveAsync(TopLevelExtractionDirectory, targetName, await downloadResult.Content.ReadAsByteArrayAsync(), cached));
                                     }
                                     else
                                     {

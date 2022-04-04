@@ -30,10 +30,9 @@ namespace Microsoft.CST.OpenSource.Shared
         /// Initializes a new instance of the <see cref="RepoSearch"/> class.
         /// </summary>
         /// <param name="projectManagerFactory">The <see cref="ProjectManagerFactory"/> to generate the project managers with.</param>
-        /// <param name="httpClientFactory">The <see cref="IHttpClientFactory"/>.</param>
-        public RepoSearch(ProjectManagerFactory? projectManagerFactory = null, IHttpClientFactory? httpClientFactory = null)
+        public RepoSearch(ProjectManagerFactory? projectManagerFactory = null)
         {
-            ProjectManagerFactory = projectManagerFactory ?? new ProjectManagerFactory(httpClientFactory);
+            ProjectManagerFactory = projectManagerFactory ?? new ProjectManagerFactory();
         }
 
         private ProjectManagerFactory ProjectManagerFactory { get; }

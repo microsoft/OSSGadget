@@ -31,27 +31,50 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             _projectManagers = projectManagersIn;
         }
 
+        /// <summary>
+        /// Construct a ProjectManagerFactory with Default Managers and optionally a specific <see cref="IHttpClientFactory"/>.
+        /// If <paramref name="httpClientFactory"/> is null, <see cref="DefaultHttpClientFactory"/> will be used.
+        /// </summary>
+        /// <param name="httpClientFactory">Optionally, use a provided <see cref="IHttpClientFactory"/> when needed</param>
         public ProjectManagerFactory(IHttpClientFactory? httpClientFactory = null)
         {
             _projectManagers = CreateDefaultManagers(httpClientFactory);
         }
 
+        /// <summary>
+        /// Unset any <see cref="ConstructProjectManager"/> for a given <paramref name="lookup"/>
+        /// </summary>
+        /// <param name="lookup">The PackageUrl Type</param>
+        /// <returns>If the <paramref name="lookup"/> was found and removed</returns>
         public bool UnsetManager(string lookup)
         {
             return _projectManagers.Remove(lookup);
         }
 
+        /// <summary>
+        /// Set a specific <see cref="ConstructProjectManager"/> for a given <see cref="PackageURL.Type"/>
+        /// </summary>
+        /// <param name="lookup">The PackageUrl Type to use the provided <paramref name="generator"/> for</param>
+        /// <param name="generator">The <see cref="ConstructProjectManager"/> delegate which generates the appropriate Manager.</param>
         public void SetManager(string lookup, ConstructProjectManager generator)
         {
             _projectManagers[lookup] = generator;
         }
 
+        /// <summary>
+        /// Unset all manager creators.
+        /// </summary>
         public void ClearManagers()
         {
             _projectManagers.Clear();
         }
 
-        public Dictionary<string, ConstructProjectManager> CreateDefaultManagers(IHttpClientFactory? httpClientFactoryParam = null)
+        /// <summary>
+        /// Create the default set of managers, optionally with a specified <see cref="IHttpClientFactory"/>. Otherwise <see cref="DefaultHttpClientFactory"/> will be used when needed.
+        /// </summary>
+        /// <param name="httpClientFactoryParam"></param>
+        /// <returns>A Dictionary with the mapping between <see cref="PackageURL.Type"/> and a <see cref="CreateProjectManager"/> delegate to create the appropriate <see cref="BaseProjectManager"/></returns>
+        private Dictionary<string, ConstructProjectManager> CreateDefaultManagers(IHttpClientFactory? httpClientFactoryParam = null)
         {
             // If the httpClientFactory parameter is null, set the factory to the DefaultHttpClientFactory.
             IHttpClientFactory httpClientFactory = httpClientFactoryParam ?? new DefaultHttpClientFactory();
@@ -131,10 +154,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <returns>The implementation of <see cref="BaseProjectManager"/> for this <paramref name="purl"/>'s type.</returns>
         public BaseProjectManager? CreateProjectManager(PackageURL purl, string destinationDirectory = ".")
         {
-            // TODO: This should do lookups based directly on the purl.Type - not add ProjectManager to it.
-            ConstructProjectManager? projectManager = _projectManagers.GetValueOrDefault(purl.Type);
-
-            return projectManager?.Invoke(destinationDirectory);
+            return _projectManagers.GetValueOrDefault(purl.Type)?.Invoke(destinationDirectory);
         }
 
         /// <summary>

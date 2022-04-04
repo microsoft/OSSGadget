@@ -3,6 +3,7 @@
 namespace Microsoft.CST.OpenSource.Model.PackageActions;
 
 using Contracts;
+using Helpers;
 using Metadata;
 using Microsoft.CST.OpenSource.PackageManagers;
 using NLog;
@@ -53,10 +54,10 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
             return null;
         }
         
-        // If we want to extract the contents of the .nupkg, send it to ExtractArchive.
+        // If we want to extract the contents of the .nupkg, send it to ArchiveHelper.ExtractArchiveAsync.
         if (doExtract)
         {
-            return await BaseProjectManager.ExtractArchiveAsync(topLevelDirectory, targetDirectory, packageStream.ToArray(), cached);
+            return await ArchiveHelper.ExtractArchiveAsync(topLevelDirectory, targetDirectory, packageStream, cached);
         }
 
         string filePath = Path.ChangeExtension(targetDirectory, ".nupkg");

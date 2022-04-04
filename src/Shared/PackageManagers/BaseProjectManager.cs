@@ -2,7 +2,6 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
-    using Microsoft.CST.RecursiveExtractor;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.CST.OpenSource.Model;
     using System;
@@ -10,7 +9,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.IO;
     using System.Linq;
     using System.Net.Http;
-    using System.Text;
     using System.Text.Json;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
@@ -23,14 +21,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <summary>
         /// Initializes a new instance of the <see cref="BaseProjectManager"/> class.
         /// </summary>
-        public BaseProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory)
+        public BaseProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory = ".")
         {
             Options = new Dictionary<string, object>();
             TopLevelExtractionDirectory = destinationDirectory;
             HttpClientFactory = httpClientFactory;
         }
 
-        public BaseProjectManager(string destinationDirectory) : this(new DefaultHttpClientFactory(), destinationDirectory)
+        public BaseProjectManager(string destinationDirectory = ".") : this(new DefaultHttpClientFactory(), destinationDirectory)
         {
         }
 
@@ -42,7 +40,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <summary>
         /// The location (directory) to extract files to.
         /// </summary>
-        public string TopLevelExtractionDirectory { get; set; } = ".";
+        public string TopLevelExtractionDirectory { get; init; }
 
         /// <summary>
         /// The <see cref="IHttpClientFactory"/> for the manager.
@@ -283,58 +281,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public virtual Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
         {
             throw new NotImplementedException("BaseProjectManager does not implement EnumerateVersions.");
-        }
-
-        /// <summary>
-        /// Extracts an archive (given by 'bytes') into a directory named 'directoryName',
-        /// recursively, using RecursiveExtractor.
-        /// </summary>
-        /// <param name="topLevelDirectory">The top level directory content should be extracted to.</param>
-        /// <param name="directoryName">directory to extract content into (within <paramref name="topLevelDirectory"/>)</param>
-        /// <param name="bytes">bytes to extract (should be an archive file)</param>
-        /// <param name="cached">If the archive has been cached.</param>
-        /// <returns></returns>
-        public static async Task<string> ExtractArchiveAsync(string topLevelDirectory, string directoryName, byte[] bytes, bool cached = false)
-        {
-            Logger.Trace("ExtractArchive({0}, <bytes> len={1})", directoryName, bytes.Length);
-
-            Directory.CreateDirectory(topLevelDirectory);
-
-            StringBuilder dirBuilder = new(directoryName);
-
-            foreach (char c in Path.GetInvalidPathChars())
-            {
-                dirBuilder.Replace(c, '-');    // ignore: lgtm [cs/string-concatenation-in-loop]
-            }
-
-            string fullTargetPath = Path.Combine(topLevelDirectory, dirBuilder.ToString());
-
-            if (!cached)
-            {
-                while (Directory.Exists(fullTargetPath) || File.Exists(fullTargetPath))
-                {
-                    dirBuilder.Append("-" + DateTime.Now.Ticks);
-                    fullTargetPath = Path.Combine(topLevelDirectory, dirBuilder.ToString());
-                }
-            }
-            Extractor extractor = new();
-            ExtractorOptions extractorOptions = new()
-            {
-                ExtractSelfOnFail = true,
-                Parallel = true
-                // MaxExtractedBytes = 1000 * 1000 * 10;  // 10 MB maximum package size
-            };
-            ExtractionStatusCode result = await extractor.ExtractToDirectoryAsync(topLevelDirectory, dirBuilder.ToString(), new MemoryStream(bytes), extractorOptions);
-            if (result == ExtractionStatusCode.Ok)
-            {
-                Logger.Debug("Archive extracted to {0}", fullTargetPath);
-            }
-            else
-            {
-                Logger.Warn("Error extracting archive {0} ({1})", fullTargetPath, result);
-            }
-
-            return fullTargetPath;
         }
 
         /// <summary>

@@ -107,6 +107,7 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
     /// <inheritdoc />
     public async Task<IEnumerable<string>> GetAllVersionsAsync(
         PackageURL packageUrl,
+        bool includePrerelease = true,
         bool useCache = true,
         CancellationToken cancellationToken = default)
     {
@@ -118,7 +119,9 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
             _logger, 
             cancellationToken);
 
-        return versions.Select(v => v.ToString());
+        return versions
+            .Where(v => includePrerelease || !v.IsPrerelease)
+            .Select(v => v.ToString());
     }
     
     /// <inheritdoc />
@@ -136,7 +139,9 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
             _logger, 
             cancellationToken);
 
-        return versions.Last().ToString();
+        return versions
+            .Last(v => includePrerelease || !v.IsPrerelease)
+            .ToString();
     }
 
     /// <inheritdoc />

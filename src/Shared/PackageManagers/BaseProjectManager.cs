@@ -277,8 +277,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <remarks>The latest version is always first, then it is sorted by SemVer in descending order.</remarks>
         /// <param name="purl">Package URL specifying the package. Version is ignored.</param>
         /// <param name="useCache">If the cache should be used when looking for the versions.</param>
+        /// <param name="includePrerelease">If pre-release versions should be included.</param>
         /// <returns> A list of package version numbers.</returns>
-        public virtual Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
+        public virtual Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true, bool includePrerelease = true)
         {
             throw new NotImplementedException("BaseProjectManager does not implement EnumerateVersions.");
         }

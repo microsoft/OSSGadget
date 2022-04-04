@@ -39,7 +39,7 @@ public static class PackageActionsHelper<T> where T : IManagerPackageVersionMeta
                 // Mock the list of versions if the list was provided.
                 IEnumerable<string> versionsArray = versions as string[] ?? versions.ToArray();
                 mockPackageActions.Setup(actions => actions.GetAllVersionsAsync(
-                    It.Is<PackageURL>(p => p.Name.Equals(purl.Name)), It.IsAny<bool>(), It.IsAny<CancellationToken>()).Result).Returns(
+                    It.Is<PackageURL>(p => p.Name.Equals(purl.Name)), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()).Result).Returns(
                     versionsArray);
 
                 // Mock the call to GetLatestVersionAsync to be the last version in the list that was provided.

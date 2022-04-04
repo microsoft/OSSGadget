@@ -41,10 +41,11 @@ public interface IManagerPackageActions<T> where T : IManagerPackageVersionMetad
     /// Gets all versions of a package.
     /// </summary>
     /// <param name="packageUrl">The <see cref="PackageURL"/> to get all available versions for.</param>
+    /// <param name="includePrerelease">If pre-release/beta versions should be included.</param>
     /// <param name="useCache">If the cache should be checked for the available versions of this package.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to be used in the method call, defaults to <see cref="CancellationToken.None"/>.</param>
     /// <returns>An <see cref="IEnumerable{String}"/> of all of the versions for this package.</returns>
-    Task<IEnumerable<string>> GetAllVersionsAsync(PackageURL packageUrl, bool useCache = true, CancellationToken cancellationToken = default);
+    Task<IEnumerable<string>> GetAllVersionsAsync(PackageURL packageUrl, bool includePrerelease = true, bool useCache = true, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the latest version of a package.

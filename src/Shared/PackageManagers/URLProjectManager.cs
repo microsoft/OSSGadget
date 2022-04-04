@@ -73,19 +73,17 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
         }
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true, bool includePrerelease = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
             if (purl == null)
             {
-                return new List<string>();
+                return await Task.FromResult(Array.Empty<string>());
             }
 
-            return new List<string>() {
+            return await Task.FromResult(new List<string>() {
                 "1.0"
-            };
+            });
         }
 
         /// <inheritdoc />

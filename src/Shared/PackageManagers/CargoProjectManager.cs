@@ -2,8 +2,11 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Contracts;
     using Extensions;
     using Helpers;
+    using Model.Metadata;
+    using Model.PackageActions;
     using PackageUrl;
     using System;
     using System.Collections.Generic;
@@ -15,18 +18,15 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     internal class CargoProjectManager : BaseProjectManager
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        public static string ENV_CARGO_ENDPOINT = "https://crates.io";
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        public static string ENV_CARGO_ENDPOINT_STATIC = "https://static.crates.io";
-
-        public CargoProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        private IManagerPackageActions<CargoPackageVersionMetadata> _actions;
+        public CargoProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory, IManagerPackageActions<CargoPackageVersionMetadata>? actions = null) : base(httpClientFactory, destinationDirectory)
         {
+            _actions = actions ?? new CargoPackageActions(httpClientFactory);
         }
 
         public CargoProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
+            _actions = new CargoPackageActions();
         }
 
         /// <summary>
@@ -36,53 +36,20 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <returns> Path to the downloaded package </returns>
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
-            Logger.Trace("DownloadVersion {0}", purl?.ToString());
-
-            string? packageName = purl?.Name;
-            string? packageVersion = purl?.Version;
-            string? fileName = purl?.ToStringFilename();
-            List<string> downloadedPaths = new();
-
-            if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion) || string.IsNullOrWhiteSpace(fileName))
+            ArgumentNullException.ThrowIfNull(purl, nameof(purl));
+            Logger.Trace("DownloadVersion {0}", purl.ToString());
+            string? fileName = purl.ToStringFilename();
+            string targetName = $"cargo-{fileName}";
+            string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
+            string? containingPath = await _actions.DownloadAsync(purl, TopLevelExtractionDirectory, extractionPath, doExtract, cached);
+            
+            if (containingPath is string notNullPath)
             {
-                Logger.Debug("Error with 'purl' argument. Unable to download [{0} {1}] @ {2}. Both must be defined.", packageName, packageVersion, fileName);
-                return downloadedPaths;
+                return Directory.EnumerateFiles(notNullPath, "*",
+                    new EnumerationOptions() {RecurseSubdirectories = true});
             }
 
-            string url = $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}/{packageVersion}/download";
-            try
-            {
-                string targetName = $"cargo-{fileName}";
-                string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
-                // if the cache is already present, no need to extract
-                if (doExtract && cached && Directory.Exists(extractionPath))
-                {
-                    downloadedPaths.Add(extractionPath);
-                    return downloadedPaths;
-                }
-                Logger.Debug("Downloading {0}", url);
-
-                HttpClient httpClient = CreateHttpClient();
-
-                System.Net.Http.HttpResponseMessage result = await httpClient.GetAsync(url);
-                result.EnsureSuccessStatusCode();
-
-                if (doExtract)
-                {
-                    downloadedPaths.Add(await ArchiveHelper.ExtractArchiveAsync(TopLevelExtractionDirectory, targetName, await result.Content.ReadAsStreamAsync(), cached));
-                }
-                else
-                {
-                    extractionPath += Path.GetExtension(url) ?? "";
-                    await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
-                    downloadedPaths.Add(extractionPath);
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Debug(ex, "Error downloading Cargo package: {0}", ex.Message);
-            }
-            return downloadedPaths;
+            return Array.Empty<string>();
         }
 
         /// <inheritdoc />

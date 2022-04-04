@@ -18,6 +18,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     internal class CocoapodsProjectManager : BaseProjectManager
     {
+        public new const string Type = "cocoapods";
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_COCOAPODS_SPECS_ENDPOINT = "https://github.com/CocoaPods/Specs/tree/master";
 

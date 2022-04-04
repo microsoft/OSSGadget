@@ -14,6 +14,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     internal class MavenProjectManager : BaseProjectManager
     {
+        public new const string Type = "maven";
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_MAVEN_ENDPOINT = "https://repo1.maven.org/maven2";
 

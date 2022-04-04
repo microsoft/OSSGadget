@@ -121,7 +121,7 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
 
         return versions
             .Where(v => includePrerelease || !v.IsPrerelease)
-            .Select(v => v.ToString());
+            .Select(v => v.ToString()).Reverse();
     }
     
     /// <inheritdoc />

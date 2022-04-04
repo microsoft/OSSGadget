@@ -18,6 +18,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     public abstract class BaseProjectManager
     {
+        public static readonly string Type = null!;
+        
         /// <summary>
         /// Initializes a new instance of the <see cref="BaseProjectManager"/> class.
         /// </summary>
@@ -45,7 +47,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <summary>
         /// The <see cref="IHttpClientFactory"/> for the manager.
         /// </summary>
-        public IHttpClientFactory HttpClientFactory { get; init; }
+        public IHttpClientFactory HttpClientFactory { get; }
 
         /// <summary>
         /// Extracts GitHub URLs from a given piece of text.

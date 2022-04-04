@@ -14,6 +14,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     internal class ComposerProjectManager : BaseProjectManager
     {
+        public new const string Type = "composer";
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_COMPOSER_ENDPOINT = "https://repo.packagist.org";
 

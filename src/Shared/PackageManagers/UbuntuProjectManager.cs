@@ -16,6 +16,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     internal class UbuntuProjectManager : BaseProjectManager
     {
+        public new const string Type = "ubuntu";
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_UBUNTU_ARCHIVE_MIRROR = "https://mirror.math.princeton.edu/pub";
 

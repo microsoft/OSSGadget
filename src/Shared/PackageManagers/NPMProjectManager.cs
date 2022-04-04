@@ -18,6 +18,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     public class NPMProjectManager : BaseProjectManager
     {
+        public new const string Type = "npm";
+
         public static string ENV_NPM_API_ENDPOINT { get; set; } = "https://registry.npmjs.org";
         public static string ENV_NPM_ENDPOINT { get; set; } = "https://www.npmjs.com";
 

@@ -12,6 +12,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     internal class URLProjectManager : BaseProjectManager
     {
+        public new const string Type = "url";
 
         public URLProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
         {

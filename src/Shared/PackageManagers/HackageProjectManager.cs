@@ -14,6 +14,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     internal class HackageProjectManager : BaseProjectManager
     {
+        public new const string Type = "hackage";
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_HACKAGE_ENDPOINT = "https://hackage.haskell.org";
 

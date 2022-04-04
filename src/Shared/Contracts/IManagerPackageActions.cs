@@ -40,6 +40,7 @@ public interface IManagerPackageActions<T> where T : IManagerPackageVersionMetad
     /// <summary>
     /// Gets all versions of a package.
     /// </summary>
+    /// <remarks>The first version in the list is the latest, and the oldest version is the last.</remarks>
     /// <param name="packageUrl">The <see cref="PackageURL"/> to get all available versions for.</param>
     /// <param name="includePrerelease">If pre-release/beta versions should be included.</param>
     /// <param name="useCache">If the cache should be checked for the available versions of this package.</param>

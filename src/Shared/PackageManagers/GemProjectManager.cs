@@ -15,6 +15,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     internal class GemProjectManager : BaseProjectManager
     {
+        public new const string Type = "gem";
+
         public static string ENV_RUBYGEMS_ENDPOINT = "https://rubygems.org";
         public static string ENV_RUBYGEMS_ENDPOINT_API = "https://api.rubygems.org";
 

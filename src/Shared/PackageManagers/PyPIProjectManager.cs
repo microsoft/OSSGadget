@@ -18,6 +18,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     public class PyPIProjectManager : BaseProjectManager
     {
+        public new const string Type = "pypi";
+
         public static string ENV_PYPI_ENDPOINT { get; set; } = "https://pypi.org";
 
         public PyPIProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)

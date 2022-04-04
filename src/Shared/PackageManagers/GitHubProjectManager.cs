@@ -16,6 +16,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     internal class GitHubProjectManager : BaseProjectManager
     {
+        public new const string Type = "github";
+
         public static string ENV_GITHUB_ENDPOINT = "https://github.com";
 
         public GitHubProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)

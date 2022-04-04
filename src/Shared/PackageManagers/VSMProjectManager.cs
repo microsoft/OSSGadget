@@ -16,6 +16,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     internal class VSMProjectManager : BaseProjectManager
     {
+        public new const string Type = "vsm";
+        
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_VS_MARKETPLACE_ENDPOINT = "https://marketplace.visualstudio.com";
 

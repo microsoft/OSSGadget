@@ -14,6 +14,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     internal class CRANProjectManager : BaseProjectManager
     {
+        public new const string Type = "cran";
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_CRAN_ENDPOINT = "https://cran.r-project.org";
 

@@ -20,6 +20,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     public class NuGetProjectManager : TypedManager<NuGetPackageVersionMetadata>
     {
+        public new const string Type = "nuget";
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public const string ENV_NUGET_ENDPOINT_API = "https://api.nuget.org";
         public const string ENV_NUGET_ENDPOINT = "https://www.nuget.org";
@@ -32,9 +34,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             string directory,
             IManagerPackageActions<NuGetPackageVersionMetadata>? actions = null,
             IHttpClientFactory? httpClientFactory = null)
-            : base(actions ?? new NuGetPackageActions(), directory)
+            : base(actions ?? new NuGetPackageActions(), httpClientFactory ?? new DefaultHttpClientFactory(), directory)
         {
-            HttpClientFactory = httpClientFactory ?? new DefaultHttpClientFactory();
             GetRegistrationEndpointAsync().Wait();
         }
 

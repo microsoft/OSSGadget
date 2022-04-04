@@ -6,10 +6,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using PackageUrl;
     using Model;
     using Model.Metadata;
-    using Model.PackageActions;
     using NuGet.Packaging;
     using NuGet.Packaging.Core;
     using NuGet.Versioning;
+    using PackageActions;
     using System;
     using System.Collections.Generic;
     using System.IO;

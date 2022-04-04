@@ -4,7 +4,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using Contracts;
     using Model.Metadata;
-    using Model.PackageActions;
+    using PackageActions;
     using PackageUrl;
     using System;
     using System.Collections.Generic;

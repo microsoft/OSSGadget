@@ -6,7 +6,6 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
     using Helpers;
     using Model;
     using Model.Metadata;
-    using Model.PackageActions;
     using Moq;
     using Newtonsoft.Json;
     using oss;

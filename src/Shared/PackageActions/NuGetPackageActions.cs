@@ -1,10 +1,11 @@
 // Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-namespace Microsoft.CST.OpenSource.Model.PackageActions;
+namespace Microsoft.CST.OpenSource.PackageActions;
 
-using Contracts;
-using Helpers;
-using Metadata;
+using Microsoft.CST.OpenSource.Contracts;
+using Microsoft.CST.OpenSource.Helpers;
+using Microsoft.CST.OpenSource.Model.Metadata;
+using Microsoft.CST.OpenSource.Utilities;
 using NLog;
 using NuGet.Packaging.Core;
 using NuGet.Protocol;
@@ -17,7 +18,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Utilities;
 
 public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMetadata>
 {

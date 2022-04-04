@@ -8,13 +8,14 @@ using PackageUrl;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 public class TypedManager<T> : BaseProjectManager where T : IManagerPackageVersionMetadata
 {
     protected readonly IManagerPackageActions<T> _actions;
 
-    public TypedManager(IManagerPackageActions<T> actions, string directory) : base(directory)
+    public TypedManager(IManagerPackageActions<T> actions, IHttpClientFactory httpClientFactory, string directory) : base(httpClientFactory, directory)
     {
         _actions = actions;
     }

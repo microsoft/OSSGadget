@@ -3,6 +3,7 @@
 namespace Microsoft.CST.OpenSource.Tests.Helpers;
 
 using Contracts;
+using Model.Metadata;
 using Moq;
 using NuGet.Versioning;
 using PackageUrl;
@@ -50,7 +51,12 @@ public static class PackageActionsHelper<T> where T : IManagerPackageVersionMeta
                     includePrerelease, 
                     It.IsAny<bool>(), 
                     It.IsAny<CancellationToken>()).Result)
-                    .Returns(versionsArray.Where(v => includePrerelease || !NuGetVersion.Parse(v).IsPrerelease));
+                    .Returns(() =>
+                    {
+                        return typeof(T) == typeof(NuGetPackageVersionMetadata)
+                            ? versionsArray.Where(v => includePrerelease || !NuGetVersion.Parse(v).IsPrerelease)
+                            : versionsArray;
+                    });
 
                 // Mock the call to GetLatestVersionAsync to be the last version in the list that was provided.
                 mockPackageActions.Setup(actions => actions.GetLatestVersionAsync(

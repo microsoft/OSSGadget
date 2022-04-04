@@ -103,7 +103,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             IManagerPackageActions<NuGetPackageVersionMetadata>? nugetPackageActions = PackageActionsHelper<NuGetPackageVersionMetadata>.SetupPackageActions(
                 purl,
                 JsonConvert.DeserializeObject<NuGetPackageVersionMetadata>(_metadata[purl.ToString()]),
-                JsonConvert.DeserializeObject<IEnumerable<string>>(_versions[purl.ToString()]),
+                JsonConvert.DeserializeObject<IEnumerable<string>>(_versions[purl.ToString()])?.Reverse(),
                 includePrerelease: includePrerelease);
             _projectManager = new NuGetProjectManager(".", nugetPackageActions, _mockFactory.Object);
 

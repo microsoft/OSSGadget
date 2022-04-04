@@ -84,6 +84,8 @@ public class CargoPackageActions : IManagerPackageActions<CargoPackageVersionMet
         {
             Logger.Debug(ex, "Error downloading Cargo package: {0}", ex.Message);
         }
+
+        return null;
     }
 
     /// <inheritdoc/>

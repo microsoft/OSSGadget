@@ -3,18 +3,10 @@
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using Contracts;
-    using Extensions;
-    using Helpers;
     using Model.Metadata;
     using Model.PackageActions;
     using PackageUrl;
     using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Net.Http;
-    using System.Text.Json;
-    using System.Threading.Tasks;
 
     internal class CargoProjectManager : TypedManager<CargoPackageVersionMetadata>
     {

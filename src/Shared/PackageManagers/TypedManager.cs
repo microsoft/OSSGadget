@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 public class TypedManager<T> : BaseProjectManager where T : IManagerPackageVersionMetadata
 {
-    private readonly IManagerPackageActions<T> _actions;
+    protected readonly IManagerPackageActions<T> _actions;
 
     public TypedManager(IManagerPackageActions<T> actions, string directory) : base(directory)
     {

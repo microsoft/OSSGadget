@@ -35,7 +35,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {
                 {
                     nameof(CargoProjectManager), destinationDirectory =>
-                        new CargoProjectManager(httpClientFactory, destinationDirectory)
+                        new CargoProjectManager(destinationDirectory, new CargoPackageActions(httpClientFactory))
                 },
                 {
                     nameof(CocoapodsProjectManager), destinationDirectory =>

@@ -45,7 +45,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <summary>
         /// The <see cref="IHttpClientFactory"/> for the manager.
         /// </summary>
-        public IHttpClientFactory HttpClientFactory { get; }
+        public IHttpClientFactory HttpClientFactory { get; init; }
 
         /// <summary>
         /// Extracts GitHub URLs from a given piece of text.

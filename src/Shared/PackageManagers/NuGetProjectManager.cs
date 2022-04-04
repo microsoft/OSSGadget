@@ -18,7 +18,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Text.Json;
     using System.Threading.Tasks;
 
-    public class NuGetProjectManager : BaseProjectManager
+    public class NuGetProjectManager : TypedManager<NuGetPackageVersionMetadata>
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public const string ENV_NUGET_ENDPOINT_API = "https://api.nuget.org";
@@ -28,17 +28,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         private string? RegistrationEndpoint { get; set; } = null;
 
-        private IManagerPackageActions<NuGetPackageVersionMetadata> _nuGetPackageActions { get; }
-
-        public NuGetProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory, IManagerPackageActions<NuGetPackageVersionMetadata> nugetPackageActions) : base(httpClientFactory, destinationDirectory)
+        public NuGetProjectManager(
+            string directory,
+            IManagerPackageActions<NuGetPackageVersionMetadata>? actions = null,
+            IHttpClientFactory? httpClientFactory = null)
+            : base(actions ?? new NuGetPackageActions(), directory)
         {
-            _nuGetPackageActions = nugetPackageActions;
-            GetRegistrationEndpointAsync().Wait();
-        }
-
-        public NuGetProjectManager(string destinationDirectory) : base(destinationDirectory)
-        {
-            _nuGetPackageActions = new NuGetPackageActions();
+            HttpClientFactory = httpClientFactory ?? new DefaultHttpClientFactory();
             GetRegistrationEndpointAsync().Wait();
         }
 
@@ -87,93 +83,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return RegistrationEndpoint;
         }
 
-        /// <summary>
-        /// Download one NuGet package to the target directory and (optionally) extract it.
-        /// </summary>
-        /// <remarks>The target directory is defined when creating the <see cref="NuGetProjectManager"/> in the subdirectory named `nuget-{packagename}@{packageversion}`</remarks>
-        /// <param name="purl">The <see cref="PackageURL"/> of the package to download, requires a version.</param>
-        /// <param name="doExtract">If the contents of the .nupkg should be extracted into a directory.</param>
-        /// <param name="cached">If the downloaded contents should be retrieved from the cache if they exist there.</param>
-        /// <returns>An <see cref="IEnumerable{String}"/> list of the path(s) the contents were downloaded to.</returns>
-        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
-        {
-            ArgumentNullException.ThrowIfNull(purl, nameof(purl));
-            Logger.Trace("DownloadVersion {0}", purl.ToString());
-
-            string packageName = purl.Name;
-            string? packageVersion = purl.Version;
-            List<string> downloadedPaths = new();
-
-            if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
-            {
-                Logger.Debug("Unable to download [{0} {1}]. Both name and version must be defined.", packageName, packageVersion);
-                return downloadedPaths;
-            }
-
-            try
-            {
-                string targetName = $"nuget-{packageName}@{packageVersion}";
-                string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
-                if (doExtract && Directory.Exists(extractionPath) && cached)
-                {
-                    downloadedPaths.Add(extractionPath);
-                    return downloadedPaths;
-                }
-
-                string? downloaded =
-                    await _nuGetPackageActions.DownloadAsync(purl, TopLevelExtractionDirectory, targetName, doExtract, cached: cached);
-
-                if (!string.IsNullOrWhiteSpace(downloaded))
-                {
-                    downloadedPaths.Add(downloaded);
-                }
-
-                return downloadedPaths;
-            }
-            catch (Exception ex)
-            {
-                Logger.Debug(ex, "Error downloading NuGet package: {0}", ex.Message);
-            }
-            return downloadedPaths;
-        }
-
-        /// <inheritdoc />
-        public override async Task<bool> PackageExists(PackageURL purl, bool useCache = true)
-        {
-            Logger.Trace("PackageExists {0}", purl?.ToString());
-            if (string.IsNullOrEmpty(purl?.Name))
-            {
-                Logger.Trace("Provided PackageURL was null.");
-                return false;
-            }
-
-            return await _nuGetPackageActions.DoesPackageExistAsync(purl, useCache: useCache);
-        }
-
-        /// <inheritdoc />
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true, bool includePrerelease = true)
-        {
-            Logger.Trace("EnumerateVersions {0}", purl.ToString());
-
-            if (string.IsNullOrWhiteSpace(purl.Name))
-            {
-                return Array.Empty<string>();
-            }
-
-            try
-            {
-                IEnumerable<string> versions = await _nuGetPackageActions.GetAllVersionsAsync(purl, useCache: useCache, includePrerelease: includePrerelease);
-
-                // Sort versions, highest first, lowest last.
-                return versions.Reverse();
-            }
-            catch (Exception ex)
-            {
-                Logger.Debug("Unable to enumerate versions: {0}", ex.Message);
-                throw;
-            }
-        }
-
         /// <inheritdoc />
         public override async Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
         {
@@ -189,15 +98,16 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 // If no package version provided, default to the latest version.
                 if (string.IsNullOrWhiteSpace(packageVersion))
                 {
-                    string latestVersion = await _nuGetPackageActions.GetLatestVersionAsync(purl);
+                    string latestVersion = await _actions.GetLatestVersionAsync(purl) ??
+                                           throw new InvalidOperationException($"Can't find the latest version of {purl}");
                     packageVersion = latestVersion;
                 }
 
-                // Construct a new PackageURL that's guaranteed to have a  version.
+                // Construct a new PackageURL that's guaranteed to have a version.
                 PackageURL purlWithVersion = new (purl.Type, purl.Namespace, packageName, packageVersion, purl.Qualifiers, purl.Subpath);
                 
                 NuGetPackageVersionMetadata? packageVersionMetadata =
-                    await _nuGetPackageActions.GetMetadataAsync(purlWithVersion, useCache: useCache);
+                    await _actions.GetMetadataAsync(purlWithVersion, useCache: useCache);
 
                 return JsonSerializer.Serialize(packageVersionMetadata);
             }
@@ -216,14 +126,15 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <inheritdoc />
         public override async Task<PackageMetadata?> GetPackageMetadata(PackageURL purl, bool useCache = true)
         {
-            string latestVersion = await _nuGetPackageActions.GetLatestVersionAsync(purl);
+            string? latestVersion = await _actions.GetLatestVersionAsync(purl) ??
+                                    throw new InvalidOperationException($"Can't find the latest version of {purl}");;
 
             // Construct a new PackageURL that's guaranteed to have a version, the latest version is used if no version was provided.
             PackageURL purlWithVersion = !string.IsNullOrWhiteSpace(purl.Version) ? 
                 purl : new PackageURL(purl.Type, purl.Namespace, purl.Name, latestVersion, purl.Qualifiers, purl.Subpath);
 
             NuGetPackageVersionMetadata? packageVersionMetadata =
-                await _nuGetPackageActions.GetMetadataAsync(purlWithVersion, useCache: useCache);
+                await _actions.GetMetadataAsync(purlWithVersion, useCache: useCache);
 
             if (packageVersionMetadata is null)
             {

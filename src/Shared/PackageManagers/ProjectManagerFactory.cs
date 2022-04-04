@@ -80,7 +80,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 },
                 {
                     nameof(NuGetProjectManager), destinationDirectory =>
-                        new NuGetProjectManager(httpClientFactory, destinationDirectory, nugetPackageActions ?? new NuGetPackageActions()) // Add the NuGetPackageActions to the NuGetProjectManager.
+                        new NuGetProjectManager(destinationDirectory, nugetPackageActions ?? new NuGetPackageActions(), httpClientFactory) // Add the NuGetPackageActions to the NuGetProjectManager.
                 },
                 {
                     nameof(PyPIProjectManager), destinationDirectory =>

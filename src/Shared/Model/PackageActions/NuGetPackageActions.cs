@@ -36,8 +36,19 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
     {
         FindPackageByIdResource resource = await _sourceRepository.GetResourceAsync<FindPackageByIdResource>();
 
+        // Construct the path for the nupkg file.
+        string filePath = Path.ChangeExtension(Path.Join(topLevelDirectory, targetDirectory), Path.GetExtension(targetDirectory) + ".nupkg");
+
         // Create a new memory stream to populate with the .nupkg.
-        using MemoryStream packageStream = new();
+        int bufferSize = 4096;
+        await using FileStream packageStream = new FileStream(
+            filePath,
+            FileMode.Create,
+            FileAccess.ReadWrite,
+            FileShare.ReadWrite,
+            bufferSize,
+            doExtract ? FileOptions.DeleteOnClose : FileOptions.None);
+        // If we want to extract the archive, delete the .nupgkg on close, otherwise keep it.
 
         bool downloaded = await resource.CopyNupkgToStreamAsync(
             packageUrl.Name,
@@ -59,8 +70,6 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
             return await ArchiveHelper.ExtractArchiveAsync(topLevelDirectory, targetDirectory, packageStream, cached);
         }
 
-        string filePath = Path.ChangeExtension(targetDirectory, ".nupkg");
-        await File.WriteAllBytesAsync(filePath, packageStream.ToArray(), cancellationToken);
         return filePath;
     }
 

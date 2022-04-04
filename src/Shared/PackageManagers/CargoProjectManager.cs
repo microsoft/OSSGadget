@@ -18,6 +18,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     internal class CargoProjectManager : BaseProjectManager
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
+        public static string ENV_CARGO_ENDPOINT = "https://crates.io";
+        
         private IManagerPackageActions<CargoPackageVersionMetadata> _actions;
         public CargoProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory, IManagerPackageActions<CargoPackageVersionMetadata>? actions = null) : base(httpClientFactory, destinationDirectory)
         {
@@ -36,6 +39,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <returns> Path to the downloaded package </returns>
         public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
         {
+            // This could be simplified.
             ArgumentNullException.ThrowIfNull(purl, nameof(purl));
             Logger.Trace("DownloadVersion {0}", purl.ToString());
             string? fileName = purl.ToStringFilename();
@@ -55,67 +59,23 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <inheritdoc />
         public override async Task<bool> PackageExists(PackageURL purl, bool useCache = true)
         {
-            Logger.Trace("PackageExists {0}", purl?.ToString());
-            if (string.IsNullOrEmpty(purl?.Name))
-            {
-                Logger.Trace("Provided PackageURL was null.");
-                return false;
-            }
-            string packageName = purl.Name;
-            HttpClient httpClient = CreateHttpClient();
-            return await CheckJsonCacheForPackage(httpClient, $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}", useCache);
+            ArgumentNullException.ThrowIfNull(purl, nameof(purl));
+            Logger.Trace("PackageExists {0}", purl.ToString());
+            return await _actions.DoesPackageExistAsync(purl, useCache);
         }
 
         /// <inheritdoc />
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
         {
-            Logger.Trace("EnumerateVersions {0}", purl?.ToString());
-            if (purl == null || purl.Name is null)
-            {
-                return new List<string>();
-            }
-
-            try
-            {
-                string? packageName = purl.Name;
-                HttpClient httpClient = CreateHttpClient();
-                JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}");
-                List<string> versionList = new();
-                foreach (JsonElement versionObject in doc.RootElement.GetProperty("versions").EnumerateArray())
-                {
-                    if (versionObject.TryGetProperty("num", out JsonElement version))
-                    {
-                        Logger.Debug("Identified {0} version {1}.", packageName, version.ToString());
-                        if (version.ToString() is string s)
-                        {
-                            versionList.Add(s);
-                        }
-                    }
-                }
-                return SortVersions(versionList.Distinct());
-            }
-            catch (Exception ex)
-            {
-                Logger.Debug("Unable to enumerate versions: {0}", ex.Message);
-                throw;
-            }
+            ArgumentNullException.ThrowIfNull(purl, nameof(purl));
+            Logger.Trace("EnumerateVersions {0}", purl.ToString());
+            return await _actions.GetAllVersionsAsync(purl, useCache);
         }
 
         /// <inheritdoc />
         public override async Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
         {
-            try
-            {
-                string? packageName = purl.Name;
-                HttpClient httpClient = CreateHttpClient();
-                string? content = await GetHttpStringCache(httpClient, $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}", useCache);
-                return content;
-            }
-            catch (Exception ex)
-            {
-                Logger.Debug(ex, "Error fetching Cargo metadata: {0}", ex.Message);
-                throw;
-            }
+            return (await _actions.GetMetadataAsync(purl, useCache)).ToString();
         }
 
         public override Uri GetPackageAbsoluteUri(PackageURL purl)

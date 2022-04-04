@@ -50,8 +50,8 @@ public interface IManagerPackageActions<T> where T : IManagerPackageVersionMetad
     /// <param name="includePrerelease">If pre-release/beta versions should be included.</param>
     /// <param name="useCache">If the cache should be checked for the latest of this package.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to be used in the method call, defaults to <see cref="CancellationToken.None"/>.</param>
-    /// <returns>The latest version of the <paramref name="packageUrl"/>.</returns>
-    Task<string> GetLatestVersionAsync(PackageURL packageUrl, bool includePrerelease = false, bool useCache = true, CancellationToken cancellationToken = default);
+    /// <returns>The latest version of the <paramref name="packageUrl"/> or null if there are no versions.</returns>
+    Task<string?> GetLatestVersionAsync(PackageURL packageUrl, bool includePrerelease = false, bool useCache = true, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the <see cref="T"/> for this package version.

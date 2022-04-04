@@ -58,67 +58,67 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return new Dictionary<string, ConstructProjectManager>(StringComparer.InvariantCultureIgnoreCase)
             {
                 {
-                    nameof(CargoProjectManager), destinationDirectory =>
+                    "Cargo", destinationDirectory =>
                         new CargoProjectManager(destinationDirectory, new CargoPackageActions(httpClientFactory))
                 },
                 {
-                    nameof(CocoapodsProjectManager), destinationDirectory =>
+                    "Cocoapods", destinationDirectory =>
                         new CocoapodsProjectManager(httpClientFactory, destinationDirectory)
                 },
                 {
-                    nameof(ComposerProjectManager), destinationDirectory =>
+                    "Composer", destinationDirectory =>
                         new ComposerProjectManager(httpClientFactory, destinationDirectory)
                 },
                 {
-                    nameof(CPANProjectManager), destinationDirectory =>
+                    "CPAN", destinationDirectory =>
                         new CPANProjectManager(httpClientFactory, destinationDirectory)
                 },
                 {
-                    nameof(CRANProjectManager), destinationDirectory =>
+                    "CRAN", destinationDirectory =>
                         new CRANProjectManager(httpClientFactory, destinationDirectory)
                 },
                 {
-                    nameof(GemProjectManager), destinationDirectory =>
+                    "Gem", destinationDirectory =>
                         new GemProjectManager(httpClientFactory, destinationDirectory)
                 },
                 {
-                    nameof(GitHubProjectManager), destinationDirectory =>
+                    "GitHub", destinationDirectory =>
                         new GitHubProjectManager(httpClientFactory, destinationDirectory)
                 },
                 {
-                    nameof(GolangProjectManager), destinationDirectory =>
+                    "Golang", destinationDirectory =>
                         new GolangProjectManager(httpClientFactory, destinationDirectory)
                 },
                 {
-                    nameof(HackageProjectManager), destinationDirectory =>
+                    "Hackage", destinationDirectory =>
                         new HackageProjectManager(httpClientFactory, destinationDirectory)
                 },
                 {
-                    nameof(MavenProjectManager), destinationDirectory =>
+                    "Maven", destinationDirectory =>
                         new MavenProjectManager(httpClientFactory, destinationDirectory)
                 },
                 {
-                    nameof(NPMProjectManager), destinationDirectory =>
+                    "NPM", destinationDirectory =>
                         new NPMProjectManager(httpClientFactory, destinationDirectory)
                 },
                 {
-                    nameof(NuGetProjectManager), destinationDirectory =>
+                    "NuGet", destinationDirectory =>
                         new NuGetProjectManager(destinationDirectory, new NuGetPackageActions(), httpClientFactory) // Add the NuGetPackageActions to the NuGetProjectManager.
                 },
                 {
-                    nameof(PyPIProjectManager), destinationDirectory =>
+                    "PyPI", destinationDirectory =>
                         new PyPIProjectManager(httpClientFactory, destinationDirectory)
                 },
                 {
-                    nameof(UbuntuProjectManager), destinationDirectory =>
+                    "Ubuntu", destinationDirectory =>
                         new UbuntuProjectManager(httpClientFactory, destinationDirectory)
                 },
                 {
-                    nameof(URLProjectManager), destinationDirectory =>
+                    "URL", destinationDirectory =>
                         new URLProjectManager(httpClientFactory, destinationDirectory)
                 },
                 {
-                    nameof(VSMProjectManager), destinationDirectory =>
+                    "VSM", destinationDirectory =>
                         new VSMProjectManager(httpClientFactory, destinationDirectory)
                 },
             };
@@ -132,7 +132,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public BaseProjectManager? CreateProjectManager(PackageURL purl, string destinationDirectory = ".")
         {
             // TODO: This should do lookups based directly on the purl.Type - not add ProjectManager to it.
-            ConstructProjectManager? projectManager = _projectManagers.GetValueOrDefault($"{purl.Type}ProjectManager");
+            ConstructProjectManager? projectManager = _projectManagers.GetValueOrDefault(purl.Type);
 
             return projectManager?.Invoke(destinationDirectory);
         }

@@ -22,7 +22,10 @@ public interface IManagerPackageActions<T> where T : IManagerPackageVersionMetad
     /// <param name="doExtract">If the contents of the archive should be extracted.</param>
     /// <param name="cached">If the downloaded contents should be retrieved from the cache if they exist there.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to be used in the method call, defaults to <see cref="CancellationToken.None"/>.</param>
-    /// <returns>The location of the download, or null if the download failed.</returns>
+    /// <returns>
+    /// The location of the downloaded file, or the location of the directory if extracted.
+    /// Otherwise returns null if the download failed.
+    /// </returns>
     Task<string?> DownloadAsync(PackageURL packageUrl, string topLevelDirectory, string targetDirectory, bool doExtract, bool cached = false, CancellationToken cancellationToken = default);
 
     /// <summary>

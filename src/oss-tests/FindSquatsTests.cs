@@ -283,7 +283,7 @@ namespace Microsoft.CST.OpenSource.Tests
 
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpMock.ToHttpClient());
 
-            NuGetPackageActions packageActions = PackageActionsHelper<NuGetPackageActions, NuGetPackageVersionMetadata>.SetupPackageActions(newtonsoft, validSquats: squattingPackages) ?? throw new InvalidOperationException();
+            IManagerPackageActions<NuGetPackageVersionMetadata> packageActions = PackageActionsHelper<NuGetPackageVersionMetadata>.SetupPackageActions(newtonsoft, validSquats: squattingPackages) ?? throw new InvalidOperationException();
             FindPackageSquats findPackageSquats = new(new ProjectManagerFactory(mockFactory.Object, nugetPackageActions: packageActions), newtonsoft);
 
             // act

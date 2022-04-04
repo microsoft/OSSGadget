@@ -27,9 +27,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         private const string NUGET_DEFAULT_CONTENT_ENDPOINT = "https://api.nuget.org/v3-flatcontainer/";
 
         private string? RegistrationEndpoint { get; set; } = null;
-        private NuGetPackageActions _nuGetPackageActions { get; }
 
-        public NuGetProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory, NuGetPackageActions nugetPackageActions) : base(httpClientFactory, destinationDirectory)
+        private IManagerPackageActions<NuGetPackageVersionMetadata> _nuGetPackageActions { get; }
+
+        public NuGetProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory, IManagerPackageActions<NuGetPackageVersionMetadata> nugetPackageActions) : base(httpClientFactory, destinationDirectory)
         {
             _nuGetPackageActions = nugetPackageActions;
             GetRegistrationEndpointAsync().Wait();
@@ -156,7 +157,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             if (string.IsNullOrWhiteSpace(purl.Name))
             {
-                return new List<string>();
+                return Array.Empty<string>();
             }
 
             try

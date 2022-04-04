@@ -9,21 +9,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
-public static class PackageActionsHelper<T, TM> where TM : IManagerPackageVersionMetadata where T : class, IManagerPackageActions<TM>
+public static class PackageActionsHelper<T> where T : IManagerPackageVersionMetadata
 {
     /// <summary>
-    /// Set up a mock of <see cref="T"/> for this test run.
+    /// Set up a mock of <see cref="IManagerPackageActions{T}"/> for this test run.
     /// </summary>
     /// <param name="purl">The <see cref="PackageURL"/> to use when configuring the mocked calls for this manager.</param>
-    /// <param name="metadata">The <see cref="IManagerPackageVersionMetadata"/> to use when returning the call to
-    /// <see cref="T"/>.</param>
+    /// <param name="metadata">The <see cref="T"/> to use when returning the call to <see cref="IManagerPackageActions{T}.GetMetadataAsync"/>.</param>
     /// <param name="versions">The list of versions to return when mocking the call 
-    /// to <see cref="T"/>.</param>
-    /// <param name="validSquats">The list of squats to populate the mock to <see cref="T"/>.</param>
-    /// <returns>A Mocked <see cref="TM"/>.</returns>
-    public static T? SetupPackageActions(PackageURL? purl = null, TM? metadata = default, IEnumerable<string>? versions = null, IEnumerable<string>? validSquats = null) 
+    /// to <see cref="IManagerPackageActions{T}.GetAllVersionsAsync"/>.</param>
+    /// <param name="validSquats">The list of squats to populate the mock to <see cref="IManagerPackageActions{T}.DoesPackageExistAsync"/>.</param>
+    /// <returns>A Mocked <see cref="IManagerPackageActions{T}"/>.</returns>
+    public static IManagerPackageActions<T>? SetupPackageActions(PackageURL? purl = null, T? metadata = default, IEnumerable<string>? versions = null, IEnumerable<string>? validSquats = null) 
     {
-        Mock<T> mockPackageActions = new();
+        Mock<IManagerPackageActions<T>> mockPackageActions = new();
 
         if (purl is not null)
         {
@@ -67,6 +66,6 @@ public static class PackageActionsHelper<T, TM> where TM : IManagerPackageVersio
         }
 
         // Return the mocked package actions object.
-        return mockPackageActions.Object as T;
+        return mockPackageActions.Object;
     }
 }

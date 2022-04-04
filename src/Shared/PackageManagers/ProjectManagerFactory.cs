@@ -3,6 +3,7 @@
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using Contracts;
+    using Model.Metadata;
     using Model.PackageActions;
     using PackageUrl;
     using System;
@@ -27,7 +28,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// </summary>
         /// <param name="httpClientFactoryParam">The <see cref="IHttpClientFactory"/> to use in the project managers.</param>
         /// <param name="nugetPackageActions">The <see cref="NuGetPackageActions"/> to use in the <see cref="NuGetProjectManager"/>.</param>
-        public ProjectManagerFactory(IHttpClientFactory? httpClientFactoryParam = null, NuGetPackageActions? nugetPackageActions = null)
+        public ProjectManagerFactory(IHttpClientFactory? httpClientFactoryParam = null, IManagerPackageActions<NuGetPackageVersionMetadata>? nugetPackageActions = null)
         {
             // If the httpClientFactory parameter is null, set the factory to the DefaultHttpClientFactory.
             IHttpClientFactory httpClientFactory = httpClientFactoryParam ?? new DefaultHttpClientFactory();

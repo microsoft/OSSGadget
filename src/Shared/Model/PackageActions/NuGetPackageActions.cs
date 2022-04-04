@@ -5,7 +5,6 @@ namespace Microsoft.CST.OpenSource.Model.PackageActions;
 using Contracts;
 using Helpers;
 using Metadata;
-using Microsoft.CST.OpenSource.PackageManagers;
 using NLog;
 using NuGet.Packaging.Core;
 using NuGet.Protocol;

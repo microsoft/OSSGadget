@@ -69,7 +69,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public async Task MetadataSucceeds(string purlString, string? description = null, string? authors = null, string? latestVersion = null)
         {
             PackageURL purl = new(purlString);
-            NuGetPackageActions? nugetPackageActions = PackageActionsHelper<NuGetPackageActions, NuGetPackageVersionMetadata>.SetupPackageActions(
+            IManagerPackageActions<NuGetPackageVersionMetadata>? nugetPackageActions = PackageActionsHelper<NuGetPackageVersionMetadata>.SetupPackageActions(
                 purl,
                 JsonConvert.DeserializeObject<NuGetPackageVersionMetadata>(_metadata[purl.ToString()]),
                 JsonConvert.DeserializeObject<IEnumerable<string>>(_versions[purl.ToString()]));
@@ -96,7 +96,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public async Task EnumerateVersionsSucceeds(string purlString, int count, string latestVersion)
         {
             PackageURL purl = new(purlString);
-            NuGetPackageActions? nugetPackageActions = PackageActionsHelper<NuGetPackageActions, NuGetPackageVersionMetadata>.SetupPackageActions(
+            IManagerPackageActions<NuGetPackageVersionMetadata>? nugetPackageActions = PackageActionsHelper<NuGetPackageVersionMetadata>.SetupPackageActions(
                 purl,
                 JsonConvert.DeserializeObject<NuGetPackageVersionMetadata>(_metadata[purl.ToString()]),
                 JsonConvert.DeserializeObject<IEnumerable<string>>(_versions[purl.ToString()]));

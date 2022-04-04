@@ -4,6 +4,7 @@ namespace Microsoft.CST.OpenSource.Tests.Helpers;
 
 using Contracts;
 using Moq;
+using NuGet.Versioning;
 using PackageUrl;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,8 +20,14 @@ public static class PackageActionsHelper<T> where T : IManagerPackageVersionMeta
     /// <param name="versions">The list of versions to return when mocking the call 
     /// to <see cref="IManagerPackageActions{T}.GetAllVersionsAsync"/>.</param>
     /// <param name="validSquats">The list of squats to populate the mock to <see cref="IManagerPackageActions{T}.DoesPackageExistAsync"/>.</param>
+    /// <param name="includePrerelease">If pre-release/beta versions should be included.</param>
     /// <returns>A Mocked <see cref="IManagerPackageActions{T}"/>.</returns>
-    public static IManagerPackageActions<T>? SetupPackageActions(PackageURL? purl = null, T? metadata = default, IEnumerable<string>? versions = null, IEnumerable<string>? validSquats = null) 
+    public static IManagerPackageActions<T>? SetupPackageActions(
+        PackageURL? purl = null,
+        T? metadata = default,
+        IEnumerable<string>? versions = null,
+        IEnumerable<string>? validSquats = null,
+        bool includePrerelease = true) 
     {
         Mock<IManagerPackageActions<T>> mockPackageActions = new();
 
@@ -39,8 +46,11 @@ public static class PackageActionsHelper<T> where T : IManagerPackageVersionMeta
                 // Mock the list of versions if the list was provided.
                 IEnumerable<string> versionsArray = versions as string[] ?? versions.ToArray();
                 mockPackageActions.Setup(actions => actions.GetAllVersionsAsync(
-                    It.Is<PackageURL>(p => p.Name.Equals(purl.Name)), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()).Result).Returns(
-                    versionsArray);
+                    It.Is<PackageURL>(p => p.Name.Equals(purl.Name)), 
+                    includePrerelease, 
+                    It.IsAny<bool>(), 
+                    It.IsAny<CancellationToken>()).Result)
+                    .Returns(versionsArray.Where(v => includePrerelease || !NuGetVersion.Parse(v).IsPrerelease));
 
                 // Mock the call to GetLatestVersionAsync to be the last version in the list that was provided.
                 mockPackageActions.Setup(actions => actions.GetLatestVersionAsync(

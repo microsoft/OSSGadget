@@ -162,7 +162,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             try
             {
-                IEnumerable<string> versions = await _nuGetPackageActions.GetAllVersionsAsync(purl, useCache: useCache);
+                IEnumerable<string> versions = await _nuGetPackageActions.GetAllVersionsAsync(purl, useCache: useCache, includePrerelease: includePrerelease);
 
                 // Sort versions, highest first, lowest last.
                 return versions.Reverse();

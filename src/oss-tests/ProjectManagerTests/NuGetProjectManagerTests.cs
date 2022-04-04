@@ -92,16 +92,22 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         [DataTestMethod]
         [DataRow("pkg:nuget/razorengine@4.2.3-beta1", 84, "4.5.1-alpha001")]
         [DataRow("pkg:nuget/razorengine", 84, "4.5.1-alpha001")]
-        public async Task EnumerateVersionsSucceeds(string purlString, int count, string latestVersion)
+        [DataRow("pkg:nuget/razorengine", 40, "3.10.0", false)]
+        public async Task EnumerateVersionsSucceeds(
+            string purlString, 
+            int count, 
+            string latestVersion, 
+            bool includePrerelease = true)
         {
             PackageURL purl = new(purlString);
             IManagerPackageActions<NuGetPackageVersionMetadata>? nugetPackageActions = PackageActionsHelper<NuGetPackageVersionMetadata>.SetupPackageActions(
                 purl,
                 JsonConvert.DeserializeObject<NuGetPackageVersionMetadata>(_metadata[purl.ToString()]),
-                JsonConvert.DeserializeObject<IEnumerable<string>>(_versions[purl.ToString()]));
+                JsonConvert.DeserializeObject<IEnumerable<string>>(_versions[purl.ToString()]),
+                includePrerelease: includePrerelease);
             _projectManager = new NuGetProjectManager(_mockFactory.Object, ".", nugetPackageActions);
 
-            List<string> versions = (await _projectManager.EnumerateVersions(purl, useCache: false)).ToList();
+            List<string> versions = (await _projectManager.EnumerateVersions(purl, false, includePrerelease)).ToList();
 
             Assert.AreEqual(count, versions.Count);
             Assert.AreEqual(latestVersion, versions.First());

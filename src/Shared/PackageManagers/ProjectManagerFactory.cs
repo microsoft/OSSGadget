@@ -15,7 +15,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// The delegate to use when defining the function to create a project manager with.
         /// The only runtime parameter we need is the destination directory. Everything else can be defined in the constructor.
         /// </summary>
-        private delegate BaseProjectManager? ConstructProjectManager(string destinationDirectory = ".");
+        public delegate BaseProjectManager? ConstructProjectManager(string destinationDirectory = ".");
 
         /// <summary>
         /// The dictionary of project managers.
@@ -25,13 +25,37 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <summary>
         /// Initializes a new instance of a <see cref="ProjectManagerFactory"/>.
         /// </summary>
-        /// <param name="httpClientFactoryParam">The <see cref="IHttpClientFactory"/> to use in the project managers.</param>
-        /// <param name="nugetPackageActions">The <see cref="NuGetPackageActions"/> to use in the <see cref="NuGetProjectManager"/>.</param>
-        public ProjectManagerFactory(IHttpClientFactory? httpClientFactoryParam = null, NuGetPackageActions? nugetPackageActions = null)
+        /// <param name="projectManagersIn">Use a custom set of managers</param>
+        public ProjectManagerFactory(Dictionary<string, ConstructProjectManager> projectManagersIn)
+        {
+            _projectManagers = projectManagersIn;
+        }
+
+        public ProjectManagerFactory(IHttpClientFactory? httpClientFactory = null)
+        {
+            _projectManagers = CreateDefaultManagers(httpClientFactory);
+        }
+
+        public bool UnsetManager(string lookup)
+        {
+            return _projectManagers.Remove(lookup);
+        }
+
+        public void SetManager(string lookup, ConstructProjectManager generator)
+        {
+            _projectManagers[lookup] = generator;
+        }
+
+        public void ClearManagers()
+        {
+            _projectManagers.Clear();
+        }
+
+        public Dictionary<string, ConstructProjectManager> CreateDefaultManagers(IHttpClientFactory? httpClientFactoryParam = null)
         {
             // If the httpClientFactory parameter is null, set the factory to the DefaultHttpClientFactory.
             IHttpClientFactory httpClientFactory = httpClientFactoryParam ?? new DefaultHttpClientFactory();
-            _projectManagers = new Dictionary<string, ConstructProjectManager>(StringComparer.InvariantCultureIgnoreCase)
+            return new Dictionary<string, ConstructProjectManager>(StringComparer.InvariantCultureIgnoreCase)
             {
                 {
                     nameof(CargoProjectManager), destinationDirectory =>
@@ -79,7 +103,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 },
                 {
                     nameof(NuGetProjectManager), destinationDirectory =>
-                        new NuGetProjectManager(destinationDirectory, nugetPackageActions ?? new NuGetPackageActions(), httpClientFactory) // Add the NuGetPackageActions to the NuGetProjectManager.
+                        new NuGetProjectManager(destinationDirectory, new NuGetPackageActions(), httpClientFactory) // Add the NuGetPackageActions to the NuGetProjectManager.
                 },
                 {
                     nameof(PyPIProjectManager), destinationDirectory =>
@@ -99,7 +123,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 },
             };
         }
-
         /// <summary>
         /// Creates an appropriate project manager for a package given its PackageURL.
         /// </summary>
@@ -108,6 +131,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <returns>The implementation of <see cref="BaseProjectManager"/> for this <paramref name="purl"/>'s type.</returns>
         public BaseProjectManager? CreateProjectManager(PackageURL purl, string destinationDirectory = ".")
         {
+            // TODO: This should do lookups based directly on the purl.Type - not add ProjectManager to it.
             ConstructProjectManager? projectManager = _projectManagers.GetValueOrDefault($"{purl.Type}ProjectManager");
 
             return projectManager?.Invoke(destinationDirectory);
@@ -120,9 +144,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <param name="httpClientFactory">The <see cref="IHttpClientFactory"/> to optionally add.</param>
         /// <param name="nugetPackageActions">The <see cref="NuGetPackageActions"/> to use in the <see cref="NuGetProjectManager"/>.</param>
         /// <returns>A new <see cref="BaseProjectManager"/> implementation.</returns>
-        public static BaseProjectManager? GetProjectManager(PackageURL packageUrl, IHttpClientFactory? httpClientFactory = null, NuGetPackageActions? nugetPackageActions = null)
+        public static BaseProjectManager? GetProjectManager(PackageURL packageUrl, IHttpClientFactory? httpClientFactory = null)
         {
-            return new ProjectManagerFactory(httpClientFactory, nugetPackageActions).CreateProjectManager(packageUrl);
+            return new ProjectManagerFactory(httpClientFactory).CreateProjectManager(packageUrl);
         }
     }
 }

@@ -15,7 +15,6 @@ namespace Microsoft.CST.OpenSource
 {
     using PackageManagers;
     using PackageUrl;
-    using System.Net.Http;
 
     public class FindSourceTool : OSSGadget
     {
@@ -25,10 +24,6 @@ namespace Microsoft.CST.OpenSource
         };
 
         public FindSourceTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
-        {
-        }
-
-        public FindSourceTool(IHttpClientFactory httpClientFactory) : this(new ProjectManagerFactory(httpClientFactory))
         {
         }
 

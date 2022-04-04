@@ -19,7 +19,6 @@ namespace Microsoft.CST.OpenSource
 {
     using PackageManagers;
     using PackageUrl;
-    using System.Net.Http;
 
     public class RiskCalculatorTool : OSSGadget
     {
@@ -72,14 +71,9 @@ namespace Microsoft.CST.OpenSource
         {
         }
 
-        public RiskCalculatorTool(IHttpClientFactory httpClientFactory) : this(new ProjectManagerFactory(httpClientFactory))
-        {
-        }
-
         public RiskCalculatorTool() : this(new ProjectManagerFactory())
         {
         }
-
 
         /// <summary>
         /// Calculates project risk based on health and characteristics.

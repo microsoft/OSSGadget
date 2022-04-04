@@ -13,16 +13,11 @@ namespace Microsoft.CST.OpenSource
 {
     using Microsoft.CST.OpenSource.PackageManagers;
     using PackageUrl;
-    using System.Net.Http;
 
     public class HealthTool : OSSGadget
     {
         
         public HealthTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
-        {
-        }
-
-        public HealthTool(IHttpClientFactory httpClientFactory) : this(new ProjectManagerFactory(httpClientFactory))
         {
         }
 

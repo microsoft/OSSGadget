@@ -11,7 +11,6 @@ namespace Microsoft.CST.OpenSource
 {
     using PackageManagers;
     using PackageUrl;
-    using System.Net.Http;
 
     public class DownloadTool : OSSGadget
     {
@@ -58,10 +57,6 @@ namespace Microsoft.CST.OpenSource
         }
 
         public DownloadTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
-        {
-        }
-
-        public DownloadTool(IHttpClientFactory httpClientFactory) : this(new ProjectManagerFactory(httpClientFactory))
         {
         }
 

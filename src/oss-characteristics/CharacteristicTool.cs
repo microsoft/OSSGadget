@@ -18,7 +18,6 @@ namespace Microsoft.CST.OpenSource
 {
     using PackageManagers;
     using PackageUrl;
-    using System.Net.Http;
 
     public class CharacteristicTool : OSSGadget
     {
@@ -75,10 +74,6 @@ namespace Microsoft.CST.OpenSource
         }
 
         public CharacteristicTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
-        {
-        }
-
-        public CharacteristicTool(IHttpClientFactory httpClientFactory) : this(new ProjectManagerFactory(httpClientFactory))
         {
         }
 

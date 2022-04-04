@@ -14,7 +14,6 @@ namespace Microsoft.CST.OpenSource
 {
     using PackageManagers;
     using PackageUrl;
-    using System.Net.Http;
 
     public class DefoggerTool : OSSGadget
     {
@@ -368,10 +367,6 @@ namespace Microsoft.CST.OpenSource
             BinaryFindings = new List<EncodedBinary>();
             ArchiveFindings = new List<EncodedArchive>();
             NonTextFindings = new List<EncodedBlob>();
-        }
-
-        public DefoggerTool(IHttpClientFactory httpClientFactory) : this(new ProjectManagerFactory(httpClientFactory))
-        {
         }
 
         public DefoggerTool() : this(new ProjectManagerFactory())

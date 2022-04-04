@@ -14,7 +14,6 @@ using static Crayon.Output;
 namespace Microsoft.CST.OpenSource
 {
     using PackageManagers;
-    using System.Net.Http;
 
     public class DetectBackdoorTool : OSSGadget
     {
@@ -55,10 +54,6 @@ namespace Microsoft.CST.OpenSource
         public DetectBackdoorTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
         {
             RULE_DIRECTORY = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "BackdoorRules");
-        }
-
-        public DetectBackdoorTool(IHttpClientFactory httpClientFactory) : this(new ProjectManagerFactory(httpClientFactory))
-        {
         }
 
         public DetectBackdoorTool() : this(new ProjectManagerFactory())

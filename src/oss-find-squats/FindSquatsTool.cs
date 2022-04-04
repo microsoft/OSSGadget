@@ -13,7 +13,6 @@ namespace Microsoft.CST.OpenSource.FindSquats
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Net.Http;
     using System.Threading.Tasks;
     using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
 
@@ -54,10 +53,6 @@ namespace Microsoft.CST.OpenSource.FindSquats
         }
 
         public FindSquatsTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
-        {
-        }
-
-        public FindSquatsTool(IHttpClientFactory httpClientFactory) : this(new ProjectManagerFactory(httpClientFactory))
         {
         }
 

@@ -25,7 +25,6 @@ namespace Microsoft.CST.OpenSource
     using Helpers;
     using Microsoft.CST.OpenSource.PackageManagers;
     using PackageUrl;
-    using System.Net.Http;
 
     public class DetectCryptographyTool : OSSGadget
     {
@@ -237,10 +236,6 @@ namespace Microsoft.CST.OpenSource
         }
 
         public DetectCryptographyTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
-        {
-        }
-
-        public DetectCryptographyTool(IHttpClientFactory httpClientFactory) : this(new ProjectManagerFactory(httpClientFactory))
         {
         }
 

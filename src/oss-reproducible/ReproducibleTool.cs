@@ -17,7 +17,6 @@ namespace Microsoft.CST.OpenSource
     using Microsoft.CST.OpenSource.Helpers;
     using PackageManagers;
     using PackageUrl;
-    using System.Net.Http;
 
     public enum DiffTechnique
     {
@@ -76,10 +75,6 @@ namespace Microsoft.CST.OpenSource
         }
 
         public ReproducibleTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
-        {
-        }
-
-        public ReproducibleTool(IHttpClientFactory httpClientFactory) : this(new ProjectManagerFactory(httpClientFactory))
         {
         }
 

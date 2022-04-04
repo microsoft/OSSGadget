@@ -23,7 +23,6 @@ namespace Microsoft.CST.OpenSource.DiffTool
     using Microsoft.CST.OpenSource.Helpers;
     using Microsoft.CST.OpenSource.PackageManagers;
     using PackageUrl;
-    using System.Net.Http;
 
     class DiffTool : OSSGadget
     {
@@ -86,10 +85,6 @@ namespace Microsoft.CST.OpenSource.DiffTool
         }
 
         public DiffTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
-        {
-        }
-
-        public DiffTool(IHttpClientFactory httpClientFactory) : this(new ProjectManagerFactory(httpClientFactory))
         {
         }
 

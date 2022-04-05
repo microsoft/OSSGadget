@@ -2,15 +2,12 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
-    using Microsoft.CST.RecursiveExtractor;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.CST.OpenSource.Model;
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using System.Net.Http;
-    using System.Text;
     using System.Text.Json;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
@@ -24,7 +21,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// The type of the project manager from the package-url type specifications.
         /// </summary>
         /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
-        public static readonly string Type = null!;
+        public const string Type = null!;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BaseProjectManager"/> class.

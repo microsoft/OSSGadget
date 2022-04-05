@@ -14,6 +14,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     internal class MavenProjectManager : BaseProjectManager
     {
+        /// <inheritdoc cref="BaseProjectManager.Type"/>
+        public new const string Type = "maven";
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_MAVEN_ENDPOINT = "https://repo1.maven.org/maven2";
 
@@ -101,7 +104,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
+        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true, bool includePrerelease = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
             if (purl is null || purl.Name is null || purl.Namespace is null)

@@ -16,6 +16,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     internal class GitHubProjectManager : BaseProjectManager
     {
+        /// <inheritdoc cref="BaseProjectManager.Type"/>
+        public new const string Type = "github";
+
         public static string ENV_GITHUB_ENDPOINT = "https://github.com";
 
         public GitHubProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
@@ -172,7 +175,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
+        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true, bool includePrerelease = true)
         {
             try
             {

@@ -18,6 +18,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     public class PyPIProjectManager : BaseProjectManager
     {
+        /// <inheritdoc cref="BaseProjectManager.Type"/>
+        public new const string Type = "pypi";
+
         public static string ENV_PYPI_ENDPOINT { get; set; } = "https://pypi.org";
 
         public PyPIProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
@@ -115,7 +118,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
+        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true, bool includePrerelease = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
             if (purl == null || purl.Name is null)
@@ -175,7 +178,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
-        public override async Task<PackageMetadata> GetPackageMetadata(PackageURL purl, bool useCache = true)
+        public override async Task<PackageMetadata?> GetPackageMetadata(PackageURL purl, bool useCache = true)
         {
             PackageMetadata metadata = new();
             string? content = await GetMetadata(purl, useCache);

@@ -15,6 +15,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     internal class GemProjectManager : BaseProjectManager
     {
+        /// <inheritdoc cref="BaseProjectManager.Type"/>
+        public new const string Type = "gem";
+
         public static string ENV_RUBYGEMS_ENDPOINT = "https://rubygems.org";
         public static string ENV_RUBYGEMS_ENDPOINT_API = "https://api.rubygems.org";
 
@@ -95,7 +98,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
+        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true, bool includePrerelease = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
             if (purl == null || purl.Name is null)

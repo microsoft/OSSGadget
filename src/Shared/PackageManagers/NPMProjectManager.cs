@@ -18,6 +18,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     public class NPMProjectManager : BaseProjectManager
     {
+        /// <inheritdoc cref="BaseProjectManager.Type"/>
+        public new const string Type = "npm";
+
         public static string ENV_NPM_API_ENDPOINT { get; set; } = "https://registry.npmjs.org";
         public static string ENV_NPM_ENDPOINT { get; set; } = "https://www.npmjs.com";
 
@@ -98,7 +101,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
+        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true, bool includePrerelease = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
             if (purl?.Name is null)
@@ -186,7 +189,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
-        public override async Task<PackageMetadata> GetPackageMetadata(PackageURL purl, bool useCache = true)
+        public override async Task<PackageMetadata?> GetPackageMetadata(PackageURL purl, bool useCache = true)
         {
             PackageMetadata metadata = new();
             string? content = await GetMetadata(purl, useCache);

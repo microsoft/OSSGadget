@@ -18,19 +18,25 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using Version = SemanticVersioning.Version;
     using PackageUrl;
 
-    public class BaseProjectManager
+    public abstract class BaseProjectManager
     {
+        /// <summary>
+        /// The type of the project manager from the package-url type specifications.
+        /// </summary>
+        /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
+        public static readonly string Type = null!;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="BaseProjectManager"/> class.
         /// </summary>
-        public BaseProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory)
+        public BaseProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory = ".")
         {
             Options = new Dictionary<string, object>();
             TopLevelExtractionDirectory = destinationDirectory;
             HttpClientFactory = httpClientFactory;
         }
 
-        public BaseProjectManager(string destinationDirectory) : this(new DefaultHttpClientFactory(), destinationDirectory)
+        public BaseProjectManager(string destinationDirectory = ".") : this(new DefaultHttpClientFactory(), destinationDirectory)
         {
         }
 
@@ -279,8 +285,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <remarks>The latest version is always first, then it is sorted by SemVer in descending order.</remarks>
         /// <param name="purl">Package URL specifying the package. Version is ignored.</param>
         /// <param name="useCache">If the cache should be used when looking for the versions.</param>
+        /// <param name="includePrerelease">If pre-release versions should be included.</param>
         /// <returns> A list of package version numbers.</returns>
-        public virtual Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
+        public virtual Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true, bool includePrerelease = true)
         {
             throw new NotImplementedException("BaseProjectManager does not implement EnumerateVersions.");
         }
@@ -332,9 +339,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// This method should return text reflecting metadata for the given package. There is no
         /// assumed format.
         /// </summary>
-        /// <param name="purl">PackageURL to search.</param>
+        /// <param name="purl">The <see cref="PackageURL"/> to get the metadata for.</param>
         /// <param name="useCache">If the metadata should be retrieved from the cache, if it is available.</param>
-        /// <returns>a string containing metadata.</returns>
+        /// <remarks>If no version specified, defaults to latest version.</remarks>
+        /// <returns>A string representing the <see cref="PackageURL"/>'s metadata, or null if it wasn't found.</returns>
         public virtual Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
         {
             throw new NotImplementedException($"{GetType().Name} does not implement GetMetadata.");
@@ -355,8 +363,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// </summary>
         /// <param name="purl">The <see cref="PackageURL"/> to get the normalized metadata for.</param>
         /// <param name="useCache">If the <see cref="PackageMetadata"/> should be retrieved from the cache, if it is available.</param>
-        /// <returns>A <see cref="GetPackageMetadata"/> object representing this <see cref="PackageURL"/>.</returns>
-        public virtual Task<PackageMetadata> GetPackageMetadata(PackageURL purl, bool useCache = true)
+        /// <remarks>If no version specified, defaults to latest version.</remarks>
+        /// <returns>A <see cref="PackageMetadata"/> object representing this <see cref="PackageURL"/>.</returns>
+        public virtual Task<PackageMetadata?> GetPackageMetadata(PackageURL purl, bool useCache = true)
         {
             string typeName = GetType().Name;
             throw new NotImplementedException($"{typeName} does not implement GetPackageMetadata.");

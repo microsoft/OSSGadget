@@ -12,6 +12,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     internal class URLProjectManager : BaseProjectManager
     {
+        /// <inheritdoc cref="BaseProjectManager.Type"/>
+        public new const string Type = "url";
+
         public URLProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
         {
         }
@@ -75,6 +78,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true, bool includePrerelease = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
             if (purl == null)

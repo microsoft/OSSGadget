@@ -18,9 +18,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using Utilities;
     using Version = SemanticVersioning.Version;
 
-
     public class NuGetProjectManager : BaseProjectManager
     {
+        /// <inheritdoc cref="BaseProjectManager.Type"/>
+        public new const string Type = "nuget";
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public const string ENV_NUGET_ENDPOINT_API = "https://api.nuget.org";
         public const string ENV_NUGET_ENDPOINT = "https://www.nuget.org";
@@ -215,7 +217,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
+        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true, bool includePrerelease = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
 
@@ -335,7 +337,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
         
         /// <inheritdoc />
-        public override async Task<PackageMetadata> GetPackageMetadata(PackageURL purl, bool useCache = true)
+        public override async Task<PackageMetadata?> GetPackageMetadata(PackageURL purl, bool useCache = true)
         {
             PackageMetadata metadata = new();
             string? content = await GetMetadata(purl, useCache);

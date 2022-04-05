@@ -24,6 +24,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
         public const string Type = "pypi";
 
+        public override string ManagerType => Type;
+
         public static string ENV_PYPI_ENDPOINT { get; set; } = "https://pypi.org";
 
         public PyPIProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)

@@ -21,6 +21,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
         public const string Type = "cpan";
 
+        public override string ManagerType => Type;
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_CPAN_BINARY_ENDPOINT = "https://cpan.metacpan.org";
 

@@ -18,6 +18,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
         public const string Type = "url";
 
+        public override string ManagerType => Type;
+
         public URLProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
         {
         }

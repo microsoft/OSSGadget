@@ -21,6 +21,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
         public const string Type = "gem";
 
+        public override string ManagerType => Type;
+
         public static string ENV_RUBYGEMS_ENDPOINT = "https://rubygems.org";
         public static string ENV_RUBYGEMS_ENDPOINT_API = "https://api.rubygems.org";
 

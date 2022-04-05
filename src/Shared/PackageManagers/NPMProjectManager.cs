@@ -24,6 +24,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
         public const string Type = "npm";
 
+        public override string ManagerType => Type;
+
         public static string ENV_NPM_API_ENDPOINT { get; set; } = "https://registry.npmjs.org";
         public static string ENV_NPM_ENDPOINT { get; set; } = "https://www.npmjs.com";
 

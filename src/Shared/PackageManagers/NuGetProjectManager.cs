@@ -26,6 +26,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
         public const string Type = "nuget";
 
+        public override string ManagerType => Type;
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public const string ENV_NUGET_ENDPOINT_API = "https://api.nuget.org";
         public const string ENV_NUGET_ENDPOINT = "https://www.nuget.org";

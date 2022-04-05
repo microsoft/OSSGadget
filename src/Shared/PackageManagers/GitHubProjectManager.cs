@@ -22,6 +22,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
         public const string Type = "github";
 
+        public override string ManagerType => Type;
+
         public static string ENV_GITHUB_ENDPOINT = "https://github.com";
 
         public GitHubProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)

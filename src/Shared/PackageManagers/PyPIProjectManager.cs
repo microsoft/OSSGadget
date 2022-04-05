@@ -74,9 +74,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                             continue;   // Missing a package type
                         }
 
-                        string? url = release.GetProperty("url").GetString();
-
-                        System.Net.Http.HttpResponseMessage result = await httpClient.GetAsync(url);
+                        System.Net.Http.HttpResponseMessage result = await httpClient.GetAsync(release.GetProperty("url").GetString());
                         result.EnsureSuccessStatusCode();
                         string targetName = $"pypi-{packageType}-{packageName}@{packageVersion}";
                         string extension = ".tar.gz";

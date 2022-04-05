@@ -5,6 +5,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     using Extensions;
     using PackageUrl;
     using System.Collections.Generic;
+    using System.Web;
 
     /// <summary>
     /// The mutator interface
@@ -37,14 +38,14 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                 if (hasNamespace)
                 {
                     yield return new Mutation(
-                        mutated: arg.CreateWithNewNames(arg.Name, mutation.Mutated).ToString(),
+                        mutated: arg.CreateWithNewNames(arg.Name, HttpUtility.UrlEncode(mutation.Mutated)).ToString(),
                         original: mutation.Original,
                         reason: mutation.Reason,
                         mutator: mutation.Mutator);
                 }
 
                 yield return new Mutation(
-                    mutated: arg.CreateWithNewNames(mutation.Mutated, arg.Namespace).ToString(),
+                    mutated: arg.CreateWithNewNames(HttpUtility.UrlEncode(mutation.Mutated), arg.Namespace).ToString(),
                     original: mutation.Original,
                     reason: mutation.Reason,
                     mutator: mutation.Mutator);

@@ -161,22 +161,22 @@ namespace Microsoft.CST.OpenSource.Model
         }
     }
 
-    public class User
+    public record User
     {
         [JsonProperty(PropertyName = "active_flag", NullValueHandling = NullValueHandling.Ignore)]
-        public bool? Active { get; set; }
+        public bool? Active { get; init; }
 
         [JsonProperty(PropertyName = "email", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Email { get; set; }
+        public string? Email { get; init; }
 
         [JsonProperty(PropertyName = "Id", NullValueHandling = NullValueHandling.Ignore)]
-        public int? Id { get; set; }
+        public int? Id { get; init; }
 
         [JsonProperty(PropertyName = "name", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Name { get; set; }
+        public string? Name { get; init; }
 
         [JsonProperty(PropertyName = "url", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Url { get; set; }
+        public string? Url { get; init; }
     }
 
     public class Version

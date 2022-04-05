@@ -406,13 +406,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
                     // author(s)
                     JsonElement? authorElement = OssUtilities.GetJSONPropertyIfExists(versionElement, "authors");
-                    User author = new();
                     if (authorElement is not null)
                     {
-                        author.Name = authorElement?.GetString();
-                        // TODO: User email and url
-                        // author.Email = OssUtilities.GetJSONPropertyStringIfExists(authorElement, "email");
-                        // author.Url = OssUtilities.GetJSONPropertyStringIfExists(authorElement, "url");
+                        User author = new()
+                        {
+                            Name = authorElement?.GetString(),
+                            // TODO: User email and url
+                        };
 
                         metadata.Authors ??= new List<User>();
                         metadata.Authors.Add(author);

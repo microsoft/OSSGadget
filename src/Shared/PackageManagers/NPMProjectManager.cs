@@ -303,12 +303,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
                     // author(s)
                     JsonElement? authorElement = OssUtilities.GetJSONPropertyIfExists(versionElement, "_npmUser");
-                    User author = new();
                     if (authorElement is not null)
                     {
-                        author.Name = OssUtilities.GetJSONPropertyStringIfExists(authorElement, "name");
-                        author.Email = OssUtilities.GetJSONPropertyStringIfExists(authorElement, "email");
-                        author.Url = OssUtilities.GetJSONPropertyStringIfExists(authorElement, "url");
+                        User author = new()
+                        {
+                            Name = OssUtilities.GetJSONPropertyStringIfExists(authorElement, "name"),
+                            Email = OssUtilities.GetJSONPropertyStringIfExists(authorElement, "email"),
+                            Url = OssUtilities.GetJSONPropertyStringIfExists(authorElement, "url")
+                        };
 
                         metadata.Authors ??= new List<User>();
                         metadata.Authors.Add(author);

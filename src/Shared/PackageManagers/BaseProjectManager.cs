@@ -18,12 +18,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     public abstract class BaseProjectManager
     {
         /// <summary>
-        /// The type of the project manager from the package-url type specifications.
-        /// </summary>
-        /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
-        public const string Type = "undefined";
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="BaseProjectManager"/> class.
         /// </summary>
         public BaseProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory = ".")

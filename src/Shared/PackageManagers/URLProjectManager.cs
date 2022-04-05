@@ -12,8 +12,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     internal class URLProjectManager : BaseProjectManager
     {
-        /// <inheritdoc cref="BaseProjectManager.Type"/>
-        public new const string Type = "url";
+        /// <summary>
+        /// The type of the project manager from the package-url type specifications.
+        /// </summary>
+        /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
+        public const string Type = "url";
 
         public URLProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
         {

@@ -18,8 +18,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     public class NPMProjectManager : BaseProjectManager
     {
-        /// <inheritdoc cref="BaseProjectManager.Type"/>
-        public new const string Type = "npm";
+        /// <summary>
+        /// The type of the project manager from the package-url type specifications.
+        /// </summary>
+        /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
+        public const string Type = "npm";
 
         public static string ENV_NPM_API_ENDPOINT { get; set; } = "https://registry.npmjs.org";
         public static string ENV_NPM_ENDPOINT { get; set; } = "https://www.npmjs.com";

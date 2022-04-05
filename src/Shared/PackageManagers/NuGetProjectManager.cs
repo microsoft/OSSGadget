@@ -132,7 +132,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
                                 if (doExtract)
                                 {
-                                    downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync(), cached));
+                                    downloadedPaths.Add(await ArchiveHelper.ExtractArchiveAsync(TopLevelExtractionDirectory, targetName, await result.Content.ReadAsStreamAsync(), cached));
                                 }
                                 else
                                 {
@@ -172,7 +172,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
                                     if (doExtract)
                                     {
-                                        downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync(), cached));
+                                        downloadedPaths.Add(await ArchiveHelper.ExtractArchiveAsync(TopLevelExtractionDirectory, targetName, await result.Content.ReadAsStreamAsync(), cached));
                                     }
                                     else
                                     {

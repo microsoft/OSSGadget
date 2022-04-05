@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Helpers;
     using Microsoft.Extensions.Caching.Memory;
     using PackageUrl;
     using System;
@@ -135,7 +136,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                                     }
                                     if (doExtract)
                                     {
-                                        downloadedPaths.Add(await ExtractArchive(targetName, await downloadResult.Content.ReadAsByteArrayAsync(), cached));
+                                        downloadedPaths.Add(await ArchiveHelper.ExtractArchiveAsync(TopLevelExtractionDirectory, targetName, await downloadResult.Content.ReadAsStreamAsync(), cached));
                                     }
                                     else
                                     {

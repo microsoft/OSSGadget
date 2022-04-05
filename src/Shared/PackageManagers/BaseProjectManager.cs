@@ -42,7 +42,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <summary>
         /// The location (directory) to extract files to.
         /// </summary>
-        public string TopLevelExtractionDirectory { get; set; } = ".";
+        public string TopLevelExtractionDirectory { get; init; }
 
         /// <summary>
         /// The <see cref="IHttpClientFactory"/> for the manager.
@@ -283,57 +283,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public virtual Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
         {
             throw new NotImplementedException("BaseProjectManager does not implement EnumerateVersions.");
-        }
-
-        /// <summary>
-        /// Extracts an archive (given by 'bytes') into a directory named 'directoryName',
-        /// recursively, using RecursiveExtractor.
-        /// </summary>
-        /// <param name="directoryName">directory to extract content into (within TopLevelExtractionDirectory)</param>
-        /// <param name="bytes">bytes to extract (should be an archive file)</param>
-        /// <param name="cached">If the archive has been cached.</param>
-        /// <returns></returns>
-        public async Task<string> ExtractArchive(string directoryName, byte[] bytes, bool cached = false)
-        {
-            Logger.Trace("ExtractArchive({0}, <bytes> len={1})", directoryName, bytes.Length);
-
-            Directory.CreateDirectory(TopLevelExtractionDirectory);
-
-            StringBuilder dirBuilder = new(directoryName);
-
-            foreach (char c in Path.GetInvalidPathChars())
-            {
-                dirBuilder.Replace(c, '-');    // ignore: lgtm [cs/string-concatenation-in-loop]
-            }
-
-            string fullTargetPath = Path.Combine(TopLevelExtractionDirectory, dirBuilder.ToString());
-
-            if (!cached)
-            {
-                while (Directory.Exists(fullTargetPath) || File.Exists(fullTargetPath))
-                {
-                    dirBuilder.Append("-" + DateTime.Now.Ticks);
-                    fullTargetPath = Path.Combine(TopLevelExtractionDirectory, dirBuilder.ToString());
-                }
-            }
-            Extractor extractor = new();
-            ExtractorOptions extractorOptions = new()
-            {
-                ExtractSelfOnFail = true,
-                Parallel = true
-                // MaxExtractedBytes = 1000 * 1000 * 10;  // 10 MB maximum package size
-            };
-            ExtractionStatusCode result = await extractor.ExtractToDirectoryAsync(TopLevelExtractionDirectory, dirBuilder.ToString(), new MemoryStream(bytes), extractorOptions);
-            if (result == ExtractionStatusCode.Ok)
-            {
-                Logger.Debug("Archive extracted to {0}", fullTargetPath);
-            }
-            else
-            {
-                Logger.Warn("Error extracting archive {0} ({1})", fullTargetPath, result);
-            }
-
-            return fullTargetPath;
         }
 
         /// <summary>

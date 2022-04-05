@@ -18,8 +18,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     public class PyPIProjectManager : BaseProjectManager
     {
-        /// <inheritdoc cref="BaseProjectManager.Type"/>
-        public new const string Type = "pypi";
+        /// <summary>
+        /// The type of the project manager from the package-url type specifications.
+        /// </summary>
+        /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
+        public const string Type = "pypi";
+
+        public override string ManagerType => Type;
 
         public static string ENV_PYPI_ENDPOINT { get; set; } = "https://pypi.org";
 

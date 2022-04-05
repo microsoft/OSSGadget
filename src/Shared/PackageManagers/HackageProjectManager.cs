@@ -14,8 +14,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     internal class HackageProjectManager : BaseProjectManager
     {
-        /// <inheritdoc cref="BaseProjectManager.Type"/>
-        public new const string Type = "hackage";
+        /// <summary>
+        /// The type of the project manager from the package-url type specifications.
+        /// </summary>
+        /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
+        public const string Type = "hackage";
+
+        public override string ManagerType => Type;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_HACKAGE_ENDPOINT = "https://hackage.haskell.org";

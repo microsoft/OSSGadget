@@ -24,7 +24,10 @@ public static class ArchiveHelper
     /// <param name="content">stream of the contents to extract (should be an archive file)</param>
     /// <param name="cached">If the archive has been cached.</param>
     /// <returns>The path that the archive was extracted to.</returns>
-    public static async Task<string> ExtractArchiveAsync(string topLevelDirectory, string directoryName, Stream content,
+    public static async Task<string> ExtractArchiveAsync(
+        string topLevelDirectory,
+        string directoryName,
+        Stream content,
         bool cached = false)
     {
         Logger.Trace("ExtractArchive({0}, <stream> len={1})", directoryName, content.Length);

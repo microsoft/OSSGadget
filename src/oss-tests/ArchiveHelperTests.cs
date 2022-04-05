@@ -50,6 +50,9 @@ public class ArchiveHelperTests
         {
             // Delete the temp directory that was created.
             FileSystemHelper.RetryDeleteDirectory(targetDirectoryName);
+            
+            // Close the stream that was used to read the zip file.
+            zip.Close();
         }
     }
 }

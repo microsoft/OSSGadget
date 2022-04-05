@@ -43,7 +43,7 @@ namespace Microsoft.CST.OpenSource.Health
 
         public List<Result> toSarif()
         {
-            BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, null);
+            BaseProjectManager? projectManager = ProjectManagerFactory.GetProjectManager(purl, null);
 
             if (projectManager == null)
             {

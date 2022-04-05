@@ -14,9 +14,8 @@ using static Crayon.Output;
 
 namespace Microsoft.CST.OpenSource
 {
-    using System.Net.Http;
-    using Microsoft.CST.OpenSource;
     using Microsoft.CST.OpenSource.Helpers;
+    using PackageManagers;
     using PackageUrl;
 
     public enum DiffTechnique
@@ -75,12 +74,14 @@ namespace Microsoft.CST.OpenSource
             public bool LeaveIntermediateFiles { get; set; }
         }
 
-        public ReproducibleTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        public ReproducibleTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
         {
         }
-        public ReproducibleTool() : this(new DefaultHttpClientFactory())
+
+        public ReproducibleTool() : this(new ProjectManagerFactory())
         {
         }
+
         /// <summary>
         /// Main entrypoint for the download program.
         /// </summary>
@@ -233,7 +234,7 @@ namespace Microsoft.CST.OpenSource
             foreach (string? target in options.Targets ?? Array.Empty<string>())
             {
                 PackageURL? purl = new PackageURL(target);
-                PackageDownloader? downloader = new PackageDownloader(purl, HttpClientFactory, "temp");
+                PackageDownloader? downloader = new PackageDownloader(purl, ProjectManagerFactory, "temp");
                 foreach (PackageURL? version in downloader.PackageVersions)
                 {
                     targets.Add(version.ToString());
@@ -259,7 +260,7 @@ namespace Microsoft.CST.OpenSource
                     FileSystemHelper.RetryDeleteDirectory(tempDirectoryName);
                     // Download the package
                     Console.WriteLine("Downloading package...");
-                    PackageDownloader? packageDownloader = new PackageDownloader(purl, HttpClientFactory, Path.Join(tempDirectoryName, "package"));
+                    PackageDownloader? packageDownloader = new PackageDownloader(purl, ProjectManagerFactory, Path.Join(tempDirectoryName, "package"));
                     List<string>? downloadResults = await packageDownloader.DownloadPackageLocalCopy(purl, false, true);
 
                     if (!downloadResults.Any())
@@ -269,7 +270,7 @@ namespace Microsoft.CST.OpenSource
 
                     // Locate the source
                     Console.WriteLine("Locating source...");
-                    FindSourceTool? findSourceTool = new FindSourceTool(HttpClientFactory);
+                    FindSourceTool? findSourceTool = new FindSourceTool(ProjectManagerFactory);
                     Dictionary<PackageURL, double>? sourceMap = await findSourceTool.FindSourceAsync(purl);
                     if (sourceMap.Any())
                     {
@@ -294,7 +295,7 @@ namespace Microsoft.CST.OpenSource
                             }
                             Logger.Debug("Trying to download package, version/reference [{0}].", reference);
                             PackageURL? purlRef = new PackageURL(bestSourcePurl.Type, bestSourcePurl.Namespace, bestSourcePurl.Name, reference, bestSourcePurl.Qualifiers, bestSourcePurl.Subpath);
-                            packageDownloader = new PackageDownloader(purlRef, HttpClientFactory, Path.Join(tempDirectoryName, "src"));
+                            packageDownloader = new PackageDownloader(purlRef, ProjectManagerFactory, Path.Join(tempDirectoryName, "src"));
                             downloadResults = await packageDownloader.DownloadPackageLocalCopy(purlRef, false, true);
                             if (downloadResults.Any())
                             {

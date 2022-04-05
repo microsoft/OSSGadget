@@ -28,16 +28,16 @@ namespace Microsoft.CST.OpenSource.Shared
     /// </summary>
     public class RepoSearch
     {
-        public RepoSearch(IHttpClientFactory httpClientFactory)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RepoSearch"/> class.
+        /// </summary>
+        /// <param name="projectManagerFactory">The <see cref="ProjectManagerFactory"/> to generate the project managers with.</param>
+        public RepoSearch(ProjectManagerFactory? projectManagerFactory = null)
         {
-            HttpClientFactory = httpClientFactory;
+            _projectManagerFactory = projectManagerFactory ?? new ProjectManagerFactory();
         }
 
-        public RepoSearch() : this(new DefaultHttpClientFactory())
-        {
-        }
-
-        private IHttpClientFactory HttpClientFactory { get; }
+        private ProjectManagerFactory _projectManagerFactory { get; }
 
         /// <summary>
         ///     try to resolve the source code for an npm package through different means
@@ -62,7 +62,7 @@ namespace Microsoft.CST.OpenSource.Shared
             Logger.Debug("Searching for source code for: {0}", purlNoVersion.ToString());
 
             // Use reflection to find the correct downloader class
-            BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, HttpClientFactory);
+            BaseProjectManager? projectManager = _projectManagerFactory.CreateProjectManager(purl);
 
             if (projectManager != null)
             {

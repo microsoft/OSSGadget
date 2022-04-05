@@ -17,8 +17,8 @@ using Microsoft.ApplicationInspector.RulesEngine;
 
 namespace Microsoft.CST.OpenSource
 {
+    using PackageManagers;
     using PackageUrl;
-    using System.Net.Http;
 
     public class RiskCalculatorTool : OSSGadget
     {
@@ -67,14 +67,13 @@ namespace Microsoft.CST.OpenSource
             public bool UseCache { get; set; }
         }
 
-        public RiskCalculatorTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        public RiskCalculatorTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
         {
         }
 
-        public RiskCalculatorTool() : this(new DefaultHttpClientFactory())
+        public RiskCalculatorTool() : this(new ProjectManagerFactory())
         {
         }
-
 
         /// <summary>
         /// Calculates project risk based on health and characteristics.
@@ -87,14 +86,14 @@ namespace Microsoft.CST.OpenSource
         {
             Logger.Trace("CalculateRisk({0})", purl.ToString());
 
-            CharacteristicTool? characteristicTool = new CharacteristicTool(HttpClientFactory);
+            CharacteristicTool? characteristicTool = new CharacteristicTool(ProjectManagerFactory);
             CharacteristicTool.Options? cOptions = new CharacteristicTool.Options();
             Dictionary<string, AnalyzeResult?>? characteristics = characteristicTool.AnalyzePackage(cOptions, purl, targetDirectory, doCaching).Result;
             double aggregateRisk = 0.0;
 
             if (checkHealth)
             {
-                HealthTool? healthTool = new HealthTool(HttpClientFactory);
+                HealthTool? healthTool = new HealthTool(ProjectManagerFactory);
                 HealthMetrics? healthMetrics = await healthTool.CheckHealth(purl);
                 if (healthMetrics == null)
                 {

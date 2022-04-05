@@ -111,9 +111,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                             }
                             else
                             {
-                                targetName += Path.GetExtension(anchorHref) ?? "";
-                                await File.WriteAllBytesAsync(targetName, await downloadResult.Content.ReadAsByteArrayAsync());
-                                downloadedPaths.Add(targetName);
+                                extractionPath += Path.GetExtension(anchorHref) ?? "";
+                                await File.WriteAllBytesAsync(extractionPath, await downloadResult.Content.ReadAsByteArrayAsync());
+                                downloadedPaths.Add(extractionPath);
                             }
                         }
 
@@ -156,6 +156,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
                                     // TODO: Add distro version id
                                     string targetName = $"ubuntu-{purl.Name}@{packageVersion}-{secondHref}";
+                                    string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
 
                                     if (doExtract)
                                     {
@@ -163,9 +164,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                                     }
                                     else
                                     {
-                                        targetName += Path.GetExtension(anchorHref) ?? "";
-                                        await File.WriteAllBytesAsync(targetName, await downloadResult.Content.ReadAsByteArrayAsync());
-                                        downloadedPaths.Add(targetName);
+                                        extractionPath += Path.GetExtension(anchorHref) ?? "";
+                                        await File.WriteAllBytesAsync(extractionPath, await downloadResult.Content.ReadAsByteArrayAsync());
+                                        downloadedPaths.Add(extractionPath);
                                     }
                                 }
                             }

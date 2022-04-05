@@ -143,9 +143,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                                     }
                                     else
                                     {
-                                        targetName += Path.GetExtension(source.GetString()) ?? "";
-                                        await File.WriteAllBytesAsync(targetName, await downloadResult.Content.ReadAsByteArrayAsync());
-                                        downloadedPaths.Add(targetName);
+                                        extractionPath += Path.GetExtension(source.GetString()) ?? "";
+                                        await File.WriteAllBytesAsync(extractionPath, await downloadResult.Content.ReadAsByteArrayAsync());
+                                        downloadedPaths.Add(extractionPath);
                                     }
                                 }
                                 catch (Exception ex)

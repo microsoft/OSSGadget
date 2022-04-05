@@ -83,9 +83,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                         }
                         else
                         {
-                            targetName += ".zip";
-                            await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
-                            downloadedPaths.Add(targetName);
+                            extractionPath += ".zip";
+                            await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
+                            downloadedPaths.Add(extractionPath);
                         }
                     }
                 }

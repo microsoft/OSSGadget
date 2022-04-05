@@ -138,9 +138,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                                 }
                                 else
                                 {
-                                    targetName += Path.GetExtension(archive) ?? "";
-                                    await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
-                                    downloadedPaths.Add(targetName);
+                                    extractionPath += Path.GetExtension(archive) ?? "";
+                                    await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
+                                    downloadedPaths.Add(extractionPath);
                                 }
                                 return downloadedPaths;
                             }
@@ -178,9 +178,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                                     }
                                     else
                                     {
-                                        targetName += Path.GetExtension(archive) ?? "";
-                                        await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
-                                        downloadedPaths.Add(targetName);
+                                        extractionPath += Path.GetExtension(archive) ?? "";
+                                        await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
+                                        downloadedPaths.Add(extractionPath);
                                     }
                                     return downloadedPaths;
                                 }

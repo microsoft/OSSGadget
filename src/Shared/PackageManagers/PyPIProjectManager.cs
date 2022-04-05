@@ -74,9 +74,16 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                             continue;   // Missing a package type
                         }
 
-                        System.Net.Http.HttpResponseMessage result = await httpClient.GetAsync(release.GetProperty("url").GetString());
+                        string? url = release.GetProperty("url").GetString();
+
+                        System.Net.Http.HttpResponseMessage result = await httpClient.GetAsync(url);
                         result.EnsureSuccessStatusCode();
                         string targetName = $"pypi-{packageType}-{packageName}@{packageVersion}";
+                        string extension = ".tar.gz";
+                        if (packageType.ToString() == "bdist_wheel")
+                        {
+                            extension = ".whl";
+                        }
                         string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                         if (doExtract && Directory.Exists(extractionPath) && cached == true)
                         {
@@ -89,8 +96,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                         }
                         else
                         {
-                            await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
-                            downloadedPaths.Add(targetName);
+                            extractionPath += extension;
+                            await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
+                            downloadedPaths.Add(extractionPath);
                         }
                     }
                 }

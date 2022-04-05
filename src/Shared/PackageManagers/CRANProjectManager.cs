@@ -70,9 +70,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 }
                 else
                 {
-                    targetName += Path.GetExtension(url) ?? "";
-                    await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
-                    downloadedPaths.Add(targetName);
+                    extractionPath += Path.GetExtension(url) ?? "";
+                    await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
+                    downloadedPaths.Add(extractionPath);
                 }
             }
             catch (Exception ex)
@@ -93,15 +93,16 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 Logger.Debug("Downloading {0}...", purl);
 
                 string targetName = $"cran-{packageName}@{packageVersion}";
+                string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                 if (doExtract)
                 {
                     downloadedPaths.Add(await ArchiveHelper.ExtractArchiveAsync(TopLevelExtractionDirectory, targetName, await result.Content.ReadAsStreamAsync(), cached));
                 }
                 else
                 {
-                    targetName += Path.GetExtension(url) ?? "";
-                    await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
-                    downloadedPaths.Add(targetName);
+                    extractionPath += Path.GetExtension(url) ?? "";
+                    await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
+                    downloadedPaths.Add(extractionPath);
                 }
             }
             catch (Exception ex)

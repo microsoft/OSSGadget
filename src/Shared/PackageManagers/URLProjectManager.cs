@@ -63,8 +63,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 }
                 else
                 {
-                    await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
-                    downloadedPaths.Add(targetName);
+                    await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
+                    downloadedPaths.Add(extractionPath);
                 }
                 return downloadedPaths;
             }

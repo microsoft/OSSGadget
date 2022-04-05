@@ -61,7 +61,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 result.EnsureSuccessStatusCode();
                 Logger.Debug("Downloading {0}...", purl?.ToString());
                 string targetName = $"npm-{packageName}@{packageVersion}";
-                string extractionPath = Path.Combine(TopLevelExtractionDirectory ?? string.Empty, targetName);
+                string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                 if (doExtract && Directory.Exists(extractionPath) && cached == true)
                 {
                     downloadedPaths.Add(extractionPath);
@@ -73,9 +73,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 }
                 else
                 {
-                    targetName += Path.GetExtension(tarball) ?? "";
-                    await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
-                    downloadedPaths.Add(targetName);
+                    extractionPath += Path.GetExtension(tarball) ?? "";
+                    await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
+                    downloadedPaths.Add(extractionPath);
                 }
             }
             catch (Exception ex)

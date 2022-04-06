@@ -2,7 +2,6 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
-    using Helpers;
     using PackageUrl;
     using System;
     using System.Collections.Generic;
@@ -21,7 +20,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// destinationDirectory =>
         /// new NPMProjectManager(httpClientFactory, destinationDirectory)
         /// </example>
-        /// <seealso cref="ProjectManagerFactory.CreateDefaultManagers">Example implementations in CreateDefaultManagers(IHttpClientFactory?)</seealso>
+        /// <seealso cref="ProjectManagerFactory.GetDefaultManagers">Example implementations in GetDefaultManagers(IHttpClientFactory?)</seealso>
         public delegate BaseProjectManager? ConstructProjectManager(string destinationDirectory = ".");
 
         /// <summary>
@@ -32,38 +31,19 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <summary>
         /// Initializes a new instance of a <see cref="ProjectManagerFactory"/>.
         /// </summary>
-        /// <param name="overrideManagers">
-        /// If provided, will override each matching ProjectManager constructor from the defaults,
-        /// or add it if it wasn't present in <see cref="CreateDefaultManagers"/>.
-        /// </param>
-        /// <param name="httpClientFactory">The <see cref="IHttpClientFactory"/> to use in the project managers.</param>
-        public ProjectManagerFactory(Dictionary<string, ConstructProjectManager> overrideManagers, IHttpClientFactory? httpClientFactory = null) : this(httpClientFactory)
+        /// <param name="overrideManagers"> If provided, will set the project manager dictionary instead of using the defaults.</param>
+        public ProjectManagerFactory(Dictionary<string, ConstructProjectManager> overrideManagers)
         {
-            foreach((string? type, ConstructProjectManager? ctor) in overrideManagers)
-            {
-                Check.NotNull(nameof(type), type, "The type defined in overrideManagers is null.");
-                Check.NotNull(nameof(ctor), ctor, "The constructor defined in overrideManagers is null.");
-                SetManager(type, ctor);
-            }
+            _projectManagers = overrideManagers;
         }
 
         /// <summary>
         /// Initializes a new instance of a <see cref="ProjectManagerFactory"/>.
         /// </summary>
-        /// <param name="httpClientFactory">The <see cref="IHttpClientFactory"/> to use in <see cref="CreateDefaultManagers"/>.</param>
+        /// <param name="httpClientFactory">The <see cref="IHttpClientFactory"/> to use in <see cref="GetDefaultManagers"/>.</param>
         public ProjectManagerFactory(IHttpClientFactory? httpClientFactory = null)
         {
-            _projectManagers = CreateDefaultManagers(httpClientFactory);
-        }
-
-        /// <summary>
-        /// Sets a manager's constructor in the dictionary of constructors.
-        /// </summary>
-        /// <param name="type">The purl type of the ProjectManager to set.</param>
-        /// <param name="ctor">The <see cref="ConstructProjectManager"/> to construct a new ProjectManager.</param>
-        private void SetManager(string type, ConstructProjectManager ctor)
-        {
-            _projectManagers[type] = ctor;
+            _projectManagers = GetDefaultManagers(httpClientFactory);
         }
 
         /// <summary>
@@ -71,7 +51,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// </summary>
         /// <param name="httpClientFactoryParam">The <see cref="IHttpClientFactory"/> to use in the project managers.</param>
         /// <returns>A dictionary of the default managers with associated constructors.</returns>
-        private static Dictionary<string, ConstructProjectManager> CreateDefaultManagers(IHttpClientFactory? httpClientFactoryParam = null)
+        public static Dictionary<string, ConstructProjectManager> GetDefaultManagers(IHttpClientFactory? httpClientFactoryParam = null)
         {
             // If the httpClientFactory parameter is null, set the factory to the DefaultHttpClientFactory.
             IHttpClientFactory httpClientFactory = httpClientFactoryParam ?? new DefaultHttpClientFactory();
@@ -163,17 +143,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// </summary>
         /// <param name="packageUrl">The <see cref="PackageURL"/> to get a project manager for.</param>
         /// <param name="httpClientFactory">The <see cref="IHttpClientFactory"/> to optionally add.</param>
-        /// <param name="overrideManagers">
-        /// If provided, will override each matching ProjectManager constructor from the defaults,
-        /// or add it if it wasn't present in <see cref="CreateDefaultManagers"/>.
-        /// </param>
+        /// <param name="overrideManagers"> If provided, will set the project manager dictionary instead of using the defaults.</param>
         /// <param name="destinationDirectory">The new destination directory, if provided.</param>
         /// <returns>A new <see cref="BaseProjectManager"/> implementation.</returns>
         public static BaseProjectManager? ConstructPackageManager(PackageURL packageUrl, IHttpClientFactory? httpClientFactory = null, Dictionary<string, ConstructProjectManager>? overrideManagers = null, string destinationDirectory = ".")
         {
             if (overrideManagers != null && overrideManagers.Any())
             {
-                return new ProjectManagerFactory(overrideManagers, httpClientFactory).CreateProjectManager(packageUrl, destinationDirectory);
+                return new ProjectManagerFactory(overrideManagers).CreateProjectManager(packageUrl, destinationDirectory);
             }
             return new ProjectManagerFactory(httpClientFactory).CreateProjectManager(packageUrl, destinationDirectory);
         }

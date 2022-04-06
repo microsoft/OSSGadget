@@ -157,4 +157,4 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return new ProjectManagerFactory(httpClientFactory).CreateProjectManager(packageUrl);
         }
     }
-} 
+}

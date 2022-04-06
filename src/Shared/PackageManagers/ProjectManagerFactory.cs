@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Helpers;
     using PackageUrl;
     using System;
     using System.Collections.Generic;
@@ -40,6 +41,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
             foreach((string? type, ConstructProjectManager? ctor) in overrideManagers)
             {
+                Check.NotNull(nameof(type), type, "The type defined in overrideManagers is null.");
+                Check.NotNull(nameof(ctor), ctor, "The constructor defined in overrideManagers is null.");
                 SetManager(type, ctor);
             }
         }

@@ -5,15 +5,21 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using PackageUrl;
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Net.Http;
 
     public class ProjectManagerFactory
     {
         /// <summary>
-        /// The delegate to use when defining the function to create a project manager with.
-        /// The only runtime parameter we need is the destination directory. Everything else can be defined in the constructor.
+        /// This delegate takes the path to operate a project manager in and returns a new ProjectManager.
         /// </summary>
+        /// <remarks>The only runtime parameter we need is the destination directory. Everything else can be defined in the constructor call itself.</remarks>
+        /// <param name="destinationDirectory">The destination that any files should be saved to when downloading from this ProjectManager, defaults to the runtime directory.</param>
+        /// <returns>An implementation of the <see cref="BaseProjectManager"/> class, or null if unable to construct.</returns>
+        /// <example>
+        /// destinationDirectory =>
+        /// new NPMProjectManager(httpClientFactory, destinationDirectory)
+        /// </example>
+        /// <seealso cref="ProjectManagerFactory.CreateDefaultManagers">Example implementations in CreateDefaultManagers(IHttpClientFactory?)</seealso>
         public delegate BaseProjectManager? ConstructProjectManager(string destinationDirectory = ".");
 
         /// <summary>
@@ -24,39 +30,58 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <summary>
         /// Initializes a new instance of a <see cref="ProjectManagerFactory"/>.
         /// </summary>
-        /// <param name="overrideManagers">Use a custom set of managers to override the defaults with.</param>
+        /// <param name="overrideManagers">
+        /// If provided, will override each matching ProjectManager constructor from the defaults,
+        /// or add it if it wasn't present in <see cref="CreateDefaultManagers"/>.
+        /// </param>
         /// <param name="httpClientFactory">The <see cref="IHttpClientFactory"/> to use in the project managers.</param>
         public ProjectManagerFactory(Dictionary<string, ConstructProjectManager> overrideManagers, IHttpClientFactory? httpClientFactory = null) : this(httpClientFactory)
         {
-            overrideManagers.ToList().ForEach(pair => SetManager(pair.Key, pair.Value));
+            foreach((string? type, ConstructProjectManager? ctor) in overrideManagers)
+            {
+                SetManager(type, ctor);
+            }
         }
 
         /// <summary>
         /// Initializes a new instance of a <see cref="ProjectManagerFactory"/>.
         /// </summary>
-        /// <param name="httpClientFactory">The <see cref="IHttpClientFactory"/> to use in the project managers.</param>
+        /// <param name="httpClientFactory">The <see cref="IHttpClientFactory"/> to use in <see cref="CreateDefaultManagers"/>.</param>
         public ProjectManagerFactory(IHttpClientFactory? httpClientFactory = null)
         {
             _projectManagers = CreateDefaultManagers(httpClientFactory);
         }
 
-        public bool UnsetManager(string lookup)
+        /// <summary>
+        /// Remove a manager from the dictionary of constructors.
+        /// </summary>
+        /// <param name="type">The purl type of the ProjectManager to remove.</param>
+        /// <returns>If it was successfully removed.</returns>
+        public bool UnsetManager(string type)
         {
-            return _projectManagers.Remove(lookup);
+            return _projectManagers.Remove(type);
         }
 
-        private void SetManager(string lookup, ConstructProjectManager generator)
+        /// <summary>
+        /// Sets a manager's constructor in the dictionary of constructors.
+        /// </summary>
+        /// <param name="type">The purl type of the ProjectManager to set.</param>
+        /// <param name="ctor">The <see cref="ConstructProjectManager"/> to construct a new ProjectManager.</param>
+        private void SetManager(string type, ConstructProjectManager ctor)
         {
-            _projectManagers[lookup] = generator;
+            _projectManagers[type] = ctor;
         }
 
+        /// <summary>
+        /// Clears all of the managers and constructors from the dictionary.
+        /// </summary>
         public void ClearManagers()
         {
             _projectManagers.Clear();
         }
 
         /// <summary>
-        /// 
+        /// Constructs the default set of ProjectManagers (optionally using a specified <see cref="IHttpClientFactory"/>) that ship with OSSGadget.
         /// </summary>
         /// <param name="httpClientFactoryParam">The <see cref="IHttpClientFactory"/> to use in the project managers.</param>
         /// <returns>A dictionary of the default managers with associated constructors.</returns>
@@ -64,6 +89,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
             // If the httpClientFactory parameter is null, set the factory to the DefaultHttpClientFactory.
             IHttpClientFactory httpClientFactory = httpClientFactoryParam ?? new DefaultHttpClientFactory();
+
             return new Dictionary<string, ConstructProjectManager>(StringComparer.InvariantCultureIgnoreCase)
             {
                 {
@@ -134,7 +160,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <summary>
-        /// Creates an appropriate project manager for a package given its PackageURL.
+        /// Creates an appropriate project manager for a <see cref="PackageURL"/> given its <see cref="PackageURL.Type"/>.
         /// </summary>
         /// <param name="purl">The <see cref="PackageURL"/> for the package to create the project manager for.</param>
         /// <param name="destinationDirectory">The new destination directory, if provided.</param>
@@ -152,7 +178,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <param name="packageUrl">The <see cref="PackageURL"/> to get a project manager for.</param>
         /// <param name="httpClientFactory">The <see cref="IHttpClientFactory"/> to optionally add.</param>
         /// <returns>A new <see cref="BaseProjectManager"/> implementation.</returns>
-        public static BaseProjectManager? GetProjectManager(PackageURL packageUrl, IHttpClientFactory? httpClientFactory = null)
+        public static BaseProjectManager? CreateProjectManager(PackageURL packageUrl, IHttpClientFactory? httpClientFactory = null)
         {
             return new ProjectManagerFactory(httpClientFactory).CreateProjectManager(packageUrl);
         }

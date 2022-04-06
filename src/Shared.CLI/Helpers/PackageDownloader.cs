@@ -25,7 +25,7 @@ namespace Microsoft.CST.OpenSource
         /// <param name="projectManagerFactory">The <see cref="ProjectManagerFactory"/> to use to get the project managers.</param>
         /// <param name="destinationDir">The directory where the package needs to be downloaded to.</param>
         /// <param name="doCaching">Check and use the cache if it exists - create if not.</param>
-        public PackageDownloader(PackageURL purl, ProjectManagerFactory projectManagerFactory, string? destinationDir = null, bool doCaching = false)
+        public PackageDownloader(PackageURL purl, ProjectManagerFactory? projectManagerFactory = null, string? destinationDir = null, bool doCaching = false)
         {
             if (purl == null)
             {
@@ -47,7 +47,7 @@ namespace Microsoft.CST.OpenSource
                 destinationDirectory = destinationDir;
             }
 
-            packageManager = projectManagerFactory.CreateProjectManager(purl, destinationDirectory);
+            packageManager = (projectManagerFactory ?? new ProjectManagerFactory()).CreateProjectManager(purl, destinationDirectory);
             if (packageManager == null)
             {
                 // Cannot continue without a package manager.

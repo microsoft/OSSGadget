@@ -23,6 +23,9 @@ namespace Microsoft.CST.OpenSource
         public OSSGadget(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
         {
         }
+        
+        public OSSGadget() : base()
+        {}
 
         /// <summary>
         /// Logger for this class

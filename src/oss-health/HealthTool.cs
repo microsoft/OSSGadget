@@ -26,7 +26,7 @@ namespace Microsoft.CST.OpenSource
         }
         public async Task<HealthMetrics?> CheckHealth(PackageURL purl)
         {
-            BaseProjectManager? packageManager = ProjectManagerFactory.GetProjectManager(purl);
+            BaseProjectManager? packageManager = PackageManagers.ProjectManagerFactory.CreateProjectManager(purl);
 
             if (packageManager != null)
             {

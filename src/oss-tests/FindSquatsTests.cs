@@ -47,7 +47,7 @@ namespace Microsoft.CST.OpenSource.Tests
         public void ScopedNpmPackageSquats(string packageUrl, params string[] expectedSquats)
         {
             FindPackageSquats findPackageSquats =
-                new(new DefaultHttpClientFactory(), new PackageURL(packageUrl));
+                new(new ProjectManagerFactory(), new PackageURL(packageUrl));
 
             IDictionary<string, IList<Mutation>>? squatsCandidates = findPackageSquats.GenerateSquatCandidates();
 
@@ -71,7 +71,7 @@ namespace Microsoft.CST.OpenSource.Tests
             PackageURL purl = new(packageUrl);
             if (purl.Name is not null && purl.Type is not null)
             {
-                BaseProjectManager? manager = ProjectManagerFactory.CreateProjectManager(purl, null);
+                BaseProjectManager? manager = ProjectManagerFactory.GetProjectManager(purl, null);
                 if (manager is not null)
                 {
                     foreach ((string _, IList<Mutation> mutations) in manager.EnumerateSquatCandidates(purl)!)
@@ -98,7 +98,7 @@ namespace Microsoft.CST.OpenSource.Tests
             PackageURL purl = new(packageUrl);
             if (purl.Name is not null && purl.Type is not null)
             {
-                BaseProjectManager? manager = ProjectManagerFactory.CreateProjectManager(purl, null);
+                BaseProjectManager? manager = ProjectManagerFactory.GetProjectManager(purl, null);
                 if (manager is not null)
                 {
                     foreach ((string mutationPurlString, IList<Mutation> mutations) in manager.EnumerateSquatCandidates(purl)!)
@@ -131,7 +131,7 @@ namespace Microsoft.CST.OpenSource.Tests
             PackageURL purl = new(packageUrl);
             if (purl.Name is not null && purl.Type is not null)
             {
-                BaseProjectManager? manager = ProjectManagerFactory.CreateProjectManager(purl, null);
+                BaseProjectManager? manager = ProjectManagerFactory.GetProjectManager(purl, null);
                 if (manager is not null)
                 {
                     foreach (IMutator mutator in manager.GetDefaultMutators())
@@ -156,7 +156,7 @@ namespace Microsoft.CST.OpenSource.Tests
             PackageURL purl = new(packageUrl);
             if (purl.Name is not null && purl.Type is not null)
             {
-                BaseProjectManager? manager = ProjectManagerFactory.CreateProjectManager(purl, null);
+                BaseProjectManager? manager = ProjectManagerFactory.GetProjectManager(purl, null);
                 if (manager is not null)
                 {
                     foreach ((string mutationPurlString, _) in manager.EnumerateSquatCandidates(purl)!)
@@ -199,7 +199,7 @@ namespace Microsoft.CST.OpenSource.Tests
 
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpMock.ToHttpClient());
 
-            FindPackageSquats findPackageSquats = new(mockFactory.Object, lodash);
+            FindPackageSquats findPackageSquats = new(new ProjectManagerFactory(mockFactory.Object), lodash);
 
             // act
             IDictionary<string, IList<Mutation>>? squatCandidates = findPackageSquats.GenerateSquatCandidates();
@@ -236,7 +236,7 @@ namespace Microsoft.CST.OpenSource.Tests
 
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpMock.ToHttpClient());
 
-            FindPackageSquats findPackageSquats = new(mockFactory.Object, lodash);
+            FindPackageSquats findPackageSquats = new(new ProjectManagerFactory(mockFactory.Object), lodash);
 
             // act
             IDictionary<string, IList<Mutation>>? squatCandidates = findPackageSquats.GenerateSquatCandidates();
@@ -271,7 +271,7 @@ namespace Microsoft.CST.OpenSource.Tests
 
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpMock.ToHttpClient());
 
-            FindPackageSquats findPackageSquats = new(mockFactory.Object, foo);
+            FindPackageSquats findPackageSquats = new(new ProjectManagerFactory(mockFactory.Object), foo);
 
             // act
             IDictionary<string, IList<Mutation>>? squatCandidates = findPackageSquats.GenerateSquatCandidates();
@@ -308,7 +308,7 @@ namespace Microsoft.CST.OpenSource.Tests
 
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpMock.ToHttpClient());
 
-            FindPackageSquats findPackageSquats = new(mockFactory.Object, newtonsoft);
+            FindPackageSquats findPackageSquats = new(new ProjectManagerFactory(mockFactory.Object), newtonsoft);
 
             // act
             IDictionary<string, IList<Mutation>>? squatCandidates = findPackageSquats.GenerateSquatCandidates();
@@ -346,7 +346,7 @@ namespace Microsoft.CST.OpenSource.Tests
 
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpMock.ToHttpClient());
 
-            FindPackageSquats findPackageSquats = new(mockFactory.Object, angularCore);
+            FindPackageSquats findPackageSquats = new(new ProjectManagerFactory(mockFactory.Object), angularCore);
 
             // act
             IDictionary<string, IList<Mutation>>? squatCandidates = findPackageSquats.GenerateSquatCandidates();

@@ -9,8 +9,9 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource
 {
+    using PackageManagers;
     using PackageUrl;
-    using System.Net.Http;
+
     public class DownloadTool : OSSGadget
     {
         public enum ErrorCode
@@ -55,11 +56,11 @@ namespace Microsoft.CST.OpenSource
             public bool UseCache { get; set; }
         }
 
-        public DownloadTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        public DownloadTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
         {
         }
 
-        public DownloadTool() : this(new DefaultHttpClientFactory()) { }
+        public DownloadTool() : this(new ProjectManagerFactory()) { }
 
         /// <summary>
         ///     Main entrypoint for the download program.
@@ -99,7 +100,7 @@ namespace Microsoft.CST.OpenSource
                         PackageURL? purl = new PackageURL(target);
                         string downloadDirectory = options.DownloadDirectory == "." ? System.IO.Directory.GetCurrentDirectory() : options.DownloadDirectory;
                         bool useCache = options.UseCache;
-                        PackageDownloader? packageDownloader = new PackageDownloader(purl, HttpClientFactory, downloadDirectory, useCache);
+                        PackageDownloader? packageDownloader = new PackageDownloader(purl, ProjectManagerFactory, downloadDirectory, useCache);
 
                         List<string>? downloadResults = await packageDownloader.DownloadPackageLocalCopy(purl, options.DownloadMetadataOnly, options.Extract);
                         foreach (string? downloadPath in downloadResults)

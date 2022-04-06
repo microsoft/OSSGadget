@@ -58,7 +58,7 @@ namespace Microsoft.CST.OpenSource.Shared
                                    null, purl.Qualifiers, purl.Subpath);
             Logger.Debug("Searching for source code for: {0}", purlNoVersion.ToString());
 
-            // Use reflection to find the correct downloader class
+            // Get the correct project manager using the factory.
             BaseProjectManager? projectManager = _projectManagerFactory.CreateProjectManager(purl);
 
             if (projectManager != null)

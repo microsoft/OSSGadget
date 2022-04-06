@@ -18,6 +18,7 @@ namespace Microsoft.CST.OpenSource.Tests
     using System.Linq;
     using System.Net;
     using System.Net.Http;
+    using System.Web;
 
     [TestClass]
     public class FindSquatsTest
@@ -142,6 +143,34 @@ namespace Microsoft.CST.OpenSource.Tests
                     }
                 }
             }
+        }
+        
+        [DataTestMethod]
+        [DataRow("pkg:npm/foo")]
+        [DataRow("pkg:npm/foo/bar")]
+        [DataRow("pkg:npm/react-dom")]
+        [DataRow("pkg:nuget/Microsoft.CST.OAT")]
+        [DataRow("pkg:nuget/Newtonsoft.Json")]
+        public void EnsureHttpEncoded(string packageUrl)
+        {
+            PackageURL purl = new(packageUrl);
+            if (purl.Name is not null && purl.Type is not null)
+            {
+                BaseProjectManager? manager = ProjectManagerFactory.CreateProjectManager(purl, null);
+                if (manager is not null)
+                {
+                    foreach ((string mutationPurlString, _) in manager.EnumerateSquatCandidates(purl)!)
+                    {
+                        PackageURL mutatedPurl = new(mutationPurlString);
+                        
+                        if (IsUrlEncoded(mutatedPurl.Name) || (mutatedPurl.HasNamespace() && IsUrlEncoded(mutatedPurl.Namespace)))
+                        {
+                            return;
+                        }
+                    }
+                }
+            }
+            Assert.Fail();
         }
         
         [TestMethod]
@@ -357,6 +386,16 @@ namespace Microsoft.CST.OpenSource.Tests
                 _ => throw new NotSupportedException(
                     $"{purl.Type} packages are not currently supported."),
             };
+        }
+        
+        /// <summary>
+        /// Helper method to check if a string is URL encoded.
+        /// </summary>
+        /// <param name="text">The string to check.</param>
+        /// <returns>True if the string was URL encoded.</returns>
+        private static bool IsUrlEncoded(string text)
+        {
+            return HttpUtility.UrlDecode(text) != text;
         }
     }
 }

@@ -18,9 +18,16 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using Utilities;
     using Version = SemanticVersioning.Version;
 
-
     public class NuGetProjectManager : BaseProjectManager
     {
+        /// <summary>
+        /// The type of the project manager from the package-url type specifications.
+        /// </summary>
+        /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
+        public const string Type = "nuget";
+
+        public override string ManagerType => Type;
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public const string ENV_NUGET_ENDPOINT_API = "https://api.nuget.org";
         public const string ENV_NUGET_ENDPOINT = "https://www.nuget.org";
@@ -132,13 +139,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
                                 if (doExtract)
                                 {
-                                    downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync(), cached));
+                                    downloadedPaths.Add(await ArchiveHelper.ExtractArchiveAsync(TopLevelExtractionDirectory, targetName, await result.Content.ReadAsStreamAsync(), cached));
                                 }
                                 else
                                 {
-                                    targetName += Path.GetExtension(archive) ?? "";
-                                    await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
-                                    downloadedPaths.Add(targetName);
+                                    extractionPath += Path.GetExtension(archive) ?? "";
+                                    await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
+                                    downloadedPaths.Add(extractionPath);
                                 }
                                 return downloadedPaths;
                             }
@@ -172,13 +179,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
                                     if (doExtract)
                                     {
-                                        downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync(), cached));
+                                        downloadedPaths.Add(await ArchiveHelper.ExtractArchiveAsync(TopLevelExtractionDirectory, targetName, await result.Content.ReadAsStreamAsync(), cached));
                                     }
                                     else
                                     {
-                                        targetName += Path.GetExtension(archive) ?? "";
-                                        await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
-                                        downloadedPaths.Add(targetName);
+                                        extractionPath += Path.GetExtension(archive) ?? "";
+                                        await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
+                                        downloadedPaths.Add(extractionPath);
                                     }
                                     return downloadedPaths;
                                 }
@@ -215,7 +222,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
+        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true, bool includePrerelease = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
 
@@ -335,7 +342,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
         
         /// <inheritdoc />
-        public override async Task<PackageMetadata> GetPackageMetadata(PackageURL purl, bool useCache = true)
+        public override async Task<PackageMetadata?> GetPackageMetadata(PackageURL purl, bool useCache = true)
         {
             PackageMetadata metadata = new();
             string? content = await GetMetadata(purl, useCache);
@@ -406,13 +413,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
                     // author(s)
                     JsonElement? authorElement = OssUtilities.GetJSONPropertyIfExists(versionElement, "authors");
-                    User author = new();
                     if (authorElement is not null)
                     {
-                        author.Name = authorElement?.GetString();
-                        // TODO: User email and url
-                        // author.Email = OssUtilities.GetJSONPropertyStringIfExists(authorElement, "email");
-                        // author.Url = OssUtilities.GetJSONPropertyStringIfExists(authorElement, "url");
+                        User author = new()
+                        {
+                            Name = authorElement?.GetString(),
+                            // TODO: User email and url
+                        };
 
                         metadata.Authors ??= new List<User>();
                         metadata.Authors.Add(author);

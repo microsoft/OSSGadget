@@ -16,6 +16,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     internal class GitHubProjectManager : BaseProjectManager
     {
+        /// <summary>
+        /// The type of the project manager from the package-url type specifications.
+        /// </summary>
+        /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
+        public const string Type = "github";
+
+        public override string ManagerType => Type;
+
         public static string ENV_GITHUB_ENDPOINT = "https://github.com";
 
         public GitHubProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
@@ -151,7 +159,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                         Logger.Debug("Download successful.");
                         if (doExtract)
                         {
-                            downloadedPaths.Add(await ExtractArchive(relativeWorkingDirectory, await result.Content.ReadAsByteArrayAsync(), cached));
+                            downloadedPaths.Add(await ArchiveHelper.ExtractArchiveAsync(TopLevelExtractionDirectory, relativeWorkingDirectory, await result.Content.ReadAsStreamAsync(), cached));
                         }
                         else
                         {
@@ -172,7 +180,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
+        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true, bool includePrerelease = true)
         {
             try
             {

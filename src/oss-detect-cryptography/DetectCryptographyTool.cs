@@ -22,7 +22,7 @@ using Microsoft.CST.RecursiveExtractor;
 
 namespace Microsoft.CST.OpenSource
 {
-    using Microsoft.CST.OpenSource.PackageManagers;
+    using Helpers;
     using PackageUrl;
     using System.Net.Http;
 
@@ -92,9 +92,8 @@ namespace Microsoft.CST.OpenSource
                             {
                                 targetDirectoryName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                             }
-                            BaseProjectManager projectManager = ProjectManagerFactory.CreateBaseProjectManager(detectCryptographyTool.HttpClientFactory, targetDirectoryName);
 
-                            string? path = await projectManager.ExtractArchive("temp", File.ReadAllBytes(target));
+                            string? path = await ArchiveHelper.ExtractArchiveAsync(targetDirectoryName, Path.GetFileName(target), File.OpenRead(target));
 
                             results = await detectCryptographyTool.AnalyzeDirectory(path);
 

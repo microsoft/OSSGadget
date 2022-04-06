@@ -3,6 +3,7 @@
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using AngleSharp.Html.Parser;
+    using Helpers;
     using PackageUrl;
     using System;
     using System.Collections.Generic;
@@ -13,6 +14,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     internal class CRANProjectManager : BaseProjectManager
     {
+        /// <summary>
+        /// The type of the project manager from the package-url type specifications.
+        /// </summary>
+        /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
+        public const string Type = "cran";
+
+        public override string ManagerType => Type;
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_CRAN_ENDPOINT = "https://cran.r-project.org";
 
@@ -62,13 +71,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 }
                 if (doExtract)
                 {
-                    downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync(), cached));
+                    downloadedPaths.Add(await ArchiveHelper.ExtractArchiveAsync(TopLevelExtractionDirectory, targetName, await result.Content.ReadAsStreamAsync(), cached));
                 }
                 else
                 {
-                    targetName += Path.GetExtension(url) ?? "";
-                    await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
-                    downloadedPaths.Add(targetName);
+                    extractionPath += Path.GetExtension(url) ?? "";
+                    await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
+                    downloadedPaths.Add(extractionPath);
                 }
             }
             catch (Exception ex)
@@ -89,15 +98,16 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 Logger.Debug("Downloading {0}...", purl);
 
                 string targetName = $"cran-{packageName}@{packageVersion}";
+                string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                 if (doExtract)
                 {
-                    downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync(), cached));
+                    downloadedPaths.Add(await ArchiveHelper.ExtractArchiveAsync(TopLevelExtractionDirectory, targetName, await result.Content.ReadAsStreamAsync(), cached));
                 }
                 else
                 {
-                    targetName += Path.GetExtension(url) ?? "";
-                    await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
-                    downloadedPaths.Add(targetName);
+                    extractionPath += Path.GetExtension(url) ?? "";
+                    await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
+                    downloadedPaths.Add(extractionPath);
                 }
             }
             catch (Exception ex)
@@ -108,7 +118,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
+        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true, bool includePrerelease = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
             if (purl == null || purl.Name is null)

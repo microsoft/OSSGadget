@@ -11,27 +11,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     public static class ProjectManagerFactory
     {
         /// <summary>
-        /// Create a BaseProjectManager.
-        /// </summary>
-        /// <param name="httpClientFactory">The Http cliend factory for making http clients to make requests with.</param>
-        /// <param name="destinationDirectory">The directory to use to store any downloaded packages.</param>
-        /// <returns></returns>
-        public static BaseProjectManager CreateBaseProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory)
-        {
-            return new BaseProjectManager(httpClientFactory, destinationDirectory);
-        }
-
-        /// <summary>
-        /// Create a BaseProjectManager.
-        /// </summary>
-        /// <param name="destinationDirectory">The directory to use to store any downloaded packages.</param>
-        /// <returns></returns>
-        public static BaseProjectManager CreateBaseProjectManager(string destinationDirectory)
-        {
-            return new BaseProjectManager(destinationDirectory);
-        }
-
-        /// <summary>
         /// Get an appropriate project manager for package given its PackageURL.
         /// </summary>
         /// <param name="purl">The <see cref="PackageURL"/> for the package to create the project manager for.</param>

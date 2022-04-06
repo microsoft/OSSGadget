@@ -2,15 +2,12 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
-    using Microsoft.CST.RecursiveExtractor;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.CST.OpenSource.Model;
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using System.Net.Http;
-    using System.Text;
     using System.Text.Json;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
@@ -18,19 +15,26 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using Version = SemanticVersioning.Version;
     using PackageUrl;
 
-    public class BaseProjectManager
+    public abstract class BaseProjectManager
     {
+        /// <summary>
+        /// The type of the project manager from the package-url type specifications.
+        /// </summary>
+        /// <remarks>This differs from the Type property defined in other ProjectManagers as this one isn't static.</remarks>
+        /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
+        public abstract string ManagerType { get; }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="BaseProjectManager"/> class.
         /// </summary>
-        public BaseProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory)
+        public BaseProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory = ".")
         {
             Options = new Dictionary<string, object>();
             TopLevelExtractionDirectory = destinationDirectory;
             HttpClientFactory = httpClientFactory;
         }
 
-        public BaseProjectManager(string destinationDirectory) : this(new DefaultHttpClientFactory(), destinationDirectory)
+        public BaseProjectManager(string destinationDirectory = ".") : this(new DefaultHttpClientFactory(), destinationDirectory)
         {
         }
 
@@ -42,7 +46,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <summary>
         /// The location (directory) to extract files to.
         /// </summary>
-        public string TopLevelExtractionDirectory { get; set; } = ".";
+        public string TopLevelExtractionDirectory { get; init; }
 
         /// <summary>
         /// The <see cref="IHttpClientFactory"/> for the manager.
@@ -279,61 +283,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <remarks>The latest version is always first, then it is sorted by SemVer in descending order.</remarks>
         /// <param name="purl">Package URL specifying the package. Version is ignored.</param>
         /// <param name="useCache">If the cache should be used when looking for the versions.</param>
+        /// <param name="includePrerelease">If pre-release versions should be included.</param>
         /// <returns> A list of package version numbers.</returns>
-        public virtual Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
+        public virtual Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true, bool includePrerelease = true)
         {
             throw new NotImplementedException("BaseProjectManager does not implement EnumerateVersions.");
-        }
-
-        /// <summary>
-        /// Extracts an archive (given by 'bytes') into a directory named 'directoryName',
-        /// recursively, using RecursiveExtractor.
-        /// </summary>
-        /// <param name="directoryName">directory to extract content into (within TopLevelExtractionDirectory)</param>
-        /// <param name="bytes">bytes to extract (should be an archive file)</param>
-        /// <param name="cached">If the archive has been cached.</param>
-        /// <returns></returns>
-        public async Task<string> ExtractArchive(string directoryName, byte[] bytes, bool cached = false)
-        {
-            Logger.Trace("ExtractArchive({0}, <bytes> len={1})", directoryName, bytes.Length);
-
-            Directory.CreateDirectory(TopLevelExtractionDirectory);
-
-            StringBuilder dirBuilder = new(directoryName);
-
-            foreach (char c in Path.GetInvalidPathChars())
-            {
-                dirBuilder.Replace(c, '-');    // ignore: lgtm [cs/string-concatenation-in-loop]
-            }
-
-            string fullTargetPath = Path.Combine(TopLevelExtractionDirectory, dirBuilder.ToString());
-
-            if (!cached)
-            {
-                while (Directory.Exists(fullTargetPath) || File.Exists(fullTargetPath))
-                {
-                    dirBuilder.Append("-" + DateTime.Now.Ticks);
-                    fullTargetPath = Path.Combine(TopLevelExtractionDirectory, dirBuilder.ToString());
-                }
-            }
-            Extractor extractor = new();
-            ExtractorOptions extractorOptions = new()
-            {
-                ExtractSelfOnFail = true,
-                Parallel = true
-                // MaxExtractedBytes = 1000 * 1000 * 10;  // 10 MB maximum package size
-            };
-            ExtractionStatusCode result = await extractor.ExtractToDirectoryAsync(TopLevelExtractionDirectory, dirBuilder.ToString(), new MemoryStream(bytes), extractorOptions);
-            if (result == ExtractionStatusCode.Ok)
-            {
-                Logger.Debug("Archive extracted to {0}", fullTargetPath);
-            }
-            else
-            {
-                Logger.Warn("Error extracting archive {0} ({1})", fullTargetPath, result);
-            }
-
-            return fullTargetPath;
         }
 
         /// <summary>
@@ -383,9 +337,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// This method should return text reflecting metadata for the given package. There is no
         /// assumed format.
         /// </summary>
-        /// <param name="purl">PackageURL to search.</param>
+        /// <param name="purl">The <see cref="PackageURL"/> to get the metadata for.</param>
         /// <param name="useCache">If the metadata should be retrieved from the cache, if it is available.</param>
-        /// <returns>a string containing metadata.</returns>
+        /// <remarks>If no version specified, defaults to latest version.</remarks>
+        /// <returns>A string representing the <see cref="PackageURL"/>'s metadata, or null if it wasn't found.</returns>
         public virtual Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
         {
             throw new NotImplementedException($"{GetType().Name} does not implement GetMetadata.");
@@ -406,8 +361,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// </summary>
         /// <param name="purl">The <see cref="PackageURL"/> to get the normalized metadata for.</param>
         /// <param name="useCache">If the <see cref="PackageMetadata"/> should be retrieved from the cache, if it is available.</param>
-        /// <returns>A <see cref="GetPackageMetadata"/> object representing this <see cref="PackageURL"/>.</returns>
-        public virtual Task<PackageMetadata> GetPackageMetadata(PackageURL purl, bool useCache = true)
+        /// <remarks>If no version specified, defaults to latest version.</remarks>
+        /// <returns>A <see cref="PackageMetadata"/> object representing this <see cref="PackageURL"/>.</returns>
+        public virtual Task<PackageMetadata?> GetPackageMetadata(PackageURL purl, bool useCache = true)
         {
             string typeName = GetType().Name;
             throw new NotImplementedException($"{typeName} does not implement GetPackageMetadata.");

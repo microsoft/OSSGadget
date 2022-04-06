@@ -18,6 +18,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     public class NPMProjectManager : BaseProjectManager
     {
+        /// <summary>
+        /// The type of the project manager from the package-url type specifications.
+        /// </summary>
+        /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
+        public const string Type = "npm";
+
+        public override string ManagerType => Type;
+
         public static string ENV_NPM_API_ENDPOINT { get; set; } = "https://registry.npmjs.org";
         public static string ENV_NPM_ENDPOINT { get; set; } = "https://www.npmjs.com";
 
@@ -58,7 +66,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 result.EnsureSuccessStatusCode();
                 Logger.Debug("Downloading {0}...", purl?.ToString());
                 string targetName = $"npm-{packageName}@{packageVersion}";
-                string extractionPath = Path.Combine(TopLevelExtractionDirectory ?? string.Empty, targetName);
+                string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                 if (doExtract && Directory.Exists(extractionPath) && cached == true)
                 {
                     downloadedPaths.Add(extractionPath);
@@ -66,13 +74,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 }
                 if (doExtract)
                 {
-                    downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync(), cached));
+                    downloadedPaths.Add(await ArchiveHelper.ExtractArchiveAsync(TopLevelExtractionDirectory, targetName, await result.Content.ReadAsStreamAsync(), cached));
                 }
                 else
                 {
-                    targetName += Path.GetExtension(tarball) ?? "";
-                    await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
-                    downloadedPaths.Add(targetName);
+                    extractionPath += Path.GetExtension(tarball) ?? "";
+                    await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
+                    downloadedPaths.Add(extractionPath);
                 }
             }
             catch (Exception ex)
@@ -98,7 +106,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
+        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true, bool includePrerelease = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
             if (purl?.Name is null)
@@ -186,7 +194,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
-        public override async Task<PackageMetadata> GetPackageMetadata(PackageURL purl, bool useCache = true)
+        public override async Task<PackageMetadata?> GetPackageMetadata(PackageURL purl, bool useCache = true)
         {
             PackageMetadata metadata = new();
             string? content = await GetMetadata(purl, useCache);
@@ -303,12 +311,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
                     // author(s)
                     JsonElement? authorElement = OssUtilities.GetJSONPropertyIfExists(versionElement, "_npmUser");
-                    User author = new();
                     if (authorElement is not null)
                     {
-                        author.Name = OssUtilities.GetJSONPropertyStringIfExists(authorElement, "name");
-                        author.Email = OssUtilities.GetJSONPropertyStringIfExists(authorElement, "email");
-                        author.Url = OssUtilities.GetJSONPropertyStringIfExists(authorElement, "url");
+                        User author = new()
+                        {
+                            Name = OssUtilities.GetJSONPropertyStringIfExists(authorElement, "name"),
+                            Email = OssUtilities.GetJSONPropertyStringIfExists(authorElement, "email"),
+                            Url = OssUtilities.GetJSONPropertyStringIfExists(authorElement, "url")
+                        };
 
                         metadata.Authors ??= new List<User>();
                         metadata.Authors.Add(author);

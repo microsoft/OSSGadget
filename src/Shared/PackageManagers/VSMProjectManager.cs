@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Helpers;
     using Microsoft.Extensions.Caching.Memory;
     using PackageUrl;
     using System;
@@ -15,6 +16,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     internal class VSMProjectManager : BaseProjectManager
     {
+        /// <summary>
+        /// The type of the project manager from the package-url type specifications.
+        /// </summary>
+        /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
+        public const string Type = "vsm";
+
+        public override string ManagerType => Type;
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_VS_MARKETPLACE_ENDPOINT = "https://marketplace.visualstudio.com";
 
@@ -135,13 +144,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                                     }
                                     if (doExtract)
                                     {
-                                        downloadedPaths.Add(await ExtractArchive(targetName, await downloadResult.Content.ReadAsByteArrayAsync(), cached));
+                                        downloadedPaths.Add(await ArchiveHelper.ExtractArchiveAsync(TopLevelExtractionDirectory, targetName, await downloadResult.Content.ReadAsStreamAsync(), cached));
                                     }
                                     else
                                     {
-                                        targetName += Path.GetExtension(source.GetString()) ?? "";
-                                        await File.WriteAllBytesAsync(targetName, await downloadResult.Content.ReadAsByteArrayAsync());
-                                        downloadedPaths.Add(targetName);
+                                        extractionPath += Path.GetExtension(source.GetString()) ?? "";
+                                        await File.WriteAllBytesAsync(extractionPath, await downloadResult.Content.ReadAsByteArrayAsync());
+                                        downloadedPaths.Add(extractionPath);
                                     }
                                 }
                                 catch (Exception ex)
@@ -161,7 +170,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true)
+        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true, bool includePrerelease = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
 

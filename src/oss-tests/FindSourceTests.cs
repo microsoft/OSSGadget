@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Tests
 {
+    using PackageManagers;
     using PackageUrl;
     using System;
 
@@ -23,7 +24,7 @@ namespace Microsoft.CST.OpenSource.Tests
             // for initialization
             FindSourceTool tool = new();
 
-            RepoSearch searchTool = new();
+            RepoSearch searchTool = new(new ProjectManagerFactory());
             Dictionary<PackageURL, double>? results = await searchTool.ResolvePackageLibraryAsync(new PackageURL(purl));
 
             List<Result> sarifResults = new();
@@ -79,7 +80,7 @@ namespace Microsoft.CST.OpenSource.Tests
             // for initialization
             FindSourceTool tool = new();
 
-            RepoSearch searchTool = new();
+            RepoSearch searchTool = new(new ProjectManagerFactory());
             Dictionary<PackageURL, double>? results = await searchTool.ResolvePackageLibraryAsync(new PackageURL(purl));
             Assert.IsTrue(results.Count() == 0, $"Result {results} obtained from non-existent {purl}");
         }
@@ -94,7 +95,7 @@ namespace Microsoft.CST.OpenSource.Tests
             // for initialization
             FindSourceTool tool = new();
 
-            RepoSearch searchTool = new();
+            RepoSearch searchTool = new(new ProjectManagerFactory());
             Dictionary<PackageURL, double>? results = await searchTool.ResolvePackageLibraryAsync(new PackageURL(purl));
             PackageURL? targetPurl = new(targetResult);
             bool success = false;

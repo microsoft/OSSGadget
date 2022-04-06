@@ -5,6 +5,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using PackageUrl;
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Net.Http;
 
     public class ProjectManagerFactory
@@ -177,10 +178,19 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// </summary>
         /// <param name="packageUrl">The <see cref="PackageURL"/> to get a project manager for.</param>
         /// <param name="httpClientFactory">The <see cref="IHttpClientFactory"/> to optionally add.</param>
+        /// <param name="overrideManagers">
+        /// If provided, will override each matching ProjectManager constructor from the defaults,
+        /// or add it if it wasn't present in <see cref="CreateDefaultManagers"/>.
+        /// </param>
+        /// <param name="destinationDirectory">The new destination directory, if provided.</param>
         /// <returns>A new <see cref="BaseProjectManager"/> implementation.</returns>
-        public static BaseProjectManager? CreateProjectManager(PackageURL packageUrl, IHttpClientFactory? httpClientFactory = null)
+        public static BaseProjectManager? ConstructPackageManager(PackageURL packageUrl, IHttpClientFactory? httpClientFactory = null, Dictionary<string, ConstructProjectManager>? overrideManagers = null, string destinationDirectory = ".")
         {
-            return new ProjectManagerFactory(httpClientFactory).CreateProjectManager(packageUrl);
+            if (overrideManagers != null && overrideManagers.Any())
+            {
+                return new ProjectManagerFactory(overrideManagers, httpClientFactory).CreateProjectManager(packageUrl, destinationDirectory);
+            }
+            return new ProjectManagerFactory(httpClientFactory).CreateProjectManager(packageUrl, destinationDirectory);
         }
     }
 }

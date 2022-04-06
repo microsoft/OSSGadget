@@ -18,7 +18,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     public class PyPIProjectManager : BaseProjectManager
     {
-        public new const string Type = "pypi";
+        /// <summary>
+        /// The type of the project manager from the package-url type specifications.
+        /// </summary>
+        /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
+        public const string Type = "pypi";
+
+        public override string ManagerType => Type;
 
         public static string ENV_PYPI_ENDPOINT { get; set; } = "https://pypi.org";
 
@@ -76,6 +82,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                         System.Net.Http.HttpResponseMessage result = await httpClient.GetAsync(release.GetProperty("url").GetString());
                         result.EnsureSuccessStatusCode();
                         string targetName = $"pypi-{packageType}-{packageName}@{packageVersion}";
+                        string extension = ".tar.gz";
+                        if (packageType.ToString() == "bdist_wheel")
+                        {
+                            extension = ".whl";
+                        }
                         string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                         if (doExtract && Directory.Exists(extractionPath) && cached == true)
                         {
@@ -88,8 +99,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                         }
                         else
                         {
-                            await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
-                            downloadedPaths.Add(targetName);
+                            extractionPath += extension;
+                            await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
+                            downloadedPaths.Add(extractionPath);
                         }
                     }
                 }
@@ -177,7 +189,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
-        public override async Task<PackageMetadata> GetPackageMetadata(PackageURL purl, bool useCache = true)
+        public override async Task<PackageMetadata?> GetPackageMetadata(PackageURL purl, bool useCache = true)
         {
             PackageMetadata metadata = new();
             string? content = await GetMetadata(purl, useCache);

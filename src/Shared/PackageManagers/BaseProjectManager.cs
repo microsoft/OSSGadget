@@ -6,7 +6,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using Microsoft.CST.OpenSource.Model;
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using System.Net.Http;
     using System.Text.Json;
@@ -18,8 +17,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     public abstract class BaseProjectManager
     {
-        public static readonly string Type = null!;
-        
+        /// <summary>
+        /// The type of the project manager from the package-url type specifications.
+        /// </summary>
+        /// <remarks>This differs from the Type property defined in other ProjectManagers as this one isn't static.</remarks>
+        /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
+        public abstract string ManagerType { get; }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="BaseProjectManager"/> class.
         /// </summary>
@@ -336,7 +340,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <param name="purl">The <see cref="PackageURL"/> to get the metadata for.</param>
         /// <param name="useCache">If the metadata should be retrieved from the cache, if it is available.</param>
         /// <remarks>If no version specified, defaults to latest version.</remarks>
-        /// <returns>A string representing the <see cref="PackageURL"/>'s metadata.</returns>
+        /// <returns>A string representing the <see cref="PackageURL"/>'s metadata, or null if it wasn't found.</returns>
         public virtual Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
         {
             throw new NotImplementedException($"{GetType().Name} does not implement GetMetadata.");

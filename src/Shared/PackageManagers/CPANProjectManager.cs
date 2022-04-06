@@ -15,7 +15,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     internal class CPANProjectManager : BaseProjectManager
     {
-        public new const string Type = "cpan";
+        /// <summary>
+        /// The type of the project manager from the package-url type specifications.
+        /// </summary>
+        /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
+        public const string Type = "cpan";
+
+        public override string ManagerType => Type;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_CPAN_BINARY_ENDPOINT = "https://cpan.metacpan.org";
@@ -127,9 +133,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 }
                 else
                 {
-                    targetName += Path.GetExtension(binaryUrl) ?? "";
-                    await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
-                    downloadedPaths.Add(targetName);
+                    extractionPath += Path.GetExtension(binaryUrl) ?? "";
+                    await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
+                    downloadedPaths.Add(extractionPath);
                 }
                 break;
             }

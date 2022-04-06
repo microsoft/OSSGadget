@@ -12,7 +12,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     internal class URLProjectManager : BaseProjectManager
     {
-        public new const string Type = "url";
+        /// <summary>
+        /// The type of the project manager from the package-url type specifications.
+        /// </summary>
+        /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
+        public const string Type = "url";
+
+        public override string ManagerType => Type;
 
         public URLProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
         {
@@ -62,8 +68,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 }
                 else
                 {
-                    await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
-                    downloadedPaths.Add(targetName);
+                    await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
+                    downloadedPaths.Add(extractionPath);
                 }
                 return downloadedPaths;
             }

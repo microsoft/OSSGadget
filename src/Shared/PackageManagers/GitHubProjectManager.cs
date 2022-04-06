@@ -16,7 +16,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
     internal class GitHubProjectManager : BaseProjectManager
     {
-        public new const string Type = "github";
+        /// <summary>
+        /// The type of the project manager from the package-url type specifications.
+        /// </summary>
+        /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
+        public const string Type = "github";
+
+        public override string ManagerType => Type;
 
         public static string ENV_GITHUB_ENDPOINT = "https://github.com";
 

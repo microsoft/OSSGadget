@@ -54,16 +54,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <summary>
-        /// Remove a manager from the dictionary of constructors.
-        /// </summary>
-        /// <param name="type">The purl type of the ProjectManager to remove.</param>
-        /// <returns>If it was successfully removed.</returns>
-        public bool UnsetManager(string type)
-        {
-            return _projectManagers.Remove(type);
-        }
-
-        /// <summary>
         /// Sets a manager's constructor in the dictionary of constructors.
         /// </summary>
         /// <param name="type">The purl type of the ProjectManager to set.</param>
@@ -71,14 +61,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         private void SetManager(string type, ConstructProjectManager ctor)
         {
             _projectManagers[type] = ctor;
-        }
-
-        /// <summary>
-        /// Clears all of the managers and constructors from the dictionary.
-        /// </summary>
-        public void ClearManagers()
-        {
-            _projectManagers.Clear();
         }
 
         /// <summary>

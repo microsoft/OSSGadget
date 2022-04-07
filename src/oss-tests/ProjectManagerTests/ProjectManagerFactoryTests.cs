@@ -16,12 +16,16 @@ using VisualStudio.TestTools.UnitTesting;
 public class ProjectManagerFactoryTests
 {
     private readonly Mock<IHttpClientFactory> _mockFactory = new();
+    private readonly Dictionary<string, ProjectManagerFactory.ConstructProjectManager> _managerOverrides;
 
     public ProjectManagerFactoryTests()
     {
         MockHttpMessageHandler mockHttp = new();
 
         _mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
+        
+        // Set up the manager overrides as the default for now.
+        _managerOverrides = ProjectManagerFactory.GetDefaultManagers(_mockFactory.Object);
     }
 
     /// <summary>
@@ -49,11 +53,9 @@ public class ProjectManagerFactoryTests
     [TestMethod]
     public void DefaultSucceeds()
     {
-        Dictionary<string, ProjectManagerFactory.ConstructProjectManager> managerOverrides =
-            ManagerOverridesConstructor(_mockFactory.Object, null, null);
-        ProjectManagerFactory projectManagerFactory = new(managerOverrides);
+        ProjectManagerFactory projectManagerFactory = new(_managerOverrides);
 
-        AssertFactoryCreatesCorrect(projectManagerFactory, managerOverrides);
+        AssertFactoryCreatesCorrect(projectManagerFactory);
     }
     
     /// <summary>
@@ -62,20 +64,11 @@ public class ProjectManagerFactoryTests
     [TestMethod]
     public void AddTestManagerSucceeds()
     {
-        Dictionary<string, ProjectManagerFactory.ConstructProjectManager> addManagers = new()
-        {
-            {
-                "test", directory => new NuGetProjectManager(_mockFactory.Object, directory) // Create a test type with the NuGetProjectManager.
-            }
-        };
+        _managerOverrides["test"] = directory => new NuGetProjectManager(_mockFactory.Object, directory); // Create a test type with the NuGetProjectManager.
 
-        Dictionary<string, ProjectManagerFactory.ConstructProjectManager> managerOverrides =
-            ManagerOverridesConstructor(_mockFactory.Object, addManagers, null);
-        ProjectManagerFactory projectManagerFactory = new(managerOverrides);
-        
-        AssertFactoryCreatesCorrect(projectManagerFactory, addManagers);
+        ProjectManagerFactory projectManagerFactory = new(_managerOverrides);
 
-        AssertFactoryCreatesCorrect(projectManagerFactory, managerOverrides);
+        AssertFactoryCreatesCorrect(projectManagerFactory);
     }
     
     /// <summary>
@@ -84,23 +77,14 @@ public class ProjectManagerFactoryTests
     [TestMethod]
     public void OverrideManagerSucceeds()
     {
-        Dictionary<string, ProjectManagerFactory.ConstructProjectManager> addManagers = new()
-        {
-            {
-                "nuget", _ => new NuGetProjectManager(_mockFactory.Object, "nugetTestDirectory") // Override the default entry for nuget, and override the destinationDirectory.
-            },
-            {
-                "npm", _ => new NPMProjectManager(_mockFactory.Object, "npmTestDirectory") // Override the default entry for npm, and override the destinationDirectory.
-            }
-        };
+        _managerOverrides[NuGetProjectManager.Type] =
+            _ => new NuGetProjectManager(_mockFactory.Object, "nugetTestDirectory"); // Override the default entry for nuget, and override the destinationDirectory.
+        _managerOverrides[NPMProjectManager.Type] =
+            _ => new NPMProjectManager(_mockFactory.Object, "npmTestDirectory"); // Override the default entry for npm, and override the destinationDirectory.
 
-        Dictionary<string, ProjectManagerFactory.ConstructProjectManager> managerOverrides =
-            ManagerOverridesConstructor(_mockFactory.Object, addManagers, null);
-        ProjectManagerFactory projectManagerFactory = new(managerOverrides);
-        
-        AssertFactoryCreatesCorrect(projectManagerFactory, addManagers);
+        ProjectManagerFactory projectManagerFactory = new(_managerOverrides);
 
-        AssertFactoryCreatesCorrect(projectManagerFactory, managerOverrides);
+        AssertFactoryCreatesCorrect(projectManagerFactory);
 
         // Assert that the overrides worked by checking the TopLevelExtractionDirectory was changed.
         BaseProjectManager? nuGetProjectManager = projectManagerFactory.CreateProjectManager(new PackageURL("pkg:nuget/foo"));
@@ -116,20 +100,11 @@ public class ProjectManagerFactoryTests
     [TestMethod]
     public void ChangeProjectManagerSucceeds()
     {
-        Dictionary<string, ProjectManagerFactory.ConstructProjectManager> addManagers = new()
-        {
-            {
-                "nuget", directory => new NPMProjectManager(_mockFactory.Object, directory) // Override the default entry for nuget and set it as another NPMProjectManager.
-            }
-        };
-
-        Dictionary<string, ProjectManagerFactory.ConstructProjectManager> managerOverrides =
-            ManagerOverridesConstructor(_mockFactory.Object, addManagers, null);
-        ProjectManagerFactory projectManagerFactory = new(managerOverrides);
+        _managerOverrides[NuGetProjectManager.Type] = directory => new NPMProjectManager(_mockFactory.Object, directory); // Override the default entry for nuget and set it as another NPMProjectManager.
         
-        AssertFactoryCreatesCorrect(projectManagerFactory, addManagers);
+        ProjectManagerFactory projectManagerFactory = new(_managerOverrides);
 
-        AssertFactoryCreatesCorrect(projectManagerFactory, managerOverrides);
+        AssertFactoryCreatesCorrect(projectManagerFactory);
     }
     
     /// <summary>
@@ -138,19 +113,12 @@ public class ProjectManagerFactoryTests
     [TestMethod]
     public void RemoveProjectManagerSucceeds()
     {
-        string[] removeTypes = { "nuget" };
+        Assert.IsTrue(_managerOverrides.Remove(NuGetProjectManager.Type));
 
-        Dictionary<string, ProjectManagerFactory.ConstructProjectManager> managerOverrides =
-            ManagerOverridesConstructor(_mockFactory.Object, null, removeTypes);
-        ProjectManagerFactory projectManagerFactory = new(managerOverrides);
+        ProjectManagerFactory projectManagerFactory = new(_managerOverrides);
         
-        AssertFactoryCreatesCorrect(projectManagerFactory, managerOverrides);
-        
-        foreach (string purlType in removeTypes)
-        {
-            PackageURL packageUrl = new($"pkg:{purlType}/foo");
-            Assert.IsNull(projectManagerFactory.CreateProjectManager(packageUrl));
-        }
+        PackageURL packageUrl = new("pkg:nuget/foo");
+        Assert.IsNull(projectManagerFactory.CreateProjectManager(packageUrl));
     }
     
     /// <summary>
@@ -160,51 +128,26 @@ public class ProjectManagerFactoryTests
     [TestMethod]
     public void RemoveAllProjectManagersSucceeds()
     {
-        string[] removeTypes = ProjectManagerFactory.GetDefaultManagers(_mockFactory.Object).Select(kvp => kvp.Key).ToArray();
+        _managerOverrides.Clear();
 
-        Dictionary<string, ProjectManagerFactory.ConstructProjectManager> managerOverrides =
-            ManagerOverridesConstructor(_mockFactory.Object, null, removeTypes);
-        ProjectManagerFactory projectManagerFactory = new(managerOverrides);
+        ProjectManagerFactory projectManagerFactory = new(_managerOverrides);
         
-        AssertFactoryCreatesCorrect(projectManagerFactory, managerOverrides);
+        AssertFactoryCreatesCorrect(projectManagerFactory);
         
-        foreach (string purlType in removeTypes)
+        foreach (PackageURL packageUrl in ProjectManagerFactory.GetDefaultManagers(_mockFactory.Object).Keys
+                     .Select(purlType => new PackageURL($"pkg:{purlType}/foo")))
         {
-            PackageURL packageUrl = new($"pkg:{purlType}/foo");
             Assert.IsNull(projectManagerFactory.CreateProjectManager(packageUrl));
         }
-    }
-
-    /// <summary>
-    /// Helper method to create the modified dictionary of constructors.
-    /// </summary>
-    /// <param name="httpClientFactory">The <see cref="IHttpClientFactory"/> to use in the constructors.</param>
-    /// <param name="addManagers">The <see cref="Dictionary{String,ConstructProjectManager}"/> of managers to override the constructors for in the factory.</param>
-    /// <param name="removeTypes">The <see cref="PackageURL.Type"/>s to remove from being able to be constructed by the factory.</param>
-    /// <returns>The new <see cref="Dictionary{String,ConstructProjectManager}"/> that the <see cref="ProjectManagerFactory"/> should use.</returns>
-    private static Dictionary<string, ProjectManagerFactory.ConstructProjectManager> ManagerOverridesConstructor(
-        IHttpClientFactory httpClientFactory,
-        Dictionary<string, ProjectManagerFactory.ConstructProjectManager>? addManagers = null,
-        string[]? removeTypes = null)
-    {
-        Dictionary<string, ProjectManagerFactory.ConstructProjectManager> addOverrides =
-            addManagers ?? new Dictionary<string, ProjectManagerFactory.ConstructProjectManager>();
-
-        Dictionary<string, ProjectManagerFactory.ConstructProjectManager> managerOverrides = ProjectManagerFactory.GetDefaultManagers(httpClientFactory)
-            .Where(kvp => (removeTypes != null && !removeTypes.Contains(kvp.Key)) && !addOverrides.ContainsKey(kvp.Key))
-            .Concat(addOverrides).ToDictionary(x => x.Key, x => x.Value);
-
-        return managerOverrides;
     }
 
     /// <summary>
     /// Helper method to assert that the <paramref name="projectManagerFactory"/> creates the expected implementation of <see cref="BaseProjectManager"/>.
     /// </summary>
     /// <param name="projectManagerFactory">The <see cref="ProjectManagerFactory"/> to use.</param>
-    /// <param name="dict">The <see cref="Dictionary{String,ConstructProjectManager}"/> to loop through to test on the <paramref name="projectManagerFactory"/>.</param>
-    private static void AssertFactoryCreatesCorrect(ProjectManagerFactory projectManagerFactory, Dictionary<string, ProjectManagerFactory.ConstructProjectManager> dict)
+    private void AssertFactoryCreatesCorrect(ProjectManagerFactory projectManagerFactory)
     {
-        foreach ((string purlType, ProjectManagerFactory.ConstructProjectManager ctor) in dict)
+        foreach ((string purlType, ProjectManagerFactory.ConstructProjectManager ctor) in _managerOverrides)
         {
             PackageURL packageUrl = new($"pkg:{purlType}/foo");
             BaseProjectManager? expectedManager = ctor.Invoke();

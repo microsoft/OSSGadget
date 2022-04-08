@@ -11,7 +11,6 @@ namespace Microsoft.CST.OpenSource
     using Microsoft.CST.OpenSource.Model;
     using Microsoft.CST.OpenSource.PackageManagers;
     using PackageUrl;
-    using System.Net.Http;
 
     public class MetadataTool : OSSGadget
     {
@@ -43,19 +42,19 @@ namespace Microsoft.CST.OpenSource
             private IEnumerable<string> targets = Array.Empty<string>();
         }
 
-        public MetadataTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        public MetadataTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
         {
         }
 
-        public MetadataTool(): this(new DefaultHttpClientFactory()) { }
+        public MetadataTool(): this(new ProjectManagerFactory()) { }
 
-        private static async Task<PackageMetadata?> GetPackageMetadata(PackageURL purl, IHttpClientFactory httpClientFactory, bool useCache = true)
+        private static async Task<PackageMetadata?> GetPackageMetadata(PackageURL purl, ProjectManagerFactory projectManagerFactory, bool useCache = true)
         {
             PackageMetadata? metadata = null;
             try
             {
                 // Use reflection to find the correct downloader class
-                BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, httpClientFactory);
+                BaseProjectManager? projectManager = projectManagerFactory.CreateProjectManager(purl);
                 if (projectManager != null)
                 {
                     metadata = await projectManager.GetPackageMetadata(purl, useCache);
@@ -92,7 +91,7 @@ namespace Microsoft.CST.OpenSource
                     {
                         PackageURL purl = new(target);
                         Logger.Info($"Collecting metadata for {purl}");
-                        PackageMetadata? metadata = await GetPackageMetadata(purl, HttpClientFactory, options.UseCache);
+                        PackageMetadata? metadata = await GetPackageMetadata(purl, ProjectManagerFactory, options.UseCache);
                         Logger.Info(metadata?.ToString());
                     }
                     catch (Exception ex)

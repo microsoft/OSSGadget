@@ -4,13 +4,12 @@ namespace Microsoft.CST.OpenSource
 {
     using CommandLine;
     using CommandLine.Text;
-    using Microsoft.CST.OpenSource.Helpers;
     using Microsoft.CST.OpenSource.Shared;
+    using PackageManagers;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Net.Http;
     using System.Reflection;
     using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
 
@@ -21,13 +20,12 @@ namespace Microsoft.CST.OpenSource
         public static string ToolName { get => GetToolName() ?? ""; }
         public static string ToolVersion { get => GetToolVersion() ?? ""; }
 
-        public OSSGadget(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        public OSSGadget(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
         {
         }
-
+        
         public OSSGadget() : base()
-        {
-        }
+        {}
 
         /// <summary>
         /// Logger for this class

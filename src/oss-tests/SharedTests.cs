@@ -36,7 +36,7 @@ namespace Microsoft.CST.OpenSource.Tests
         public async Task MetadataToFromJsonSucceeds(string packageUrlString)
         {
             PackageURL packageUrl = new(packageUrlString);
-            BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(packageUrl);
+            BaseProjectManager? projectManager = ProjectManagerFactory.ConstructPackageManager(packageUrl);
 
             if (projectManager == null)
             {

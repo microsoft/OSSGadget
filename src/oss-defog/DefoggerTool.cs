@@ -12,8 +12,8 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource
 {
+    using PackageManagers;
     using PackageUrl;
-    using System.Net.Http;
 
     public class DefoggerTool : OSSGadget
     {
@@ -361,7 +361,7 @@ namespace Microsoft.CST.OpenSource
         /// <summary>
         /// Initializes a new DefoggerTool instance.
         /// </summary>
-        public DefoggerTool(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        public DefoggerTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
         {
             Findings = new List<EncodedString>();
             BinaryFindings = new List<EncodedBinary>();
@@ -369,7 +369,7 @@ namespace Microsoft.CST.OpenSource
             NonTextFindings = new List<EncodedBlob>();
         }
 
-        public DefoggerTool() : this(new DefaultHttpClientFactory())
+        public DefoggerTool() : this(new ProjectManagerFactory())
         {
         }
 
@@ -382,7 +382,7 @@ namespace Microsoft.CST.OpenSource
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
 
-            PackageDownloader? packageDownloader = new PackageDownloader(purl, HttpClientFactory, destinationDirectory, doCaching);
+            PackageDownloader? packageDownloader = new PackageDownloader(purl, ProjectManagerFactory, destinationDirectory, doCaching);
             foreach (string? directory in await packageDownloader.DownloadPackageLocalCopy(purl, false, true))
             {
                 if (System.IO.Directory.Exists(directory))

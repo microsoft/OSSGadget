@@ -5,6 +5,7 @@ namespace Microsoft.CST.OpenSource
     using Helpers;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Http;
+    using PackageManagers;
     using System;
     using System.Net.Http;
 
@@ -14,9 +15,9 @@ namespace Microsoft.CST.OpenSource
         protected static string ENV_HTTPCLIENT_USER_AGENT = "OSSDL";
 
         /// <summary>
-        /// The <see cref="IHttpClientFactory"/> to be used by classes that implement <see cref="OssGadgetLib"/>.
+        /// The <see cref="ProjectManagerFactory"/> to be used by classes that implement <see cref="OssGadgetLib"/>.
         /// </summary>
-        protected IHttpClientFactory HttpClientFactory { get; }
+        protected ProjectManagerFactory ProjectManagerFactory { get; }
 
         /// <summary>
         /// The <see cref="NLog.ILogger"/> for this class.
@@ -29,13 +30,13 @@ namespace Microsoft.CST.OpenSource
         /// </summary>
         protected string Directory { get; }
 
-        protected OssGadgetLib(IHttpClientFactory httpClientFactory, string directory = ".")
+        protected OssGadgetLib(ProjectManagerFactory projectManagerFactory, string directory = ".")
         {
-            HttpClientFactory = Check.NotNull(nameof(httpClientFactory), httpClientFactory);
+            ProjectManagerFactory = Check.NotNull(nameof(projectManagerFactory), projectManagerFactory);
             Directory = directory;
         }
 
-        protected OssGadgetLib(string directory = ".") : this(new DefaultHttpClientFactory(), directory)
+        protected OssGadgetLib(string directory = ".") : this(new ProjectManagerFactory(), directory)
         {
         }
 

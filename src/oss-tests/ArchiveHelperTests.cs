@@ -2,7 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.Tests;
 
-using Helpers;
+using OpenSource.Helpers;
 using System.IO;
 using System.Linq;
 using System.Reflection;

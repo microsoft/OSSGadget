@@ -3,9 +3,9 @@
 
 namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 {
-    using Helpers;
     using Model;
     using Moq;
+    using OpenSource.Helpers;
     using oss;
     using PackageManagers;
     using PackageUrl;

@@ -64,7 +64,7 @@ public class ProjectManagerFactoryTests
     [TestMethod]
     public void AddTestManagerSucceeds()
     {
-        _managerOverrides["test"] = directory => new NuGetProjectManager(_mockFactory.Object, directory); // Create a test type with the NuGetProjectManager.
+        _managerOverrides["test"] = directory => new NuGetProjectManager(directory, null, _mockFactory.Object); // Create a test type with the NuGetProjectManager.
 
         ProjectManagerFactory projectManagerFactory = new(_managerOverrides);
 
@@ -78,7 +78,7 @@ public class ProjectManagerFactoryTests
     public void OverrideManagerSucceeds()
     {
         _managerOverrides[NuGetProjectManager.Type] =
-            _ => new NuGetProjectManager(_mockFactory.Object, "nugetTestDirectory"); // Override the default entry for nuget, and override the destinationDirectory.
+            _ => new NuGetProjectManager("nugetTestDirectory", null, _mockFactory.Object); // Override the default entry for nuget, and override the destinationDirectory.
         _managerOverrides[NPMProjectManager.Type] =
             _ => new NPMProjectManager(_mockFactory.Object, "npmTestDirectory"); // Override the default entry for npm, and override the destinationDirectory.
 

@@ -11,7 +11,11 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Tests
 {
+    using Contracts;
     using Extensions;
+    using Helpers;
+    using Model.Metadata;
+    using PackageActions;
     using Moq;
     using PackageUrl;
     using RichardSzalay.MockHttp;
@@ -308,7 +312,13 @@ namespace Microsoft.CST.OpenSource.Tests
 
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpMock.ToHttpClient());
 
-            FindPackageSquats findPackageSquats = new(new ProjectManagerFactory(mockFactory.Object), newtonsoft);
+            IManagerPackageActions<NuGetPackageVersionMetadata> packageActions = PackageActionsHelper<NuGetPackageVersionMetadata>.SetupPackageActions(newtonsoft, validSquats: squattingPackages) ?? throw new InvalidOperationException();
+            Dictionary<string, ProjectManagerFactory.ConstructProjectManager> overrideDict = ProjectManagerFactory.GetDefaultManagers(mockFactory.Object);
+
+            overrideDict[NuGetProjectManager.Type] = directory =>
+                new NuGetProjectManager(directory, packageActions, mockFactory.Object);
+            
+            FindPackageSquats findPackageSquats = new(new ProjectManagerFactory(overrideDict), newtonsoft);
 
             // act
             IDictionary<string, IList<Mutation>>? squatCandidates = findPackageSquats.GenerateSquatCandidates();

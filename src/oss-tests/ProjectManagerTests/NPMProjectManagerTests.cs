@@ -58,7 +58,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public async Task MetadataSucceeds(string purlString, string? description = null)
         {
             PackageURL purl = new(purlString);
-            PackageMetadata metadata = await _projectManager.GetPackageMetadata(purl, useCache: false);
+            PackageMetadata metadata = await _projectManager.GetPackageMetadataAsync(purl, useCache: false);
 
             string? packageName = purl.Namespace.IsNotBlank() ? $"@{purl.Namespace}/{purl.Name}" : purl.Name;
             Assert.AreEqual(packageName, metadata.Name);
@@ -76,7 +76,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public async Task EnumerateVersionsSucceeds(string purlString, int count, string latestVersion)
         {
             PackageURL purl = new(purlString);
-            List<string> versions = (await _projectManager.EnumerateVersions(purl, useCache: false)).ToList();
+            List<string> versions = (await _projectManager.EnumerateVersionsAsync(purl, useCache: false)).ToList();
 
             Assert.AreEqual(count, versions.Count);
             Assert.AreEqual(latestVersion, versions.First());

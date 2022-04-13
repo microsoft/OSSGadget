@@ -146,7 +146,7 @@ namespace Microsoft.CST.OpenSource
             {
                 if (metadataOnly)
                 {
-                    string? metadata = await packageManager.GetMetadata(purl);
+                    string? metadata = await packageManager.GetMetadataAsync(purl);
                     if (metadata != null)
                     {
                         string outputFilename = Path.Combine(packageManager.TopLevelExtractionDirectory, $"metadata-{purl.ToStringFilename()}");
@@ -166,7 +166,7 @@ namespace Microsoft.CST.OpenSource
                 else
                 {
                     // only version download requests reach here
-                    downloadPaths.AddRange(await packageManager.DownloadVersion(purl, doExtract, actualCaching));
+                    downloadPaths.AddRange(await packageManager.DownloadVersionAsync(purl, doExtract, actualCaching));
                 }
             }
 
@@ -228,7 +228,7 @@ namespace Microsoft.CST.OpenSource
                 {
                     try
                     {
-                        IEnumerable<string>? versions = await packageManager.EnumerateVersions(purl, doCache);
+                        IEnumerable<string>? versions = await packageManager.EnumerateVersionsAsync(purl, doCache);
                         if (versions.Any())
                         {
                             vPurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, versions.First(), purl.Qualifiers, purl.Subpath);
@@ -248,7 +248,7 @@ namespace Microsoft.CST.OpenSource
                 {
                     try
                     {
-                        foreach (string? version in await packageManager.EnumerateVersions(purl, doCache))
+                        foreach (string? version in await packageManager.EnumerateVersionsAsync(purl, doCache))
                         {
                             vPurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, version, purl.Qualifiers, purl.Subpath);
                             packageVersions.Add(vPurl);

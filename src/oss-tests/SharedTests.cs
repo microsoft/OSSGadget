@@ -43,7 +43,7 @@ namespace Microsoft.CST.OpenSource.Tests
                 throw new NullReferenceException("The project manager is null.");
             }
 
-            PackageMetadata metadata = await projectManager.GetPackageMetadata(packageUrl, useCache: false);
+            PackageMetadata metadata = await projectManager.GetPackageMetadataAsync(packageUrl, useCache: false);
             
             Assert.AreEqual("lodash", metadata.Name);
             Assert.AreEqual("Lodash modular utilities.", metadata.Description);

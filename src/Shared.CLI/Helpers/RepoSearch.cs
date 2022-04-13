@@ -63,7 +63,7 @@ namespace Microsoft.CST.OpenSource.Shared
 
             if (projectManager != null)
             {
-                repoMappings = await projectManager.IdentifySourceRepository(purl);
+                repoMappings = await projectManager.IdentifySourceRepositoryAsync(purl);
 
                 if (repoMappings == null || !repoMappings.Any())
                 {

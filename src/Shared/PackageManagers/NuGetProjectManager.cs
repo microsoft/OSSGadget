@@ -91,7 +91,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
-        public override async Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
+        public override async Task<string?> GetMetadataAsync(PackageURL purl, bool useCache = true)
         {
             try
             {
@@ -131,7 +131,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
         
         /// <inheritdoc />
-        public override async Task<PackageMetadata?> GetPackageMetadata(PackageURL purl, bool useCache = true)
+        public override async Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool useCache = true)
         {
             string? latestVersion = await Actions.GetLatestVersionAsync(purl) ??
                                     throw new InvalidOperationException($"Can't find the latest version of {purl}");;
@@ -297,7 +297,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 string? version = purl.Version;
                 if (string.IsNullOrEmpty(version))
                 {
-                    version = (await EnumerateVersions(purl)).First();
+                    version = (await EnumerateVersionsAsync(purl)).First();
                 }
                 NuspecReader? nuspecReader = GetNuspec(purl.Name, version);
                 RepositoryMetadata? repositoryMetadata = nuspecReader?.GetRepositoryMetadata();

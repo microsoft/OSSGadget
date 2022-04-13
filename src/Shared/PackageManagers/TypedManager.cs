@@ -31,7 +31,7 @@ public abstract class TypedManager<T> : BaseProjectManager where T : IManagerPac
     }
 
     /// <inheritdoc />
-    public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
+    public override async Task<IEnumerable<string>> DownloadVersionAsync(PackageURL purl, bool doExtract, bool cached = false)
     {
         ArgumentNullException.ThrowIfNull(purl, nameof(purl));
         Logger.Trace("DownloadVersion {0}", purl.ToString());
@@ -50,7 +50,7 @@ public abstract class TypedManager<T> : BaseProjectManager where T : IManagerPac
     }
 
     /// <inheritdoc />
-    public override async Task<bool> PackageExists(PackageURL purl, bool useCache = true)
+    public override async Task<bool> PackageExistsAsync(PackageURL purl, bool useCache = true)
     {
         ArgumentNullException.ThrowIfNull(purl, nameof(purl));
         Logger.Trace("PackageExists {0}", purl.ToString());
@@ -58,7 +58,7 @@ public abstract class TypedManager<T> : BaseProjectManager where T : IManagerPac
     }
 
     /// <inheritdoc />
-    public override async Task<IEnumerable<string>> EnumerateVersions(
+    public override async Task<IEnumerable<string>> EnumerateVersionsAsync(
         PackageURL purl,
         bool useCache = true,
         bool includePrerelease = true)
@@ -69,7 +69,7 @@ public abstract class TypedManager<T> : BaseProjectManager where T : IManagerPac
     }
 
     /// <inheritdoc />
-    public override async Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
+    public override async Task<string?> GetMetadataAsync(PackageURL purl, bool useCache = true)
     {
         return (await Actions.GetMetadataAsync(purl, useCache))?.ToString();
     }

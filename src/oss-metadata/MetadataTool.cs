@@ -57,7 +57,7 @@ namespace Microsoft.CST.OpenSource
                 BaseProjectManager? projectManager = projectManagerFactory.CreateProjectManager(purl);
                 if (projectManager != null)
                 {
-                    metadata = await projectManager.GetPackageMetadata(purl, useCache);
+                    metadata = await projectManager.GetPackageMetadataAsync(purl, useCache);
                 }
             }
             catch (Exception ex)

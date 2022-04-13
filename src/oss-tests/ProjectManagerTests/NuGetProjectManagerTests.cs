@@ -74,7 +74,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
                 JsonConvert.DeserializeObject<IEnumerable<string>>(_versions[purl.ToString()]));
             _projectManager = new NuGetProjectManager(".", nugetPackageActions, _mockFactory.Object);
 
-            PackageMetadata metadata = await _projectManager.GetPackageMetadata(purl, useCache: false);
+            PackageMetadata metadata = await _projectManager.GetPackageMetadataAsync(purl, useCache: false);
 
             Assert.AreEqual(purl.Name, metadata.Name, ignoreCase: true);
             
@@ -107,7 +107,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
                 includePrerelease: includePrerelease);
             _projectManager = new NuGetProjectManager(".", nugetPackageActions, _mockFactory.Object);
 
-            List<string> versions = (await _projectManager.EnumerateVersions(purl, false, includePrerelease)).ToList();
+            List<string> versions = (await _projectManager.EnumerateVersionsAsync(purl, false, includePrerelease)).ToList();
 
             Assert.AreEqual(count, versions.Count);
             Assert.AreEqual(latestVersion, versions.First());

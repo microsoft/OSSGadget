@@ -2,10 +2,8 @@
 
 namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests;
 
-using Moq;
 using PackageManagers;
 using PackageUrl;
-using RichardSzalay.MockHttp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,17 +13,13 @@ using VisualStudio.TestTools.UnitTesting;
 [TestClass]
 public class ProjectManagerFactoryTests
 {
-    private readonly Mock<IHttpClientFactory> _mockFactory = new();
+    private readonly IHttpClientFactory _httpClientFactory = new DefaultHttpClientFactory();
     private readonly Dictionary<string, ProjectManagerFactory.ConstructProjectManager> _managerOverrides;
 
     public ProjectManagerFactoryTests()
     {
-        MockHttpMessageHandler mockHttp = new();
-
-        _mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
-        
         // Set up the manager overrides as the default for now.
-        _managerOverrides = ProjectManagerFactory.GetDefaultManagers(_mockFactory.Object);
+        _managerOverrides = ProjectManagerFactory.GetDefaultManagers(_httpClientFactory);
     }
 
     /// <summary>
@@ -40,7 +34,7 @@ public class ProjectManagerFactoryTests
     [DataRow("pkg:foo/bar", null)]
     public void FactorySucceeds(string purlString, Type? expectedManager)
     {
-        ProjectManagerFactory projectManagerFactory = new(_mockFactory.Object);
+        ProjectManagerFactory projectManagerFactory = new(_httpClientFactory);
 
         PackageURL packageUrl = new(purlString);
 
@@ -64,7 +58,7 @@ public class ProjectManagerFactoryTests
     [TestMethod]
     public void AddTestManagerSucceeds()
     {
-        _managerOverrides["test"] = directory => new NuGetProjectManager(directory, null, _mockFactory.Object); // Create a test type with the NuGetProjectManager.
+        _managerOverrides["test"] = directory => new NuGetProjectManager(directory, null, _httpClientFactory); // Create a test type with the NuGetProjectManager.
 
         ProjectManagerFactory projectManagerFactory = new(_managerOverrides);
 
@@ -78,9 +72,9 @@ public class ProjectManagerFactoryTests
     public void OverrideManagerSucceeds()
     {
         _managerOverrides[NuGetProjectManager.Type] =
-            _ => new NuGetProjectManager("nugetTestDirectory", null, _mockFactory.Object); // Override the default entry for nuget, and override the destinationDirectory.
+            _ => new NuGetProjectManager("nugetTestDirectory", null, _httpClientFactory); // Override the default entry for nuget, and override the destinationDirectory.
         _managerOverrides[NPMProjectManager.Type] =
-            _ => new NPMProjectManager(_mockFactory.Object, "npmTestDirectory"); // Override the default entry for npm, and override the destinationDirectory.
+            _ => new NPMProjectManager(_httpClientFactory, "npmTestDirectory"); // Override the default entry for npm, and override the destinationDirectory.
 
         ProjectManagerFactory projectManagerFactory = new(_managerOverrides);
 
@@ -100,7 +94,7 @@ public class ProjectManagerFactoryTests
     [TestMethod]
     public void ChangeProjectManagerSucceeds()
     {
-        _managerOverrides[NuGetProjectManager.Type] = directory => new NPMProjectManager(_mockFactory.Object, directory); // Override the default entry for nuget and set it as another NPMProjectManager.
+        _managerOverrides[NuGetProjectManager.Type] = directory => new NPMProjectManager(_httpClientFactory, directory); // Override the default entry for nuget and set it as another NPMProjectManager.
         
         ProjectManagerFactory projectManagerFactory = new(_managerOverrides);
 
@@ -134,7 +128,7 @@ public class ProjectManagerFactoryTests
         
         AssertFactoryCreatesCorrect(projectManagerFactory);
         
-        foreach (PackageURL packageUrl in ProjectManagerFactory.GetDefaultManagers(_mockFactory.Object).Keys
+        foreach (PackageURL packageUrl in ProjectManagerFactory.GetDefaultManagers(_httpClientFactory).Keys
                      .Select(purlType => new PackageURL($"pkg:{purlType}/foo")))
         {
             Assert.IsNull(projectManagerFactory.CreateProjectManager(packageUrl));

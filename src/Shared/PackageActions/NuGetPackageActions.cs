@@ -39,7 +39,7 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
         // Construct the path for the nupkg file.
         string filePath = Path.ChangeExtension(Path.Join(topLevelDirectory, targetPath), Path.GetExtension(targetPath) + ".nupkg");
 
-        // Create a new memory stream to populate with the .nupkg.
+        // Create a new FileStream to populate with the contents of the .nupkg from CopyNupkgToStreamAsync.
         int bufferSize = 4096;
         await using FileStream packageStream = new FileStream(
             filePath,
@@ -113,15 +113,16 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
     {
         FindPackageByIdResource resource = await _sourceRepository.GetResourceAsync<FindPackageByIdResource>();
 
-        IEnumerable<NuGetVersion> versions = await resource.GetAllVersionsAsync(
+        IEnumerable<NuGetVersion> versionsAscending = await resource.GetAllVersionsAsync(
             packageUrl.Name,
             _sourceCacheContext,
             _logger, 
             cancellationToken);
 
-        return versions
+        return versionsAscending
             .Where(v => includePrerelease || !v.IsPrerelease)
-            .Select(v => v.ToString()).Reverse();
+            .Select(v => v.ToString())
+            .Reverse(); // We want the versions in descending order.
     }
     
     /// <inheritdoc />
@@ -133,14 +134,14 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
     {
         FindPackageByIdResource resource = await _sourceRepository.GetResourceAsync<FindPackageByIdResource>();
 
-        IEnumerable<NuGetVersion> versions = await resource.GetAllVersionsAsync(
+        IEnumerable<NuGetVersion> versionsAscending = await resource.GetAllVersionsAsync(
             packageUrl.Name,
             _sourceCacheContext,
             _logger, 
             cancellationToken);
 
-        return versions
-            .Last(v => includePrerelease || !v.IsPrerelease)
+        return versionsAscending
+            .Last(v => includePrerelease || !v.IsPrerelease) // The latest version is the last in ascending order.
             .ToString();
     }
 

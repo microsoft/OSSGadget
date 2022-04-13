@@ -18,7 +18,7 @@ public static class PackageActionsHelper<T> where T : IManagerPackageVersionMeta
     /// </summary>
     /// <param name="purl">The <see cref="PackageURL"/> to use when configuring the mocked calls for this manager.</param>
     /// <param name="metadata">The <see cref="T"/> to use when returning the call to <see cref="IManagerPackageActions{T}.GetMetadataAsync"/>.</param>
-    /// <param name="versions">The list of versions to return when mocking the call 
+    /// <param name="versions">The list of versions (in descending order) to return when mocking the call 
     /// to <see cref="IManagerPackageActions{T}.GetAllVersionsAsync"/>.</param>
     /// <param name="validSquats">The list of squats to populate the mock to <see cref="IManagerPackageActions{T}.DoesPackageExistAsync"/>.</param>
     /// <param name="includePrerelease">If pre-release/beta versions should be included.</param>
@@ -58,10 +58,10 @@ public static class PackageActionsHelper<T> where T : IManagerPackageVersionMeta
                             : versionsArray;
                     });
 
-                // Mock the call to GetLatestVersionAsync to be the last version in the list that was provided.
+                // Mock the call to GetLatestVersionAsync to be the first version in the list that was provided, as it should be in descending order.
                 mockPackageActions.Setup(actions => actions.GetLatestVersionAsync(
                     It.Is<PackageURL>(p => p.Name.Equals(purl.Name)), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()).Result).Returns(
-                    versionsArray.Last());
+                    versionsArray.First());
             }
         
             if (validSquats is not null)

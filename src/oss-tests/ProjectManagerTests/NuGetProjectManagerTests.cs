@@ -13,6 +13,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
     using PackageUrl;
     using RichardSzalay.MockHttp;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.Linq;
     using System.Net;
     using System.Net.Http;
@@ -26,21 +27,21 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         {
             { "https://api.nuget.org/v3/registration5-gz-semver2/razorengine/index.json", Resources.razorengine_json },
             { "https://api.nuget.org/v3/catalog0/data/2022.03.11.23.17.27/razorengine.4.2.3-beta1.json", Resources.razorengine_4_2_3_beta1_json },
-        };
+        }.ToImmutableDictionary();
         
         // Map PackageURLs to metadata as json.
         private readonly IDictionary<string, string> _metadata = new Dictionary<string, string>()
         {
             { "pkg:nuget/razorengine@4.2.3-beta1", Resources.razorengine_4_2_3_beta1_metadata_json },
             { "pkg:nuget/razorengine", Resources.razorengine_latest_metadata_json },
-        };
+        }.ToImmutableDictionary();
         
         // Map PackageURLs to the list of versions as json.
         private readonly IDictionary<string, string> _versions = new Dictionary<string, string>()
         {
             { "pkg:nuget/razorengine@4.2.3-beta1", Resources.razorengine_versions_json },
             { "pkg:nuget/razorengine", Resources.razorengine_versions_json },
-        };
+        }.ToImmutableDictionary();
 
         private NuGetProjectManager? _projectManager;
         private readonly Mock<IHttpClientFactory> _mockFactory = new();
@@ -71,7 +72,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             IManagerPackageActions<NuGetPackageVersionMetadata>? nugetPackageActions = PackageActionsHelper<NuGetPackageVersionMetadata>.SetupPackageActions(
                 purl,
                 JsonConvert.DeserializeObject<NuGetPackageVersionMetadata>(_metadata[purl.ToString()]),
-                JsonConvert.DeserializeObject<IEnumerable<string>>(_versions[purl.ToString()]));
+                JsonConvert.DeserializeObject<IEnumerable<string>>(_versions[purl.ToString()])?.Reverse());
             _projectManager = new NuGetProjectManager(".", nugetPackageActions, _mockFactory.Object);
 
             PackageMetadata metadata = await _projectManager.GetPackageMetadataAsync(purl, useCache: false);

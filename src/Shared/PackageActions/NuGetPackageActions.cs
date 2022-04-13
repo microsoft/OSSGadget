@@ -29,7 +29,7 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
     public async Task<string?> DownloadAsync(
         PackageURL packageUrl,
         string topLevelDirectory,
-        string targetDirectory,
+        string targetPath,
         bool doExtract,
         bool cached = false,
         CancellationToken cancellationToken = default)
@@ -37,7 +37,7 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
         FindPackageByIdResource resource = await _sourceRepository.GetResourceAsync<FindPackageByIdResource>();
 
         // Construct the path for the nupkg file.
-        string filePath = Path.ChangeExtension(Path.Join(topLevelDirectory, targetDirectory), Path.GetExtension(targetDirectory) + ".nupkg");
+        string filePath = Path.ChangeExtension(Path.Join(topLevelDirectory, targetPath), Path.GetExtension(targetPath) + ".nupkg");
 
         // Create a new memory stream to populate with the .nupkg.
         int bufferSize = 4096;
@@ -67,7 +67,7 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
         // If we want to extract the contents of the .nupkg, send it to ArchiveHelper.ExtractArchiveAsync.
         if (doExtract)
         {
-            return await ArchiveHelper.ExtractArchiveAsync(topLevelDirectory, targetDirectory, packageStream, cached);
+            return await ArchiveHelper.ExtractArchiveAsync(topLevelDirectory, Path.GetExtension(targetPath) + ".nupkg", packageStream, cached);
         }
 
         return filePath;

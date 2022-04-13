@@ -17,8 +17,8 @@ public interface IManagerPackageActions<T> where T : IManagerPackageVersionMetad
     /// Downloads the file(s) associated with a given <see cref="PackageURL"/>, and optionally extracts it if downloading an archive.
     /// </summary>
     /// <param name="packageUrl">The <see cref="PackageURL"/> to download the contents of.</param>
-    /// <param name="topLevelDirectory">The top level directory to create <paramref name="targetDirectory"/> in.</param>
-    /// <param name="targetDirectory">The directory to save the contents to.</param>
+    /// <param name="topLevelDirectory">The top level directory to create <paramref name="targetPath"/> in.</param>
+    /// <param name="targetPath">The path to save the contents to, within the <paramref name="topLevelDirectory"/>.</param>
     /// <param name="doExtract">If the contents of the archive should be extracted.</param>
     /// <param name="cached">If the downloaded contents should be retrieved from the cache if they exist there.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to be used in the method call, defaults to <see cref="CancellationToken.None"/>.</param>
@@ -26,7 +26,7 @@ public interface IManagerPackageActions<T> where T : IManagerPackageVersionMetad
     /// The location of the downloaded file, or the location of the directory if extracted.
     /// Otherwise returns null if the download failed.
     /// </returns>
-    Task<string?> DownloadAsync(PackageURL packageUrl, string topLevelDirectory, string targetDirectory, bool doExtract, bool cached = false, CancellationToken cancellationToken = default);
+    Task<string?> DownloadAsync(PackageURL packageUrl, string topLevelDirectory, string targetPath, bool doExtract, bool cached = false, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Checks to see if a package exists. If provided a version, it checks for existence of that specific version only.

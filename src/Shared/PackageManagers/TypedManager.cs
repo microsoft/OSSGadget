@@ -27,8 +27,7 @@ public abstract class TypedManager<T> : BaseProjectManager where T : IManagerPac
         Logger.Trace("DownloadVersion {0}", purl.ToString());
         string? fileName = purl.ToStringFilename();
         string targetName = $"{GetType().Name}-{fileName}";
-        string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
-        string? containingPath = await _actions.DownloadAsync(purl, TopLevelExtractionDirectory, extractionPath, doExtract, cached);
+        string? containingPath = await _actions.DownloadAsync(purl, TopLevelExtractionDirectory, targetName, doExtract, cached);
 
         if (containingPath is string notNullPath)
         {

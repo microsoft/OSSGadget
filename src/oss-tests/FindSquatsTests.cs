@@ -15,12 +15,8 @@ namespace Microsoft.CST.OpenSource.Tests
     using Extensions;
     using Helpers;
     using Model.Metadata;
-    using PackageActions;
-    using Moq;
     using PackageUrl;
-    using RichardSzalay.MockHttp;
     using System.Linq;
-    using System.Net;
     using System.Net.Http;
     using System.Web;
 
@@ -28,12 +24,36 @@ namespace Microsoft.CST.OpenSource.Tests
     public class FindSquatsTest
     {
         [DataTestMethod]
-        // [DataRow("pkg:nuget/Microsoft.CST.OAT", false)] TODO: Figure out why this is failing on the ADO pipeline.
-        [DataRow("pkg:npm/microsoft/microsoft-graph-library", false)]
-        [DataRow("pkg:npm/foo", true)]
-        public async Task DetectSquats(string packageUrl, bool expectedToHaveSquats)
+        [DataRow("pkg:nuget/Microsoft.CST.OAT", false, false)]
+        [DataRow("pkg:npm/microsoft/microsoft-graph-library", false, false)]
+        [DataRow("pkg:npm/foo", true, true)]
+        public async Task DetectSquats(string packageUrl, bool generateSquats, bool expectedToHaveSquats)
         {
-            FindSquatsTool fst = new();
+            PackageURL purl = new(packageUrl);
+
+            IEnumerable<string>? validSquats = null;
+            
+            // Only populate validSquats if we want to generate squats.
+            if (generateSquats)
+            {
+                validSquats = ProjectManagerFactory.GetDefaultManagers()[purl.Type].Invoke()?.EnumerateSquatCandidates(purl)?.Keys;
+            }
+
+            // Construct the mocked IHttpClientFactory
+            IHttpClientFactory httpClientFactory = FindSquatsHelper.SetupHttpCalls(purl: purl, validSquats: validSquats);
+            
+            // Construct the manager overrides with the mocked IHttpClientFactory.
+            Dictionary<string, ProjectManagerFactory.ConstructProjectManager> managerOverrides = ProjectManagerFactory.GetDefaultManagers(httpClientFactory);
+
+            IManagerPackageActions<NuGetPackageVersionMetadata>? nugetPackageActions = PackageActionsHelper<NuGetPackageVersionMetadata>.SetupPackageActions(
+                purl);
+
+            // Override the NuGet constructor to add the mocked NuGetPackageActions.
+            managerOverrides[NuGetProjectManager.Type] =
+                _ => new NuGetProjectManager(".", nugetPackageActions, httpClientFactory);
+            
+            ProjectManagerFactory projectManagerFactory = new(managerOverrides);
+            FindSquatsTool fst = new(projectManagerFactory);
             FindSquatsTool.Options options = new()
             {
                 Quiet = true,
@@ -182,7 +202,6 @@ namespace Microsoft.CST.OpenSource.Tests
         {
             // arrange
             PackageURL lodash = new("pkg:npm/lodash@4.17.15");
-            string lodashUrl = GetRegistryUrl(lodash);
 
             string[] squattingPackages = new[]
             {
@@ -194,16 +213,10 @@ namespace Microsoft.CST.OpenSource.Tests
                 "pkg:npm/l0dash", // ["AsciiHomoglyph","CloseLetters"]
             };
 
-            Mock<IHttpClientFactory> mockFactory = new();
+            IHttpClientFactory httpClientFactory =
+                FindSquatsHelper.SetupHttpCalls(purl: lodash, validSquats: squattingPackages);
 
-            using MockHttpMessageHandler httpMock = new();
-            MockHttpFetchResponse(HttpStatusCode.OK, lodashUrl, httpMock);
-
-            MockSquattedPackages(httpMock, squattingPackages);
-
-            mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpMock.ToHttpClient());
-
-            FindPackageSquats findPackageSquats = new(new ProjectManagerFactory(mockFactory.Object), lodash);
+            FindPackageSquats findPackageSquats = new(new ProjectManagerFactory(httpClientFactory), lodash);
 
             // act
             IDictionary<string, IList<Mutation>>? squatCandidates = findPackageSquats.GenerateSquatCandidates();
@@ -219,7 +232,6 @@ namespace Microsoft.CST.OpenSource.Tests
         {
             // arrange
             PackageURL lodash = new("pkg:npm/lodash@4.17.15");
-            string lodashUrl = GetRegistryUrl(lodash);
 
             string[] squattingPackages = new[]
             {
@@ -231,16 +243,10 @@ namespace Microsoft.CST.OpenSource.Tests
                 "pkg:npm/l0dash", // ["AsciiHomoglyph","CloseLetters"]
             };
 
-            Mock<IHttpClientFactory> mockFactory = new();
+            IHttpClientFactory httpClientFactory =
+                FindSquatsHelper.SetupHttpCalls(purl: lodash, validSquats: squattingPackages);
 
-            using MockHttpMessageHandler httpMock = new();
-            MockHttpFetchResponse(HttpStatusCode.OK, lodashUrl, httpMock);
-
-            MockSquattedPackages(httpMock, squattingPackages);
-
-            mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpMock.ToHttpClient());
-
-            FindPackageSquats findPackageSquats = new(new ProjectManagerFactory(mockFactory.Object), lodash);
+            FindPackageSquats findPackageSquats = new(new ProjectManagerFactory(httpClientFactory), lodash);
 
             // act
             IDictionary<string, IList<Mutation>>? squatCandidates = findPackageSquats.GenerateSquatCandidates();
@@ -256,7 +262,6 @@ namespace Microsoft.CST.OpenSource.Tests
         {
             // arrange
             PackageURL foo = new("pkg:npm/foo");
-            string fooUrl = GetRegistryUrl(foo);
 
             string[] squattingPackages = new[]
             {
@@ -266,16 +271,10 @@ namespace Microsoft.CST.OpenSource.Tests
                 "pkg:npm/fooo", // ["DoubleHit"]
             };
 
-            Mock<IHttpClientFactory> mockFactory = new();
+            IHttpClientFactory httpClientFactory =
+                FindSquatsHelper.SetupHttpCalls(purl: foo, validSquats: squattingPackages);
 
-            using MockHttpMessageHandler httpMock = new();
-            MockHttpFetchResponse(HttpStatusCode.OK, fooUrl, httpMock);
-
-            MockSquattedPackages(httpMock, squattingPackages);
-
-            mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpMock.ToHttpClient());
-
-            FindPackageSquats findPackageSquats = new(new ProjectManagerFactory(mockFactory.Object), foo);
+            FindPackageSquats findPackageSquats = new(new ProjectManagerFactory(httpClientFactory), foo);
 
             // act
             IDictionary<string, IList<Mutation>>? squatCandidates = findPackageSquats.GenerateSquatCandidates();
@@ -291,7 +290,6 @@ namespace Microsoft.CST.OpenSource.Tests
         {
             // arrange
             PackageURL newtonsoft = new("pkg:nuget/newtonsoft.json@12.0.2");
-            string newtonsoftUrl = GetRegistryUrl(newtonsoft);
 
             string[] squattingPackages = new[]
             {
@@ -303,20 +301,14 @@ namespace Microsoft.CST.OpenSource.Tests
                 "pkg:nuget/newtohsoft.json", // ["CloseLetters"]
             };
 
-            Mock<IHttpClientFactory> mockFactory = new();
-
-            using MockHttpMessageHandler httpMock = new();
-            MockHttpFetchResponse(HttpStatusCode.OK, newtonsoftUrl, httpMock);
-
-            MockSquattedPackages(httpMock, squattingPackages);
-
-            mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpMock.ToHttpClient());
+            IHttpClientFactory httpClientFactory =
+                FindSquatsHelper.SetupHttpCalls(purl: newtonsoft, validSquats: squattingPackages);
 
             IManagerPackageActions<NuGetPackageVersionMetadata> packageActions = PackageActionsHelper<NuGetPackageVersionMetadata>.SetupPackageActions(newtonsoft, validSquats: squattingPackages) ?? throw new InvalidOperationException();
-            Dictionary<string, ProjectManagerFactory.ConstructProjectManager> overrideDict = ProjectManagerFactory.GetDefaultManagers(mockFactory.Object);
+            Dictionary<string, ProjectManagerFactory.ConstructProjectManager> overrideDict = ProjectManagerFactory.GetDefaultManagers(httpClientFactory);
 
             overrideDict[NuGetProjectManager.Type] = directory =>
-                new NuGetProjectManager(directory, packageActions, mockFactory.Object);
+                new NuGetProjectManager(directory, packageActions, httpClientFactory);
             
             FindPackageSquats findPackageSquats = new(new ProjectManagerFactory(overrideDict), newtonsoft);
 
@@ -334,7 +326,6 @@ namespace Microsoft.CST.OpenSource.Tests
         {
             // arrange
             PackageURL angularCore = new PackageURL("pkg:npm/angular/core@13.0.0");
-            string angularCoreUrl = GetRegistryUrl(angularCore);
 
             string[] squattingPackages = new[]
             {
@@ -347,16 +338,10 @@ namespace Microsoft.CST.OpenSource.Tests
                 "pkg:npm/core", // ["RemovedNamespace"]
             };
 
-            Mock<IHttpClientFactory> mockFactory = new();
+            IHttpClientFactory httpClientFactory =
+                FindSquatsHelper.SetupHttpCalls(purl: angularCore, validSquats: squattingPackages);
 
-            using MockHttpMessageHandler httpMock = new();
-            MockHttpFetchResponse(HttpStatusCode.OK, angularCoreUrl, httpMock);
-
-            MockSquattedPackages(httpMock, squattingPackages);
-
-            mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpMock.ToHttpClient());
-
-            FindPackageSquats findPackageSquats = new(new ProjectManagerFactory(mockFactory.Object), angularCore);
+            FindPackageSquats findPackageSquats = new(new ProjectManagerFactory(httpClientFactory), angularCore);
 
             // act
             IDictionary<string, IList<Mutation>>? squatCandidates = findPackageSquats.GenerateSquatCandidates();
@@ -366,38 +351,7 @@ namespace Microsoft.CST.OpenSource.Tests
             string[] resultingMutationNames = existingMutations.Select(m => m.MutatedPackageUrl.ToString()).ToArray();
             CollectionAssert.AreEquivalent(squattingPackages, resultingMutationNames);
         }
-        
-        private static void MockHttpFetchResponse(
-            HttpStatusCode statusCode,
-            string url,
-            MockHttpMessageHandler httpMock)
-        {
-            httpMock
-                .When(HttpMethod.Get, url)
-                .Respond(statusCode, "application/json", "{}");
-        }
-        
-        private static void MockSquattedPackages(MockHttpMessageHandler httpMock, string[] squattedPurls)
-        {
-            foreach (PackageURL mutatedPackage in squattedPurls.Select(mutatedPurl => new PackageURL(mutatedPurl)))
-            {
-                string url = GetRegistryUrl(mutatedPackage);
-                MockHttpFetchResponse(HttpStatusCode.OK, url, httpMock);
-            }
-        }
-        
-        private static string GetRegistryUrl(PackageURL purl)
-        {
-            return purl.Type switch
-            {
-                "npm" => $"{NPMProjectManager.ENV_NPM_API_ENDPOINT}/{purl.GetFullName()}",
-                "nuget" => $"{NuGetProjectManager.NUGET_DEFAULT_REGISTRATION_ENDPOINT}{purl.Name.ToLowerInvariant()}/index.json",
-                "pypi" => $"{PyPIProjectManager.ENV_PYPI_ENDPOINT}/pypi/{purl.Name}/json",
-                _ => throw new NotSupportedException(
-                    $"{purl.Type} packages are not currently supported."),
-            };
-        }
-        
+
         /// <summary>
         /// Helper method to check if a string is URL encoded.
         /// </summary>

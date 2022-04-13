@@ -11,13 +11,23 @@ using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 
+/// <summary>
+/// An abstract class that implements <see cref="BaseProjectManager"/> that defines an implementation of
+/// <see cref="IManagerPackageVersionMetadata"/> to be associated with the manager that implements this class.
+/// </summary>
+/// <typeparam name="T">
+/// The implementation of <see cref="IManagerPackageVersionMetadata"/> for the manager that implements this class.
+/// </typeparam>
 public abstract class TypedManager<T> : BaseProjectManager where T : IManagerPackageVersionMetadata
 {
-    protected readonly IManagerPackageActions<T> _actions;
+    /// <summary>
+    /// The actions object to be used in the project manager.
+    /// </summary>
+    protected readonly IManagerPackageActions<T> Actions;
 
-    public TypedManager(IManagerPackageActions<T> actions, IHttpClientFactory httpClientFactory, string directory) : base(httpClientFactory, directory)
+    protected TypedManager(IManagerPackageActions<T> actions, IHttpClientFactory httpClientFactory, string directory) : base(httpClientFactory, directory)
     {
-        _actions = actions;
+        Actions = actions;
     }
 
     /// <inheritdoc />
@@ -25,9 +35,10 @@ public abstract class TypedManager<T> : BaseProjectManager where T : IManagerPac
     {
         ArgumentNullException.ThrowIfNull(purl, nameof(purl));
         Logger.Trace("DownloadVersion {0}", purl.ToString());
-        string? fileName = purl.ToStringFilename();
+
+        string fileName = purl.ToStringFilename();
         string targetName = $"{GetType().Name}-{fileName}";
-        string? containingPath = await _actions.DownloadAsync(purl, TopLevelExtractionDirectory, targetName, doExtract, cached);
+        string? containingPath = await Actions.DownloadAsync(purl, TopLevelExtractionDirectory, targetName, doExtract, cached);
 
         if (containingPath is string notNullPath)
         {
@@ -43,7 +54,7 @@ public abstract class TypedManager<T> : BaseProjectManager where T : IManagerPac
     {
         ArgumentNullException.ThrowIfNull(purl, nameof(purl));
         Logger.Trace("PackageExists {0}", purl.ToString());
-        return await _actions.DoesPackageExistAsync(purl, useCache);
+        return await Actions.DoesPackageExistAsync(purl, useCache);
     }
 
     /// <inheritdoc />
@@ -54,12 +65,12 @@ public abstract class TypedManager<T> : BaseProjectManager where T : IManagerPac
     {
         ArgumentNullException.ThrowIfNull(purl, nameof(purl));
         Logger.Trace("EnumerateVersions {0}", purl.ToString());
-        return await _actions.GetAllVersionsAsync(purl, includePrerelease, useCache);
+        return await Actions.GetAllVersionsAsync(purl, includePrerelease, useCache);
     }
 
     /// <inheritdoc />
     public override async Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
     {
-        return (await _actions.GetMetadataAsync(purl, useCache)).ToString();
+        return (await Actions.GetMetadataAsync(purl, useCache))?.ToString();
     }
 } 

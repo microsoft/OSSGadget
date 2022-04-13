@@ -105,7 +105,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 // If no package version provided, default to the latest version.
                 if (string.IsNullOrWhiteSpace(packageVersion))
                 {
-                    string latestVersion = await _actions.GetLatestVersionAsync(purl) ??
+                    string latestVersion = await Actions.GetLatestVersionAsync(purl) ??
                                            throw new InvalidOperationException($"Can't find the latest version of {purl}");
                     packageVersion = latestVersion;
                 }
@@ -114,7 +114,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 PackageURL purlWithVersion = new (purl.Type, purl.Namespace, packageName, packageVersion, purl.Qualifiers, purl.Subpath);
                 
                 NuGetPackageVersionMetadata? packageVersionMetadata =
-                    await _actions.GetMetadataAsync(purlWithVersion, useCache: useCache);
+                    await Actions.GetMetadataAsync(purlWithVersion, useCache: useCache);
 
                 return JsonSerializer.Serialize(packageVersionMetadata);
             }
@@ -133,7 +133,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <inheritdoc />
         public override async Task<PackageMetadata?> GetPackageMetadata(PackageURL purl, bool useCache = true)
         {
-            string? latestVersion = await _actions.GetLatestVersionAsync(purl) ??
+            string? latestVersion = await Actions.GetLatestVersionAsync(purl) ??
                                     throw new InvalidOperationException($"Can't find the latest version of {purl}");;
 
             // Construct a new PackageURL that's guaranteed to have a version, the latest version is used if no version was provided.
@@ -141,7 +141,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 purl : new PackageURL(purl.Type, purl.Namespace, purl.Name, latestVersion, purl.Qualifiers, purl.Subpath);
 
             NuGetPackageVersionMetadata? packageVersionMetadata =
-                await _actions.GetMetadataAsync(purlWithVersion, useCache: useCache);
+                await Actions.GetMetadataAsync(purlWithVersion, useCache: useCache);
 
             if (packageVersionMetadata is null)
             {

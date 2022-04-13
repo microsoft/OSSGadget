@@ -125,7 +125,7 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
     }
     
     /// <inheritdoc />
-    public async Task<string> GetLatestVersionAsync(
+    public async Task<string?> GetLatestVersionAsync(
         PackageURL packageUrl,
         bool includePrerelease = false,
         bool useCache = true,

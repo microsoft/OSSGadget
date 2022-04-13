@@ -248,7 +248,7 @@ namespace Microsoft.CST.OpenSource
                 {
                     try
                     {
-                        foreach (string? version in await packageManager.EnumerateVersionsAsync(purl, doCache))
+                        foreach (string version in await packageManager.EnumerateVersionsAsync(purl, doCache))
                         {
                             vPurl = new PackageURL(purl.Type, purl.Namespace, purl.Name, version, purl.Qualifiers, purl.Subpath);
                             packageVersions.Add(vPurl);

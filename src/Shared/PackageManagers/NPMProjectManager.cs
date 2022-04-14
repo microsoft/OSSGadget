@@ -198,7 +198,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
             PackageMetadata metadata = new();
             string? content = await GetMetadataAsync(purl, useCache);
-            if (string.IsNullOrEmpty(content)) { return metadata; }
+            if (string.IsNullOrEmpty(content)) { return null; }
 
             // convert NPM package data to normalized form
             JsonDocument contentJSON = JsonDocument.Parse(content);

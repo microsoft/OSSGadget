@@ -7,6 +7,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using PackageUrl;
 using System;
+using System.Net;
 
 public static class PackageUrlExtension
 {
@@ -41,6 +42,21 @@ public static class PackageUrlExtension
     }
     
     /// <summary>
+    /// We want npm package's namespace to be prefixed with "%40" the percent code of "@".
+    /// </summary>
+    /// <param name="packageUrl">The <see cref="PackageURL"/> to get a formatted namespace for.</param>
+    /// <returns>The formatted namespace of <paramref name="packageUrl"/>.</returns>
+    public static string GetNamespaceFormatted(this PackageURL packageUrl)
+    {
+        if (packageUrl.Type != "npm" || packageUrl.Namespace.StartsWith("%40") || packageUrl.Namespace.StartsWith("@"))
+        {
+            return packageUrl.Namespace;
+        }
+
+        return $"%40{packageUrl.Namespace}";
+    }
+    
+    /// <summary>
     /// Gets the package's full name including namespace if applicable.
     /// </summary>
     /// <example>
@@ -62,10 +78,6 @@ public static class PackageUrlExtension
         }
 
         // The full name for scoped npm packages should have an '@' at the beginning.
-        string? namespaceStr = packageUrl.Type.Equals("npm", StringComparison.OrdinalIgnoreCase)
-            ? $"@{packageUrl.Namespace}"
-            : packageUrl.Namespace;
-        return $"{namespaceStr}/{packageUrl.Name}";
-
+        return WebUtility.UrlDecode($"{packageUrl.GetNamespaceFormatted()}/{packageUrl.Name}");
     }
 }

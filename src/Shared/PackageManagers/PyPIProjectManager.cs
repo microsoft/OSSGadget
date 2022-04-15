@@ -35,6 +35,16 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public PyPIProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
         }
+        
+        /// <inheritdoc />
+        public override IEnumerable<string> GetArtifactDownloadUris(PackageURL purl)
+        {
+            // Format: https://pypi.org/packages/source/{ package_name_first_letter }/{ package_name }/{ package_name }-{ package_version }.tar.gz
+
+            string feedUrl = (purl.Qualifiers?["repository_url"] ?? ENV_PYPI_ENDPOINT).EnsureTrailingSlash();
+
+            yield return $"{feedUrl}packages/source/{char.ToLower(purl.Name[0])}/{purl.Name.ToLower()}/{purl.Name.ToLower()}-{purl.Version}.tar.gz";
+        }
 
         /// <summary>
         /// Download one PyPI package and extract it to the target directory.
@@ -202,12 +212,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             JsonElement infoElement = root.GetProperty("info");
 
             metadata.Name = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "name");
-            metadata.Description = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "description");
-            string? summary = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "summary");
-            if (string.IsNullOrWhiteSpace(metadata.Description))
-            { // longer string might be the actual description
-                metadata.Description = summary;
-            }
+            metadata.Description = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "summary"); // Summary is the short description. Description is usually the readme.
+
             metadata.PackageManagerUri = ENV_PYPI_ENDPOINT;
             metadata.PackageUri = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "package_url");
             metadata.Keywords = OssUtilities.ConvertJSONToList(OssUtilities.GetJSONPropertyIfExists(infoElement, "keywords"));
@@ -336,7 +342,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 JsonElement versions = root.GetProperty("releases");
                 foreach (JsonProperty version in versions.EnumerateObject())
                 {
-                    // TODO: Fails if not a valid semver. ex 0.2
+                    // TODO: Fails if not a valid semver. ex 0.2 https://github.com/microsoft/OSSGadget/issues/328
                     allVersions.Add(new Version(version.Name));
                 }
             }

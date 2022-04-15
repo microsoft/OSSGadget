@@ -9,6 +9,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
     using Moq;
     using Newtonsoft.Json;
     using oss;
+    using PackageActions;
     using PackageManagers;
     using PackageUrl;
     using RichardSzalay.MockHttp;
@@ -43,7 +44,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             { "pkg:nuget/razorengine", Resources.razorengine_versions_json },
         }.ToImmutableDictionary();
 
-        private NuGetProjectManager? _projectManager;
+        private NuGetProjectManager _projectManager;
         private readonly Mock<IHttpClientFactory> _mockFactory = new();
 
         public NuGetProjectManagerTests()
@@ -61,6 +62,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             }
  
             _mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
+            _projectManager = new NuGetProjectManager(".", new NuGetPackageActions(), _mockFactory.Object);
         }
 
         [DataTestMethod]
@@ -114,6 +116,20 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             Assert.AreEqual(latestVersion, versions.First());
         }
 
+                
+        [DataTestMethod]
+        [DataRow("pkg:nuget/newtonsoft.json@13.0.1", "https://api.nuget.org/v3-flatcontainer/newtonsoft.json/13.0.1/newtonsoft.json.13.0.1.nupkg")]
+        [DataRow("pkg:nuget/razorengine@4.2.3-beta1", "https://api.nuget.org/v3-flatcontainer/razorengine/4.2.3-beta1/razorengine.4.2.3-beta1.nupkg")]
+        [DataRow("pkg:nuget/serilog@2.10.0", "https://api.nuget.org/v3-flatcontainer/serilog/2.10.0/serilog.2.10.0.nupkg")]
+        [DataRow("pkg:nuget/moq@4.17.2", "https://api.nuget.org/v3-flatcontainer/moq/4.17.2/moq.4.17.2.nupkg")]
+        public void GetArtifactDownloadUrisSucceeds(string purlString, string expectedUri)
+        {
+            PackageURL purl = new(purlString);
+            List<string> uris = _projectManager.GetArtifactDownloadUris(purl).ToList();
+
+            Assert.AreEqual(expectedUri, uris.First());
+        }
+        
         private static void MockHttpFetchResponse(
             HttpStatusCode statusCode,
             string url,

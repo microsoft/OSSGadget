@@ -268,13 +268,23 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <summary>
+        /// Gets the relevant URI(s) to download the files related to a <see cref="PackageURL"/>.
+        /// </summary>
+        /// <param name="purl">The <see cref="PackageURL"/> to get the URI(s) for.</param>
+        /// <returns>Links to the relevant URI(s).</returns>
+        public virtual IEnumerable<string> GetArtifactDownloadUris(PackageURL purl)
+        {
+            throw new NotImplementedException("BaseProjectManager does not implement GetArtifactDownloadUri.");
+        }
+
+        /// <summary>
         /// Downloads a given PackageURL and extracts it locally to a directory.
         /// </summary>
         /// <param name="purl">PackageURL to download</param>
         /// <returns>Paths (either files or directory names) pertaining to the downloaded files.</returns>
         public virtual Task<IEnumerable<string>> DownloadVersionAsync(PackageURL purl, bool doExtract, bool cached = false)
         {
-            throw new NotImplementedException("BaseProjectManager does not implement DownloadVersion.");
+            throw new NotImplementedException("BaseProjectManager does not implement DownloadVersionAsync.");
         }
 
         /// <summary>

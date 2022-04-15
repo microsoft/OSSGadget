@@ -41,5 +41,24 @@ namespace Microsoft.CST.OpenSource.Helpers
         {
             return !str.IsBlank();
         }
+        
+        /// <summary>
+        /// Returns the input string with a slash appended to it, unless there was already '/' at its end.
+        /// </summary>
+        public static string EnsureTrailingSlash(this string url)
+        {
+            if (url.IsBlank())
+            {
+                return url;
+            }
+
+            url = url.TrimEnd(' ');
+            if (!url.EndsWith('/'))
+            {
+                return url + '/';
+            }
+
+            return url;
+        }
     }
 }

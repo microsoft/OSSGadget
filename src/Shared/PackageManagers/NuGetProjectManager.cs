@@ -3,6 +3,8 @@
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using Contracts;
+    using Extensions;
+    using Helpers;
     using PackageUrl;
     using Model;
     using Model.Metadata;
@@ -43,6 +45,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             : base(actions ?? new NuGetPackageActions(), httpClientFactory ?? new DefaultHttpClientFactory(), directory)
         {
             GetRegistrationEndpointAsync().Wait();
+        }
+        
+        /// <inheritdoc />
+        public override IEnumerable<string> GetArtifactDownloadUris(PackageURL purl)
+        {
+            string feedUrl = (purl.Qualifiers?["repository_url"] ?? NUGET_DEFAULT_CONTENT_ENDPOINT).EnsureTrailingSlash();
+
+            yield return $"{feedUrl}{purl.Name.ToLower()}/{purl.Version}/{purl.Name.ToLower()}.{purl.Version}.nupkg";
         }
 
         /// <summary>

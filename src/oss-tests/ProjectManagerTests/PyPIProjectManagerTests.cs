@@ -20,21 +20,18 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
     using VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
-    public class NPMProjectManagerTests
+    public class PyPIProjectManagerTests
     {
         private readonly IDictionary<string, string> _packages = new Dictionary<string, string>()
         {
-            { "https://registry.npmjs.org/lodash", Resources.lodash_json },
-            { "https://registry.npmjs.org/@angular/core", Resources.angular_core_json },
-            { "https://registry.npmjs.org/ds-modal", Resources.ds_modal_json },
-            { "https://registry.npmjs.org/monorepolint", Resources.monorepolint_json },
-            { "https://registry.npmjs.org/rly-cli", Resources.rly_cli_json },
-            { "https://registry.npmjs.org/example", Resources.minimum_json_json },
+            { "https://pypi.org/pypi/pandas/json", Resources.pandas_json },
+            { "https://pypi.org/pypi/plotly/json", Resources.plotly_json },
+            { "https://pypi.org/pypi/requests/json", Resources.requests_json },
         }.ToImmutableDictionary();
 
-        private readonly NPMProjectManager _projectManager;
+        private readonly PyPIProjectManager _projectManager;
         
-        public NPMProjectManagerTests()
+        public PyPIProjectManagerTests()
         {
             Mock<IHttpClientFactory> mockFactory = new();
             
@@ -47,34 +44,29 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
  
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
             
-            _projectManager = new NPMProjectManager(mockFactory.Object, ".");
+            _projectManager = new PyPIProjectManager(mockFactory.Object, ".");
         }
 
+        // TODO: Ignored until https://github.com/microsoft/OSSGadget/issues/328 is addressed.
+        [Ignore]
         [DataTestMethod]
-        [DataRow("pkg:npm/lodash@4.17.15", "Lodash modular utilities.")] // Normal package
-        [DataRow("pkg:npm/%40angular/core@13.2.5", "Angular - the core framework")] // Scoped package
-        [DataRow("pkg:npm/ds-modal@0.0.2", "")] // No Description at package level, and empty string description on version level
-        [DataRow("pkg:npm/monorepolint@0.4.0")] // No Author property, and No Description
-        [DataRow("pkg:npm/example@0.0.0")] // Pretty much only name, and version
-        [DataRow("pkg:npm/rly-cli@0.0.2", "RLY CLI allows you to setup fungilble SPL tokens and call Rally token programs from the command line.")] // Author property is an empty string
+        [DataRow("pkg:pypi/pandas@1.4.2", "Powerful data structures for data analysis, time series, and statistics")]
+        [DataRow("pkg:pypi/plotly@5.7.0", "An open-source, interactive data visualization library for Python")]
+        [DataRow("pkg:pypi/requests@2.27.1", "Python HTTP for Humans.")]
         public async Task MetadataSucceeds(string purlString, string? description = null)
         {
             PackageURL purl = new(purlString);
             PackageMetadata metadata = await _projectManager.GetPackageMetadataAsync(purl, useCache: false);
 
-            string? packageName = purl.Namespace.IsNotBlank() ? $"{purl.GetNamespaceFormatted()}/{purl.Name}" : purl.Name;
-            Assert.AreEqual(packageName, metadata.Name);
+            Assert.AreEqual(purl.Name, metadata.Name);
             Assert.AreEqual(purl.Version, metadata.PackageVersion);
             Assert.AreEqual(description, metadata.Description);
         }
         
         [DataTestMethod]
-        [DataRow("pkg:npm/lodash@4.17.15", 114, "4.17.21")]
-        [DataRow("pkg:npm/%40angular/core@13.2.5", 566, "13.2.6")]
-        [DataRow("pkg:npm/ds-modal@0.0.2", 3, "0.0.2")]
-        [DataRow("pkg:npm/monorepolint@0.4.0", 88, "0.4.0")]
-        [DataRow("pkg:npm/example@0.0.0", 1, "0.0.0")]
-        [DataRow("pkg:npm/rly-cli@0.0.2", 4, "0.0.4")]
+        [DataRow("pkg:pypi/pandas@1.4.2", 86, "1.4.2")]
+        [DataRow("pkg:pypi/plotly@3.7.1", 276, "5.7.0")]
+        [DataRow("pkg:pypi/requests@2.27.1", 145, "2.27.1")]
         public async Task EnumerateVersionsSucceeds(string purlString, int count, string latestVersion)
         {
             PackageURL purl = new(purlString);
@@ -85,12 +77,9 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         }
         
         [DataTestMethod]
-        [DataRow("pkg:npm/lodash@4.17.15", "https://registry.npmjs.org/lodash/-/lodash-4.17.15.tgz")]
-        [DataRow("pkg:npm/%40angular/core@13.2.5", "https://registry.npmjs.org/@angular/core/-/core-13.2.5.tgz")]
-        [DataRow("pkg:npm/ds-modal@0.0.2", "https://registry.npmjs.org/ds-modal/-/ds-modal-0.0.2.tgz")]
-        [DataRow("pkg:npm/monorepolint@0.4.0", "https://registry.npmjs.org/monorepolint/-/monorepolint-0.4.0.tgz")]
-        [DataRow("pkg:npm/example@0.0.0", "https://registry.npmjs.org/example/-/example-0.0.0.tgz")]
-        [DataRow("pkg:npm/rly-cli@0.0.2", "https://registry.npmjs.org/rly-cli/-/rly-cli-0.0.2.tgz")]
+        [DataRow("pkg:pypi/pandas@1.4.2", "https://pypi.org/packages/source/p/pandas/pandas-1.4.2.tar.gz")]
+        [DataRow("pkg:pypi/plotly@5.7.0", "https://pypi.org/packages/source/p/plotly/plotly-5.7.0.tar.gz")]
+        [DataRow("pkg:pypi/requests@2.27.1", "https://pypi.org/packages/source/r/requests/requests-2.27.1.tar.gz")]
         public void GetArtifactDownloadUrisSucceeds(string purlString, string expectedUri)
         {
             PackageURL purl = new(purlString);

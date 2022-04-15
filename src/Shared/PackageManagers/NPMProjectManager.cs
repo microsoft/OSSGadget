@@ -37,6 +37,18 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
         }
 
+        /// <inheritdoc />
+        public override IEnumerable<string> GetArtifactDownloadUris(PackageURL purl)
+        {
+            string feedUrl = (purl.Qualifiers?["repository_url"] ?? ENV_NPM_API_ENDPOINT).EnsureTrailingSlash();
+            if (purl.HasNamespace())
+            {
+                yield return $"{feedUrl}{purl.Namespace}/{purl.Name}/-/{purl.Name}-{purl.Version}.tgz";
+            }
+
+            yield return $"{feedUrl}{purl.Name}/-/{purl.Name}-{purl.Version}.tgz";
+        }
+
         /// <summary>
         /// Download one NPM package and extract it to the target directory.
         /// </summary>
@@ -175,7 +187,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
             try
             {
-                string? packageName = purl.Namespace != null ? $"@{purl.Namespace}/{purl.Name}" : purl.Name;
+                string? packageName = purl.HasNamespace() ? $"{purl.GetNamespaceFormatted()}/{purl.Name}" : purl.Name;
                 HttpClient httpClient = CreateHttpClient();
 
                 string? content = await GetHttpStringCache(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}", useCache);
@@ -190,7 +202,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         public override Uri GetPackageAbsoluteUri(PackageURL purl)
         {
-            return new Uri($"{ENV_NPM_API_ENDPOINT}/{purl?.Name}");
+            return new Uri(ENV_NPM_API_ENDPOINT.EnsureTrailingSlash() + (purl.HasNamespace() ? $"{purl.GetNamespaceFormatted()}/{purl.Name}" : purl.Name));
         }
 
         /// <inheritdoc />

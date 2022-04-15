@@ -25,7 +25,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         private readonly IDictionary<string, string> _packages = new Dictionary<string, string>()
         {
             { "https://registry.npmjs.org/lodash", Resources.lodash_json },
-            { "https://registry.npmjs.org/@angular/core", Resources.angular_core_json },
+            { "https://registry.npmjs.org/%40angular/core", Resources.angular_core_json },
             { "https://registry.npmjs.org/ds-modal", Resources.ds_modal_json },
             { "https://registry.npmjs.org/monorepolint", Resources.monorepolint_json },
             { "https://registry.npmjs.org/rly-cli", Resources.rly_cli_json },
@@ -60,10 +60,10 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public async Task MetadataSucceeds(string purlString, string? description = null)
         {
             PackageURL purl = new(purlString);
-            PackageMetadata metadata = await _projectManager.GetPackageMetadataAsync(purl, useCache: false);
+            PackageMetadata? metadata = await _projectManager.GetPackageMetadataAsync(purl, useCache: false);
 
-            string? packageName = purl.Namespace.IsNotBlank() ? $"{purl.GetNamespaceFormatted()}/{purl.Name}" : purl.Name;
-            Assert.AreEqual(packageName, metadata.Name);
+            Assert.IsNotNull(metadata);
+            Assert.AreEqual(purl.GetFullName(), metadata.Name);
             Assert.AreEqual(purl.Version, metadata.PackageVersion);
             Assert.AreEqual(description, metadata.Description);
         }
@@ -94,9 +94,11 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public void GetArtifactDownloadUrisSucceeds(string purlString, string expectedUri)
         {
             PackageURL purl = new(purlString);
-            List<string> uris = _projectManager.GetArtifactDownloadUris(purl).ToList();
+            List<ArtifactUri> uris = _projectManager.GetArtifactDownloadUris(purl).ToList();
 
-            Assert.AreEqual(expectedUri, uris.First());
+            Assert.AreEqual(expectedUri, uris.First().Uri.AbsoluteUri);
+            Assert.AreEqual(".tgz", uris.First().Extension);
+            Assert.AreEqual(ArtifactUri.ArtifactType.Tarball, uris.First().Type);
         }
         
         private static void MockHttpFetchResponse(

@@ -3,7 +3,6 @@
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using Contracts;
-    using Extensions;
     using Helpers;
     using PackageUrl;
     using Model;
@@ -19,6 +18,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Net.Http;
     using System.Text.Json;
     using System.Threading.Tasks;
+    using ArtifactType = Model.ArtifactUri.ArtifactType;
 
     public class NuGetProjectManager : TypedManager<NuGetPackageVersionMetadata>
     {
@@ -48,11 +48,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
         
         /// <inheritdoc />
-        public override IEnumerable<string> GetArtifactDownloadUris(PackageURL purl)
+        public override IEnumerable<ArtifactUri> GetArtifactDownloadUris(PackageURL purl)
         {
             string feedUrl = (purl.Qualifiers?["repository_url"] ?? NUGET_DEFAULT_CONTENT_ENDPOINT).EnsureTrailingSlash();
 
-            yield return $"{feedUrl}{purl.Name.ToLower()}/{purl.Version}/{purl.Name.ToLower()}.{purl.Version}.nupkg";
+            yield return new ArtifactUri(ArtifactType.Nupkg, $"{feedUrl}{purl.Name.ToLower()}/{purl.Version}/{purl.Name.ToLower()}.{purl.Version}.nupkg");
         }
 
         /// <summary>

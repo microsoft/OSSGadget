@@ -48,9 +48,14 @@ public static class PackageUrlExtension
     /// <returns>The formatted namespace of <paramref name="packageUrl"/>.</returns>
     public static string GetNamespaceFormatted(this PackageURL packageUrl)
     {
-        if (packageUrl.Type != "npm" || packageUrl.Namespace.StartsWith("%40") || packageUrl.Namespace.StartsWith("@"))
+        if (packageUrl.Type != "npm" || packageUrl.Namespace.StartsWith("%40"))
         {
             return packageUrl.Namespace;
+        }
+
+        if (packageUrl.Namespace.StartsWith("@"))
+        {
+            return $"%40{packageUrl.Namespace.TrimStart('@')}";
         }
 
         return $"%40{packageUrl.Namespace}";
@@ -69,15 +74,17 @@ public static class PackageUrlExtension
     /// as it contains the namespace if there is one.
     /// </remarks>
     /// <param name="packageUrl">The <see cref="PackageURL"/> to get the full name for.</param>
+    /// <param name="encoded">If the name should be url encoded, defaults to false.</param>
     /// <returns>The full name.</returns>
-    public static string GetFullName(this PackageURL packageUrl)
+    public static string GetFullName(this PackageURL packageUrl, bool encoded = false)
     {
         if (!packageUrl.HasNamespace())
         {
             return packageUrl.Name;
         }
 
+        string name = $"{packageUrl.GetNamespaceFormatted()}/{packageUrl.Name}";
         // The full name for scoped npm packages should have an '@' at the beginning.
-        return WebUtility.UrlDecode($"{packageUrl.GetNamespaceFormatted()}/{packageUrl.Name}");
+        return encoded ? name : WebUtility.UrlDecode(name);
     }
 }

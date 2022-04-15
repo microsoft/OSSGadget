@@ -15,6 +15,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Threading.Tasks;
     using Utilities;
     using Version = SemanticVersioning.Version;
+    using ArtifactType = Model.ArtifactUri.ArtifactType;
 
     public class PyPIProjectManager : BaseProjectManager
     {
@@ -37,13 +38,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
         
         /// <inheritdoc />
-        public override IEnumerable<string> GetArtifactDownloadUris(PackageURL purl)
+        public override IEnumerable<ArtifactUri> GetArtifactDownloadUris(PackageURL purl)
         {
             // Format: https://pypi.org/packages/source/{ package_name_first_letter }/{ package_name }/{ package_name }-{ package_version }.tar.gz
 
             string feedUrl = (purl.Qualifiers?["repository_url"] ?? ENV_PYPI_ENDPOINT).EnsureTrailingSlash();
 
-            yield return $"{feedUrl}packages/source/{char.ToLower(purl.Name[0])}/{purl.Name.ToLower()}/{purl.Name.ToLower()}-{purl.Version}.tar.gz";
+            yield return new ArtifactUri(ArtifactType.Tarball, $"{feedUrl}packages/source/{char.ToLower(purl.Name[0])}/{purl.Name.ToLower()}/{purl.Name.ToLower()}-{purl.Version}.tar.gz");
         }
 
         /// <summary>

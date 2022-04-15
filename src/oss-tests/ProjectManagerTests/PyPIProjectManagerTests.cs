@@ -83,9 +83,11 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public void GetArtifactDownloadUrisSucceeds(string purlString, string expectedUri)
         {
             PackageURL purl = new(purlString);
-            List<string> uris = _projectManager.GetArtifactDownloadUris(purl).ToList();
+            List<ArtifactUri> uris = _projectManager.GetArtifactDownloadUris(purl).ToList();
 
-            Assert.AreEqual(expectedUri, uris.First());
+            Assert.AreEqual(expectedUri, uris.First().Uri.AbsoluteUri);
+            Assert.AreEqual(".gz", uris.First().Extension); // TODO: Figure out how to switch it to .tar.gz instead of just .gz
+            Assert.AreEqual(ArtifactUri.ArtifactType.Tarball, uris.First().Type);
         }
         
         private static void MockHttpFetchResponse(

@@ -43,8 +43,9 @@ namespace Microsoft.CST.OpenSource.Helpers
         }
         
         /// <summary>
-        /// Returns the input string with a slash appended to it, unless there was already '/' at its end.
+        /// Returns the input string with a slash ('/') appended to it, unless there was already '/' at its end.
         /// </summary>
+        /// <remarks>If the string is empty, no changes are made.</remarks>
         public static string EnsureTrailingSlash(this string url)
         {
             if (url.IsBlank())

@@ -24,6 +24,11 @@ public static class PackageUrlExtension
         return new PackageURL(packageUrl.Type, namespaceStr, name, null, null, null);
     }
 
+    /// <summary>
+    /// Gets the <paramref name="packageUrl"/> as a valid file name.
+    /// </summary>
+    /// <param name="packageUrl">The <see cref="PackageURL"/> to get as a valid file name.</param>
+    /// <returns>A file name from the <paramref name="packageUrl"/>.</returns>
     public static string ToStringFilename(this PackageURL packageUrl)
     {
         string invalidChars = new string(Path.GetInvalidFileNameChars()) + new string(Path.GetInvalidPathChars());

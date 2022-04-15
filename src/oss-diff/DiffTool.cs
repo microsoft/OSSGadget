@@ -124,7 +124,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
 
                 if (manager is not null)
                 {
-                    locations = await manager.DownloadVersion(purl1, true, options.UseCache);
+                    locations = await manager.DownloadVersionAsync(purl1, true, options.UseCache);
                 }
             }
             catch (Exception)
@@ -158,7 +158,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
 
                 if (manager2 is not null)
                 {
-                    locations2 = await manager2.DownloadVersion(purl2, true, options.UseCache);
+                    locations2 = await manager2.DownloadVersionAsync(purl2, true, options.UseCache);
                 }
             }
             catch (Exception)

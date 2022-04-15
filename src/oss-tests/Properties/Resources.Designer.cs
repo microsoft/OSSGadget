@@ -106,6 +106,15 @@ namespace oss {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {&quot;version&quot;:&quot;3.0.0&quot;,&quot;resources&quot;:[{&quot;@id&quot;:&quot;https://azuresearch-usnc.nuget.org/query&quot;,&quot;@type&quot;:&quot;SearchQueryService&quot;,&quot;comment&quot;:&quot;Query endpoint of NuGet Search service (primary)&quot;},{&quot;@id&quot;:&quot;https://azuresearch-ussc.nuget.org/query&quot;,&quot;@type&quot;:&quot;SearchQueryService&quot;,&quot;comment&quot;:&quot;Query endpoint of NuGet Search service (secondary)&quot;},{&quot;@id&quot;:&quot;https://azuresearch-usnc.nuget.org/autocomplete&quot;,&quot;@type&quot;:&quot;SearchAutocompleteService&quot;,&quot;comment&quot;:&quot;Autocomplete endpoint of NuGet Search service (primary)&quot;},{&quot;@id&quot;:&quot;https://azuresearch-ussc.n [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string nuget_registration_json {
+            get {
+                return ResourceManager.GetString("nuget_registration.json", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {
         ///  &quot;@id&quot;: &quot;https://api.nuget.org/v3/catalog0/data/2022.03.11.23.17.27/razorengine.4.2.3-beta1.json&quot;,
         ///  &quot;@type&quot;: [
@@ -126,11 +135,38 @@ namespace oss {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {&quot;authors&quot;:&quot;Matthew Abbott, Ben Dornis, Matthias Dittrich&quot;,&quot;dependencyGroups&quot;:[{&quot;TargetFramework&quot;:{&quot;Framework&quot;:&quot;Any&quot;,&quot;Version&quot;:&quot;0.0.0.0&quot;,&quot;Platform&quot;:&quot;&quot;,&quot;PlatformVersion&quot;:&quot;0.0.0.0&quot;,&quot;HasPlatform&quot;:false,&quot;HasProfile&quot;:false,&quot;Profile&quot;:&quot;&quot;,&quot;DotNetFrameworkName&quot;:&quot;Any,Version=v0.0&quot;,&quot;DotNetPlatformName&quot;:&quot;&quot;,&quot;IsPCL&quot;:false,&quot;IsPackageBased&quot;:false,&quot;AllFrameworkVersions&quot;:true,&quot;IsUnsupported&quot;:false,&quot;IsAgnostic&quot;:false,&quot;IsAny&quot;:true,&quot;IsSpecificFramework&quot;:false},&quot;Packages&quot;:[{&quot;Id&quot;:&quot;Microsoft.AspNet.Razor&quot;,&quot;Include&quot;:[],&quot;Exclude&quot;:[] [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string razorengine_4_2_3_beta1_metadata_json {
+            get {
+                return ResourceManager.GetString("razorengine.4.2.3-beta1.metadata.json", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {&quot;@id&quot;:&quot;https://api.nuget.org/v3/registration5-gz-semver2/razorengine/index.json&quot;,&quot;@type&quot;:[&quot;catalog:CatalogRoot&quot;,&quot;PackageRegistration&quot;,&quot;catalog:Permalink&quot;],&quot;commitId&quot;:&quot;b44e2827-f5db-4ba2-bb8c-5e538ad0e7b1&quot;,&quot;commitTimeStamp&quot;:&quot;2022-03-11T23:18:21.9196828+00:00&quot;,&quot;count&quot;:2,&quot;items&quot;:[{&quot;@id&quot;:&quot;https://api.nuget.org/v3/registration5-gz-semver2/razorengine/index.json#page/2.1.0/4.1.5-beta1&quot;,&quot;@type&quot;:&quot;catalog:CatalogPage&quot;,&quot;commitId&quot;:&quot;b44e2827-f5db-4ba2-bb8c-5e538ad0e7b1&quot;,&quot;commitTimeStamp&quot;:&quot;2022-03-11T23:18:21.9196828+0 [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string razorengine_json {
             get {
                 return ResourceManager.GetString("razorengine.json", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;authors&quot;:&quot;Matthew Abbott, Ben Dornis, Matthias Dittrich&quot;,&quot;dependencyGroups&quot;:[{&quot;TargetFramework&quot;:{&quot;Framework&quot;:&quot;.NETFramework&quot;,&quot;Version&quot;:&quot;4.5.1.0&quot;,&quot;Platform&quot;:&quot;&quot;,&quot;PlatformVersion&quot;:&quot;0.0.0.0&quot;,&quot;HasPlatform&quot;:false,&quot;HasProfile&quot;:false,&quot;Profile&quot;:&quot;&quot;,&quot;DotNetFrameworkName&quot;:&quot;.NETFramework,Version=v4.5.1&quot;,&quot;DotNetPlatformName&quot;:&quot;&quot;,&quot;IsPCL&quot;:false,&quot;IsPackageBased&quot;:false,&quot;AllFrameworkVersions&quot;:false,&quot;IsUnsupported&quot;:false,&quot;IsAgnostic&quot;:false,&quot;IsAny&quot;:false,&quot;IsSpecificFramework&quot;:true},&quot;Packages&quot;:[{&quot;Id&quot;:&quot;Microsoft.AspNetCore.Razor [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string razorengine_latest_metadata_json {
+            get {
+                return ResourceManager.GetString("razorengine.latest.metadata.json", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [&quot;2.1.0&quot;,&quot;3.0.0&quot;,&quot;3.0.3&quot;,&quot;3.0.4&quot;,&quot;3.0.5&quot;,&quot;3.0.6&quot;,&quot;3.0.7&quot;,&quot;3.0.8&quot;,&quot;3.1.0&quot;,&quot;3.2.0&quot;,&quot;3.3.0&quot;,&quot;3.4.0&quot;,&quot;3.4.1&quot;,&quot;3.4.2&quot;,&quot;3.5.0-beta1&quot;,&quot;3.5.0-beta2&quot;,&quot;3.5.0-beta3&quot;,&quot;3.5.0&quot;,&quot;3.5.1&quot;,&quot;3.5.2&quot;,&quot;3.5.3&quot;,&quot;3.6.0&quot;,&quot;3.6.1&quot;,&quot;3.6.2&quot;,&quot;3.6.3-beta1&quot;,&quot;3.6.3-beta2&quot;,&quot;3.6.3&quot;,&quot;3.6.4&quot;,&quot;3.6.5-beta1&quot;,&quot;3.6.5&quot;,&quot;3.6.6-beta1&quot;,&quot;3.6.6-beta2&quot;,&quot;3.6.6&quot;,&quot;3.7.0-beta1&quot;,&quot;3.7.0&quot;,&quot;3.7.1-alpha1&quot;,&quot;3.7.2&quot;,&quot;3.7.3&quot;,&quot;3.7.4&quot;,&quot;3.7.5-beta1&quot;,&quot;3.7.5-beta2&quot;,&quot;3.7.5&quot;,&quot;3.7.6&quot;,&quot;3.7.7&quot;,&quot;3.8.0&quot;,&quot;3.8.1&quot;,&quot;3.8.2&quot;,&quot;3.9.0&quot;,&quot;3.9.1&quot;,&quot;3.9.2&quot;,&quot;3.9.3&quot;,&quot;3.10.0&quot;,&quot;3.10....
+        /// </summary>
+        internal static string razorengine_versions_json {
+            get {
+                return ResourceManager.GetString("razorengine.versions.json", resourceCulture);
             }
         }
         

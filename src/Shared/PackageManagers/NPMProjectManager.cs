@@ -42,7 +42,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// </summary>
         /// <param name="purl">Package URL of the package to download.</param>
         /// <returns>n/a</returns>
-        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
+        public override async Task<IEnumerable<string>> DownloadVersionAsync(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
@@ -91,7 +91,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
-        public override async Task<bool> PackageExists(PackageURL purl, bool useCache = true)
+        public override async Task<bool> PackageExistsAsync(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("PackageExists {0}", purl?.ToString());
             if (string.IsNullOrEmpty(purl?.Name))
@@ -106,7 +106,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true, bool includePrerelease = true)
+        public override async Task<IEnumerable<string>> EnumerateVersionsAsync(PackageURL purl, bool useCache = true, bool includePrerelease = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
             if (purl?.Name is null)
@@ -171,7 +171,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
-        public override async Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
+        public override async Task<string?> GetMetadataAsync(PackageURL purl, bool useCache = true)
         {
             try
             {
@@ -194,11 +194,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
-        public override async Task<PackageMetadata?> GetPackageMetadata(PackageURL purl, bool useCache = true)
+        public override async Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool useCache = true)
         {
             PackageMetadata metadata = new();
-            string? content = await GetMetadata(purl, useCache);
-            if (string.IsNullOrEmpty(content)) { return metadata; }
+            string? content = await GetMetadataAsync(purl, useCache);
+            if (string.IsNullOrEmpty(content)) { return null; }
 
             // convert NPM package data to normalized form
             JsonDocument contentJSON = JsonDocument.Parse(content);

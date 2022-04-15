@@ -41,7 +41,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// </summary>
         /// <param name="purl">Package URL of the package to download.</param>
         /// <returns>the path or file written.</returns>
-        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
+        public override async Task<IEnumerable<string>> DownloadVersionAsync(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
@@ -114,7 +114,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
-        public override async Task<bool> PackageExists(PackageURL purl, bool useCache = true)
+        public override async Task<bool> PackageExistsAsync(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("PackageExists {0}", purl?.ToString());
             if (string.IsNullOrEmpty(purl?.Name))
@@ -129,7 +129,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true, bool includePrerelease = true)
+        public override async Task<IEnumerable<string>> EnumerateVersionsAsync(PackageURL purl, bool useCache = true, bool includePrerelease = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
             if (purl == null || purl.Name is null)
@@ -173,7 +173,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
         }
 
-        public override async Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
+        public override async Task<string?> GetMetadataAsync(PackageURL purl, bool useCache = true)
         {
             try
             {
@@ -189,11 +189,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
-        public override async Task<PackageMetadata?> GetPackageMetadata(PackageURL purl, bool useCache = true)
+        public override async Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool useCache = true)
         {
             PackageMetadata metadata = new();
-            string? content = await GetMetadata(purl, useCache);
-            if (string.IsNullOrEmpty(content)) { return metadata; }
+            string? content = await GetMetadataAsync(purl, useCache);
+            if (string.IsNullOrEmpty(content)) { return null; }
 
             // convert NPM package data to normalized form
             JsonDocument contentJSON = JsonDocument.Parse(content);
@@ -270,7 +270,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 metadata.PackageVersion = latestVersion is null ? purl.Version : latestVersion?.ToString();
             }
 
-            // if we found any version at all, get the deets
+            // if we found any version at all, get the information.
             if (metadata.PackageVersion is not null)
             {
                 Version versionToGet = new(metadata.PackageVersion);
@@ -279,36 +279,46 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 {
                     // fill the version specific entries
 
-                    // digests
-                    if (OssUtilities.GetJSONPropertyIfExists(versionElement, "digests")?.EnumerateObject()
-                        is JsonElement.ObjectEnumerator digests)
+                    if (versionElement.Value.ValueKind == JsonValueKind.Array) // I think this should always be true.
                     {
-                        metadata.Signature ??= new List<Digest>();
-                        foreach (JsonProperty digest in digests)
+                        foreach (JsonElement releaseFile in versionElement.Value.EnumerateArray())
                         {
-                            metadata.Signature.Add(new Digest()
+                            // digests
+                            if (OssUtilities.GetJSONPropertyIfExists(releaseFile, "digests")?.EnumerateObject()
+                                is JsonElement.ObjectEnumerator digests)
                             {
-                                Algorithm = digest.Name,
-                                Signature = digest.Value.ToString()
-                            });
+                                metadata.Signature ??= new List<Digest>();
+                                foreach (JsonProperty digest in digests)
+                                {
+                                    metadata.Signature.Add(new Digest()
+                                    {
+                                        Algorithm = digest.Name,
+                                        Signature = digest.Value.ToString()
+                                    });
+                                }
+                            }
+
+                            // TODO: Want to figure out how to store info for .whl files as well.
+                            if (OssUtilities.GetJSONPropertyStringIfExists(releaseFile, "packagetype") == "sdist")
+                            {
+                                // downloads
+                                if (OssUtilities.GetJSONPropertyIfExists(releaseFile, "downloads")?.GetInt64() is long downloads
+                                    && downloads != -1)
+                                {
+                                    metadata.Downloads ??= new Downloads()
+                                    {
+                                        Overall = downloads
+                                    };
+                                }
+
+                                metadata.Size = OssUtilities.GetJSONPropertyIfExists(releaseFile, "size")?.GetInt64();
+                                metadata.UploadTime = OssUtilities.GetJSONPropertyStringIfExists(releaseFile, "upload_time");
+                                metadata.Active = !OssUtilities.GetJSONPropertyIfExists(releaseFile, "yanked")?.GetBoolean();
+                                metadata.VersionUri = $"{ENV_PYPI_ENDPOINT}/project/{purl.Name}/{purl.Version}";
+                                metadata.VersionDownloadUri = OssUtilities.GetJSONPropertyStringIfExists(releaseFile, "url");
+                            }
                         }
                     }
-
-                    // downloads
-                    if (OssUtilities.GetJSONPropertyIfExists(versionElement, "downloads")?.GetInt64() is long downloads
-                        && downloads != -1)
-                    {
-                        metadata.Downloads ??= new Downloads()
-                        {
-                            Overall = downloads
-                        };
-                    }
-
-                    metadata.Size = OssUtilities.GetJSONPropertyIfExists(versionElement, "size")?.GetInt64();
-                    metadata.UploadTime = OssUtilities.GetJSONPropertyStringIfExists(versionElement, "upload_time");
-                    metadata.Active = !OssUtilities.GetJSONPropertyIfExists(versionElement, "yanked")?.GetBoolean();
-                    metadata.VersionUri = $"{ENV_PYPI_ENDPOINT}/project/{purl.Name}/{purl.Version}";
-                    metadata.VersionDownloadUri = OssUtilities.GetJSONPropertyStringIfExists(versionElement, "url");
                 }
             }
 
@@ -320,13 +330,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             List<Version> allVersions = new();
             if (contentJSON is null) { return allVersions; }
 
-            Console.WriteLine(JsonSerializer.Serialize(contentJSON));
             JsonElement root = contentJSON.RootElement;
             try
             {
-                JsonElement versions = root.GetProperty("versions");
+                JsonElement versions = root.GetProperty("releases");
                 foreach (JsonProperty version in versions.EnumerateObject())
                 {
+                    // TODO: Fails if not a valid semver. ex 0.2
                     allVersions.Add(new Version(version.Name));
                 }
             }

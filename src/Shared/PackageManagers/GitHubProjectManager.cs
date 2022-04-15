@@ -82,7 +82,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// </summary>
         /// <param name="purl"> Package URL of the package to download. </param>
         /// <returns> n/a </returns>
-        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
+        public override async Task<IEnumerable<string>> DownloadVersionAsync(PackageURL purl, bool doExtract, bool cached = false)
         {
             List<string> downloadedPaths = new();
 
@@ -140,7 +140,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     });
                 }
                 PackageURL purlNoVersion = new(purl!.Type, purl.Namespace, purl.Name, null, purl.Qualifiers, purl.Subpath);
-                foreach (string v in EnumerateVersions(purlNoVersion).Result)
+                foreach (string v in await EnumerateVersionsAsync(purlNoVersion))
                 {
                     if (Regex.IsMatch(purl.Version!, @"(^|[^\d\.])" + Regex.Escape(v)))
                     {
@@ -180,7 +180,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl, bool useCache = true, bool includePrerelease = true)
+        public override async Task<IEnumerable<string>> EnumerateVersionsAsync(PackageURL purl, bool useCache = true, bool includePrerelease = true)
         {
             try
             {
@@ -235,7 +235,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
-        public override async Task<string?> GetMetadata(PackageURL purl, bool useCache = true)
+        public override async Task<string?> GetMetadataAsync(PackageURL purl, bool useCache = true)
         {
             await Task.CompletedTask;
             return $"https://github.com/{purl.Namespace}/{purl.Name}";

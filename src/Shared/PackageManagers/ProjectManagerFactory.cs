@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using PackageActions;
     using PackageUrl;
     using System;
     using System.Collections.Generic;
@@ -104,7 +105,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 },
                 {
                     NuGetProjectManager.Type, destinationDirectory =>
-                        new NuGetProjectManager(httpClientFactory, destinationDirectory)
+                        new NuGetProjectManager(destinationDirectory, new NuGetPackageActions(), httpClientFactory) // Add the NuGetPackageActions to the NuGetProjectManager.
                 },
                 {
                     PyPIProjectManager.Type, destinationDirectory =>

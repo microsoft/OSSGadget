@@ -67,7 +67,7 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
         // If we want to extract the contents of the .nupkg, send it to ArchiveHelper.ExtractArchiveAsync.
         if (doExtract)
         {
-            return await ArchiveHelper.ExtractArchiveAsync(topLevelDirectory, Path.GetExtension(targetPath) + ".nupkg", packageStream, cached);
+            return await ArchiveHelper.ExtractArchiveAsync(topLevelDirectory, targetPath + ".nupkg", packageStream, cached);
         }
 
         return filePath;

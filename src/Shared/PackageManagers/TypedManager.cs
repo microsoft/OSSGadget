@@ -42,8 +42,13 @@ public abstract class TypedManager<T> : BaseProjectManager where T : IManagerPac
 
         if (containingPath is string notNullPath)
         {
-            return Directory.EnumerateFiles(notNullPath, "*",
-                new EnumerationOptions() {RecurseSubdirectories = true});
+            if (doExtract)
+            {
+                return Directory.EnumerateFiles(notNullPath, "*",
+                    new EnumerationOptions() {RecurseSubdirectories = true});
+            }
+
+            return new[] { containingPath };
         }
 
         return Array.Empty<string>();

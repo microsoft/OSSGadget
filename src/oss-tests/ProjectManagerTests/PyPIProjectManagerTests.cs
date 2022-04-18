@@ -87,7 +87,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 
             Assert.AreEqual(expectedUri, uris.First().Uri.AbsoluteUri);
             Assert.AreEqual(".gz", uris.First().Extension); // TODO: Figure out how to switch it to .tar.gz instead of just .gz
-            Assert.AreEqual(ArtifactUri.ArtifactType.Tarball, uris.First().Type);
+            Assert.AreEqual(PyPIProjectManager.PyPIArtifactType.Tarball, uris.First().Type);
         }
         
         private static void MockHttpFetchResponse(

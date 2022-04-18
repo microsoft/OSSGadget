@@ -18,7 +18,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Net.Http;
     using System.Text.Json;
     using System.Threading.Tasks;
-    using ArtifactType = Model.ArtifactUri.ArtifactType;
 
     public class NuGetProjectManager : TypedManager<NuGetPackageVersionMetadata>
     {
@@ -52,7 +51,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
             string feedUrl = (purl.Qualifiers?["repository_url"] ?? NUGET_DEFAULT_CONTENT_ENDPOINT).EnsureTrailingSlash();
 
-            yield return new ArtifactUri(ArtifactType.Nupkg, $"{feedUrl}{purl.Name.ToLower()}/{purl.Version}/{purl.Name.ToLower()}.{purl.Version}.nupkg");
+            yield return new ArtifactUri(NuGetArtifactType.Nupkg, $"{feedUrl}{purl.Name.ToLower()}/{purl.Version}/{purl.Name.ToLower()}.{purl.Version}.nupkg");
         }
 
         /// <summary>
@@ -352,5 +351,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         private static string ENV_NUGET_HOMEPAGE = "https://www.nuget.org/packages";
+        
+        public enum NuGetArtifactType
+        {
+            Unknown = 0,
+            Binary,
+            Nupkg,
+            Nuspec,
+        }
     }
 }

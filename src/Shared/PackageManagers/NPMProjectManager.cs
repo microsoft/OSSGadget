@@ -16,7 +16,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Threading.Tasks;
     using Utilities;
     using Version = SemanticVersioning.Version;
-    using ArtifactType = Model.ArtifactUri.ArtifactType;
 
     public class NPMProjectManager : BaseProjectManager
     {
@@ -45,10 +44,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             string feedUrl = (purl.Qualifiers?["repository_url"] ?? ENV_NPM_API_ENDPOINT).EnsureTrailingSlash();
             if (purl.HasNamespace())
             {
-                yield return new ArtifactUri(ArtifactType.Tarball, $"{feedUrl}{purl.Namespace}/{purl.Name}/-/{purl.Name}-{purl.Version}.tgz");
+                yield return new ArtifactUri(NPMArtifactType.Tarball, $"{feedUrl}{purl.Namespace}/{purl.Name}/-/{purl.Name}-{purl.Version}.tgz");
             }
 
-            yield return new ArtifactUri(ArtifactType.Tarball, $"{feedUrl}{purl.Name}/-/{purl.Name}-{purl.Version}.tgz");
+            yield return new ArtifactUri(NPMArtifactType.Tarball, $"{feedUrl}{purl.Name}/-/{purl.Name}-{purl.Version}.tgz");
         }
 
         /// <summary>
@@ -133,7 +132,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 string packageName = purl.GetFullName();
                 HttpClient httpClient = CreateHttpClient();
 
-                JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_NPM_API_ENDPOINT}/{purl.GetFullName(true)}", useCache);
+                JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_NPM_API_ENDPOINT}/{purl.GetFullName(encoded: true)}", useCache);
 
                 List<string> versionList = new();
 
@@ -561,5 +560,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             "vm",
             "zlib"
         };
+        
+        public enum NPMArtifactType
+        {
+            Unknown = 0,
+            Tarball,
+        }
     }
 }

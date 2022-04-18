@@ -129,7 +129,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 
             Assert.AreEqual(expectedUri, uris.First().Uri.AbsoluteUri);
             Assert.AreEqual(".nupkg", uris.First().Extension);
-            Assert.AreEqual(ArtifactUri.ArtifactType.Nupkg, uris.First().Type);
+            Assert.AreEqual(NuGetProjectManager.NuGetArtifactType.Nupkg, uris.First().Type);
         }
         
         private static void MockHttpFetchResponse(

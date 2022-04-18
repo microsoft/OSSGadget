@@ -98,7 +98,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 
             Assert.AreEqual(expectedUri, uris.First().Uri.AbsoluteUri);
             Assert.AreEqual(".tgz", uris.First().Extension);
-            Assert.AreEqual(ArtifactUri.ArtifactType.Tarball, uris.First().Type);
+            Assert.AreEqual(NPMProjectManager.NPMArtifactType.Tarball, uris.First().Type);
         }
         
         private static void MockHttpFetchResponse(

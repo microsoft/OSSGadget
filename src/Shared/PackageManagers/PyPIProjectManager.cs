@@ -15,7 +15,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Threading.Tasks;
     using Utilities;
     using Version = SemanticVersioning.Version;
-    using ArtifactType = Model.ArtifactUri.ArtifactType;
 
     public class PyPIProjectManager : BaseProjectManager
     {
@@ -44,7 +43,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             string feedUrl = (purl.Qualifiers?["repository_url"] ?? ENV_PYPI_ENDPOINT).EnsureTrailingSlash();
 
-            yield return new ArtifactUri(ArtifactType.Tarball, $"{feedUrl}packages/source/{char.ToLower(purl.Name[0])}/{purl.Name.ToLower()}/{purl.Name.ToLower()}-{purl.Version}.tar.gz");
+            yield return new ArtifactUri(PyPIArtifactType.Tarball, $"{feedUrl}packages/source/{char.ToLower(purl.Name[0])}/{purl.Name.ToLower()}/{purl.Name.ToLower()}-{purl.Version}.tar.gz");
         }
 
         /// <summary>
@@ -435,6 +434,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
 
             return mapping;
+        }
+        
+        public enum PyPIArtifactType
+        {
+            Unknown = 0,
+            Tarball,
+            Wheel,
         }
     }
 }

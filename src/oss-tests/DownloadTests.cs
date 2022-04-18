@@ -12,6 +12,7 @@ namespace Microsoft.CST.OpenSource.Tests
 {
     using PackageManagers;
     using PackageUrl;
+    using System.Collections.Generic;
 
     [TestClass]
     public class DownloadTests
@@ -120,7 +121,6 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataTestMethod]
         [DataRow("pkg:npm/left-pad@1.3.0", "package.json", 1)]
         [DataRow("pkg:npm/md5", "package.json", 1)]
-        [DataRow("pkg:npm/lodash@*", "package.json", 114)]
         public async Task NPM_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
         {
             await TestDownload(purl, targetFilename, expectedDirectoryCount);
@@ -137,11 +137,21 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("pkg:nuget/RandomType@2.0.0", "RandomType.nuspec", 1)]
         [DataRow("pkg:nuget/d3.TypeScript.DefinitelyTyped", "d3.TypeScript.DefinitelyTyped.nuspec", 1)]
         [DataRow("pkg:nuget/boxer@0.1.0-preview1", "boxer.nuspec", 1)]
-        [DataRow("pkg:nuget/RandomType@*", "RandomType.nuspec", 2)]
-        [DataRow("pkg:nuget/Newtonsoft.Json@*", "newtonsoft.json.nuspec", 75)]
         public async Task NuGet_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
         {
             await TestDownload(purl, targetFilename, expectedDirectoryCount);
+        }
+        
+        [DataTestMethod]
+        [DataRow("pkg:npm/moment@*", "package.json")]
+        [DataRow("pkg:nuget/RandomType@*", "RandomType.nuspec")]
+        [DataRow("pkg:nuget/Newtonsoft.Json@*", "newtonsoft.json.nuspec")]
+        public async Task Wildcard_Download_Version_Succeeds(string packageUrl, string targetFilename)
+        {
+            PackageURL purl = new(packageUrl);
+            BaseProjectManager? manager = new ProjectManagerFactory().CreateProjectManager(purl);
+            IEnumerable<string> versions = await manager?.EnumerateVersionsAsync(purl) ?? throw new InvalidOperationException();
+            await TestDownload(packageUrl, targetFilename, versions.Count());
         }
 
         [DataTestMethod]

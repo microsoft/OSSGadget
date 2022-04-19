@@ -273,7 +273,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// </summary>
         /// <param name="purl">The <see cref="PackageURL"/> to get the URI(s) for.</param>
         /// <returns>Links to the relevant URI(s).</returns>
-        public virtual IEnumerable<ArtifactUri> GetArtifactDownloadUris(PackageURL purl)
+        public virtual IAsyncEnumerable<ArtifactUri> GetArtifactDownloadUrisAsync(PackageURL purl)
         {
             throw new NotImplementedException("BaseProjectManager does not implement GetArtifactDownloadUri.");
         }

@@ -39,15 +39,17 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
-        public override IEnumerable<ArtifactUri> GetArtifactDownloadUris(PackageURL purl)
+        public override async IAsyncEnumerable<ArtifactUri> GetArtifactDownloadUrisAsync(PackageURL purl)
         {
             string feedUrl = (purl.Qualifiers?["repository_url"] ?? ENV_NPM_API_ENDPOINT).EnsureTrailingSlash();
-            if (purl.HasNamespace())
-            {
-                yield return new ArtifactUri(NPMArtifactType.Tarball, $"{feedUrl}{purl.Namespace}/{purl.Name}/-/{purl.Name}-{purl.Version}.tgz");
-            }
+            string artifactUri = purl.HasNamespace() ? 
+                $"{feedUrl}{purl.Namespace}/{purl.Name}/-/{purl.Name}-{purl.Version}.tgz" : // If there's a namespace.
+                $"{feedUrl}{purl.Name}/-/{purl.Name}-{purl.Version}.tgz"; // If there isn't a namespace.
 
-            yield return new ArtifactUri(NPMArtifactType.Tarball, $"{feedUrl}{purl.Name}/-/{purl.Name}-{purl.Version}.tgz");
+            HttpClient httpClient = CreateHttpClient();
+            HttpResponseMessage result = await httpClient.GetAsync(artifactUri);
+            result.EnsureSuccessStatusCode();
+            yield return new ArtifactUri(NPMArtifactType.Tarball, artifactUri);
         }
 
         /// <summary>

@@ -44,6 +44,7 @@ public static class PackageUrlExtension
     /// <summary>
     /// We want npm package's namespace to be prefixed with "%40" the percent code of "@".
     /// </summary>
+    /// <remarks>If the <paramref name="packageUrl"/> isn't npm, it returns the namespace with no changes.</remarks>
     /// <param name="packageUrl">The <see cref="PackageURL"/> to get a formatted namespace for.</param>
     /// <returns>The formatted namespace of <paramref name="packageUrl"/>.</returns>
     public static string GetNamespaceFormatted(this PackageURL packageUrl)

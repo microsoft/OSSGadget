@@ -95,7 +95,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public async Task GetArtifactDownloadUrisSucceeds(string purlString, string expectedUri)
         {
             PackageURL purl = new(purlString);
-            List<ArtifactUri> uris = await _projectManager.GetArtifactDownloadUrisAsync(purl).ToListAsync();
+            List<NPMProjectManager.NpmBaseArtifactUri> uris = await _projectManager.GetArtifactDownloadUrisAsync(purl).ToListAsync();
 
             Assert.AreEqual(expectedUri, uris.First().Uri.AbsoluteUri);
             Assert.AreEqual(".tgz", uris.First().Extension);

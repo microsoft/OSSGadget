@@ -84,7 +84,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public async Task GetArtifactDownloadUrisSucceeds(string purlString, string expectedUri)
         {
             PackageURL purl = new(purlString);
-            List<ArtifactUri> uris = await _projectManager.GetArtifactDownloadUrisAsync(purl).ToListAsync();
+            List<PyPIProjectManager.PyPiBaseArtifactUri> uris = await _projectManager.GetArtifactDownloadUrisAsync(purl).ToListAsync();
 
             Assert.AreEqual(expectedUri, uris.First().Uri.AbsoluteUri);
             Assert.AreEqual(".gz", uris.First().Extension); // TODO: Figure out how to switch it to .tar.gz instead of just .gz

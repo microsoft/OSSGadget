@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Contracts;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.CST.OpenSource.Model;
     using System;
@@ -273,7 +274,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// </summary>
         /// <param name="purl">The <see cref="PackageURL"/> to get the URI(s) for.</param>
         /// <returns>Links to the relevant URI(s).</returns>
-        public virtual IAsyncEnumerable<ArtifactUri> GetArtifactDownloadUrisAsync(PackageURL purl)
+        public virtual IAsyncEnumerable<BaseArtifactUri> GetArtifactDownloadUrisAsync(PackageURL purl)
         {
             throw new NotImplementedException("BaseProjectManager does not implement GetArtifactDownloadUri.");
         }

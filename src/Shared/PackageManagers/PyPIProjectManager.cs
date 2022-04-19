@@ -37,7 +37,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
         
         /// <inheritdoc />
-        public override async IAsyncEnumerable<ArtifactUri> GetArtifactDownloadUrisAsync(PackageURL purl)
+        public override async IAsyncEnumerable<PyPiBaseArtifactUri> GetArtifactDownloadUrisAsync(PackageURL purl)
         {
             // Format: https://pypi.org/packages/source/{ package_name_first_letter }/{ package_name }/{ package_name }-{ package_version }.tar.gz
 
@@ -49,7 +49,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             HttpResponseMessage result = await httpClient.GetAsync(artifactUri);
             result.EnsureSuccessStatusCode();
 
-            yield return new ArtifactUri(PyPIArtifactType.Tarball, artifactUri);
+            yield return new PyPiBaseArtifactUri(PyPIArtifactType.Tarball, artifactUri);
         }
 
         /// <summary>
@@ -441,7 +441,29 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             return mapping;
         }
-        
+
+        public record PyPiBaseArtifactUri : BaseArtifactUri
+        {
+            /// <summary>
+            /// Initializes a new instance of <see cref="PyPiBaseArtifactUri"/>.
+            /// </summary>
+            /// <param name="type">The type of artifact for this <see cref="PyPiBaseArtifactUri"/>.</param>
+            /// <param name="uri">The <see cref="Uri"/> this artifact can be found at.</param>
+            /// <param name="extension">The file extension for the file found at the <paramref name="uri"/>.</param>
+            public PyPiBaseArtifactUri(PyPIArtifactType type, Uri uri, string? extension = null) : 
+                base(type, uri, extension ?? Path.GetExtension(uri.AbsolutePath))
+            {
+            }
+
+            /// <summary>
+            /// Initializes a new instance of <see cref="PyPiBaseArtifactUri"/>.
+            /// </summary>
+            /// <param name="type">The type of artifact for this <see cref="PyPiBaseArtifactUri"/>.</param>
+            /// <param name="uri">The string of the uri this artifact can be found at.</param>
+            /// <param name="extension">The file extension for the file found at the <paramref name="uri"/>.</param>
+            public PyPiBaseArtifactUri(PyPIArtifactType type, string uri, string? extension = null) : this(type, new Uri(uri), extension) { }
+        }
+
         public enum PyPIArtifactType
         {
             Unknown = 0,

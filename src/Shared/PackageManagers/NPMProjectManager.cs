@@ -39,7 +39,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
-        public override async IAsyncEnumerable<ArtifactUri> GetArtifactDownloadUrisAsync(PackageURL purl)
+        public override async IAsyncEnumerable<NpmBaseArtifactUri> GetArtifactDownloadUrisAsync(PackageURL purl)
         {
             string feedUrl = (purl.Qualifiers?["repository_url"] ?? ENV_NPM_API_ENDPOINT).EnsureTrailingSlash();
             string artifactUri = purl.HasNamespace() ? 
@@ -49,7 +49,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             HttpClient httpClient = CreateHttpClient();
             HttpResponseMessage result = await httpClient.GetAsync(artifactUri);
             result.EnsureSuccessStatusCode();
-            yield return new ArtifactUri(NPMArtifactType.Tarball, artifactUri);
+            yield return new NpmBaseArtifactUri(NPMArtifactType.Tarball, artifactUri);
         }
 
         /// <summary>
@@ -563,6 +563,28 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             "zlib"
         };
         
+        public record NpmBaseArtifactUri : BaseArtifactUri
+        {
+            /// <summary>
+            /// Initializes a new instance of <see cref="NpmBaseArtifactUri"/>.
+            /// </summary>
+            /// <param name="type">The type of artifact for this <see cref="NpmBaseArtifactUri"/>.</param>
+            /// <param name="uri">The <see cref="Uri"/> this artifact can be found at.</param>
+            /// <param name="extension">The file extension for the file found at the <paramref name="uri"/>.</param>
+            public NpmBaseArtifactUri(NPMArtifactType type, Uri uri, string? extension = null) : 
+                base(type, uri, extension ?? Path.GetExtension(uri.AbsolutePath))
+            {
+            }
+
+            /// <summary>
+            /// Initializes a new instance of <see cref="NpmBaseArtifactUri"/>.
+            /// </summary>
+            /// <param name="type">The type of artifact for this <see cref="NpmBaseArtifactUri"/>.</param>
+            /// <param name="uri">The string of the uri this artifact can be found at.</param>
+            /// <param name="extension">The file extension for the file found at the <paramref name="uri"/>.</param>
+            public NpmBaseArtifactUri(NPMArtifactType type, string uri, string? extension = null) : this(type, new Uri(uri), extension) { }
+        }
+
         public enum NPMArtifactType
         {
             Unknown = 0,

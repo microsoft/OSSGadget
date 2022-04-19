@@ -47,7 +47,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
         
         /// <inheritdoc />
-        public override async IAsyncEnumerable<ArtifactUri> GetArtifactDownloadUrisAsync(PackageURL purl)
+        public override async IAsyncEnumerable<NuGetBaseArtifactUri> GetArtifactDownloadUrisAsync(PackageURL purl)
         {
             string feedUrl = (purl.Qualifiers?["repository_url"] ?? NUGET_DEFAULT_CONTENT_ENDPOINT).EnsureTrailingSlash();
 
@@ -56,7 +56,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             HttpResponseMessage result = await httpClient.GetAsync(artifactUri);
             result.EnsureSuccessStatusCode();
 
-            yield return new ArtifactUri(NuGetArtifactType.Nupkg, artifactUri);
+            yield return new NuGetBaseArtifactUri(NuGetArtifactType.Nupkg, artifactUri);
         }
 
         /// <summary>
@@ -357,6 +357,29 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         private static string ENV_NUGET_HOMEPAGE = "https://www.nuget.org/packages";
         
+        
+        public record NuGetBaseArtifactUri : BaseArtifactUri
+        {
+            /// <summary>
+            /// Initializes a new instance of <see cref="NuGetBaseArtifactUri"/>.
+            /// </summary>
+            /// <param name="type">The type of artifact for this <see cref="NuGetBaseArtifactUri"/>.</param>
+            /// <param name="uri">The <see cref="Uri"/> this artifact can be found at.</param>
+            /// <param name="extension">The file extension for the file found at the <paramref name="uri"/>.</param>
+            public NuGetBaseArtifactUri(NuGetArtifactType type, Uri uri, string? extension = null) : 
+                base(type, uri, extension ?? Path.GetExtension(uri.AbsolutePath))
+            {
+            }
+
+            /// <summary>
+            /// Initializes a new instance of <see cref="NuGetBaseArtifactUri"/>.
+            /// </summary>
+            /// <param name="type">The type of artifact for this <see cref="NuGetBaseArtifactUri"/>.</param>
+            /// <param name="uri">The string of the uri this artifact can be found at.</param>
+            /// <param name="extension">The file extension for the file found at the <paramref name="uri"/>.</param>
+            public NuGetBaseArtifactUri(NuGetArtifactType type, string uri, string? extension = null) : this(type, new Uri(uri), extension) { }
+        }
+
         public enum NuGetArtifactType
         {
             Unknown = 0,

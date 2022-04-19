@@ -124,10 +124,10 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         [DataRow("pkg:nuget/razorengine@4.2.3-beta1", "https://api.nuget.org/v3-flatcontainer/razorengine/4.2.3-beta1/razorengine.4.2.3-beta1.nupkg")]
         [DataRow("pkg:nuget/serilog@2.10.0", "https://api.nuget.org/v3-flatcontainer/serilog/2.10.0/serilog.2.10.0.nupkg")]
         [DataRow("pkg:nuget/moq@4.17.2", "https://api.nuget.org/v3-flatcontainer/moq/4.17.2/moq.4.17.2.nupkg")]
-        public async Task GetArtifactDownloadUrisSucceeds(string purlString, string expectedUri)
+        public void GetArtifactDownloadUrisSucceeds(string purlString, string expectedUri)
         {
             PackageURL purl = new(purlString);
-            List<NuGetProjectManager.NuGetBaseArtifactUri> uris = await _projectManager.GetArtifactDownloadUrisAsync(purl).ToListAsync();
+            List<NuGetProjectManager.NuGetArtifactUri> uris = _projectManager.GetArtifactDownloadUris(purl).ToList();
 
             Assert.AreEqual(expectedUri, uris.First().Uri.AbsoluteUri);
             Assert.AreEqual(".nupkg", uris.First().Extension);

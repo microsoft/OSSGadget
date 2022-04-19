@@ -92,10 +92,10 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         [DataRow("pkg:npm/monorepolint@0.4.0", "https://registry.npmjs.org/monorepolint/-/monorepolint-0.4.0.tgz")]
         [DataRow("pkg:npm/example@0.0.0", "https://registry.npmjs.org/example/-/example-0.0.0.tgz")]
         [DataRow("pkg:npm/rly-cli@0.0.2", "https://registry.npmjs.org/rly-cli/-/rly-cli-0.0.2.tgz")]
-        public async Task GetArtifactDownloadUrisSucceeds(string purlString, string expectedUri)
+        public void GetArtifactDownloadUrisSucceeds(string purlString, string expectedUri)
         {
             PackageURL purl = new(purlString);
-            List<NPMProjectManager.NpmBaseArtifactUri> uris = await _projectManager.GetArtifactDownloadUrisAsync(purl).ToListAsync();
+            List<NPMProjectManager.NPMArtifactUri> uris = _projectManager.GetArtifactDownloadUris(purl).ToList();
 
             Assert.AreEqual(expectedUri, uris.First().Uri.AbsoluteUri);
             Assert.AreEqual(".tgz", uris.First().Extension);

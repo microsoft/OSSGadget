@@ -81,10 +81,10 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         [DataRow("pkg:pypi/pandas@1.4.2", "https://pypi.org/packages/source/p/pandas/pandas-1.4.2.tar.gz")]
         [DataRow("pkg:pypi/plotly@5.7.0", "https://pypi.org/packages/source/p/plotly/plotly-5.7.0.tar.gz")]
         [DataRow("pkg:pypi/requests@2.27.1", "https://pypi.org/packages/source/r/requests/requests-2.27.1.tar.gz")]
-        public async Task GetArtifactDownloadUrisSucceeds(string purlString, string expectedUri)
+        public void GetArtifactDownloadUrisSucceeds(string purlString, string expectedUri)
         {
             PackageURL purl = new(purlString);
-            List<PyPIProjectManager.PyPiBaseArtifactUri> uris = await _projectManager.GetArtifactDownloadUrisAsync(purl).ToListAsync();
+            List<PyPIProjectManager.PyPIArtifactUri> uris = _projectManager.GetArtifactDownloadUris(purl).ToList();
 
             Assert.AreEqual(expectedUri, uris.First().Uri.AbsoluteUri);
             Assert.AreEqual(".gz", uris.First().Extension); // TODO: Figure out how to switch it to .tar.gz instead of just .gz

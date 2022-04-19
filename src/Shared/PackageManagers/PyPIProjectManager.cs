@@ -37,13 +37,19 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
         
         /// <inheritdoc />
-        public override IAsyncEnumerable<ArtifactUri> GetArtifactDownloadUrisAsync(PackageURL purl)
+        public override async IAsyncEnumerable<ArtifactUri> GetArtifactDownloadUrisAsync(PackageURL purl)
         {
             // Format: https://pypi.org/packages/source/{ package_name_first_letter }/{ package_name }/{ package_name }-{ package_version }.tar.gz
 
             string feedUrl = (purl.Qualifiers?["repository_url"] ?? ENV_PYPI_ENDPOINT).EnsureTrailingSlash();
 
-            yield return new ArtifactUri(PyPIArtifactType.Tarball, $"{feedUrl}packages/source/{char.ToLower(purl.Name[0])}/{purl.Name.ToLower()}/{purl.Name.ToLower()}-{purl.Version}.tar.gz");
+            string artifactUri =
+                $"{feedUrl}packages/source/{char.ToLower(purl.Name[0])}/{purl.Name.ToLower()}/{purl.Name.ToLower()}-{purl.Version}.tar.gz";
+            HttpClient httpClient = CreateHttpClient();
+            HttpResponseMessage result = await httpClient.GetAsync(artifactUri);
+            result.EnsureSuccessStatusCode();
+
+            yield return new ArtifactUri(PyPIArtifactType.Tarball, artifactUri);
         }
 
         /// <summary>

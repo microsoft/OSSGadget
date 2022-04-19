@@ -11,6 +11,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
     using PackageManagers;
     using PackageUrl;
     using RichardSzalay.MockHttp;
+    using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Linq;
@@ -80,10 +81,10 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         [DataRow("pkg:pypi/pandas@1.4.2", "https://pypi.org/packages/source/p/pandas/pandas-1.4.2.tar.gz")]
         [DataRow("pkg:pypi/plotly@5.7.0", "https://pypi.org/packages/source/p/plotly/plotly-5.7.0.tar.gz")]
         [DataRow("pkg:pypi/requests@2.27.1", "https://pypi.org/packages/source/r/requests/requests-2.27.1.tar.gz")]
-        public void GetArtifactDownloadUrisSucceeds(string purlString, string expectedUri)
+        public async Task GetArtifactDownloadUrisSucceeds(string purlString, string expectedUri)
         {
             PackageURL purl = new(purlString);
-            List<ArtifactUri> uris = _projectManager.GetArtifactDownloadUris(purl).ToList();
+            List<ArtifactUri> uris = await _projectManager.GetArtifactDownloadUrisAsync(purl).ToListAsync();
 
             Assert.AreEqual(expectedUri, uris.First().Uri.AbsoluteUri);
             Assert.AreEqual(".gz", uris.First().Extension); // TODO: Figure out how to switch it to .tar.gz instead of just .gz
@@ -99,6 +100,20 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             httpMock
                 .When(HttpMethod.Get, url)
                 .Respond(statusCode, "application/json", content);
+
+            if (url.EndsWith("/json"))
+            {
+                string newUrlNoJson = url.Substring(0, url.Length - "/json".Length);
+
+                int pos = newUrlNoJson.LastIndexOf("/", StringComparison.Ordinal) + 1;
+                string packageName = newUrlNoJson.Substring(pos, newUrlNoJson.Length - pos).ToLowerInvariant();
+
+                // Mock the call to get the artifact tarball.
+                httpMock
+                    .When(HttpMethod.Get,
+                        $"https://pypi.org/packages/source/{packageName[0]}/{packageName}/{packageName}-*.tar.gz")
+                    .Respond(statusCode);
+            }
         }
     }
 }

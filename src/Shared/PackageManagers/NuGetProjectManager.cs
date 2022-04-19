@@ -51,7 +51,12 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
             string feedUrl = (purl.Qualifiers?["repository_url"] ?? NUGET_DEFAULT_CONTENT_ENDPOINT).EnsureTrailingSlash();
 
-            yield return new ArtifactUri(NuGetArtifactType.Nupkg, $"{feedUrl}{purl.Name.ToLower()}/{purl.Version}/{purl.Name.ToLower()}.{purl.Version}.nupkg");
+            string artifactUri = $"{feedUrl}{purl.Name.ToLower()}/{purl.Version}/{purl.Name.ToLower()}.{purl.Version}.nupkg";
+            HttpClient httpClient = CreateHttpClient();
+            HttpResponseMessage result = await httpClient.GetAsync(artifactUri);
+            result.EnsureSuccessStatusCode();
+
+            yield return new ArtifactUri(NuGetArtifactType.Nupkg, artifactUri);
         }
 
         /// <summary>

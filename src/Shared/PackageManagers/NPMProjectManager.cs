@@ -43,7 +43,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
             string feedUrl = (purl.Qualifiers?["repository_url"] ?? ENV_NPM_API_ENDPOINT).EnsureTrailingSlash();
             string artifactUri = purl.HasNamespace() ? 
-                $"{feedUrl}{purl.Namespace}/{purl.Name}/-/{purl.Name}-{purl.Version}.tgz" : // If there's a namespace.
+                $"{feedUrl}{purl.GetNamespaceFormatted()}/{purl.Name}/-/{purl.Name}-{purl.Version}.tgz" : // If there's a namespace.
                 $"{feedUrl}{purl.Name}/-/{purl.Name}-{purl.Version}.tgz"; // If there isn't a namespace.
 
             HttpClient httpClient = CreateHttpClient();

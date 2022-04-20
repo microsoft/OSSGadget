@@ -50,8 +50,13 @@ public abstract class TypedManager<T, TArtifactUriType> : BaseProjectManager whe
 
         if (containingPath is string notNullPath)
         {
-            return Directory.EnumerateFiles(notNullPath, "*",
-                new EnumerationOptions() {RecurseSubdirectories = true});
+            if (doExtract)
+            {
+                return Directory.EnumerateFiles(notNullPath, "*",
+                    new EnumerationOptions() {RecurseSubdirectories = true});
+            }
+
+            return new[] { containingPath };
         }
 
         return Array.Empty<string>();

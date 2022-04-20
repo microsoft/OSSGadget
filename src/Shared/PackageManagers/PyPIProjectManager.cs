@@ -47,6 +47,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             string artifactUri =
                 $"{feedUrl}packages/source/{char.ToLower(purl.Name[0])}/{purl.Name.ToLower()}/{purl.Name.ToLower()}-{purl.Version}.tar.gz";
             yield return new ArtifactUri<PyPIArtifactType>(PyPIArtifactType.Tarball, artifactUri);
+            // TODO: Figure out how to generate .whl file uris.
         }
 
         /// <summary>

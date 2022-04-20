@@ -51,8 +51,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
             string feedUrl = (purl.Qualifiers?["repository_url"] ?? NUGET_DEFAULT_CONTENT_ENDPOINT).EnsureTrailingSlash();
 
-            string artifactUri = $"{feedUrl}{purl.Name.ToLower()}/{purl.Version}/{purl.Name.ToLower()}.{purl.Version}.nupkg";
-            yield return new ArtifactUri<NuGetArtifactType>(NuGetArtifactType.Nupkg, artifactUri);
+            string nupkgUri = $"{feedUrl}{purl.Name.ToLower()}/{purl.Version}/{purl.Name.ToLower()}.{purl.Version}.nupkg";
+            yield return new ArtifactUri<NuGetArtifactType>(NuGetArtifactType.Nupkg, nupkgUri);
+            string nuspecUri = $"{feedUrl}{purl.Name.ToLower()}/{purl.Version}/{purl.Name.ToLower()}.nuspec";
+            yield return new ArtifactUri<NuGetArtifactType>(NuGetArtifactType.Nuspec, nuspecUri);
         }
 
         /// <summary>
@@ -356,7 +358,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public enum NuGetArtifactType
         {
             Unknown = 0,
-            Binary,
             Nupkg,
             Nuspec,
         }

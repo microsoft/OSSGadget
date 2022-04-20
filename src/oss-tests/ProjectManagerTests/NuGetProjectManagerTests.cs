@@ -64,6 +64,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             }
 
             mockHttp.When(HttpMethod.Get, "https://api.nuget.org/v3-flatcontainer/*.nupkg").Respond(HttpStatusCode.OK);
+            mockHttp.When(HttpMethod.Get, "https://api.nuget.org/v3-flatcontainer/*.nuspec").Respond(HttpStatusCode.OK);
  
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
             _httpFactory = mockFactory.Object;
@@ -123,19 +124,26 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 
                 
         [DataTestMethod]
-        [DataRow("pkg:nuget/newtonsoft.json@13.0.1", "https://api.nuget.org/v3-flatcontainer/newtonsoft.json/13.0.1/newtonsoft.json.13.0.1.nupkg")]
-        [DataRow("pkg:nuget/razorengine@4.2.3-beta1", "https://api.nuget.org/v3-flatcontainer/razorengine/4.2.3-beta1/razorengine.4.2.3-beta1.nupkg")]
-        [DataRow("pkg:nuget/serilog@2.10.0", "https://api.nuget.org/v3-flatcontainer/serilog/2.10.0/serilog.2.10.0.nupkg")]
-        [DataRow("pkg:nuget/moq@4.17.2", "https://api.nuget.org/v3-flatcontainer/moq/4.17.2/moq.4.17.2.nupkg")]
-        public async Task GetArtifactDownloadUrisSucceeds_Async(string purlString, string expectedUri)
+        [DataRow("pkg:nuget/newtonsoft.json@13.0.1", "https://api.nuget.org/v3-flatcontainer/newtonsoft.json/13.0.1/newtonsoft.json")]
+        [DataRow("pkg:nuget/razorengine@4.2.3-beta1", "https://api.nuget.org/v3-flatcontainer/razorengine/4.2.3-beta1/razorengine")]
+        [DataRow("pkg:nuget/serilog@2.10.0", "https://api.nuget.org/v3-flatcontainer/serilog/2.10.0/serilog")]
+        [DataRow("pkg:nuget/moq@4.17.2", "https://api.nuget.org/v3-flatcontainer/moq/4.17.2/moq")]
+        public async Task GetArtifactDownloadUrisSucceeds_Async(string purlString, string expectedUriBase)
         {
             PackageURL purl = new(purlString);
             List<ArtifactUri<NuGetProjectManager.NuGetArtifactType>> uris = _projectManager.GetArtifactDownloadUris(purl).ToList();
 
-            Assert.AreEqual(expectedUri, uris.First().Uri.AbsoluteUri);
+            string expectedNuPkgUri = $"{expectedUriBase}.{purl.Version}.nupkg";
+            Assert.AreEqual(expectedNuPkgUri, uris.First().Uri.AbsoluteUri);
             Assert.AreEqual(".nupkg", uris.First().Extension);
             Assert.AreEqual(NuGetProjectManager.NuGetArtifactType.Nupkg, uris.First().Type);
-            Assert.IsTrue(await uris.First().ExistsAsync(_httpFactory.CreateClient()));
+            Assert.IsTrue(await _projectManager.UriExistsAsync(uris.First().Uri));
+            
+            string expectedNuspecUri = $"{expectedUriBase}.nuspec";
+            Assert.AreEqual(expectedNuspecUri, uris.Last().Uri.AbsoluteUri);
+            Assert.AreEqual(".nuspec", uris.Last().Extension);
+            Assert.AreEqual(NuGetProjectManager.NuGetArtifactType.Nuspec, uris.Last().Type);
+            Assert.IsTrue(await _projectManager.UriExistsAsync(uris.Last().Uri));
 
         }
         

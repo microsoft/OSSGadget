@@ -24,12 +24,11 @@ public record ArtifactUri<T> where T : Enum
     /// </summary>
     /// <param name="type">The type of artifact for this <see cref="ArtifactUri{T}"/>.</param>
     /// <param name="uri">The <see cref="Uri"/> this artifact can be found at.</param>
-    /// <param name="extension">The file extension for the file found at the <paramref name="uri"/>.</param>
-    public ArtifactUri(T type, Uri uri, string? extension = null)
+    public ArtifactUri(T type, Uri uri)
     {
         Type = type;
         Uri = uri;
-        Extension = extension ?? Path.GetExtension(uri.AbsolutePath);
+        Extension = Path.GetExtension(uri.AbsolutePath);
     }
 
     /// <summary>
@@ -37,8 +36,7 @@ public record ArtifactUri<T> where T : Enum
     /// </summary>
     /// <param name="type">The type of artifact for this <see cref="ArtifactUri{T}"/>.</param>
     /// <param name="uri">The string of the uri this artifact can be found at.</param>
-    /// <param name="extension">The file extension for the file found at the <paramref name="uri"/>.</param>
-    public ArtifactUri(T type, string uri, string? extension = null) : this(type, new Uri(uri), extension) { }
+    public ArtifactUri(T type, string uri) : this(type, new Uri(uri)) { }
 
     /// <summary>
     /// The enum representing the artifact type for the project manager associated with this artifact.
@@ -54,32 +52,4 @@ public record ArtifactUri<T> where T : Enum
     /// The file extension for this artifact file.
     /// </summary>
     public string Extension { get; }
-
-    /// <summary>
-    /// Check to see if the <see cref="Uri"/> exists.
-    /// </summary>
-    /// <param name="httpClient">The <see cref="HttpClient"/> to use when checking if the <see cref="Uri"/> exists.</param>
-    /// <param name="policy">An optional <see cref="AsyncRetryPolicy"/> to use with the http request.</param>
-    /// <returns>If the request returns <see cref="HttpStatusCode.OK"/>.</returns>
-    public async Task<bool> ExistsAsync(HttpClient httpClient, AsyncRetryPolicy<HttpResponseMessage>? policy = null)
-    {
-        policy ??= DefaultPolicy;
-
-        return (await policy.ExecuteAsync(() => httpClient.GetAsync(Uri, HttpCompletionOption.ResponseHeadersRead))).StatusCode == HttpStatusCode.OK;
-    }
-
-    /// <summary>
-    /// The delay to use in the <see cref="DefaultPolicy"/>.
-    /// </summary>
-    private static readonly IEnumerable<TimeSpan> Delay =
-        Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromMilliseconds(100), retryCount: 5);
-
-    /// <summary>
-    /// The default policy to use when checking to see existence of the <see cref="Uri"/>.
-    /// </summary>
-    private static readonly AsyncRetryPolicy<HttpResponseMessage> DefaultPolicy =
-        Policy
-            .Handle<HttpRequestException>()
-            .OrResult<HttpResponseMessage>(r => r.StatusCode != HttpStatusCode.OK) // Also consider any response that doesn't have a 200 status code to be a failure.
-            .WaitAndRetryAsync(Delay);
 }

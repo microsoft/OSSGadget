@@ -6,7 +6,6 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
     using Extensions;
     using Model;
     using Moq;
-    using OpenSource.Helpers;
     using oss;
     using PackageManagers;
     using PackageUrl;
@@ -33,6 +32,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         }.ToImmutableDictionary();
 
         private readonly NPMProjectManager _projectManager;
+        private readonly IHttpClientFactory _httpFactory;
         
         public NPMProjectManagerTests()
         {
@@ -45,10 +45,10 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
                 MockHttpFetchResponse(HttpStatusCode.OK, url, json, mockHttp);
             }
 
- 
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
-            
-            _projectManager = new NPMProjectManager(mockFactory.Object, ".");
+            _httpFactory = mockFactory.Object;
+
+            _projectManager = new NPMProjectManager(_httpFactory, ".");
         }
 
         [DataTestMethod]
@@ -92,7 +92,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         [DataRow("pkg:npm/monorepolint@0.4.0", "https://registry.npmjs.org/monorepolint/-/monorepolint-0.4.0.tgz")]
         [DataRow("pkg:npm/example@0.0.0", "https://registry.npmjs.org/example/-/example-0.0.0.tgz")]
         [DataRow("pkg:npm/rly-cli@0.0.2", "https://registry.npmjs.org/rly-cli/-/rly-cli-0.0.2.tgz")]
-        public void GetArtifactDownloadUrisSucceeds(string purlString, string expectedUri)
+        public async Task GetArtifactDownloadUrisSucceeds_Async(string purlString, string expectedUri)
         {
             PackageURL purl = new(purlString);
             List<NPMProjectManager.NPMArtifactUri> uris = _projectManager.GetArtifactDownloadUris(purl).ToList();
@@ -100,6 +100,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             Assert.AreEqual(expectedUri, uris.First().Uri.AbsoluteUri);
             Assert.AreEqual(".tgz", uris.First().Extension);
             Assert.AreEqual(NPMProjectManager.NPMArtifactType.Tarball, uris.First().Type);
+            Assert.IsTrue(await uris.First().ExistsAsync(_httpFactory.CreateClient()));
         }
         
         private static void MockHttpFetchResponse(

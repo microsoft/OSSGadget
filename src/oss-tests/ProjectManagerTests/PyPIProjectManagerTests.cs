@@ -3,10 +3,8 @@
 
 namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 {
-    using Extensions;
     using Model;
     using Moq;
-    using OpenSource.Helpers;
     using oss;
     using PackageManagers;
     using PackageUrl;
@@ -31,7 +29,8 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         }.ToImmutableDictionary();
 
         private readonly PyPIProjectManager _projectManager;
-        
+        private readonly IHttpClientFactory _httpFactory;
+
         public PyPIProjectManagerTests()
         {
             Mock<IHttpClientFactory> mockFactory = new();
@@ -44,8 +43,9 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             }
  
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
-            
-            _projectManager = new PyPIProjectManager(mockFactory.Object, ".");
+            _httpFactory = mockFactory.Object;
+
+            _projectManager = new PyPIProjectManager(_httpFactory, ".");
         }
 
         // TODO: Ignored until https://github.com/microsoft/OSSGadget/issues/328 is addressed.
@@ -81,7 +81,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         [DataRow("pkg:pypi/pandas@1.4.2", "https://pypi.org/packages/source/p/pandas/pandas-1.4.2.tar.gz")]
         [DataRow("pkg:pypi/plotly@5.7.0", "https://pypi.org/packages/source/p/plotly/plotly-5.7.0.tar.gz")]
         [DataRow("pkg:pypi/requests@2.27.1", "https://pypi.org/packages/source/r/requests/requests-2.27.1.tar.gz")]
-        public void GetArtifactDownloadUrisSucceeds(string purlString, string expectedUri)
+        public async Task GetArtifactDownloadUrisSucceeds_Async(string purlString, string expectedUri)
         {
             PackageURL purl = new(purlString);
             List<PyPIProjectManager.PyPIArtifactUri> uris = _projectManager.GetArtifactDownloadUris(purl).ToList();
@@ -89,6 +89,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             Assert.AreEqual(expectedUri, uris.First().Uri.AbsoluteUri);
             Assert.AreEqual(".gz", uris.First().Extension); // TODO: Figure out how to switch it to .tar.gz instead of just .gz
             Assert.AreEqual(PyPIProjectManager.PyPIArtifactType.Tarball, uris.First().Type);
+            Assert.IsTrue(await uris.First().ExistsAsync(_httpFactory.CreateClient()));
         }
         
         private static void MockHttpFetchResponse(

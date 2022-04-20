@@ -270,17 +270,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <summary>
-        /// Gets the relevant URI(s) to download the files related to a <see cref="PackageURL"/>.
-        /// </summary>
-        /// <param name="purl">The <see cref="PackageURL"/> to get the URI(s) for.</param>
-        /// <returns>Links to the relevant URI(s).</returns>
-        /// <remarks>Returns the expected URIs for resources. Does not validate that the URIs resolve at the moment of enumeration.</remarks>
-        public virtual IEnumerable<BaseArtifactUri> GetArtifactDownloadUris(PackageURL purl)
-        {
-            throw new NotImplementedException("BaseProjectManager does not implement GetArtifactDownloadUri.");
-        }
-
-        /// <summary>
         /// Downloads a given PackageURL and extracts it locally to a directory.
         /// </summary>
         /// <param name="purl">PackageURL to download</param>

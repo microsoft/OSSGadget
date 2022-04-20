@@ -6,6 +6,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
     using Model;
     using Moq;
     using oss;
+    using PackageActions;
     using PackageManagers;
     using PackageUrl;
     using RichardSzalay.MockHttp;
@@ -45,7 +46,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
             _httpFactory = mockFactory.Object;
 
-            _projectManager = new PyPIProjectManager(_httpFactory, ".");
+            _projectManager = new PyPIProjectManager(".", new NoOpPackageActions(), _httpFactory);
         }
 
         // TODO: Ignored until https://github.com/microsoft/OSSGadget/issues/328 is addressed.
@@ -84,7 +85,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public async Task GetArtifactDownloadUrisSucceeds_Async(string purlString, string expectedUri)
         {
             PackageURL purl = new(purlString);
-            List<PyPIProjectManager.PyPIArtifactUri> uris = _projectManager.GetArtifactDownloadUris(purl).ToList();
+            List<ArtifactUri<PyPIProjectManager.PyPIArtifactType>> uris = _projectManager.GetArtifactDownloadUris(purl).ToList();
 
             Assert.AreEqual(expectedUri, uris.First().Uri.AbsoluteUri);
             Assert.AreEqual(".gz", uris.First().Extension); // TODO: Figure out how to switch it to .tar.gz instead of just .gz

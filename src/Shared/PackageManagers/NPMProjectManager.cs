@@ -2,22 +2,23 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Contracts;
     using Extensions;
     using Helpers;
     using Microsoft.CST.OpenSource.Model;
+    using PackageActions;
     using PackageUrl;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Net;
     using System.Net.Http;
     using System.Text.Json;
     using System.Threading.Tasks;
     using Utilities;
     using Version = SemanticVersioning.Version;
 
-    public class NPMProjectManager : BaseProjectManager
+    public class NPMProjectManager : TypedManager<IManagerPackageVersionMetadata, NPMProjectManager.NPMArtifactType>
     {
         /// <summary>
         /// The type of the project manager from the package-url type specifications.
@@ -30,23 +31,23 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public static string ENV_NPM_API_ENDPOINT { get; set; } = "https://registry.npmjs.org";
         public static string ENV_NPM_ENDPOINT { get; set; } = "https://www.npmjs.com";
 
-        public NPMProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
-        {
-        }
-
-        public NPMProjectManager(string destinationDirectory) : base(destinationDirectory)
+        public NPMProjectManager(
+            string directory,
+            IManagerPackageActions<IManagerPackageVersionMetadata>? actions = null,
+            IHttpClientFactory? httpClientFactory = null)
+            : base(actions ?? new NoOpPackageActions(), httpClientFactory ?? new DefaultHttpClientFactory(), directory)
         {
         }
 
         /// <inheritdoc />
-        public override IEnumerable<NPMArtifactUri> GetArtifactDownloadUris(PackageURL purl)
+        public override IEnumerable<ArtifactUri<NPMArtifactType>> GetArtifactDownloadUris(PackageURL purl)
         {
             string feedUrl = (purl.Qualifiers?["repository_url"] ?? ENV_NPM_API_ENDPOINT).EnsureTrailingSlash();
 
             string artifactUri = purl.HasNamespace() ? 
                 $"{feedUrl}{purl.GetNamespaceFormatted()}/{purl.Name}/-/{purl.Name}-{purl.Version}.tgz" : // If there's a namespace.
                 $"{feedUrl}{purl.Name}/-/{purl.Name}-{purl.Version}.tgz"; // If there isn't a namespace.
-            yield return new NPMArtifactUri(NPMArtifactType.Tarball, artifactUri);
+            yield return new ArtifactUri<NPMArtifactType>(NPMArtifactType.Tarball, artifactUri);
         }
 
         /// <summary>
@@ -559,33 +560,12 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             "vm",
             "zlib"
         };
-        
-        public record NPMArtifactUri : BaseArtifactUri
-        {
-            /// <summary>
-            /// Initializes a new instance of <see cref="NPMArtifactUri"/>.
-            /// </summary>
-            /// <param name="type">The type of artifact for this <see cref="NPMArtifactUri"/>.</param>
-            /// <param name="uri">The <see cref="Uri"/> this artifact can be found at.</param>
-            /// <param name="extension">The file extension for the file found at the <paramref name="uri"/>.</param>
-            public NPMArtifactUri(NPMArtifactType type, Uri uri, string? extension = null) : 
-                base(type, uri, extension ?? Path.GetExtension(uri.AbsolutePath))
-            {
-            }
-
-            /// <summary>
-            /// Initializes a new instance of <see cref="NPMArtifactUri"/>.
-            /// </summary>
-            /// <param name="type">The type of artifact for this <see cref="NPMArtifactUri"/>.</param>
-            /// <param name="uri">The string of the uri this artifact can be found at.</param>
-            /// <param name="extension">The file extension for the file found at the <paramref name="uri"/>.</param>
-            public NPMArtifactUri(NPMArtifactType type, string uri, string? extension = null) : this(type, new Uri(uri), extension) { }
-        }
 
         public enum NPMArtifactType
         {
             Unknown = 0,
             Tarball,
+            PackageJson,
         }
     }
 }

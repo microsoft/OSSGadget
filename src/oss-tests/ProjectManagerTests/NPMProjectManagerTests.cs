@@ -7,6 +7,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
     using Model;
     using Moq;
     using oss;
+    using PackageActions;
     using PackageManagers;
     using PackageUrl;
     using RichardSzalay.MockHttp;
@@ -48,7 +49,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
             _httpFactory = mockFactory.Object;
 
-            _projectManager = new NPMProjectManager(_httpFactory, ".");
+            _projectManager = new NPMProjectManager(".", new NoOpPackageActions(), _httpFactory);
         }
 
         [DataTestMethod]
@@ -95,7 +96,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public async Task GetArtifactDownloadUrisSucceeds_Async(string purlString, string expectedUri)
         {
             PackageURL purl = new(purlString);
-            List<NPMProjectManager.NPMArtifactUri> uris = _projectManager.GetArtifactDownloadUris(purl).ToList();
+            List<ArtifactUri<NPMProjectManager.NPMArtifactType>> uris = _projectManager.GetArtifactDownloadUris(purl).ToList();
 
             Assert.AreEqual(expectedUri, uris.First().Uri.AbsoluteUri);
             Assert.AreEqual(".tgz", uris.First().Extension);

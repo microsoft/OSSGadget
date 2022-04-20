@@ -2,9 +2,11 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Contracts;
     using Helpers;
     using Model;
     using NLog.LayoutRenderers.Wrappers;
+    using PackageActions;
     using PackageUrl;
     using System;
     using System.Collections.Generic;
@@ -16,7 +18,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using Utilities;
     using Version = SemanticVersioning.Version;
 
-    public class PyPIProjectManager : BaseProjectManager
+    public class PyPIProjectManager : TypedManager<IManagerPackageVersionMetadata, PyPIProjectManager.PyPIArtifactType>
     {
         /// <summary>
         /// The type of the project manager from the package-url type specifications.
@@ -28,23 +30,23 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         public static string ENV_PYPI_ENDPOINT { get; set; } = "https://pypi.org";
 
-        public PyPIProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
-        {
-        }
-
-        public PyPIProjectManager(string destinationDirectory) : base(destinationDirectory)
+        public PyPIProjectManager(
+            string directory,
+            IManagerPackageActions<IManagerPackageVersionMetadata>? actions = null,
+            IHttpClientFactory? httpClientFactory = null)
+            : base(actions ?? new NoOpPackageActions(), httpClientFactory ?? new DefaultHttpClientFactory(), directory)
         {
         }
         
         /// <inheritdoc />
-        public override IEnumerable<PyPIArtifactUri> GetArtifactDownloadUris(PackageURL purl)
+        public override IEnumerable<ArtifactUri<PyPIArtifactType>> GetArtifactDownloadUris(PackageURL purl)
         {
             string feedUrl = (purl.Qualifiers?["repository_url"] ?? ENV_PYPI_ENDPOINT).EnsureTrailingSlash();
 
             // Format: https://pypi.org/packages/source/{ package_name_first_letter }/{ package_name }/{ package_name }-{ package_version }.tar.gz
             string artifactUri =
                 $"{feedUrl}packages/source/{char.ToLower(purl.Name[0])}/{purl.Name.ToLower()}/{purl.Name.ToLower()}-{purl.Version}.tar.gz";
-            yield return new PyPIArtifactUri(PyPIArtifactType.Tarball, artifactUri);
+            yield return new ArtifactUri<PyPIArtifactType>(PyPIArtifactType.Tarball, artifactUri);
         }
 
         /// <summary>
@@ -435,28 +437,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
 
             return mapping;
-        }
-
-        public record PyPIArtifactUri : BaseArtifactUri
-        {
-            /// <summary>
-            /// Initializes a new instance of <see cref="PyPIArtifactUri"/>.
-            /// </summary>
-            /// <param name="type">The type of artifact for this <see cref="PyPIArtifactUri"/>.</param>
-            /// <param name="uri">The <see cref="Uri"/> this artifact can be found at.</param>
-            /// <param name="extension">The file extension for the file found at the <paramref name="uri"/>.</param>
-            public PyPIArtifactUri(PyPIArtifactType type, Uri uri, string? extension = null) : 
-                base(type, uri, extension ?? Path.GetExtension(uri.AbsolutePath))
-            {
-            }
-
-            /// <summary>
-            /// Initializes a new instance of <see cref="PyPIArtifactUri"/>.
-            /// </summary>
-            /// <param name="type">The type of artifact for this <see cref="PyPIArtifactUri"/>.</param>
-            /// <param name="uri">The string of the uri this artifact can be found at.</param>
-            /// <param name="extension">The file extension for the file found at the <paramref name="uri"/>.</param>
-            public PyPIArtifactUri(PyPIArtifactType type, string uri, string? extension = null) : this(type, new Uri(uri), extension) { }
         }
 
         public enum PyPIArtifactType

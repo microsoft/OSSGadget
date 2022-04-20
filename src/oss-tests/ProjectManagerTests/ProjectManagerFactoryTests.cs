@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests;
 
+using PackageActions;
 using PackageManagers;
 using PackageUrl;
 using System;
@@ -74,7 +75,7 @@ public class ProjectManagerFactoryTests
         _managerOverrides[NuGetProjectManager.Type] =
             _ => new NuGetProjectManager("nugetTestDirectory", null, _httpClientFactory); // Override the default entry for nuget, and override the destinationDirectory.
         _managerOverrides[NPMProjectManager.Type] =
-            _ => new NPMProjectManager(_httpClientFactory, "npmTestDirectory"); // Override the default entry for npm, and override the destinationDirectory.
+            _ => new NPMProjectManager("npmTestDirectory", null, _httpClientFactory); // Override the default entry for npm, and override the destinationDirectory.
 
         ProjectManagerFactory projectManagerFactory = new(_managerOverrides);
 
@@ -94,7 +95,7 @@ public class ProjectManagerFactoryTests
     [TestMethod]
     public void ChangeProjectManagerSucceeds()
     {
-        _managerOverrides[NuGetProjectManager.Type] = directory => new NPMProjectManager(_httpClientFactory, directory); // Override the default entry for nuget and set it as another NPMProjectManager.
+        _managerOverrides[NuGetProjectManager.Type] = directory => new NPMProjectManager(directory, null, _httpClientFactory); // Override the default entry for nuget and set it as another NPMProjectManager.
         
         ProjectManagerFactory projectManagerFactory = new(_managerOverrides);
 

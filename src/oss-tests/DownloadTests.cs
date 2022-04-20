@@ -12,6 +12,7 @@ namespace Microsoft.CST.OpenSource.Tests
 {
     using PackageManagers;
     using PackageUrl;
+    using System.Collections.Generic;
 
     [TestClass]
     public class DownloadTests
@@ -139,6 +140,18 @@ namespace Microsoft.CST.OpenSource.Tests
         public async Task NuGet_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
         {
             await TestDownload(purl, targetFilename, expectedDirectoryCount);
+        }
+        
+        [DataTestMethod]
+        [DataRow("pkg:npm/moment@*", "package.json")]
+        [DataRow("pkg:nuget/RandomType@*", "RandomType.nuspec")]
+        [DataRow("pkg:nuget/Newtonsoft.Json@*", "newtonsoft.json.nuspec")]
+        public async Task Wildcard_Download_Version_Succeeds(string packageUrl, string targetFilename)
+        {
+            PackageURL purl = new(packageUrl);
+            BaseProjectManager? manager = new ProjectManagerFactory().CreateProjectManager(purl);
+            IEnumerable<string> versions = await manager?.EnumerateVersionsAsync(purl) ?? throw new InvalidOperationException();
+            await TestDownload(packageUrl, targetFilename, versions.Count());
         }
 
         [DataTestMethod]

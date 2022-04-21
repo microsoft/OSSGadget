@@ -2,16 +2,8 @@
 
 namespace Microsoft.CST.OpenSource.Model;
 
-using PackageManagers;
-using Polly;
-using Polly.Contrib.WaitAndRetry;
-using Polly.Retry;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
 
 /// <summary>
 /// A record to represent the type, uri, and extension for an artifact associated with a package.
@@ -28,7 +20,6 @@ public record ArtifactUri<T> where T : Enum
     {
         Type = type;
         Uri = uri;
-        Extension = Path.GetExtension(uri.AbsolutePath);
     }
 
     /// <summary>
@@ -51,5 +42,5 @@ public record ArtifactUri<T> where T : Enum
     /// <summary>
     /// The file extension for this artifact file.
     /// </summary>
-    public string Extension { get; }
+    public string Extension => Path.GetExtension(Uri.AbsolutePath);
 }

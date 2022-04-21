@@ -49,8 +49,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             _projectManager = new PyPIProjectManager(".", new NoOpPackageActions(), _httpFactory);
         }
 
-        // TODO: Ignored until https://github.com/microsoft/OSSGadget/issues/328 is addressed.
-        [Ignore]
+        [Ignore(message: "Ignored until https://github.com/microsoft/OSSGadget/issues/328 is addressed.")]
         [DataTestMethod]
         [DataRow("pkg:pypi/pandas@1.4.2", "Powerful data structures for data analysis, time series, and statistics")]
         [DataRow("pkg:pypi/plotly@5.7.0", "An open-source, interactive data visualization library for Python")]
@@ -88,7 +87,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             List<ArtifactUri<PyPIProjectManager.PyPIArtifactType>> uris = _projectManager.GetArtifactDownloadUris(purl).ToList();
 
             Assert.AreEqual(expectedUri, uris.First().Uri.AbsoluteUri);
-            Assert.AreEqual(".gz", uris.First().Extension); // TODO: Figure out how to switch it to .tar.gz instead of just .gz
+            Assert.AreEqual(".tar.gz", uris.First().Extension);
             Assert.AreEqual(PyPIProjectManager.PyPIArtifactType.Tarball, uris.First().Type);
             Assert.IsTrue(await _projectManager.UriExistsAsync(uris.First().Uri));
         }

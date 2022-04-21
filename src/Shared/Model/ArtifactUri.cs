@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.Model;
 
+using Extensions;
 using System;
 using System.IO;
 
@@ -40,7 +41,8 @@ public record ArtifactUri<T> where T : Enum
     public Uri Uri { get; }
 
     /// <summary>
-    /// The file extension for this artifact file.
+    /// The file extension for this artifact file. Including the '.' at the beginning.
     /// </summary>
-    public string Extension => Path.GetExtension(Uri.AbsolutePath);
+    /// <remarks>If the file has no extension, it will just be an empty string.</remarks>
+    public string Extension => Uri.GetExtension();
 }

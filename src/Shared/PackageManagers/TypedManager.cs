@@ -26,6 +26,7 @@ using System.Threading.Tasks;
 /// <typeparam name="TArtifactUriType">
 /// The <see cref="Enum"/> for the valid types a URI of this manager could be.
 /// </typeparam>
+/// TODO: Combine ArtifactUriType and PackageVersionMetadata as they will always be linked. https://github.com/microsoft/OSSGadget/issues/333
 public abstract class TypedManager<T, TArtifactUriType> : BaseProjectManager where T : IManagerPackageVersionMetadata where TArtifactUriType : Enum
 {
     /// <summary>

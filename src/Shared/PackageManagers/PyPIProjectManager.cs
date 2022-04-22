@@ -2,9 +2,11 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Contracts;
     using Helpers;
     using Model;
     using NLog.LayoutRenderers.Wrappers;
+    using PackageActions;
     using PackageUrl;
     using System;
     using System.Collections.Generic;
@@ -16,7 +18,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using Utilities;
     using Version = SemanticVersioning.Version;
 
-    public class PyPIProjectManager : BaseProjectManager
+    public class PyPIProjectManager : TypedManager<IManagerPackageVersionMetadata, PyPIProjectManager.PyPIArtifactType>
     {
         /// <summary>
         /// The type of the project manager from the package-url type specifications.
@@ -28,12 +30,24 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         public static string ENV_PYPI_ENDPOINT { get; set; } = "https://pypi.org";
 
-        public PyPIProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        public PyPIProjectManager(
+            string directory,
+            IManagerPackageActions<IManagerPackageVersionMetadata>? actions = null,
+            IHttpClientFactory? httpClientFactory = null)
+            : base(actions ?? new NoOpPackageActions(), httpClientFactory ?? new DefaultHttpClientFactory(), directory)
         {
         }
-
-        public PyPIProjectManager(string destinationDirectory) : base(destinationDirectory)
+        
+        /// <inheritdoc />
+        public override IEnumerable<ArtifactUri<PyPIArtifactType>> GetArtifactDownloadUris(PackageURL purl)
         {
+            string feedUrl = (purl.Qualifiers?["repository_url"] ?? ENV_PYPI_ENDPOINT).EnsureTrailingSlash();
+
+            // Format: https://pypi.org/packages/source/{ package_name_first_letter }/{ package_name }/{ package_name }-{ package_version }.tar.gz
+            string artifactUri =
+                $"{feedUrl}packages/source/{char.ToLower(purl.Name[0])}/{purl.Name.ToLower()}/{purl.Name.ToLower()}-{purl.Version}.tar.gz";
+            yield return new ArtifactUri<PyPIArtifactType>(PyPIArtifactType.Tarball, artifactUri);
+            // TODO: Figure out how to generate .whl file uris.
         }
 
         /// <summary>
@@ -202,12 +216,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             JsonElement infoElement = root.GetProperty("info");
 
             metadata.Name = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "name");
-            metadata.Description = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "description");
-            string? summary = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "summary");
-            if (string.IsNullOrWhiteSpace(metadata.Description))
-            { // longer string might be the actual description
-                metadata.Description = summary;
-            }
+            metadata.Description = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "summary"); // Summary is the short description. Description is usually the readme.
+
             metadata.PackageManagerUri = ENV_PYPI_ENDPOINT;
             metadata.PackageUri = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "package_url");
             metadata.Keywords = OssUtilities.ConvertJSONToList(OssUtilities.GetJSONPropertyIfExists(infoElement, "keywords"));
@@ -336,7 +346,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 JsonElement versions = root.GetProperty("releases");
                 foreach (JsonProperty version in versions.EnumerateObject())
                 {
-                    // TODO: Fails if not a valid semver. ex 0.2
+                    // TODO: Fails if not a valid semver. ex 0.2 https://github.com/microsoft/OSSGadget/issues/328
                     allVersions.Add(new Version(version.Name));
                 }
             }
@@ -428,6 +438,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
 
             return mapping;
+        }
+
+        public enum PyPIArtifactType
+        {
+            Unknown = 0,
+            Tarball,
+            Wheel,
         }
     }
 }

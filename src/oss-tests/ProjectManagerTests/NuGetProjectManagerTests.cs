@@ -9,6 +9,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
     using Moq;
     using Newtonsoft.Json;
     using oss;
+    using PackageActions;
     using PackageManagers;
     using PackageUrl;
     using RichardSzalay.MockHttp;
@@ -43,11 +44,13 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             { "pkg:nuget/razorengine", Resources.razorengine_versions_json },
         }.ToImmutableDictionary();
 
-        private NuGetProjectManager? _projectManager;
-        private readonly Mock<IHttpClientFactory> _mockFactory = new();
+        private NuGetProjectManager _projectManager;
+        private readonly IHttpClientFactory _httpFactory;
 
         public NuGetProjectManagerTests()
         {
+            Mock<IHttpClientFactory> mockFactory = new();
+
             MockHttpMessageHandler mockHttp = new();
 
             // Mock getting the registration endpoint.
@@ -59,8 +62,13 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             {
                 MockHttpFetchResponse(HttpStatusCode.OK, url, json, mockHttp);
             }
+
+            mockHttp.When(HttpMethod.Get, "https://api.nuget.org/v3-flatcontainer/*.nupkg").Respond(HttpStatusCode.OK);
+            mockHttp.When(HttpMethod.Get, "https://api.nuget.org/v3-flatcontainer/*.nuspec").Respond(HttpStatusCode.OK);
  
-            _mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
+            mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
+            _httpFactory = mockFactory.Object;
+            _projectManager = new NuGetProjectManager(".", new NuGetPackageActions(), _httpFactory);
         }
 
         [DataTestMethod]
@@ -73,7 +81,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
                 purl,
                 JsonConvert.DeserializeObject<NuGetPackageVersionMetadata>(_metadata[purl.ToString()]),
                 JsonConvert.DeserializeObject<IEnumerable<string>>(_versions[purl.ToString()])?.Reverse());
-            _projectManager = new NuGetProjectManager(".", nugetPackageActions, _mockFactory.Object);
+            _projectManager = new NuGetProjectManager(".", nugetPackageActions, _httpFactory);
 
             PackageMetadata metadata = await _projectManager.GetPackageMetadataAsync(purl, useCache: false);
 
@@ -106,7 +114,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
                 JsonConvert.DeserializeObject<NuGetPackageVersionMetadata>(_metadata[purl.ToString()]),
                 JsonConvert.DeserializeObject<IEnumerable<string>>(_versions[purl.ToString()])?.Reverse(),
                 includePrerelease: includePrerelease);
-            _projectManager = new NuGetProjectManager(".", nugetPackageActions, _mockFactory.Object);
+            _projectManager = new NuGetProjectManager(".", nugetPackageActions, _httpFactory);
 
             List<string> versions = (await _projectManager.EnumerateVersionsAsync(purl, false, includePrerelease)).ToList();
 
@@ -114,6 +122,31 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             Assert.AreEqual(latestVersion, versions.First());
         }
 
+                
+        [DataTestMethod]
+        [DataRow("pkg:nuget/newtonsoft.json@13.0.1", "https://api.nuget.org/v3-flatcontainer/newtonsoft.json/13.0.1/newtonsoft.json")]
+        [DataRow("pkg:nuget/razorengine@4.2.3-beta1", "https://api.nuget.org/v3-flatcontainer/razorengine/4.2.3-beta1/razorengine")]
+        [DataRow("pkg:nuget/serilog@2.10.0", "https://api.nuget.org/v3-flatcontainer/serilog/2.10.0/serilog")]
+        [DataRow("pkg:nuget/moq@4.17.2", "https://api.nuget.org/v3-flatcontainer/moq/4.17.2/moq")]
+        public async Task GetArtifactDownloadUrisSucceeds_Async(string purlString, string expectedUriBase)
+        {
+            PackageURL purl = new(purlString);
+            List<ArtifactUri<NuGetProjectManager.NuGetArtifactType>> uris = _projectManager.GetArtifactDownloadUris(purl).ToList();
+
+            string expectedNuPkgUri = $"{expectedUriBase}.{purl.Version}.nupkg";
+            Assert.AreEqual(expectedNuPkgUri, uris.First().Uri.AbsoluteUri);
+            Assert.AreEqual(".nupkg", uris.First().Extension);
+            Assert.AreEqual(NuGetProjectManager.NuGetArtifactType.Nupkg, uris.First().Type);
+            Assert.IsTrue(await _projectManager.UriExistsAsync(uris.First().Uri));
+            
+            string expectedNuspecUri = $"{expectedUriBase}.nuspec";
+            Assert.AreEqual(expectedNuspecUri, uris.Last().Uri.AbsoluteUri);
+            Assert.AreEqual(".nuspec", uris.Last().Extension);
+            Assert.AreEqual(NuGetProjectManager.NuGetArtifactType.Nuspec, uris.Last().Type);
+            Assert.IsTrue(await _projectManager.UriExistsAsync(uris.Last().Uri));
+
+        }
+        
         private static void MockHttpFetchResponse(
             HttpStatusCode statusCode,
             string url,

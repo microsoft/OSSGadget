@@ -101,7 +101,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 },
                 {
                     NPMProjectManager.Type, destinationDirectory =>
-                        new NPMProjectManager(httpClientFactory, destinationDirectory)
+                        new NPMProjectManager(destinationDirectory, new NoOpPackageActions(), httpClientFactory)
                 },
                 {
                     NuGetProjectManager.Type, destinationDirectory =>
@@ -109,7 +109,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 },
                 {
                     PyPIProjectManager.Type, destinationDirectory =>
-                        new PyPIProjectManager(httpClientFactory, destinationDirectory)
+                        new PyPIProjectManager(destinationDirectory, new NoOpPackageActions(), httpClientFactory)
                 },
                 {
                     UbuntuProjectManager.Type, destinationDirectory =>

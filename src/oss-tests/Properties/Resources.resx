@@ -54,4 +54,13 @@
     <data name="nuget_registration.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
         <value>..\TestData\NuGet\nuget_registration.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </data>
+    <data name="pandas.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>..\TestData\PyPI\pandas.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </data>
+    <data name="plotly.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>..\TestData\PyPI\plotly.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </data>
+    <data name="requests.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>..\TestData\PyPI\requests.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </data>
 </root>

@@ -115,6 +115,24 @@ namespace oss {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {&quot;info&quot;:{&quot;author&quot;:&quot;The Pandas Development Team&quot;,&quot;author_email&quot;:&quot;pandas-dev@python.org&quot;,&quot;bugtrack_url&quot;:null,&quot;classifiers&quot;:[&quot;Development Status :: 5 - Production/Stable&quot;,&quot;Environment :: Console&quot;,&quot;Intended Audience :: Science/Research&quot;,&quot;License :: OSI Approved :: BSD License&quot;,&quot;Operating System :: OS Independent&quot;,&quot;Programming Language :: Cython&quot;,&quot;Programming Language :: Python&quot;,&quot;Programming Language :: Python :: 3&quot;,&quot;Programming Language :: Python :: 3 :: Only&quot;,&quot;Programming Language :: Python :: 3.8&quot;,&quot;Programmin [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string pandas_json {
+            get {
+                return ResourceManager.GetString("pandas.json", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;info&quot;:{&quot;author&quot;:&quot;Chris P&quot;,&quot;author_email&quot;:&quot;chris@plot.ly&quot;,&quot;bugtrack_url&quot;:null,&quot;classifiers&quot;:[&quot;Development Status :: 5 - Production/Stable&quot;,&quot;Programming Language :: Python :: 3.6&quot;,&quot;Programming Language :: Python :: 3.7&quot;,&quot;Programming Language :: Python :: 3.8&quot;,&quot;Programming Language :: Python :: 3.9&quot;,&quot;Topic :: Scientific/Engineering :: Visualization&quot;],&quot;description&quot;:&quot;# plotly.py\n\n&lt;table&gt;\n    &lt;tr&gt;\n        &lt;td&gt;Latest Release&lt;/td&gt;\n        &lt;td&gt;\n            &lt;a href=\&quot;https://pypi.org/project/plotly/\&quot;/&gt;\n     [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string plotly_json {
+            get {
+                return ResourceManager.GetString("plotly.json", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {
         ///  &quot;@id&quot;: &quot;https://api.nuget.org/v3/catalog0/data/2022.03.11.23.17.27/razorengine.4.2.3-beta1.json&quot;,
         ///  &quot;@type&quot;: [
@@ -167,6 +185,15 @@ namespace oss {
         internal static string razorengine_versions_json {
             get {
                 return ResourceManager.GetString("razorengine.versions.json", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;info&quot;:{&quot;author&quot;:&quot;Kenneth Reitz&quot;,&quot;author_email&quot;:&quot;me@kennethreitz.org&quot;,&quot;bugtrack_url&quot;:null,&quot;classifiers&quot;:[&quot;Development Status :: 5 - Production/Stable&quot;,&quot;Environment :: Web Environment&quot;,&quot;Intended Audience :: Developers&quot;,&quot;License :: OSI Approved :: Apache Software License&quot;,&quot;Natural Language :: English&quot;,&quot;Operating System :: OS Independent&quot;,&quot;Programming Language :: Python&quot;,&quot;Programming Language :: Python :: 2&quot;,&quot;Programming Language :: Python :: 2.7&quot;,&quot;Programming Language :: Python :: 3&quot;,&quot;Programming Language :: [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string requests_json {
+            get {
+                return ResourceManager.GetString("requests.json", resourceCulture);
             }
         }
         

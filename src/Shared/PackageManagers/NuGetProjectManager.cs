@@ -3,6 +3,7 @@
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using Contracts;
+    using Helpers;
     using PackageUrl;
     using Model;
     using Model.Metadata;
@@ -18,7 +19,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Text.Json;
     using System.Threading.Tasks;
 
-    public class NuGetProjectManager : TypedManager<NuGetPackageVersionMetadata>
+    public class NuGetProjectManager : TypedManager<NuGetPackageVersionMetadata, NuGetProjectManager.NuGetArtifactType>
     {
         /// <summary>
         /// The type of the project manager from the package-url type specifications.
@@ -43,6 +44,17 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             : base(actions ?? new NuGetPackageActions(), httpClientFactory ?? new DefaultHttpClientFactory(), directory)
         {
             GetRegistrationEndpointAsync().Wait();
+        }
+        
+        /// <inheritdoc />
+        public override IEnumerable<ArtifactUri<NuGetArtifactType>> GetArtifactDownloadUris(PackageURL purl)
+        {
+            string feedUrl = (purl.Qualifiers?["repository_url"] ?? NUGET_DEFAULT_CONTENT_ENDPOINT).EnsureTrailingSlash();
+
+            string nupkgUri = $"{feedUrl}{purl.Name.ToLower()}/{purl.Version}/{purl.Name.ToLower()}.{purl.Version}.nupkg";
+            yield return new ArtifactUri<NuGetArtifactType>(NuGetArtifactType.Nupkg, nupkgUri);
+            string nuspecUri = $"{feedUrl}{purl.Name.ToLower()}/{purl.Version}/{purl.Name.ToLower()}.nuspec";
+            yield return new ArtifactUri<NuGetArtifactType>(NuGetArtifactType.Nuspec, nuspecUri);
         }
 
         /// <summary>
@@ -342,5 +354,12 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         private static string ENV_NUGET_HOMEPAGE = "https://www.nuget.org/packages";
+
+        public enum NuGetArtifactType
+        {
+            Unknown = 0,
+            Nupkg,
+            Nuspec,
+        }
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Contracts;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.CST.OpenSource.Model;
     using System;
@@ -14,6 +15,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using Utilities;
     using Version = SemanticVersioning.Version;
     using PackageUrl;
+    using System.Net;
 
     public abstract class BaseProjectManager
     {
@@ -274,7 +276,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <returns>Paths (either files or directory names) pertaining to the downloaded files.</returns>
         public virtual Task<IEnumerable<string>> DownloadVersionAsync(PackageURL purl, bool doExtract, bool cached = false)
         {
-            throw new NotImplementedException("BaseProjectManager does not implement DownloadVersion.");
+            throw new NotImplementedException("BaseProjectManager does not implement DownloadVersionAsync.");
         }
 
         /// <summary>

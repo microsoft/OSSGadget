@@ -2,9 +2,11 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Contracts;
     using Extensions;
     using Helpers;
     using Microsoft.CST.OpenSource.Model;
+    using PackageActions;
     using PackageUrl;
     using System;
     using System.Collections.Generic;
@@ -16,7 +18,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using Utilities;
     using Version = SemanticVersioning.Version;
 
-    public class NPMProjectManager : BaseProjectManager
+    public class NPMProjectManager : TypedManager<IManagerPackageVersionMetadata, NPMProjectManager.NPMArtifactType>
     {
         /// <summary>
         /// The type of the project manager from the package-url type specifications.
@@ -29,12 +31,23 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public static string ENV_NPM_API_ENDPOINT { get; set; } = "https://registry.npmjs.org";
         public static string ENV_NPM_ENDPOINT { get; set; } = "https://www.npmjs.com";
 
-        public NPMProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        public NPMProjectManager(
+            string directory,
+            IManagerPackageActions<IManagerPackageVersionMetadata>? actions = null,
+            IHttpClientFactory? httpClientFactory = null)
+            : base(actions ?? new NoOpPackageActions(), httpClientFactory ?? new DefaultHttpClientFactory(), directory)
         {
         }
 
-        public NPMProjectManager(string destinationDirectory) : base(destinationDirectory)
+        /// <inheritdoc />
+        public override IEnumerable<ArtifactUri<NPMArtifactType>> GetArtifactDownloadUris(PackageURL purl)
         {
+            string feedUrl = (purl.Qualifiers?["repository_url"] ?? ENV_NPM_API_ENDPOINT).EnsureTrailingSlash();
+
+            string artifactUri = purl.HasNamespace() ? 
+                $"{feedUrl}{purl.GetNamespaceFormatted()}/{purl.Name}/-/{purl.Name}-{purl.Version}.tgz" : // If there's a namespace.
+                $"{feedUrl}{purl.Name}/-/{purl.Name}-{purl.Version}.tgz"; // If there isn't a namespace.
+            yield return new ArtifactUri<NPMArtifactType>(NPMArtifactType.Tarball, artifactUri);
         }
 
         /// <summary>
@@ -119,7 +132,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 string packageName = purl.GetFullName();
                 HttpClient httpClient = CreateHttpClient();
 
-                JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}", useCache);
+                JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_NPM_API_ENDPOINT}/{purl.GetFullName(encoded: true)}", useCache);
 
                 List<string> versionList = new();
 
@@ -175,7 +188,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
             try
             {
-                string? packageName = purl.Namespace != null ? $"@{purl.Namespace}/{purl.Name}" : purl.Name;
+                string? packageName = purl.HasNamespace() ? $"{purl.GetNamespaceFormatted()}/{purl.Name}" : purl.Name;
                 HttpClient httpClient = CreateHttpClient();
 
                 string? content = await GetHttpStringCache(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}", useCache);
@@ -190,7 +203,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         public override Uri GetPackageAbsoluteUri(PackageURL purl)
         {
-            return new Uri($"{ENV_NPM_API_ENDPOINT}/{purl?.Name}");
+            return new Uri(ENV_NPM_API_ENDPOINT.EnsureTrailingSlash() + (purl.HasNamespace() ? $"{purl.GetNamespaceFormatted()}/{purl.Name}" : purl.Name));
         }
 
         /// <inheritdoc />
@@ -547,5 +560,12 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             "vm",
             "zlib"
         };
+
+        public enum NPMArtifactType
+        {
+            Unknown = 0,
+            Tarball,
+            PackageJson,
+        }
     }
 }

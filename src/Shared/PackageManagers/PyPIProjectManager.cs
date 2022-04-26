@@ -238,6 +238,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             metadata.Name = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "name");
             metadata.Description = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "summary"); // Summary is the short description. Description is usually the readme.
 
+            metadata.LatestPackageVersion = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "version"); // Ran in the root, always points to latest version.
+
             metadata.PackageManagerUri = ENV_PYPI_ENDPOINT;
             metadata.PackageUri = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "package_url");
             metadata.Keywords = OssUtilities.ConvertJSONToList(OssUtilities.GetJSONPropertyIfExists(infoElement, "keywords"));
@@ -286,19 +288,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 });
             }
 
-            // get the version
-            List<Version> versions = GetVersions(contentJSON);
-            Version? latestVersion = GetLatestVersion(versions);
-
-            if (purl.Version != null)
-            {
-                // find the version object from the collection
-                metadata.PackageVersion = purl.Version;
-            }
-            else
-            {
-                metadata.PackageVersion = latestVersion is null ? purl.Version : latestVersion?.ToString();
-            }
+            // get the version, either use the provided one, or if null then use the LatestPackageVersion.
+            metadata.PackageVersion = purl.Version ?? metadata.LatestPackageVersion;
 
             // if we found any version at all, get the information.
             if (metadata.PackageVersion is not null)

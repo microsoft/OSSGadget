@@ -178,26 +178,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <returns>The <see cref="DateTime"/> when this version was published, or null if not found.</returns>
         public async Task<DateTime?> GetPublishedAtAsync(PackageURL purl, bool useCache = true)
         {
-            string? content = await GetMetadataAsync(purl, useCache);
-            if (string.IsNullOrEmpty(content)) { return null; }
-
-            // convert NPM package data to normalized form
-            JsonDocument contentJSON = JsonDocument.Parse(content);
-            JsonElement root = contentJSON.RootElement;
-
-            if (!root.TryGetProperty("time", out JsonElement time))
-            {
-                return null;
-            }
-
-            string? publishedTime = OssUtilities.GetJSONPropertyStringIfExists(time, purl.Version);
-            if (publishedTime == null)
-            {
-                return null;
-            }
-
-            return DateTime.Parse(publishedTime);
-
+            Check.NotNull(nameof(purl.Version), purl.Version);
+            string? uploadTime = (await this.GetPackageMetadataAsync(purl, useCache))?.UploadTime;
+            return uploadTime == null ? null : DateTime.Parse(uploadTime);
         }
 
         /// <summary>

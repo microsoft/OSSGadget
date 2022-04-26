@@ -111,10 +111,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public async Task<DateTime?> GetPublishedAtAsync(PackageURL purl, bool useCache = true)
         {
             Check.NotNull(nameof(purl.Version), purl.Version);
-            NuGetPackageVersionMetadata? packageVersionMetadata =
-                await Actions.GetMetadataAsync(purl, useCache: useCache);
-
-            return packageVersionMetadata?.Published?.DateTime;
+            string? uploadTime = (await this.GetPackageMetadataAsync(purl, useCache))?.UploadTime;
+            return uploadTime == null ? null : DateTime.Parse(uploadTime);
         }
 
         /// <inheritdoc />

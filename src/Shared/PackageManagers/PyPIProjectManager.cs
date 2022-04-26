@@ -187,6 +187,20 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
         }
 
+        public override async Task<DateTime?> GetPublishedAtAsync(PackageURL purl, bool useCache = true)
+        {
+            Check.NotNull(nameof(purl.Version), purl.Version);
+            PackageMetadata? metadata = await this.GetPackageMetadataAsync(purl, useCache);
+
+            string? uploadTime = metadata?.UploadTime;
+            if (uploadTime == null)
+            {
+                return null;
+            }
+
+            return DateTime.Parse(uploadTime);
+        }
+
         public override async Task<string?> GetMetadataAsync(PackageURL purl, bool useCache = true)
         {
             try

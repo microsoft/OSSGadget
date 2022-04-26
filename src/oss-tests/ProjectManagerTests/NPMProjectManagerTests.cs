@@ -11,6 +11,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
     using PackageManagers;
     using PackageUrl;
     using RichardSzalay.MockHttp;
+    using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Linq;
@@ -84,6 +85,28 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 
             Assert.AreEqual(count, versions.Count);
             Assert.AreEqual(latestVersion, versions.First());
+        }
+        
+        [DataTestMethod]
+        [DataRow("pkg:npm/lodash@4.17.15", "2019-07-19T02:28:46.584Z")]
+        [DataRow("pkg:npm/%40angular/core@13.2.5", "2022-03-02T18:25:31.169Z")]
+        [DataRow("pkg:npm/ds-modal@0.0.2", "2018-08-09T07:24:06.206Z")]
+        [DataRow("pkg:npm/monorepolint@0.4.0", "2019-08-07T16:20:53.525Z")]
+        [DataRow("pkg:npm/rly-cli@0.0.2", "2022-03-08T17:26:27.219Z")]
+        [DataRow("pkg:npm/example@0.0.0")] // No time property in the json.
+        public async Task GetPublishedAtSucceeds(string purlString, string? expectedTime = null)
+        {
+            PackageURL purl = new(purlString);
+            DateTime? time = await _projectManager.GetPublishedAtAsync(purl, useCache: false);
+
+            if (expectedTime == null)
+            {
+                Assert.IsNull(time);
+            }
+            else
+            {
+                Assert.AreEqual(DateTime.Parse(expectedTime), time);
+            }
         }
         
         [DataTestMethod]

@@ -13,6 +13,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
     using PackageManagers;
     using PackageUrl;
     using RichardSzalay.MockHttp;
+    using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Linq;
@@ -122,6 +123,23 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             Assert.AreEqual(latestVersion, versions.First());
         }
 
+        [DataTestMethod]
+        [DataRow("pkg:nuget/razorengine@4.2.3-beta1", "2015-10-06T17:53:46.37+00:00")]
+        [DataRow("pkg:nuget/razorengine@4.5.1-alpha001", "2017-09-02T05:17:55.973-04:00")]
+        public async Task GetPublishedAtSucceeds(string purlString, string? expectedTime = null)
+        {
+            PackageURL purl = new(purlString);
+            DateTime? time = await _projectManager.GetPublishedAtAsync(purl, useCache: false);
+
+            if (expectedTime == null)
+            {
+                Assert.IsNull(time);
+            }
+            else
+            {
+                Assert.AreEqual(DateTime.Parse(expectedTime), time);
+            }
+        }
                 
         [DataTestMethod]
         [DataRow("pkg:nuget/newtonsoft.json@13.0.1", "https://api.nuget.org/v3-flatcontainer/newtonsoft.json/13.0.1/newtonsoft.json")]

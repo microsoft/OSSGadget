@@ -170,6 +170,30 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
         }
 
+        public override async Task<DateTime?> GetPublishedAtAsync(PackageURL purl, bool useCache = true)
+        {
+            string? content = await GetMetadataAsync(purl, useCache);
+            if (string.IsNullOrEmpty(content)) { return null; }
+
+            // convert NPM package data to normalized form
+            JsonDocument contentJSON = JsonDocument.Parse(content);
+            JsonElement root = contentJSON.RootElement;
+
+            if (!root.TryGetProperty("time", out JsonElement time))
+            {
+                return null;
+            }
+
+            string? publishedTime = OssUtilities.GetJSONPropertyStringIfExists(time, purl.Version);
+            if (publishedTime == null)
+            {
+                return null;
+            }
+
+            return DateTime.Parse(publishedTime);
+
+        }
+
         /// <summary>
         /// Gets the latest version of the package
         /// </summary>

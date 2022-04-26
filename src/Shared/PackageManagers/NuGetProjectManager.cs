@@ -102,6 +102,15 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return RegistrationEndpoint;
         }
 
+        public override async Task<DateTime?> GetPublishedAtAsync(PackageURL purl, bool useCache = true)
+        {
+            Check.NotNull(nameof(purl.Version), purl.Version);
+            NuGetPackageVersionMetadata? packageVersionMetadata =
+                await Actions.GetMetadataAsync(purl, useCache: useCache);
+
+            return packageVersionMetadata?.Published?.DateTime;
+        }
+
         /// <inheritdoc />
         public override async Task<string?> GetMetadataAsync(PackageURL purl, bool useCache = true)
         {

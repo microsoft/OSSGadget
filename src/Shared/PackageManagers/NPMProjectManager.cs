@@ -263,11 +263,18 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 metadata.PackageVersion = latestVersion is null ? purl.Version : latestVersion?.ToString();
             }
 
-            // if we found any version at all, get the deets
+            // if we found any version at all, get the information
             if (metadata.PackageVersion != null)
             {
                 Version versionToGet = new(metadata.PackageVersion);
                 JsonElement? versionElement = GetVersionElement(contentJSON, versionToGet);
+                
+                if (root.TryGetProperty("time", out JsonElement time))
+                {
+                    string? uploadTime = OssUtilities.GetJSONPropertyStringIfExists(time, metadata.PackageVersion);
+                    metadata.UploadTime = uploadTime;
+                }
+
                 if (versionElement != null)
                 {
                     // redo the generic values to version specific values

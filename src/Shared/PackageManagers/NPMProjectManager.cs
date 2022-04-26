@@ -179,8 +179,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public async Task<DateTime?> GetPublishedAtAsync(PackageURL purl, bool useCache = true)
         {
             Check.NotNull(nameof(purl.Version), purl.Version);
-            string? uploadTime = (await this.GetPackageMetadataAsync(purl, useCache))?.UploadTime;
-            return uploadTime == null ? null : DateTime.Parse(uploadTime);
+            DateTime? uploadTime = (await this.GetPackageMetadataAsync(purl, useCache))?.UploadTime;
+            return uploadTime;
         }
 
         /// <summary>
@@ -261,7 +261,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 if (root.TryGetProperty("time", out JsonElement time))
                 {
                     string? uploadTime = OssUtilities.GetJSONPropertyStringIfExists(time, metadata.PackageVersion);
-                    metadata.UploadTime = uploadTime;
+                    if (uploadTime != null)
+                    {
+                        metadata.UploadTime = DateTime.Parse(uploadTime);
+                    }
                 }
 
                 if (versionElement != null)

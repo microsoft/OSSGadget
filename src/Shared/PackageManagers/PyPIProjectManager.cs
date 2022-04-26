@@ -196,8 +196,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public async Task<DateTime?> GetPublishedAtAsync(PackageURL purl, bool useCache = true)
         {
             Check.NotNull(nameof(purl.Version), purl.Version);
-            string? uploadTime = (await this.GetPackageMetadataAsync(purl, useCache))?.UploadTime;
-            return uploadTime == null ? null : DateTime.Parse(uploadTime);
+            DateTime? uploadTime = (await this.GetPackageMetadataAsync(purl, useCache))?.UploadTime;
+            return uploadTime;
         }
 
         public override async Task<string?> GetMetadataAsync(PackageURL purl, bool useCache = true)
@@ -325,10 +325,15 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                                 }
 
                                 metadata.Size = OssUtilities.GetJSONPropertyIfExists(releaseFile, "size")?.GetInt64();
-                                metadata.UploadTime = OssUtilities.GetJSONPropertyStringIfExists(releaseFile, "upload_time");
                                 metadata.Active = !OssUtilities.GetJSONPropertyIfExists(releaseFile, "yanked")?.GetBoolean();
                                 metadata.VersionUri = $"{ENV_PYPI_ENDPOINT}/project/{purl.Name}/{purl.Version}";
                                 metadata.VersionDownloadUri = OssUtilities.GetJSONPropertyStringIfExists(releaseFile, "url");
+                                
+                                string? uploadTime = OssUtilities.GetJSONPropertyStringIfExists(releaseFile, "upload_time");
+                                if (uploadTime != null)
+                                {
+                                    metadata.UploadTime = DateTime.Parse(uploadTime);
+                                }
                             }
                         }
                     }

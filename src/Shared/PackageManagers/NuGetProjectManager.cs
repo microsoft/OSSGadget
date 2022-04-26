@@ -111,8 +111,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public async Task<DateTime?> GetPublishedAtAsync(PackageURL purl, bool useCache = true)
         {
             Check.NotNull(nameof(purl.Version), purl.Version);
-            string? uploadTime = (await this.GetPackageMetadataAsync(purl, useCache))?.UploadTime;
-            return uploadTime == null ? null : DateTime.Parse(uploadTime);
+            DateTime? uploadTime = (await this.GetPackageMetadataAsync(purl, useCache))?.UploadTime;
+            return uploadTime;
         }
 
         /// <inheritdoc />
@@ -246,7 +246,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
 
             // publishing info
-            metadata.UploadTime = packageVersionPackageVersionMetadata.Published?.ToString("MM/dd/yy HH:mm:ss zz");
+            metadata.UploadTime = packageVersionPackageVersionMetadata.Published?.DateTime;
         }
 
         /// <summary>

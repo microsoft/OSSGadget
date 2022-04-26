@@ -171,6 +171,19 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <summary>
+        /// Gets the <see cref="DateTime"/> a package version was published at.
+        /// </summary>
+        /// <param name="purl">Package URL specifying the package. Version is mandatory.</param>
+        /// <param name="useCache">If the cache should be used when looking for the published time.</param>
+        /// <returns>The <see cref="DateTime"/> when this version was published, or null if not found.</returns>
+        public async Task<DateTime?> GetPublishedAtAsync(PackageURL purl, bool useCache = true)
+        {
+            Check.NotNull(nameof(purl.Version), purl.Version);
+            DateTime? uploadTime = (await this.GetPackageMetadataAsync(purl, useCache))?.UploadTime;
+            return uploadTime;
+        }
+
+        /// <summary>
         /// Gets the latest version of the package
         /// </summary>
         /// <param name="contentJSON"></param>
@@ -239,11 +252,21 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 metadata.PackageVersion = latestVersion is null ? purl.Version : latestVersion?.ToString();
             }
 
-            // if we found any version at all, get the deets
+            // if we found any version at all, get the information
             if (metadata.PackageVersion != null)
             {
                 Version versionToGet = new(metadata.PackageVersion);
                 JsonElement? versionElement = GetVersionElement(contentJSON, versionToGet);
+                
+                if (root.TryGetProperty("time", out JsonElement time))
+                {
+                    string? uploadTime = OssUtilities.GetJSONPropertyStringIfExists(time, metadata.PackageVersion);
+                    if (uploadTime != null)
+                    {
+                        metadata.UploadTime = DateTime.Parse(uploadTime);
+                    }
+                }
+
                 if (versionElement != null)
                 {
                     // redo the generic values to version specific values

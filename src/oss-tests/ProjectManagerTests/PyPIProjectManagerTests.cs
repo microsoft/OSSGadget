@@ -49,7 +49,6 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             _projectManager = new PyPIProjectManager(".", new NoOpPackageActions(), _httpFactory);
         }
 
-        [Ignore(message: "Ignored until https://github.com/microsoft/OSSGadget/issues/328 is addressed.")]
         [DataTestMethod]
         [DataRow("pkg:pypi/pandas@1.4.2", "Powerful data structures for data analysis, time series, and statistics")]
         [DataRow("pkg:pypi/plotly@5.7.0", "An open-source, interactive data visualization library for Python")]
@@ -62,6 +61,25 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             Assert.AreEqual(purl.Name, metadata.Name);
             Assert.AreEqual(purl.Version, metadata.PackageVersion);
             Assert.AreEqual(description, metadata.Description);
+        }
+        
+        [DataTestMethod]
+        [DataRow("pkg:pypi/pandas@1.4.2", "2022-04-02T10:37:04")]
+        [DataRow("pkg:pypi/plotly@5.7.0", "2022-04-05T16:26:12")]
+        [DataRow("pkg:pypi/requests@2.27.1", "2022-01-05T15:40:51")]
+        public async Task GetPublishedAtSucceeds(string purlString, string? expectedTime = null)
+        {
+            PackageURL purl = new(purlString);
+            DateTime? time = await _projectManager.GetPublishedAtAsync(purl, useCache: false);
+
+            if (expectedTime == null)
+            {
+                Assert.IsNull(time);
+            }
+            else
+            {
+                Assert.AreEqual(DateTime.Parse(expectedTime), time);
+            }
         }
         
         [DataTestMethod]

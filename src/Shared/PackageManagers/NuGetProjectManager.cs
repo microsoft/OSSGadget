@@ -102,6 +102,19 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return RegistrationEndpoint;
         }
 
+        /// <summary>
+        /// Gets the <see cref="DateTime"/> a package version was published at.
+        /// </summary>
+        /// <param name="purl">Package URL specifying the package. Version is mandatory.</param>
+        /// <param name="useCache">If the cache should be used when looking for the published time.</param>
+        /// <returns>The <see cref="DateTime"/> when this version was published, or null if not found.</returns>
+        public async Task<DateTime?> GetPublishedAtAsync(PackageURL purl, bool useCache = true)
+        {
+            Check.NotNull(nameof(purl.Version), purl.Version);
+            DateTime? uploadTime = (await this.GetPackageMetadataAsync(purl, useCache))?.UploadTime;
+            return uploadTime;
+        }
+
         /// <inheritdoc />
         public override async Task<string?> GetMetadataAsync(PackageURL purl, bool useCache = true)
         {
@@ -233,7 +246,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
 
             // publishing info
-            metadata.UploadTime = packageVersionPackageVersionMetadata.Published?.ToString("MM/dd/yy HH:mm:ss zz");
+            metadata.UploadTime = packageVersionPackageVersionMetadata.Published?.DateTime;
         }
 
         /// <summary>

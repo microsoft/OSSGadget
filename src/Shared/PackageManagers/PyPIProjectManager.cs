@@ -196,9 +196,28 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public async Task<DateTime?> GetPublishedAtAsync(PackageURL purl, bool useCache = true)
         {
             Check.NotNull(nameof(purl.Version), purl.Version);
-            PackageMetadata? metadata = await this.GetPackageMetadataAsync(purl, useCache);
+            string? content = await GetMetadataAsync(purl, useCache);
+            if (string.IsNullOrEmpty(content)) { return null; }
 
-            string? uploadTime = metadata?.UploadTime;
+            JsonDocument contentJSON = JsonDocument.Parse(content);
+            string? uploadTime = null;
+            try
+            {
+                JsonElement versionElement = contentJSON.RootElement.GetProperty("releases").GetProperty(purl.Version);
+
+                // Only get the upload time for the tarball.
+                foreach (JsonElement releaseFile in versionElement.EnumerateArray()
+                             .Where(releaseFile => 
+                                 OssUtilities.GetJSONPropertyStringIfExists(releaseFile, "packagetype") == "sdist"))
+                {
+                    uploadTime = OssUtilities.GetJSONPropertyStringIfExists(releaseFile, "upload_time");
+                }
+            }
+            catch (KeyNotFoundException)
+            {
+                return null;
+            }
+
             if (uploadTime == null)
             {
                 return null;
@@ -229,7 +248,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             string? content = await GetMetadataAsync(purl, useCache);
             if (string.IsNullOrEmpty(content)) { return null; }
 
-            // convert NPM package data to normalized form
             JsonDocument contentJSON = JsonDocument.Parse(content);
             JsonElement root = contentJSON.RootElement;
 

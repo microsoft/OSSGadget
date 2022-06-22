@@ -25,7 +25,7 @@ namespace Microsoft.CST.OpenSource
                 get
                 {
                     return new List<Example>() {
-                        new Example("Find the characterstics for the given package",
+                        new Example("Identify potential malware or backdoors in the given package",
                         new Options { Targets = new List<string>() {"[options]", "package-url..." } })};
                 }
             }

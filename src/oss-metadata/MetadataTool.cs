@@ -7,6 +7,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Text.Json;
+using DevLab.JmesPath;
 
 namespace Microsoft.CST.OpenSource
 {
@@ -33,6 +34,10 @@ namespace Microsoft.CST.OpenSource
                 HelpText = "The data source to use (deps.dev, libraries.io)")]
             public string DataSource { get; set; } = "deps.dev";
             
+            [Option('j', "jmes-path", Required = false, Default = null,
+                HelpText = "The JMESPath expression to use to filter the data")]
+            public string? JmesPathExpression { get; set; }
+
             [Option('c', "useCache", Required = false, Default = false,
                 HelpText = "Should metadata use the cache, and get cached?")]
             public bool UseCache { get; set; } = false;
@@ -74,7 +79,7 @@ namespace Microsoft.CST.OpenSource
                 else
                     throw new ArgumentException($"Unknown data source: {options.DataSource}");
 
-                var output = new List<JsonDocument>();
+                var output = new List<object>();
 
                 foreach (string? target in targetList)
                 {
@@ -85,7 +90,24 @@ namespace Microsoft.CST.OpenSource
                         JsonDocument? metadata = await metadataSource.GetMetadataForPackageUrlAsync(purl, options.UseCache);
                         if (metadata != null)
                         {
-                            output.Add(metadata);
+                            if (options.JmesPathExpression != null)
+                            {
+                                Logger.Debug("Running JMESPath expression [{0}] against metadata.", options.JmesPathExpression);
+                                var metadataString = JsonSerializer.Serialize(metadata);
+                                var result = new JmesPath().Transform(metadataString, options.JmesPathExpression);
+                                if (result != null && !string.Equals(result, "null", StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    output.Add(JsonDocument.Parse(result).RootElement);
+                                }
+                                else
+                                {
+                                    Logger.Info("No results found JMESPath expression [{0}] against target {1}", options.JmesPathExpression, target);
+                                }
+                            }
+                            else
+                            {
+                                output.Add(metadata);
+                            }
                         }
                         else
                         {
@@ -95,7 +117,6 @@ namespace Microsoft.CST.OpenSource
                     catch (Exception ex)
                     {
                         Logger.Warn(ex, "Error processing {0}: {1}", target, ex.Message);
-                        Console.WriteLine(ex.StackTrace);
                     }
                 }
                 if (output.Count == 1)

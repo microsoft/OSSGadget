@@ -3,14 +3,17 @@
 using CommandLine;
 using CommandLine.Text;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Text.Json;
 
 namespace Microsoft.CST.OpenSource
 {
     using Microsoft.CST.OpenSource.Model;
     using Microsoft.CST.OpenSource.PackageManagers;
     using PackageUrl;
+    using System.IO;
 
     public class MetadataTool : OSSGadget
     {
@@ -26,10 +29,9 @@ namespace Microsoft.CST.OpenSource
                         new Options { Targets = new List<string>() {"[options]", "package-url..." } })};
                 }
             }
-
-            [Option('o', "output-file", Required = false, Default = "",
-                HelpText = "send the command output to a file instead of stdout")]
-            public string OutputFile { get; set; } = "";
+            [Option('s', "data-source", Required = false, Default="deps.dev", 
+                HelpText = "The data source to use (deps.dev, libraries.io)")]
+            public string DataSource { get; set; } = "deps.dev";
             
             [Option('c', "useCache", Required = false, Default = false,
                 HelpText = "Should metadata use the cache, and get cached?")]
@@ -48,26 +50,6 @@ namespace Microsoft.CST.OpenSource
 
         public MetadataTool(): this(new ProjectManagerFactory()) { }
 
-        private static async Task<PackageMetadata?> GetPackageMetadata(PackageURL purl, ProjectManagerFactory projectManagerFactory, bool useCache = true)
-        {
-            PackageMetadata? metadata = null;
-            try
-            {
-                // Use reflection to find the correct downloader class
-                BaseProjectManager? projectManager = projectManagerFactory.CreateProjectManager(purl);
-                if (projectManager != null)
-                {
-                    metadata = await projectManager.GetPackageMetadataAsync(purl, useCache);
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Warn(ex, "Error identifying source repository for {0}: {1}", purl, ex.Message);
-            }
-
-            return metadata;
-        }
-
         /// <summary>
         ///     Main entrypoint for the download program.
         /// </summary>
@@ -81,27 +63,54 @@ namespace Microsoft.CST.OpenSource
 
         private async Task RunAsync(Options options)
         {
-            // select output destination and format
-            SelectOutput(options.OutputFile);
             if (options.Targets is IList<string> targetList && targetList.Count > 0)
             {
+                BaseMetadataSource? metadataSource = null;
+                
+                if (options.DataSource.Equals("deps.dev", StringComparison.InvariantCultureIgnoreCase))
+                    metadataSource = new DepsDevMetadataSource();
+                else if (options.DataSource.Equals("libraries.io", StringComparison.InvariantCultureIgnoreCase))
+                    metadataSource = new LibrariesIoMetadataSource();
+                else
+                    throw new ArgumentException($"Unknown data source: {options.DataSource}");
+
+                var output = new List<JsonDocument>();
+
                 foreach (string? target in targetList)
                 {
                     try
                     {
                         PackageURL purl = new(target);
-                        Logger.Info($"Collecting metadata for {purl}");
-                        PackageMetadata? metadata = await GetPackageMetadata(purl, ProjectManagerFactory, options.UseCache);
-                        Logger.Info(metadata?.ToString());
+                        Logger.Info("Collecting metadata for {0}", purl);
+                        JsonDocument? metadata = await metadataSource.GetMetadataForPackageUrlAsync(purl, options.UseCache);
+                        if (metadata != null)
+                        {
+                            output.Add(metadata);
+                        }
+                        else
+                        {
+                            Logger.Warn("No metadata found for {0}", target);
+                        }
                     }
                     catch (Exception ex)
                     {
                         Logger.Warn(ex, "Error processing {0}: {1}", target, ex.Message);
+                        Console.WriteLine(ex.StackTrace);
                     }
                 }
+                if (output.Count == 1)
+                {
+                    Console.WriteLine(JsonSerializer.Serialize(output.First(), new JsonSerializerOptions { WriteIndented = true }));
+                } 
+                else if (output.Count > 1)
+                {
+                    Console.WriteLine(JsonSerializer.Serialize(output, new JsonSerializerOptions { WriteIndented = true }));
+                }
             }
-
-            RestoreOutput();
+            else
+            {
+                Logger.Error("No targets specified");
+            }
         }
     }
 }

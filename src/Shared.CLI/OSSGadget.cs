@@ -49,7 +49,7 @@ namespace Microsoft.CST.OpenSource
                 h.AddPostOptionsLines(GetCommonSupportedHelpTextLines());
                 return HelpText.DefaultParsingErrorsHandler(result, h);
             });
-            Console.Write(helpText);
+            Console.Error.Write(helpText);
         }
 
         /// <summary>
@@ -128,10 +128,10 @@ namespace Microsoft.CST.OpenSource
 
         public static void ShowToolBanner()
         {
-            Console.WriteLine(OSSGadget.GetBanner());
+            Console.Error.WriteLine(OSSGadget.GetBanner());
             string? toolName = GetToolName();
             string? toolVersion = GetToolVersion();
-            Console.WriteLine($"OSS Gadget - {toolName} {toolVersion} - github.com/Microsoft/OSSGadget");
+            Console.Error.WriteLine($"OSS Gadget - {toolName} {toolVersion} - github.com/Microsoft/OSSGadget");
         }
 
         /// <summary>
@@ -178,24 +178,23 @@ namespace Microsoft.CST.OpenSource
         protected static string GetCommonSupportedHelpText()
         {
             string supportedHelpText = @"
-                The package-url specifier is described at https://github.com/package-url/purl-spec:
-                  pkg:cargo/rand                The latest version of Rand (via crates.io)
-                  pkg:cocoapods/AFNetworking    The latest version of AFNetworking (via cocoapods.org)
-                  pkg:composer/Smarty/Smarty    The latest version of Smarty (via Composer/ Packagist)
-                  pkg:cpan/Apache-ACEProxy      The latest version of Apache::ACEProxy (via cpan.org)
-                  pkg:cran/ACNE@0.8.0           Version 0.8.0 of ACNE (via cran.r-project.org)
-                  pkg:gem/rubytree@*            All versions of RubyTree (via rubygems.org)
-                  pkg:golang/sigs.k8s.io/yaml   The latest version of sigs.k8s.io/yaml (via proxy.golang.org)
-                  pkg:github/Microsoft/DevSkim  The latest release of DevSkim (via GitHub)
-                  pkg:hackage/a50@*             All versions of a50 (via hackage.haskell.org)
-                  pkg:maven/org.apdplat/deep-qa The latest version of org.apdplat.deep-qa (via repo1.maven.org)
-                  pkg:npm/express               The latest version of Express (via npm.org)
-                  pkg:nuget/Newtonsoft.JSON     The latest version of Newtonsoft.JSON (via nuget.org)
-                  pkg:pypi/django@1.11.1        Version 1.11.1 of Django (via pypi.org)
-                  pkg:ubuntu/zerofree           The latest version of zerofree from Ubuntu (via packages.ubuntu.com)
-                  pkg:vsm/MLNET/07              The latest version of MLNET.07 (from marketplace.visualstudio.com)
-                  pkg:url/foo@1.0?url=<URL>     The direct URL <URL>
-                ";
+The package-url specifier is described at https://github.com/package-url/purl-spec:
+    pkg:cargo/rand                The latest version of Rand (via crates.io)
+    pkg:cocoapods/AFNetworking    The latest version of AFNetworking (via cocoapods.org)
+    pkg:composer/Smarty/Smarty    The latest version of Smarty (via Composer/ Packagist)
+    pkg:cpan/Apache-ACEProxy      The latest version of Apache::ACEProxy (via cpan.org)
+    pkg:cran/ACNE@0.8.0           Version 0.8.0 of ACNE (via cran.r-project.org)
+    pkg:gem/rubytree@*            All versions of RubyTree (via rubygems.org)
+    pkg:golang/sigs.k8s.io/yaml   The latest version of sigs.k8s.io/yaml (via proxy.golang.org)
+    pkg:github/Microsoft/DevSkim  The latest release of DevSkim (via GitHub)
+    pkg:hackage/a50@*             All versions of a50 (via hackage.haskell.org)
+    pkg:maven/org.apdplat/deep-qa The latest version of org.apdplat.deep-qa (via repo1.maven.org)
+    pkg:npm/express               The latest version of Express (via npm.org)
+    pkg:nuget/Newtonsoft.JSON     The latest version of Newtonsoft.JSON (via nuget.org)
+    pkg:pypi/django@1.11.1        Version 1.11.1 of Django (via pypi.org)
+    pkg:ubuntu/zerofree           The latest version of zerofree from Ubuntu (via packages.ubuntu.com)
+    pkg:vsm/MLNET/07              The latest version of MLNET.07 (from marketplace.visualstudio.com)
+    pkg:url/foo@1.0?url=<URL>     The direct URL <URL>\n";
             return supportedHelpText;
         }
 

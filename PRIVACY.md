@@ -9,12 +9,11 @@ https://go.microsoft.com/fwlink/?LinkID=824704.
 
 However, OSS Gadget does make outbound network connections to various locations,
 including NPM (registry.npmjs.org), NuGet (api.nuget.org), and RubyGems (rubygems.org).
-These connections are unauthenticated and made directly to that service. As such,
+These connections are generally unauthenticated and made directly to that service. As such,
 their privacy policy would apply.
 
-In addition, the health calculator (oss-health.exe) tool queries GitHub using the
-public API. In order to do so, it needs an API key, which you would need to
-include. This connection is therefore authenticated, between the tool and GitHub, and
-as such, the [GitHub privacy policy](https://help.github.com/en/github/site-policy/github-privacy-statement)
-would apply.
+In addition, the health calculator (oss-health.exe) and metadata (oss-metadata) tools use API keys
+to query GitHub and libraries.io. Since this connection is authenticated, the
+[GitHub privacy policy](https://help.github.com/en/github/site-policy/github-privacy-statement) and
+[Libraries.io privacy policy](https://libraries.io/privacy) would apply.
 

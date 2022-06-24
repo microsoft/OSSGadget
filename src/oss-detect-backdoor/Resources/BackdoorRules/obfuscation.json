@@ -120,5 +120,77 @@
         "confidence": "medium"
       }
     ]
-  }
+  },
+  {
+    "name": "Backdoor: Obfuscated Dangerous Commands (exec)",
+    "id": "BD000806",
+    "description": "Backdoor: Obfuscated Dangerous Command (exec)",
+    "tags": [
+      "Security.Backdoor.Obfuscation.DangerousCommands"
+    ],
+    "severity": "critical",
+    "applies_to": [ "python" ],
+    "patterns": [
+      {
+        "pattern": "65786563",
+        "type": "string",
+        "scopes": [ "code" ],
+        "modifiers": []
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Obfuscated Dangerous Commands (eval)",
+    "id": "BD000807",
+    "description": "Backdoor: Obfuscated Dangerous Command (eval)",
+    "tags": [
+      "Security.Backdoor.Obfuscation.DangerousCommands"
+    ],
+    "severity": "critical",
+    "applies_to": [ "python" ],
+    "patterns": [
+      {
+        "pattern": "6576616C28",
+        "type": "string",
+        "scopes": [ "code" ],
+        "modifiers": []
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Obfuscated Dangerous Commands (system)",
+    "id": "BD000808",
+    "description": "Backdoor: Obfuscated Dangerous Command (system)",
+    "tags": [
+      "Security.Backdoor.Obfuscation.DangerousCommands"
+    ],
+    "severity": "critical",
+    "applies_to": [ "python" ],
+    "patterns": [
+      {
+        "pattern": "73797374656d",
+        "type": "string",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ]
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Obfuscated Dangerous Commands (base64_decode)",
+    "id": "BD000809",
+    "description": "Backdoor: Obfuscated Dangerous Command (base64_decode)",
+    "tags": [
+      "Security.Backdoor.Obfuscation.DangerousCommands"
+    ],
+    "severity": "critical",
+    "applies_to": [ "python" ],
+    "patterns": [
+      {
+        "pattern": "61736536345f6465636f646528677a696e666c61746528",
+        "type": "string",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ]
+      }
+    ]
+  }  
 ]

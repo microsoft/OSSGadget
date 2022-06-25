@@ -26,7 +26,7 @@ namespace Microsoft.CST.OpenSource
                 get
                 {
                     return new List<Example>() {
-                        new Example("Find the normalized metadata for the given package",
+                        new Example("Find the normalized metadata for the given package. Not all package ecosystems are supported.",
                         new Options { Targets = new List<string>() {"[options]", "package-url..." } })};
                 }
             }
@@ -42,12 +42,17 @@ namespace Microsoft.CST.OpenSource
                 HelpText = "Should metadata use the cache, and get cached?")]
             public bool UseCache { get; set; } = false;
 
-            [Value(0, Required = true,
+            [Option("list-supported", Required = false, Default = false,
+                HelpText = "List the supported package ecosystems")]
+            public bool ListSupported { get; set; } = false;
+
+            [Value(0, Required = false, 
                 HelpText = "PackgeURL(s) specifier to analyze (required, repeats OK)", Hidden = true)] // capture all targets to analyze
             public IEnumerable<string> Targets { get => targets; set => targets = value; }
 
             private IEnumerable<string> targets = Array.Empty<string>();
         }
+        private bool _ShowError = false;
 
         public MetadataTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
         {
@@ -63,7 +68,41 @@ namespace Microsoft.CST.OpenSource
         {
             ShowToolBanner();
             MetadataTool? metadataTool = new MetadataTool();
-            await metadataTool.ParseOptions<Options>(args).WithParsedAsync(metadataTool.RunAsync);
+            var parserResult = await metadataTool.ParseOptions<Options>(args).WithParsedAsync(async options => {
+                if (options.ListSupported)
+                {
+                    metadataTool.ListSupported(options);
+                    return;
+                }
+                await metadataTool.RunAsync(options);
+            });
+        }
+
+        private void ListSupported(Options options)
+        {
+            Console.WriteLine("\nSupported ecosystems:");
+            var dataSources = typeof(BaseMetadataSource).Assembly.GetTypes()
+                .Where(t => t.IsSubclassOf(typeof(BaseMetadataSource)));
+
+            foreach (var dataSource in dataSources.Where(d => d != null))
+            {
+                var field = dataSource.GetField("VALID_TYPES", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public);
+                if (field == null)
+                    continue;
+
+                var validTypes = (List<string>?)field.GetValue(dataSource.GetConstructor(new Type[] { })?.Invoke(new object[] { }));
+                if (validTypes == null || validTypes.Count == 0)
+                    continue;
+
+                Console.WriteLine($"  {dataSource.Name}");
+                validTypes.Sort();
+
+                foreach (var validType in validTypes)
+                {
+                    Console.WriteLine($"  - {validType}");
+                }
+                Console.WriteLine();
+            }
         }
 
         private async Task RunAsync(Options options)
@@ -130,7 +169,7 @@ namespace Microsoft.CST.OpenSource
             }
             else
             {
-                Logger.Error("No targets specified");
+                Logger.Error("No targets specified. Use --help for options.");
             }
         }
     }

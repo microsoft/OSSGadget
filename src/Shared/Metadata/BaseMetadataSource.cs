@@ -47,7 +47,7 @@ public abstract class BaseMetadataSource
     {
         policy ??= Policy
             .Handle<HttpRequestException>()
-            .OrResult<HttpResponseMessage>(r => r.StatusCode != HttpStatusCode.OK)
+            .OrResult<HttpResponseMessage>(r => (int)r.StatusCode >= 500 || r.StatusCode == HttpStatusCode.TooManyRequests)
             .WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromSeconds(15), retryCount: 5));
 
         var result = await policy.ExecuteAsync(() => HttpClient.GetAsync(uri, HttpCompletionOption.ResponseContentRead));

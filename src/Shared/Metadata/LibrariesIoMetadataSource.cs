@@ -61,10 +61,14 @@ public class LibrariesIoMetadataSource : BaseMetadataSource
         }
 
         var apiKey = ENV_LIBRARIES_IO_API_KEY != null ? $"apiKey={ENV_LIBRARIES_IO_API_KEY}" : "";
-        var packageNamespaceEnc = ("/" + packageNamespace?.Replace("@", "%40").Replace("/", "%2F")) ?? "";
+        var packageNamespaceEnc = packageNamespace?.Replace("@", "%40").Replace("/", "%2F");
         var packageNameEnc = packageName.Replace("@", "%40").Replace("/", "%2F");
+
+        var fullPackageName = string.IsNullOrWhiteSpace(packageNamespaceEnc) ?
+            $"{packageNameEnc}" :
+            $"{packageNamespaceEnc}%2F{packageNameEnc}";
         
-        var url = $"{ENV_LIBRARIES_IO_ENDPOINT}/{packageTypeEnc}{packageNamespaceEnc}/{packageNameEnc}?{apiKey}";
+        var url = $"{ENV_LIBRARIES_IO_ENDPOINT}/{packageTypeEnc}/{fullPackageName}?{apiKey}";
 
         try
         {

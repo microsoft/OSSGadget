@@ -35,12 +35,15 @@ public class DepsDevMetadataSource : BaseMetadataSource
         {
             Logger.Warn("Unable to get metadata for [{} {}]. Package type [{}] is not supported. Try another data provider.", packageNamespace, packageName, packageType);
         }
-
-        var packageNamespaceEnc = ("/" + packageNamespace?.Replace("@", "%40").Replace("/", "%2F")) ?? "";
+        var packageNamespaceEnc = packageNamespace?.Replace("@", "%40").Replace("/", "%2F");
         var packageNameEnc = packageName.Replace("@", "%40").Replace("/", "%2F");
-        
+
+        var fullPackageName = string.IsNullOrWhiteSpace(packageNamespaceEnc) ?
+            $"{packageNameEnc}" :
+            $"{packageNamespaceEnc}%2F{packageNameEnc}";
+
         // The missing slash in the next line is not a bug.
-        var url = $"{ENV_DEPS_DEV_ENDPOINT}/s/{packageTypeEnc}/p{packageNamespaceEnc}/{packageNameEnc}/v/{packageVersion}";
+        var url = $"{ENV_DEPS_DEV_ENDPOINT}/s/{packageTypeEnc}/p/{fullPackageName}/v/{packageVersion}";
         try
         {
             return await BaseProjectManager.GetJsonCache(HttpClient, url, useCache);

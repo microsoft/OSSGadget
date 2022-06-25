@@ -3,7 +3,6 @@
 using ICSharpCode.Decompiler;
 using ICSharpCode.Decompiler.CSharp;
 using Microsoft.CST.OpenSource.Shared;
-using Microsoft.DevSkim;
 using PeNet;
 using SharpDisasm;
 using System;
@@ -16,23 +15,21 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using WebAssembly; // Acquire from https://www.nuget.org/packages/WebAssembly
 using WebAssembly.Instructions;
+using Microsoft.ApplicationInspector.Commands;
+using static Crayon.Output;
+using Microsoft.ApplicationInspector.RulesEngine;
+using Microsoft.CST.RecursiveExtractor;
 
 namespace Microsoft.CST.OpenSource
 {
+    using Helpers;
+    using Microsoft.CST.OpenSource.PackageManagers;
+    using PackageUrl;
+
     public class DetectCryptographyTool : OSSGadget
     {
         /// <summary>
-        ///     Name of this tool.
-        /// </summary>
-        private const string TOOL_NAME = "oss-detect-cryptography";
-
-        /// <summary>
-        ///     Holds the version string, from the assembly.
-        /// </summary>
-        private static readonly string VERSION = typeof(DetectCryptographyTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
-
-        /// <summary>
-        ///     Command line options
+        /// Command line options
         /// </summary>
         public Dictionary<string, object?> Options = new Dictionary<string, object?>()
         {
@@ -52,13 +49,14 @@ namespace Microsoft.CST.OpenSource
         };
 
         /// <summary>
-        ///     Main entrypoint for the download program.
+        /// Main entrypoint for the download program.
         /// </summary>
-        /// <param name="args"> parameters passed in from the user </param>
+        /// <param name="args">parameters passed in from the user</param>
         private static async Task Main(string[] args)
         {
+            ShowToolBanner();
+
             DetectCryptographyTool detectCryptographyTool = new DetectCryptographyTool();
-            Logger.Info($"Microsoft OSS Gadget - {TOOL_NAME} {VERSION}");
 
             detectCryptographyTool.ParseOptions(args);
 
@@ -67,8 +65,8 @@ namespace Microsoft.CST.OpenSource
             IOutputBuilder outputBuilder = detectCryptographyTool.SelectFormat((string?)detectCryptographyTool.Options["format"] ?? "text");
             if (detectCryptographyTool.Options["target"] is IList<string> targetList && targetList.Count > 0)
             {
-                var sb = new StringBuilder();
-                foreach (var target in targetList)
+                StringBuilder? sb = new StringBuilder();
+                foreach (string? target in targetList)
                 {
                     sb.Clear();
                     try
@@ -76,13 +74,13 @@ namespace Microsoft.CST.OpenSource
                         List<IssueRecord>? results = null;
                         if (target.StartsWith("pkg:", StringComparison.InvariantCulture))
                         {
-                            var purl = new PackageURL(target);
+                            PackageURL? purl = new PackageURL(target);
                             results = await (detectCryptographyTool.AnalyzePackage(purl,
                                 (string?)detectCryptographyTool.Options["download-directory"] ?? string.Empty,
                                 (bool?)detectCryptographyTool.Options["use-cache"] == true) ??
                                 Task.FromResult(new List<IssueRecord>()));
                         }
-                        else if (Directory.Exists(target))
+                        else if (System.IO.Directory.Exists(target))
                         {
                             results = await (detectCryptographyTool.AnalyzeDirectory(target) ??
                                                                 Task.FromResult(new List<IssueRecord>()));
@@ -90,97 +88,115 @@ namespace Microsoft.CST.OpenSource
                         else if (File.Exists(target))
                         {
                             string? targetDirectoryName = null;
-                            while (targetDirectoryName == null || Directory.Exists(targetDirectoryName))
+                            while (targetDirectoryName == null || System.IO.Directory.Exists(targetDirectoryName))
                             {
                                 targetDirectoryName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                             }
-                            var projectManager = ProjectManagerFactory.CreateBaseProjectManager(targetDirectoryName);
 
-#pragma warning disable SCS0018 // Path traversal: injection possible in {1} argument passed to '{0}'
-                            var path = await projectManager.ExtractArchive("temp", File.ReadAllBytes(target));
-#pragma warning restore SCS0018 // Path traversal: injection possible in {1} argument passed to '{0}'
+                            string? path = await ArchiveHelper.ExtractArchiveAsync(targetDirectoryName, Path.GetFileName(target), File.OpenRead(target));
 
-                            results = await (detectCryptographyTool.AnalyzeDirectory(path) ??
-                                                                Task.FromResult(new List<IssueRecord>())); ;
+                            results = await detectCryptographyTool.AnalyzeDirectory(path);
 
                             // Clean up after ourselves
-                            try
-                            {
-                                if (targetDirectoryName != null)
-                                {
-                                    Directory.Delete(targetDirectoryName, true);
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Logger.Warn("Unable to delete {0}: {1}", targetDirectoryName, ex.Message);
-                            }
+
+                        }
+                        else
+                        {
+                            Logger.Warn($"{target} was neither a Package URL, directory, nor a file.");
+                            continue;
                         }
 
                         if (results == null)
                         {
-                            Logger.Warn("Error generating results, was null.");
-                        }
-                        else if (!results.Any())
-                        {
-                            sb.AppendLine($"[ ] {target} - This software package does NOT appear to implement cryptography.");
+                            Logger.Warn("No results were generated.");
+                            continue;
                         }
                         else
                         {
-                            var shortTags = results.SelectMany(r => r.Issue.Rule.Tags ?? Array.Empty<string>())
-                                                   .Distinct()
-                                                   .Where(t => t.StartsWith("Cryptography.Implementation."))
-                                                   .Select(t => t.Replace("Cryptography.Implementation.", ""));
-                            var otherTags = results.SelectMany(r => r.Issue.Rule.Tags ?? Array.Empty<string>())
-                                                   .Distinct()
-                                                   .Where(t => !t.StartsWith("Cryptography.Implementation."));
+                            sb.AppendLine("Summary Results:");
 
-                            if (shortTags.Count() > 0)
+                            sb.AppendLine(Blue("Cryptographic Implementations:"));
+                            IOrderedEnumerable<string>? implementations = results.SelectMany(r => r.Issue.Rule.Tags ?? Array.Empty<string>())
+                                                         .Distinct()
+                                                         .Where(t => t.StartsWith("Cryptography.Implementation."))
+                                                         .Select(t => t.Replace("Cryptography.Implementation.", ""))
+                                                         .OrderBy(s => s);
+                            if (implementations.Any())
                             {
-                                sb.AppendLine($"[X] {target} - This software package appears to implement {string.Join(", ", shortTags)}.");
-                            }
-
-                            if (otherTags.Contains("Cryptography.GenericImplementation.HighDensityOperators"))
-                            {
-                                sb.AppendLine($"[X] {target} - This software package has a high-density of cryptographic operators.");
+                                foreach (string? tag in implementations)
+                                {
+                                    sb.AppendLine(Bright.Blue($" * {tag}"));
+                                }
                             }
                             else
                             {
-                                sb.AppendLine($"[ ] {target} - This software package does NOT have a high-density of cryptographic operators.");
+                                sb.AppendLine(Bright.Black("  No implementations found."));
                             }
 
-                            if (otherTags.Contains("Cryptography.GenericImplementation.CryptographicWords"))
+                            sb.AppendLine();
+                            sb.AppendLine(Red("Cryptographic Library References:"));
+                            IOrderedEnumerable<string>? references = results.SelectMany(r => r.Issue.Rule.Tags ?? Array.Empty<string>())
+                                                    .Distinct()
+                                                    .Where(t => t.StartsWith("Cryptography.Reference."))
+                                                    .Select(t => t.Replace("Cryptography.Reference.", ""))
+                                                    .OrderBy(s => s);
+
+                            if (references.Any())
                             {
-                                sb.AppendLine($"[X] {target} - This software package contains words that suggest cryptography.");
+                                foreach (string? tag in references)
+                                {
+                                    sb.AppendLine(Bright.Red($" * {tag}"));
+                                }
                             }
                             else
                             {
-                                sb.AppendLine($"[ ] {target} - This software package does NOT contains words that suggest cryptography.");
+                                sb.AppendLine(Bright.Black("  No library references found."));
+                            }
+
+                            sb.AppendLine();
+                            sb.AppendLine(Green("Other Cryptographic Characteristics:"));
+                            IOrderedEnumerable<string>? characteristics = results.SelectMany(r => r.Issue.Rule.Tags ?? Array.Empty<string>())
+                                                         .Distinct()
+                                                         .Where(t => t.Contains("Crypto", StringComparison.InvariantCultureIgnoreCase)&&
+                                                                     !t.StartsWith("Cryptography.Implementation.") &&
+                                                                     !t.StartsWith("Cryptography.Reference."))
+                                                         .Select(t => t.Replace("Cryptography.", ""))
+                                                         .OrderBy(s => s);
+                            if (characteristics.Any())
+                            {
+                                foreach (string? tag in characteristics)
+                                {
+                                    sb.AppendLine(Bright.Green($" * {tag}"));
+                                }
+                            }
+                            else
+                            {
+                                sb.AppendLine(Bright.Black("  No additional characteristics found."));
                             }
 
                             if ((bool?)detectCryptographyTool.Options["verbose"] == true)
                             {
-                                var items = results.GroupBy(k => k.Issue.Rule.Name).OrderByDescending(k => k.Count());
-                                foreach (var item in items)
+                                IOrderedEnumerable<IGrouping<string, IssueRecord>>? items = results.GroupBy(k => k.Issue.Rule.Name).OrderByDescending(k => k.Count());
+                                foreach (IGrouping<string, IssueRecord>? item in items)
                                 {
                                     sb.AppendLine();
                                     sb.AppendLine($"There were {item.Count()} finding(s) of type [{item.Key}].");
 
-                                    foreach (var result in results)
+                                    foreach (IssueRecord? result in results)
                                     {
                                         if (result.Issue.Rule.Name == item.Key)
                                         {
                                             sb.AppendLine($" {result.Filename}:");
                                             if (result.Issue.Rule.Id == "_CRYPTO_DENSITY")
                                             {
-                                                // No excerpt for cryptogrpahic density
+                                                // No excerpt for cryptographic density
                                                 // TODO: We stuffed the density in the unused 'Description' field. This is code smell.
                                                 sb.AppendLine($"  | The maximum cryptographic density is {result.Issue.Rule.Description}.");
                                             }
                                             else
                                             {
                                                 // Show the excerpt
-                                                foreach (var line in result.TextSample.Split(new char[] { '\n', '\r' }))
+                                                foreach (string? line in result.TextSample.Split(new char[] { '\n', '\r' }))
                                                 {
                                                     if (!string.IsNullOrWhiteSpace(line))
                                                     {
@@ -196,7 +212,7 @@ namespace Microsoft.CST.OpenSource
 
                             if (Logger.IsDebugEnabled)
                             {
-                                foreach (var result in results)
+                                foreach (IssueRecord? result in results)
                                 {
                                     Logger.Debug($"Result: {result.Filename} {result.Issue.Rule.Name} {result.TextSample}");
                                 }
@@ -219,43 +235,37 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        public DetectCryptographyTool() : base()
+        public DetectCryptographyTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
+        {
+        }
+
+        public DetectCryptographyTool() : this(new ProjectManagerFactory())
         {
         }
 
         /// <summary>
-        ///     Analyze a package by downloading it first.
+        /// Analyze a package by downloading it first.
         /// </summary>
-        /// <param name="purl"> The package-url of the package to analyze. </param>
-        /// <returns> List of tags identified </returns>
+        /// <param name="purl">The package-url of the package to analyze.</param>
+        /// <returns>List of tags identified</returns>
         public async Task<List<IssueRecord>> AnalyzePackage(PackageURL purl, string? targetDirectoryName, bool doCaching)
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
 
-            var packageDownloader = new PackageDownloader(purl, targetDirectoryName, doCaching);
-            var directoryNames = await packageDownloader.DownloadPackageLocalCopy(purl, false, true);
+            PackageDownloader? packageDownloader = new(purl, ProjectManagerFactory, targetDirectoryName, doCaching);
+            List<string>? directoryNames = await packageDownloader.DownloadPackageLocalCopy(purl, false, true);
             directoryNames = directoryNames.Distinct().ToList<string>();
 
-            var analysisResults = new List<IssueRecord>();
+            List<IssueRecord>? analysisResults = new List<IssueRecord>();
             if (directoryNames.Count > 0)
             {
-                foreach (var directoryName in directoryNames)
+                foreach (string? directoryName in directoryNames)
                 {
                     Logger.Trace("Analyzing directory {0}", directoryName);
-                    var singleResult = await AnalyzeDirectory(directoryName);
+                    List<IssueRecord>? singleResult = await AnalyzeDirectory(directoryName);
                     if (singleResult != null)
                     {
                         analysisResults.AddRange(singleResult);
-                    }
-
-                    Logger.Trace("Removing directory {0}", directoryName);
-                    try
-                    {
-                        Directory.Delete(directoryName, true);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Warn("Error removing {0}: {1}", directoryName, ex.Message);
                     }
                 }
             }
@@ -264,7 +274,7 @@ namespace Microsoft.CST.OpenSource
                 Logger.Warn("Error downloading {0}.", purl.ToString());
             }
             packageDownloader.ClearPackageLocalCopyIfNoCaching();
-
+            packageDownloader.DeleteDestinationDirectoryIfTemp();
             return analysisResults.ToList();
         }
 
@@ -279,9 +289,9 @@ namespace Microsoft.CST.OpenSource
 
             // Check if we have a binary file - meaning more than 10% control characters
             // TODO: Is this the right metric?
-            var bufferString = Encoding.ASCII.GetString(buffer);
-            var countControlChars = bufferString.Count(ch => char.IsControl(ch) && ch != '\r' && ch != '\n' && ch != '\t');
-            var isBinaryFile = (((double)countControlChars / (double)bufferString.Length) > 0.10);
+            string? bufferString = Encoding.ASCII.GetString(buffer);
+            int countControlChars = bufferString.Count(ch => char.IsControl(ch) && ch != '\r' && ch != '\n' && ch != '\t');
+            bool isBinaryFile = (((double)countControlChars / (double)bufferString.Length) > 0.10);
 
             if (isBinaryFile)
             {
@@ -290,7 +300,7 @@ namespace Microsoft.CST.OpenSource
                 {
                     try
                     {
-                        var decompiler = new CSharpDecompiler(filename, new DecompilerSettings());
+                        CSharpDecompiler? decompiler = new CSharpDecompiler(filename, new DecompilerSettings());
                         return decompiler.DecompileWholeModuleAsString();
                     }
                     catch (Exception ex)
@@ -299,16 +309,16 @@ namespace Microsoft.CST.OpenSource
                     }
                 }
 
-                var resultStrings = new HashSet<string>();
+                HashSet<string>? resultStrings = new HashSet<string>();
 
                 try
                 {
                     // Do a full disassembly, but only show unique lines.
                     Disassembler.Translator.IncludeAddress = false;
                     Disassembler.Translator.IncludeBinary = false;
-                    var architecture = buffer.Length > 5 && buffer[5] == 0x02 ? ArchitectureMode.x86_64 : ArchitectureMode.x86_32;
-                    using var disassembler = new Disassembler(buffer, architecture);
-                    foreach (var instruction in disassembler.Disassemble())
+                    ArchitectureMode architecture = buffer.Length > 5 && buffer[5] == 0x02 ? ArchitectureMode.x86_64 : ArchitectureMode.x86_32;
+                    using Disassembler? disassembler = new Disassembler(buffer, architecture);
+                    foreach (SharpDisasm.Instruction? instruction in disassembler.Disassemble())
                     {
                         resultStrings.Add(instruction.ToString());
                     }
@@ -321,17 +331,18 @@ namespace Microsoft.CST.OpenSource
                 try
                 {
                     // Maybe it's WebAseembly -- @TODO Make this less random.
-                    using var webAssemblyByteStream = new MemoryStream(buffer);
-                    var m = WebAssembly.Module.ReadFromBinary(webAssemblyByteStream);
+                    using MemoryStream? webAssemblyByteStream = new MemoryStream(buffer);
 
-                    foreach (var data in m.Data)
+                    WebAssembly.Module? m = WebAssembly.Module.ReadFromBinary(webAssemblyByteStream);
+
+                    foreach (Data? data in m.Data)
                     {
                         resultStrings.Add(Encoding.ASCII.GetString(data.RawData.ToArray()));
                     }
 
-                    foreach (var functionBody in m.Codes)
+                    foreach (FunctionBody? functionBody in m.Codes)
                     {
-                        foreach (var instruction in functionBody.Code)
+                        foreach (WebAssembly.Instruction? instruction in functionBody.Code)
                         {
                             switch (instruction.OpCode)
                             {
@@ -349,6 +360,10 @@ namespace Microsoft.CST.OpenSource
                         }
                     }
                     return string.Join('\n', resultStrings);
+                }
+                catch (WebAssembly.ModuleLoadException)
+                {
+                    // OK to ignore
                 }
                 catch (Exception ex)
                 {
@@ -368,28 +383,47 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        ///     Analyzes a directory of files.
+        /// Analyzes a directory of files.
         /// </summary>
-        /// <param name="directory"> directory to analyze. </param>
-        /// <returns> List of tags identified </returns>
+        /// <param name="directory">directory to analyze.</param>
+        /// <returns>List of tags identified</returns>
         public async Task<List<IssueRecord>> AnalyzeDirectory(string directory)
         {
             Logger.Trace("AnalyzeDirectory({0})", directory);
 
-            var analysisResults = new List<IssueRecord>();
+            List<IssueRecord>? analysisResults = new List<IssueRecord>();
 
-            RuleSet rules = new RuleSet();
+            RuleSet rules = new RuleSet(null);
             if (Options["disable-default-rules"] is bool disableDefaultRules && !disableDefaultRules)
             {
-                var assembly = Assembly.GetExecutingAssembly();
-                foreach (var resourceName in assembly.GetManifestResourceNames())
+                Assembly? assembly = Assembly.GetExecutingAssembly();
+                foreach (string? resourceName in assembly.GetManifestResourceNames())
                 {
                     if (resourceName.EndsWith(".json"))
                     {
                         try
                         {
-                            var stream = assembly.GetManifestResourceStream(resourceName);
-                            using var resourceStream = new StreamReader(stream ?? new MemoryStream());
+                            Stream? stream = assembly.GetManifestResourceStream(resourceName);
+                            using StreamReader? resourceStream = new StreamReader(stream ?? new MemoryStream());
+                            rules.AddString(resourceStream.ReadToEnd(), resourceName);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Warn(ex, "Error loading {0}: {1}", resourceName, ex.Message);
+                        }
+                    }
+                }
+
+                // Add Appliation Inspector cryptography rules
+                assembly = typeof(AnalyzeCommand).Assembly;
+                foreach (string? resourceName in assembly.GetManifestResourceNames())
+                {
+                    if (resourceName.EndsWith(".json"))
+                    {
+                        try
+                        {
+                            Stream? stream = assembly.GetManifestResourceStream(resourceName);
+                            using StreamReader? resourceStream = new StreamReader(stream ?? new MemoryStream());
                             rules.AddString(resourceStream.ReadToEnd(), resourceName);
                         }
                         catch (Exception ex)
@@ -410,14 +444,25 @@ namespace Microsoft.CST.OpenSource
                 Logger.Error("No rules were specified, unable to continue.");
                 return analysisResults; // empty
             }
+            RuleProcessor processor = new RuleProcessor(rules, new RuleProcessorOptions());
 
-            var processor = new RuleProcessor(rules)
+            string[] fileList;
+
+            if (System.IO.Directory.Exists(directory))
             {
-                EnableSuppressions = false,
-                SeverityLevel = (Severity)31
-            };
+                fileList = System.IO.Directory.GetFiles(directory, "*", SearchOption.AllDirectories);
+            }
+            else if (File.Exists(directory))
+            {
+                fileList = new string[] { directory };
+            }
+            else
+            {
+                Logger.Warn("{0} is neither a directory nor a file.", directory);
+                return analysisResults; // empty
+            }
 
-            foreach (var filename in Directory.GetFiles(directory, "*", SearchOption.AllDirectories))
+            foreach (string? filename in fileList)
             {
                 Logger.Trace($"Processing {filename}");
 
@@ -439,14 +484,14 @@ namespace Microsoft.CST.OpenSource
                     continue;
                 }
 
-                var buffer = NormalizeFileContent(filename, fileContents);
+                string? buffer = NormalizeFileContent(filename, fileContents);
                 Logger.Debug("Normalization complete.");
 
                 double MIN_CRYPTO_OP_DENSITY = 0.10;
                 try
                 {
                     // TODO don't do this if we disassembled native code
-                    var cryptoOperationLikelihood = CalculateCryptoOpDensity(buffer);
+                    double cryptoOperationLikelihood = CalculateCryptoOpDensity(buffer);
                     Logger.Debug("Cryptographic operation density for {0} was {1}", filename, cryptoOperationLikelihood);
 
                     if (cryptoOperationLikelihood >= MIN_CRYPTO_OP_DENSITY)
@@ -459,7 +504,7 @@ namespace Microsoft.CST.OpenSource
                                 Boundary: new Boundary(),
                                 StartLocation: new Location(),
                                 EndLocation: new Location(),
-                                Rule: new Rule("Crypto Symbols")
+                                Rule: new Rule()
                                 {
                                     Id = "_CRYPTO_DENSITY",
                                     Name = "Cryptographic symbols",
@@ -474,25 +519,30 @@ namespace Microsoft.CST.OpenSource
                     }
                     Logger.Debug($"Analyzing {filename}, length={buffer.Length}");
 
-                    Issue[]? fileResults = null;
-                    var task = Task.Run(() => processor.Analyze(buffer, Language.FromFileName(filename)));
-                    if (task.Wait(TimeSpan.FromSeconds(2)))
+                    List<MatchRecord>? fileResults = null;
+                    //processor.AnalyzeFile
+                    FileEntry? holderEntry = new FileEntry("placeholder", new MemoryStream(Encoding.UTF8.GetBytes(buffer)));
+                    LanguageInfo languageInfo = new LanguageInfo();
+
+                    Language.FromFileName(filename, ref languageInfo);
+                    Task<List<MatchRecord>>? task = Task.Run(() => processor.AnalyzeFile(holderEntry,languageInfo));
+                    if (task.Wait(TimeSpan.FromSeconds(30)))
                     {
                         fileResults = task.Result;
                     }
                     else
                     {
-                        Logger.Debug("DevSkim operation timed out.");
+                        Logger.Warn("DevSkim operation timed out.");
                         return analysisResults;
                     }
 
-                    Logger.Debug("Operation Complete: {0}", fileResults?.Length);
-                    foreach (var issue in fileResults ?? Array.Empty<Issue>())
+                    Logger.Debug("Operation Complete: {0}", fileResults?.Count);
+                    foreach (MatchRecord? issue in fileResults ?? new List<MatchRecord>())
                     {
-                        var fileContentArray = buffer.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
-                        var excerpt = new List<string>();
-                        var startLoc = Math.Max(issue.StartLocation.Line - 1, 0);
-                        var endLoc = Math.Min(issue.EndLocation.Line + 1, fileContentArray.Length - 1);
+                        string[]? fileContentArray = buffer.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+                        List<string>? excerpt = new List<string>();
+                        int startLoc = Math.Max(issue.StartLocationLine - 1, 0);
+                        int endLoc = Math.Min(issue.EndLocationLine + 1, fileContentArray.Length - 1);
                         for (int i = startLoc; i <= endLoc; i++)
                         {
                             excerpt.Add(fileContentArray[i].Trim());
@@ -501,8 +551,21 @@ namespace Microsoft.CST.OpenSource
                         analysisResults.Add(new IssueRecord(
                             Filename: filename,
                             Filesize: buffer.Length,
-                            TextSample: issue.StartLocation.Line + " => " + string.Join(Environment.NewLine, excerpt),
-                            Issue: issue)
+                            TextSample: issue.StartLocationLine + " => " + string.Join(Environment.NewLine, excerpt),
+                            Issue: new Issue(
+                                issue.Boundary, 
+                                new Location() 
+                                { 
+                                    Column = issue.StartLocationColumn, 
+                                    Line = issue.StartLocationLine 
+                                }, 
+                                new Location() 
+                                { 
+                                    Column = issue.EndLocationColumn, 
+                                    Line = issue.EndLocationLine 
+                                }, 
+                                issue.Rule)
+                            )
                         );
                     }
                 }
@@ -517,11 +580,11 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        ///     Calculates the density of cryptographic operators within the buffer.
+        /// Calculates the density of cryptographic operators within the buffer.
         /// </summary>
-        /// <param name="buffer"> Buffer to analyze </param>
-        /// <param name="windowSize"> Size of the window to use </param>
-        /// <returns> Ratio (0-1) of the most dense windowSize characters of the buffer. </returns>
+        /// <param name="buffer">Buffer to analyze</param>
+        /// <param name="windowSize">Size of the window to use</param>
+        /// <returns>Ratio (0-1) of the most dense windowSize characters of the buffer.</returns>
         private double CalculateCryptoOpDensity(string buffer, int windowSize = 50)
         {
             Logger.Trace("CalculateCryptoOpDensity()");
@@ -548,9 +611,9 @@ namespace Microsoft.CST.OpenSource
             windowSize = windowSize >= buffer.Length ? buffer.Length : windowSize;
             windowSize = windowSize <= 0 ? 50 : windowSize;
 
-            // This is a horrible regular expression, but the intent is to capture symbol characters that
-            // probably mean something within cryptographic code, but not within other code.
-            var cryptoChars = new Regex("(?<=[a-z0-9_])\\^=?(?=[a-z_])|(?<=[a-z0-9_])(>{2,3}|<{2,3})=?(?=[a-z0-9])|(?<=[a-z0-9_])([&^~|])=?(?=[a-z0-9])", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            // This is a horrible regular expression, but the intent is to capture symbol characters
+            // that probably mean something within cryptographic code, but not within other code.
+            Regex? cryptoChars = new Regex("(?<=[a-z0-9_])\\^=?(?=[a-z_])|(?<=[a-z0-9_])(>{2,3}|<{2,3})=?(?=[a-z0-9])|(?<=[a-z0-9_])([&^~|])=?(?=[a-z0-9])", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
             // We report on the highest ratio of symbol to total characters
             double maxRatio = 0;
@@ -558,7 +621,7 @@ namespace Microsoft.CST.OpenSource
             // Iterate through all windows: TODO We can skip-count a few here
             for (int i = 0; i < buffer.Length - windowSize; i += 1)
             {
-                var windowBuffer = buffer.Substring(i, windowSize);
+                string? windowBuffer = buffer.Substring(i, windowSize);
                 windowBuffer = cryptoChars.Replace(windowBuffer, string.Empty);
                 double ratio = ((double)windowSize - (double)windowBuffer.Length) / (double)windowSize;
                 if (ratio > maxRatio)
@@ -572,22 +635,22 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        ///     Extract unique strings (alphabetic) from a string
-        ///     TODO: This is ASCII-only.
+        /// Extract unique strings (alphabetic) from a string
+        /// TODO: This is ASCII-only.
         /// </summary>
-        /// <param name="buffer"> string to scan </param>
-        /// <returns> unique strings </returns>
+        /// <param name="buffer">string to scan</param>
+        /// <returns>unique strings</returns>
         private IEnumerable<string> UniqueStringsFromBinary(byte[] buffer)
         {
-            var bufferString = Encoding.ASCII.GetString(buffer);
-            var words = Regex.Matches(bufferString, @"([a-zA-Z]\.[a-zA-Z ]{4,})");
+            string? bufferString = Encoding.ASCII.GetString(buffer);
+            MatchCollection? words = Regex.Matches(bufferString, @"([a-zA-Z]\.[a-zA-Z ]{4,})");
             return words.Select(m => m.Value).Distinct<string>();
         }
 
         /// <summary>
-        ///     Parses options for this program.
+        /// Parses options for this program.
         /// </summary>
-        /// <param name="args"> arguments (passed in from the user) </param>
+        /// <param name="args">arguments (passed in from the user)</param>
         private void ParseOptions(string[] args)
         {
             if (args == null)
@@ -608,7 +671,7 @@ namespace Microsoft.CST.OpenSource
 
                     case "-v":
                     case "--version":
-                        Console.Error.WriteLine($"{TOOL_NAME} {VERSION}");
+                        Console.WriteLine($"{ToolName} {ToolVersion}");
                         Environment.Exit(1);
                         break;
 
@@ -643,19 +706,19 @@ namespace Microsoft.CST.OpenSource
         }
 
         /// <summary>
-        ///     Displays usage information for the program.
+        /// Displays usage information for the program.
         /// </summary>
         private static void ShowUsage()
         {
-            Console.Error.WriteLine($@"
-{TOOL_NAME} {VERSION}
+            Console.WriteLine($@"
+{ToolName} {ToolVersion}
 
-Usage: {TOOL_NAME} [options] package-url...
+Usage: {ToolName} [options] package-url...
 
 positional arguments:
-    package-url                 PackgeURL specifier to download (required, repeats OK)
+    package-url                 PackgeURL specifier to download (required, repeats OK), or directory.
 
-{BaseProjectManager.GetCommonSupportedHelpText()}
+{GetCommonSupportedHelpText()}
 
 optional arguments:
   --verbose                     increase output verbosity
@@ -663,7 +726,7 @@ optional arguments:
   --disable-default-rules       do not load default, built-in rules.
   --download-directory          the directory to download the package to
   --use-cache                   do not download the package if it is already present in the destination directory
-  --format                      selct the output format (text|sarifv1|sarifv2). (default is text)
+  --format                      specify the output format (text|sarifv1|sarifv2). (default is text)
   --output-file                 send the command output to a file instead of stdout
   --help                        show this help message and exit
   --version                     show version of this tool

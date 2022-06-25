@@ -1,0 +1,315 @@
+[
+  {
+    "name": "Backdoor: Data Exfiltration",
+    "id": "BD000700",
+    "description": "Backdoor: Data Exfiltration",
+    "tags": [
+      "Security.Backdoor.DataExfiltration"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": "\\.(request|post|get)\\(",
+        "type": "regex",
+        "scopes": [ "code", "comment" ],
+        "modifiers": [ "i" ],
+        "confidence": "low"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Data Exfiltration (Tokens)",
+    "id": "BD000701",
+    "description": "Backdoor: Data Exfiltration (Tokens)",
+    "tags": [
+      "Security.Backdoor.DataExfiltration.Token"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": "(npm owner|password|htpasswd|auth_?token|secret_?key|private_?key|authorized_keys?|npmrc|\\.ssh|usersecrets?|api_?keys|nuget\\.config|\\.identityservice)",
+        "type": "regex",
+        "scopes": [ "code", "comment" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Data Exfiltration (Environment)",
+    "id": "BD000702",
+    "description": "Backdoor: Data Exfiltration (Environment)",
+    "tags": [
+      "Security.Backdoor.DataExfiltration.Environment"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": "(env|environment).{1,50}(get|post|curl|nc|invoke-restmethod)",
+        "type": "regex",
+        "scopes": [ "code", "comment" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      },
+      {
+        "pattern": "(iex|invoke-expression)\\s+\\$env",
+        "type": "regex",
+        "scopes": [ "code", "comment" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      },
+      {
+        "pattern": "process.env",
+        "type": "string",
+        "scopes": [ "code" ],
+        "confidence": "low"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Data Exfiltration (Username)",
+    "id": "BD000703",
+    "description": "Backdoor: Data Exfiltration (Username)",
+    "tags": [
+      "Security.Backdoor.DataExfiltration.Username"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": ".userInfo",
+        "type": "string",
+        "scopes": [ "code" ],
+        "modifiers": [],
+        "confidence": "low"
+      },
+      {
+        "pattern": "whoami",
+        "type": "string",
+        "scopes": [ "code" ],
+        "modifiers": [],
+        "confidence": "low"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Data Exfiltration (Hostname)",
+    "id": "BD000704",
+    "description": "Backdoor: Data Exfiltration (Hostname)",
+    "tags": [
+      "Security.Backdoor.DataExfiltration.Hostname"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": ".hostname",
+        "type": "string",
+        "scopes": [ "code" ],
+        "modifiers": [],
+        "confidence": "low"
+      },
+      {
+        "pattern": "hostname",
+        "type": "string",
+        "scopes": [ "code" ],
+        "modifiers": [],
+        "confidence": "low"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Data Exfiltration (DNS)",
+    "id": "BD000705",
+    "description": "Backdoor: Data Exfiltration (DNS)",
+    "tags": [
+      "Security.Backdoor.DataExfiltration.DNS"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": "dns.lookup",
+        "type": "string",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "low"
+      },
+      {
+        "pattern": "dns.resolve",
+        "type": "string",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "low"
+      },
+      {
+        "pattern": "dns.setServers",
+        "type": "string",
+        "scopes": [ "code" ],
+        "modifiers": [],
+        "confidence": "low"
+      },
+      {
+        "pattern": "nslookup",
+        "type": "string",
+        "scopes": [ "code" ],
+        "modifiers": [],
+        "confidence": "low"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Data Exfiltration (Home Directory)",
+    "id": "BD000706",
+    "description": "Backdoor: Data Exfiltration (Home Directory)",
+    "tags": [
+      "Security.Backdoor.DataExfiltration.HomeDir"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": ".homedir",
+        "type": "string",
+        "scopes": [ "code" ],
+        "modifiers": [],
+        "confidence": "low"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Data Exfiltration (Platform)",
+    "id": "BD000707",
+    "description": "Backdoor: Data Exfiltration (Platform)",
+    "tags": [
+      "Security.Backdoor.DataExfiltration.Platform"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": ".platform",
+        "type": "string",
+        "scopes": [ "code" ],
+        "modifiers": [],
+        "confidence": "low"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Data Exfiltration (OS Type)",
+    "id": "BD000708",
+    "description": "Backdoor: Data Exfiltration (OS Type)",
+    "tags": [
+      "Security.Backdoor.DataExfiltration.OSType"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": "os.type",
+        "type": "string",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "low"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Data Exfiltration (Network Interfaces)",
+    "id": "BD000709",
+    "description": "Backdoor: Data Exfiltration (Network Interfaces)",
+    "tags": [
+      "Security.Backdoor.DataExfiltration.NetworkInterfaces"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": ".networkInterfaces",
+        "type": "string",
+        "scopes": [ "code" ],
+        "modifiers": [],
+        "confidence": "low"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Data Exfiltration (DNS Settings)",
+    "id": "BD000710",
+    "description": "Backdoor: Data Exfiltration (DNS Settings)",
+    "tags": [
+      "Security.Backdoor.DataExfiltration.DNSSettings"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": "dns.getServers",
+        "type": "string",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "low"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Data Exfiltration (Whoami)",
+    "id": "BD000711",
+    "description": "Backdoor: Data Exfiltration (Whoami)",
+    "tags": [
+      "Security.Backdoor.DataExfiltration.Whoami"
+    ],
+    "severity": "important",
+    "applies_to": [ "package.json" ],
+    "patterns": [
+      {
+        "pattern": "curl\\s+.*whoami",
+        "type": "regex",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Data Exfiltration (Dep Confusion Test)",
+    "id": "BD000712",
+    "description": "Backdoor: Data Exfiltration (Dep Confusion Test)",
+    "tags": [
+      "Security.Backdoor.DataExfiltration.DepConfusionTest"
+    ],
+    "severity": "important",
+    "applies_to": [ "javascript" ],
+    "patterns": [
+      {
+        "pattern": ".userInfo()",
+        "type": "substring",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      }
+    ],
+    "conditions": [
+      {
+        "pattern": {
+          "pattern": "dns",
+          "type": "string",
+          "scopes": [ "code" ],
+          "modifiers": [ "i" ]
+        },
+        "search_in": "finding-region(-30,30)"
+      },
+      {
+        "pattern": {
+          "pattern": "https",
+          "type": "string",
+          "scopes": [ "code" ],
+          "modifiers": [ "i" ]
+        },
+        "search_in": "finding-region(-30,30)"
+      },
+      {
+        "pattern": {
+          "pattern": ".request",
+          "type": "string",
+          "scopes": [ "code" ],
+          "modifiers": [ "i" ]
+        },
+        "search_in": "finding-region(-30,30)"
+      }
+    ]
+  }
+]

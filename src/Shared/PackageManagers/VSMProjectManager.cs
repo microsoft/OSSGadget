@@ -1,21 +1,35 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using Microsoft.Extensions.Caching.Memory;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Helpers;
+    using Microsoft.Extensions.Caching.Memory;
+    using PackageUrl;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Net.Http;
+    using System.Text;
+    using System.Text.Json;
+    using System.Threading.Tasks;
+
     internal class VSMProjectManager : BaseProjectManager
     {
+        /// <summary>
+        /// The type of the project manager from the package-url type specifications.
+        /// </summary>
+        /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
+        public const string Type = "vsm";
+
+        public override string ManagerType => Type;
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_VS_MARKETPLACE_ENDPOINT = "https://marketplace.visualstudio.com";
+
+        public VSMProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        {
+        }
 
         public VSMProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
@@ -26,24 +40,25 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl"> Package URL of the package to download. </param>
         /// <returns> the path or file written. </returns>
-        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
+        public override async Task<IEnumerable<string>> DownloadVersionAsync(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
-            var packageName = $"{purl?.Namespace}.{purl?.Name}";
-            var packageVersion = purl?.Version;
-            var downloadedPaths = new List<string>();
+            string? packageName = $"{purl?.Namespace}.{purl?.Name}";
+            string? packageVersion = purl?.Version;
+            List<string> downloadedPaths = new();
 
             if (string.IsNullOrWhiteSpace(purl?.Namespace) || string.IsNullOrWhiteSpace(purl?.Name) || string.IsNullOrWhiteSpace(packageVersion))
             {
-                Logger.Error("Unable to download [{0} {1} {2}]. All must be defined.", purl?.Namespace, packageName, packageVersion);
+                Logger.Debug("Unable to download [{0} {1} {2}]. All must be defined.", purl?.Namespace, packageName, packageVersion);
                 return downloadedPaths;
             }
 
             try
             {
+                HttpClient httpClient = CreateHttpClient();
                 Stream? resultStream = null;
-                var cacheResult = GetCache(packageName);
+                string? cacheResult = GetCache(packageName);
                 if (cacheResult != null)
                 {
                     Logger.Debug("Located result for {0} in cache.", packageName);
@@ -51,18 +66,18 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
                 else
                 {
-                    using var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{ENV_VS_MARKETPLACE_ENDPOINT}/_apis/public/gallery/extensionquery");
+                    using HttpRequestMessage requestMessage = new(HttpMethod.Post, $"{ENV_VS_MARKETPLACE_ENDPOINT}/_apis/public/gallery/extensionquery");
                     requestMessage.Headers.Add("Accept", "application/json;api-version=3.0-preview.1");
-                    var postContent = $"{{filters:[{{criteria:[{{filterType:7,value:\"{packageName}\"}}],pageSize:1000,pageNumber:1,sortBy:0}}],flags:131}}";
+                    string? postContent = $"{{filters:[{{criteria:[{{filterType:7,value:\"{packageName}\"}}],pageSize:1000,pageNumber:1,sortBy:0}}],flags:131}}";
                     requestMessage.Content = new StringContent(postContent, Encoding.UTF8, "application/json");
-                    var response = await WebClient.SendAsync(requestMessage);
+                    HttpResponseMessage response = await httpClient.SendAsync(requestMessage);
                     resultStream = await response.Content.ReadAsStreamAsync();
 
-                    using var resultStreamReader = new StreamReader(resultStream, leaveOpen: true);
+                    using StreamReader resultStreamReader = new(resultStream, leaveOpen: true);
                     SetCache(packageName, resultStreamReader.ReadToEnd());
                     resultStream.Seek(0, SeekOrigin.Begin);
                 }
-                var doc = JsonDocument.Parse(resultStream);
+                JsonDocument doc = JsonDocument.Parse(resultStream);
                 await resultStream.DisposeAsync();
 
                 if (!doc.RootElement.TryGetProperty("results", out JsonElement results))
@@ -73,21 +88,21 @@ namespace Microsoft.CST.OpenSource.Shared
                 /*
                  * This is incredibly verbose. If C# gets a `jq`-like library, we should switch to that.
                  */
-                foreach (var result in results.EnumerateArray())
+                foreach (JsonElement result in results.EnumerateArray())
                 {
                     if (!result.TryGetProperty("extensions", out JsonElement extensions))
                     {
                         continue;
                     }
 
-                    foreach (var extension in extensions.EnumerateArray())
+                    foreach (JsonElement extension in extensions.EnumerateArray())
                     {
                         if (!extension.TryGetProperty("versions", out JsonElement versions))
                         {
                             continue;
                         }
 
-                        foreach (var version in versions.EnumerateArray())
+                        foreach (JsonElement version in versions.EnumerateArray())
                         {
                             if (!version.TryGetProperty("version", out JsonElement versionString))
                             {
@@ -104,7 +119,7 @@ namespace Microsoft.CST.OpenSource.Shared
                                 continue;  // No files present
                             }
 
-                            foreach (var file in files.EnumerateArray())
+                            foreach (JsonElement file in files.EnumerateArray())
                             {
                                 // Must have both an asset type and a source
                                 if (!file.TryGetProperty("source", out JsonElement source))
@@ -118,9 +133,9 @@ namespace Microsoft.CST.OpenSource.Shared
 
                                 try
                                 {
-                                    var downloadResult = await WebClient.GetAsync(source.GetString());
+                                    HttpResponseMessage downloadResult = await httpClient.GetAsync(source.GetString());
                                     downloadResult.EnsureSuccessStatusCode();
-                                    var targetName = $"vsm-{packageName}@{packageVersion}-{assetType}";
+                                    string? targetName = $"vsm-{packageName}@{packageVersion}-{assetType}";
                                     string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                                     if (doExtract && Directory.Exists(extractionPath) && cached == true)
                                     {
@@ -129,18 +144,18 @@ namespace Microsoft.CST.OpenSource.Shared
                                     }
                                     if (doExtract)
                                     {
-                                        downloadedPaths.Add(await ExtractArchive(targetName, await downloadResult.Content.ReadAsByteArrayAsync(), cached));
+                                        downloadedPaths.Add(await ArchiveHelper.ExtractArchiveAsync(TopLevelExtractionDirectory, targetName, await downloadResult.Content.ReadAsStreamAsync(), cached));
                                     }
                                     else
                                     {
-                                        targetName += Path.GetExtension(source.GetString()) ?? "";
-                                        await File.WriteAllBytesAsync(targetName, await downloadResult.Content.ReadAsByteArrayAsync());
-                                        downloadedPaths.Add(targetName);
+                                        extractionPath += Path.GetExtension(source.GetString()) ?? "";
+                                        await File.WriteAllBytesAsync(extractionPath, await downloadResult.Content.ReadAsByteArrayAsync());
+                                        downloadedPaths.Add(extractionPath);
                                     }
                                 }
                                 catch (Exception ex)
                                 {
-                                    Logger.Warn(ex, "Error downloading {0}: {1}", source.GetString(), ex.Message);
+                                    Logger.Debug(ex, "Error downloading {0}: {1}", source.GetString(), ex.Message);
                                 }
                             }
                         }
@@ -149,22 +164,23 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Warn(ex, "Error downloading VS Marketplace package: {0}", ex.Message);
+                Logger.Debug(ex, "Error downloading VS Marketplace package: {0}", ex.Message);
             }
             return downloadedPaths;
         }
 
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
+        /// <inheritdoc />
+        public override async Task<IEnumerable<string>> EnumerateVersionsAsync(PackageURL purl, bool useCache = true, bool includePrerelease = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
 
-            var versionList = new List<string>();
+            List<string> versionList = new();
             if (purl == null || purl.Namespace == null || purl.Name == null)
             {
                 return versionList;
             }
 
-            var packageName = $"{purl.Namespace}.{purl.Name}";
+            string packageName = $"{purl.Namespace}.{purl.Name}";
 
             // Double quotes probably aren't allowed in package names, but nevertheless...
             packageName = packageName.Replace("\"", "\\\"");
@@ -172,7 +188,7 @@ namespace Microsoft.CST.OpenSource.Shared
             try
             {
                 Stream? resultStream = null;
-                var cacheResult = GetCache(packageName);
+                string? cacheResult = GetCache(packageName);
                 if (cacheResult != null)
                 {
                     Logger.Debug("Located result for {0} in cache.", packageName);
@@ -180,18 +196,20 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
                 else
                 {
-                    using var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{ENV_VS_MARKETPLACE_ENDPOINT}/_apis/public/gallery/extensionquery");
+                    using HttpRequestMessage? requestMessage = new(HttpMethod.Post, $"{ENV_VS_MARKETPLACE_ENDPOINT}/_apis/public/gallery/extensionquery");
                     requestMessage.Headers.Add("Accept", "application/json;api-version=3.0-preview.1");
-                    var postContent = $"{{filters:[{{criteria:[{{filterType:7,value:\"{packageName}\"}}],pageSize:1000,pageNumber:1,sortBy:0}}],flags:131}}";
+                    string postContent = $"{{filters:[{{criteria:[{{filterType:7,value:\"{packageName}\"}}],pageSize:1000,pageNumber:1,sortBy:0}}],flags:131}}";
                     requestMessage.Content = new StringContent(postContent, Encoding.UTF8, "application/json");
-                    var response = await WebClient.SendAsync(requestMessage);
+                    HttpClient httpClient = CreateHttpClient();
+
+                    HttpResponseMessage response = await httpClient.SendAsync(requestMessage);
                     resultStream = await response.Content.ReadAsStreamAsync();
-                    using var resultStreamReader = new StreamReader(resultStream, leaveOpen: true);
+                    using StreamReader resultStreamReader = new(resultStream, leaveOpen: true);
                     SetCache(packageName, resultStreamReader.ReadToEnd());
                     resultStream.Seek(0, SeekOrigin.Begin);
                 }
 
-                var doc = await JsonDocument.ParseAsync(resultStream);
+                JsonDocument doc = await JsonDocument.ParseAsync(resultStream);
                 await resultStream.DisposeAsync();
 
                 if (!doc.RootElement.TryGetProperty("results", out JsonElement results))
@@ -202,28 +220,28 @@ namespace Microsoft.CST.OpenSource.Shared
                 /*
                  * This is incredibly verbose. If C# every gets a `jq`-like library, we should switch to that.
                  */
-                foreach (var result in results.EnumerateArray())
+                foreach (JsonElement result in results.EnumerateArray())
                 {
                     if (!result.TryGetProperty("extensions", out JsonElement extensions))
                     {
                         continue;
                     }
 
-                    foreach (var extension in extensions.EnumerateArray())
+                    foreach (JsonElement extension in extensions.EnumerateArray())
                     {
                         if (!extension.TryGetProperty("versions", out JsonElement versions))
                         {
                             continue;
                         }
 
-                        foreach (var version in versions.EnumerateArray())
+                        foreach (JsonElement version in versions.EnumerateArray())
                         {
                             if (!version.TryGetProperty("version", out JsonElement versionString))
                             {
                                 continue;
                             }
                             Logger.Debug("Identified {0} version {1}.", packageName, versionString.GetString());
-                            versionList.Add(versionString.GetString());
+                            versionList.Add(versionString.GetString() ?? string.Empty);
                         }
                     }
                 }
@@ -232,20 +250,22 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Warn(ex, "Error enumerating VS Marketplace packages: {0}", ex.Message);
-                return Array.Empty<string>();
+                Logger.Debug(ex, "Error enumerating VS Marketplace packages: {0}", ex.Message);
+                throw;
             }
         }
 
-        public override async Task<string?> GetMetadata(PackageURL purl)
+        public override async Task<string?> GetMetadataAsync(PackageURL purl, bool useCache = true)
         {
             try
             {
-                return await GetHttpStringCache($"{ENV_VS_MARKETPLACE_ENDPOINT}/items?itemName={purl.Namespace}/{purl.Name}");
+                HttpClient httpClient = CreateHttpClient();
+
+                return await GetHttpStringCache(httpClient, $"{ENV_VS_MARKETPLACE_ENDPOINT}/items?itemName={purl.Namespace}/{purl.Name}", useCache);
             }
             catch (Exception ex)
             {
-                Logger.Warn(ex, "Error fetching VS Marketplace metadata: {0}", ex.Message);
+                Logger.Debug(ex, "Error fetching VS Marketplace metadata: {0}", ex.Message);
                 return null;
             }
         }
@@ -270,7 +290,7 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             lock (DataCache)
             {
-                var mce = new MemoryCacheEntryOptions() { Size = value.Length };
+                MemoryCacheEntryOptions mce = new() { Size = value.Length };
                 DataCache.Set<string>($"vsm__{key}", value, mce);
             }
         }

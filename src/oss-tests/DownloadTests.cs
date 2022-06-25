@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using Microsoft.CST.OpenSource.Shared;
+using Microsoft.CST.OpenSource.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
@@ -10,15 +10,13 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Tests
 {
+    using PackageManagers;
+    using PackageUrl;
+    using System.Collections.Generic;
+
     [TestClass]
     public class DownloadTests
     {
-        [ClassInitialize()]
-        public static void ClassInit(TestContext context)
-        {
-            CommonInitialization.Initialize();
-        }
-
         [DataTestMethod]
         [DataRow("pkg:cargo/rand@0.7.3", "CARGO.toml", 1)]
         [DataRow("pkg:cargo/rand", "CARGO.toml", 1)]
@@ -67,6 +65,23 @@ namespace Microsoft.CST.OpenSource.Tests
         public async Task GitHub_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
         {
             await TestDownload(purl, targetFilename, expectedDirectoryCount);
+        }
+
+        [DataTestMethod]
+        [DataRow("pkg:golang/sigs.k8s.io/yaml", "yaml.go", 1)]
+        public async Task Golang_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
+        {
+            await TestDownload(purl, targetFilename, expectedDirectoryCount);
+        }
+
+        [DataTestMethod]
+        [DataRow("pkg:golang/sigs.k8s.io/yaml", "does-not-exist", 37)]
+        public async Task Golang_Download_Version_Fails(string purl, string targetFilename, int expectedDirectoryCount)
+        {
+            await Assert.ThrowsExceptionAsync<InternalTestFailureException>(async () =>
+            {
+                await TestDownload(purl, targetFilename, expectedDirectoryCount);
+            }, "Expected a test failure but one did not occur.");
         }
 
         [DataTestMethod]
@@ -126,6 +141,18 @@ namespace Microsoft.CST.OpenSource.Tests
         {
             await TestDownload(purl, targetFilename, expectedDirectoryCount);
         }
+        
+        [DataTestMethod]
+        [DataRow("pkg:npm/moment@*", "package.json")]
+        [DataRow("pkg:nuget/RandomType@*", "RandomType.nuspec")]
+        [DataRow("pkg:nuget/Newtonsoft.Json@*", "newtonsoft.json.nuspec")]
+        public async Task Wildcard_Download_Version_Succeeds(string packageUrl, string targetFilename)
+        {
+            PackageURL purl = new(packageUrl);
+            BaseProjectManager? manager = new ProjectManagerFactory().CreateProjectManager(purl);
+            IEnumerable<string> versions = await manager?.EnumerateVersionsAsync(purl) ?? throw new InvalidOperationException();
+            await TestDownload(packageUrl, targetFilename, versions.Count());
+        }
 
         [DataTestMethod]
         [DataRow(null, null, 1)]
@@ -148,7 +175,24 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("pkg:ubuntu/zerofree", "zerofree.c", 4)]
         public async Task Ubuntu_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
         {
-            await TestDownload(purl, targetFilename, expectedDirectoryCount);
+            // The Ubuntu endpoints fail occasionally, but often just come back a few seconds later,
+            // so try it a few times
+            int numAttempts = 3;
+            bool isSuccess = false;
+            while (numAttempts > 0 && !isSuccess)
+            {
+                try
+                {
+                    TestDownload(purl, targetFilename, expectedDirectoryCount).Wait();
+                    isSuccess = true; // Successful!
+                }
+                catch (Exception)
+                {
+                    Thread.Sleep(10000);
+                    numAttempts--;
+                }
+            }
+            Assert.IsTrue(isSuccess);
         }
 
         [DataTestMethod]
@@ -163,43 +207,47 @@ namespace Microsoft.CST.OpenSource.Tests
 
         [DataTestMethod]
         [DataRow("pkg:vsm/ms-vscode/PowerShell", "extension.vsixmanifest", 1)]
+        [DataRow("pkg:vsm/ms-vscode/PowerShell@2020.6.0", "extension.vsixmanifest", 1)]
+        [DataRow("pkg:vsm/liviuschera/noctis@10.39.1", "extension.vsixmanifest", 1)]
         public async Task VSM_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
         {
             await TestDownload(purl, targetFilename, expectedDirectoryCount);
         }
 
         /// <summary>
-        ///     delete the package download
+        /// delete the package download
         /// </summary>
-        /// <param name="packageDownloader"> </param>
-        /// <param name="tempDirectoryName"> </param>
+        /// <param name="packageDownloader"></param>
+        /// <param name="tempDirectoryName"></param>
         private void deleteTempDirs(PackageDownloader? packageDownloader, string tempDirectoryName)
         {
             try
             {
                 packageDownloader?.ClearPackageLocalCopyIfNoCaching();
-                Directory.Delete(tempDirectoryName, true);
             }
             catch (Exception)
             {
-                foreach (var filename in Directory.EnumerateFileSystemEntries(tempDirectoryName, "*", SearchOption.AllDirectories))
+                foreach (string? filename in Directory.EnumerateFileSystemEntries(tempDirectoryName, "*", SearchOption.AllDirectories))
                 {
-                    var fileInfo = new FileInfo(filename)
+                    FileInfo? fileInfo = new(filename)
                     {
                         Attributes = FileAttributes.Normal
                     };
                 }
                 packageDownloader?.ClearPackageLocalCopyIfNoCaching();
-                Directory.Delete(tempDirectoryName, true);
+            }
+            finally
+            {
+                FileSystemHelper.RetryDeleteDirectory(tempDirectoryName);
             }
         }
 
         /// <summary>
-        ///     Download the package
+        /// Download the package
         /// </summary>
-        /// <param name="packageUrl"> </param>
-        /// <param name="tempDirectoryName"> </param>
-        /// <returns> </returns>
+        /// <param name="packageUrl"></param>
+        /// <param name="tempDirectoryName"></param>
+        /// <returns></returns>
         private PackageDownloader? DownloadPackage(PackageURL packageUrl, string tempDirectoryName, bool doCache = false)
         {
             int numAttempts = 3;
@@ -209,7 +257,7 @@ namespace Microsoft.CST.OpenSource.Tests
             {
                 try
                 {
-                    packageDownloader = new PackageDownloader(packageUrl, tempDirectoryName, doCache);
+                    packageDownloader = new PackageDownloader(packageUrl, new ProjectManagerFactory(), tempDirectoryName, doCache);
                     packageDownloader.DownloadPackageLocalCopy(packageUrl, false, true).Wait();
                     break;
                 }
@@ -232,22 +280,22 @@ namespace Microsoft.CST.OpenSource.Tests
             {
                 tempDirectoryName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             }
-            
+
             Directory.CreateDirectory(tempDirectoryName);
             string? errorString = null;
 
             try
             {
-                var packageUrl = new PackageURL(purl);
-                var packageDownloader = DownloadPackage(packageUrl, tempDirectoryName);
+                PackageURL? packageUrl = new(purl);
+                PackageDownloader? packageDownloader = DownloadPackage(packageUrl, tempDirectoryName);
 
-                var targetFileWasDownloaded = Directory.EnumerateFiles(tempDirectoryName, targetFilename, SearchOption.AllDirectories).Any();
+                bool targetFileWasDownloaded = Directory.EnumerateFiles(tempDirectoryName, targetFilename, SearchOption.AllDirectories).Any();
                 if (!targetFileWasDownloaded)
                 {
                     errorString = "Target file was not downloaded.";
                 }
 
-                var topLevelDirectoryCount = Directory.GetDirectories(tempDirectoryName).Length;
+                int topLevelDirectoryCount = Directory.GetDirectories(tempDirectoryName).Length;
                 if (expectedDirectoryCount != topLevelDirectoryCount)
                 {
                     errorString = string.Format("Directory count {0} does not match expected {1}", topLevelDirectoryCount, expectedDirectoryCount);
@@ -266,7 +314,7 @@ namespace Microsoft.CST.OpenSource.Tests
                 // one delete is enough, since its only a single cached copy
                 deleteTempDirs(packageDownloader, tempDirectoryName);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw new InternalTestFailureException("Error", ex);
             }

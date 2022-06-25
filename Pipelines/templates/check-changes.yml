@@ -1,0 +1,43 @@
+parameters:
+# Job Name
+- name: jobName
+  type: string
+  default: 'check_changes'
+# tag name
+- name: tagName
+  type: string
+  default: 'code_changed'
+# Comma Separated paths Name
+- name: pathArgument
+  type: string
+  default: '/'
+
+jobs:
+- job: ${{ parameters.jobName }}
+  displayName: Checking for changed paths
+  steps:
+    - pwsh: |
+        $pathArgument = "${{ parameters.pathArgument }}"
+        $inputPaths = $pathArgument.Split(',')
+
+        $changedPaths = git diff HEAD HEAD~ --name-only
+        foreach ($changedPath in $changedPaths)
+        {
+            if ($done)
+            {
+                break;
+            }
+            foreach ($inputPath in $inputPaths)
+            {
+                if ($changedPath -like "${inputPath}")
+                {
+                    Write-Host "##vso[task.setvariable variable=${{ parameters.tagName }};isOutput=true]true"
+                    Write-Host "${changedPath} is like ${inputPath}."
+                    return
+                }
+            }
+        }
+
+        Write-Host "##vso[task.setvariable variable=${{ parameters.tagName }};isOutput=true]false"
+        Write-Host "Found no matching paths."
+      name: check_script

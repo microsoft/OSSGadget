@@ -11,28 +11,35 @@ using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
 
 namespace Microsoft.CST.OpenSource
 {
+    using Microsoft.CST.OpenSource.PackageManagers;
+    using PackageUrl;
+
     public class HealthTool : OSSGadget
     {
-        public HealthTool() : base()
+        
+        public HealthTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
         {
         }
 
+        public HealthTool() : this(new ProjectManagerFactory())
+        {
+        }
         public async Task<HealthMetrics?> CheckHealth(PackageURL purl)
         {
-            var packageManager = ProjectManagerFactory.CreateProjectManager(purl, null);
+            BaseProjectManager? packageManager = ProjectManagerFactory.CreateProjectManager(purl);
 
             if (packageManager != null)
             {
-                var content = await packageManager.GetMetadata(purl);
+                string? content = await packageManager.GetMetadataAsync(purl);
                 if (!string.IsNullOrWhiteSpace(content))
                 {
-                    RepoSearch repoSearcher = new RepoSearch();
-                    foreach (var (githubPurl, _) in await repoSearcher.ResolvePackageLibraryAsync(purl))
+                    RepoSearch repoSearcher = new RepoSearch(ProjectManagerFactory);
+                    foreach ((PackageURL githubPurl, double _) in await repoSearcher.ResolvePackageLibraryAsync(purl))
                     {
                         try
                         {
-                            var healthAlgorithm = new GitHubHealthAlgorithm(githubPurl);
-                            var health = await healthAlgorithm.GetHealth();
+                            GitHubHealthAlgorithm? healthAlgorithm = new GitHubHealthAlgorithm(githubPurl);
+                            HealthMetrics? health = await healthAlgorithm.GetHealth();
                             return health;
                         }
                         catch (Exception ex)
@@ -48,7 +55,7 @@ namespace Microsoft.CST.OpenSource
             }
             else
             {
-                throw new ArgumentException("Invalid Package URL type: {0}", purl.Type);
+                throw new ArgumentException($"Invalid Package URL type: {purl.Type}");
             }
             return null;
         }
@@ -67,7 +74,7 @@ namespace Microsoft.CST.OpenSource
             }
 
             [Option('f', "format", Required = false, Default = "text",
-                            HelpText = "selct the output format(text|sarifv1|sarifv2)")]
+                            HelpText = "specify the output format(text|sarifv1|sarifv2)")]
             public string? Format { get; set; }
 
             [Option('o', "output-file", Required = false, Default = "",
@@ -81,7 +88,8 @@ namespace Microsoft.CST.OpenSource
 
         private static async Task Main(string[] args)
         {
-            var healthTool = new HealthTool();
+            ShowToolBanner();
+            HealthTool? healthTool = new HealthTool();
             await healthTool.ParseOptions<Options>(args).WithParsedAsync(healthTool.RunAsync);
         }
 
@@ -111,12 +119,12 @@ namespace Microsoft.CST.OpenSource
             IOutputBuilder outputBuilder = SelectFormat(options.Format ?? OutputFormat.text.ToString());
             if (options.Targets is IList<string> targetList && targetList.Count > 0)
             {
-                foreach (var target in targetList)
+                foreach (string? target in targetList)
                 {
                     try
                     {
-                        var purl = new PackageURL(target);
-                        var healthMetrics = CheckHealth(purl).Result;
+                        PackageURL? purl = new PackageURL(target);
+                        HealthMetrics? healthMetrics = CheckHealth(purl).Result;
                         if (healthMetrics == null)
                         {
                             Logger.Debug($"Cannot compute Health for {purl}");

@@ -1,9 +1,11 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
+// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 namespace Microsoft.CST.OpenSource.Model
 {
+    using Newtonsoft.Json;
+    using System;
+    using System.Collections.Generic;
+
     public class Downloads
     {
         [JsonProperty(PropertyName = "daily", NullValueHandling = NullValueHandling.Ignore)]
@@ -86,10 +88,16 @@ namespace Microsoft.CST.OpenSource.Model
         public List<User>? Maintainers { get; set; }
 
         [JsonProperty(PropertyName = "package_uri", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Package_Uri { get; set; }
+        public string? PackageUri { get; set; }
+
+        [JsonProperty(PropertyName = "api_package_uri", NullValueHandling = NullValueHandling.Ignore)]
+        public string? ApiPackageUri { get; set; }
 
         [JsonProperty(PropertyName = "package_manager_uri", NullValueHandling = NullValueHandling.Ignore)]
         public string? PackageManagerUri { get; set; }
+        
+        [JsonProperty(PropertyName = "homepage", NullValueHandling = NullValueHandling.Ignore)]
+        public string? Homepage { get; set; }
 
         [JsonProperty(PropertyName = "package_version", NullValueHandling = NullValueHandling.Ignore)]
         public string? PackageVersion { get; set; }
@@ -104,7 +112,7 @@ namespace Microsoft.CST.OpenSource.Model
         public long? Size { get; set; }
 
         [JsonProperty(PropertyName = "upload_time", NullValueHandling = NullValueHandling.Ignore)]
-        public string? UploadTime { get; set; }
+        public DateTime? UploadTime { get; set; }
 
         [JsonProperty(PropertyName = "commit_id", NullValueHandling = NullValueHandling.Ignore)]
         public string? CommitId { get; set; }
@@ -120,6 +128,9 @@ namespace Microsoft.CST.OpenSource.Model
 
         [JsonProperty(PropertyName = "version_uri", NullValueHandling = NullValueHandling.Ignore)]
         public string? VersionUri { get; set; }
+
+        [JsonProperty(PropertyName = "api_version_uri", NullValueHandling = NullValueHandling.Ignore)]
+        public string? ApiVersionUri { get; set; }
 
         [JsonProperty(PropertyName = "active_flag", NullValueHandling = NullValueHandling.Ignore)]
         public bool? Active { get; set; }
@@ -139,24 +150,34 @@ namespace Microsoft.CST.OpenSource.Model
         {
             return JsonConvert.SerializeObject(this, Formatting.Indented);
         }
+        
+        /// <summary>
+        /// Converts the json/ToString() output of PackageMetadata into a PackageMetadata object.
+        /// </summary>
+        /// <param name="json">The JSON representation of a <see cref="PackageMetadata"/> object.</param>
+        /// <returns>The <see cref="PackageMetadata"/> object constructed from the json.</returns>
+        public static PackageMetadata? FromJson(string json)
+        {
+            return JsonConvert.DeserializeObject<PackageMetadata>(json);
+        }
     }
 
-    public class User
+    public record User
     {
         [JsonProperty(PropertyName = "active_flag", NullValueHandling = NullValueHandling.Ignore)]
-        public bool? Active { get; set; }
+        public bool? Active { get; init; }
 
         [JsonProperty(PropertyName = "email", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Email { get; set; }
+        public string? Email { get; init; }
 
         [JsonProperty(PropertyName = "Id", NullValueHandling = NullValueHandling.Ignore)]
-        public int? Id { get; set; }
+        public int? Id { get; init; }
 
         [JsonProperty(PropertyName = "name", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Name { get; set; }
+        public string? Name { get; init; }
 
         [JsonProperty(PropertyName = "url", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Url { get; set; }
+        public string? Url { get; init; }
     }
 
     public class Version
@@ -181,6 +202,9 @@ namespace Microsoft.CST.OpenSource.Model
     {
         [JsonProperty(PropertyName = "package", NullValueHandling = NullValueHandling.Ignore)]
         public string? Package { get; set; }
+        
+        [JsonProperty(PropertyName = "framework", NullValueHandling = NullValueHandling.Ignore)]
+        public string? Framework { get; set; }
     }
 
     public class Command

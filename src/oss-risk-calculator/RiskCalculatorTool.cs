@@ -9,7 +9,6 @@ using Microsoft.CST.OpenSource.Health;
 using Microsoft.CST.OpenSource.Shared;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
@@ -18,7 +17,10 @@ using Microsoft.ApplicationInspector.RulesEngine;
 
 namespace Microsoft.CST.OpenSource
 {
-    internal class RiskCalculatorTool : OSSGadget
+    using PackageManagers;
+    using PackageUrl;
+
+    public class RiskCalculatorTool : OSSGadget
     {
         public class Options
         {
@@ -42,7 +44,7 @@ namespace Microsoft.CST.OpenSource
             public int ExternalRisk { get; set; }
 
             [Option('f', "format", Required = false, Default = "text",
-                    HelpText = "selct the output format(text|sarifv1|sarifv2)")]
+                    HelpText = "specify the output format(text|sarifv1|sarifv2)")]
             public string Format { get; set; } = "text";
 
             [Option('o', "output-file", Required = false, Default = "",
@@ -65,11 +67,14 @@ namespace Microsoft.CST.OpenSource
             public bool UseCache { get; set; }
         }
 
-        public RiskCalculatorTool() : base()
+        public RiskCalculatorTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
         {
         }
 
-        
+        public RiskCalculatorTool() : this(new ProjectManagerFactory())
+        {
+        }
+
         /// <summary>
         /// Calculates project risk based on health and characteristics.
         /// </summary>
@@ -81,15 +86,15 @@ namespace Microsoft.CST.OpenSource
         {
             Logger.Trace("CalculateRisk({0})", purl.ToString());
 
-            var characteristicTool = new CharacteristicTool();
-            var cOptions = new CharacteristicTool.Options();
-            var characteristics = characteristicTool.AnalyzePackage(cOptions, purl, targetDirectory, doCaching).Result;
+            CharacteristicTool? characteristicTool = new CharacteristicTool(ProjectManagerFactory);
+            CharacteristicTool.Options? cOptions = new CharacteristicTool.Options();
+            Dictionary<string, AnalyzeResult?>? characteristics = characteristicTool.AnalyzePackage(cOptions, purl, targetDirectory, doCaching).Result;
             double aggregateRisk = 0.0;
 
             if (checkHealth)
             {
-                var healthTool = new HealthTool();
-                var healthMetrics = await healthTool.CheckHealth(purl);
+                HealthTool? healthTool = new HealthTool(ProjectManagerFactory);
+                HealthMetrics? healthMetrics = await healthTool.CheckHealth(purl);
                 if (healthMetrics == null)
                 {
                     Logger.Warn("Unable to determine health metrics, will use a default of 0.");
@@ -119,16 +124,16 @@ namespace Microsoft.CST.OpenSource
                 Logger.Trace("Aggregate Health Risk: {}", aggregateRisk);
             }
 
-            var highRiskTags = new string[] { "Cryptography.", "Authentication.", "Authorization.", "Data.Deserialization." };
-            var highRiskTagsSeen = new Dictionary<string, int>();
+            string[]? highRiskTags = new string[] { "Cryptography.", "Authentication.", "Authorization.", "Data.Deserialization." };
+            Dictionary<string, int>? highRiskTagsSeen = new Dictionary<string, int>();
 
-            foreach (var analyzeResult in characteristics.Values)
+            foreach (AnalyzeResult? analyzeResult in characteristics.Values)
             {
-                foreach (var match in analyzeResult?.Metadata?.Matches ?? new List<MatchRecord>())
+                foreach (MatchRecord? match in analyzeResult?.Metadata?.Matches ?? new List<MatchRecord>())
                 {
-                    foreach (var tag in match.Tags ?? Array.Empty<string>())
+                    foreach (string? tag in match.Tags ?? Array.Empty<string>())
                     {
-                        foreach (var highRiskTag in highRiskTags)
+                        foreach (string? highRiskTag in highRiskTags)
                         {
                             if (tag.StartsWith(highRiskTag))
                             {
@@ -147,7 +152,7 @@ namespace Microsoft.CST.OpenSource
                 Logger.Trace("Found {} high-risk tags over {} categories.", highRiskTagsSeen.Values.Sum(), highRiskTagsSeen.Keys.Count());
             }
 
-            var highRiskTagRisk = (
+            double highRiskTagRisk = (
                 0.4 * highRiskTagsSeen.Keys.Count() +
                 0.6 * Math.Min(highRiskTagsSeen.Values.Sum(), 5)
             );
@@ -191,7 +196,8 @@ namespace Microsoft.CST.OpenSource
         /// <param name="args"> parameters passed in from the user </param>
         private static async Task Main(string[] args)
         {
-            var riskCalculator = new RiskCalculatorTool();
+            ShowToolBanner();
+            RiskCalculatorTool? riskCalculator = new RiskCalculatorTool();
             await riskCalculator.ParseOptions<Options>(args).WithParsedAsync(riskCalculator.RunAsync);
         }
 
@@ -212,7 +218,7 @@ namespace Microsoft.CST.OpenSource
 
                 case OutputFormat.text:
                 default:
-                    var riskDescription = "low";
+                    string? riskDescription = "low";
                     if (riskLevel > 0.50) riskDescription = "medium";
                     if (riskLevel > 0.80) riskDescription = "high";
                     if (riskLevel > 0.90) riskDescription = "very high";
@@ -231,20 +237,20 @@ namespace Microsoft.CST.OpenSource
             // Support for --verbose
             if (options.Verbose)
             {
-                var consoleLog = LogManager.Configuration.FindRuleByName("consoleLog");
+                NLog.Config.LoggingRule? consoleLog = LogManager.Configuration.FindRuleByName("consoleLog");
                 consoleLog.SetLoggingLevels(LogLevel.Trace, LogLevel.Fatal);
             }
 
             if (options.Targets is IList<string> targetList && targetList.Count > 0)
             {
-                foreach (var target in targetList)
+                foreach (string? target in targetList)
                 {
                     try
                     {
-                        var useCache = options.UseCache == true;
-                        var purl = new PackageURL(target);
-                        string downloadDirectory = options.DownloadDirectory == "." ? Directory.GetCurrentDirectory() : options.DownloadDirectory;
-                        var riskLevel = CalculateRisk(purl,
+                        bool useCache = options.UseCache == true;
+                        PackageURL? purl = new PackageURL(target);
+                        string downloadDirectory = options.DownloadDirectory == "." ? System.IO.Directory.GetCurrentDirectory() : options.DownloadDirectory;
+                        double riskLevel = CalculateRisk(purl,
                             downloadDirectory,
                             useCache,
                             !options.NoHealth).Result;

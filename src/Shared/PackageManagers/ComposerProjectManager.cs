@@ -1,17 +1,33 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Helpers;
+    using PackageUrl;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Net.Http;
+    using System.Threading.Tasks;
+    using Utilities;
+
     internal class ComposerProjectManager : BaseProjectManager
     {
+        /// <summary>
+        /// The type of the project manager from the package-url type specifications.
+        /// </summary>
+        /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
+        public const string Type = "composer";
+
+        public override string ManagerType => Type;
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_COMPOSER_ENDPOINT = "https://repo.packagist.org";
+
+        public ComposerProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        {
+        }
 
         public ComposerProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
@@ -22,38 +38,44 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl"> Package URL of the package to download. </param>
         /// <returns> n/a </returns>
-        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
+        public override async Task<IEnumerable<string>> DownloadVersionAsync(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
-            var packageName = $"{purl?.Namespace}/{purl?.Name}";
-            var packageVersion = purl?.Version;
-            var downloadedPaths = new List<string>();
+            string? packageNamespace = purl?.Namespace;
+            string? packageName = purl?.Name;
+            string? packageVersion = purl?.Version;
+            List<string> downloadedPaths = new();
 
-            if (string.IsNullOrWhiteSpace(purl?.Namespace) || string.IsNullOrWhiteSpace(purl?.Name) ||
+            if (string.IsNullOrWhiteSpace(packageNamespace) || string.IsNullOrWhiteSpace(packageName) ||
                 string.IsNullOrWhiteSpace(packageVersion))
             {
-                Logger.Error("Unable to download [{0} {1}]. Both must be defined.", packageName, packageVersion);
+                Logger.Debug("Unable to download [{0} {1} {2}]. All three must be defined.", packageNamespace, packageName, packageVersion);
                 return downloadedPaths;
             }
 
             try
             {
-                var doc = await GetJsonCache($"{ENV_COMPOSER_ENDPOINT}/p/{packageName}.json");
-                foreach (var topObject in doc.RootElement.GetProperty("packages").EnumerateObject())
+                HttpClient httpClient = CreateHttpClient();
+                System.Text.Json.JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_COMPOSER_ENDPOINT}/p/{packageNamespace}/{packageName}.json");
+                foreach (System.Text.Json.JsonProperty topObject in doc.RootElement.GetProperty("packages").EnumerateObject())
                 {
-                    foreach (var versionObject in topObject.Value.EnumerateObject())
+                    foreach (System.Text.Json.JsonProperty versionObject in topObject.Value.EnumerateObject())
                     {
                         if (versionObject.Name != packageVersion)
                         {
                             continue;
                         }
-                        var url = versionObject.Value.GetProperty("dist").GetProperty("url").GetString();
-                        var result = await WebClient.GetAsync(url);
+                        string? url = versionObject.Value.GetProperty("dist").GetProperty("url").GetString();
+                        System.Net.Http.HttpResponseMessage? result = await httpClient.GetAsync(url);
                         result.EnsureSuccessStatusCode();
                         Logger.Debug("Downloading {0}...", purl);
 
-                        var targetName = $"composer-{packageName}@{packageVersion}";
+                        string fsNamespace = OssUtilities.NormalizeStringForFileSystem(packageNamespace);
+                        string fsName = OssUtilities.NormalizeStringForFileSystem(packageName);
+                        string fsVersion = OssUtilities.NormalizeStringForFileSystem(packageVersion);
+
+                        string targetName = $"composer-{fsNamespace}-{fsName}@{fsVersion}";
                         string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                         if (doExtract && Directory.Exists(extractionPath) && cached == true)
                         {
@@ -62,29 +84,45 @@ namespace Microsoft.CST.OpenSource.Shared
                         }
                         if (doExtract)
                         {
-                            downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync(), cached));
+                            downloadedPaths.Add(await ArchiveHelper.ExtractArchiveAsync(TopLevelExtractionDirectory, targetName, await result.Content.ReadAsStreamAsync(), cached));
                         }
                         else
                         {
-                            targetName += Path.GetExtension(url) ?? "";
-                            await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
-                            downloadedPaths.Add(targetName);
+                            extractionPath += ".zip";
+                            await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
+                            downloadedPaths.Add(extractionPath);
                         }
                     }
                 }
                 if (downloadedPaths.Count == 0)
                 {
-                    Logger.Warn("Unable to find version {0} to download.", packageVersion);
+                    Logger.Debug("Unable to find version {0} to download.", packageVersion);
                 }
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error downloading Composer package: {0}", ex.Message);
+                Logger.Debug(ex, "Error downloading Composer package: {0}", ex.Message);
             }
             return downloadedPaths;
         }
 
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
+        /// <inheritdoc />
+        public override async Task<bool> PackageExistsAsync(PackageURL purl, bool useCache = true)
+        {
+            Logger.Trace("PackageExists {0}", purl?.ToString());
+            if (string.IsNullOrEmpty(purl?.Name))
+            {
+                Logger.Trace("Provided PackageURL was null.");
+                return false;
+            }
+            string packageName = purl.Name;
+            HttpClient httpClient = CreateHttpClient();
+
+            return await CheckJsonCacheForPackage(httpClient, $"{ENV_COMPOSER_ENDPOINT}/p/{packageName}.json", useCache);
+        }
+
+        /// <inheritdoc />
+        public override async Task<IEnumerable<string>> EnumerateVersionsAsync(PackageURL purl, bool useCache = true, bool includePrerelease = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
             if (purl == null)
@@ -92,22 +130,24 @@ namespace Microsoft.CST.OpenSource.Shared
                 return new List<string>();
             }
 
-            var versionList = new List<string>();
+            List<string> versionList = new();
 
             if (string.IsNullOrWhiteSpace(purl?.Namespace) || string.IsNullOrWhiteSpace(purl?.Name))
             {
                 return versionList;
             }
 
-            var packageName = $"{purl?.Namespace}/{purl?.Name}";
+            string packageName = $"{purl?.Namespace}/{purl?.Name}";
 
             try
             {
-                var doc = await GetJsonCache($"{ENV_COMPOSER_ENDPOINT}/p/{packageName}.json");
+                HttpClient httpClient = CreateHttpClient();
 
-                foreach (var topObject in doc.RootElement.GetProperty("packages").EnumerateObject())
+                System.Text.Json.JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_COMPOSER_ENDPOINT}/p/{packageName}.json");
+
+                foreach (System.Text.Json.JsonProperty topObject in doc.RootElement.GetProperty("packages").EnumerateObject())
                 {
-                    foreach (var versionObject in topObject.Value.EnumerateObject())
+                    foreach (System.Text.Json.JsonProperty versionObject in topObject.Value.EnumerateObject())
                     {
                         Logger.Debug("Identified {0} version {1}.", packageName, versionObject.Name);
                         versionList.Add(versionObject.Name);
@@ -117,22 +157,24 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"Error enumerating Composer package: {ex.Message}");
+                Logger.Debug("Unable to enumerate versions: {0}", ex.Message);
+                throw;
             }
-            return versionList;
         }
 
-        public override async Task<string?> GetMetadata(PackageURL purl)
+        /// <inheritdoc />
+        public override async Task<string?> GetMetadataAsync(PackageURL purl, bool useCache = true)
         {
             try
             {
-                var packageName = $"{purl.Namespace}/{purl.Name}";
-                var content = await GetHttpStringCache($"{ENV_COMPOSER_ENDPOINT}/p/{packageName}.json");
-                return content;
+                string packageName = $"{purl.Namespace}/{purl.Name}";
+                HttpClient httpClient = CreateHttpClient();
+
+                return await GetHttpStringCache(httpClient, $"{ENV_COMPOSER_ENDPOINT}/p/{packageName}.json", useCache);
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error fetching Composer metadata: {0}", ex.Message);
+                Logger.Debug(ex, "Error fetching Composer metadata: {0}", ex.Message);
                 return null;
             }
         }

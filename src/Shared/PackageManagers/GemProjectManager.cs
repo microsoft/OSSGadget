@@ -1,22 +1,34 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.Json;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Helpers;
+    using PackageUrl;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Net.Http;
+    using System.Text.Json;
+    using System.Text.RegularExpressions;
+    using System.Threading.Tasks;
+
     internal class GemProjectManager : BaseProjectManager
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        public static string ENV_RUBYGEMS_ENDPOINT = "https://rubygems.org";
+        /// <summary>
+        /// The type of the project manager from the package-url type specifications.
+        /// </summary>
+        /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
+        public const string Type = "gem";
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
+        public override string ManagerType => Type;
+
+        public static string ENV_RUBYGEMS_ENDPOINT = "https://rubygems.org";
         public static string ENV_RUBYGEMS_ENDPOINT_API = "https://api.rubygems.org";
+
+        public GemProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        {
+        }
 
         public GemProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
@@ -27,28 +39,30 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl"> Package URL of the package to download. </param>
         /// <returns> n/a </returns>
-        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
+        public override async Task<IEnumerable<string>> DownloadVersionAsync(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
-            var packageName = purl?.Name;
-            var packageVersion = purl?.Version;
-            var downloadedPaths = new List<string>();
+            string? packageName = purl?.Name;
+            string? packageVersion = purl?.Version;
+            List<string> downloadedPaths = new();
 
             if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
             {
-                Logger.Error("Unable to download [{0} {1}]. Both must be defined.", packageName, packageVersion);
+                Logger.Debug("Unable to download [{0} {1}]. Both must be defined.", packageName, packageVersion);
                 return downloadedPaths;
             }
 
             try
             {
-                var url = $"{ENV_RUBYGEMS_ENDPOINT}/downloads/{packageName}-{packageVersion}.gem";
-                var result = await WebClient.GetAsync(url);
+                string url = $"{ENV_RUBYGEMS_ENDPOINT}/downloads/{packageName}-{packageVersion}.gem";
+                HttpClient httpClient = CreateHttpClient();
+
+                System.Net.Http.HttpResponseMessage result = await httpClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
                 Logger.Debug("Downloading {0}...", purl);
 
-                var targetName = $"rubygems-{packageName}@{packageVersion}";
+                string targetName = $"rubygems-{packageName}@{packageVersion}";
                 string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                 if (doExtract && Directory.Exists(extractionPath) && cached == true)
                 {
@@ -57,40 +71,58 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
                 if (doExtract)
                 {
-                    downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync(), cached));
+                    downloadedPaths.Add(await ArchiveHelper.ExtractArchiveAsync(TopLevelExtractionDirectory, targetName, await result.Content.ReadAsStreamAsync(), cached));
                 }
                 else
                 {
-                    targetName += Path.GetExtension(url) ?? "";
-                    await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
-                    downloadedPaths.Add(targetName);
+                    extractionPath += Path.GetExtension(url) ?? "";
+                    await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
+                    downloadedPaths.Add(extractionPath);
                 }
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error downloading RubyGems package: {0}", ex.Message);
+                Logger.Debug(ex, "Error downloading RubyGems package: {0}", ex.Message);
             }
             return downloadedPaths;
         }
 
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
+        /// <inheritdoc />
+        public override async Task<bool> PackageExistsAsync(PackageURL purl, bool useCache = true)
+        {
+            Logger.Trace("PackageExists {0}", purl?.ToString());
+            if (string.IsNullOrEmpty(purl?.Name))
+            {
+                Logger.Trace("Provided PackageURL was null.");
+                return false;
+            }
+            string packageName = purl.Name;
+            HttpClient httpClient = CreateHttpClient();
+
+            return await CheckJsonCacheForPackage(httpClient, $"{ENV_RUBYGEMS_ENDPOINT_API}/api/v1/versions/{packageName}.json", useCache);
+        }
+
+        /// <inheritdoc />
+        public override async Task<IEnumerable<string>> EnumerateVersionsAsync(PackageURL purl, bool useCache = true, bool includePrerelease = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
-            if (purl == null)
+            if (purl == null || purl.Name is null)
             {
                 return new List<string>();
             }
 
             try
             {
-                var packageName = purl.Name;
-                var doc = await GetJsonCache($"{ENV_RUBYGEMS_ENDPOINT_API}/api/v1/versions/{packageName}.json");
-                var versionList = new List<string>();
-                foreach (var gemObject in doc.RootElement.EnumerateArray())
+                string packageName = purl.Name;
+                HttpClient httpClient = CreateHttpClient();
+
+                JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_RUBYGEMS_ENDPOINT_API}/api/v1/versions/{packageName}.json");
+                List<string> versionList = new();
+                foreach (JsonElement gemObject in doc.RootElement.EnumerateArray())
                 {
                     if (gemObject.TryGetProperty("number", out JsonElement version))
                     {
-                        var vString = version.ToString();
+                        string? vString = version.ToString();
                         if (!string.IsNullOrWhiteSpace(vString))
                         {
                             // RubyGems is mostly-semver-compliant
@@ -104,22 +136,30 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error enumerating RubyGems package: {0}", ex.Message);
-                return Array.Empty<string>();
+                Logger.Debug("Unable to enumerate versions: {0}", ex.Message);
+                throw;
             }
         }
 
-        public override async Task<string?> GetMetadata(PackageURL purl)
+        /// <inheritdoc />
+        public override async Task<string?> GetMetadataAsync(PackageURL purl, bool useCache = true)
         {
+            if (purl is null || purl.Name is null)
+            {
+                return null;
+            }
             try
             {
-                var packageName = purl.Name;
-                var content = await GetHttpStringCache($"{ENV_RUBYGEMS_ENDPOINT_API}/api/v1/versions/{packageName}.json");
-                return content;
+                HttpClient httpClient = CreateHttpClient();
+
+                string packageName = purl.Name;
+                string contentVersion = await GetHttpStringCache(httpClient, $"{ENV_RUBYGEMS_ENDPOINT_API}/api/v1/versions/{packageName}.json", useCache) ?? "";
+                string contentGem = await GetHttpStringCache(httpClient, $"{ENV_RUBYGEMS_ENDPOINT_API}/api/v1/gems/{packageName}.json", useCache) ?? "";
+                return contentVersion + contentGem;
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error fetching RubyGems metadata: {0}", ex.Message);
+                Logger.Debug(ex, "Error fetching RubyGems metadata: {0}", ex.Message);
                 return null;
             }
         }

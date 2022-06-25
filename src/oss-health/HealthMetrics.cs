@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using Microsoft.CodeAnalysis.Sarif;
+using Microsoft.CST.OpenSource.PackageManagers;
 using Microsoft.CST.OpenSource.Shared;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,8 @@ using System.Text.RegularExpressions;
 
 namespace Microsoft.CST.OpenSource.Health
 {
+    using PackageUrl;
+
     public class HealthMetrics
     {
         public double ReleaseHealth;
@@ -40,7 +43,7 @@ namespace Microsoft.CST.OpenSource.Health
 
         public List<Result> toSarif()
         {
-            BaseProjectManager? projectManager = ProjectManagerFactory.CreateProjectManager(purl, null);
+            BaseProjectManager? projectManager = ProjectManagerFactory.ConstructPackageManager(purl, null);
 
             if (projectManager == null)
             {
@@ -51,13 +54,13 @@ namespace Microsoft.CST.OpenSource.Health
             Normalize();
 
             List<Result> results = new List<Result>();
-            var properties = getHealthProperties();
-            foreach (var property in properties.OrderBy(s => s.Name))
+            PropertyInfo[]? properties = getHealthProperties();
+            foreach (PropertyInfo? property in properties.OrderBy(s => s.Name))
             {
                 if (property.Name.EndsWith("Health"))
                 {
-                    var textualName = Regex.Replace(property.Name, "(\\B[A-Z])", " $1");
-                    var value = Convert.ToDouble(property.GetValue(this));
+                    string? textualName = Regex.Replace(property.Name, "(\\B[A-Z])", " $1");
+                    double value = Convert.ToDouble(property.GetValue(this));
 
                     Result healthResult = new Result()
                     {
@@ -82,16 +85,16 @@ namespace Microsoft.CST.OpenSource.Health
         {
             Normalize();
 
-            var sb = new StringBuilder();
+            StringBuilder? sb = new StringBuilder();
 
-            var properties = getHealthProperties();
-            foreach (var property in properties.OrderBy(s => s.Name))
+            PropertyInfo[]? properties = getHealthProperties();
+            foreach (PropertyInfo? property in properties.OrderBy(s => s.Name))
             {
                 if (property.Name.EndsWith("Health"))
                 {
-                    var textualName = Regex.Replace(property.Name, "(\\B[A-Z])", " $1");
-                    var result = Convert.ToDouble(property.GetValue(this));
-                    var bar = new StringBuilder();
+                    string? textualName = Regex.Replace(property.Name, "(\\B[A-Z])", " $1");
+                    double result = Convert.ToDouble(property.GetValue(this));
+                    StringBuilder? bar = new StringBuilder();
                     bar.Append("|");
 
                     //Create a ascii horizontal bar chart with one "*" for every full 5%
@@ -116,7 +119,7 @@ namespace Microsoft.CST.OpenSource.Health
                 }
             }
             //Print the lower key, I'm sure there are better ways to do this.
-            var key = "0%   25%   50%   75%   100%";
+            string? key = "0%   25%   50%   75%   100%";
             sb.AppendFormat("{0,25} {1} \n", "", key);
             return sb.ToString();
         }
@@ -147,7 +150,7 @@ namespace Microsoft.CST.OpenSource.Health
 
         private PropertyInfo[] getHealthProperties()
         {
-            return this.GetType().GetProperties(BindingFlags.NonPublic |
+            return GetType().GetProperties(BindingFlags.NonPublic |
                                               BindingFlags.Public |
                                               BindingFlags.Instance);
         }

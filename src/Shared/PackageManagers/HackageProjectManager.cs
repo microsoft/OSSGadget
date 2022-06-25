@@ -1,18 +1,33 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using AngleSharp.Html.Parser;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using AngleSharp.Html.Parser;
+    using Helpers;
+    using PackageUrl;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Net.Http;
+    using System.Threading.Tasks;
+
     internal class HackageProjectManager : BaseProjectManager
     {
+        /// <summary>
+        /// The type of the project manager from the package-url type specifications.
+        /// </summary>
+        /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
+        public const string Type = "hackage";
+
+        public override string ManagerType => Type;
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_HACKAGE_ENDPOINT = "https://hackage.haskell.org";
+
+        public HackageProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        {
+        }
 
         public HackageProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
@@ -23,27 +38,32 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl"> Package URL of the package to download. </param>
         /// <returns> n/a </returns>
-        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
+        public override async Task<IEnumerable<string>> DownloadVersionAsync(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
-            var packageName = purl?.Name;
-            var packageVersion = purl?.Version;
-            var downloadedPaths = new List<string>();
-
+            if (purl is null || purl.Name is null || purl.Version is null)
+            {
+                return Array.Empty<string>();
+            }
+            string packageName = purl.Name;
+            string packageVersion = purl.Version;
             if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
             {
-                Logger.Error("Unable to download [{0} {1}]. Both must be defined.", packageName, packageVersion);
-                return downloadedPaths;
+                Logger.Debug("Unable to download [{0} {1}]. Both must be defined.", packageName, packageVersion);
+                return Array.Empty<string>();
             }
+            List<string> downloadedPaths = new();
             try
             {
-                var url = $"{ENV_HACKAGE_ENDPOINT}/package/{packageName}-{packageVersion}/{packageName}-{packageVersion}.tar.gz";
-                var result = await WebClient.GetAsync(url);
-                result.EnsureSuccessStatusCode();
-                Logger.Debug("Downloading {0}...", purl?.ToString());
+                string url = $"{ENV_HACKAGE_ENDPOINT}/package/{packageName}-{packageVersion}/{packageName}-{packageVersion}.tar.gz";
+                HttpClient httpClient = CreateHttpClient();
 
-                var targetName = $"hackage-{packageName}@{packageVersion}";
+                System.Net.Http.HttpResponseMessage result = await httpClient.GetAsync(url);
+                result.EnsureSuccessStatusCode();
+                Logger.Debug("Downloading {0}...", purl.ToString());
+
+                string targetName = $"hackage-{packageName}@{packageVersion}";
                 string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                 if (doExtract && Directory.Exists(extractionPath) && cached == true)
                 {
@@ -52,47 +72,50 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
                 if (doExtract)
                 {
-                    downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync(), cached));
+                    downloadedPaths.Add(await ArchiveHelper.ExtractArchiveAsync(TopLevelExtractionDirectory, targetName, await result.Content.ReadAsStreamAsync(), cached));
                 }
                 else
                 {
-                    targetName += Path.GetExtension(url) ?? "";
-                    await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
-                    downloadedPaths.Add(targetName);
+                    extractionPath += Path.GetExtension(url) ?? "";
+                    await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
+                    downloadedPaths.Add(extractionPath);
                 }
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error downloading Hackage package: {0}", ex.Message);
+                Logger.Debug(ex, "Error downloading Hackage package: {0}", ex.Message);
             }
             return downloadedPaths;
         }
 
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
+        /// <inheritdoc />
+        public override async Task<IEnumerable<string>> EnumerateVersionsAsync(PackageURL purl, bool useCache = true, bool includePrerelease = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
-            if (purl == null)
+            if (purl == null || purl.Name is null)
             {
-                return new List<string>();
+                return Array.Empty<string>();
             }
 
             try
             {
-                var packageName = purl.Name;
-                var html = await WebClient.GetAsync($"{ENV_HACKAGE_ENDPOINT}/package/{packageName}");
+                string packageName = purl.Name;
+                HttpClient httpClient = CreateHttpClient();
+
+                System.Net.Http.HttpResponseMessage? html = await httpClient.GetAsync($"{ENV_HACKAGE_ENDPOINT}/package/{packageName}");
                 html.EnsureSuccessStatusCode();
-                var parser = new HtmlParser();
-                var document = await parser.ParseDocumentAsync(await html.Content.ReadAsStringAsync());
-                var ths = document.QuerySelectorAll("th");
-                var versionList = new List<string>();
-                foreach (var th in ths)
+                HtmlParser parser = new();
+                AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(await html.Content.ReadAsStringAsync());
+                AngleSharp.Dom.IHtmlCollection<AngleSharp.Dom.IElement> ths = document.QuerySelectorAll("th");
+                List<string> versionList = new();
+                foreach (AngleSharp.Dom.IElement th in ths)
                 {
                     if (th.TextContent.StartsWith("Versions"))
                     {
-                        var td = th.NextElementSibling;
-                        foreach (var version in td.QuerySelectorAll("a,strong"))
+                        AngleSharp.Dom.IElement td = th.NextElementSibling;
+                        foreach (AngleSharp.Dom.IElement version in td.QuerySelectorAll("a,strong"))
                         {
-                            var versionString = version.TextContent.ToLower().Trim();
+                            string versionString = version.TextContent.ToLower().Trim();
                             Logger.Debug("Identified {0} version {1}.", packageName, versionString);
                             versionList.Add(versionString);
                         }
@@ -104,22 +127,28 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"Error enumerating Hackage package: {ex.Message}");
-                return Array.Empty<string>();
+                Logger.Debug("Unable to enumerate versions: {0}", ex.Message);
+                throw;
             }
         }
 
-        public override async Task<string?> GetMetadata(PackageURL purl)
+        /// <inheritdoc />
+        public override async Task<string?> GetMetadataAsync(PackageURL purl, bool useCache = true)
         {
+            if (purl is null || purl.Name is null)
+            {
+                return null;
+            }
             try
             {
-                var packageName = purl.Name;
-                var content = await GetHttpStringCache($"{ENV_HACKAGE_ENDPOINT}/package/{packageName}");
-                return content;
+                string packageName = purl.Name;
+                HttpClient httpClient = CreateHttpClient();
+
+                return await GetHttpStringCache(httpClient, $"{ENV_HACKAGE_ENDPOINT}/package/{packageName}", useCache);
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"Error fetching Hackage metadata: {ex.Message}");
+                Logger.Debug(ex, $"Error fetching Hackage metadata: {ex.Message}");
                 return null;
             }
         }

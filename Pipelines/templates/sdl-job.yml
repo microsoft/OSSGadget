@@ -10,6 +10,42 @@ jobs:
   pool:
     vmImage: 'windows-latest'
   steps:
+  - task: DownloadBuildArtifacts@0
+    displayName: Download Unsigned Binary Archives
+    inputs:
+      buildType: 'current'
+      downloadType: 'specific'
+      itemPattern: 'Unsigned_Binaries/*.tar.gz'
+      downloadPath: '$(Build.BinariesDirectory)'
+  - task: ExtractFiles@1
+    displayName: Extract Unsigned Binaries
+    inputs:
+      archiveFilePatterns: '$(Build.BinariesDirectory)/Unsigned_Binaries/*.tar.gz'
+      destinationFolder: '$(Build.BinariesDirectory)'
+      cleanDestinationFolder: false
+  - task: AntiMalware@3
+    displayName: Anti-Malware Scan
+    inputs:
+      InputType: 'Basic'
+      ScanType: 'CustomScan'
+      FileDirPath: '$(Build.BinariesDirectory)'
+      EnableServices: true
+      SupportLogOnError: true
+      TreatSignatureUpdateFailureAs: 'Warning'
+      SignatureFreshness: 'UpToDate'
+      TreatStaleSignatureAs: 'Warning'
+  - task: BinSkim@3
+    inputs:
+      InputType: 'Basic'
+      Function: 'analyze'
+      AnalyzeTarget: '$(Build.BinariesDirectory)/oss-*;$(Build.BinariesDirectory)/Shared.dll'
+  - task: PoliCheck@1
+    continueOnError: true
+    inputs:
+      inputType: 'Basic'
+      targetType: 'F'
+      targetArgument: '$(Build.SourcesDirectory)'
+      result: 'PoliCheck.xml'
   - task: CodeInspector@2
     continueOnError: true
     inputs:
@@ -25,3 +61,9 @@ jobs:
   - task: SdtReport@2
     inputs:
       GdnExportAllTools: true
+  - task: PublishSecurityAnalysisLogs@2
+    inputs:
+      ArtifactName: 'CodeAnalysisLogs'
+      ArtifactType: 'Container'
+      AllTools: true
+      ToolLogsNotFoundAction: 'Standard'

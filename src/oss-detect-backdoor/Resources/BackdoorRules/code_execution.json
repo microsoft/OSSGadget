@@ -12,7 +12,8 @@
         "pattern": "\b(eval|exec).{1,15}(decode|base64|decrypt|unencode)\b",
         "type": "regex",
         "scopes": [ "code", "comment" ],
-        "modifiers": [ "i" ]
+        "modifiers": [ "i" ],
+        "confidence": "high"
       }
     ]
   },
@@ -30,13 +31,71 @@
         "pattern": "(iex|invoke-expression) .*(webclient|openread|downloaddata|downloadfile|downloadstring)",
         "type": "regex",
         "scopes": [ "code" ],
-        "modifiers": [ "i" ]
+        "modifiers": [ "i" ],
+        "confidence": "high"
       },
       {
         "pattern": "(webclient|openread|downloaddata|downloadfile|downloadstring).{1,50}start-process",
         "type": "regex",
         "scopes": [ "code" ],
-        "modifiers": [ "i" ]
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Web Request in Setup",
+    "id": "BD000102",
+    "description": "Backdoor: Web Request in Setup",
+    "tags": [
+      "Security.Backdoor.Setup.WebRequest"
+    ],
+    "applies_to": [ "setup.py" ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": "requests.get",
+        "type": "string",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "medium"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Installation Script",
+    "id": "BD000103",
+    "description": "Backdoor: Installation Script",
+    "tags": [
+      "Security.Backdoor.Setup.Script"
+    ],
+    "applies_to": [ "package.json" ],
+    "severity": "moderate",
+    "patterns": [
+      {
+        "pattern": "(pre|post|)install\"\\s*:\\s*\"node [^\\s]+\\.js",
+        "type": "regex",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Curl Bashing",
+    "id": "BD000104",
+    "description": "Backdoor: Curl Bashing",
+    "tags": [
+      "Security.Backdoor.CurlBashing"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": "(curl|wget).{1,50}\\|\\s*(sh|bash)",
+        "type": "regex",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "medium"
       }
     ]
   }

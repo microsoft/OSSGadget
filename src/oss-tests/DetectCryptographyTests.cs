@@ -2,21 +2,19 @@
 
 using Microsoft.CST.OpenSource.Shared;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Tests
 {
+    using PackageUrl;
+
     [TestClass]
     public class DetectCryptographyTests
     {
-        [ClassInitialize()]
-        public static void ClassInit(TestContext context)
-        {
-            CommonInitialization.Initialize();
-        }
-
         [DataTestMethod]
         [DataRow("pkg:npm/blake2", "Cryptography.Implementation.Hash.Blake", "Cryptography.Implementation.Hash.Blake2", "Cryptography.Implementation.Hash.JH", "Cryptography.Implementation.Hash.SHA-512")]
         [DataRow("pkg:npm/blake3", "Cryptography.Implementation.Hash.Blake3", "Cryptography.Implementation.Hash.SHA-512")]
@@ -34,12 +32,12 @@ namespace Microsoft.CST.OpenSource.Tests
 
         private async Task TestDetectCryptography(string purl, params string[] expectedTags)
         {
-            var detectCryptographyTool = new DetectCryptographyTool();
+            DetectCryptographyTool? detectCryptographyTool = new();
             string targetDirectoryName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            var results = await detectCryptographyTool.AnalyzePackage(new PackageURL(purl), targetDirectoryName, false);
+            List<IssueRecord>? results = await detectCryptographyTool.AnalyzePackage(new PackageURL(purl), targetDirectoryName, false);
 
-            var distinctTargets = expectedTags.Distinct();
-            var distinctFindings = results.SelectMany(s => s.Issue.Rule.Tags)
+            IEnumerable<string>? distinctTargets = expectedTags.Distinct();
+            IEnumerable<string>? distinctFindings = results.SelectMany(s => s.Issue.Rule.Tags ?? Array.Empty<string>())
                                           .Where(s => s.StartsWith("Cryptography.Implementation"))
                                           .Distinct();
 

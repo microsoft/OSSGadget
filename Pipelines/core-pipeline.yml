@@ -9,9 +9,8 @@ trigger:
     - main
   paths:
     include:
+    - Pipelines
     - src
-    exclude:
-    - src/RecursiveExtractor
 pr:
   branches:
     include:
@@ -20,8 +19,6 @@ pr:
     include:
     - Pipelines
     - src
-    exclude:
-    - src/RecursiveExtractor
 
 stages:
 - stage: Test
@@ -30,44 +27,38 @@ stages:
     parameters:
       projectPath: 'src/oss-tests/oss-tests.csproj'
 
-- stage: SDL
+- stage: Build
   dependsOn: Test
+  jobs:
+  - template: templates/dotnet-build-publish-all-platforms-job.yml
+    parameters:
+      solutionPath: 'src/OSSGadget.sln'
+      csprojPath: 'src/**/!(CryptoGatherer)/*.csproj'
+      projectName: 'OSSGadget'
+      preBuild:
+      - template: templates/nbgv-set-version-steps.yml
+
+- stage: SDL
+  dependsOn: Build
   jobs:
   - template: templates/sdl-job.yml
     parameters:
       serviceTreeID: 'e6121b8f-ffd8-40b1-981d-a5ea5c121baa'
 
-- stage: Build
-  dependsOn: Test
-  jobs:
-  - template: templates/dotnet-publish-linux-mac-job.yml
-    parameters:
-      projectPath: 'src/OSSGadget.sln'
-      projectName: 'OSSGadget'
-      preBuild:
-      - template: templates/nbgv-set-version-steps.yml
-  - template: templates/dotnet-publish-win-netcore-job.yml
-    parameters:
-      projectPath: 'src/OSSGadget.sln'
-      projectName: 'OSSGadget'
-      preBuild:
-      - template: templates/nbgv-set-version-steps.yml
-
 - stage: Release
   dependsOn:
   - SDL
-  - Build
   condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI', 'BatchedCI'))
   jobs:
   - job: sign_hash_release
     displayName: Code Sign, Generate Hashes, Publish Public Releases
     pool:
-      vmImage: 'windows-latest'
+      vmImage: 'ubuntu-latest'
     steps:
     - task: UseDotNet@2
       inputs:
         packageType: 'sdk'
-    - script: 'dotnet tool install -g nbgv'
+    - script: 'dotnet tool update -g nbgv'
       displayName: 'Install GitVersioning'
     - task: PowerShell@2
       displayName: Set Release Version
@@ -77,29 +68,18 @@ stages:
           $version = (nbgv get-version -v AssemblyInformationalVersion).split('+')[0]
           Write-Host "##vso[task.setvariable variable=ReleaseVersion;]$version"
     - task: DownloadBuildArtifacts@0
-      displayName: Download Unsigned Archives
+      displayName: Download Unsigned Binary Archives
       inputs:
         buildType: 'current'
         downloadType: 'specific'
-        itemPattern: 'Unsigned_Binaries/*.zip'
+        itemPattern: 'Unsigned_Binaries/*.tar.gz'
         downloadPath: '$(Build.BinariesDirectory)'
     - task: ExtractFiles@1
-      displayName: Extract Artifacts for Signing
+      displayName: Extract Binaries for Signing
       inputs:
-        archiveFilePatterns: '$(Build.BinariesDirectory)\Unsigned_Binaries\*.zip'
+        archiveFilePatterns: '$(Build.BinariesDirectory)/Unsigned_Binaries/*.tar.gz'
         destinationFolder: '$(Build.BinariesDirectory)'
         cleanDestinationFolder: false
-    - task: AntiMalware@3
-      displayName: Anti-Malware Scan
-      inputs:
-        InputType: 'Basic'
-        ScanType: 'CustomScan'
-        FileDirPath: '$(Build.BinariesDirectory)'
-        EnableServices: true
-        SupportLogOnError: true
-        TreatSignatureUpdateFailureAs: 'Warning'
-        SignatureFreshness: 'UpToDate'
-        TreatStaleSignatureAs: 'Warning'
     - task: UseDotNet@2
       inputs:
         packageType: 'sdk'
@@ -109,7 +89,7 @@ stages:
       inputs:
         ConnectedServiceName: 'OSSGadget_CodeSign'
         FolderPath: '$(Build.BinariesDirectory)/linux/OSSGadget_linux_$(ReleaseVersion)'
-        Pattern: 'oss-characteristic.dll, oss-defog.dll, oss-detect-backdoor.dll, oss-download.dll, oss-find-source.dll, oss-health.dll, RecursiveExtractor.dll'
+        Pattern: 'oss-characteristic.dll, oss-defog.dll, oss-detect-backdoor.dll, oss-detect-cryptography.dll, oss-diff.dll, oss-download.dll, oss-find-domain-squats.dll, oss-find-source.dll, oss-find-squats.dll, oss-health.dll, oss-metadata.dll, oss-risk-calculator.dll, Shared.dll'
         signConfigType: 'inlineSignParams'
         inlineOperation: |
           [
@@ -142,7 +122,7 @@ stages:
       inputs:
         ConnectedServiceName: 'OSSGadget_CodeSign'
         FolderPath: '$(Build.BinariesDirectory)/macos/OSSGadget_macos_$(ReleaseVersion)'
-        Pattern: 'oss-characteristic.dll, oss-defog.dll, oss-detect-backdoor.dll, oss-download.dll, oss-find-source.dll, oss-health.dll, RecursiveExtractor.dll'
+        Pattern: 'oss-characteristic.dll, oss-defog.dll, oss-detect-backdoor.dll, oss-detect-cryptography.dll, oss-diff.dll, oss-download.dll, oss-find-domain-squats.dll, oss-find-source.dll, oss-find-squats.dll, oss-health.dll, oss-metadata.dll, oss-risk-calculator.dll, Shared.dll'
         signConfigType: 'inlineSignParams'
         inlineOperation: |
           [
@@ -175,7 +155,7 @@ stages:
       inputs:
         ConnectedServiceName: 'OSSGadget_CodeSign'
         FolderPath: '$(Build.BinariesDirectory)/win/OSSGadget_win_$(ReleaseVersion)'
-        Pattern: 'oss-characteristic.exe, oss-characteristic.dll, oss-defog.exe, oss-defog.dll, oss-detect-backdoor.exe, oss-detect-backdoor.dll, oss-download.exe, oss-download.dll, oss-find-source.exe, oss-find-source.dll, oss-health.exe, oss-health.dll, RecursiveExtractor.dll'
+        Pattern: 'oss-characteristic.dll, oss-defog.dll, oss-detect-backdoor.dll, oss-detect-cryptography.dll, oss-diff.dll, oss-download.dll, oss-find-domain-squats.dll, oss-find-source.dll, oss-find-squats.dll, oss-health.dll, oss-metadata.dll, oss-risk-calculator.dll, Shared.dll'
         signConfigType: 'inlineSignParams'
         inlineOperation: |
           [
@@ -208,7 +188,7 @@ stages:
       inputs:
         ConnectedServiceName: 'OSSGadget_CodeSign'
         FolderPath: '$(Build.BinariesDirectory)/netcoreapp/OSSGadget_netcoreapp_$(ReleaseVersion)'
-        Pattern: 'oss-characteristic.exe, oss-characteristic.dll, oss-defog.exe, oss-defog.dll, oss-detect-backdoor.exe, oss-detect-backdoor.dll, oss-download.exe, oss-download.dll, oss-find-source.exe, oss-find-source.dll, oss-health.exe, oss-health.dll, RecursiveExtractor.dll'
+        Pattern: 'oss-characteristic.dll, oss-defog.dll, oss-detect-backdoor.dll, oss-detect-cryptography.dll, oss-diff.dll, oss-download.dll, oss-find-domain-squats.dll, oss-find-source.dll, oss-find-squats.dll, oss-health.dll, oss-metadata.dll, oss-risk-calculator.dll, Shared.dll'
         signConfigType: 'inlineSignParams'
         inlineOperation: |
           [
@@ -243,16 +223,16 @@ stages:
       inputs:
         rootFolderOrFile: '$(Build.BinariesDirectory)/linux/OSSGadget_linux_$(ReleaseVersion)'
         includeRootFolder: true
-        archiveType: 'zip'
-        archiveFile: '$(Build.StagingDirectory)/OSSGadget_linux_$(ReleaseVersion).zip'
+        archiveType: 'tar'
+        archiveFile: '$(Build.StagingDirectory)/OSSGadget_linux_$(ReleaseVersion).tar.gz'
         replaceExistingArchive: true
     - task: ArchiveFiles@2
       displayName: Archive Artifact - MacOS
       inputs:
         rootFolderOrFile: '$(Build.BinariesDirectory)/macos/OSSGadget_macos_$(ReleaseVersion)'
         includeRootFolder: true
-        archiveType: 'zip'
-        archiveFile: '$(Build.StagingDirectory)/OSSGadget_macos_$(ReleaseVersion).zip'
+        archiveType: 'tar'
+        archiveFile: '$(Build.StagingDirectory)/OSSGadget_macos_$(ReleaseVersion).tar.gz'
         replaceExistingArchive: true
     - task: ArchiveFiles@2
       displayName: Archive Artifact - Windows
@@ -277,8 +257,8 @@ stages:
         script: |
           Get-ChildItem $(Build.StagingDirectory) | Foreach-Object {
             $name = $_.Name
-            $tmp = (Get-FileHash "$(Build.StagingDirectory)\$name").Hash
-            Add-Content $(Build.StagingDirectory)\HASHES.txt "$tmp`t$name"
+            $tmp = (Get-FileHash "$(Build.StagingDirectory)/$name").Hash
+            Add-Content $(Build.StagingDirectory)/HASHES.txt "$tmp`t$name"
           }
     - task: PublishPipelineArtifact@1
       displayName: Publish Signed Artifacts to Pipeline
@@ -296,7 +276,54 @@ stages:
         tag: 'v$(ReleaseVersion)'
         title: 'OSS Gadget v$(ReleaseVersion)'
         assets: |
+          $(Build.StagingDirectory)/*.tar.gz
           $(Build.StagingDirectory)/*.zip
           $(Build.StagingDirectory)/HASHES.txt
         changeLogCompareToRelease: 'lastNonDraftRelease'
         changeLogType: 'commitBased'
+
+- stage: Publish_Shared_Nuget
+  dependsOn:
+  - SDL
+  condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI', 'BatchedCI'))
+  jobs:
+  - template: templates/check-changes.yml
+    parameters:
+      jobName: 'check_changes_shared'
+      tagName: 'code_changed'
+      pathArgument: 'Pipelines/*.yml,src/*'
+  - template: templates/nuget-build-job.yml
+    parameters:
+      jobName: 'pack_shared'
+      projectPath: 'src/Shared/Shared.Lib.csproj'
+      projectName: 'Shared'
+      dependsOnArg: 'check_changes_shared'
+      conditionedOnTag: 'code_changed'
+      publishToNuget: true
+
+- stage: Publish_OSS_Find_Squats_Nuget
+  dependsOn:
+  - SDL
+  condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI', 'BatchedCI'))
+  jobs:
+  - template: templates/check-changes.yml
+    parameters:
+      jobName: 'check_changes_oss_find_squats'
+      tagName: 'code_changed'
+      pathArgument: 'Pipelines/*,src/*'
+  - template: templates/nuget-build-job.yml
+    parameters:
+      jobName: 'pack_oss_find_squats'
+      projectPath: 'src/oss-find-squats/oss-find-squats.csproj'
+      projectName: 'oss-find-squats'
+      dependsOnArg: 'check_changes_oss_find_squats'
+      conditionedOnTag: 'code_changed'
+      publishToNuget: true
+  - template: templates/nuget-build-job.yml
+    parameters:
+      jobName: 'pack_oss_find_squats_lib'
+      projectPath: 'src/oss-find-squats-lib/oss-find-squats-lib.csproj'
+      projectName: 'oss-find-squats-lib'
+      dependsOnArg: 'check_changes_oss_find_squats'
+      conditionedOnTag: 'code_changed'
+      publishToNuget: true

@@ -10,9 +10,10 @@
     "patterns": [
       {
         "pattern": "pastebin|zerobin|ghostbin|hastebin",
-        "type": "regex",
+        "type": "regexword",
         "scopes": [ "code", "comment" ],
-        "modifiers": [ "i" ]
+        "modifiers": [ "i" ],
+        "confidence": "high"
       }
     ]
   }

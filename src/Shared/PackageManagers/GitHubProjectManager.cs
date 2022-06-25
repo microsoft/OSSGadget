@@ -1,33 +1,48 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using LibGit2Sharp;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Microsoft.CST.OpenSource.Helpers;
+    using PackageUrl;
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.IO;
+    using System.Linq;
+    using System.Net.Http;
+    using System.Text.RegularExpressions;
+    using System.Threading.Tasks;
+    using Utilities;
+
     internal class GitHubProjectManager : BaseProjectManager
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
+        /// <summary>
+        /// The type of the project manager from the package-url type specifications.
+        /// </summary>
+        /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
+        public const string Type = "github";
+
+        public override string ManagerType => Type;
+
         public static string ENV_GITHUB_ENDPOINT = "https://github.com";
+
+        public GitHubProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        {
+        }
 
         public GitHubProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
         }
 
         /// <summary>
-        ///     Return all github repo patterns in the searchText which have the same name as the package repo
+        ///     Return all github repo patterns in the searchText.
         /// </summary>
         /// <param name="purl"> </param>
         /// <param name="searchText"> </param>
         /// <returns> </returns>
         public static IEnumerable<PackageURL> ExtractGitHubUris(PackageURL purl, string searchText)
         {
-            List<PackageURL> repositoryList = new List<PackageURL>();
+            List<PackageURL> repositoryList = new();
             if (string.IsNullOrEmpty(searchText))
             {
                 return repositoryList;
@@ -42,7 +57,7 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (UriFormatException ex)
             {
-                Logger.Warn(ex, "Error matching regular expression: {0}", ex.Message);
+                Logger.Debug(ex, "Error matching regular expression: {0}", ex.Message);
                 /* that was an invalid url, ignore */
             }
             return repositoryList;
@@ -51,8 +66,8 @@ namespace Microsoft.CST.OpenSource.Shared
         public static PackageURL ParseUri(Uri uri)
         {
             Match match = GithubMatchRegex.Match(uri.AbsoluteUri);
-            var matches = match.Groups;
-            PackageURL packageURL = new PackageURL(
+            GroupCollection matches = match.Groups;
+            PackageURL packageURL = new(
                 "github",
                 matches["namespace"].Value,
                 matches["name"].Value,
@@ -67,102 +82,162 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl"> Package URL of the package to download. </param>
         /// <returns> n/a </returns>
-        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
+        public override async Task<IEnumerable<string>> DownloadVersionAsync(PackageURL purl, bool doExtract, bool cached = false)
         {
-            var downloadedPaths = new List<string>();
+            List<string> downloadedPaths = new();
 
             if (purl == null)
             {
-                Logger.Error("'purl' argument must not be null.");
+                Logger.Debug("'purl' argument must not be null.");
                 return downloadedPaths;
             }
 
             Logger.Trace("DownloadVersion {0}", purl.ToString());
 
-            if (doExtract == false)
-            {
-                throw new NotImplementedException("GitHub does not support binary downloads yet.");
-            }
-
-            var packageNamespace = purl?.Namespace;
-            var packageName = purl?.Name;
-            var packageVersion = purl?.Version;
+            string? packageNamespace = purl?.Namespace;
+            string? packageName = purl?.Name;
+            string? packageVersion = purl?.Version;
 
             if (string.IsNullOrWhiteSpace(packageNamespace) || string.IsNullOrWhiteSpace(packageName)
                 || string.IsNullOrWhiteSpace(packageVersion))
             {
-                Logger.Error("Unable to download [{0} {1}]. Both must be defined.", packageNamespace, packageName);
+                Logger.Debug("Unable to download [{0} {1}]. Both must be defined.", packageNamespace, packageName);
                 return downloadedPaths;
+            }
+
+            // Cut the .git off the end of the package name.
+            if (packageName.EndsWith(".git"))
+            {
+                packageName = packageName[0..^4];
             }
 
             try
             {
-                var url = $"{ENV_GITHUB_ENDPOINT}/{packageNamespace}/{packageName}";
-                var invalidChars = Path.GetInvalidFileNameChars();
+                string url = $"{ENV_GITHUB_ENDPOINT}/{packageNamespace}/{packageName}";
+                string fsNamespace = OssUtilities.NormalizeStringForFileSystem(packageNamespace);
+                string fsName = OssUtilities.NormalizeStringForFileSystem(packageName);
+                string fsVersion = OssUtilities.NormalizeStringForFileSystem(packageVersion);
 
-                // TODO: Externalize this normalization
-                var fsNamespace = new string((packageNamespace.Select(ch => invalidChars.Contains(ch) ? '_' : ch) ?? Array.Empty<char>()).ToArray());
-                var fsName = new string((packageName.Select(ch => invalidChars.Contains(ch) ? '_' : ch) ?? Array.Empty<char>()).ToArray());
-                var fsVersion = new string((packageVersion.Select(ch => invalidChars.Contains(ch) ? '_' : ch) ?? Array.Empty<char>()).ToArray());
-                var workingDirectory = string.IsNullOrWhiteSpace(packageVersion) ?
-                                        Path.Join(TopLevelExtractionDirectory, $"github-{fsNamespace}-{fsName}") :
-                                        Path.Join(TopLevelExtractionDirectory, $"github-{fsNamespace}-{fsName}-{fsVersion}");
-                string extractionPath = Path.Combine(TopLevelExtractionDirectory, workingDirectory);
+                string relativeWorkingDirectory = string.IsNullOrWhiteSpace(packageVersion) ?
+                                                $"github-{fsNamespace}-{fsName}" :
+                                                $"github-{fsNamespace}-{fsName}-{fsVersion}";
+                string extractionPath = Path.Combine(TopLevelExtractionDirectory, relativeWorkingDirectory);
+
                 if (doExtract && Directory.Exists(extractionPath) && cached == true)
                 {
                     downloadedPaths.Add(extractionPath);
                     return downloadedPaths;
                 }
 
-                Repository.Clone(url, workingDirectory);
+                // First, try a tag (most likely what we're looking for)
+                List<string> archiveUrls = new();
+                foreach (string prefix in new[] { "", "v" })
+                {
+                    archiveUrls.AddRange(new[] {
+                        $"{url}/archive/refs/tags/{prefix}{packageVersion}.zip",
+                        $"{url}/archive/{prefix}{packageVersion}.zip",
+                        $"{url}/archive/refs/heads/{prefix}{packageVersion}.zip",
+                    });
+                }
+                PackageURL purlNoVersion = new(purl!.Type, purl.Namespace, purl.Name, null, purl.Qualifiers, purl.Subpath);
+                foreach (string v in await EnumerateVersionsAsync(purlNoVersion))
+                {
+                    if (Regex.IsMatch(purl.Version!, @"(^|[^\d\.])" + Regex.Escape(v)))
+                    {
+                        archiveUrls.Add($"{url}/archive/refs/tags/{v}.zip");
+                    }
+                }
 
-                var repo = new Repository(workingDirectory);
-                Commands.Checkout(repo, packageVersion);
-                downloadedPaths.Add(workingDirectory);
-                repo.Dispose();
-            }
-            catch (LibGit2Sharp.NotFoundException ex)
-            {
-                Logger.Warn(ex, "The version {0} is not a valid git reference: {1}", packageVersion, ex.Message);
+                foreach (string archiveUrl in archiveUrls)
+                {
+                    Logger.Debug("Attemping to download {0}", archiveUrl);
+                    HttpClient httpClient = CreateHttpClient();
+
+                    System.Net.Http.HttpResponseMessage? result = await httpClient.GetAsync(archiveUrl);
+                    if (result.IsSuccessStatusCode)
+                    {
+                        Logger.Debug("Download successful.");
+                        if (doExtract)
+                        {
+                            downloadedPaths.Add(await ArchiveHelper.ExtractArchiveAsync(TopLevelExtractionDirectory, relativeWorkingDirectory, await result.Content.ReadAsStreamAsync(), cached));
+                        }
+                        else
+                        {
+                            Directory.CreateDirectory(extractionPath);
+                            string targetName = Path.Join(extractionPath, $"{fsVersion}.zip");
+                            await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
+                            downloadedPaths.Add(targetName);
+                        }
+                        break;
+                    }
+                }
             }
             catch (Exception ex)
             {
-                Logger.Warn(ex, "Error downloading GitHub package: {0}", ex.Message);
+                Logger.Debug(ex, "Error downloading GitHub package: {0}", ex.Message);
             }
             return downloadedPaths;
         }
 
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
+        /// <inheritdoc />
+        public override async Task<IEnumerable<string>> EnumerateVersionsAsync(PackageURL purl, bool useCache = true, bool includePrerelease = true)
         {
             try
             {
-                var versionList = new List<string>();
-                var githubUrl = $"https://github.com/{purl.Namespace}/{purl.Name}";
-                // TODO: Document why we're wrapping this in a task
-                await Task.Run(() =>
+                List<string> versionList = new();
+                string githubUrl = $"https://github.com/{purl.Namespace}/{purl.Name}";
+
+                ProcessStartInfo gitLsRemoteStartInfo = new()
                 {
-                    foreach (var reference in Repository.ListRemoteReferences(githubUrl))
+                    FileName = "git",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+                gitLsRemoteStartInfo.ArgumentList.Add("ls-remote");
+                gitLsRemoteStartInfo.ArgumentList.Add("--tags");
+                gitLsRemoteStartInfo.ArgumentList.Add("--ref");
+                gitLsRemoteStartInfo.ArgumentList.Add(githubUrl);
+
+                Process? gitLsRemoteProcess = Process.Start(gitLsRemoteStartInfo);
+                if (gitLsRemoteProcess != null)
+                {
+                    StreamReader? stdout = gitLsRemoteProcess.StandardOutput;
+                    string? outputLine;
+                    while ((outputLine = await gitLsRemoteProcess.StandardOutput.ReadLineAsync()) != null)
                     {
-                        if (reference.IsTag)
+                        Match? match = Regex.Match(outputLine, "^.+refs/tags/(.*)$");
+                        if (match.Success)
                         {
-                            var tagName = reference.ToString().Replace("refs/tags/", "");
+                            string? tagName = match.Groups[1].Value;
+                            Logger.Debug("Adding tag: {0}", tagName);
                             versionList.Add(tagName);
                         }
                     }
-                });
-                versionList.Sort();
-                return versionList.Select(v => v.ToString());
+                    string stderr = await gitLsRemoteProcess.StandardError.ReadToEndAsync();
+                    if (!string.IsNullOrWhiteSpace(stderr))
+                    {
+                        Logger.Warn("Error running 'git', error: {0}", stderr);
+                    }
+                }
+                else
+                {
+                    Logger.Warn("Unable to run 'git'. Is it installed?");
+                }
+                return SortVersions(versionList);
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"Error enumerating GitHub repository references: {ex.Message}");
-                return Array.Empty<string>();
+                Logger.Debug("Unable to enumerate versions: {0}", ex.Message);
+                throw;
             }
         }
 
-        public override async Task<string?> GetMetadata(PackageURL purl)
+        /// <inheritdoc />
+        public override async Task<string?> GetMetadataAsync(PackageURL purl, bool useCache = true)
         {
-            await Task.Run(() => { });  // Avoid async warning -- @HACK
+            await Task.CompletedTask;
             return $"https://github.com/{purl.Namespace}/{purl.Name}";
         }
 
@@ -170,8 +245,35 @@ namespace Microsoft.CST.OpenSource.Shared
         {
             return new Uri($"{ENV_GITHUB_ENDPOINT}/{purl.Namespace}/{purl.Name}");
         }
+        
+        /// <summary>
+        /// Gets if the URL is a GitHub repo URL.
+        /// </summary>
+        /// <param name="url">A URL to check if it's from GitHub.</param>
+        /// <param name="purl">The variable to set the purl of if it is a GitHub repo.</param>
+        /// <returns>If the url is a GitHubRepo.</returns>
+        public static bool IsGitHubRepoUrl(string url, out PackageURL? purl)
+        {
+            Check.NotNull(nameof(url), url);
+            purl = null;
 
-        private static readonly Regex GithubExtractorRegex = new Regex(
+            if (url.Contains(ENV_GITHUB_ENDPOINT))
+            {
+                try
+                {
+                    purl = ParseUri(new Uri(url));
+                }
+                catch (ArgumentException)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+            return false;
+        }
+
+        private static readonly Regex GithubExtractorRegex = new(
                     @"((?<protocol>https?|git|ssh|rsync)\+?)+\://" +
                     @"(?:(?<username>[\w-]+)@)*" +
                     @"(github\.com)" +
@@ -184,7 +286,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <summary>
         ///     Regular expression that matches possible GitHub URLs
         /// </summary>
-        private static readonly Regex GithubMatchRegex = new Regex(
+        private static readonly Regex GithubMatchRegex = new(
             @"^((?<protocol>https?|git|ssh|rsync)\+?)+\://" +
             @"(?:(?<user>.+)@)*" +
             @"(?<resource>[a-z0-9_.-]*)" +

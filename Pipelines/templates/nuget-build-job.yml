@@ -6,7 +6,7 @@ parameters:
 # Version of Dotnet SDK to use
 - name: dotnetVersion
   type: string
-  default: '5.0.x'
+  default: '6.0.x'
 # Should Dotnet SDK install preview versions?
 - name: includePreviewVersions
   type: boolean
@@ -31,10 +31,28 @@ parameters:
 - name: artifactName
   type: string
   default: 'Unsigned_Binaries'
+# Should the resulting built nugets be signed and published to Nuget.org
+- name: publishToNuget
+  type: boolean
+  default: false
+# The Job name for the pipeline that checked paths
+- name: dependsOnArg
+  type: string
+  default: []
+# The tag set by the checking job
+- name: conditionedOnTag
+  type: string
+  default: 'code_changed'
+# Should the resulting nugets be marked as a public release (disable prerelease versioning)
+- name: publicRelease
+  type: boolean
+  default: true
 
 jobs:
 - job: ${{ parameters.jobName }}
-  displayName: NuGet Package
+  dependsOn: ${{ parameters.dependsOnArg }}
+  condition: eq(dependencies.${{ parameters.dependsOnArg }}.outputs['check_script.${{ parameters.conditionedOnTag }}'], 'true')
+  displayName: NuGet Package ${{ parameters.projectName }}
   pool:
     vmImage: 'windows-latest'
   steps:
@@ -60,7 +78,7 @@ jobs:
     inputs:
       command: 'custom'
       custom: 'pack'
-      arguments: '${{ parameters.projectPath }} -c ${{ parameters.buildConfiguration }} -o Packages'
+      arguments: '${{ parameters.projectPath }} -c ${{ parameters.buildConfiguration }} -o Packages /p:PublicRelease=${{ parameters.publicRelease }}'
   - task: AntiMalware@3
     displayName: Anti-Malware Scan
     inputs:
@@ -72,13 +90,41 @@ jobs:
       TreatSignatureUpdateFailureAs: 'Warning'
       SignatureFreshness: 'UpToDate'
       TreatStaleSignatureAs: 'Warning'
+  - task: EsrpCodeSigning@1
+    displayName: Code Sign Nuget Packages
+    condition: and(succeeded(), eq('${{ parameters.publishToNuget }}', 'true'))
+    inputs:
+      ConnectedServiceName: 'CodeSignforATSAN'
+      FolderPath: 'Packages'
+      Pattern: '*.nupkg, *.snupkg'
+      signConfigType: 'inlineSignParams'
+      inlineOperation: |
+        [
+                {
+                    "KeyCode" : "CP-401405",
+                    "OperationCode" : "NuGetSign",
+                    "Parameters" : {},
+                    "ToolName" : "sign",
+                    "ToolVersion" : "1.0"
+                },
+                {
+                    "KeyCode" : "CP-401405",
+                    "OperationCode" : "NuGetVerify",
+                    "Parameters" : {},
+                    "ToolName" : "sign",
+                    "ToolVersion" : "1.0"
+                }
+            ]
+      SessionTimeout: '60'
+      MaxConcurrency: '50'
+      MaxRetryAttempts: '5'
   - task: ArchiveFiles@2
     displayName: Archive Packages
     inputs:
       rootFolderOrFile: 'Packages'
       includeRootFolder: false
       archiveType: 'zip'
-      archiveFile: 'Archives\${{ parameters.projectName }}_NuGet.zip'
+      archiveFile: 'Archives/${{ parameters.projectName }}_NuGet.zip'
       replaceExistingArchive: true
   - task: PublishBuildArtifacts@1
     displayName: Pipeline Publish Archive
@@ -86,3 +132,12 @@ jobs:
       PathtoPublish: 'Archives'
       ArtifactName: '${{ parameters.artifactName }}'
       publishLocation: 'Container'
+  - task: NuGetCommand@2
+    displayName: Push NuGet Packages
+    condition: and(succeeded(), eq('${{ parameters.publishToNuget }}', 'true'))
+    inputs:
+      command: 'push'
+      packagesToPush: 'Packages/*.nupkg'
+      nuGetFeedType: 'external'
+      publishFeedCredentials: 'CST-E Nuget CI'
+      verbosityPush: 'Normal'

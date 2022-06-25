@@ -1,58 +1,65 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using F23.StringSimilarity;
-using Microsoft.CST.OpenSource.Model;
-using Microsoft.CST.RecursiveExtractor;
-using Microsoft.Extensions.Caching.Memory;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Text.Json;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using Version = SemVer.Version;
-
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.PackageManagers
 {
-    public class BaseProjectManager
+    using Contracts;
+    using Microsoft.Extensions.Caching.Memory;
+    using Microsoft.CST.OpenSource.Model;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Net.Http;
+    using System.Text.Json;
+    using System.Text.RegularExpressions;
+    using System.Threading.Tasks;
+    using Utilities;
+    using Version = SemanticVersioning.Version;
+    using PackageUrl;
+    using System.Net;
+
+    public abstract class BaseProjectManager
     {
         /// <summary>
-        ///     Initializes a new project management object.
+        /// The type of the project manager from the package-url type specifications.
         /// </summary>
-        public BaseProjectManager(string destinationDirectory)
+        /// <remarks>This differs from the Type property defined in other ProjectManagers as this one isn't static.</remarks>
+        /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
+        public abstract string ManagerType { get; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BaseProjectManager"/> class.
+        /// </summary>
+        public BaseProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory = ".")
         {
             Options = new Dictionary<string, object>();
-            CommonInitialization.OverrideEnvironmentVariables(this);
             TopLevelExtractionDirectory = destinationDirectory;
+            HttpClientFactory = httpClientFactory;
+        }
 
-            if (CommonInitialization.WebClient is HttpClient client)
-            {
-                WebClient = client;
-            }
-            else
-            {
-                throw new NullReferenceException(nameof(WebClient));
-            }
+        public BaseProjectManager(string destinationDirectory = ".") : this(new DefaultHttpClientFactory(), destinationDirectory)
+        {
         }
 
         /// <summary>
-        ///     Per-object option container.
+        /// Per-object option container.
         /// </summary>
         public Dictionary<string, object> Options { get; private set; }
 
         /// <summary>
-        ///     The location (directory) to extract files to.
+        /// The location (directory) to extract files to.
         /// </summary>
-        public string TopLevelExtractionDirectory { get; set; } = ".";
+        public string TopLevelExtractionDirectory { get; init; }
 
         /// <summary>
-        ///     Extracts GitHub URLs from a given piece of text.
+        /// The <see cref="IHttpClientFactory"/> for the manager.
         /// </summary>
-        /// <param name="content"> text to analyze </param>
-        /// <returns> PackageURLs (type=GitHub) located in the text. </returns>
+        public IHttpClientFactory HttpClientFactory { get; }
+
+        /// <summary>
+        /// Extracts GitHub URLs from a given piece of text.
+        /// </summary>
+        /// <param name="content">text to analyze</param>
+        /// <returns>PackageURLs (type=GitHub) located in the text.</returns>
         public static IEnumerable<PackageURL> ExtractGitHubPackageURLs(string content)
         {
             Logger.Trace("ExtractGitHubPackageURLs({0})", content?.Substring(0, 30));
@@ -62,15 +69,15 @@ namespace Microsoft.CST.OpenSource.Shared
                 Logger.Debug("Content was empty; nothing to do.");
                 return Array.Empty<PackageURL>();
             }
-            var purlList = new List<PackageURL>();
+            List<PackageURL> purlList = new();
 
             // @TODO: Check the regex below; does this match GitHub's scheme?
-            var githubRegex = new Regex(@"github\.com/([a-z0-9\-_\.]+)/([a-z0-9\-_\.]+)",
+            Regex githubRegex = new(@"github\.com/([a-z0-9\-_\.]+)/([a-z0-9\-_\.]+)",
                                         RegexOptions.IgnoreCase);
             foreach (Match match in githubRegex.Matches(content).Where(match => match != null))
             {
-                var user = match.Groups[1].Value;
-                var repo = match.Groups[2].Value;
+                string user = match.Groups[1].Value;
+                string repo = match.Groups[2].Value;
 
                 if (repo.EndsWith(".git", StringComparison.InvariantCultureIgnoreCase))
                 {
@@ -85,7 +92,7 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
 
                 // Create a PackageURL from what we know
-                var purl = new PackageURL("github", user, repo, null, null, null);
+                PackageURL purl = new("github", user, repo, null, null, null);
                 purlList.Add(purl);
             }
 
@@ -97,40 +104,15 @@ namespace Microsoft.CST.OpenSource.Shared
             return purlList.Distinct();
         }
 
-        public static string GetCommonSupportedHelpText()
-        {
-            var supportedHelpText = @"
-The package-url specifier is described at https://github.com/package-url/purl-spec:
-  pkg:cargo/rand                The latest version of Rand (via crates.io)
-  pkg:cocoapods/AFNetworking    The latest version of AFNetworking (via cocoapods.org)
-  pkg:composer/Smarty/Smarty    The latest version of Smarty (via Composer/ Packagist)
-  pkg:cpan/Apache-ACEProxy      The latest version of Apache::ACEProxy (via cpan.org)
-  pkg:cran/ACNE@0.8.0           Version 0.8.0 of ACNE (via cran.r-project.org)
-  pkg:gem/rubytree@*            All versions of RubyTree (via rubygems.org)
-  pkg:github/Microsoft/DevSkim  The latest release of DevSkim (via GitHub)
-  pkg:hackage/a50@*             All versions of a50 (via hackage.haskell.org)
-  pkg:maven/org.apdplat/deep-qa The latest version of org.apdplat.deep-qa (via repo1.maven.org)
-  pkg:npm/express               The latest version of Express (via npm.org)
-  pkg:nuget/Newtonsoft.JSON     The latest version of Newtonsoft.JSON (via nuget.org)
-  pkg:pypi/django@1.11.1        Version 1.11.1 fo Django (via pypi.org)
-  pkg:ubuntu/zerofree           The latest version of zerofree from Ubuntu (via packages.ubuntu.com)
-  pkg:vsm/MLNET/07              The latest version of MLNET.07 (from marketplace.visualstudio.com)
-  pkg:url/foo@1.0?url=<URL>     The direct URL <URL>
-";
-            return supportedHelpText;
-        }
-
-        public static List<string> GetCommonSupportedHelpTextLines()
-        {
-            return GetCommonSupportedHelpText().Split(Environment.NewLine).ToList<string>();
-        }
-
         /// <summary>
-        ///     Retrieves HTTP content from a given URI.
+        /// Retrieves HTTP content from a given URI.
         /// </summary>
-        /// <param name="uri"> URI to load. </param>
-        /// <returns> </returns>
-        public static async Task<string?> GetHttpStringCache(string uri, bool useCache = true, bool neverThrow = false)
+        /// <param name="client">The <see cref="HttpClient"/> to make the request on.</param>
+        /// <param name="uri">The URI to load.</param>
+        /// <param name="useCache">If cache should be used.</param>
+        /// <param name="neverThrow">If an exception gets raised, should it not be thrown.</param>
+        /// <returns>The string response from the http result content.</returns>
+        public static async Task<string?> GetHttpStringCache(HttpClient client, string uri, bool useCache = true, bool neverThrow = false)
         {
             Logger.Trace("GetHttpStringCache({0}, {1})", uri, useCache);
 
@@ -149,16 +131,16 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
                     }
                 }
 
-                var result = await WebClient.GetAsync(uri);
-                result.EnsureSuccessStatusCode();   // Don't cache error codes
-                var contentLength = result.Content.Headers.ContentLength ?? 8192;
+                HttpResponseMessage result = await client.GetAsync(uri);
+                result.EnsureSuccessStatusCode(); // Don't cache error codes.
+                long contentLength = result.Content.Headers.ContentLength ?? 8192;
                 resultString = await result.Content.ReadAsStringAsync();
 
                 if (useCache)
                 {
                     lock (DataCache)
                     {
-                        var mce = new MemoryCacheEntryOptions() { Size = contentLength };
+                        MemoryCacheEntryOptions mce = new() { Size = contentLength };
                         DataCache.Set<string>(uri, resultString, mce);
                     }
                 }
@@ -175,11 +157,69 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         }
 
         /// <summary>
-        ///     Retrieves JSON content from a given URI.
+        /// Checks <see cref="GetHttpStringCache(HttpClient, string, bool, bool)"/> to see if the package exists.
         /// </summary>
-        /// <param name="uri"> URI to load. </param>
-        /// <returns> Content, as a JsonDocument, possibly from cache. </returns>
-        public static async Task<JsonDocument> GetJsonCache(string uri, bool useCache = true)
+        /// <param name="client">The <see cref="HttpClient"/> to make the request on.</param>
+        /// <param name="url">The URL to check.</param>
+        /// <param name="useCache">If cache should be used.</param>
+        /// <returns>true if the package exists.</returns>
+        internal static async Task<bool> CheckHttpCacheForPackage(HttpClient client, string url, bool useCache = true)
+        {
+            Logger.Trace("CheckHttpCacheForPackage {0}", url);
+            try
+            {
+                // GetHttpStringCache throws an exception if it has trouble finding the package.
+                _ = await GetHttpStringCache(client, url, useCache);
+                return true;
+            }
+            catch (Exception e)
+            {
+                if (e is HttpRequestException { StatusCode: System.Net.HttpStatusCode.NotFound })
+                {
+                    Logger.Trace("Package not found at: {0}", url);
+                    return false;
+                }
+                Logger.Debug("Unable to check if package {1} exists: {0}", e.Message, url);
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Checks <see cref="GetJsonCache(HttpClient, string, bool)"/> to see if the package exists.
+        /// </summary>
+        /// <param name="client">The <see cref="HttpClient"/> to make the request on.</param>
+        /// <param name="url">The URL to check.</param>
+        /// <param name="useCache">If cache should be used.</param>
+        /// <returns>true if the package exists.</returns>
+        internal static async Task<bool> CheckJsonCacheForPackage(HttpClient client, string url, bool useCache = true)
+        {
+            Logger.Trace("CheckJsonCacheForPackage {0}", url);
+            try
+            {
+                // GetJsonCache throws an exception if it has trouble finding the package.
+                _ = await GetJsonCache(client, url, useCache);
+                return true;
+            }
+            catch (Exception e)
+            {
+                if (e is HttpRequestException { StatusCode: System.Net.HttpStatusCode.NotFound })
+                {
+                    Logger.Trace("Package not found at: {0}", url);
+                    return false;
+                }
+                Logger.Debug("Unable to check if package {1} exists: {0}", e.Message, url);
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Retrieves JSON content from a given URI.
+        /// </summary>
+        /// <param name="client">The <see cref="HttpClient"/> to make the request on.</param>
+        /// <param name="uri">URI to load.</param>
+        /// <param name="useCache">If cache should be used. If false will make a direct WebClient request.</param>
+        /// <returns>Content, as a JsonDocument, possibly from cache.</returns>
+        public static async Task<JsonDocument> GetJsonCache(HttpClient client, string uri, bool useCache = true)
         {
             Logger.Trace("GetJsonCache({0}, {1})", uri, useCache);
             if (useCache)
@@ -192,16 +232,17 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
                     }
                 }
             }
-            var result = await WebClient.GetAsync(uri);
-            result.EnsureSuccessStatusCode();   // Don't cache error codes
-            var contentLength = result.Content.Headers.ContentLength ?? 8192;
-            var doc = await JsonDocument.ParseAsync(await result.Content.ReadAsStreamAsync());
+            Logger.Trace("Loading Uri...");
+            HttpResponseMessage result = await client.GetAsync(uri);
+            result.EnsureSuccessStatusCode(); // Don't cache error codes.
+            long contentLength = result.Content.Headers.ContentLength ?? 8192;
+            JsonDocument doc = await JsonDocument.ParseAsync(await result.Content.ReadAsStreamAsync());
 
             if (useCache)
             {
                 lock (DataCache)
                 {
-                    var mce = new MemoryCacheEntryOptions() { Size = contentLength };
+                    MemoryCacheEntryOptions? mce = new() { Size = contentLength };
                     DataCache.Set<JsonDocument>(uri, doc, mce);
                 }
             }
@@ -210,169 +251,83 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         }
 
         /// <summary>
-        ///     Sort a collection of version strings, trying multiple ways.
+        /// Sorts the versions of a package in descending order.
         /// </summary>
-        /// <param name="versionList"> list of version strings </param>
-        /// <returns> list of version strings, in sorted order </returns>
+        /// <param name="versionList">The available list of versions on a package.</param>
+        /// <returns>The sorted list of versions.</returns>
         public static IEnumerable<string> SortVersions(IEnumerable<string> versionList)
         {
-            // Scrub the version list
-            versionList = versionList.Select((v) =>
+            List<string> versionListEnumerated = versionList.ToList();
+            if (!versionListEnumerated.Any())
             {
-                if (v.StartsWith("v", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    return v.Substring(1).Trim();
-                }
-                else
-                {
-                    return v.Trim();
-                }
-            });
-
-            // Attempt to sort using different methods
-            List<Func<string, object>> methods = new List<Func<string, object>>
-            {
-                (s) => new Version(s),
-                (s) => new SemVer.Version(s, loose: true),
-                (s) => s
-            };
-
-            // Iterate through each method we defined above.
-            foreach (var method in methods)
-            {
-                var objList = new List<object>();
-                try
-                {
-                    foreach (var version in versionList)
-                    {
-                        var verResult = method(version);
-                        // Make sure the method doesn't mangle the version This is due to System.Version
-                        // normalizalizing "0.01" to "0.1".
-                        if (verResult != null && (verResult.ToString() ?? string.Empty).Equals(version))
-                        {
-                            objList.Add(verResult);
-                        }
-                        else
-                        {
-                            Logger.Debug("Mangled version [{0}] => [{1}]", version, verResult);
-                        }
-                    }
-                    objList.Sort();  // Sort using the built-in sort, delegating to the type's comparator
-                }
-                catch (Exception)
-                {
-                    objList = null;
-                }
-
-                // If we have a successful result (right size), then we should be good.
-                if (objList != null && objList.Count() == versionList.Count())
-                {
-                    return objList.Select(o => o.ToString() ?? string.Empty);
-                }
+                return Array.Empty<string>();
             }
 
-            // Fallback, leaving it alone
-            if (Logger.IsDebugEnabled)  // expensive string join, avoid unless necessary
-            {
-                Logger.Debug("List is not sortable, returning as-is: {0}", string.Join(", ", versionList));
-            }
-            return versionList;
+            // Split Versions
+            List<List<string>> versionPartsList = versionListEnumerated.Select(VersionComparer.Parse).ToList();
+            versionPartsList.Sort(new VersionComparer());
+            return versionPartsList.Select(s => string.Join("", s));
         }
 
         /// <summary>
-        ///     Downloads a given PackageURL and extracts it locally to a directory.
+        /// Downloads a given PackageURL and extracts it locally to a directory.
         /// </summary>
-        /// <param name="purl"> PackageURL to download </param>
-        /// <returns> Paths (either files or directory names) pertaining to the downloaded files. </returns>
-        public virtual Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
+        /// <param name="purl">PackageURL to download</param>
+        /// <returns>Paths (either files or directory names) pertaining to the downloaded files.</returns>
+        public virtual Task<IEnumerable<string>> DownloadVersionAsync(PackageURL purl, bool doExtract, bool cached = false)
         {
-            throw new NotImplementedException("BaseProjectManager does not implement DownloadVersion.");
+            throw new NotImplementedException("BaseProjectManager does not implement DownloadVersionAsync.");
         }
 
-        public virtual Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
+        /// <summary>
+        /// Enumerates all possible versions of the package identified by purl, in descending order.
+        /// </summary>
+        /// <remarks>The latest version is always first, then it is sorted by SemVer in descending order.</remarks>
+        /// <param name="purl">Package URL specifying the package. Version is ignored.</param>
+        /// <param name="useCache">If the cache should be used when looking for the versions.</param>
+        /// <param name="includePrerelease">If pre-release versions should be included.</param>
+        /// <returns> A list of package version numbers.</returns>
+        public virtual Task<IEnumerable<string>> EnumerateVersionsAsync(PackageURL purl, bool useCache = true, bool includePrerelease = true)
         {
             throw new NotImplementedException("BaseProjectManager does not implement EnumerateVersions.");
         }
 
         /// <summary>
-        ///     Extracts an archive (given by 'bytes') into a directory named 'directoryName', recursively,
-        ///     using RecursiveExtractor.
+        /// Gets the latest version from the package metadata.
         /// </summary>
-        /// <param name="directoryName"> directory to extract content into (within TopLevelExtractionDirectory) </param>
-        /// <param name="bytes"> bytes to extract (should be an archive file) </param>
-        /// <returns> </returns>
-        public async Task<string> ExtractArchive(string directoryName, byte[] bytes, bool cached = false)
-        {
-            Logger.Trace("ExtractArchive({0}, <bytes> len={1})", directoryName, bytes.Length);
-
-            Directory.CreateDirectory(TopLevelExtractionDirectory);
-
-            if (!cached)
-            {
-                string fullTargetPath = Path.Combine(TopLevelExtractionDirectory, directoryName);
-                while (Directory.Exists(fullTargetPath) || File.Exists(fullTargetPath))
-                {
-                    directoryName += "-" + DateTime.Now.Ticks;
-                    fullTargetPath = Path.Combine(TopLevelExtractionDirectory, directoryName);
-                }
-            }
-            var extractor = new Extractor();
-            var extractorOptions = new ExtractorOptions()
-            {
-                ExtractSelfOnFail = true,
-                Parallel = true
-                //MaxExtractedBytes = 1000 * 1000 * 10;  // 10 MB maximum package size
-            };
-            foreach (var fileEntry in extractor.Extract(directoryName, bytes, extractorOptions))
-            {
-                var fullPath = fileEntry.FullPath.Replace(':', Path.DirectorySeparatorChar);
-
-                // TODO: Does this prevent zip-slip?
-                foreach (var c in Path.GetInvalidPathChars())
-                {
-                    fullPath = fullPath.Replace(c, '-');    // ignore: lgtm [cs/string-concatenation-in-loop]
-                }
-
-                var filePathToWrite = Path.Combine(TopLevelExtractionDirectory, fullPath);
-                filePathToWrite = filePathToWrite.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
-
-                if (Path.GetDirectoryName(filePathToWrite) is string dir && !string.IsNullOrWhiteSpace(dir))
-                {
-                    Directory.CreateDirectory(dir);
-                }
-                if (!Directory.Exists(fullPath))
-                {
-                    using var fs = File.Open(filePathToWrite, FileMode.Append);
-                    await fileEntry.Content.CopyToAsync(fs);
-                }
-            }
-
-            var fullExtractionPath = Path.Combine(TopLevelExtractionDirectory, directoryName);
-            fullExtractionPath = Path.GetFullPath(fullExtractionPath);
-            Logger.Debug("Archive extracted to {0}", fullExtractionPath);
-
-            return fullExtractionPath;
-        }
-
-        /// <summary>
-        ///     Gets the latest version from the package metadata
-        /// </summary>
-        /// <param name="metadata"> </param>
-        /// <returns> </returns>
-        public Version? GetLatestVersion(JsonDocument? metadata)
+        /// <param name="metadata">The package metadata to parse.</param>
+        /// <returns>The latest version of the package.</returns>
+        public Version? GetLatestVersion(JsonDocument metadata)
         {
             List<Version> versions = GetVersions(metadata);
             return GetLatestVersion(versions);
         }
 
         /// <summary>
-        ///     overload for getting the latest version
+        /// Check if the package exists in the repository.
         /// </summary>
-        /// <param name="versions"> </param>
-        /// <returns> </returns>
-        public Version? GetLatestVersion(List<Version> versions)
+        /// <param name="purl">The PackageURL to check.</param>
+        /// <param name="useCache">If the cache should be checked for the existence of this package.</param>
+        /// <returns>True if the package is confirmed to exist in the repository. False otherwise.</returns>
+        public virtual async Task<bool> PackageExistsAsync(PackageURL purl, bool useCache = true)
         {
-            if (versions?.Count > 0)
+            Logger.Trace("PackageExists {0}", purl?.ToString());
+            if (purl is null)
+            {
+                Logger.Trace("Provided PackageURL was null.");
+                return false;
+            }
+            return (await EnumerateVersionsAsync(purl, useCache)).Any();
+        }
+
+        /// <summary>
+        /// Static overload for getting the latest version.
+        /// </summary>
+        /// <param name="versions">The list of versions.</param>
+        /// <returns>The latest version from the list.</returns>
+        public static Version? GetLatestVersion(List<Version> versions)
+        {
+            if (versions.Any())
             {
                 Version? maxVersion = versions.Max();
                 return maxVersion;
@@ -381,78 +336,87 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         }
 
         /// <summary>
-        ///     This method should return text reflecting metadata for the given package. There is no assumed format.
+        /// This method should return text reflecting metadata for the given package. There is no
+        /// assumed format.
         /// </summary>
-        /// <param name="purl"> PackageURL to search </param>
-        /// <returns> a string containing metadata. </returns>
-        public virtual Task<string?> GetMetadata(PackageURL purl)
+        /// <param name="purl">The <see cref="PackageURL"/> to get the metadata for.</param>
+        /// <param name="useCache">If the metadata should be retrieved from the cache, if it is available.</param>
+        /// <remarks>If no version specified, defaults to latest version.</remarks>
+        /// <returns>A string representing the <see cref="PackageURL"/>'s metadata, or null if it wasn't found.</returns>
+        public virtual Task<string?> GetMetadataAsync(PackageURL purl, bool useCache = true)
         {
-            throw new NotImplementedException("BaseProjectManager does not implement GetMetadata.");
+            throw new NotImplementedException($"{GetType().Name} does not implement GetMetadata.");
         }
 
         /// <summary>
-        ///     Get the uri for the package home page (no version)
+        /// Get the uri for the package home page (no version)
         /// </summary>
-        /// <param name="purl"> </param>
-        /// <returns> </returns>
+        /// <param name="purl"></param>
+        /// <returns></returns>
         public virtual Uri? GetPackageAbsoluteUri(PackageURL purl)
         {
-            throw new NotImplementedException("BaseProjectManager does not implement GetPackageAbsoluteUri.");
+            throw new NotImplementedException($"{GetType().Name} does not implement GetPackageAbsoluteUri.");
         }
 
         /// <summary>
-        ///     Return a normalized package metadata.
+        /// Return a normalized package metadata.
         /// </summary>
-        /// <param name="purl"> </param>
-        /// <returns> </returns>
-        public virtual Task<PackageMetadata> GetPackageMetadata(PackageURL purl)
+        /// <param name="purl">The <see cref="PackageURL"/> to get the normalized metadata for.</param>
+        /// <param name="useCache">If the <see cref="PackageMetadata"/> should be retrieved from the cache, if it is available.</param>
+        /// <remarks>If no version specified, defaults to latest version.</remarks>
+        /// <returns>A <see cref="PackageMetadata"/> object representing this <see cref="PackageURL"/>.</returns>
+        public virtual Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool useCache = true)
         {
-            throw new NotImplementedException("BaseProjectManager does not implement GetPackageMetadata.");
+            string typeName = GetType().Name;
+            throw new NotImplementedException($"{typeName} does not implement GetPackageMetadata.");
         }
 
         /// <summary>
-        ///     Gets everything contained in a JSON element for the package version
+        /// Gets everything contained in a JSON element for the package version
         /// </summary>
-        /// <param name="metadata"> </param>
-        /// <param name="version"> </param>
-        /// <returns> </returns>
+        /// <param name="metadata"></param>
+        /// <param name="version"></param>
+        /// <returns></returns>
         public virtual JsonElement? GetVersionElement(JsonDocument contentJSON, Version version)
         {
-            throw new NotImplementedException("BaseProjectManager does not implement GetVersions.");
+            string typeName = GetType().Name;
+            throw new NotImplementedException($"{typeName} does not implement GetVersions.");
         }
 
         /// <summary>
-        ///     Gets all the versions of a package
+        /// Gets all the versions of a package
         /// </summary>
-        /// <param name="metadata"> </param>
-        /// <param name="version"> </param>
-        /// <returns> </returns>
+        /// <param name="metadata"></param>
+        /// <param name="version"></param>
+        /// <returns></returns>
         public virtual List<Version> GetVersions(JsonDocument? metadata)
         {
-            throw new NotImplementedException("BaseProjectManager does not implement GetVersions.");
+            string typeName = GetType().Name;
+            throw new NotImplementedException($"{typeName} does not implement GetVersions.");
         }
 
         /// <summary>
-        ///     Tries to find out the package repository from the metadata of the package. Check with the
-        ///     specific package manager, if they have any specific extraction to do, w.r.t the metadata. If
-        ///     they found some package specific well defined metadata, use that. If that doesn't work, do a
-        ///     search across the metadata to find probable source repository urls
+        /// Tries to find out the package repository from the metadata of the package. Check with
+        /// the specific package manager, if they have any specific extraction to do, w.r.t the
+        /// metadata. If they found some package specific well defined metadata, use that. If that
+        /// doesn't work, do a search across the metadata to find probable source repository urls
         /// </summary>
-        /// <param name="purl"> PackageURL to search </param>
+        /// <param name="purl">PackageURL to search</param>
+        /// <param name="useCache">If the source repository should be returned from the cache, if available.</param>
         /// <returns>
-        ///     A dictionary, mapping each possible repo source entry to its probability/empty dictionary
+        /// A dictionary, mapping each possible repo source entry to its probability/empty dictionary
         /// </returns>
-        public async Task<Dictionary<PackageURL, double>> IdentifySourceRepository(PackageURL purl)
+        public async Task<Dictionary<PackageURL, double>> IdentifySourceRepositoryAsync(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("IdentifySourceRepository({0})", purl);
 
-            var rawMetadataString = await GetMetadata(purl) ?? string.Empty;
-            var sourceRepositoryMap = new Dictionary<PackageURL, double>();
+            string rawMetadataString = await GetMetadataAsync(purl, useCache) ?? string.Empty;
+            Dictionary<PackageURL, double> sourceRepositoryMap = new();
 
             // Check the specific PackageManager-specific implementation first
             try
             {
-                foreach (var result in await SearchRepoUrlsInPackageMetadata(purl, rawMetadataString))
+                foreach (KeyValuePair<PackageURL, double> result in await SearchRepoUrlsInPackageMetadata(purl, rawMetadataString))
                 {
                     sourceRepositoryMap.Add(result.Key, result.Value);
                 }
@@ -465,11 +429,11 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
             }
             catch (Exception ex)
             {
-                Logger.Warn(ex, "Error searching package metadata for {0}: {1}", purl, ex.Message);
+                Logger.Trace(ex, "Error searching package metadata for {0}: {1}", purl, ex.Message);
             }
 
             // Fall back to searching the metadata string for all possible GitHub URLs.
-            foreach (var result in ExtractRankedSourceRepositories(purl, rawMetadataString))
+            foreach (KeyValuePair<PackageURL, double> result in ExtractRankedSourceRepositories(purl, rawMetadataString))
             {
                 sourceRepositoryMap.Add(result.Key, result.Value);
             }
@@ -478,9 +442,9 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         }
 
         /// <summary>
-        ///     Protected memory cache to make subsequent loads of the same URL fast and transparent.
+        /// Protected memory cache to make subsequent loads of the same URL fast and transparent.
         /// </summary>
-        protected static readonly MemoryCache DataCache = new MemoryCache(
+        protected static readonly MemoryCache DataCache = new(
             new MemoryCacheOptions
             {
                 SizeLimit = 1024 * 1024 * 8
@@ -488,30 +452,20 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         );
 
         /// <summary>
-        ///     Logger for each of the subclasses
+        /// Logger for each of the subclasses
         /// </summary>
         protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
         /// <summary>
-        ///     Static HttpClient for use in all HTTP connections.
+        /// Rank the source repo entry candidates by their edit distance.
         /// </summary>
-#nullable disable
-
-        /// Class throws a NullExceptionError in the constructor if this is null.
-        protected static HttpClient WebClient;
-
-#nullable enable
-
-        /// <summary>
-        ///     Rank the source repo entry candidates by their edit distance.
-        /// </summary>
-        /// <param name="purl"> the package </param>
-        /// <param name="rawMetadataString"> metadata of the package </param>
-        /// <returns> Possible candidates of the package/empty dictionary </returns>
-        protected Dictionary<PackageURL, double> ExtractRankedSourceRepositories(PackageURL purl, string rawMetadataString)
+        /// <param name="purl">the package</param>
+        /// <param name="rawMetadataString">metadata of the package</param>
+        /// <returns>Possible candidates of the package/empty dictionary</returns>
+        protected static Dictionary<PackageURL, double> ExtractRankedSourceRepositories(PackageURL purl, string rawMetadataString)
         {
             Logger.Trace("ExtractRankedSourceRepositories({0})", purl);
-            var sourceRepositoryMap = new Dictionary<PackageURL, double>();
+            Dictionary<PackageURL, double> sourceRepositoryMap = new();
 
             if (purl == null || string.IsNullOrWhiteSpace(rawMetadataString))
             {
@@ -520,35 +474,43 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
 
             // Simple regular expression, looking for GitHub URLs
             // TODO: Expand this to Bitbucket, GitLab, etc.
-            var sourceUrls = GitHubProjectManager.ExtractGitHubUris(purl, rawMetadataString);
+            // TODO: Bring this back, but like better.
+            /*IEnumerable<PackageURL> sourceUrls = GitHubProjectManager.ExtractGitHubUris(purl, rawMetadataString);
             if (sourceUrls != null && sourceUrls.Any())
             {
-                var baseScore = 0.8;     // Max confidence: 0.80
-                var levenshtein = new NormalizedLevenshtein();
+                double baseScore = 0.8;     // Max confidence: 0.80
+                NormalizedLevenshtein levenshtein = new();
 
-                foreach (var group in sourceUrls.GroupBy(item => item))
+                foreach (IGrouping<PackageURL, PackageURL>? group in sourceUrls.GroupBy(item => item))
                 {
-                    // the cumulative boosts should be < 0.2; otherwise it'd be an 1.0 score by Levenshtein distance
+                    // the cumulative boosts should be < 0.2; otherwise it'd be an 1.0 score by
+                    // Levenshtein distance
                     double similarityBoost = levenshtein.Similarity(purl.Name, group.Key.Name) * 0.0001;
 
-                    // give a similarly weighted boost based on the number of times a particular candidate
-                    // appear in the metadata
-                    double countBoost = (double)(group.Count()) * 0.0001;
+                    // give a similarly weighted boost based on the number of times a particular
+                    // candidate appear in the metadata
+                    double countBoost = group.Count() * 0.0001;
 
                     sourceRepositoryMap.Add(group.Key, baseScore + similarityBoost + countBoost);
                 }
-            }
+            }*/
             return sourceRepositoryMap;
         }
 
         /// <summary>
-        ///     Implemented by all package managers to search the metadata, and either return a successful
-        ///     result for the package repository, or return a null in case of failure/nothing to do.
+        /// Implemented by all package managers to search the metadata, and either return a
+        /// successful result for the package repository, or return a null in case of
+        /// failure/nothing to do.
         /// </summary>
-        /// <returns> </returns>
+        /// <returns></returns>
         protected virtual Task<Dictionary<PackageURL, double>> SearchRepoUrlsInPackageMetadata(PackageURL purl, string metadata)
         {
             return Task.FromResult(new Dictionary<PackageURL, double>());
+        }
+
+        protected HttpClient CreateHttpClient()
+        {
+            return HttpClientFactory.CreateClient(GetType().Name);
         }
     }
 }

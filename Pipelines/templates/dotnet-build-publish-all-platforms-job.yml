@@ -1,0 +1,129 @@
+parameters:
+# Job Name
+- name: jobName
+  type: string
+  default: 'publish_all_platforms'
+# Optional Pre-Build Steps
+- name: 'preBuild'
+  type: stepList
+  default: []
+# Version of Dotnet SDK to use
+- name: dotnetVersion
+  type: string
+  default: '6.0.x'
+# Include preview versions of Dotnet SDK
+- name: includePreviewVersions
+  type: boolean
+  default: false
+# Version of NuGet Tool to use
+- name: nugetVersion
+  type: string
+  default: '5.x'
+# Path to .sln
+- name: solutionPath
+  type: string
+  default: ''
+  # Path to recursively search for csproj files
+- name: csprojPath
+  type: string
+  default: ''
+# Build Configuration
+- name: buildConfiguration
+  type: string
+  default: 'Release'
+# Project Name
+- name: projectName
+  type: string
+  default: ''
+# Release Version
+- name: releaseVersion
+  type: string
+  default: ''
+# Pipeline Artifact Name
+- name: artifactName
+  type: string
+  default: 'Unsigned_Binaries'
+
+jobs:
+- job: ${{ parameters.jobName }}
+  displayName: Build and Publish All Platforms
+  pool:
+    vmImage: 'ubuntu-latest'
+  steps:
+  - task: UseDotNet@2
+    displayName: Install Dotnet SDK
+    inputs:
+      packageType: 'sdk'
+      version: ${{ parameters.dotnetVersion }}
+      includePreviewVersions: ${{ parameters.includePreviewVersions }}
+  - task: NuGetToolInstaller@1
+    displayName: Install Nuget Tool
+    inputs:
+      versionSpec: ${{ parameters.nugetVersion }}
+  - ${{ parameters.preBuild }}
+  - task: DotNetCoreCLI@2
+    displayName: Restore
+    inputs:
+      command: 'restore'
+      projects: ${{ parameters.solutionPath }}
+      verbosityRestore: 'Normal'
+  - task: DotNetCoreCLI@2
+    displayName: Recursive Build Csproj Linux x64
+    inputs:
+      command: 'build'
+      projects: '${{ parameters.csprojPath }}'
+      arguments: '-c ${{ parameters.buildConfiguration }} -r linux-x64'
+  - task: DotNetCoreCLI@2
+    displayName: Recursive Build Csproj MacOS x64
+    inputs:
+      command: 'build'
+      projects: '${{ parameters.csprojPath }}'
+      arguments: '-c ${{ parameters.buildConfiguration }} -r osx-x64'
+  - task: DotNetCoreCLI@2
+    displayName: Recursive Build Csproj Win x64
+    inputs:
+      command: 'build'
+      projects: '${{ parameters.csprojPath }}'
+      arguments: '-c ${{ parameters.buildConfiguration }} -r win-x64'
+  - task: DotNetCoreCLI@2
+    displayName: Publish Linux x64
+    inputs:
+      command: 'publish'
+      arguments: '${{ parameters.solutionPath }} -c ${{ parameters.buildConfiguration }} -o bin/linux/${{ parameters.projectName }}_linux_$(ReleaseVersion) --sc -r linux-x64 --no-build'
+      publishWebProjects: false
+      zipAfterPublish: false
+  - task: DotNetCoreCLI@2
+    displayName: Publish MacOS x64
+    inputs:
+      command: 'publish'
+      arguments: '${{ parameters.solutionPath }} -c ${{ parameters.buildConfiguration }} -o bin/macos/${{ parameters.projectName }}_macos_$(ReleaseVersion) --sc -r osx-x64 --no-build'
+      publishWebProjects: false
+      zipAfterPublish: false
+  - task: DotNetCoreCLI@2
+    displayName: Publish Win x64
+    inputs:
+      command: 'publish'
+      arguments: '${{ parameters.solutionPath }} -c ${{ parameters.buildConfiguration }} -o bin/win/${{ parameters.projectName }}_win_$(ReleaseVersion) --sc -r win-x64 --no-build'
+      publishWebProjects: false
+      zipAfterPublish: false
+  - task: DotNetCoreCLI@2
+    displayName: Build .NET Core App
+    inputs:
+      command: 'build'
+      arguments: '${{ parameters.solutionPath }} -c ${{ parameters.buildConfiguration }} -o bin/netcoreapp/${{ parameters.projectName }}_netcoreapp_$(ReleaseVersion)'
+      publishWebProjects: false
+      zipAfterPublish: false
+  - task: ArchiveFiles@2
+    displayName: Archive Builds
+    inputs:
+      rootFolderOrFile: 'bin'
+      includeRootFolder: false
+      archiveType: 'tar'
+      archiveFile: 'Archives/${{ parameters.projectName }}_Unsigned.tar.gz'
+      replaceExistingArchive: true
+  - task: PublishBuildArtifacts@1
+    displayName: Pipeline Publish Archive
+    inputs:
+      PathtoPublish: 'Archives'
+      ArtifactName: '${{ parameters.artifactName }}'
+      publishLocation: 'Container'

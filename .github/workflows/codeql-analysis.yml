@@ -25,9 +25,9 @@ jobs:
         fetch-depth: 0
 
     - name: Setup .NET Core SDK
-      uses: actions/setup-dotnet@v1.7.2
+      uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 5.0.x
+        dotnet-version: 6.0.x
 
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v1
@@ -37,7 +37,7 @@ jobs:
     - name: Build OSS Gadget
       run: |
          dotnet restore OSSGadget.sln
-         dotnet build -c Release
+         dotnet build -c Release -p:SelfContained=false
       working-directory: ./src
 
     - name: Perform CodeQL Analysis

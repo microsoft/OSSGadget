@@ -10,9 +10,10 @@
     "patterns": [
       {
         "pattern": "base64|encodedcommand|obfuscate",
-        "type": "regex",
+        "type": "regexword",
         "scopes": [ "code" ],
-        "modifiers": [ "i" ]
+        "modifiers": [ "i" ],
+        "confidence": "high"
       }
     ]
   },
@@ -27,21 +28,96 @@
     "patterns": [
       {
         "pattern": "fromhex.+decode",
-        "type": "regex",
+        "type": "regexword",
         "scopes": [ "code" ],
-        "modifiers": [ "i" ]
+        "modifiers": [ "i" ],
+        "confidence": "high"
       },
       {
         "pattern": "\\.get\\(.*(fromhex|decode)",
         "type": "regex",
         "scopes": [ "code" ],
-        "modifiers": [ "i" ]
+        "modifiers": [ "i" ],
+        "confidence": "high"
       },
       {
         "pattern": "65786563",
         "type": "string",
         "scopes": [ "code" ],
-        "modifiers": [ "i" ]
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Obfuscated String via Single Characters",
+    "id": "BD000802",
+    "description": "Backdoor: Obfuscated String via Single Characters",
+    "tags": [
+      "Security.Backdoor.Obfuscation"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": "([\\\"\\'].[\\\"\\']\\+){6,}",
+        "type": "regex",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Setting DNS Server",
+    "id": "BD000803",
+    "description": "Backdoor: Setting DNS Server",
+    "tags": [
+      "Security.Backdoor.Obfuscation.DNS"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": "dns.setServers",
+        "type": "string",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Long Strings",
+    "id": "BD000804",
+    "description": "Backdoor: Long Strings",
+    "tags": [
+      "Security.Backdoor.Obfuscation.LongStrings"
+    ],
+    "severity": "moderate",
+    "patterns": [
+      {
+        "pattern": "[\"'][a-z0-9]{40,}[\"']",
+        "type": "regex",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "medium"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Long Binary Strings",
+    "id": "BD000805",
+    "description": "Backdoor: Long Binary Strings",
+    "tags": [
+      "Security.Backdoor.Obfuscation.LongBinaryStrings"
+    ],
+    "severity": "moderate",
+    "patterns": [
+      {
+        "pattern": "(\\\\x[a-f0-9][a-f0-9]){10,}",
+        "type": "regex",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "medium"
       }
     ]
   }

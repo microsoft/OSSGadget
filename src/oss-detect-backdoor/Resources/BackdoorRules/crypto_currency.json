@@ -12,7 +12,8 @@
         "pattern": "\b(p2pool|miner|nxt|zcash|tether|ether|btc|monero|markleroot|xmr|(bit|lite|name|peer|doge|grid|prim|vert|tit|pot)coin)\b",
         "type": "string",
         "scopes": [ "code", "comment" ],
-        "modifiers": [ "i" ]
+        "modifiers": [ "i" ],
+        "confidence": "high"
       }
     ]
   }

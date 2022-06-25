@@ -1,18 +1,31 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using AngleSharp.Html.Parser;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using AngleSharp.Html.Parser;
+    using Extensions;
+    using Helpers;
+    using PackageUrl;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Net.Http;
+    using System.Security.Cryptography;
+    using System.Text;
+    using System.Text.RegularExpressions;
+    using System.Threading.Tasks;
+
     internal class CocoapodsProjectManager : BaseProjectManager
     {
+        /// <summary>
+        /// The type of the project manager from the package-url type specifications.
+        /// </summary>
+        /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
+        public const string Type = "cocoapods";
+
+        public override string ManagerType => Type;
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_COCOAPODS_SPECS_ENDPOINT = "https://github.com/CocoaPods/Specs/tree/master";
 
@@ -21,6 +34,10 @@ namespace Microsoft.CST.OpenSource.Shared
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_COCOAPODS_METADATA_ENDPOINT = "https://cocoapods.org";
+
+        public CocoapodsProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        {
+        }
 
         public CocoapodsProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
@@ -36,32 +53,33 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl"> Package URL of the package to download. </param>
         /// <returns> n/a </returns>
-        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
+        public override async Task<IEnumerable<string>> DownloadVersionAsync(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
-            var packageName = purl?.Name;
-            var packageVersion = purl?.Version;
-            var fileName = purl?.ToStringFilename();
-            var downloadedPaths = new List<string>();
+            string? packageName = purl?.Name;
+            string? packageVersion = purl?.Version;
+            string? fileName = purl?.ToStringFilename();
+            List<string> downloadedPaths = new();
 
             if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion) || string.IsNullOrWhiteSpace(fileName))
             {
-                Logger.Error("Error with 'purl' argument. Unable to download [{0} {1}] @ {2}. Both must be defined.", packageName, packageVersion, fileName);
+                Logger.Debug("Error with 'purl' argument. Unable to download [{0} {1}] @ {2}. Both must be defined.", packageName, packageVersion, fileName);
                 return downloadedPaths;
             }
 
-            var prefix = GetCocoapodsPrefix(packageName);
-            var podspec = await GetJsonCache($"{ENV_COCOAPODS_SPECS_RAW_ENDPOINT}/Specs/{prefix}/{packageName}/{packageVersion}/{packageName}.podspec.json");
+            HttpClient httpClient = CreateHttpClient();
+            string prefix = GetCocoapodsPrefix(packageName);
+            System.Text.Json.JsonDocument podspec = await GetJsonCache(httpClient, $"{ENV_COCOAPODS_SPECS_RAW_ENDPOINT}/Specs/{prefix}/{packageName}/{packageVersion}/{packageName}.podspec.json");
 
-            if (podspec.RootElement.TryGetProperty("source", out var source))
+            if (podspec.RootElement.TryGetProperty("source", out System.Text.Json.JsonElement source))
             {
                 string? url = null;
-                if (source.TryGetProperty("git", out var sourceGit) &&
-                    source.TryGetProperty("tag", out var sourceTag))
+                if (source.TryGetProperty("git", out System.Text.Json.JsonElement sourceGit) &&
+                    source.TryGetProperty("tag", out System.Text.Json.JsonElement sourceTag))
                 {
-                    var sourceGitString = sourceGit.GetString();
-                    var sourceTagString = sourceTag.GetString();
+                    string? sourceGitString = sourceGit.GetString();
+                    string? sourceTagString = sourceTag.GetString();
 
                     if (!string.IsNullOrWhiteSpace(sourceGitString) && sourceGitString.EndsWith(".git"))
                     {
@@ -69,7 +87,7 @@ namespace Microsoft.CST.OpenSource.Shared
                     }
                     url = $"{sourceGitString}/archive/{sourceTagString}.zip";
                 }
-                else if (source.TryGetProperty("http", out var httpSource))
+                else if (source.TryGetProperty("http", out System.Text.Json.JsonElement httpSource))
                 {
                     url = httpSource.GetString();
                 }
@@ -77,10 +95,10 @@ namespace Microsoft.CST.OpenSource.Shared
                 if (url != null)
                 {
                     Logger.Debug("Downloading {0}...", purl);
-                    var result = await WebClient.GetAsync(url);
+                    System.Net.Http.HttpResponseMessage result = await httpClient.GetAsync(url);
                     result.EnsureSuccessStatusCode();
 
-                    var targetName = $"cocoapods-{fileName}";
+                    string targetName = $"cocoapods-{fileName}";
                     string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                     if (doExtract && Directory.Exists(extractionPath) && cached == true)
                     {
@@ -89,24 +107,41 @@ namespace Microsoft.CST.OpenSource.Shared
                     }
                     if (doExtract)
                     {
-                        downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync(), cached));
+                        downloadedPaths.Add(await ArchiveHelper.ExtractArchiveAsync(TopLevelExtractionDirectory, targetName, await result.Content.ReadAsStreamAsync(), cached));
                     }
                     else
                     {
-                        targetName += Path.GetExtension(url) ?? "";
-                        await File.WriteAllBytesAsync(targetName, await result.Content.ReadAsByteArrayAsync());
-                        downloadedPaths.Add(targetName);
+                        extractionPath += Path.GetExtension(url) ?? "";
+                        await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
+                        downloadedPaths.Add(extractionPath);
                     }
                 }
                 else
                 {
-                    Logger.Warn("Unable to find download location for {0}@{1}", packageName, packageVersion);
+                    Logger.Debug("Unable to find download location for {0}@{1}", packageName, packageVersion);
                 }
             }
             return downloadedPaths;
         }
 
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
+        /// <inheritdoc />
+        public override async Task<bool> PackageExistsAsync(PackageURL purl, bool useCache = true)
+        {
+            Logger.Trace("PackageExists {0}", purl?.ToString());
+            if (string.IsNullOrEmpty(purl?.Name))
+            {
+                Logger.Trace("Provided PackageURL was null.");
+                return false;
+            }
+            string packageName = purl.Name;
+            string prefix = GetCocoapodsPrefix(packageName ?? string.Empty);
+            HttpClient httpClient = CreateHttpClient();
+
+            return await CheckHttpCacheForPackage(httpClient, $"{ENV_COCOAPODS_SPECS_ENDPOINT}/Specs/{prefix}/{packageName}", useCache);
+        }
+
+        /// <inheritdoc />
+        public override async Task<IEnumerable<string>> EnumerateVersionsAsync(PackageURL purl, bool useCache = true, bool includePrerelease = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
             if (purl == null)
@@ -116,17 +151,18 @@ namespace Microsoft.CST.OpenSource.Shared
 
             try
             {
-                var packageName = purl.Name;
-                var prefix = GetCocoapodsPrefix(packageName ?? string.Empty);
-                var html = await GetHttpStringCache($"{ENV_COCOAPODS_SPECS_ENDPOINT}/Specs/{prefix}/{packageName}");
-                var parser = new HtmlParser();
-                var document = await parser.ParseDocumentAsync(html);
-                var navItems = document.QuerySelectorAll("div.Details a.js-navigation-open");
-                var versionList = new List<string>();
+                string? packageName = purl.Name;
+                string? prefix = GetCocoapodsPrefix(packageName ?? string.Empty);
+                HttpClient httpClient = CreateHttpClient();
+                string? html = await GetHttpStringCache(httpClient, $"{ENV_COCOAPODS_SPECS_ENDPOINT}/Specs/{prefix}/{packageName}");
+                HtmlParser parser = new();
+                AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(html);
+                AngleSharp.Dom.IHtmlCollection<AngleSharp.Dom.IElement> navItems = document.QuerySelectorAll("div.Details a.js-navigation-open");
+                List<string> versionList = new();
 
-                foreach (var navItem in navItems)
+                foreach (AngleSharp.Dom.IElement? navItem in navItems)
                 {
-                    if (navItem.TextContent == "..")
+                    if (string.IsNullOrWhiteSpace(Regex.Replace(navItem.TextContent, @"\s", "").Replace(".", "")))
                     {
                         continue;
                     }
@@ -137,57 +173,59 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"Error enumerating Cocoapods packages: {ex.Message}");
-                return Array.Empty<string>();
+                Logger.Debug("Unable to enumerate versions: {0}", ex.Message);
+                throw;
             }
         }
 
         private string GetCocoapodsPrefix(string packageName)
         {
-            var packageNameBytes = Encoding.UTF8.GetBytes(packageName);
+            byte[] packageNameBytes = Encoding.UTF8.GetBytes(packageName);
 
             // The Cocoapods standard uses MD5(project name) as a prefix for sharing. There is no security
             // issue here, but we cannot use another algorithm.
 #pragma warning disable SCS0006, CA5351, CA1308 // Weak hash, ToLowerInvarant()
-            using var hashAlgorithm = MD5.Create();
+            using MD5 hashAlgorithm = MD5.Create();
 
-            var prefixMD5 = BitConverter
+            char[] prefixMD5 = BitConverter
                                 .ToString(hashAlgorithm.ComputeHash(packageNameBytes))
                                 .Replace("-", "")
                                 .ToLowerInvariant()
                                 .ToCharArray();
 #pragma warning restore SCS0006, CA5351, CA1308 // Weak hash, ToLowerInvarant()
 
-            var prefix = string.Format("{0}/{1}/{2}", prefixMD5[0], prefixMD5[1], prefixMD5[2]);
+            string prefix = string.Format("{0}/{1}/{2}", prefixMD5[0], prefixMD5[1], prefixMD5[2]);
             return prefix;
         }
 
-        public override async Task<string?> GetMetadata(PackageURL purl)
+        /// <inheritdoc />
+        public override async Task<string?> GetMetadataAsync(PackageURL purl, bool useCache = true)
         {
             try
             {
-                var packageName = purl.Name;
-                var cocoapodsWebContent = await GetHttpStringCache($"{ENV_COCOAPODS_METADATA_ENDPOINT}/pods/{packageName}");
-                var podSpecContent = "";
+                HttpClient httpClient = CreateHttpClient();
+                string? packageName = purl.Name;
+                string? cocoapodsWebContent = await GetHttpStringCache(httpClient, $"{ENV_COCOAPODS_METADATA_ENDPOINT}/pods/{packageName}", useCache);
+                string? podSpecContent = "";
 
-                var parser = new HtmlParser();
-                var document = await parser.ParseDocumentAsync(cocoapodsWebContent);
-                var navItems = document.QuerySelectorAll("ul.links a");
-                foreach (var navItem in navItems)
+                HtmlParser parser = new();
+                AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(cocoapodsWebContent);
+                AngleSharp.Dom.IHtmlCollection<AngleSharp.Dom.IElement> navItems = document.QuerySelectorAll("ul.links a");
+                foreach (AngleSharp.Dom.IElement navItem in navItems)
                 {
                     if (navItem.TextContent == "See Podspec")
                     {
-                        var url = navItem.GetAttribute("href");
+                        string url = navItem.GetAttribute("href");
                         url = url.Replace("https://github.com", "https://raw.githubusercontent.com");
                         url = url.Replace("/Specs/blob/master/", "/Specs/master/");
-                        podSpecContent = await GetHttpStringCache(url);
+                        podSpecContent = await GetHttpStringCache(httpClient, url);
                     }
                 }
                 return cocoapodsWebContent + " " + podSpecContent;
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"Error fetching Cocoapods metadata: {ex.Message}");
+                Logger.Debug(ex, $"Error fetching Cocoapods metadata: {ex.Message}");
                 return null;
             }
         }

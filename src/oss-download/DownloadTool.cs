@@ -2,16 +2,26 @@
 
 using CommandLine;
 using CommandLine.Text;
-using Microsoft.CST.OpenSource.Shared;
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource
 {
+    using PackageManagers;
+    using PackageUrl;
+
     public class DownloadTool : OSSGadget
     {
+        public enum ErrorCode
+        {
+            Ok,
+            ProcessingException,
+            NoTargets,
+            ErrorParsingOptions
+        }
+
         public class Options
         {
             [Usage()]
@@ -26,7 +36,7 @@ namespace Microsoft.CST.OpenSource
             }
 
             [Option('x', "download-directory", Required = false, Default = ".",
-                            HelpText = "the directory to download the package to.")]
+                HelpText = "the directory to download the package to.")]
             public string DownloadDirectory { get; set; } = ".";
 
             [Option('m', "download-metadata-only", Required = false, Default = false,
@@ -42,49 +52,58 @@ namespace Microsoft.CST.OpenSource
             public IEnumerable<string>? Targets { get; set; }
 
             [Option('c', "use-cache", Required = false, Default = false,
-                                                                HelpText = "do not download the package if it is already present in the destination directory.")]
+                HelpText = "do not download the package if it is already present in the destination directory.")]
             public bool UseCache { get; set; }
         }
 
-        public DownloadTool() : base()
+        public DownloadTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
         {
         }
 
-        /// <summary>
-        ///     Name of this tool.
-        /// </summary>
-        private const string TOOL_NAME = "oss-download";
-
-        /// <summary>
-        ///     Holds the version string, from the assembly.
-        /// </summary>
-        private static readonly string VERSION = typeof(DownloadTool).Assembly?.GetName().Version?.ToString() ?? string.Empty;
+        public DownloadTool() : this(new ProjectManagerFactory()) { }
 
         /// <summary>
         ///     Main entrypoint for the download program.
         /// </summary>
         /// <param name="args"> parameters passed in from the user </param>
-        private static async Task Main(string[] args)
+        static async Task<int> Main(string[] args)
         {
-            var downloadTool = new DownloadTool();
-            await downloadTool.ParseOptions<Options>(args).WithParsedAsync(downloadTool.RunAsync);
+            ShowToolBanner();
+
+            DownloadTool? downloadTool = new DownloadTool();
+            ParserResult<Options>? opts = downloadTool.ParseOptions<Options>(args);
+            if (opts.Value is null)
+            {
+                if (opts.Errors.All(x => x.Tag == ErrorType.HelpRequestedError))
+                {
+                    return (int)ErrorCode.Ok;
+                }
+                else
+                {
+                    return (int)ErrorCode.ErrorParsingOptions;
+                }
+            }
+            else
+            {
+                return (int)(await downloadTool.RunAsync(opts.Value));
+            }
         }
 
-        private async Task RunAsync(Options options)
+        private async Task<ErrorCode> RunAsync(Options options)
         {
-            if (options.Targets is IList<string> targetList && targetList.Count > 0)
+            if (options.Targets is IEnumerable<string> targetList && targetList.Any())
             {
-                foreach (var target in targetList)
+                foreach (string? target in targetList)
                 {
                     try
                     {
-                        var purl = new PackageURL(target);
-                        string downloadDirectory = options.DownloadDirectory == "." ? Directory.GetCurrentDirectory() : options.DownloadDirectory;
-                        var useCache = options.UseCache;
-                        var packageDownloader = new PackageDownloader(purl, downloadDirectory, useCache);
+                        PackageURL? purl = new PackageURL(target);
+                        string downloadDirectory = options.DownloadDirectory == "." ? System.IO.Directory.GetCurrentDirectory() : options.DownloadDirectory;
+                        bool useCache = options.UseCache;
+                        PackageDownloader? packageDownloader = new PackageDownloader(purl, ProjectManagerFactory, downloadDirectory, useCache);
 
-                        var downloadResults = await packageDownloader.DownloadPackageLocalCopy(purl, options.DownloadMetadataOnly, options.Extract);
-                        foreach (var downloadPath in downloadResults)
+                        List<string>? downloadResults = await packageDownloader.DownloadPackageLocalCopy(purl, options.DownloadMetadataOnly, options.Extract);
+                        foreach (string? downloadPath in downloadResults)
                         {
                             if (string.IsNullOrEmpty(downloadPath))
                             {
@@ -99,9 +118,16 @@ namespace Microsoft.CST.OpenSource
                     catch (Exception ex)
                     {
                         Logger.Warn(ex, "Error processing {0}: {1}", target, ex.Message);
+                        return ErrorCode.ProcessingException;
                     }
                 }
             }
+            else
+            {
+                Logger.Error("No targets were specified for downloading.");
+                return ErrorCode.NoTargets;
+            }
+            return ErrorCode.Ok;
         }
     }
 }

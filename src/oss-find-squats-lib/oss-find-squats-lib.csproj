@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFramework>net6.0</TargetFramework>
+	  <RootNamespace>Microsoft.CST.OpenSource.FindSquats</RootNamespace>
+	  <Description>OSS Gadget - Package Typosquatting Detector Library</Description>
+	  <RepositoryType>GitHub</RepositoryType>
+	  <RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>
+	  <Configurations>Debug;Release</Configurations>
+	  <AssemblyName>oss-find-squats-lib</AssemblyName>
+	  <LangVersion>10.0</LangVersion>
+	  <Nullable>enable</Nullable>
+	  <copyright>© Microsoft Corporation. All rights reserved.</copyright>
+	  <Authors>Microsoft</Authors>
+	  <Company>Microsoft</Company>
+	  <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+	  <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+	  <PackageId>Microsoft.CST.OSSGadget.FindSquats</PackageId>
+	  <PackageVersion>0.0.0</PackageVersion>
+	  <PackageProjectUrl>https://github.com/Microsoft/OSSGadget</PackageProjectUrl>
+	  <PackageTags>Security Scanner</PackageTags>
+	  <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+	  <PackageIcon>icon-128.png</PackageIcon>
+	  <IncludeSymbols>true</IncludeSymbols>
+	  <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	  <PublishRepositoryUrl>true</PublishRepositoryUrl>
+	  <RuntimeIdentifiers>win-x64;osx-x64;linux-x64</RuntimeIdentifiers>
+	  <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Shared\Shared.Lib.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="" />
+    <None Include="..\..\icon-128.png" Pack="true" PackagePath="" />
+  </ItemGroup>
+</Project>

@@ -12,7 +12,8 @@
         "pattern": "___cfduid",
         "type": "string",
         "scopes": [ "code", "comment" ],
-        "modifiers": [ "i" ]
+        "modifiers": [ "i" ],
+        "confidence": "high"
       }
     ]
   },
@@ -29,7 +30,26 @@
         "pattern": "ZAUTHSS",
         "type": "string",
         "scopes": [ "code", "comment" ],
-        "modifiers": [ "i" ]
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: gohack.xyz",
+    "id": "BD000202",
+    "description": "Backdoor: gohack.xyz",
+    "tags": [
+      "Security.Backdoor.Signature.gohackxyz"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": "gohack.xyz",
+        "type": "string",
+        "scopes": [ "code", "comment" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
       }
     ]
   }

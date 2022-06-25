@@ -1,21 +1,37 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.Json;
-using System.Threading.Tasks;
-
-namespace Microsoft.CST.OpenSource.Shared
+namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Extensions;
+    using Helpers;
+    using PackageUrl;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Net.Http;
+    using System.Text.Json;
+    using System.Threading.Tasks;
+
     internal class CargoProjectManager : BaseProjectManager
     {
+        /// <summary>
+        /// The type of the project manager from the package-url type specifications.
+        /// </summary>
+        /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
+        public const string Type = "cargo";
+
+        public override string ManagerType => Type;
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_CARGO_ENDPOINT = "https://crates.io";
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_CARGO_ENDPOINT_STATIC = "https://static.crates.io";
+
+        public CargoProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        {
+        }
 
         public CargoProjectManager(string destinationDirectory) : base(destinationDirectory)
         {
@@ -26,22 +42,22 @@ namespace Microsoft.CST.OpenSource.Shared
         /// </summary>
         /// <param name="purl"> Package URL of the package to download. </param>
         /// <returns> Path to the downloaded package </returns>
-        public override async Task<IEnumerable<string>> DownloadVersion(PackageURL purl, bool doExtract, bool cached = false)
+        public override async Task<IEnumerable<string>> DownloadVersionAsync(PackageURL purl, bool doExtract, bool cached = false)
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
-            var packageName = purl?.Name;
-            var packageVersion = purl?.Version;
-            var fileName = purl?.ToStringFilename();
-            var downloadedPaths = new List<string>();
+            string? packageName = purl?.Name;
+            string? packageVersion = purl?.Version;
+            string? fileName = purl?.ToStringFilename();
+            List<string> downloadedPaths = new();
 
             if (string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion) || string.IsNullOrWhiteSpace(fileName))
             {
-                Logger.Error("Error with 'purl' argument. Unable to download [{0} {1}] @ {2}. Both must be defined.", packageName, packageVersion, fileName);
+                Logger.Debug("Error with 'purl' argument. Unable to download [{0} {1}] @ {2}. Both must be defined.", packageName, packageVersion, fileName);
                 return downloadedPaths;
             }
 
-            var url = $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}/{packageVersion}/download";
+            string url = $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}/{packageVersion}/download";
             try
             {
                 string targetName = $"cargo-{fileName}";
@@ -54,12 +70,14 @@ namespace Microsoft.CST.OpenSource.Shared
                 }
                 Logger.Debug("Downloading {0}", url);
 
-                var result = await WebClient.GetAsync(url);
+                HttpClient httpClient = CreateHttpClient();
+
+                System.Net.Http.HttpResponseMessage result = await httpClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
 
                 if (doExtract)
                 {
-                    downloadedPaths.Add(await ExtractArchive(targetName, await result.Content.ReadAsByteArrayAsync(), cached));
+                    downloadedPaths.Add(await ArchiveHelper.ExtractArchiveAsync(TopLevelExtractionDirectory, targetName, await result.Content.ReadAsStreamAsync(), cached));
                 }
                 else
                 {
@@ -70,30 +88,41 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error downloading Cargo package: {0}", ex.Message);
+                Logger.Debug(ex, "Error downloading Cargo package: {0}", ex.Message);
             }
             return downloadedPaths;
         }
 
-        /// <summary>
-        ///     Enumerates all possible versions of the package identified by purl.
-        /// </summary>
-        /// <param name="purl"> Package URL specifying the package. Version is ignored. </param>
-        /// <returns> A list of package versions </returns>
-        public override async Task<IEnumerable<string>> EnumerateVersions(PackageURL purl)
+        /// <inheritdoc />
+        public override async Task<bool> PackageExistsAsync(PackageURL purl, bool useCache = true)
+        {
+            Logger.Trace("PackageExists {0}", purl?.ToString());
+            if (string.IsNullOrEmpty(purl?.Name))
+            {
+                Logger.Trace("Provided PackageURL was null.");
+                return false;
+            }
+            string packageName = purl.Name;
+            HttpClient httpClient = CreateHttpClient();
+            return await CheckJsonCacheForPackage(httpClient, $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}", useCache);
+        }
+
+        /// <inheritdoc />
+        public override async Task<IEnumerable<string>> EnumerateVersionsAsync(PackageURL purl, bool useCache = true, bool includePrerelease = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());
-            if (purl == null)
+            if (purl == null || purl.Name is null)
             {
                 return new List<string>();
             }
 
             try
             {
-                var packageName = purl.Name;
-                var doc = await GetJsonCache($"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}");
-                var versionList = new List<string>();
-                foreach (var versionObject in doc.RootElement.GetProperty("versions").EnumerateArray())
+                string? packageName = purl.Name;
+                HttpClient httpClient = CreateHttpClient();
+                JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}");
+                List<string> versionList = new();
+                foreach (JsonElement versionObject in doc.RootElement.GetProperty("versions").EnumerateArray())
                 {
                     if (versionObject.TryGetProperty("num", out JsonElement version))
                     {
@@ -108,34 +137,31 @@ namespace Microsoft.CST.OpenSource.Shared
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error enumerating Cargo package versions: {0}", ex.Message);
-                return Array.Empty<string>();
+                Logger.Debug("Unable to enumerate versions: {0}", ex.Message);
+                throw;
             }
         }
 
-        /// <summary>
-        ///     Gathers metadata (in no specific format) about the package.
-        /// </summary>
-        /// <param name="purl"> Package URL for the package </param>
-        /// <returns> Metadata as a string </returns>
-        public override async Task<string?> GetMetadata(PackageURL purl)
+        /// <inheritdoc />
+        public override async Task<string?> GetMetadataAsync(PackageURL purl, bool useCache = true)
         {
             try
             {
-                var packageName = purl.Name;
-                var content = await GetHttpStringCache($"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}");
+                string? packageName = purl.Name;
+                HttpClient httpClient = CreateHttpClient();
+                string? content = await GetHttpStringCache(httpClient, $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}", useCache);
                 return content;
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error fetching Cargo metadata: {0}", ex.Message);
-                return null;
+                Logger.Debug(ex, "Error fetching Cargo metadata: {0}", ex.Message);
+                throw;
             }
         }
 
         public override Uri GetPackageAbsoluteUri(PackageURL purl)
         {
-            var packageName = purl?.Name;
+            string? packageName = purl?.Name;
             return new Uri($"{ENV_CARGO_ENDPOINT}/crates/{packageName}");
             // TODO: Add version support
         }

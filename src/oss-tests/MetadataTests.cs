@@ -17,7 +17,6 @@ public class MetadataTests
     [DataTestMethod]
     [DataRow("deps.dev", "pkg:npm/left-pad", "package.name", "left-pad")]
     [DataRow("deps.dev", "pkg:npm/left-pad@1.3.0", "package.name", "left-pad")]
-    [DataRow("libraries.io", "pkg:npm/left-pad", "name", "left-pad")]
     [DataRow("libraries.io", "pkg:npm/left-pad@1.3.0", "name", "left-pad")]
     public async Task Check_Metadata(string dataSource, string purlString, string jmesPathExpr, string targetResult)
     {

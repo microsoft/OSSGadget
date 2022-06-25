@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Linq;
 using System.Collections.Generic;
 using Microsoft.CST.OpenSource.PackageManagers;
+using System.Threading;
 
 public class LibrariesIoMetadataSource : BaseMetadataSource
 {
@@ -16,6 +17,7 @@ public class LibrariesIoMetadataSource : BaseMetadataSource
     public static string? ENV_LIBRARIES_IO_API_KEY = null;
 
     // Reload periodically from https://libraries.io/api/platforms
+    // curl https://libraries.io/api/platforms | jq '.[].name' | sed 's/[A-Z]/\L&/g' | sed 's/$/,/g' | sort | sed '$ s/.$//'
     public static readonly List<string> VALID_TYPES = new List<string>() {
         "alcatraz",
         "bower",
@@ -66,12 +68,12 @@ public class LibrariesIoMetadataSource : BaseMetadataSource
 
         try
         {
-            return await BaseProjectManager.GetJsonCache(HttpClient, url, useCache);
+            return await GetJsonWithRetry(url);
         }
         catch(Exception ex)
         {
             Logger.Warn("Error loading package: {0}", ex.Message);
-            return null;
         }
+        return null;
     }
 }

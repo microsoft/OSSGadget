@@ -72,19 +72,19 @@ jobs:
     inputs:
       command: 'build'
       projects: '${{ parameters.csprojPath }}'
-      arguments: '-c ${{ parameters.buildConfiguration }} -r linux-x64'
+      arguments: '-c ${{ parameters.buildConfiguration }} -r linux-x64 --sc'
   - task: DotNetCoreCLI@2
     displayName: Recursive Build Csproj MacOS x64
     inputs:
       command: 'build'
       projects: '${{ parameters.csprojPath }}'
-      arguments: '-c ${{ parameters.buildConfiguration }} -r osx-x64'
+      arguments: '-c ${{ parameters.buildConfiguration }} -r osx-x64 --sc'
   - task: DotNetCoreCLI@2
     displayName: Recursive Build Csproj Win x64
     inputs:
       command: 'build'
       projects: '${{ parameters.csprojPath }}'
-      arguments: '-c ${{ parameters.buildConfiguration }} -r win-x64'
+      arguments: '-c ${{ parameters.buildConfiguration }} -r win-x64  --sc'
   - task: DotNetCoreCLI@2
     displayName: Publish Linux x64
     inputs:

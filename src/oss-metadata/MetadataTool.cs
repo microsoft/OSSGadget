@@ -31,7 +31,7 @@ namespace Microsoft.CST.OpenSource
                 }
             }
             [Option('s', "data-source", Required = false, Default="deps.dev", 
-                HelpText = "The data source to use (deps.dev, libraries.io)")]
+                HelpText = "The data source to use (deps.dev, libraries.io, or native)")]
             public string DataSource { get; set; } = "deps.dev";
             
             [Option('j', "jmes-path", Required = false, Default = null,
@@ -115,6 +115,8 @@ namespace Microsoft.CST.OpenSource
                     metadataSource = new DepsDevMetadataSource();
                 else if (options.DataSource.Equals("libraries.io", StringComparison.InvariantCultureIgnoreCase))
                     metadataSource = new LibrariesIoMetadataSource();
+                else if (options.DataSource.Equals("native", StringComparison.InvariantCultureIgnoreCase))
+                    metadataSource = new NativeMetadataSource();
                 else
                     throw new ArgumentException($"Unknown data source: {options.DataSource}");
 

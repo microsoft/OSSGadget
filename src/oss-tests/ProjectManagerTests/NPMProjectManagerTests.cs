@@ -102,6 +102,16 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         }
         
         [DataTestMethod]
+        [DataRow("pkg:npm/lodash@1.2.3.4.5.6.7")]
+        [DataRow("pkg:npm/%40angular/core@1.2.3.4.5.6.7")]
+        public async Task PackageVersionDoesntExistsAsyncSucceeds(string purlString)
+        {
+            PackageURL purl = new(purlString);
+
+            Assert.IsFalse(await _projectManager.PackageVersionExistsAsync(purl, useCache: false));
+        }
+        
+        [DataTestMethod]
         [DataRow("pkg:npm/lodash@4.17.15", "2019-07-19T02:28:46.584Z")]
         [DataRow("pkg:npm/%40angular/core@13.2.5", "2022-03-02T18:25:31.169Z")]
         [DataRow("pkg:npm/ds-modal@0.0.2", "2018-08-09T07:24:06.206Z")]

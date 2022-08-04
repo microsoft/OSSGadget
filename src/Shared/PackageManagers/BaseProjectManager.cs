@@ -2,7 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
-    using Contracts;
+    using Helpers;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.CST.OpenSource.Model;
     using System;
@@ -15,7 +15,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using Utilities;
     using Version = SemanticVersioning.Version;
     using PackageUrl;
-    using System.Net;
 
     public abstract class BaseProjectManager
     {

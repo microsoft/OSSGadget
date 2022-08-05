@@ -2,7 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
-    using Contracts;
+    using Helpers;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.CST.OpenSource.Model;
     using System;
@@ -15,7 +15,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using Utilities;
     using Version = SemanticVersioning.Version;
     using PackageUrl;
-    using System.Net;
 
     public abstract class BaseProjectManager
     {
@@ -318,6 +317,30 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 return false;
             }
             return (await EnumerateVersionsAsync(purl, useCache)).Any();
+        }
+
+        /// <summary>
+        /// Check if the package version exists in the repository.
+        /// </summary>
+        /// <param name="purl">The PackageURL to check, requires a version.</param>
+        /// <param name="useCache">If the cache should be checked for the existence of this package.</param>
+        /// <returns>True if the package version is confirmed to exist in the repository. False otherwise.</returns>
+        public virtual async Task<bool> PackageVersionExistsAsync(PackageURL purl, bool useCache = true)
+        {
+            Logger.Trace("PackageExists {0}", purl?.ToString());
+            if (purl is null)
+            {
+                Logger.Trace("Provided PackageURL was null.");
+                return false;
+            }
+
+            if(purl.Version.IsBlank())
+            {
+                Logger.Trace("Provided PackageURL version was null or blank.");
+                return false;
+            }
+
+            return (await EnumerateVersionsAsync(purl, useCache)).Contains(purl.Version);
         }
 
         /// <summary>

@@ -12,6 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="JmesPath.Net" Version="1.0.182" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
     <PackageReference Include="coverlet.collector" Version="3.1.0">
       <PrivateAssets>all</PrivateAssets>
@@ -33,6 +34,7 @@
     <ProjectReference Include="..\oss-find-source\oss-find-source.csproj" />
     <ProjectReference Include="..\oss-find-squats\oss-find-squats.csproj" />
     <ProjectReference Include="..\oss-health\oss-health.csproj" />
+     <ProjectReference Include="..\oss-metadata\oss-metadata.csproj" />
     <ProjectReference Include="..\oss-reproducible\oss-reproducible.csproj" />
     <ProjectReference Include="..\Shared\Shared.Lib.csproj" />
     <ProjectReference Include="..\Shared.CLI\Shared.CLI.csproj" />

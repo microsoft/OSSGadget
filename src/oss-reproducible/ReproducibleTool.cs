@@ -162,7 +162,7 @@ namespace Microsoft.CST.OpenSource
                         {
                             if (bestScore.Key < 0.90)
                             {
-                                bestScore = KeyValuePair.Create(0.90, "Package was re-built from source, with no ignored {filesString}.");
+                                bestScore = KeyValuePair.Create(0.90, $"Package was re-built from source, with no ignored {filesString}.");
                             }
                         }
                         else
@@ -182,7 +182,7 @@ namespace Microsoft.CST.OpenSource
                         {
                             if (bestScore.Key < 0.90)
                             {
-                                bestScore = KeyValuePair.Create(0.90, "Package was re-built from source, with no ignored {filesString}.");
+                                bestScore = KeyValuePair.Create(0.90, $"Package was re-built from source, with no ignored {filesString}.");
                             }
                         }
                         else

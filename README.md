@@ -20,7 +20,7 @@ A list of tools included is below.  Click on the name of a tool to go to the wik
 * [oss-find-source](https://github.com/microsoft/OSSGadget/wiki/OSS-Find-Source): Attempts to locate the source code (on GitHub, currently) of a given package.
 * [oss-find-squats](https://github.com/microsoft/OSSGadget/wiki/OSS-Find-Squats): Identifies potential typo-squatting for a given package.
 * [oss-health](https://github.com/microsoft/OSSGadget/wiki/OSS-Health): Calculates health metrics for a given package.
-* [oss-metadata](https://github.com/microsoft/OSSGadget/wiki/OSS-Metadata): Normalizes metadata about a package into a common schema.
+* [oss-metadata](https://github.com/microsoft/OSSGadget/wiki/OSS-Metadata): Retrieves metadata from deps.dev or libraries.io for a given package.
 * [oss-risk-calculator](https://github.com/microsoft/OSSGadget/wiki/OSS-Risk-Calculator): Calculates a metric for risk of using a package.
 
 All OSS Gadget tools accept one or more [Package URLs](https://github.com/package-url/purl-spec) as a way to uniquely identify a package. Package URLs look like `pkg:npm/express` or `pkg:gem/azure@0.7.10`. If you leave the version number off, it implicitly means, "attempt to find the latest version". Using an asterisk (`pkg:npm/express@*`) means "perform the action on all available versions".
@@ -60,7 +60,7 @@ This will download left-pad into a newly-created directory named `npm-left-pad@1
 Each of the programs self-documents information on command line options (`--help`).
 
 ### Building from Source
-OSS Gadget builds with standard `dotnet build` commands.
+OSS Gadget builds with standard `dotnet build` commands and includes tests via `dotnet test`.
 
 See [Building from Source](https://github.com/microsoft/OSSGadget/wiki/Building-from-Source) in the wiki for information on building from source.
 

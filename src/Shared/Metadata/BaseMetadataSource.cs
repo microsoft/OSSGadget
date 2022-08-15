@@ -5,14 +5,12 @@ namespace Microsoft.CST.OpenSource;
 using System.Threading.Tasks;
 using System.Text.Json;
 using PackageUrl;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http;
 using System;
 using Polly;
 using System.Net;
 using Polly.Retry;
-using System.Collections.Generic;
 using Polly.Contrib.WaitAndRetry;
 
 public abstract class BaseMetadataSource

@@ -7,8 +7,6 @@ using System.Threading.Tasks;
 using System.Text.Json;
 using System.Linq;
 using System.Collections.Generic;
-using Microsoft.CST.OpenSource.PackageManagers;
-using System.Threading;
 
 public class LibrariesIoMetadataSource : BaseMetadataSource
 {

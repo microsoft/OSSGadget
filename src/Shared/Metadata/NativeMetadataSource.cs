@@ -2,18 +2,13 @@
 
 namespace Microsoft.CST.OpenSource;
 
-using RecursiveExtractor;
 using System;
-using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using System.Text.Json;
 using PackageUrl;
 using System.Linq;
 using System.Collections.Generic;
 using Microsoft.CST.OpenSource.PackageManagers;
-using Microsoft.Extensions.DependencyInjection;
-using System.Net.Http;
 using System.Reflection;
 
 public class NativeMetadataSource : BaseMetadataSource

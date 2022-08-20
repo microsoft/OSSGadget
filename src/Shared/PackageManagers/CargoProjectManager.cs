@@ -28,6 +28,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_CARGO_ENDPOINT_STATIC = "https://static.crates.io";
+        
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
+        public static string ENV_CARGO_INDEX_ENDPOINT = "https://raw.githubusercontent.com/rust-lang/crates.io-index/master";
 
         public CargoProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
         {
@@ -104,7 +107,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
             string packageName = purl.Name;
             HttpClient httpClient = CreateHttpClient();
-            return await CheckJsonCacheForPackage(httpClient, $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}", useCache);
+            // TODO: The file isn't json.
+            return await CheckJsonCacheForPackage(httpClient, $"{ENV_CARGO_INDEX_ENDPOINT}/{CreatePath(packageName)}", useCache);
         }
 
         /// <inheritdoc />
@@ -120,7 +124,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {
                 string? packageName = purl.Name;
                 HttpClient httpClient = CreateHttpClient();
-                JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}");
+                // TODO: The file isn't json.
+                JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_CARGO_INDEX_ENDPOINT}/{CreatePath(packageName)}");
                 List<string> versionList = new();
                 foreach (JsonElement versionObject in doc.RootElement.GetProperty("versions").EnumerateArray())
                 {
@@ -162,8 +167,41 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public override Uri GetPackageAbsoluteUri(PackageURL purl)
         {
             string? packageName = purl?.Name;
-            return new Uri($"{ENV_CARGO_ENDPOINT}/crates/{packageName}");
-            // TODO: Add version support
+            string? packageVersion = purl?.Version;
+            string url = $"{ENV_CARGO_ENDPOINT}/crates/{packageName}";
+            if (packageVersion.IsNotBlank())
+            {
+                url += $"/{packageVersion}";
+            }
+            return new Uri(url);
+        }
+        
+        /// <summary>
+        /// Helper method to create the path for the crates.io index for this package name.
+        /// </summary>
+        /// <param name="crateName">The name of this package.</param>
+        /// <returns>The path to the package.</returns>
+        /// <example>
+        /// rand -> ra/nd/rand<br/>
+        /// go -> 2/go<br/>
+        /// who -> 3/w/who<br/>
+        /// spotify-retro -> sp/ot/spotify-retro
+        /// </example>
+        public static string CreatePath(string crateName)
+        {
+            switch (crateName.Length)
+            {
+                case 0:
+                    return string.Empty;
+                case 1:
+                    return $"1/{crateName}";
+                case 2:
+                    return $"2/{crateName}";
+                case 3:
+                    return $"3/{crateName[0]}/{crateName}";
+                default:
+                    return $"{crateName[..2]}/{crateName[2..4]}/{crateName}";
+            }
         }
     }
 }

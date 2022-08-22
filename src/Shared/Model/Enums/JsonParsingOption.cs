@@ -7,7 +7,10 @@ namespace Microsoft.CST.OpenSource.Model.Enums;
 /// </summary>
 public enum JsonParsingOption
 {
-    Unknown = 0,
+    /// <summary>
+    /// No specific option.
+    /// </summary>
+    None = 0,
 
     /// <summary>
     /// Used in Cargo only right now as their files aren't formatted correctly for json.

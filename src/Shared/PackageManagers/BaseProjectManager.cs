@@ -192,7 +192,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <param name="useCache">If cache should be used.</param>
         /// <param name="jsonParsingOption">Any special json parsing rules.</param>
         /// <returns>true if the package exists.</returns>
-        internal static async Task<bool> CheckJsonCacheForPackage(HttpClient client, string url, bool useCache = true, JsonParsingOption? jsonParsingOption = null)
+        internal static async Task<bool> CheckJsonCacheForPackage(HttpClient client, string url, bool useCache = true, JsonParsingOption jsonParsingOption = JsonParsingOption.None)
         {
             Logger.Trace("CheckJsonCacheForPackage {0}", url);
             try
@@ -221,7 +221,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <param name="useCache">If cache should be used. If false will make a direct WebClient request.</param>
         /// <param name="jsonParsingOption">Any special json parsing rules.</param>
         /// <returns>Content, as a JsonDocument, possibly from cache.</returns>
-        public static async Task<JsonDocument> GetJsonCache(HttpClient client, string uri, bool useCache = true, JsonParsingOption? jsonParsingOption = null)
+        public static async Task<JsonDocument> GetJsonCache(HttpClient client, string uri, bool useCache = true, JsonParsingOption jsonParsingOption = JsonParsingOption.None)
         {
             Logger.Trace("GetJsonCache({0}, {1})", uri, useCache);
             if (useCache)

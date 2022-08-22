@@ -4,6 +4,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using Extensions;
     using Helpers;
+    using Model.Enums;
     using PackageUrl;
     using System;
     using System.Collections.Generic;
@@ -13,7 +14,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Text.Json;
     using System.Threading.Tasks;
 
-    internal class CargoProjectManager : BaseProjectManager
+    public class CargoProjectManager : BaseProjectManager
     {
         /// <summary>
         /// The type of the project manager from the package-url type specifications.
@@ -107,8 +108,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
             string packageName = purl.Name;
             HttpClient httpClient = CreateHttpClient();
-            // TODO: The file isn't json.
-            return await CheckJsonCacheForPackage(httpClient, $"{ENV_CARGO_INDEX_ENDPOINT}/{CreatePath(packageName)}", useCache);
+            // NOTE: The file isn't valid json, so use the custom rule.
+            return await CheckJsonCacheForPackage(httpClient, $"{ENV_CARGO_INDEX_ENDPOINT}/{CreatePath(packageName)}", useCache: useCache, jsonParsingOption: JsonParsingOption.NotInArrayNotCsv);
         }
 
         /// <inheritdoc />
@@ -124,12 +125,12 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {
                 string? packageName = purl.Name;
                 HttpClient httpClient = CreateHttpClient();
-                // TODO: The file isn't json.
-                JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_CARGO_INDEX_ENDPOINT}/{CreatePath(packageName)}");
+                // NOTE: The file isn't valid json, so use the custom rule.
+                JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_CARGO_INDEX_ENDPOINT}/{CreatePath(packageName)}", jsonParsingOption: JsonParsingOption.NotInArrayNotCsv);
                 List<string> versionList = new();
-                foreach (JsonElement versionObject in doc.RootElement.GetProperty("versions").EnumerateArray())
+                foreach (JsonElement versionObject in doc.RootElement.EnumerateArray())
                 {
-                    if (versionObject.TryGetProperty("num", out JsonElement version))
+                    if (versionObject.TryGetProperty("vers", out JsonElement version))
                     {
                         Logger.Debug("Identified {0} version {1}.", packageName, version.ToString());
                         if (version.ToString() is string s)

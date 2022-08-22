@@ -5,6 +5,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using Helpers;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.CST.OpenSource.Model;
+    using Model.Enums;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -189,14 +190,15 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <param name="client">The <see cref="HttpClient"/> to make the request on.</param>
         /// <param name="url">The URL to check.</param>
         /// <param name="useCache">If cache should be used.</param>
+        /// <param name="jsonParsingOption">Any special json parsing rules.</param>
         /// <returns>true if the package exists.</returns>
-        internal static async Task<bool> CheckJsonCacheForPackage(HttpClient client, string url, bool useCache = true)
+        internal static async Task<bool> CheckJsonCacheForPackage(HttpClient client, string url, bool useCache = true, JsonParsingOption? jsonParsingOption = null)
         {
             Logger.Trace("CheckJsonCacheForPackage {0}", url);
             try
             {
                 // GetJsonCache throws an exception if it has trouble finding the package.
-                _ = await GetJsonCache(client, url, useCache);
+                _ = await GetJsonCache(client, url, useCache, jsonParsingOption);
                 return true;
             }
             catch (Exception e)
@@ -217,8 +219,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <param name="client">The <see cref="HttpClient"/> to make the request on.</param>
         /// <param name="uri">URI to load.</param>
         /// <param name="useCache">If cache should be used. If false will make a direct WebClient request.</param>
+        /// <param name="jsonParsingOption">Any special json parsing rules.</param>
         /// <returns>Content, as a JsonDocument, possibly from cache.</returns>
-        public static async Task<JsonDocument> GetJsonCache(HttpClient client, string uri, bool useCache = true)
+        public static async Task<JsonDocument> GetJsonCache(HttpClient client, string uri, bool useCache = true, JsonParsingOption? jsonParsingOption = null)
         {
             Logger.Trace("GetJsonCache({0}, {1})", uri, useCache);
             if (useCache)
@@ -235,8 +238,25 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             HttpResponseMessage result = await client.GetAsync(uri);
             result.EnsureSuccessStatusCode(); // Don't cache error codes.
             long contentLength = result.Content.Headers.ContentLength ?? 8192;
-            JsonDocument doc = await JsonDocument.ParseAsync(await result.Content.ReadAsStreamAsync());
+            JsonDocument doc;
 
+            switch (jsonParsingOption)
+            {
+                case JsonParsingOption.NotInArrayNotCsv:
+                    string data = await result.Content.ReadAsStringAsync();
+                    data = Regex.Replace(data, @"\r\n?|\n", ",");
+                    data = $"[{data}]";
+
+                    doc = JsonDocument.Parse(data, new JsonDocumentOptions()
+                    {
+                        AllowTrailingCommas = true,
+                    });
+                    break;
+                default: 
+                    doc = await JsonDocument.ParseAsync(await result.Content.ReadAsStreamAsync());
+                    break;
+            }
+            
             if (useCache)
             {
                 lock (DataCache)

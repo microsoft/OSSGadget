@@ -37,7 +37,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             : base(actions ?? new NoOpPackageActions(), httpClientFactory ?? new DefaultHttpClientFactory(), directory)
         {
         }
-        
+
         /// <inheritdoc />
         public override IEnumerable<ArtifactUri<PyPIArtifactType>> GetArtifactDownloadUris(PackageURL purl)
         {
@@ -328,7 +328,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                                 metadata.Active = !OssUtilities.GetJSONPropertyIfExists(releaseFile, "yanked")?.GetBoolean();
                                 metadata.VersionUri = $"{ENV_PYPI_ENDPOINT}/project/{purl.Name}/{purl.Version}";
                                 metadata.VersionDownloadUri = OssUtilities.GetJSONPropertyStringIfExists(releaseFile, "url");
-                                
+
                                 string? uploadTime = OssUtilities.GetJSONPropertyStringIfExists(releaseFile, "upload_time");
                                 if (uploadTime != null)
                                 {
@@ -400,6 +400,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             JsonDocument contentJSON = JsonDocument.Parse(metadata);
 
             List<string> possibleProperties = new() { "homepage", "home_page" };
+            List<string> searchPropertiesProjectURLs = new() { "Source", "Source Code", "homepage", "Bug Tracker" };
+
             JsonElement infoJSON;
             try
             {
@@ -427,12 +429,12 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     }
                     else if (property.Name.Equals("project_urls"))
                     {
-                        if (property.Value.TryGetProperty("Source",out JsonElement jsonElement))
+                        foreach (var propertyName in searchPropertiesProjectURLs)
                         {
-                            string? sourceLoc = jsonElement.GetString();
-                            if (sourceLoc != null)
+                            if (property.Value.TryGetProperty(propertyName, out JsonElement projectUrl))
                             {
-                                IEnumerable<PackageURL>? packageUrls = GitHubProjectManager.ExtractGitHubPackageURLs(sourceLoc);
+                                IEnumerable<PackageURL>? packageUrls = GitHubProjectManager.ExtractGitHubPackageURLs(projectUrl.ToString());
+                                // if we were able to extract a github url, return
                                 if (packageUrls != null && packageUrls.Any())
                                 {
                                     mapping.Add(packageUrls.First(), 1.0F);

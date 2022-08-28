@@ -400,7 +400,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             JsonDocument contentJSON = JsonDocument.Parse(metadata);
 
             List<string> possibleProperties = new() { "homepage", "home_page" };
-            List<string> searchPropertiesProjectURLs = new() { "Source", "Source Code", "homepage", "Bug Tracker" };
+            List<string> searchPropertiesProjectURLs = new() { "Source", "Source Code", "homepage", "Bug Tracker", "Repository", "Bug Reports" };
 
             JsonElement infoJSON;
             try

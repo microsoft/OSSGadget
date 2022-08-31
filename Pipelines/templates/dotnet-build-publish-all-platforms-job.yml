@@ -56,10 +56,6 @@ jobs:
       packageType: 'sdk'
       version: ${{ parameters.dotnetVersion }}
       includePreviewVersions: ${{ parameters.includePreviewVersions }}
-  - task: NuGetToolInstaller@1
-    displayName: Install Nuget Tool
-    inputs:
-      versionSpec: ${{ parameters.nugetVersion }}
   - ${{ parameters.preBuild }}
   - task: DotNetCoreCLI@2
     displayName: Restore
@@ -68,48 +64,30 @@ jobs:
       projects: ${{ parameters.solutionPath }}
       verbosityRestore: 'Normal'
   - task: DotNetCoreCLI@2
-    displayName: Recursive Build Csproj Linux x64
-    inputs:
-      command: 'build'
-      projects: '${{ parameters.csprojPath }}'
-      arguments: '-c ${{ parameters.buildConfiguration }} -r linux-x64'
-  - task: DotNetCoreCLI@2
-    displayName: Recursive Build Csproj MacOS x64
-    inputs:
-      command: 'build'
-      projects: '${{ parameters.csprojPath }}'
-      arguments: '-c ${{ parameters.buildConfiguration }} -r osx-x64'
-  - task: DotNetCoreCLI@2
-    displayName: Recursive Build Csproj Win x64
-    inputs:
-      command: 'build'
-      projects: '${{ parameters.csprojPath }}'
-      arguments: '-c ${{ parameters.buildConfiguration }} -r win-x64'
-  - task: DotNetCoreCLI@2
     displayName: Publish Linux x64
     inputs:
       command: 'publish'
-      arguments: '${{ parameters.solutionPath }} -c ${{ parameters.buildConfiguration }} -o bin/linux/${{ parameters.projectName }}_linux_$(ReleaseVersion) --sc -r linux-x64 --no-build'
+      arguments: '${{ parameters.solutionPath }} -c ${{ parameters.buildConfiguration }} -o bin/linux/${{ parameters.projectName }}_linux_$(ReleaseVersion) --sc -r linux-x64'
       publishWebProjects: false
       zipAfterPublish: false
   - task: DotNetCoreCLI@2
     displayName: Publish MacOS x64
     inputs:
       command: 'publish'
-      arguments: '${{ parameters.solutionPath }} -c ${{ parameters.buildConfiguration }} -o bin/macos/${{ parameters.projectName }}_macos_$(ReleaseVersion) --sc -r osx-x64 --no-build'
+      arguments: '${{ parameters.solutionPath }} -c ${{ parameters.buildConfiguration }} -o bin/macos/${{ parameters.projectName }}_macos_$(ReleaseVersion) --sc -r osx-x64'
       publishWebProjects: false
       zipAfterPublish: false
   - task: DotNetCoreCLI@2
     displayName: Publish Win x64
     inputs:
       command: 'publish'
-      arguments: '${{ parameters.solutionPath }} -c ${{ parameters.buildConfiguration }} -o bin/win/${{ parameters.projectName }}_win_$(ReleaseVersion) --sc -r win-x64 --no-build'
+      arguments: '${{ parameters.solutionPath }} -c ${{ parameters.buildConfiguration }} -o bin/win/${{ parameters.projectName }}_win_$(ReleaseVersion) --sc -r win-x64'
       publishWebProjects: false
       zipAfterPublish: false
   - task: DotNetCoreCLI@2
     displayName: Build .NET Core App
     inputs:
-      command: 'build'
+      command: 'publish'
       arguments: '${{ parameters.solutionPath }} -c ${{ parameters.buildConfiguration }} -o bin/netcoreapp/${{ parameters.projectName }}_netcoreapp_$(ReleaseVersion)'
       publishWebProjects: false
       zipAfterPublish: false

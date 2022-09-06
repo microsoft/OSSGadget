@@ -142,27 +142,53 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         }
                 
         [DataTestMethod]
-        [DataRow("pkg:nuget/newtonsoft.json@13.0.1", "https://api.nuget.org/v3-flatcontainer/newtonsoft.json/13.0.1/newtonsoft.json")]
-        [DataRow("pkg:nuget/razorengine@4.2.3-beta1", "https://api.nuget.org/v3-flatcontainer/razorengine/4.2.3-beta1/razorengine")]
-        [DataRow("pkg:nuget/serilog@2.10.0", "https://api.nuget.org/v3-flatcontainer/serilog/2.10.0/serilog")]
-        [DataRow("pkg:nuget/moq@4.17.2", "https://api.nuget.org/v3-flatcontainer/moq/4.17.2/moq")]
-        public async Task GetArtifactDownloadUrisSucceeds_Async(string purlString, string expectedUriBase)
+        [DataRow("pkg:nuget/newtonsoft.json@13.0.1", 
+            "https://api.nuget.org/v3-flatcontainer/newtonsoft.json/13.0.1/newtonsoft.json.13.0.1.nupkg",
+            "https://api.nuget.org/v3-flatcontainer/newtonsoft.json/13.0.1/newtonsoft.json.nuspec")]
+        [DataRow("pkg:nuget/razorengine@4.2.3-beta1", 
+            "https://api.nuget.org/v3-flatcontainer/razorengine/4.2.3-beta1/razorengine.4.2.3-beta1.nupkg",
+            "https://api.nuget.org/v3-flatcontainer/razorengine/4.2.3-beta1/razorengine.nuspec")]
+        [DataRow("pkg:nuget/serilog@2.10.0", 
+            "https://api.nuget.org/v3-flatcontainer/serilog/2.10.0/serilog.2.10.0.nupkg",
+            "https://api.nuget.org/v3-flatcontainer/serilog/2.10.0/serilog.nuspec")]
+        [DataRow("pkg:nuget/moq@4.17.2", 
+            "https://api.nuget.org/v3-flatcontainer/moq/4.17.2/moq.4.17.2.nupkg",
+            "https://api.nuget.org/v3-flatcontainer/moq/4.17.2/moq.nuspec")]
+        [DataRow("pkg:nuget/moq@4.17.2?ignored_qualifier=ignored", 
+            "https://api.nuget.org/v3-flatcontainer/moq/4.17.2/moq.4.17.2.nupkg",
+            "https://api.nuget.org/v3-flatcontainer/moq/4.17.2/moq.nuspec")]
+        [DataRow("pkg:nuget/SlipeServer.Scripting@0.1.0-CI-20220607-083949", 
+            "https://api.nuget.org/v3-flatcontainer/slipeserver.scripting/0.1.0-ci-20220607-083949/slipeserver.scripting.0.1.0-ci-20220607-083949.nupkg",
+            "https://api.nuget.org/v3-flatcontainer/slipeserver.scripting/0.1.0-ci-20220607-083949/slipeserver.scripting.nuspec")]
+        public async Task GetArtifactDownloadUrisSucceeds_Async(string purlString, string expectedNuPkgUrl, string expectedNuSpecUri)
         {
             PackageURL purl = new(purlString);
             List<ArtifactUri<NuGetProjectManager.NuGetArtifactType>> uris = _projectManager.GetArtifactDownloadUris(purl).ToList();
 
-            string expectedNuPkgUri = $"{expectedUriBase}.{purl.Version}.nupkg";
-            Assert.AreEqual(expectedNuPkgUri, uris.First().Uri.AbsoluteUri);
-            Assert.AreEqual(".nupkg", uris.First().Extension);
-            Assert.AreEqual(NuGetProjectManager.NuGetArtifactType.Nupkg, uris.First().Type);
-            Assert.IsTrue(await _projectManager.UriExistsAsync(uris.First().Uri));
-            
-            string expectedNuspecUri = $"{expectedUriBase}.nuspec";
-            Assert.AreEqual(expectedNuspecUri, uris.Last().Uri.AbsoluteUri);
-            Assert.AreEqual(".nuspec", uris.Last().Extension);
-            Assert.AreEqual(NuGetProjectManager.NuGetArtifactType.Nuspec, uris.Last().Type);
-            Assert.IsTrue(await _projectManager.UriExistsAsync(uris.Last().Uri));
+            var nupkgArtifactUri = uris
+                .First(it => it.Type == NuGetProjectManager.NuGetArtifactType.Nupkg);
 
+            Assert.AreEqual(expectedNuPkgUrl, nupkgArtifactUri.Uri.ToString());
+            Assert.IsTrue(await _projectManager.UriExistsAsync(nupkgArtifactUri.Uri));
+
+            var nuspecArtifactUrl = uris
+                .First(it => it.Type == NuGetProjectManager.NuGetArtifactType.Nuspec);
+            
+            Assert.AreEqual(expectedNuSpecUri, nuspecArtifactUrl.Uri.ToString());
+            Assert.IsTrue(await _projectManager.UriExistsAsync(nuspecArtifactUrl.Uri));
+
+        }
+        
+        /// <summary>
+        /// Until we implement proper support for custom service indexes (see https://docs.microsoft.com/en-us/nuget/api/service-index ),
+        /// throw an exception instead of giving back bogus URLs when a package URL specifies a repository URL other than that of nuget.org
+        /// </summary>
+        [TestMethod]
+        public void GetArtifactDownloadUris_NonPublicFeedURL_ThrowsNotImplementedException_Async()
+        {
+            PackageURL purl = new("pkg:nuget/moq@4.17.2?repository_url=https://test.com");
+            
+            Assert.ThrowsException<NotImplementedException>(() => _projectManager.GetArtifactDownloadUris(purl));
         }
         
         private static void MockHttpFetchResponse(

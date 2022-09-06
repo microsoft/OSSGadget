@@ -362,6 +362,17 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             return (await EnumerateVersionsAsync(purl, useCache)).Contains(purl.Version);
         }
+        
+        /// <summary>
+        /// Check if the package version was pulled from the repository.
+        /// </summary>
+        /// <param name="purl">The PackageURL to check.</param>
+        /// <param name="useCache">If the cache should be checked for the existence of this package.</param>
+        /// <returns>True if the package was pulled from the repository. False otherwise.</returns>
+        public virtual Task<bool> PackageVersionPulled(PackageURL purl, bool useCache = true)
+        {
+            throw new NotImplementedException("BaseProjectManager does not implement PackageVersionPulled.");
+        }
 
         /// <summary>
         /// Static overload for getting the latest version.

@@ -26,6 +26,8 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         private readonly IDictionary<string, string> _packages = new Dictionary<string, string>()
         {
             { "https://registry.npmjs.org/lodash", Resources.lodash_json },
+            { "https://registry.npmjs.org/lodash.js", Resources.lodashjs_json },
+            { "https://registry.npmjs.org/%40somosme/webflowutils", Resources.unpublishedpackage_json },
             { "https://registry.npmjs.org/%40angular/core", Resources.angular_core_json },
             { "https://registry.npmjs.org/ds-modal", Resources.ds_modal_json },
             { "https://registry.npmjs.org/monorepolint", Resources.monorepolint_json },
@@ -94,6 +96,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         [DataRow("pkg:npm/monorepolint@0.4.0")]
         [DataRow("pkg:npm/example@0.0.0")]
         [DataRow("pkg:npm/rly-cli@0.0.2")]
+        [DataRow("pkg:npm/lodash.js@0.0.1-security")]
         public async Task PackageVersionExistsAsyncSucceeds(string purlString)
         {
             PackageURL purl = new(purlString);
@@ -109,6 +112,27 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             PackageURL purl = new(purlString);
 
             Assert.IsFalse(await _projectManager.PackageVersionExistsAsync(purl, useCache: false));
+        }
+        
+        [DataTestMethod]
+        [DataRow("pkg:npm/%40somosme/webflowutils@1.0.0")]
+        [DataRow("pkg:npm/%40somosme/webflowutils@1.2.3", false)]
+        public async Task PackageVersionPulledAsync(string purlString, bool expectedPulled = true)
+        {
+            PackageURL purl = new(purlString);
+
+            Assert.AreEqual(expectedPulled, await _projectManager.PackageVersionPulled(purl, useCache: false));
+        }
+        
+        [DataTestMethod]
+        [DataRow("pkg:npm/lodash.js")]
+        [DataRow("pkg:npm/lodash.js@1.0.0")]
+        [DataRow("pkg:npm/lodash", false)]
+        public async Task PackageSecurityHoldingAsync(string purlString, bool expectedToHaveSecurityHolding = true)
+        {
+            PackageURL purl = new(purlString);
+
+            Assert.AreEqual(expectedToHaveSecurityHolding, await _projectManager.PackageSecurityHolding(purl, useCache: false));
         }
         
         [DataTestMethod]

@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-
 namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 {
     using Extensions;
@@ -29,6 +28,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             { "https://registry.npmjs.org/lodash.js", Resources.lodashjs_json },
             { "https://registry.npmjs.org/%40somosme/webflowutils", Resources.unpublishedpackage_json },
             { "https://registry.npmjs.org/%40angular/core", Resources.angular_core_json },
+            { "https://registry.npmjs.org/%40achievementify/client", Resources.achievementify_client_json },
             { "https://registry.npmjs.org/ds-modal", Resources.ds_modal_json },
             { "https://registry.npmjs.org/monorepolint", Resources.monorepolint_json },
             { "https://registry.npmjs.org/rly-cli", Resources.rly_cli_json },
@@ -107,6 +107,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         [DataTestMethod]
         [DataRow("pkg:npm/lodash@1.2.3.4.5.6.7")]
         [DataRow("pkg:npm/%40angular/core@1.2.3.4.5.6.7")]
+        [DataRow("pkg:npm/%40achievementify/client@0.2.1")]
         public async Task PackageVersionDoesntExistsAsyncSucceeds(string purlString)
         {
             PackageURL purl = new(purlString);
@@ -117,6 +118,8 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         [DataTestMethod]
         [DataRow("pkg:npm/%40somosme/webflowutils@1.0.0")]
         [DataRow("pkg:npm/%40somosme/webflowutils@1.2.3", false)]
+        [DataRow("pkg:npm/%40achievementify/client@0.2.1")]
+        [DataRow("pkg:npm/%40achievementify/clients@0.2.3", false)]
         public async Task PackageVersionPulledAsync(string purlString, bool expectedPulled = true)
         {
             PackageURL purl = new(purlString);

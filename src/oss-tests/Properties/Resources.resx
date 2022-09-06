@@ -21,6 +21,9 @@
     <data name="angular_core.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
         <value>..\TestData\NPM\angular_core.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </data>
+    <data name="achievementify_client.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>..\TestData\NPM\achievementify_client.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </data>
     <data name="ds-modal.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
         <value>..\TestData\NPM\ds-modal.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </data>

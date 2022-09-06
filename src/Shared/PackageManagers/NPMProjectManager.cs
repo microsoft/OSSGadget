@@ -471,6 +471,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         public override async Task<bool> PackageVersionPulled(PackageURL purl, bool useCache = true)
         {
+            bool unpublishedFlag = false;
+            bool unpublishedFromVersionDict = false;
+
             string? content = await GetMetadataAsync(purl, useCache);
             if (string.IsNullOrEmpty(content)) { return false; }
 
@@ -478,13 +481,27 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             JsonElement root = contentJSON.RootElement;
             if (root.TryGetProperty("time", out JsonElement time))
             {
-                if (time.TryGetProperty("unpublished", out JsonElement unpublished))
+                // Example: https://registry.npmjs.org/@somosme/webflowutils
+                if (time.TryGetProperty("unpublished", out JsonElement unpublishedElement))
                 {
-                    List<string>? versions = OssUtilities.ConvertJSONToList(OssUtilities.GetJSONPropertyIfExists(unpublished, "versions"));
-                    return versions?.Contains(purl.Version) ?? false;
+                    List<string>? versions = OssUtilities.ConvertJSONToList(OssUtilities.GetJSONPropertyIfExists(unpublishedElement, "versions"));
+                    unpublishedFlag = versions?.Contains(purl.Version) ?? false;
+                }
+                
+                // Alternatively sometimes the version gets pulled and doesn't show it in "unpublished".
+                // So if there is a time entry for the version, but no entry in the dictionary of versions, then it was unpublished.
+                // Example: https://registry.npmjs.org/%40achievementify/client version 0.2.1
+                JsonElement? packageVersionTime = OssUtilities.GetJSONPropertyIfExists(time, purl.Version);
+                if (packageVersionTime != null && !unpublishedFlag)
+                {
+                    unpublishedFromVersionDict = !root
+                        .GetProperty("versions")
+                        .EnumerateObject()
+                        .Any(version => version.Name.Equals(purl.Version));
                 }
             }
-            return false;
+            
+            return unpublishedFlag || unpublishedFromVersionDict;
         }
         
         /// <summary>

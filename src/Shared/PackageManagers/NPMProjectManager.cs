@@ -492,7 +492,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 // So if there is a time entry for the version, but no entry in the dictionary of versions, then it was unpublished.
                 // Example: https://registry.npmjs.org/%40achievementify/client version 0.2.1
                 JsonElement? packageVersionTime = OssUtilities.GetJSONPropertyIfExists(time, purl.Version);
-                if (packageVersionTime != null)
+                if (packageVersionTime != null && !unpublishedFlag)
                 {
                     unpublishedFromVersionDict = !root
                         .GetProperty("versions")

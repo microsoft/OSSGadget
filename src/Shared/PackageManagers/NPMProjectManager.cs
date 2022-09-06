@@ -31,6 +31,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public static string ENV_NPM_API_ENDPOINT { get; set; } = "https://registry.npmjs.org";
         public static string ENV_NPM_ENDPOINT { get; set; } = "https://www.npmjs.com";
 
+        private static readonly string NPM_SECURITY_HOLDING_VERSION = "0.0.1-security";
+
         public NPMProjectManager(
             string directory,
             IManagerPackageActions<IManagerPackageVersionMetadata>? actions = null,
@@ -484,6 +486,20 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
             return false;
         }
+        
+        /// <summary>
+        /// Check to see if the package only has one version, and if that version is a NPM security holding package.
+        /// </summary>
+        /// <param name="purl">The <see cref="PackageURL"/> to check.</param>
+        /// <param name="useCache">If the cache should be checked for the existence of this package.</param>
+        /// <returns>True if this package is a NPM security holding package. False otherwise.</returns>
+        public async Task<bool> PackageSecurityHolding(PackageURL purl, bool useCache = true)
+        {
+            List<string> versions = (await this.EnumerateVersionsAsync(purl, useCache)).ToList();
+
+            return versions.Count == 1 && versions[0].Equals(NPM_SECURITY_HOLDING_VERSION);
+        }
+        
         /// <summary>
         /// Searches the package manager metadata to figure out the source code repository
         /// </summary>

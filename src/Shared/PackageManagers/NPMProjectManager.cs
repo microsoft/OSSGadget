@@ -467,6 +467,23 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return allVersions;
         }
 
+        public override async Task<bool> PackageVersionPulled(PackageURL purl, bool useCache = true)
+        {
+            string? content = await GetMetadataAsync(purl, useCache);
+            if (string.IsNullOrEmpty(content)) { return false; }
+
+            JsonDocument contentJSON = JsonDocument.Parse(content);
+            JsonElement root = contentJSON.RootElement;
+            if (root.TryGetProperty("time", out JsonElement time))
+            {
+                if (time.TryGetProperty("unpublished", out JsonElement unpublished))
+                {
+                    List<string>? versions = OssUtilities.ConvertJSONToList(OssUtilities.GetJSONPropertyIfExists(unpublished, "versions"));
+                    return versions?.Contains(purl.Version) ?? false;
+                }
+            }
+            return false;
+        }
         /// <summary>
         /// Searches the package manager metadata to figure out the source code repository
         /// </summary>
@@ -474,7 +491,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <returns>
         /// A dictionary, mapping each possible repo source entry to its probability/empty dictionary
         /// </returns>
-
         protected override async Task<Dictionary<PackageURL, double>> SearchRepoUrlsInPackageMetadata(PackageURL purl,
             string metadata)
         {

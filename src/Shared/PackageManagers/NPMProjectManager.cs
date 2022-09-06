@@ -471,6 +471,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         public override async Task<bool> PackageVersionPulled(PackageURL purl, bool useCache = true)
         {
+            bool unpublishedFlag = false;
+            bool unpublishedFromVersionDict = false;
+
             string? content = await GetMetadataAsync(purl, useCache);
             if (string.IsNullOrEmpty(content)) { return false; }
 
@@ -479,10 +482,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             if (root.TryGetProperty("time", out JsonElement time))
             {
                 // Example: https://registry.npmjs.org/@somosme/webflowutils
-                if (time.TryGetProperty("unpublished", out JsonElement unpublished))
+                if (time.TryGetProperty("unpublished", out JsonElement unpublishedElement))
                 {
-                    List<string>? versions = OssUtilities.ConvertJSONToList(OssUtilities.GetJSONPropertyIfExists(unpublished, "versions"));
-                    return versions?.Contains(purl.Version) ?? false;
+                    List<string>? versions = OssUtilities.ConvertJSONToList(OssUtilities.GetJSONPropertyIfExists(unpublishedElement, "versions"));
+                    unpublishedFlag = versions?.Contains(purl.Version) ?? false;
                 }
                 
                 // Alternatively sometimes the version gets pulled and doesn't show it in "unpublished".
@@ -491,14 +494,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 JsonElement? packageVersionTime = OssUtilities.GetJSONPropertyIfExists(time, purl.Version);
                 if (packageVersionTime != null)
                 {
-                    return !root
+                    unpublishedFromVersionDict = !root
                         .GetProperty("versions")
                         .EnumerateObject()
                         .Any(version => version.Name.Equals(purl.Version));
                 }
             }
             
-            return false;
+            return unpublishedFlag || unpublishedFromVersionDict;
         }
         
         /// <summary>

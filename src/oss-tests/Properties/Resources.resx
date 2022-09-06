@@ -27,6 +27,9 @@
     <data name="lodash.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
         <value>..\TestData\NPM\lodash.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </data>
+    <data name="lodashjs.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>..\TestData\NPM\lodashjs.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </data>
     <data name="monorepolint.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
         <value>..\TestData\NPM\monorepolint.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </data>
@@ -35,6 +38,9 @@
     </data>
     <data name="minimum_json.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
         <value>..\TestData\NPM\minimum_json.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </data>
+    <data name="unpublishedpackage.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>..\TestData\NPM\unpublishedpackage.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </data>
     <data name="razorengine.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
         <value>..\TestData\NuGet\razorengine\index.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>

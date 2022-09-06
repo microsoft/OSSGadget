@@ -97,6 +97,15 @@ namespace oss {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {&quot;_id&quot;:&quot;lodash.js&quot;,&quot;_rev&quot;:&quot;7-b033eedf4d1b14d686a8c537585bb116&quot;,&quot;time&quot;:{&quot;4.17.16&quot;:&quot;2019-11-25T16:45:29.666Z&quot;,&quot;created&quot;:&quot;2019-11-25T18:50:27.244Z&quot;,&quot;0.0.1-security&quot;:&quot;2019-11-25T18:50:27.445Z&quot;,&quot;modified&quot;:&quot;2022-05-08T08:11:30.890Z&quot;},&quot;name&quot;:&quot;lodash.js&quot;,&quot;dist-tags&quot;:{&quot;latest&quot;:&quot;0.0.1-security&quot;},&quot;versions&quot;:{&quot;0.0.1-security&quot;:{&quot;name&quot;:&quot;lodash.js&quot;,&quot;version&quot;:&quot;0.0.1-security&quot;,&quot;description&quot;:&quot;security holding package&quot;,&quot;repository&quot;:{&quot;type&quot;:&quot;git&quot;,&quot;url&quot;:&quot;git+https://github.com/npm/security-holder.git&quot;},&quot;gitHead&quot;:&quot;ac50be87aafecb [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string lodashjs_json {
+            get {
+                return ResourceManager.GetString("lodashjs.json", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {&quot;_id&quot;:&quot;example&quot;,&quot;name&quot;:&quot;example&quot;,&quot;dist-tags&quot;:{&quot;latest&quot;:&quot;0.0.0&quot;},&quot;versions&quot;:{&quot;0.0.0&quot;:{&quot;name&quot;:&quot;example&quot;,&quot;version&quot;:&quot;0.0.0&quot;,&quot;_id&quot;:&quot;example@0.0.0&quot;,&quot;_npmVersion&quot;:&quot;1.0.0&quot;,&quot;_npmUser&quot;:{&quot;name&quot;:&quot;test&quot;,&quot;email&quot;:&quot;test@microsoft.com&quot;}}}}.
         /// </summary>
         internal static string minimum_json_json {
@@ -212,6 +221,15 @@ namespace oss {
         internal static string rly_cli_json {
             get {
                 return ResourceManager.GetString("rly-cli.json", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;_id&quot;:&quot;@somosme/webflowutils&quot;,&quot;_rev&quot;:&quot;3-9be941baa0509bbc96a1349f8464fd6d&quot;,&quot;name&quot;:&quot;@somosme/webflowutils&quot;,&quot;time&quot;:{&quot;created&quot;:&quot;2022-08-10T19:49:56.913Z&quot;,&quot;1.0.0&quot;:&quot;2022-08-10T19:49:57.198Z&quot;,&quot;modified&quot;:&quot;2022-08-10T21:31:52.293Z&quot;,&quot;unpublished&quot;:{&quot;time&quot;:&quot;2022-08-10T21:31:32.856Z&quot;,&quot;versions&quot;:[&quot;1.0.0&quot;]}},&quot;maintainers&quot;:[{&quot;email&quot;:&quot;antonio@somos.me&quot;,&quot;name&quot;:&quot;antoniomb&quot;}]}.
+        /// </summary>
+        internal static string unpublishedpackage_json {
+            get {
+                return ResourceManager.GetString("unpublishedpackage.json", resourceCulture);
             }
         }
     }

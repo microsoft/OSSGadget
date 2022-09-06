@@ -117,36 +117,22 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         [DataTestMethod]
         [DataRow("pkg:npm/%40somosme/webflowutils@1.0.0")]
         [DataRow("pkg:npm/%40somosme/webflowutils@1.2.3", false)]
-        public async Task PackageVersionPulledAsync(string purlString, bool shouldSucceed = true)
+        public async Task PackageVersionPulledAsync(string purlString, bool expectedPulled = true)
         {
             PackageURL purl = new(purlString);
 
-            if (shouldSucceed)
-            {
-                Assert.IsTrue(await _projectManager.PackageVersionPulled(purl, useCache: false));
-            }
-            else
-            {
-                Assert.IsFalse(await _projectManager.PackageVersionPulled(purl, useCache: false));
-            }
+            Assert.AreEqual(expectedPulled, await _projectManager.PackageVersionPulled(purl, useCache: false));
         }
         
         [DataTestMethod]
         [DataRow("pkg:npm/lodash.js")]
         [DataRow("pkg:npm/lodash.js@1.0.0")]
         [DataRow("pkg:npm/lodash", false)]
-        public async Task PackageSecurityHoldingAsync(string purlString, bool shouldHaveSecurityHolding = true)
+        public async Task PackageSecurityHoldingAsync(string purlString, bool expectedToHaveSecurityHolding = true)
         {
             PackageURL purl = new(purlString);
 
-            if (shouldHaveSecurityHolding)
-            {
-                Assert.IsTrue(await _projectManager.PackageSecurityHolding(purl, useCache: false));
-            }
-            else
-            {
-                Assert.IsFalse(await _projectManager.PackageSecurityHolding(purl, useCache: false));
-            }
+            Assert.AreEqual(expectedToHaveSecurityHolding, await _projectManager.PackageSecurityHolding(purl, useCache: false));
         }
         
         [DataTestMethod]

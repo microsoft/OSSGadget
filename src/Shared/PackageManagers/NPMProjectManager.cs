@@ -478,12 +478,26 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             JsonElement root = contentJSON.RootElement;
             if (root.TryGetProperty("time", out JsonElement time))
             {
+                // Example: https://registry.npmjs.org/@somosme/webflowutils
                 if (time.TryGetProperty("unpublished", out JsonElement unpublished))
                 {
                     List<string>? versions = OssUtilities.ConvertJSONToList(OssUtilities.GetJSONPropertyIfExists(unpublished, "versions"));
                     return versions?.Contains(purl.Version) ?? false;
                 }
+                
+                // Alternatively sometimes the version gets pulled and doesn't show it in "unpublished".
+                // So if there is a time entry for the version, but no entry in the dictionary of versions, then it was unpublished.
+                // Example: https://registry.npmjs.org/%40achievementify/client version 0.2.1
+                JsonElement? packageVersionTime = OssUtilities.GetJSONPropertyIfExists(time, purl.Version);
+                if (packageVersionTime != null)
+                {
+                    return !root
+                        .GetProperty("versions")
+                        .EnumerateObject()
+                        .Any(version => version.Name.Equals(purl.Version));
+                }
             }
+            
             return false;
         }
         

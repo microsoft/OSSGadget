@@ -60,6 +60,15 @@ namespace oss {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {&quot;_id&quot;:&quot;@achievementify/client&quot;,&quot;_rev&quot;:&quot;12-8838c4a3d8562d02f2daef2375606cf6&quot;,&quot;time&quot;:{&quot;created&quot;:&quot;2022-06-04T14:02:08.273Z&quot;,&quot;0.1.0&quot;:&quot;2022-06-04T13:57:49.506Z&quot;,&quot;modified&quot;:&quot;2022-06-07T01:29:39.806Z&quot;,&quot;0.1.1&quot;:&quot;2022-06-04T14:02:08.514Z&quot;,&quot;0.1.2&quot;:&quot;2022-06-04T14:05:49.363Z&quot;,&quot;0.1.3&quot;:&quot;2022-06-04T14:22:29.219Z&quot;,&quot;0.2.0&quot;:&quot;2022-06-05T13:10:17.513Z&quot;,&quot;0.2.1&quot;:&quot;2022-06-07T01:17:09.495Z&quot;,&quot;0.2.3&quot;:&quot;2022-06-07T01:29:39.737Z&quot;},&quot;name&quot;:&quot;@achievementify/client&quot;,&quot;dist-tags&quot;:{&quot;latest&quot;:&quot;0.2.3&quot;},&quot;versions&quot;:{&quot;0.1.1&quot;:{&quot;name&quot;:&quot;@achievementif [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string achievementify_client_json {
+            get {
+                return ResourceManager.GetString("achievementify_client.json", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {&quot;_id&quot;:&quot;@angular/core&quot;,&quot;_rev&quot;:&quot;660-3fe4d5b1b9e632c7d96cdc1e1005b13c&quot;,&quot;name&quot;:&quot;@angular/core&quot;,&quot;dist-tags&quot;:{&quot;latest&quot;:&quot;13.2.6&quot;,&quot;v4-lts&quot;:&quot;4.4.7&quot;,&quot;v5-lts&quot;:&quot;5.2.11&quot;,&quot;next&quot;:&quot;13.3.0-rc.0&quot;,&quot;v7-lts&quot;:&quot;7.2.15&quot;,&quot;v6-lts&quot;:&quot;6.1.10&quot;,&quot;v9-lts&quot;:&quot;9.1.13&quot;,&quot;v8-lts&quot;:&quot;8.2.14&quot;,&quot;v10-lts&quot;:&quot;10.2.5&quot;,&quot;v11-lts&quot;:&quot;11.2.14&quot;,&quot;v12-lts&quot;:&quot;12.2.16&quot;},&quot;versions&quot;:{&quot;0.0.0-0&quot;:{&quot;name&quot;:&quot;@angular/core&quot;,&quot;version&quot;:&quot;0.0.0-0&quot;,&quot;description&quot;:&quot;&quot;,&quot;main&quot;:&quot;index.js&quot;,&quot;jsnext:main&quot;:&quot;esm/index.js&quot;,&quot;typings&quot;:&quot;index.d.ts&quot;,&quot;author&quot;:{&quot;name&quot;:&quot;angular&quot;},&quot;license&quot;:&quot;MIT&quot;,&quot;pee [rest of string was tru....
         /// </summary>
         internal static string angular_core_json {

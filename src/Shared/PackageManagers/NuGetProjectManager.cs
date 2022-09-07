@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+using System.Collections.Immutable;
+
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using Contracts;
@@ -34,6 +36,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public const string ENV_NUGET_ENDPOINT = "https://www.nuget.org";
         public const string NUGET_DEFAULT_REGISTRATION_ENDPOINT = "https://api.nuget.org/v3/registration5-gz-semver2/";
         private const string NUGET_DEFAULT_CONTENT_ENDPOINT = "https://api.nuget.org/v3-flatcontainer/";
+        private const string NUGET_DEFAULT_INDEX = "https://api.nuget.org/v3/index.json";
 
         private string? RegistrationEndpoint { get; set; } = null;
 
@@ -49,12 +52,24 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <inheritdoc />
         public override IEnumerable<ArtifactUri<NuGetArtifactType>> GetArtifactDownloadUris(PackageURL purl)
         {
-            string feedUrl = (purl.Qualifiers?["repository_url"] ?? NUGET_DEFAULT_CONTENT_ENDPOINT).EnsureTrailingSlash();
+            if (purl.Qualifiers?.TryGetValue("repository_url", out var repositoryUrlQualifier) == true && repositoryUrlQualifier != NUGET_DEFAULT_INDEX)
+            {
+                // Throw an exception until we implement proper support for service indices other than nuget.org
+                throw new NotImplementedException(
+                    $"NuGet package URLs having a repository URL other than '{NUGET_DEFAULT_INDEX}' are not currently supported.");
+            }
+            
+            var basePath = NUGET_DEFAULT_CONTENT_ENDPOINT.EnsureTrailingSlash();
+            var nameLowercase = purl.Name.ToLowerInvariant();
+            var versionLowercase = purl.Version.ToLowerInvariant();
 
-            string nupkgUri = $"{feedUrl}{purl.Name.ToLower()}/{purl.Version}/{purl.Name.ToLower()}.{purl.Version}.nupkg";
-            yield return new ArtifactUri<NuGetArtifactType>(NuGetArtifactType.Nupkg, nupkgUri);
-            string nuspecUri = $"{feedUrl}{purl.Name.ToLower()}/{purl.Version}/{purl.Name.ToLower()}.nuspec";
-            yield return new ArtifactUri<NuGetArtifactType>(NuGetArtifactType.Nuspec, nuspecUri);
+            var nupkgArtifactUri = new ArtifactUri<NuGetArtifactType>(NuGetArtifactType.Nupkg,
+                $"{basePath}{nameLowercase}/{versionLowercase}/{nameLowercase}.{versionLowercase}.nupkg");
+
+            var nuspecArtifactUri = new ArtifactUri<NuGetArtifactType>(NuGetArtifactType.Nuspec, 
+                $"{basePath}{nameLowercase}/{versionLowercase}/{nameLowercase}.nuspec");
+            
+            return ImmutableList.Create(nupkgArtifactUri, nuspecArtifactUri);
         }
 
         /// <summary>

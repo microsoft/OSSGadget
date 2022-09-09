@@ -132,20 +132,28 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             try
             {
                 string packageName = purl.GetFullName();
-                HttpClient httpClient = CreateHttpClient();
+                string? latestVersion = null;
 
-                JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_NPM_API_ENDPOINT}/{purl.GetFullName(encoded: true)}", useCache);
+                string? content = await GetMetadataAsync(purl, useCache);
+                if (string.IsNullOrEmpty(content)) { return new List<string>(); }
 
+                JsonDocument contentJSON = JsonDocument.Parse(content);
+                JsonElement root = contentJSON.RootElement;
                 List<string> versionList = new();
 
-                foreach (JsonProperty versionKey in doc.RootElement.GetProperty("versions").EnumerateObject())
+                if (root.TryGetProperty("versions", out JsonElement versions))
                 {
-                    Logger.Debug("Identified {0} version {1}.", packageName, versionKey.Name);
-                    versionList.Add(versionKey.Name);
+                    foreach (JsonProperty versionKey in versions.EnumerateObject())
+                    {
+                        Logger.Debug("Identified {0} version {1}.", packageName, versionKey.Name);
+                        versionList.Add(versionKey.Name);
+                    }
+                }
+                if (root.TryGetProperty("dist-tags", out JsonElement distTags) && distTags.TryGetProperty("latest", out JsonElement latestElement))
+                {
+                    latestVersion = latestElement.GetString();
                 }
 
-                string? latestVersion = doc.RootElement.GetProperty("dist-tags").GetProperty("latest").GetString();
-                
                 // If there was no "latest" property for some reason.
                 if (string.IsNullOrWhiteSpace(latestVersion))
                 {
@@ -164,6 +172,55 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 sortedList.Insert(0, latestVersion);
 
                 return sortedList;
+            }
+            catch (Exception ex)
+            {
+                Logger.Debug("Unable to enumerate versions: {0}", ex.Message);
+                throw;
+            }
+        }
+
+        /// <inheritdoc />
+        public override async Task<IDictionary<string, DateTime>> EnumerateVersionsWithPublishTimeAsync(
+            PackageURL purl,
+            bool useCache = true,
+            bool includePrerelease = true)
+        {
+            Logger.Trace("EnumerateVersionsWithPublishTime {0}", purl?.ToString());
+            if (purl?.Name is null)
+            {
+                return new Dictionary<string, DateTime>();
+            }
+
+            try
+            {
+                string packageName = purl.GetFullName();
+
+                string? content = await GetMetadataAsync(purl, useCache);
+                if (string.IsNullOrEmpty(content)) { return new Dictionary<string, DateTime>(); }
+
+                JsonDocument contentJSON = JsonDocument.Parse(content);
+                JsonElement root = contentJSON.RootElement;
+                
+                Dictionary<string, DateTime> versions = new();
+
+                JsonElement time = root.GetProperty("time");
+                foreach (JsonProperty timeEntry in time.EnumerateObject())
+                {
+                    if (timeEntry.Name.Equals("created") || timeEntry.Name.Equals("modified") || timeEntry.Value.ValueKind != JsonValueKind.String)
+                    {
+                        // Skip the created and modified ones, we don't want to use those.
+                        // And skip it if the value kind isn't a string
+                        continue;
+                    }
+
+                    DateTime publishTime = DateTime.Parse(timeEntry.Value.GetString());
+                    Logger.Debug("Identified {0} version {1} published at {2}.", packageName, timeEntry.Name, publishTime.ToString());
+                    
+                    versions.Add(timeEntry.Name, publishTime);
+                }
+
+                return versions;
             }
             catch (Exception ex)
             {
@@ -469,6 +526,23 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return allVersions;
         }
 
+        public override async Task<bool> PackagePulled(PackageURL purl, bool useCache = true)
+        {
+            string? content = await GetMetadataAsync(purl, useCache);
+            if (string.IsNullOrEmpty(content)) { return false; }
+
+            JsonDocument contentJSON = JsonDocument.Parse(content);
+            JsonElement root = contentJSON.RootElement;
+            
+            // If there is no version tag, then the entire package was unpublished.
+            if (!root.TryGetProperty("versions", out _))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         public override async Task<bool> PackageVersionPulled(PackageURL purl, bool useCache = true)
         {
             bool unpublishedFlag = false;
@@ -505,16 +579,16 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
         
         /// <summary>
-        /// Check to see if the package only has one version, and if that version is a NPM security holding package.
+        /// Check to see if the package only has a NPM security holding package.
         /// </summary>
         /// <param name="purl">The <see cref="PackageURL"/> to check.</param>
         /// <param name="useCache">If the cache should be checked for the existence of this package.</param>
         /// <returns>True if this package is a NPM security holding package. False otherwise.</returns>
-        public async Task<bool> PackageSecurityHolding(PackageURL purl, bool useCache = true)
+        public override async Task<bool> PackageRemovedForSecurity(PackageURL purl, bool useCache = true)
         {
             List<string> versions = (await this.EnumerateVersionsAsync(purl, useCache)).ToList();
 
-            return versions.Count == 1 && versions[0].Equals(NPM_SECURITY_HOLDING_VERSION);
+            return versions.Contains(NPM_SECURITY_HOLDING_VERSION);
         }
         
         /// <summary>

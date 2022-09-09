@@ -1,1 +1,1 @@
-{"_id":"example","name":"example","dist-tags":{"latest":"0.0.0"},"versions":{"0.0.0":{"name":"example","version":"0.0.0","_id":"example@0.0.0","_npmVersion":"1.0.0","_npmUser":{"name":"test","email":"test@microsoft.com"}}}}
+{"_id":"example","name":"example","dist-tags":{"latest":"0.0.0"},"versions":{"0.0.0":{"name":"example","version":"0.0.0","_id":"example@0.0.0","_npmVersion":"1.0.0","_npmUser":{"name":"test","email":"test@microsoft.com"}}},"time":{"created":"2022-08-10T21:35:37.950Z","0.0.0":"2022-08-10T21:35:38.278Z","modified":"2022-08-10T21:35:37.950Z"}}

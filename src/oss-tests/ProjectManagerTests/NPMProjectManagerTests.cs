@@ -2,10 +2,12 @@
 
 namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 {
+    using Contracts;
     using Extensions;
     using FluentAssertions;
     using Model;
     using Model.Enums;
+    using Model.PackageExistence;
     using Moq;
     using oss;
     using PackageActions;
@@ -18,97 +20,62 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
     using System.Linq;
     using System.Net;
     using System.Net.Http;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
     public class NPMProjectManagerTests
     {
-        private static readonly IDictionary<string, (PackageVersionExistence packageVersionExistence, bool versionPulled, bool packagePulled, bool securityRemoved)> _packageVersionExistence = new Dictionary<string, (PackageVersionExistence packageVersionExistence, bool versionPulled, bool packagePulled, bool securityRemoved)>()
+        private static readonly IDictionary<string, (IPackageExistence packageVersionExistence, bool versionPulled, bool packagePulled, bool consideredMalicious)> _packageVersionExistence = new Dictionary<string, (IPackageExistence packageVersionExistence, bool versionPulled, bool packagePulled, bool consideredMalicious)>()
         {
             { "currently_exists",
-                (new PackageVersionExistence(true, true, true, true),
+                (new PackageVersionExists(),
                     versionPulled: false,
                     packagePulled: false,
-                    securityRemoved: false)
+                    consideredMalicious: false)
             },
-            { "version_existed",
-                (new PackageVersionExistence(false, true, true, true, new [] { PackageDoesNotExistReason.VersionUnpublished }),
+            { "version_pulled",
+                (new PackageVersionRemoved(new HashSet<PackageRemovalReason>(new[] { PackageRemovalReason.VersionUnpublished })),
                     versionPulled: true,
                     packagePulled: false,
-                    securityRemoved: false)
+                    consideredMalicious: false)
             },
             { "version_never_existed",
-                (new PackageVersionExistence(false, false, true, true),
+                (new PackageVersionNotFound(),
                     versionPulled: false,
                     packagePulled: false,
-                    securityRemoved: false)
+                    consideredMalicious: false)
             },
-            { "package_removed_version_did_exist",
-                (new PackageVersionExistence(false, true, false, true, 
-                        new []
-                        {
-                            PackageDoesNotExistReason.VersionUnpublished,
-                            PackageDoesNotExistReason.PackageUnpublished,
-                        }),
-                    versionPulled: true,
-                    packagePulled: true,
-                    securityRemoved: false)
-            },
-            { "package_removed_version_never_existed",
-                (new PackageVersionExistence(false, false, false, true, new [] { PackageDoesNotExistReason.PackageUnpublished }),
-                    versionPulled: false,
-                    packagePulled: true,
-                    securityRemoved: false)
-            },
-            { "package_never_existed",
-                (new PackageVersionExistence(false, false, false, false),
+            { "package_considered_malicious",
+                (new PackageVersionRemoved(new HashSet<PackageRemovalReason>(new[] { PackageRemovalReason.ConsideredMalicious })),
                     versionPulled: false,
                     packagePulled: false,
-                    securityRemoved: false)
-            },
-            { "package_removed_for_security",
-                (new PackageVersionExistence(false, false, false, true, new []
-                    {
-                        PackageDoesNotExistReason.RemovedForSecurity
-                    }),
-                    versionPulled: false,
-                    packagePulled: false,
-                    securityRemoved: true)
-            },
-            { "package_removed_for_security_version_existed",
-                (new PackageVersionExistence(false, true, false, true, new []
-                    {
-                        PackageDoesNotExistReason.VersionUnpublished,
-                        PackageDoesNotExistReason.RemovedForSecurity
-                    }),
-                    versionPulled: true,
-                    packagePulled: false,
-                    securityRemoved: true)
-            },
+                    consideredMalicious: true)
+            }
         };
         
-        private static readonly IDictionary<string, (PackageExistence packageExistence, bool pulled, bool securityRemoved)> _packageExistence = new Dictionary<string, (PackageExistence packageExistence, bool pulled, bool securityRemoved)>()
+        private static readonly IDictionary<string, (IPackageExistence packageExistence, bool pulled, bool consideredMalicious)> _packageExistence = new Dictionary<string, (IPackageExistence packageExistence, bool pulled, bool consideredMalicious)>()
         {
             { "currently_exists",
-                (new PackageExistence(true, true),
+                (new PackageExists(),
                     pulled: false,
-                    securityRemoved: false)
+                    consideredMalicious: false)
             },
             { "never_existed",
-                (new PackageExistence(false, false),
+                (new PackageNotFound(),
                     pulled: false,
-                    securityRemoved: false)
+                    consideredMalicious: false)
             },
-            { "did_exist",
-                (new PackageExistence(false, true, new [] { PackageDoesNotExistReason.PackageUnpublished }),
+            { "pulled",
+                (new PackageRemoved(new HashSet<PackageRemovalReason>(new[] { PackageRemovalReason.PackageUnpublished })),
                     pulled: true,
-                    securityRemoved: false)
+                    consideredMalicious: false)
             },
-            { "security_removed",
-                (new PackageExistence(false, true, new [] { PackageDoesNotExistReason.RemovedForSecurity }),
+            { "considered_malicious",
+                (new PackageRemoved(new HashSet<PackageRemovalReason>(new[] { PackageRemovalReason.ConsideredMalicious })),
                     pulled: false,
-                    securityRemoved: true)
+                    consideredMalicious: true)
             },
         };
 
@@ -224,43 +191,39 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 
         [DataTestMethod]
         [DataRow("currently_exists")] // The package version currently exists
-        [DataRow("version_existed")] // The package version was pulled from the registry
+        [DataRow("version_pulled")] // The package version was pulled from the registry
         [DataRow("version_never_existed")] // The package version never existed
-        [DataRow("package_removed_version_did_exist")] // The package itself was pulled and the version did exist
-        [DataRow("package_removed_version_never_existed")] // The package itself was pulled and the version never existed
-        [DataRow("package_never_existed")] // The package never existed
-        [DataRow("package_removed_for_security")] // The package was removed for security
-        [DataRow("package_removed_for_security_version_existed")] // The package was removed for security, but the version did exist prior to the package being removed
+        [DataRow("package_considered_malicious")] // The package was removed for security
         public async Task DetailedPackageVersionExistsAsyncSucceeds(
             string key)
         {
-            PackageVersionExistence expectedPackageVersionExistence = _packageVersionExistence[key].packageVersionExistence;
+            IPackageExistence expectedPackageVersionExistence = _packageVersionExistence[key].packageVersionExistence;
             bool versionPulled = _packageVersionExistence[key].versionPulled;
-            bool packagePulled = _packageVersionExistence[key].packagePulled;
-            bool securityRemoved = _packageVersionExistence[key].securityRemoved;
+            bool consideredMalicious = _packageVersionExistence[key].consideredMalicious;
             
+            if (!expectedPackageVersionExistence.HasEverExisted)
+            {
+                _projectManager
+                    .Setup(p => 
+                        p.GetMetadataAsync(It.IsAny<PackageURL>(), It.IsAny<bool>()))
+                    .ReturnsAsync(null as string);
+            }
+
             _projectManager
                 .Setup(p => 
                     p.PackageVersionExistsAsync(It.IsAny<PackageURL>(), It.IsAny<bool>()))
                 .ReturnsAsync(expectedPackageVersionExistence.Exists);
             _projectManager
                 .Setup(p => 
-                    p.PackageExistsAsync(It.IsAny<PackageURL>(), It.IsAny<bool>()))
-                .ReturnsAsync(expectedPackageVersionExistence.PackageExists);
-            _projectManager
-                .Setup(p => 
-                    p.PackageVersionPulled(It.IsAny<PackageURL>(), It.IsAny<bool>()))
-                .ReturnsAsync(versionPulled);
-            _projectManager
-                .Setup(p => 
-                    p.PackagePulled(It.IsAny<PackageURL>(), It.IsAny<bool>()))
-                .ReturnsAsync(packagePulled);
-            _projectManager
-                .Setup(p => 
-                    p.PackageRemovedForSecurity(It.IsAny<PackageURL>(), It.IsAny<bool>()))
-                .ReturnsAsync(securityRemoved);
+                    p.PackageVersionPulled(It.IsAny<PackageURL>(), It.IsAny<JsonElement>()))
+                .Returns(versionPulled);
 
-            PackageVersionExistence packageVersionExistenceResponse =
+            _projectManager
+                .Setup(p => 
+                    p.PackageConsideredMalicious(It.IsAny<JsonElement>()))
+                .Returns(consideredMalicious);
+
+            IPackageExistence packageVersionExistenceResponse =
                 await _projectManager.Object.DetailedPackageVersionExistsAsync(new PackageURL("pkg:npm/example@0.0.0"),
                     useCache: false);
 
@@ -270,14 +233,22 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         [DataTestMethod]
         [DataRow("currently_exists")] // The package currently exists
         [DataRow("never_existed")] // The package never existed
-        [DataRow("did_exist")] // The package existed but was removed
-        [DataRow("security_removed")] // The package was removed for security reasons
+        [DataRow("pulled")] // The package existed but was removed
+        [DataRow("considered_malicious")] // The package was removed for security reasons
         public async Task DetailedPackageExistsAsyncSucceeds(
             string key)
         {
-            PackageExistence expectedPackageExistence = _packageExistence[key].packageExistence;
+            IPackageExistence expectedPackageExistence = _packageExistence[key].packageExistence;
             bool pulled = _packageExistence[key].pulled;
-            bool securityRemoved = _packageExistence[key].securityRemoved;
+            bool consideredMalicious = _packageExistence[key].consideredMalicious;
+
+            if (!expectedPackageExistence.HasEverExisted)
+            {
+                _projectManager
+                    .Setup(p => 
+                        p.GetMetadataAsync(It.IsAny<PackageURL>(), It.IsAny<bool>()))
+                    .ReturnsAsync(null as string);
+            }
 
             _projectManager
                 .Setup(p => 
@@ -285,14 +256,14 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
                 .ReturnsAsync(expectedPackageExistence.Exists);
             _projectManager
                 .Setup(p => 
-                    p.PackagePulled(It.IsAny<PackageURL>(), It.IsAny<bool>()))
-                .ReturnsAsync(pulled);
+                    p.PackagePulled(It.IsAny<JsonElement>()))
+                .Returns(pulled);
             _projectManager
                 .Setup(p => 
-                    p.PackageRemovedForSecurity(It.IsAny<PackageURL>(), It.IsAny<bool>()))
-                .ReturnsAsync(securityRemoved);
+                    p.PackageConsideredMalicious(It.IsAny<JsonElement>()))
+                .Returns(consideredMalicious);
 
-            PackageExistence packageExistenceResponse =
+            IPackageExistence packageExistenceResponse =
                 await _projectManager.Object.DetailedPackageExistsAsync(new PackageURL("pkg:npm/example@0.0.0"),
                     useCache: false);
 
@@ -303,12 +274,17 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         [DataRow("pkg:npm/%40somosme/webflowutils@1.0.0")]
         [DataRow("pkg:npm/%40somosme/webflowutils@1.2.3", false)]
         [DataRow("pkg:npm/%40achievementify/client@0.2.1")]
-        [DataRow("pkg:npm/%40achievementify/clients@0.2.3", false)]
+        [DataRow("pkg:npm/%40achievementify/client@0.2.3", false)]
         public async Task PackageVersionPulledAsync(string purlString, bool expectedPulled = true)
         {
             PackageURL purl = new(purlString);
+            
+            string? content = await _projectManager.Object.GetMetadataAsync(purl);
 
-            Assert.AreEqual(expectedPulled, await _projectManager.Object.PackageVersionPulled(purl, useCache: false));
+            JsonDocument contentJSON = JsonDocument.Parse(content);
+            JsonElement root = contentJSON.RootElement;
+
+            Assert.AreEqual(expectedPulled,  _projectManager.Object.PackageVersionPulled(purl, root));
         }
         
         [DataTestMethod]
@@ -319,7 +295,12 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         {
             PackageURL purl = new(purlString);
 
-            Assert.AreEqual(expectedToHaveSecurityHolding, await _projectManager.Object.PackageRemovedForSecurity(purl, useCache: false));
+            string? content = await _projectManager.Object.GetMetadataAsync(purl);
+
+            JsonDocument contentJSON = JsonDocument.Parse(content);
+            JsonElement root = contentJSON.RootElement;
+
+            Assert.AreEqual(expectedToHaveSecurityHolding, _projectManager.Object.PackageConsideredMalicious(root));
         }
         
         [DataTestMethod]

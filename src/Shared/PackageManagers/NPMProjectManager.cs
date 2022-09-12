@@ -6,6 +6,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using Extensions;
     using Helpers;
     using Microsoft.CST.OpenSource.Model;
+    using Model.Enums;
+    using Model.PackageExistence;
     using PackageActions;
     using PackageUrl;
     using System;
@@ -526,33 +528,117 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return allVersions;
         }
 
-        public override async Task<bool> PackagePulled(PackageURL purl, bool useCache = true)
+        public override async Task<IPackageExistence> DetailedPackageExistsAsync(PackageURL purl, bool useCache = true)
         {
+            Logger.Trace("DetailedPackageExists {0}", purl?.ToString());
+            if (purl is null)
+            {
+                Logger.Trace("Provided PackageURL was null.");
+                throw new ArgumentNullException(nameof(purl), "Provided PackageURL was null.");
+            }
+
             string? content = await GetMetadataAsync(purl, useCache);
-            if (string.IsNullOrEmpty(content)) { return false; }
+            if (string.IsNullOrEmpty(content)) { return new PackageNotFound(); }
 
             JsonDocument contentJSON = JsonDocument.Parse(content);
             JsonElement root = contentJSON.RootElement;
             
-            // If there is no version tag, then the entire package was unpublished.
-            if (!root.TryGetProperty("versions", out _))
+            HashSet<PackageRemovalReason> removalReasons = new();
+
+            bool pulled = PackagePulled(root);
+            bool consideredMalicious = PackageConsideredMalicious(root);
+
+            if (pulled)
             {
-                return true;
+                removalReasons.Add(PackageRemovalReason.PackageUnpublished);
             }
 
-            return false;
+            if (consideredMalicious)
+            {
+                removalReasons.Add(PackageRemovalReason.ConsideredMalicious);
+            }
+
+            if (pulled || consideredMalicious)
+            {
+                return new PackageRemoved(removalReasons);
+            }
+
+            return new PackageExists();
         }
 
-        public override async Task<bool> PackageVersionPulled(PackageURL purl, bool useCache = true)
+        public override async Task<IPackageExistence> DetailedPackageVersionExistsAsync(PackageURL purl, bool useCache = true)
+        {
+            Logger.Trace("DetailedPackageVersionExists {0}", purl?.ToString());
+            if (purl is null)
+            {
+                Logger.Trace("Provided PackageURL was null.");
+                throw new ArgumentNullException(nameof(purl), "Provided PackageURL was null.");
+            }
+            
+            if (purl.Version.IsBlank())
+            {
+                Logger.Trace("Provided PackageURL version was blank.");
+                throw new ArgumentNullException(nameof(purl.Version), 
+                    "Cannot call DetailedPackageVersionExists on a purl without a version. Call DetailedPackageExists.");
+            }
+
+            string? content = await GetMetadataAsync(purl, useCache);
+            if (string.IsNullOrEmpty(content)) { return new PackageVersionNotFound(); }
+
+            JsonDocument contentJSON = JsonDocument.Parse(content);
+            JsonElement root = contentJSON.RootElement;
+            
+            HashSet<PackageRemovalReason> removalReasons = new();
+
+            bool pulled = PackagePulled(root);
+            bool versionPulled = PackageVersionPulled(purl, root);
+            bool consideredMalicious = PackageConsideredMalicious(root);
+
+            if (pulled)
+            {
+                removalReasons.Add(PackageRemovalReason.PackageUnpublished);
+            }
+            
+            if (versionPulled)
+            {
+                removalReasons.Add(PackageRemovalReason.VersionUnpublished);
+            }
+
+            if (consideredMalicious)
+            {
+                removalReasons.Add(PackageRemovalReason.ConsideredMalicious);
+            }
+
+            if (pulled || versionPulled || consideredMalicious)
+            {
+                return new PackageVersionRemoved(removalReasons);
+            }
+
+            return new PackageVersionExists();
+        }
+
+        /// <summary>
+        /// Check to see if the package was pulled from the repository.
+        /// </summary>
+        /// <param name="root">The <see cref="JsonElement"/> root content of the metadata.</param>
+        /// <returns>True if this package was pulled. False otherwise.</returns>
+        internal virtual bool PackagePulled(JsonElement root)
+        {
+            // If there is no version tag, then the entire package was unpublished.
+            return !root.TryGetProperty("versions", out _);
+        }
+
+        /// <summary>
+        /// Check to see if the package version was pulled from the repository.
+        /// </summary>
+        /// <param name="purl">The <see cref="PackageURL"/> to check.</param>
+        /// <param name="root">The <see cref="JsonElement"/> root content of the metadata.</param>
+        /// <returns>True if this package version was pulled. False otherwise.</returns>
+        internal virtual bool PackageVersionPulled(PackageURL purl, JsonElement root)
         {
             bool unpublishedFlag = false;
             bool unpublishedFromVersionDict = false;
 
-            string? content = await GetMetadataAsync(purl, useCache);
-            if (string.IsNullOrEmpty(content)) { return false; }
-
-            JsonDocument contentJSON = JsonDocument.Parse(content);
-            JsonElement root = contentJSON.RootElement;
             if (root.TryGetProperty("time", out JsonElement time))
             {
                 // Example: https://registry.npmjs.org/@somosme/webflowutils
@@ -581,14 +667,12 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <summary>
         /// Check to see if the package only has a NPM security holding package.
         /// </summary>
-        /// <param name="purl">The <see cref="PackageURL"/> to check.</param>
-        /// <param name="useCache">If the cache should be checked for the existence of this package.</param>
+        /// <param name="root">The <see cref="JsonElement"/> root content of the metadata.</param>
         /// <returns>True if this package is a NPM security holding package. False otherwise.</returns>
-        public override async Task<bool> PackageRemovedForSecurity(PackageURL purl, bool useCache = true)
+        internal virtual bool PackageConsideredMalicious(JsonElement root)
         {
-            List<string> versions = (await this.EnumerateVersionsAsync(purl, useCache)).ToList();
-
-            return versions.Contains(NPM_SECURITY_HOLDING_VERSION);
+            JsonElement time = root.GetProperty("time");
+            return time.EnumerateObject().Any(timeEntry => timeEntry.Name == NPM_SECURITY_HOLDING_VERSION);
         }
         
         /// <summary>

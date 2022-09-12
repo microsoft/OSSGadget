@@ -5,7 +5,7 @@ namespace Microsoft.CST.OpenSource.Model.Enums;
 /// <summary>
 /// Enum for information about when a package no longer exists on a package manager.
 /// </summary>
-public enum PackageDoesNotExistReason
+public enum PackageRemovalReason
 {
     /// <summary>
     /// When the version was unpublished from the repository/registry by someone.
@@ -18,7 +18,7 @@ public enum PackageDoesNotExistReason
     PackageUnpublished,
 
     /// <summary>
-    /// When the package/version was removed from the repository/registry by the package manager's administrators due to a security risk.
+    /// When the package/version was removed from the repository/registry by the package manager's administrators because it is considered to be malicious.
     /// </summary>
-    RemovedForSecurity,
+    ConsideredMalicious,
 }

@@ -2,10 +2,12 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Contracts;
     using Helpers;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.CST.OpenSource.Model;
     using Model.Enums;
+    using Model.PackageExistence;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -357,81 +359,17 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// </summary>
         /// <param name="purl">The PackageURL to check.</param>
         /// <param name="useCache">If the cache should be checked for the existence of this package.</param>
-        /// <returns>A <see cref="PackageExistence"/> detailing the existence of the package.</returns>
-        public virtual async Task<PackageExistence> DetailedPackageExistsAsync(PackageURL purl, bool useCache = true)
+        /// <returns>A <see cref="IPackageExistence"/> detailing the existence of the package.</returns>
+        public virtual async Task<IPackageExistence> DetailedPackageExistsAsync(PackageURL purl, bool useCache = true)
         {
-            Logger.Trace("DetailedPackageExists {0}", purl?.ToString());
-            if (purl is null)
+            bool exists = await PackageExistsAsync(purl, useCache);
+
+            if (exists)
             {
-                Logger.Trace("Provided PackageURL was null.");
-                throw new ArgumentNullException(nameof(purl), "Provided PackageURL was null.");
+                return new PackageExists();
             }
 
-            List<PackageDoesNotExistReason> doesNotExistReasons = new();
-
-            bool packageExists = await PackageExistsAsync(purl, useCache);
-            bool pulled = await PackagePulled(purl, useCache);
-            bool securityRemoved = await PackageRemovedForSecurity(purl, useCache);
-
-            if (pulled)
-            {
-                doesNotExistReasons.Add(PackageDoesNotExistReason.PackageUnpublished);
-            }
-
-            if (securityRemoved)
-            {
-                doesNotExistReasons.Add(PackageDoesNotExistReason.RemovedForSecurity);
-            }
-
-            return new PackageExistence(packageExists, packageExists || doesNotExistReasons.Any(), doesNotExistReasons);
-        }
-        
-        /// <summary>
-        /// Check if the package version exists/existed in the repository.
-        /// </summary>
-        /// <param name="purl">The PackageURL to check.</param>
-        /// <param name="useCache">If the cache should be checked for the existence of this package version.</param>
-        /// <returns>A <see cref="PackageVersionExistence"/> detailing the existence of the package version.</returns>
-        public virtual async Task<PackageVersionExistence> DetailedPackageVersionExistsAsync(PackageURL purl, bool useCache = true)
-        {
-            Logger.Trace("DetailedPackageVersionExists {0}", purl?.ToString());
-            if (purl is null)
-            {
-                Logger.Trace("Provided PackageURL was null.");
-                throw new ArgumentNullException(nameof(purl), "Provided PackageURL was null.");
-            }
-            
-            if (purl.Version.IsBlank())
-            {
-                Logger.Trace("Provided PackageURL version was blank.");
-                throw new ArgumentNullException(nameof(purl.Version), 
-                    "Cannot call DetailedPackageVersionExists on a purl without a version. Call DetailedPackageExists.");
-            }
-
-            List<PackageDoesNotExistReason> doesNotExistReasons = new();
-
-            bool packageExists = await PackageExistsAsync(purl, useCache);
-            bool packageVersionExists = await PackageVersionExistsAsync(purl, useCache);
-            bool packagePulled = await PackagePulled(purl, useCache);
-            bool versionPulled = await PackageVersionPulled(purl, useCache);
-            bool securityRemoved = await PackageRemovedForSecurity(purl, useCache);
-
-            if (packagePulled)
-            {
-                doesNotExistReasons.Add(PackageDoesNotExistReason.PackageUnpublished);
-            }
-            
-            if (versionPulled)
-            {
-                doesNotExistReasons.Add(PackageDoesNotExistReason.VersionUnpublished);
-            }
-            
-            if (securityRemoved)
-            {
-                doesNotExistReasons.Add(PackageDoesNotExistReason.RemovedForSecurity);
-            }
-
-            return new PackageVersionExistence(packageVersionExists, packageVersionExists || versionPulled, packageExists, packageExists || doesNotExistReasons.Any(), doesNotExistReasons);
+            return new PackageNotFound();
         }
 
         /// <summary>
@@ -459,36 +397,21 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
         
         /// <summary>
-        /// Check if the package was pulled from the repository.
+        /// Check if the package version exists/existed in the repository.
         /// </summary>
         /// <param name="purl">The PackageURL to check.</param>
-        /// <param name="useCache">If the cache should be checked for the existence of this package.</param>
-        /// <returns>True if the package was pulled from the repository. False otherwise.</returns>
-        public virtual Task<bool> PackagePulled(PackageURL purl, bool useCache = true)
+        /// <param name="useCache">If the cache should be checked for the existence of this package version.</param>
+        /// <returns>A <see cref="IPackageExistence"/> detailing the existence of the package version.</returns>
+        public virtual async Task<IPackageExistence> DetailedPackageVersionExistsAsync(PackageURL purl, bool useCache = true)
         {
-            return Task.FromResult(false);
-        }
-        
-        /// <summary>
-        /// Check if the package version was pulled from the repository.
-        /// </summary>
-        /// <param name="purl">The PackageURL to check.</param>
-        /// <param name="useCache">If the cache should be checked for the existence of this package.</param>
-        /// <returns>True if the package version was pulled from the repository. False otherwise.</returns>
-        public virtual Task<bool> PackageVersionPulled(PackageURL purl, bool useCache = true)
-        {
-            return Task.FromResult(false);
-        }
-        
-        /// <summary>
-        /// Check to see if the package was removed for security.
-        /// </summary>
-        /// <param name="purl">The <see cref="PackageURL"/> to check.</param>
-        /// <param name="useCache">If the cache should be checked for the existence of this package.</param>
-        /// <returns>True if this package is was removed for security. False otherwise.</returns>
-        public virtual Task<bool> PackageRemovedForSecurity(PackageURL purl, bool useCache = true)
-        {
-            return Task.FromResult(false);
+            bool exists = await PackageVersionExistsAsync(purl, useCache);
+
+            if (exists)
+            {
+                return new PackageVersionExists();
+            }
+
+            return new PackageVersionNotFound();
         }
 
         /// <summary>

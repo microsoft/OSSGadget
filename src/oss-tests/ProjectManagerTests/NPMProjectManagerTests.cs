@@ -146,23 +146,6 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             Assert.AreEqual(latestVersion, versions.First());
         }
 
-                
-        [DataTestMethod]
-        [DataRow("pkg:npm/lodash@4.17.15", 114, "2019-07-19T02:28:46.584Z")]
-        [DataRow("pkg:npm/%40angular/core@13.2.5", 567, "2022-03-02T18:25:31.169Z")]
-        [DataRow("pkg:npm/ds-modal@0.0.2", 8, "2018-08-09T07:24:06.206Z")]
-        [DataRow("pkg:npm/monorepolint@0.4.0", 88, "2019-08-07T16:20:53.525Z")]
-        [DataRow("pkg:npm/example@0.0.0", 1, "2022-08-10T21:35:38.278Z")]
-        [DataRow("pkg:npm/rly-cli@0.0.2", 4, "2022-03-08T17:26:27.219Z")]
-        public async Task EnumerateVersionsWithPublishTimeSucceeds(string purlString, int count, string versionPublishTime)
-        {
-            PackageURL purl = new(purlString);
-            IDictionary<string, DateTime> versions = await _projectManager.Object.EnumerateVersionsWithPublishTimeAsync(purl, useCache: false);
-
-            Assert.AreEqual(count, versions.Count);
-            Assert.AreEqual(DateTime.Parse(versionPublishTime), versions[purl.Version]);
-        }
-
         [DataTestMethod]
         [DataRow("pkg:npm/lodash@4.17.15")]
         [DataRow("pkg:npm/%40angular/core@13.2.5")]

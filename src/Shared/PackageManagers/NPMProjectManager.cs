@@ -182,55 +182,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
         }
 
-        /// <inheritdoc />
-        public override async Task<IDictionary<string, DateTime>> EnumerateVersionsWithPublishTimeAsync(
-            PackageURL purl,
-            bool useCache = true,
-            bool includePrerelease = true)
-        {
-            Logger.Trace("EnumerateVersionsWithPublishTime {0}", purl?.ToString());
-            if (purl?.Name is null)
-            {
-                return new Dictionary<string, DateTime>();
-            }
-
-            try
-            {
-                string packageName = purl.GetFullName();
-
-                string? content = await GetMetadataAsync(purl, useCache);
-                if (string.IsNullOrEmpty(content)) { return new Dictionary<string, DateTime>(); }
-
-                JsonDocument contentJSON = JsonDocument.Parse(content);
-                JsonElement root = contentJSON.RootElement;
-                
-                Dictionary<string, DateTime> versions = new();
-
-                JsonElement time = root.GetProperty("time");
-                foreach (JsonProperty timeEntry in time.EnumerateObject())
-                {
-                    if (timeEntry.Name.Equals("created") || timeEntry.Name.Equals("modified") || timeEntry.Value.ValueKind != JsonValueKind.String)
-                    {
-                        // Skip the created and modified ones, we don't want to use those.
-                        // And skip it if the value kind isn't a string
-                        continue;
-                    }
-
-                    DateTime publishTime = DateTime.Parse(timeEntry.Value.GetString());
-                    Logger.Debug("Identified {0} version {1} published at {2}.", packageName, timeEntry.Name, publishTime.ToString());
-                    
-                    versions.Add(timeEntry.Name, publishTime);
-                }
-
-                return versions;
-            }
-            catch (Exception ex)
-            {
-                Logger.Debug("Unable to enumerate versions: {0}", ex.Message);
-                throw;
-            }
-        }
-
         /// <summary>
         /// Gets the <see cref="DateTime"/> a package version was published at.
         /// </summary>

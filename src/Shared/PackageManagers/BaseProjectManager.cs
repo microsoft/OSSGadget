@@ -312,19 +312,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
             throw new NotImplementedException("BaseProjectManager does not implement EnumerateVersions.");
         }
-        
-        /// <summary>
-        /// Enumerates all possible versions of the package identified by purl, in descending order with the time they were published at.
-        /// </summary>
-        /// <remarks>The latest version is always first, then it is sorted by SemVer in descending order.</remarks>
-        /// <param name="purl">Package URL specifying the package. Version is ignored.</param>
-        /// <param name="useCache">If the cache should be used when looking for the versions.</param>
-        /// <param name="includePrerelease">If pre-release versions should be included.</param>
-        /// <returns> A dictionary where the key is the package version, and the value is the time it was published at.</returns>
-        public virtual Task<IDictionary<string, DateTime>> EnumerateVersionsWithPublishTimeAsync(PackageURL purl, bool useCache = true, bool includePrerelease = true)
-        {
-            throw new NotImplementedException("BaseProjectManager does not implement EnumerateVersionsWithPublishTime.");
-        }
 
         /// <summary>
         /// Gets the latest version from the package metadata.

@@ -48,7 +48,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
                     consideredMalicious: false)
             },
             { "package_considered_malicious",
-                (new PackageVersionRemoved(new HashSet<PackageRemovalReason>(new[] { PackageRemovalReason.ConsideredMalicious })),
+                (new PackageVersionRemoved(new HashSet<PackageRemovalReason>(new[] { PackageRemovalReason.RemovedByRepository })),
                     versionPulled: false,
                     packagePulled: false,
                     consideredMalicious: true)
@@ -73,7 +73,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
                     consideredMalicious: false)
             },
             { "considered_malicious",
-                (new PackageRemoved(new HashSet<PackageRemovalReason>(new[] { PackageRemovalReason.ConsideredMalicious })),
+                (new PackageRemoved(new HashSet<PackageRemovalReason>(new[] { PackageRemovalReason.RemovedByRepository })),
                     pulled: false,
                     consideredMalicious: true)
             },

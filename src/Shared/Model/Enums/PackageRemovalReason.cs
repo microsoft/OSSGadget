@@ -18,7 +18,7 @@ public enum PackageRemovalReason
     PackageUnpublished,
 
     /// <summary>
-    /// When the package/version was removed from the repository/registry by the package manager's administrators because it is considered to be malicious.
+    /// When the package/version was removed from the repository/registry by the package manager's administrators.
     /// </summary>
-    ConsideredMalicious,
+    RemovedByRepository,
 }

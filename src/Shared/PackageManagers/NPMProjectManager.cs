@@ -555,7 +555,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             if (consideredMalicious)
             {
-                removalReasons.Add(PackageRemovalReason.ConsideredMalicious);
+                removalReasons.Add(PackageRemovalReason.RemovedByRepository);
             }
 
             if (pulled || consideredMalicious)
@@ -606,7 +606,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             if (consideredMalicious)
             {
-                removalReasons.Add(PackageRemovalReason.ConsideredMalicious);
+                removalReasons.Add(PackageRemovalReason.RemovedByRepository);
             }
 
             if (pulled || versionPulled || consideredMalicious)

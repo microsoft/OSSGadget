@@ -36,7 +36,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
                     consideredMalicious: false)
             },
             { "version_pulled",
-                (new PackageVersionRemoved(new HashSet<PackageRemovalReason>(new[] { PackageRemovalReason.VersionUnpublished })),
+                (new PackageVersionRemoved(new HashSet<PackageVersionRemovalReason>(new[] { PackageVersionRemovalReason.VersionUnpublished })),
                     versionPulled: true,
                     packagePulled: false,
                     consideredMalicious: false)
@@ -48,7 +48,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
                     consideredMalicious: false)
             },
             { "package_considered_malicious",
-                (new PackageVersionRemoved(new HashSet<PackageRemovalReason>(new[] { PackageRemovalReason.RemovedByRepository })),
+                (new PackageVersionRemoved(new HashSet<PackageVersionRemovalReason>(new[] { PackageVersionRemovalReason.RemovedByRepository })),
                     versionPulled: false,
                     packagePulled: false,
                     consideredMalicious: true)

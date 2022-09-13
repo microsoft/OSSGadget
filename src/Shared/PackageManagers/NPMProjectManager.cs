@@ -539,7 +539,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             JsonDocument contentJSON = JsonDocument.Parse(content);
             JsonElement root = contentJSON.RootElement;
             
-            HashSet<PackageRemovalReason> removalReasons = new();
+            HashSet<PackageVersionRemovalReason> removalReasons = new();
 
             bool pulled = PackagePulled(root);
             bool versionPulled = PackageVersionPulled(purl, root);
@@ -547,17 +547,17 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             if (pulled)
             {
-                removalReasons.Add(PackageRemovalReason.PackageUnpublished);
+                removalReasons.Add(PackageVersionRemovalReason.PackageUnpublished);
             }
             
             if (versionPulled)
             {
-                removalReasons.Add(PackageRemovalReason.VersionUnpublished);
+                removalReasons.Add(PackageVersionRemovalReason.VersionUnpublished);
             }
 
             if (consideredMalicious)
             {
-                removalReasons.Add(PackageRemovalReason.RemovedByRepository);
+                removalReasons.Add(PackageVersionRemovalReason.RemovedByRepository);
             }
 
             if (pulled || versionPulled || consideredMalicious)

@@ -3,10 +3,15 @@
 namespace Microsoft.CST.OpenSource.Model.Enums;
 
 /// <summary>
-/// Enum for information about when a package no longer exists on a package manager.
+/// Enum for information about when a package version no longer exists on a package manager.
 /// </summary>
-public enum PackageRemovalReason
+public enum PackageVersionRemovalReason
 {
+    /// <summary>
+    /// When the version was unpublished from the repository/registry by someone.
+    /// </summary>
+    VersionUnpublished,
+    
     /// <summary>
     /// When the package was unpublished from the repository/registry by someone.
     /// </summary>

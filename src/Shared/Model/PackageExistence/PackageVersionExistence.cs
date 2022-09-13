@@ -13,7 +13,6 @@ public record PackageVersionExists : IPackageExistence
 {
     public bool Exists => true;
     public bool HasEverExisted => true;
-    public IReadOnlySet<PackageRemovalReason>? RemovalReasons => null;
 }
 
 /// <summary>
@@ -23,13 +22,13 @@ public record PackageVersionNotFound : IPackageExistence
 {
     public bool Exists => false;
     public bool HasEverExisted => false;
-    public IReadOnlySet<PackageRemovalReason>? RemovalReasons => null;
 }
 
 /// <summary>
 /// Represents a package version that was removed, and why.
 /// </summary>
-public record PackageVersionRemoved(IReadOnlySet<PackageRemovalReason> RemovalReasons) : IPackageExistence
+/// <param name="RemovalReasons">The reasons (if any) for why a package was removed.</param>
+public record PackageVersionRemoved(IReadOnlySet<PackageVersionRemovalReason> RemovalReasons) : IPackageExistence
 {
     public bool Exists => false;
     public bool HasEverExisted => true;

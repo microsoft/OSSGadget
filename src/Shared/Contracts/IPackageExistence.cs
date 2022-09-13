@@ -25,9 +25,4 @@ public interface IPackageExistence
     /// So if it doesn't exist now, but at one point did exist.
     /// </summary>
     bool WasRemoved => !this.Exists && this.HasEverExisted;
-
-    /// <summary>
-    /// Gets the reasons (if any) for why a package/version was removed.
-    /// </summary>
-    IReadOnlySet<PackageRemovalReason>? RemovalReasons { get; }
 }

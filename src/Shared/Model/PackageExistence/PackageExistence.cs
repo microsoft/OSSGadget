@@ -28,8 +28,7 @@ public record PackageNotFound : IPackageExistence
 /// Represents a package that was removed, and why.
 /// </summary>
 /// <param name="RemovalReasons">The reasons (if any) for why a package was removed.</param>
-public record PackageRemoved(IReadOnlySet<PackageRemovalReason> RemovalReasons) : IPackageExistence
+public record PackageRemoved(IReadOnlySet<PackageRemovalReason> RemovalReasons) : PackageNotFound
 {
-    public bool Exists => false;
-    public bool HasEverExisted => true;
+    public new bool HasEverExisted => true;
 }

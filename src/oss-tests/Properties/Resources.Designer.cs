@@ -115,7 +115,7 @@ namespace oss {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {&quot;_id&quot;:&quot;example&quot;,&quot;name&quot;:&quot;example&quot;,&quot;dist-tags&quot;:{&quot;latest&quot;:&quot;0.0.0&quot;},&quot;versions&quot;:{&quot;0.0.0&quot;:{&quot;name&quot;:&quot;example&quot;,&quot;version&quot;:&quot;0.0.0&quot;,&quot;_id&quot;:&quot;example@0.0.0&quot;,&quot;_npmVersion&quot;:&quot;1.0.0&quot;,&quot;_npmUser&quot;:{&quot;name&quot;:&quot;test&quot;,&quot;email&quot;:&quot;test@microsoft.com&quot;}}}}.
+        ///   Looks up a localized string similar to {&quot;_id&quot;:&quot;example&quot;,&quot;name&quot;:&quot;example&quot;,&quot;dist-tags&quot;:{&quot;latest&quot;:&quot;0.0.0&quot;},&quot;versions&quot;:{&quot;0.0.0&quot;:{&quot;name&quot;:&quot;example&quot;,&quot;version&quot;:&quot;0.0.0&quot;,&quot;_id&quot;:&quot;example@0.0.0&quot;,&quot;_npmVersion&quot;:&quot;1.0.0&quot;,&quot;_npmUser&quot;:{&quot;name&quot;:&quot;test&quot;,&quot;email&quot;:&quot;test@microsoft.com&quot;}}},&quot;time&quot;:{&quot;created&quot;:&quot;2022-08-10T21:35:37.950Z&quot;,&quot;0.0.0&quot;:&quot;2022-08-10T21:35:38.278Z&quot;,&quot;modified&quot;:&quot;2022-08-10T21:35:37.950Z&quot;}}.
         /// </summary>
         internal static string minimum_json_json {
             get {

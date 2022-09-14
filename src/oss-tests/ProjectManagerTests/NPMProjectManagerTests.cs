@@ -2,8 +2,12 @@
 
 namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 {
+    using Contracts;
     using Extensions;
+    using FluentAssertions;
     using Model;
+    using Model.Enums;
+    using Model.PackageExistence;
     using Moq;
     using oss;
     using PackageActions;
@@ -16,12 +20,65 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
     using System.Linq;
     using System.Net;
     using System.Net.Http;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
     public class NPMProjectManagerTests
     {
+        private static readonly IDictionary<string, (IPackageExistence packageVersionExistence, bool versionPulled, bool packagePulled, bool consideredMalicious)> _packageVersionExistence = new Dictionary<string, (IPackageExistence packageVersionExistence, bool versionPulled, bool packagePulled, bool consideredMalicious)>()
+        {
+            { "currently_exists",
+                (new PackageVersionExists(),
+                    versionPulled: false,
+                    packagePulled: false,
+                    consideredMalicious: false)
+            },
+            { "version_pulled",
+                (new PackageVersionRemoved(new HashSet<PackageVersionRemovalReason>(new[] { PackageVersionRemovalReason.VersionUnpublished })),
+                    versionPulled: true,
+                    packagePulled: false,
+                    consideredMalicious: false)
+            },
+            { "version_never_existed",
+                (new PackageVersionNotFound(),
+                    versionPulled: false,
+                    packagePulled: false,
+                    consideredMalicious: false)
+            },
+            { "package_considered_malicious",
+                (new PackageVersionRemoved(new HashSet<PackageVersionRemovalReason>(new[] { PackageVersionRemovalReason.RemovedByRepository })),
+                    versionPulled: false,
+                    packagePulled: false,
+                    consideredMalicious: true)
+            }
+        };
+        
+        private static readonly IDictionary<string, (IPackageExistence packageExistence, bool pulled, bool consideredMalicious)> _packageExistence = new Dictionary<string, (IPackageExistence packageExistence, bool pulled, bool consideredMalicious)>()
+        {
+            { "currently_exists",
+                (new PackageExists(),
+                    pulled: false,
+                    consideredMalicious: false)
+            },
+            { "never_existed",
+                (new PackageNotFound(),
+                    pulled: false,
+                    consideredMalicious: false)
+            },
+            { "pulled",
+                (new PackageRemoved(new HashSet<PackageRemovalReason>(new[] { PackageRemovalReason.PackageUnpublished })),
+                    pulled: true,
+                    consideredMalicious: false)
+            },
+            { "considered_malicious",
+                (new PackageRemoved(new HashSet<PackageRemovalReason>(new[] { PackageRemovalReason.RemovedByRepository })),
+                    pulled: false,
+                    consideredMalicious: true)
+            },
+        };
+
         private readonly IDictionary<string, string> _packages = new Dictionary<string, string>()
         {
             { "https://registry.npmjs.org/lodash", Resources.lodash_json },
@@ -35,7 +92,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             { "https://registry.npmjs.org/example", Resources.minimum_json_json },
         }.ToImmutableDictionary();
 
-        private readonly NPMProjectManager _projectManager;
+        private readonly Mock<NPMProjectManager> _projectManager;
         private readonly IHttpClientFactory _httpFactory;
         
         public NPMProjectManagerTests()
@@ -52,7 +109,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
             _httpFactory = mockFactory.Object;
 
-            _projectManager = new NPMProjectManager(".", new NoOpPackageActions(), _httpFactory);
+            _projectManager = new Mock<NPMProjectManager>(".", new NoOpPackageActions(), _httpFactory) { CallBase = true };
         }
 
         [DataTestMethod]
@@ -65,14 +122,14 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public async Task MetadataSucceeds(string purlString, string? description = null)
         {
             PackageURL purl = new(purlString);
-            PackageMetadata? metadata = await _projectManager.GetPackageMetadataAsync(purl, useCache: false);
+            PackageMetadata? metadata = await _projectManager.Object.GetPackageMetadataAsync(purl, useCache: false);
 
             Assert.IsNotNull(metadata);
             Assert.AreEqual(purl.GetFullName(), metadata.Name);
             Assert.AreEqual(purl.Version, metadata.PackageVersion);
             Assert.AreEqual(description, metadata.Description);
         }
-        
+
         [DataTestMethod]
         [DataRow("pkg:npm/lodash@4.17.15", 114, "4.17.21")]
         [DataRow("pkg:npm/%40angular/core@13.2.5", 566, "13.2.6")]
@@ -83,7 +140,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public async Task EnumerateVersionsSucceeds(string purlString, int count, string latestVersion)
         {
             PackageURL purl = new(purlString);
-            List<string> versions = (await _projectManager.EnumerateVersionsAsync(purl, useCache: false)).ToList();
+            List<string> versions = (await _projectManager.Object.EnumerateVersionsAsync(purl, useCache: false)).ToList();
 
             Assert.AreEqual(count, versions.Count);
             Assert.AreEqual(latestVersion, versions.First());
@@ -101,7 +158,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         {
             PackageURL purl = new(purlString);
 
-            Assert.IsTrue(await _projectManager.PackageVersionExistsAsync(purl, useCache: false));
+            Assert.IsTrue(await _projectManager.Object.PackageVersionExistsAsync(purl, useCache: false));
         }
         
         [DataTestMethod]
@@ -112,19 +169,105 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         {
             PackageURL purl = new(purlString);
 
-            Assert.IsFalse(await _projectManager.PackageVersionExistsAsync(purl, useCache: false));
+            Assert.IsFalse(await _projectManager.Object.PackageVersionExistsAsync(purl, useCache: false));
+        }
+
+        [DataTestMethod]
+        [DataRow("currently_exists")] // The package version currently exists
+        [DataRow("version_pulled")] // The package version was pulled from the registry
+        [DataRow("version_never_existed")] // The package version never existed
+        [DataRow("package_considered_malicious")] // The package was removed for security
+        public async Task DetailedPackageVersionExistsAsyncSucceeds(
+            string key)
+        {
+            IPackageExistence expectedPackageVersionExistence = _packageVersionExistence[key].packageVersionExistence;
+            bool versionPulled = _packageVersionExistence[key].versionPulled;
+            bool consideredMalicious = _packageVersionExistence[key].consideredMalicious;
+            
+            if (!expectedPackageVersionExistence.HasEverExisted)
+            {
+                _projectManager
+                    .Setup(p => 
+                        p.GetMetadataAsync(It.IsAny<PackageURL>(), It.IsAny<bool>()))
+                    .ReturnsAsync(null as string);
+            }
+
+            _projectManager
+                .Setup(p => 
+                    p.PackageVersionExistsAsync(It.IsAny<PackageURL>(), It.IsAny<bool>()))
+                .ReturnsAsync(expectedPackageVersionExistence.Exists);
+            _projectManager
+                .Setup(p => 
+                    p.PackageVersionPulled(It.IsAny<PackageURL>(), It.IsAny<JsonElement>()))
+                .Returns(versionPulled);
+
+            _projectManager
+                .Setup(p => 
+                    p.PackageConsideredMalicious(It.IsAny<JsonElement>()))
+                .Returns(consideredMalicious);
+
+            IPackageExistence packageVersionExistenceResponse =
+                await _projectManager.Object.DetailedPackageVersionExistsAsync(new PackageURL("pkg:npm/example@0.0.0"),
+                    useCache: false);
+
+            packageVersionExistenceResponse.Should().BeEquivalentTo(expectedPackageVersionExistence);
+        }
+        
+        [DataTestMethod]
+        [DataRow("currently_exists")] // The package currently exists
+        [DataRow("never_existed")] // The package never existed
+        [DataRow("pulled")] // The package existed but was removed
+        [DataRow("considered_malicious")] // The package was removed for security reasons
+        public async Task DetailedPackageExistsAsyncSucceeds(
+            string key)
+        {
+            IPackageExistence expectedPackageExistence = _packageExistence[key].packageExistence;
+            bool pulled = _packageExistence[key].pulled;
+            bool consideredMalicious = _packageExistence[key].consideredMalicious;
+
+            if (!expectedPackageExistence.HasEverExisted)
+            {
+                _projectManager
+                    .Setup(p => 
+                        p.GetMetadataAsync(It.IsAny<PackageURL>(), It.IsAny<bool>()))
+                    .ReturnsAsync(null as string);
+            }
+
+            _projectManager
+                .Setup(p => 
+                    p.PackageExistsAsync(It.IsAny<PackageURL>(), It.IsAny<bool>()))
+                .ReturnsAsync(expectedPackageExistence.Exists);
+            _projectManager
+                .Setup(p => 
+                    p.PackagePulled(It.IsAny<JsonElement>()))
+                .Returns(pulled);
+            _projectManager
+                .Setup(p => 
+                    p.PackageConsideredMalicious(It.IsAny<JsonElement>()))
+                .Returns(consideredMalicious);
+
+            IPackageExistence packageExistenceResponse =
+                await _projectManager.Object.DetailedPackageExistsAsync(new PackageURL("pkg:npm/example@0.0.0"),
+                    useCache: false);
+
+            packageExistenceResponse.Should().BeEquivalentTo(expectedPackageExistence);
         }
         
         [DataTestMethod]
         [DataRow("pkg:npm/%40somosme/webflowutils@1.0.0")]
         [DataRow("pkg:npm/%40somosme/webflowutils@1.2.3", false)]
         [DataRow("pkg:npm/%40achievementify/client@0.2.1")]
-        [DataRow("pkg:npm/%40achievementify/clients@0.2.3", false)]
+        [DataRow("pkg:npm/%40achievementify/client@0.2.3", false)]
         public async Task PackageVersionPulledAsync(string purlString, bool expectedPulled = true)
         {
             PackageURL purl = new(purlString);
+            
+            string? content = await _projectManager.Object.GetMetadataAsync(purl);
 
-            Assert.AreEqual(expectedPulled, await _projectManager.PackageVersionPulled(purl, useCache: false));
+            JsonDocument contentJSON = JsonDocument.Parse(content);
+            JsonElement root = contentJSON.RootElement;
+
+            Assert.AreEqual(expectedPulled,  _projectManager.Object.PackageVersionPulled(purl, root));
         }
         
         [DataTestMethod]
@@ -135,7 +278,12 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         {
             PackageURL purl = new(purlString);
 
-            Assert.AreEqual(expectedToHaveSecurityHolding, await _projectManager.PackageSecurityHolding(purl, useCache: false));
+            string? content = await _projectManager.Object.GetMetadataAsync(purl);
+
+            JsonDocument contentJSON = JsonDocument.Parse(content);
+            JsonElement root = contentJSON.RootElement;
+
+            Assert.AreEqual(expectedToHaveSecurityHolding, _projectManager.Object.PackageConsideredMalicious(root));
         }
         
         [DataTestMethod]
@@ -144,11 +292,12 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         [DataRow("pkg:npm/ds-modal@0.0.2", "2018-08-09T07:24:06.206Z")]
         [DataRow("pkg:npm/monorepolint@0.4.0", "2019-08-07T16:20:53.525Z")]
         [DataRow("pkg:npm/rly-cli@0.0.2", "2022-03-08T17:26:27.219Z")]
-        [DataRow("pkg:npm/example@0.0.0")] // No time property in the json.
+        [DataRow("pkg:npm/example@0.0.0", "2022-08-10T21:35:38.278Z")]
+        [DataRow("pkg:npm/example@0.0.1")] // No time property in the json for this version
         public async Task GetPublishedAtSucceeds(string purlString, string? expectedTime = null)
         {
             PackageURL purl = new(purlString);
-            DateTime? time = await _projectManager.GetPublishedAtAsync(purl, useCache: false);
+            DateTime? time = await _projectManager.Object.GetPublishedAtAsync(purl, useCache: false);
 
             if (expectedTime == null)
             {
@@ -170,12 +319,12 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public async Task GetArtifactDownloadUrisSucceeds_Async(string purlString, string expectedUri)
         {
             PackageURL purl = new(purlString);
-            List<ArtifactUri<NPMProjectManager.NPMArtifactType>> uris = _projectManager.GetArtifactDownloadUris(purl).ToList();
+            List<ArtifactUri<NPMProjectManager.NPMArtifactType>> uris = _projectManager.Object.GetArtifactDownloadUris(purl).ToList();
 
             Assert.AreEqual(expectedUri, uris.First().Uri.AbsoluteUri);
             Assert.AreEqual(".tgz", uris.First().Extension);
             Assert.AreEqual(NPMProjectManager.NPMArtifactType.Tarball, uris.First().Type);
-            Assert.IsTrue(await _projectManager.UriExistsAsync(uris.First().Uri));
+            Assert.IsTrue(await _projectManager.Object.UriExistsAsync(uris.First().Uri));
         }
         
         private static void MockHttpFetchResponse(

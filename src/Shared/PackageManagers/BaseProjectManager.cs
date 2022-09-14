@@ -2,10 +2,12 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Contracts;
     using Helpers;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.CST.OpenSource.Model;
     using Model.Enums;
+    using Model.PackageExistence;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -334,9 +336,27 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             if (purl is null)
             {
                 Logger.Trace("Provided PackageURL was null.");
-                return false;
+                throw new ArgumentNullException(nameof(purl), "Provided PackageURL was null.");
             }
             return (await EnumerateVersionsAsync(purl, useCache)).Any();
+        }
+        
+        /// <summary>
+        /// Check if the package exists/existed in the repository.
+        /// </summary>
+        /// <param name="purl">The PackageURL to check.</param>
+        /// <param name="useCache">If the cache should be checked for the existence of this package.</param>
+        /// <returns>A <see cref="IPackageExistence"/> detailing the existence of the package.</returns>
+        public virtual async Task<IPackageExistence> DetailedPackageExistsAsync(PackageURL purl, bool useCache = true)
+        {
+            bool exists = await PackageExistsAsync(purl, useCache);
+
+            if (exists)
+            {
+                return new PackageExists();
+            }
+
+            return new PackageNotFound();
         }
 
         /// <summary>
@@ -364,14 +384,21 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
         
         /// <summary>
-        /// Check if the package version was pulled from the repository.
+        /// Check if the package version exists/existed in the repository.
         /// </summary>
         /// <param name="purl">The PackageURL to check.</param>
-        /// <param name="useCache">If the cache should be checked for the existence of this package.</param>
-        /// <returns>True if the package was pulled from the repository. False otherwise.</returns>
-        public virtual Task<bool> PackageVersionPulled(PackageURL purl, bool useCache = true)
+        /// <param name="useCache">If the cache should be checked for the existence of this package version.</param>
+        /// <returns>A <see cref="IPackageExistence"/> detailing the existence of the package version.</returns>
+        public virtual async Task<IPackageExistence> DetailedPackageVersionExistsAsync(PackageURL purl, bool useCache = true)
         {
-            throw new NotImplementedException("BaseProjectManager does not implement PackageVersionPulled.");
+            bool exists = await PackageVersionExistsAsync(purl, useCache);
+
+            if (exists)
+            {
+                return new PackageVersionExists();
+            }
+
+            return new PackageVersionNotFound();
         }
 
         /// <summary>

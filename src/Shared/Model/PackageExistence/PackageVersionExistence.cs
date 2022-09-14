@@ -21,7 +21,7 @@ public record PackageVersionExists : IPackageExistence
 public record PackageVersionNotFound : IPackageExistence
 {
     public bool Exists => false;
-    public bool HasEverExisted => false;
+    public virtual bool HasEverExisted => false;
 }
 
 /// <summary>
@@ -30,5 +30,5 @@ public record PackageVersionNotFound : IPackageExistence
 /// <param name="RemovalReasons">The reasons (if any) for why a package was removed.</param>
 public record PackageVersionRemoved(IReadOnlySet<PackageVersionRemovalReason> RemovalReasons) : PackageVersionNotFound
 {
-    public new bool HasEverExisted => true;
+    public override bool HasEverExisted => true;
 }

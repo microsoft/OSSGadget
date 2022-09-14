@@ -23,7 +23,10 @@ public class PackageExistenceTests
             PackageRemovalReason.PackageUnpublished
         }));
 
-        packageExistenceRemoved.Should().BeAssignableTo<PackageNotFound>();
+        packageExistenceRemoved.Should().BeAssignableTo<PackageNotFound>()
+            .Subject.HasEverExisted.Should().BeTrue();
+
+        packageExistenceRemoved.HasEverExisted.Should().BeTrue();
         
         if (packageExistenceRemoved is not PackageNotFound)
         {
@@ -42,7 +45,10 @@ public class PackageExistenceTests
             PackageVersionRemovalReason.VersionUnpublished
         }));
 
-        packageVersionExistenceRemoved.Should().BeAssignableTo<PackageVersionNotFound>();
+        packageVersionExistenceRemoved.Should().BeAssignableTo<PackageVersionNotFound>()
+            .Subject.HasEverExisted.Should().BeTrue();
+
+        packageVersionExistenceRemoved.HasEverExisted.Should().BeTrue();
 
         if (packageVersionExistenceRemoved is not PackageVersionNotFound)
         {

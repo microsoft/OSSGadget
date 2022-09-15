@@ -3,6 +3,7 @@
 
 namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 {
+    using Contracts;
     using Model;
     using Moq;
     using oss;
@@ -95,6 +96,32 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             Assert.AreEqual(latestVersion, versions.First());
         }
         
+        [DataTestMethod]
+        [DataRow("pkg:pypi/pandas", true)]
+        [DataRow("pkg:pypi/plotly@3.7.1", true)]
+        [DataRow("pkg:pypi/notarealpackage", false)]
+        public async Task DetailedPackageExistsAsync_WorksAsExpected(string purlString, bool exists)
+        {
+            PackageURL purl = new(purlString);
+            IPackageExistence existence = await _projectManager.DetailedPackageExistsAsync(purl, useCache: false);
+
+            Assert.AreEqual(exists, existence.Exists);
+        }
+
+        [DataTestMethod]
+        [DataRow("pkg:pypi/pandas@1.4.2", true)]
+        [DataRow("pkg:pypi/pandas@12.34.56.78", false)]
+        [DataRow("pkg:pypi/plotly@3.7.1", true)]
+        [DataRow("pkg:pypi/requests@2.27.1", true)]
+        [DataRow("pkg:pypi/notarealpackage@0.0.0", false)]
+        public async Task DetailedPackageVersionExistsAsync_WorksAsExpected(string purlString, bool exists)
+        {
+            PackageURL purl = new(purlString);
+            IPackageExistence existence = await _projectManager.DetailedPackageVersionExistsAsync(purl, useCache: false);
+
+            Assert.AreEqual(exists, existence.Exists);
+        }
+
         [DataTestMethod]
         [DataRow("pkg:pypi/pandas@1.4.2", "https://pypi.org/packages/source/p/pandas/pandas-1.4.2.tar.gz")]
         [DataRow("pkg:pypi/plotly@5.7.0", "https://pypi.org/packages/source/p/plotly/plotly-5.7.0.tar.gz")]

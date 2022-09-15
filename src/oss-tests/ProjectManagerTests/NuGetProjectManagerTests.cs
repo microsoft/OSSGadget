@@ -122,6 +122,67 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             Assert.AreEqual(count, versions.Count);
             Assert.AreEqual(latestVersion, versions.First());
         }
+        
+        [DataTestMethod]
+        [DataRow("pkg:nuget/razorengine@4.2.3-beta1", true)]
+        [DataRow("pkg:nuget/razorengine", true)]
+        public async Task DetailedPackageExistsAsync_ExistsSucceeds(string purlString, bool exists)
+        {
+            PackageURL purl = new(purlString);
+
+            IManagerPackageActions<NuGetPackageVersionMetadata>? nugetPackageActions = PackageActionsHelper<NuGetPackageVersionMetadata>.SetupPackageActions(
+                purl,
+                JsonConvert.DeserializeObject<NuGetPackageVersionMetadata>(_metadata[purl.ToString()]),
+                JsonConvert.DeserializeObject<IEnumerable<string>>(_versions[purl.ToString()])?.Reverse());
+            _projectManager = new NuGetProjectManager(".", nugetPackageActions, _httpFactory);
+
+            IPackageExistence existence = await _projectManager.DetailedPackageExistsAsync(purl, useCache: false);
+
+            Assert.AreEqual(exists, existence.Exists);
+        }
+        
+        [TestMethod]
+        public async Task DetailedPackageExistsAsync_NotFoundSucceeds()
+        {
+            PackageURL purl = new("pkg:nuget/notarealpackage");
+
+            IManagerPackageActions<NuGetPackageVersionMetadata>? nugetPackageActions = PackageActionsHelper<NuGetPackageVersionMetadata>.SetupPackageActions();
+
+            _projectManager = new NuGetProjectManager(".", nugetPackageActions, _httpFactory);
+
+            IPackageExistence existence = await _projectManager.DetailedPackageExistsAsync(purl, useCache: false);
+
+            Assert.IsFalse(existence.Exists);
+        }
+
+        [TestMethod]
+        public async Task DetailedPackageVersionExistsAsync_ExistsSucceeds()
+        {
+            PackageURL purl = new("pkg:nuget/razorengine@4.2.3-beta1");
+
+            IManagerPackageActions<NuGetPackageVersionMetadata>? nugetPackageActions = PackageActionsHelper<NuGetPackageVersionMetadata>.SetupPackageActions(
+                purl,
+                JsonConvert.DeserializeObject<NuGetPackageVersionMetadata>(_metadata[purl.ToString()]),
+                JsonConvert.DeserializeObject<IEnumerable<string>>(_versions[purl.ToString()])?.Reverse());
+            _projectManager = new NuGetProjectManager(".", nugetPackageActions, _httpFactory);
+
+            IPackageExistence existence = await _projectManager.DetailedPackageVersionExistsAsync(purl, useCache: false);
+
+            Assert.IsTrue(existence.Exists);
+        }
+        
+        [TestMethod]
+        public async Task DetailedPackageVersionExistsAsync_NotFoundSucceeds()
+        {
+            PackageURL purl = new("pkg:nuget/notarealpackage@0.0.0");
+
+            IManagerPackageActions<NuGetPackageVersionMetadata>? nugetPackageActions = PackageActionsHelper<NuGetPackageVersionMetadata>.SetupPackageActions();
+            _projectManager = new NuGetProjectManager(".", nugetPackageActions, _httpFactory);
+
+            IPackageExistence existence = await _projectManager.DetailedPackageVersionExistsAsync(purl, useCache: false);
+
+            Assert.IsFalse(existence.Exists);
+        }
 
         [DataTestMethod]
         [DataRow("pkg:nuget/razorengine@4.2.3-beta1", "2015-10-06T17:53:46.37+00:00")]

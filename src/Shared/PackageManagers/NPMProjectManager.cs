@@ -14,6 +14,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Net;
     using System.Net.Http;
     using System.Text.Json;
     using System.Threading.Tasks;
@@ -174,6 +175,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 sortedList.Insert(0, latestVersion);
 
                 return sortedList;
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+            {
+                Logger.Debug("Unable to enumerate versions (404): {0}", ex.Message);
+                return Array.Empty<string>();
             }
             catch (Exception ex)
             {

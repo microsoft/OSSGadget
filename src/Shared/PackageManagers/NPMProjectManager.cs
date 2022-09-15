@@ -544,6 +544,12 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             JsonDocument contentJSON = JsonDocument.Parse(content);
             JsonElement root = contentJSON.RootElement;
+
+            // Check to make sure that the package version ever existed.
+            if (!PackageVersionEverExisted(purl, root))
+            {
+                return new PackageVersionNotFound();
+            }
             
             HashSet<PackageVersionRemovalReason> removalReasons = new();
 
@@ -622,7 +628,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
         
         /// <summary>
-        /// Check to see if the package only has a NPM security holding package.
+        /// Check to see if the package has a NPM security holding package.
         /// </summary>
         /// <param name="root">The <see cref="JsonElement"/> root content of the metadata.</param>
         /// <returns>True if this package is a NPM security holding package. False otherwise.</returns>
@@ -632,6 +638,35 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return time.EnumerateObject().Any(timeEntry => timeEntry.Name == NPM_SECURITY_HOLDING_VERSION);
         }
         
+        /// <summary>
+        /// Check to see if the package version ever existed.
+        /// </summary>
+        /// <param name="purl">The <see cref="PackageURL"/> to check.</param>
+        /// <param name="root">The <see cref="JsonElement"/> root content of the metadata.</param>
+        /// <returns>True if this package version ever existed. False otherwise.</returns>
+        internal virtual bool PackageVersionEverExisted(PackageURL purl, JsonElement root)
+        {
+            // Did this version ever exist? Start with assuming not.
+            bool everExisted = false;
+
+            JsonElement time = root.GetProperty("time");
+            
+            // Check the unpublished property in time if it exists for the purl's version.
+            if (time.TryGetProperty("unpublished", out JsonElement unpublishedElement))
+            {
+                List<string>? versions = OssUtilities.ConvertJSONToList(OssUtilities.GetJSONPropertyIfExists(unpublishedElement, "versions"));
+                everExisted = versions?.Contains(purl.Version) ?? false;
+            }
+
+            // If the version wasn't in unpublished, then check if any of the versions in time match.
+            if (!everExisted)
+            {
+                everExisted = time.EnumerateObject().Any(timeEntry => timeEntry.Name == purl.Version);
+            }
+
+            return everExisted;
+        }
+
         /// <summary>
         /// Searches the package manager metadata to figure out the source code repository
         /// </summary>

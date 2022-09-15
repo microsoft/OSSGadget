@@ -2,9 +2,6 @@
 
 namespace Microsoft.CST.OpenSource.Contracts;
 
-using Model.Enums;
-using System.Collections.Generic;
-
 /// <summary>
 /// An interface representing the existence of a package/version.
 /// </summary>

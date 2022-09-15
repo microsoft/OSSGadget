@@ -5,6 +5,8 @@ namespace Microsoft.CST.OpenSource.Model.PackageExistence;
 using Contracts;
 using Enums;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 /// <summary>
 /// Represents a package version that currently exists.
@@ -31,4 +33,17 @@ public record PackageVersionNotFound : IPackageExistence
 public record PackageVersionRemoved(IReadOnlySet<PackageVersionRemovalReason> RemovalReasons) : PackageVersionNotFound
 {
     public override bool HasEverExisted => true;
+    
+    protected override bool PrintMembers(StringBuilder stringBuilder)
+    {
+        if (base.PrintMembers(stringBuilder))
+        {
+            stringBuilder.Append(", ");
+        }
+
+        string reasons = string.Join(',', this.RemovalReasons.Select(r => r.ToString()));
+
+        stringBuilder.Append($"RemovalReasons = [{reasons}]");
+        return true;
+    }
 }

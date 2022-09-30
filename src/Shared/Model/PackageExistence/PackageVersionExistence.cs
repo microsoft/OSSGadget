@@ -14,7 +14,6 @@ using System.Text;
 public record PackageVersionExists : IPackageExistence
 {
     public bool Exists => true;
-    public bool HasEverExisted => true;
 }
 
 /// <summary>
@@ -23,7 +22,6 @@ public record PackageVersionExists : IPackageExistence
 public record PackageVersionNotFound : IPackageExistence
 {
     public bool Exists => false;
-    public virtual bool HasEverExisted => false;
 }
 
 /// <summary>
@@ -32,8 +30,6 @@ public record PackageVersionNotFound : IPackageExistence
 /// <param name="RemovalReasons">The reasons (if any) for why a package was removed.</param>
 public record PackageVersionRemoved(IReadOnlySet<PackageVersionRemovalReason> RemovalReasons) : PackageVersionNotFound
 {
-    public override bool HasEverExisted => true;
-    
     protected override bool PrintMembers(StringBuilder stringBuilder)
     {
         if (base.PrintMembers(stringBuilder))

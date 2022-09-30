@@ -184,7 +184,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             bool versionPulled = _packageVersionExistence[key].versionPulled;
             bool consideredMalicious = _packageVersionExistence[key].consideredMalicious;
             
-            if (!expectedPackageVersionExistence.HasEverExisted)
+            if (!expectedPackageVersionExistence.Exists)
             {
                 _projectManager
                     .Setup(p => 
@@ -225,7 +225,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             bool pulled = _packageExistence[key].pulled;
             bool consideredMalicious = _packageExistence[key].consideredMalicious;
 
-            if (!expectedPackageExistence.HasEverExisted)
+            if (!expectedPackageExistence.Exists)
             {
                 _projectManager
                     .Setup(p => 

@@ -11,6 +11,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Linq;
     using System.Net;
     using System.Net.Http;
+    using System.Text.Json;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
 
@@ -29,6 +30,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public static string ENV_CPAN_ENDPOINT = "https://metacpan.org";
+        
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
+        public static string ENV_CPAN_API_ENDPOINT = "https://fastapi.metacpan.org";
 
         public CPANProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
         {
@@ -72,73 +76,37 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
             // Locate the URL
             HttpClient httpClient = CreateHttpClient();
-            string? packageVersionUrl = null;
-            string? html = await GetHttpStringCache(httpClient, $"{ENV_CPAN_ENDPOINT}/release/{packageName}");
-            HtmlParser parser = new();
-            AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(html);
-            foreach (AngleSharp.Dom.IElement option in document.QuerySelectorAll("div.release select.extend option"))
-            {
-                if (!option.HasAttribute("value"))
-                {
-                    continue;
-                }
-                string? value = option.GetAttribute("value");
-                string version = value.Split('-').Last();
-                if (version.StartsWith("v", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    version = version[1..];
-                }
-                Logger.Trace("Comparing {0} to {1}", version, packageVersion);
+            string packageVersionUrl = $"{ENV_CPAN_API_ENDPOINT}/v1/release/{packageName}";
+            string? releaseContent = await GetHttpStringCache(httpClient, packageVersionUrl);
+            if (string.IsNullOrEmpty(releaseContent)) { return downloadedPaths; }
 
-                if (version == packageVersion)
-                {
-                    // Now load the actual page so we can get the download URL
-                    packageVersionUrl = $"{ENV_CPAN_ENDPOINT}/release/{value}";
-                    break;
-                }
-            }
+            Logger.Debug($"Downloading from {packageVersionUrl}");
 
-            if (packageVersionUrl == null)
+            JsonDocument contentJSON = JsonDocument.Parse(releaseContent);
+            JsonElement root = contentJSON.RootElement;
+
+            string binaryUrl = root.GetProperty("download_url").GetString();
+
+            HttpResponseMessage result = await httpClient.GetAsync(binaryUrl);
+            result.EnsureSuccessStatusCode();
+            Logger.Debug("Downloading {0}...", purl);
+
+            string targetName = $"cpan-{packageName}@{packageVersion}";
+            string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
+            if (doExtract && Directory.Exists(extractionPath) && cached == true)
             {
-                Logger.Debug($"Unable to find CPAN package {packageName}@{packageVersion}.");
+                downloadedPaths.Add(extractionPath);
                 return downloadedPaths;
             }
-
-            Logger.Debug($"Downloading {packageVersionUrl}");
-
-            html = await GetHttpStringCache(httpClient, packageVersionUrl);
-            document = await parser.ParseDocumentAsync(html);
-            foreach (AngleSharp.Dom.IElement? italic in document.QuerySelectorAll("li a i.fa-download"))
+            if (doExtract)
             {
-                AngleSharp.Dom.IElement? anchor = italic.Closest("a");
-                if (!anchor.TextContent.Contains("Download ("))
-                {
-                    continue;
-                }
-
-                string? binaryUrl = anchor.GetAttribute("href");
-                System.Net.Http.HttpResponseMessage? result = await httpClient.GetAsync(binaryUrl);
-                result.EnsureSuccessStatusCode();
-                Logger.Debug("Downloading {0}...", purl);
-
-                string targetName = $"cpan-{packageName}@{packageVersion}";
-                string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
-                if (doExtract && Directory.Exists(extractionPath) && cached == true)
-                {
-                    downloadedPaths.Add(extractionPath);
-                    return downloadedPaths;
-                }
-                if (doExtract)
-                {
-                    downloadedPaths.Add(await ArchiveHelper.ExtractArchiveAsync(TopLevelExtractionDirectory, targetName, await result.Content.ReadAsStreamAsync(), cached));
-                }
-                else
-                {
-                    extractionPath += Path.GetExtension(binaryUrl) ?? "";
-                    await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
-                    downloadedPaths.Add(extractionPath);
-                }
-                break;
+                downloadedPaths.Add(await ArchiveHelper.ExtractArchiveAsync(TopLevelExtractionDirectory, targetName, await result.Content.ReadAsStreamAsync(), cached));
+            }
+            else
+            {
+                extractionPath += Path.GetExtension(binaryUrl) ?? "";
+                await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
+                downloadedPaths.Add(extractionPath);
             }
             return downloadedPaths;
         }

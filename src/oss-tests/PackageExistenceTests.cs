@@ -24,9 +24,9 @@ public class PackageExistenceTests
         }));
 
         packageExistenceRemoved.Should().BeAssignableTo<PackageNotFound>()
-            .Subject.HasEverExisted.Should().BeTrue();
+            .Subject.Exists.Should().Be(false);
 
-        packageExistenceRemoved.HasEverExisted.Should().BeTrue();
+        packageExistenceRemoved.Exists.Should().Be(false);
         
         if (packageExistenceRemoved is not PackageNotFound)
         {
@@ -46,13 +46,21 @@ public class PackageExistenceTests
         }));
 
         packageVersionExistenceRemoved.Should().BeAssignableTo<PackageVersionNotFound>()
-            .Subject.HasEverExisted.Should().BeTrue();
+            .Subject.Exists.Should().Be(false);
 
-        packageVersionExistenceRemoved.HasEverExisted.Should().BeTrue();
+        packageVersionExistenceRemoved.Exists.Should().Be(false);
 
         if (packageVersionExistenceRemoved is not PackageVersionNotFound)
         {
             Assert.Fail();
         }
+    }
+    
+    [TestMethod]
+    public void PackageExistence_NotFound()
+    {
+        IPackageExistence packageExistenceRemoved = new PackageNotFound();
+
+        packageExistenceRemoved.Exists.Should().Be(false);
     }
 }

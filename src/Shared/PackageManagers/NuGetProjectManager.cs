@@ -20,6 +20,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Net.Http;
     using System.Text.Json;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Primitives;
 
     public class NuGetProjectManager : TypedManager<NuGetPackageVersionMetadata, NuGetProjectManager.NuGetArtifactType>
     {
@@ -149,6 +150,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                                            throw new InvalidOperationException($"Can't find the latest version of {purl}");
                     packageVersion = latestVersion;
                 }
+                // NuGet package versions are case insensitive
+                else
+                {
+                    packageVersion = packageVersion.ToLowerInvariant();
+                }
 
                 // Construct a new PackageURL that's guaranteed to have a version.
                 PackageURL purlWithVersion = new (purl.Type, purl.Namespace, packageName, packageVersion, purl.Qualifiers, purl.Subpath);
@@ -177,8 +183,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                                     throw new InvalidOperationException($"Can't find the latest version of {purl}");;
 
             // Construct a new PackageURL that's guaranteed to have a version, the latest version is used if no version was provided.
-            PackageURL purlWithVersion = !string.IsNullOrWhiteSpace(purl.Version) ? 
-                purl : new PackageURL(purl.Type, purl.Namespace, purl.Name, latestVersion, purl.Qualifiers, purl.Subpath);
+            string guaranteedVersion = !string.IsNullOrWhiteSpace(purl.Version) ? purl.Version.ToLowerInvariant() : latestVersion;
+            PackageURL purlWithVersion = new PackageURL(purl.Type, purl.Namespace, purl.Name, guaranteedVersion, purl.Qualifiers, purl.Subpath);
 
             NuGetPackageVersionMetadata? packageVersionMetadata =
                 await Actions.GetMetadataAsync(purlWithVersion, useCache: useCache);
@@ -207,7 +213,28 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             return metadata;
         }
+        
+        /// <inheritdoc />
+        public override async Task<bool> PackageVersionExistsAsync(PackageURL purl, bool useCache = true)
+        {
+            Logger.Trace("PackageExists {0}", purl?.ToString());
+            if (purl is null)
+            {
+                Logger.Trace("Provided PackageURL was null.");
+                return false;
+            }
 
+            if(purl.Version.IsBlank())
+            {
+                Logger.Trace("Provided PackageURL version was null or blank.");
+                return false;
+            }
+
+            // NuGet packages are case insensitive. Convert purl to lowercase before comparing against package versions list. 
+            var versionLowercase = purl.Version.ToLowerInvariant();
+            return (await EnumerateVersionsAsync(purl, useCache)).Contains(versionLowercase);
+        }
+    
         /// <summary>
         /// Updates the package version specific values in <see cref="PackageMetadata"/>.
         /// </summary>
@@ -221,9 +248,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
 
             string nameLowercase = packageVersionPackageVersionMetadata.Name.ToLowerInvariant();
+            string versionLowercase = metadata.PackageVersion.ToLowerInvariant();
 
             // Set the version specific URI values.
-            metadata.VersionUri = $"{metadata.PackageManagerUri}/packages/{nameLowercase}/{metadata.PackageVersion}";
+            metadata.VersionUri = $"{metadata.PackageManagerUri}/packages/{nameLowercase}/{versionLowercase}";
             metadata.ApiVersionUri = packageVersionPackageVersionMetadata.CatalogUri.ToString();
             
             // Construct the artifact contents url.

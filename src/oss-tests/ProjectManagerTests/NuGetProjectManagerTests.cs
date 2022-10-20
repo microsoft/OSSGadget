@@ -31,14 +31,14 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             { "https://api.nuget.org/v3/registration5-gz-semver2/razorengine/index.json", Resources.razorengine_json },
             { "https://api.nuget.org/v3/catalog0/data/2022.03.11.23.17.27/razorengine.4.2.3-beta1.json", Resources.razorengine_4_2_3_beta1_json },
         }.ToImmutableDictionary();
-        
+
         // Map PackageURLs to metadata as json.
         private readonly IDictionary<string, string> _metadata = new Dictionary<string, string>()
         {
             { "pkg:nuget/razorengine@4.2.3-beta1", Resources.razorengine_4_2_3_beta1_metadata_json },
             { "pkg:nuget/razorengine", Resources.razorengine_latest_metadata_json },
         }.ToImmutableDictionary();
-        
+
         // Map PackageURLs to the list of versions as json.
         private readonly IDictionary<string, string> _versions = new Dictionary<string, string>()
         {
@@ -71,6 +71,19 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
             _httpFactory = mockFactory.Object;
             _projectManager = new NuGetProjectManager(".", new NuGetPackageActions(), _httpFactory);
+        }
+
+        [DataTestMethod]
+        [DataRow("pkg:nuget/razorengine@4.2.3-beta1")]
+        [DataRow("pkg:nuget/razorengine@4.2.3-Beta1")]
+        public async Task PackageVersionExistsSucceeds(string purlString)
+        {
+            PackageURL purl = new(purlString);
+            _projectManager = new NuGetProjectManager(".", null, _httpFactory);
+
+            bool exists = await _projectManager.PackageVersionExistsAsync(purl, useCache: false);
+
+            Assert.IsTrue(exists);
         }
 
         [DataTestMethod]

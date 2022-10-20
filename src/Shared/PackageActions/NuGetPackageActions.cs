@@ -86,7 +86,7 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
         {
             bool exists = await resource.DoesPackageExistAsync(
                 packageUrl.Name,
-                NuGetVersion.Parse(packageUrl.Version),
+                NuGetVersion.Parse(packageUrl.Version.ToLowerInvariant()),
                 _sourceCacheContext,
                 _logger, 
                 cancellationToken);

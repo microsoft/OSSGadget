@@ -167,4 +167,24 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
 
         return packageVersion != null ? new NuGetPackageVersionMetadata(packageVersion) : null;
     }
+
+    /// <inheritdoc />
+    public async Task<bool> GetReservedNamespaceAsync(PackageURL packageUrl, bool useCache = true, CancellationToken cancellationToken = default)
+    {
+        PackageSearchResource resource = await _sourceRepository.GetResourceAsync<PackageSearchResource>();
+
+        SearchFilter searchFilter = new(includePrerelease: true);
+
+        IPackageSearchMetadata result = (await resource.SearchAsync(
+            packageUrl.Name,
+            searchFilter,
+            skip: 0,
+            take: 1,
+            _logger,
+            cancellationToken)).First();
+
+        return result.Identity.Id
+                   .Equals(packageUrl.Name, StringComparison.InvariantCultureIgnoreCase) &&
+               result.PrefixReserved;
+    }
 }

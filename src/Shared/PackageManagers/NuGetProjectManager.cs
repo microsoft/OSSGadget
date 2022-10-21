@@ -171,23 +171,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <summary>
-        /// Gets if the package is in the list of packages with a reserved prefix on NuGet.
+        /// Gets if the package is a part of a reserved prefix.
         /// </summary>
         /// <param name="purl">The package url to check.</param>
         /// <param name="useCache">If the cache should be used.</param>
         /// <returns>True if the package is verified to be in a reserved prefix, false if not.</returns>
-        public async Task<bool> GetPackageInReservedPrefixAsync(PackageURL purl, bool useCache = true)
+        public async Task<bool> GetPackagePrefixReservedAsync(PackageURL purl, bool useCache = true)
         {
-            HttpClient httpClient = CreateHttpClient();
-
-            // Get the list of all verified nuget packages.
-            string? content = await GetHttpStringCache(httpClient, "https://nugetprodusscazuresearch.blob.core.windows.net/v3-azuresearch-015/verified-packages/verified-packages.v1.json", useCache);
-
-            // Parse the list of strings from the response.
-            List<string>? items = JsonSerializer.Deserialize<List<string>>(content);
-
-            // Check to see if the list contains the purl.
-            return items?.Contains(purl.Name, StringComparer.CurrentCultureIgnoreCase) ?? false;
+            return await Actions.GetReservedNamespaceAsync(purl, useCache: useCache);
         }
         
         /// <inheritdoc />

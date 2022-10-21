@@ -202,6 +202,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             metadata.PackageVersion = purlWithVersion.Version;
             metadata.LatestPackageVersion = latestVersion;
 
+            metadata.Verified = packageVersionMetadata.Verified;
+
             // Get the metadata for either the specified package version, or the latest package version
             await UpdateVersionMetadata(metadata, packageVersionMetadata);
 

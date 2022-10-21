@@ -91,10 +91,10 @@ public record NuGetPackageVersionMetadata : IManagerPackageVersionMetadata
     public bool IsListed { get; init; }
 
     /// <summary>
-    /// Gets if the package is verified within the prefix it is a part of.
+    /// Gets if the package is a part of a reserved prefix.
     /// </summary>
     [JsonProperty(PropertyName = JsonProperties.PrefixReserved)]
-    public bool Verified { get; init; }
+    public bool PrefixReserved { get; init; }
 
     [JsonIgnore]
     public LicenseMetadata LicenseMetadata { get; }
@@ -140,7 +140,7 @@ public record NuGetPackageVersionMetadata : IManagerPackageVersionMetadata
         Tags = registration.Tags;
         Title = registration.Title;
         IsListed = registration.IsListed;
-        Verified = registration.PrefixReserved;
+        PrefixReserved = registration.PrefixReserved;
         LicenseMetadata = registration.LicenseMetadata;
         Vulnerabilities = registration.Vulnerabilities;
         CatalogUri = registration.CatalogUri;

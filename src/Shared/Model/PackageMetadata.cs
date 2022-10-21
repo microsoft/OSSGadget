@@ -135,13 +135,6 @@ namespace Microsoft.CST.OpenSource.Model
         [JsonProperty(PropertyName = "active_flag", NullValueHandling = NullValueHandling.Ignore)]
         public bool? Active { get; set; }
 
-        /// <summary>
-        /// Gets or sets if the package is verified to be a part of the prefix/scope/namespace it is a part of.
-        /// And not grandfathered in, or a 3rd party package/part of a 3rd party namespace within the namespace. 
-        /// </summary>
-        [JsonProperty(PropertyName = "verified", NullValueHandling = NullValueHandling.Ignore)]
-        public bool? Verified { get; set; }
-
         // remote property bag
         [JsonProperty(PropertyName = "extended_data", NullValueHandling = NullValueHandling.Ignore)]
         public List<LinkedData>? ExtendedData { get; set; }

@@ -9,6 +9,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using PackageUrl;
     using Model;
     using Model.Metadata;
+    using Newtonsoft.Json;
     using NuGet.Packaging;
     using NuGet.Packaging.Core;
     using NuGet.Versioning;
@@ -19,7 +20,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Linq;
     using System.Net.Http;
     using System.Text.Json;
+    using System.Text.Json.Serialization;
     using System.Threading.Tasks;
+    using JsonSerializer = System.Text.Json.JsonSerializer;
 
     public class NuGetProjectManager : TypedManager<NuGetPackageVersionMetadata, NuGetProjectManager.NuGetArtifactType>
     {
@@ -169,6 +172,26 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
             return new Uri($"{ENV_NUGET_HOMEPAGE}/{purl?.Name}");
         }
+
+        /// <summary>
+        /// Gets if the package is in the list of packages with a reserved prefix on NuGet.
+        /// </summary>
+        /// <param name="purl">The package url to check.</param>
+        /// <param name="useCache">If the cache should be used.</param>
+        /// <returns>True if the package is verified to be in a reserved prefix, false if not.</returns>
+        public async Task<bool> GetPackageInReservedPrefixAsync(PackageURL purl, bool useCache = true)
+        {
+            HttpClient httpClient = CreateHttpClient();
+
+            // Get the list of all verified nuget packages.
+            string? content = await GetHttpStringCache(httpClient, "https://nugetprodusscazuresearch.blob.core.windows.net/v3-azuresearch-015/verified-packages/verified-packages.v1.json", useCache);
+
+            // Parse the list of strings from the response.
+            List<string>? items = JsonConvert.DeserializeObject<List<string>>(content);
+
+            // Check to see if the list contains the purl.
+            return items?.Contains(purl.Name, StringComparer.CurrentCultureIgnoreCase) ?? false;
+        }
         
         /// <inheritdoc />
         public override async Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool useCache = true)
@@ -201,9 +224,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             metadata.PackageVersion = purlWithVersion.Version;
             metadata.LatestPackageVersion = latestVersion;
-
-            metadata.Verified = packageVersionMetadata.Verified;
-
+            
             // Get the metadata for either the specified package version, or the latest package version
             await UpdateVersionMetadata(metadata, packageVersionMetadata);
 

@@ -76,6 +76,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         [DataTestMethod]
         [DataRow("pkg:nuget/razorengine@4.2.3-beta1")]
         [DataRow("pkg:nuget/razorengine@4.2.3-Beta1")]
+        [DataRow("pkg:nuget/rAzOrEnGiNe@4.2.3-Beta1")]
         public async Task PackageVersionExistsSucceeds(string purlString)
         {
             PackageURL purl = new(purlString);

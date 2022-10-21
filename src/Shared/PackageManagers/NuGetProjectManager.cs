@@ -150,12 +150,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                                            throw new InvalidOperationException($"Can't find the latest version of {purl}");
                     packageVersion = latestVersion;
                 }
-                // NuGet package versions are case insensitive
-                else
-                {
-                    packageVersion = packageVersion.ToLowerInvariant();
-                }
-
                 // Construct a new PackageURL that's guaranteed to have a version.
                 PackageURL purlWithVersion = new (purl.Type, purl.Namespace, packageName, packageVersion, purl.Qualifiers, purl.Subpath);
                 
@@ -230,9 +224,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 return false;
             }
 
-            // NuGet packages are case insensitive. Convert purl to lowercase before comparing against package versions list. 
-            StringComparer invICCmp = StringComparer.InvariantCultureIgnoreCase;
-            return (await EnumerateVersionsAsync(purl, useCache)).Contains(purl.Version, invICCmp);
+            // NuGet packages are case insensitive.
+            return (await EnumerateVersionsAsync(purl, useCache)).Contains(purl.Version, StringComparer.InvariantCultureIgnoreCase);
         }
     
         /// <summary>
@@ -247,11 +240,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 return;
             }
 
-            string nameLowercase = packageVersionPackageVersionMetadata.Name.ToLowerInvariant();
-            string versionLowercase = metadata.PackageVersion.ToLowerInvariant();
-
             // Set the version specific URI values.
-            metadata.VersionUri = $"{metadata.PackageManagerUri}/packages/{nameLowercase}/{versionLowercase}";
+            metadata.VersionUri = $"{metadata.PackageManagerUri}/packages/{packageVersionPackageVersionMetadata.Name}/{metadata.PackageVersion}";
             metadata.ApiVersionUri = packageVersionPackageVersionMetadata.CatalogUri.ToString();
             
             // Construct the artifact contents url.

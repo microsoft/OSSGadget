@@ -9,7 +9,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using PackageUrl;
     using Model;
     using Model.Metadata;
-    using Newtonsoft.Json;
     using NuGet.Packaging;
     using NuGet.Packaging.Core;
     using NuGet.Versioning;
@@ -20,9 +19,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Linq;
     using System.Net.Http;
     using System.Text.Json;
-    using System.Text.Json.Serialization;
     using System.Threading.Tasks;
-    using JsonSerializer = System.Text.Json.JsonSerializer;
 
     public class NuGetProjectManager : TypedManager<NuGetPackageVersionMetadata, NuGetProjectManager.NuGetArtifactType>
     {
@@ -187,7 +184,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             string? content = await GetHttpStringCache(httpClient, "https://nugetprodusscazuresearch.blob.core.windows.net/v3-azuresearch-015/verified-packages/verified-packages.v1.json", useCache);
 
             // Parse the list of strings from the response.
-            List<string>? items = JsonConvert.DeserializeObject<List<string>>(content);
+            List<string>? items = JsonSerializer.Deserialize<List<string>>(content);
 
             // Check to see if the list contains the purl.
             return items?.Contains(purl.Name, StringComparer.CurrentCultureIgnoreCase) ?? false;

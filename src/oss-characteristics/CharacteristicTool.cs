@@ -101,12 +101,10 @@ namespace Microsoft.CST.OpenSource
             // Call Application Inspector using the NuGet package
             AnalyzeOptions? analyzeOptions = new AnalyzeOptions()
             {
-                ConsoleVerbosityLevel = "None",
-                LogFileLevel = "Off",
                 SourcePath = new[] { directory },
                 IgnoreDefaultRules = options.DisableDefaultRules,
                 CustomRulesPath = options.CustomRuleDirectory,
-                ConfidenceFilters = "high,medium,low",
+                ConfidenceFilters = new [] { Confidence.High | Confidence.Medium | Confidence.Low },
                 ScanUnknownTypes = true,
                 AllowAllTagsInBuildFiles = options.AllowTagsInBuildFiles,
                 SingleThread = false,

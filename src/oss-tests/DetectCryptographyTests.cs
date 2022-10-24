@@ -17,7 +17,7 @@ namespace Microsoft.CST.OpenSource.Tests
     {
         [DataTestMethod]
         [DataRow("pkg:npm/blake2", "Cryptography.Implementation.Hash.Blake", "Cryptography.Implementation.Hash.Blake2", "Cryptography.Implementation.Hash.JH", "Cryptography.Implementation.Hash.SHA-512")]
-        [DataRow("pkg:npm/blake3", "Cryptography.Implementation.Hash.Blake3", "Cryptography.Implementation.Hash.SHA-512")]
+        [DataRow("pkg:cargo/blake3", "Cryptography.Implementation.Hash.Blake3", "Cryptography.Implementation.Hash.SHA-512")]
         [DataRow("pkg:cargo/md2", "Cryptography.Implementation.Hash.MD2")]
         [DataRow("pkg:cargo/md4", "Cryptography.Implementation.Hash.MD4", "Cryptography.Implementation.Hash.SHA-1")]
         [DataRow("pkg:npm/md5", "Cryptography.Implementation.Hash.MD5")]

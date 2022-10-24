@@ -523,8 +523,8 @@ namespace Microsoft.CST.OpenSource
                     //processor.AnalyzeFile
                     FileEntry? holderEntry = new FileEntry("placeholder", new MemoryStream(Encoding.UTF8.GetBytes(buffer)));
                     LanguageInfo languageInfo = new LanguageInfo();
-
-                    Language.FromFileName(filename, ref languageInfo);
+                    var languages = new Languages();
+                    languages.FromFileName(filename, ref languageInfo);
                     Task<List<MatchRecord>>? task = Task.Run(() => processor.AnalyzeFile(holderEntry,languageInfo));
                     if (task.Wait(TimeSpan.FromSeconds(30)))
                     {

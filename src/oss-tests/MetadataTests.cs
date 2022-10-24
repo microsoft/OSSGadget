@@ -15,9 +15,9 @@ using System.Text.Json;
 public class MetadataTests
 {
     [DataTestMethod]
-    [DataRow("deps.dev", "pkg:npm/left-pad", "package.name", "left-pad")]
-    [DataRow("deps.dev", "pkg:npm/left-pad@1.3.0", "package.name", "left-pad")]
-    [DataRow("libraries.io", "pkg:npm/left-pad@1.3.0", "name", "left-pad")]
+    [DataRow("deps.dev", "pkg:npm/blake3", "package.name", "blake3")]
+    [DataRow("deps.dev", "pkg:npm/blake3@3.0.0", "package.name", "blake3")]
+    [DataRow("libraries.io", "pkg:npm/blake3@3.0.0", "name", "blake3")]
     public async Task Check_Metadata(string dataSource, string purlString, string jmesPathExpr, string targetResult)
     {
         BaseMetadataSource? metadataSource = null;

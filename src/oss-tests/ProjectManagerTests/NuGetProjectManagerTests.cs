@@ -201,6 +201,18 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
                 Assert.AreEqual(DateTime.Parse(expectedTime), time);
             }
         }
+        
+        [DataTestMethod]
+        [DataRow("pkg:nuget/nuget.server.core", true)]
+        [DataRow("pkg:nuget/microsoft.cst.ossgadget.shared", true)]
+        [DataRow("pkg:nuget/microsoft.office.interop.excel", false)]
+        public async Task GetPackagePrefixReservedSucceeds(string purlString, bool expectedReserved)
+        {
+            PackageURL purl = new(purlString);
+            bool isReserved = await _projectManager.GetPackagePrefixReservedAsync(purl, useCache: false);
+
+            Assert.AreEqual(expectedReserved, isReserved);
+        }
                 
         [DataTestMethod]
         [DataRow("pkg:nuget/newtonsoft.json@13.0.1", 

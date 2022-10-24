@@ -28,7 +28,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Sarif.Sdk" Version="2.4.12" />
+    <PackageReference Include="Sarif.Sdk" Version="3.1.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -17,7 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Pastel" Version="3.0.0" />
+    <PackageReference Include="Pastel" Version="3.0.1" />
     <PackageReference Include="Whois" Version="3.0.1" />
   </ItemGroup>
 

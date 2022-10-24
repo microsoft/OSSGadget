@@ -40,6 +40,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="JmesPath.Net" Version="1.0.182" />
+    <PackageReference Include="JmesPath.Net" Version="1.0.205" />
   </ItemGroup>
 </Project>

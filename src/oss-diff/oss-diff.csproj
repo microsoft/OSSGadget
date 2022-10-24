@@ -28,8 +28,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DiffPlex" Version="1.7.0" />
-    <PackageReference Include="Pastel" Version="3.0.0" />
+    <PackageReference Include="DiffPlex" Version="1.7.1" />
+    <PackageReference Include="Pastel" Version="3.0.1" />
   </ItemGroup>
 
   <ItemGroup>

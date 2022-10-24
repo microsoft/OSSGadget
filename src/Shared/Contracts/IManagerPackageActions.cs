@@ -67,4 +67,13 @@ public interface IManagerPackageActions<T> where T : IManagerPackageVersionMetad
     /// <returns>The <see cref="T"/> for this package version. Or null if none was found.</returns>
     /// <exception cref="ArgumentException">Thrown if there was no version in <paramref name="packageUrl"/>.</exception>
     Task<T?> GetMetadataAsync(PackageURL packageUrl, bool useCache = true, CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Gets if the package is in a reserved namespace.
+    /// </summary>
+    /// <param name="packageUrl">The <see cref="PackageURL"/>.</param>
+    /// <param name="useCache">If the cache should be checked if the package is in a reserved namespace.</param>
+    /// <param name="cancellationToken">The <see cref="CancellationToken"/> to be used in the method call, defaults to <see cref="CancellationToken.None"/>.</param>
+    /// <returns>True if the package is verified to be in a reserved namespace, false if not.</returns>
+    Task<bool> GetHasReservedNamespaceAsync(PackageURL packageUrl, bool useCache = true, CancellationToken cancellationToken = default);
 } 

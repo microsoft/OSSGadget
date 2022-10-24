@@ -90,6 +90,9 @@ public record NuGetPackageVersionMetadata : IManagerPackageVersionMetadata
     [JsonProperty(PropertyName = JsonProperties.Listed)]
     public bool IsListed { get; init; }
 
+    /// <summary>
+    /// Gets if the package is a part of a reserved prefix.
+    /// </summary>
     [JsonProperty(PropertyName = JsonProperties.PrefixReserved)]
     public bool PrefixReserved { get; init; }
 

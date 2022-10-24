@@ -169,6 +169,17 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
             return new Uri($"{ENV_NUGET_HOMEPAGE}/{purl?.Name}");
         }
+
+        /// <summary>
+        /// Gets if the package is a part of a reserved prefix.
+        /// </summary>
+        /// <param name="purl">The package url to check.</param>
+        /// <param name="useCache">If the cache should be used.</param>
+        /// <returns>True if the package is verified to be in a reserved prefix, false if not.</returns>
+        public async Task<bool> GetHasReservedNamespaceAsync(PackageURL purl, bool useCache = true)
+        {
+            return await Actions.GetHasReservedNamespaceAsync(purl, useCache: useCache);
+        }
         
         /// <inheritdoc />
         public override async Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool useCache = true)

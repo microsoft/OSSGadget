@@ -169,7 +169,7 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
     }
 
     /// <inheritdoc />
-    public async Task<bool> GetReservedNamespaceAsync(PackageURL packageUrl, bool useCache = true, CancellationToken cancellationToken = default)
+    public async Task<bool> GetHasReservedNamespaceAsync(PackageURL packageUrl, bool useCache = true, CancellationToken cancellationToken = default)
     {
         PackageSearchResource resource = await _sourceRepository.GetResourceAsync<PackageSearchResource>();
 

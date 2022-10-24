@@ -223,7 +223,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public async Task GetPackagePrefixReservedSucceeds(string purlString, bool expectedReserved)
         {
             PackageURL purl = new(purlString);
-            bool isReserved = await _projectManager.GetPackagePrefixReservedAsync(purl, useCache: false);
+            bool isReserved = await _projectManager.GetHasReservedNamespaceAsync(purl, useCache: false);
 
             Assert.AreEqual(expectedReserved, isReserved);
         }

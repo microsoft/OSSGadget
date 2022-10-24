@@ -176,9 +176,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <param name="purl">The package url to check.</param>
         /// <param name="useCache">If the cache should be used.</param>
         /// <returns>True if the package is verified to be in a reserved prefix, false if not.</returns>
-        public async Task<bool> GetPackagePrefixReservedAsync(PackageURL purl, bool useCache = true)
+        public async Task<bool> GetHasReservedNamespaceAsync(PackageURL purl, bool useCache = true)
         {
-            return await Actions.GetReservedNamespaceAsync(purl, useCache: useCache);
+            return await Actions.GetHasReservedNamespaceAsync(purl, useCache: useCache);
         }
         
         /// <inheritdoc />
@@ -212,7 +212,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             metadata.PackageVersion = purlWithVersion.Version;
             metadata.LatestPackageVersion = latestVersion;
-            
+
             // Get the metadata for either the specified package version, or the latest package version
             await UpdateVersionMetadata(metadata, packageVersionMetadata);
 

@@ -41,5 +41,5 @@ public class NoOpPackageActions : IManagerPackageActions<IManagerPackageVersionM
         bool useCache = true,
         CancellationToken cancellationToken = default) => Task.FromResult<IManagerPackageVersionMetadata?>(null);
 
-    public Task<bool> GetReservedNamespaceAsync(PackageURL packageUrl, bool useCache = true, CancellationToken cancellationToken = default) => Task.FromResult(false);
+    public Task<bool> GetHasReservedNamespaceAsync(PackageURL packageUrl, bool useCache = true, CancellationToken cancellationToken = default) => Task.FromResult(false);
 }

@@ -75,5 +75,5 @@ public interface IManagerPackageActions<T> where T : IManagerPackageVersionMetad
     /// <param name="useCache">If the cache should be checked if the package is in a reserved namespace.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to be used in the method call, defaults to <see cref="CancellationToken.None"/>.</param>
     /// <returns>True if the package is verified to be in a reserved namespace, false if not.</returns>
-    Task<bool> GetReservedNamespaceAsync(PackageURL packageUrl, bool useCache = true, CancellationToken cancellationToken = default);
+    Task<bool> GetHasReservedNamespaceAsync(PackageURL packageUrl, bool useCache = true, CancellationToken cancellationToken = default);
 } 

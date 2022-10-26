@@ -54,7 +54,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         [Obsolete("Deprecated in favor of GetArtifactDownloadUrisAsync.")]
         public override IEnumerable<ArtifactUri<NuGetArtifactType>> GetArtifactDownloadUris(PackageURL purl)
         {
-            return GetArtifactDownloadUrisAsync(purl).ToEnumerable();
+            return GetArtifactDownloadUrisAsync(purl).ToListAsync().Result;
         }
 
         /// <inheritdoc />

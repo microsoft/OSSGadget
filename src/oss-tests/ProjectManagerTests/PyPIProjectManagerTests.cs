@@ -190,6 +190,22 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             }
         }
         
+        [DataTestMethod]
+        [DataRow("pkg:pypi/pandas@1.4.2")]
+        [DataRow("pkg:pypi/plotly@5.7.0")]
+        [DataRow("pkg:pypi/requests@2.27.1")]
+        public async Task GetArtifactDownloadUrisAsync_SucceedsAsync(string purlString)
+        {
+            PackageURL purl = new(purlString);
+            List<ArtifactUri<PyPIProjectManager.PyPIArtifactType>> uris = await _projectManager.GetArtifactDownloadUrisAsync(purl).ToListAsync();
+
+            foreach (ArtifactUri<PyPIProjectManager.PyPIArtifactType> artifactUri in uris)
+            {
+                artifactUri.Uri.AbsoluteUri.Should().BeOneOf(_packageArtifacts[purlString]);
+                artifactUri.Type.Should().Be(ExtensionToType(artifactUri.Uri));
+            }
+        }
+        
         private static void MockHttpFetchResponse(
             HttpStatusCode statusCode,
             string url,

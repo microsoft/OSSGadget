@@ -215,6 +215,11 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             }
         }
 
+        /// <summary>
+        /// Helper method to get the <see cref="PyPIProjectManager.PyPIArtifactType"/> from a <see cref="Uri"/>.
+        /// </summary>
+        /// <param name="uri">The <see cref="Uri"/> to use.</param>
+        /// <returns>The <see cref="PyPIProjectManager.PyPIArtifactType"/> from the <see cref="Uri"/>.</returns>
         private static PyPIProjectManager.PyPIArtifactType ExtensionToType(Uri uri)
         {
             string extension = uri.GetExtension();

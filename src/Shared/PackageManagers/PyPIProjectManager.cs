@@ -253,7 +253,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 if (purl.Version.IsNotBlank())
                 {
                     return await GetHttpStringCache(httpClient, $"{ENV_PYPI_ENDPOINT}/pypi/{purl.Name}/{purl.Version}/json", useCache);
-
                 }
 
                 return await GetHttpStringCache(httpClient, $"{ENV_PYPI_ENDPOINT}/pypi/{purl.Name}/json", useCache);

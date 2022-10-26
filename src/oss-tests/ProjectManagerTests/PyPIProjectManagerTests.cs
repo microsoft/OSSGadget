@@ -220,15 +220,11 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         /// </summary>
         /// <param name="uri">The <see cref="Uri"/> to use.</param>
         /// <returns>The <see cref="PyPIProjectManager.PyPIArtifactType"/> from the <see cref="Uri"/>.</returns>
-        private static PyPIProjectManager.PyPIArtifactType ExtensionToType(Uri uri)
+        private static PyPIProjectManager.PyPIArtifactType ExtensionToType(Uri uri) => uri.GetExtension() switch
         {
-            string extension = uri.GetExtension();
-            return extension switch
-            {
-                ".tar.gz" => PyPIProjectManager.PyPIArtifactType.Tarball,
-                ".whl" => PyPIProjectManager.PyPIArtifactType.Wheel,
-                _ => PyPIProjectManager.PyPIArtifactType.Unknown
-            };
-        }
+            ".tar.gz" => PyPIProjectManager.PyPIArtifactType.Tarball,
+            ".whl" => PyPIProjectManager.PyPIArtifactType.Wheel,
+            _ => PyPIProjectManager.PyPIArtifactType.Unknown
+        };
     }
 }

@@ -344,8 +344,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             // if we found any version at all, get the information.
             if (metadata.PackageVersion is not null)
             {
-                JsonElement.ArrayEnumerator?
-                    urlsArray = OssUtilities.GetJSONEnumerator(root.GetProperty("urls"));
+                JsonElement.ArrayEnumerator? urlsArray = OssUtilities.GetJSONEnumerator(root.GetProperty("urls"));
                 if (urlsArray is not null)
                 {
                     foreach (JsonElement url in urlsArray.Value)

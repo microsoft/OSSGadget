@@ -41,21 +41,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
+        [Obsolete("Deprecated in favor of GetArtifactDownloadUrisAsync.")]
         public override IEnumerable<ArtifactUri<PyPIArtifactType>> GetArtifactDownloadUris(PackageURL purl)
         {
-            Check.NotNull(nameof(purl.Version), purl.Version);
-            // TODO: Is this OK to do?
-            return this.GetArtifactDownloadUrisAsync(purl).ToEnumerable();
+            return GetArtifactDownloadUrisAsync(purl).ToEnumerable();
         }
         
-        /// <summary>
-        /// Gets the relevant URI(s) to download the files related to a <see cref="PackageURL"/>.
-        /// </summary>
-        /// <param name="purl">The <see cref="PackageURL"/> to get the URI(s) for, must include version.</param>
-        /// <param name="useCache">If the cache should be used.</param>
-        /// <returns>An <see cref="IAsyncEnumerable{T}"/> of PyPI Artifacts.</returns>
-        /// <exception cref="InvalidOperationException">Thrown if the metadata content is empty from the pypi json api.</exception>
-        public async IAsyncEnumerable<ArtifactUri<PyPIArtifactType>> GetArtifactDownloadUrisAsync(PackageURL purl, bool useCache = true)
+        /// <inheritdoc />
+        public override async IAsyncEnumerable<ArtifactUri<PyPIArtifactType>> GetArtifactDownloadUrisAsync(PackageURL purl, bool useCache = true)
         {
             Check.NotNull(nameof(purl.Version), purl.Version);
             string? content = await GetMetadataAsync(purl, useCache);

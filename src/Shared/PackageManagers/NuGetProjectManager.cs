@@ -51,8 +51,16 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
         
         /// <inheritdoc />
+        [Obsolete("Deprecated in favor of GetArtifactDownloadUrisAsync.")]
         public override IEnumerable<ArtifactUri<NuGetArtifactType>> GetArtifactDownloadUris(PackageURL purl)
         {
+            return GetArtifactDownloadUrisAsync(purl).ToEnumerable();
+        }
+
+        /// <inheritdoc />
+        public override async IAsyncEnumerable<ArtifactUri<NuGetArtifactType>> GetArtifactDownloadUrisAsync(PackageURL purl, bool useCache = true)
+        {
+            Check.NotNull(nameof(purl.Version), purl.Version);
             if (purl.Qualifiers?.TryGetValue("repository_url", out var repositoryUrlQualifier) == true && repositoryUrlQualifier != NUGET_DEFAULT_INDEX)
             {
                 // Throw an exception until we implement proper support for service indices other than nuget.org
@@ -64,13 +72,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             var nameLowercase = purl.Name.ToLowerInvariant();
             var versionLowercase = purl.Version.ToLowerInvariant();
 
-            var nupkgArtifactUri = new ArtifactUri<NuGetArtifactType>(NuGetArtifactType.Nupkg,
+            yield return new ArtifactUri<NuGetArtifactType>(NuGetArtifactType.Nupkg,
                 $"{basePath}{nameLowercase}/{versionLowercase}/{nameLowercase}.{versionLowercase}.nupkg");
 
-            var nuspecArtifactUri = new ArtifactUri<NuGetArtifactType>(NuGetArtifactType.Nuspec, 
+            yield return new ArtifactUri<NuGetArtifactType>(NuGetArtifactType.Nuspec, 
                 $"{basePath}{nameLowercase}/{versionLowercase}/{nameLowercase}.nuspec");
-            
-            return ImmutableList.Create(nupkgArtifactUri, nuspecArtifactUri);
         }
 
         /// <summary>

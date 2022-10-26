@@ -94,7 +94,17 @@ public abstract class TypedManager<T, TArtifactUriType> : BaseProjectManager whe
     /// <param name="purl">The <see cref="PackageURL"/> to get the URI(s) for.</param>
     /// <returns>A list of the relevant <see cref="ArtifactUri{TArtifactUriType}"/>.</returns>
     /// <remarks>Returns the expected URIs for resources. Does not validate that the URIs resolve at the moment of enumeration.</remarks>
+    [Obsolete(message: $"Deprecated in favor of {nameof(GetArtifactDownloadUrisAsync)}.")]
     public abstract IEnumerable<ArtifactUri<TArtifactUriType>> GetArtifactDownloadUris(PackageURL purl);
+    
+    /// <summary>
+    /// Gets the relevant URI(s) to download the files related to a <see cref="PackageURL"/>.
+    /// </summary>
+    /// <param name="purl">The <see cref="PackageURL"/> to get the URI(s) for.</param>
+    /// <param name="useCache">If the data should be retrieved from the cache. Defaults to <c>true</c>.</param>
+    /// <returns>A list of the relevant <see cref="ArtifactUri{TArtifactUriType}"/>.</returns>
+    /// <remarks>Returns the expected URIs for resources. Does not validate that the URIs resolve at the moment of enumeration.</remarks>
+    public abstract IAsyncEnumerable<ArtifactUri<TArtifactUriType>> GetArtifactDownloadUrisAsync(PackageURL purl, bool useCache = true);
     
             
     /// <summary>

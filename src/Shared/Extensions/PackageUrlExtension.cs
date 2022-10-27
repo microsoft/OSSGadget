@@ -24,6 +24,24 @@ public static class PackageUrlExtension
     {
         return new PackageURL(packageUrl.Type, namespaceStr, name, null, null, null);
     }
+    
+    /// <summary>
+    /// Returns a new <see cref="PackageURL"/> instance with version.
+    /// </summary>
+    /// <param name="packageUrl">The <see cref="PackageURL"/>.</param>
+    /// <param name="version">The version to set.</param>
+    /// <returns>Returns a new <see cref="PackageURL"/> instance with a version.</returns>
+    public static PackageURL WithVersion(this PackageURL packageUrl, string version)
+    {
+        PackageURL purl = new PackageURL(
+            type: packageUrl.Type,
+            @namespace: packageUrl.Namespace,
+            name: packageUrl.Name,
+            version: version,
+            qualifiers: packageUrl.Qualifiers,
+            subpath: packageUrl.Subpath);
+        return purl;
+    }
 
     /// <summary>
     /// Gets the <paramref name="packageUrl"/> as a valid file name.

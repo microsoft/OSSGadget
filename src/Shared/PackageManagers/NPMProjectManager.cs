@@ -45,8 +45,16 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
+        [Obsolete("Deprecated in favor of GetArtifactDownloadUrisAsync.")]
         public override IEnumerable<ArtifactUri<NPMArtifactType>> GetArtifactDownloadUris(PackageURL purl)
         {
+            return GetArtifactDownloadUrisAsync(purl).ToListAsync().Result;
+        }
+
+        /// <inheritdoc />
+        public override async IAsyncEnumerable<ArtifactUri<NPMArtifactType>> GetArtifactDownloadUrisAsync(PackageURL purl, bool useCache = true)
+        {
+            Check.NotNull(nameof(purl.Version), purl.Version);
             string feedUrl = (purl.Qualifiers?["repository_url"] ?? ENV_NPM_API_ENDPOINT).EnsureTrailingSlash();
 
             string artifactUri = purl.HasNamespace() ? 

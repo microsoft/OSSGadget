@@ -3,6 +3,7 @@
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using Contracts;
+    using Extensions;
     using Helpers;
     using Model;
     using NLog.LayoutRenderers.Wrappers;
@@ -40,15 +41,45 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
+        [Obsolete("Deprecated in favor of GetArtifactDownloadUrisAsync.")]
         public override IEnumerable<ArtifactUri<PyPIArtifactType>> GetArtifactDownloadUris(PackageURL purl)
         {
-            string feedUrl = (purl.Qualifiers?["repository_url"] ?? ENV_PYPI_ENDPOINT).EnsureTrailingSlash();
+            return GetArtifactDownloadUrisAsync(purl).ToListAsync().Result;
+        }
+        
+        /// <inheritdoc />
+        public override async IAsyncEnumerable<ArtifactUri<PyPIArtifactType>> GetArtifactDownloadUrisAsync(PackageURL purl, bool useCache = true)
+        {
+            Check.NotNull(nameof(purl.Version), purl.Version);
+            string? content = await GetMetadataAsync(purl, useCache);
+            if (string.IsNullOrEmpty(content))
+            {
+                throw new InvalidOperationException();
+            }
 
-            // Format: https://pypi.org/packages/source/{ package_name_first_letter }/{ package_name }/{ package_name }-{ package_version }.tar.gz
-            string artifactUri =
-                $"{feedUrl}packages/source/{char.ToLower(purl.Name[0])}/{purl.Name.ToLower()}/{purl.Name.ToLower()}-{purl.Version}.tar.gz";
-            yield return new ArtifactUri<PyPIArtifactType>(PyPIArtifactType.Tarball, artifactUri);
-            // TODO: Figure out how to generate .whl file uris.
+            JsonDocument contentJSON = JsonDocument.Parse(content);
+            JsonElement root = contentJSON.RootElement;
+
+            JsonElement.ArrayEnumerator? urlsArray = OssUtilities.GetJSONEnumerator(root.GetProperty("urls"));
+            if (urlsArray is not null)
+            {
+                foreach (JsonElement url in urlsArray.Value)
+                {
+                    string? urlStr = OssUtilities.GetJSONPropertyStringIfExists(url, "url");
+                    string? uploadTimeStr = OssUtilities.GetJSONPropertyStringIfExists(url, "upload_time");
+                    DateTime uploadTime = DateTime.Parse(uploadTimeStr);
+
+                    if (OssUtilities.GetJSONPropertyStringIfExists(url, "packagetype") == "sdist")
+                    {
+                        yield return new ArtifactUri<PyPIArtifactType>(PyPIArtifactType.Tarball, urlStr, uploadTime);
+                    }
+
+                    if (OssUtilities.GetJSONPropertyStringIfExists(url, "packagetype") == "bdist_wheel")
+                    {
+                        yield return new ArtifactUri<PyPIArtifactType>(PyPIArtifactType.Wheel, urlStr, uploadTime);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -212,6 +243,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {
                 HttpClient httpClient = CreateHttpClient();
 
+                if (purl.Version.IsNotBlank())
+                {
+                    return await GetHttpStringCache(httpClient, $"{ENV_PYPI_ENDPOINT}/pypi/{purl.Name}/{purl.Version}/json", useCache);
+                }
+
                 return await GetHttpStringCache(httpClient, $"{ENV_PYPI_ENDPOINT}/pypi/{purl.Name}/json", useCache);
             }
             catch (Exception ex)
@@ -232,11 +268,20 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             JsonElement root = contentJSON.RootElement;
 
             JsonElement infoElement = root.GetProperty("info");
+            
+            metadata.LatestPackageVersion = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "version"); // Ran in the root, always points to latest version.
+
+            if (purl.Version.IsBlank() && metadata.LatestPackageVersion.IsNotBlank())
+            {
+                content = await GetMetadataAsync(purl.WithVersion(metadata.LatestPackageVersion), useCache);
+                contentJSON = JsonDocument.Parse(content);
+                root = contentJSON.RootElement;
+
+                infoElement = root.GetProperty("info");
+            }
 
             metadata.Name = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "name");
             metadata.Description = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "summary"); // Summary is the short description. Description is usually the readme.
-
-            metadata.LatestPackageVersion = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "version"); // Ran in the root, always points to latest version.
 
             metadata.PackageManagerUri = ENV_PYPI_ENDPOINT;
             metadata.PackageUri = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "package_url");
@@ -292,54 +337,53 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             // if we found any version at all, get the information.
             if (metadata.PackageVersion is not null)
             {
-                Version versionToGet = new(metadata.PackageVersion);
-                JsonElement? versionElement = GetVersionElement(contentJSON, versionToGet);
-                if (versionElement is not null)
+                JsonElement.ArrayEnumerator? urlsArray = OssUtilities.GetJSONEnumerator(root.GetProperty("urls"));
+                if (urlsArray is not null)
                 {
-                    // fill the version specific entries
-
-                    if (versionElement.Value.ValueKind == JsonValueKind.Array) // I think this should always be true.
+                    foreach (JsonElement url in urlsArray.Value)
                     {
-                        foreach (JsonElement releaseFile in versionElement.Value.EnumerateArray())
+                        // digests
+                        if (OssUtilities.GetJSONPropertyIfExists(url, "digests")?.EnumerateObject()
+                            is JsonElement.ObjectEnumerator digests)
                         {
-                            // digests
-                            if (OssUtilities.GetJSONPropertyIfExists(releaseFile, "digests")?.EnumerateObject()
-                                is JsonElement.ObjectEnumerator digests)
+                            metadata.Signature ??= new List<Digest>();
+                            foreach (JsonProperty digest in digests)
                             {
-                                metadata.Signature ??= new List<Digest>();
-                                foreach (JsonProperty digest in digests)
+                                metadata.Signature.Add(new Digest()
                                 {
-                                    metadata.Signature.Add(new Digest()
-                                    {
-                                        Algorithm = digest.Name,
-                                        Signature = digest.Value.ToString()
-                                    });
-                                }
+                                    Algorithm = digest.Name,
+                                    Signature = digest.Value.ToString()
+                                });
+                            }
+                        }
+
+                        // TODO: Want to figure out how to store info for .whl files as well.
+                        if (OssUtilities.GetJSONPropertyStringIfExists(url, "packagetype") == "sdist")
+                        {
+                            // downloads
+                            if (OssUtilities.GetJSONPropertyIfExists(url, "downloads")?.GetInt64() is long downloads
+                                && downloads != -1)
+                            {
+                                metadata.Downloads ??= new Downloads()
+                                {
+                                    Overall = downloads
+                                };
                             }
 
-                            // TODO: Want to figure out how to store info for .whl files as well.
-                            if (OssUtilities.GetJSONPropertyStringIfExists(releaseFile, "packagetype") == "sdist")
+                            metadata.Size = OssUtilities.GetJSONPropertyIfExists(url, "size")?.GetInt64();
+                            metadata.Active = !OssUtilities.GetJSONPropertyIfExists(url, "yanked")?.GetBoolean();
+                            metadata.VersionUri = $"{ENV_PYPI_ENDPOINT}/project/{purl.Name}/{purl.Version}";
+                            metadata.VersionDownloadUri = OssUtilities.GetJSONPropertyStringIfExists(url, "url");
+                        }
+                        
+                        string? uploadTime = OssUtilities.GetJSONPropertyStringIfExists(url, "upload_time");
+                        if (uploadTime != null)
+                        {
+                            DateTime newUploadTime = DateTime.Parse(uploadTime);
+                            // Used to set the minimum upload time for all associated files for this version to get the publish time.
+                            if (metadata.UploadTime == null || metadata.UploadTime > newUploadTime)
                             {
-                                // downloads
-                                if (OssUtilities.GetJSONPropertyIfExists(releaseFile, "downloads")?.GetInt64() is long downloads
-                                    && downloads != -1)
-                                {
-                                    metadata.Downloads ??= new Downloads()
-                                    {
-                                        Overall = downloads
-                                    };
-                                }
-
-                                metadata.Size = OssUtilities.GetJSONPropertyIfExists(releaseFile, "size")?.GetInt64();
-                                metadata.Active = !OssUtilities.GetJSONPropertyIfExists(releaseFile, "yanked")?.GetBoolean();
-                                metadata.VersionUri = $"{ENV_PYPI_ENDPOINT}/project/{purl.Name}/{purl.Version}";
-                                metadata.VersionDownloadUri = OssUtilities.GetJSONPropertyStringIfExists(releaseFile, "url");
-
-                                string? uploadTime = OssUtilities.GetJSONPropertyStringIfExists(releaseFile, "upload_time");
-                                if (uploadTime != null)
-                                {
-                                    metadata.UploadTime = DateTime.Parse(uploadTime);
-                                }
+                                metadata.UploadTime = newUploadTime;
                             }
                         }
                     }

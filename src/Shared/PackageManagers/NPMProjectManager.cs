@@ -63,6 +63,26 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             yield return new ArtifactUri<NPMArtifactType>(NPMArtifactType.Tarball, artifactUri);
         }
 
+        /// <inheritdoc />
+        public override async IAsyncEnumerable<PackageURL> GetPackagesFromOwnerAsync(string owner, bool useCache = true)
+        {
+            Check.NotNull(nameof(owner), owner);
+            HttpClient httpClient = CreateHttpClient();
+
+            string? content = await GetHttpStringCache(httpClient, $"{ENV_NPM_API_ENDPOINT}/-/user/{owner}/package", useCache);
+            if (string.IsNullOrEmpty(content))
+            {
+                throw new InvalidOperationException();
+            }
+
+            JsonElement root = JsonDocument.Parse(content).RootElement;
+            foreach (JsonProperty package in root.EnumerateObject())
+            {
+                string name = package.Name.Replace("@", "%40");
+                yield return new PackageURL($"pkg:{Type}/{name}");
+            }
+        }
+
         /// <summary>
         /// Download one NPM package and extract it to the target directory.
         /// </summary>

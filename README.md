@@ -1,3 +1,4 @@
+![Nuget](https://img.shields.io/nuget/v/Microsoft.CST.OSSGadget.Shared)
 ![CodeQL](https://github.com/microsoft/OSSGadget/workflows/CodeQL/badge.svg)
 
 ## OSS Gadget

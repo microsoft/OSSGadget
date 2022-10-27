@@ -7,7 +7,7 @@ using System;
 using System.IO;
 
 /// <summary>
-/// A record to represent the type, uri, and extension for an artifact associated with a package.
+/// A record to represent the type, uri, extension and optionally the upload time for an artifact associated with a package version.
 /// </summary>
 /// <typeparam name="T">The enum to represent the artifact type.</typeparam>
 public record ArtifactUri<T> where T : Enum

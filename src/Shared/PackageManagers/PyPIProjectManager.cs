@@ -2,11 +2,12 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using AngleSharp.Dom;
+    using AngleSharp.Html.Parser;
     using Contracts;
     using Extensions;
     using Helpers;
     using Model;
-    using NLog.LayoutRenderers.Wrappers;
     using PackageActions;
     using PackageUrl;
     using System;
@@ -79,6 +80,27 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                         yield return new ArtifactUri<PyPIArtifactType>(PyPIArtifactType.Wheel, urlStr, uploadTime);
                     }
                 }
+            }
+        }
+
+        /// <inheritdoc />
+        public override async IAsyncEnumerable<PackageURL> GetPackagesFromOwnerAsync(string owner, bool useCache = true)
+        {
+            Check.NotNull(nameof(owner), owner);
+            HttpClient httpClient = CreateHttpClient();
+
+            string? html = await GetHttpStringCache(httpClient, $"{ENV_PYPI_ENDPOINT}/user/{owner}", useCache);
+            if (string.IsNullOrEmpty(html))
+            {
+                throw new InvalidOperationException();
+            }
+            
+            HtmlParser parser = new();
+            AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(html);
+            foreach (AngleSharp.Dom.IElement packageSnippet in document.QuerySelectorAll("a.package-snippet"))
+            {
+                IElement? name = packageSnippet.FirstElementChild;
+                yield return new PackageURL(Type, name.Text());
             }
         }
 

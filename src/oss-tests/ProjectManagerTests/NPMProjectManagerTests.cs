@@ -327,6 +327,21 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             Assert.IsTrue(await _projectManager.Object.UriExistsAsync(uris.First().Uri));
         }
         
+        [DataTestMethod]
+        [DataRow("jdalton", "pkg:npm/lodash")]
+        [DataRow("microsoft", "pkg:npm/%40microsoft/rush")]
+        [DataRow("azure", "pkg:npm/%40azure/cosmos")]
+        [DataRow("azure", "pkg:npm/%40azure/graph")]
+        public async Task GetPackagesFromOwnerAsyncSucceeds_Async(string owner, string expectedPackage)
+        {
+            NPMProjectManager projectManager = new(".");
+
+            List<PackageURL> packages = await projectManager.GetPackagesFromOwnerAsync(owner).ToListAsync();
+
+            packages.Should().OnlyHaveUniqueItems();
+            packages.Select(p => p.ToString()).Should().Contain(expectedPackage);
+        }
+        
         private static void MockHttpFetchResponse(
             HttpStatusCode statusCode,
             string url,

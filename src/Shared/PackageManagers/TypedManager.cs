@@ -106,7 +106,14 @@ public abstract class TypedManager<T, TArtifactUriType> : BaseProjectManager whe
     /// <remarks>Returns the expected URIs for resources. Does not validate that the URIs resolve at the moment of enumeration.</remarks>
     public abstract IAsyncEnumerable<ArtifactUri<TArtifactUriType>> GetArtifactDownloadUrisAsync(PackageURL purl, bool useCache = true);
     
-            
+    /// <summary>
+    /// Gets all <see cref="PackageURL"/>s associated with an owner.
+    /// </summary>
+    /// <param name="owner">The username of the owner.</param>
+    /// <param name="useCache">If the data should be retrieved from the cache. Defaults to <c>true</c>.</param>
+    /// <returns>A list of the <see cref="PackageURL"/>s from this owner.</returns>
+    public abstract IAsyncEnumerable<PackageURL> GetPackagesFromOwnerAsync(string owner, bool useCache = true);
+
     /// <summary>
     /// Check to see if the <see cref="Uri"/> exists.
     /// </summary>

@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using System.Collections.Immutable;
-
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using Contracts;
@@ -20,7 +18,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Net.Http;
     using System.Text.Json;
     using System.Threading.Tasks;
-    using Microsoft.Extensions.Primitives;
 
     public class NuGetProjectManager : TypedManager<NuGetPackageVersionMetadata, NuGetProjectManager.NuGetArtifactType>
     {
@@ -77,6 +74,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             yield return new ArtifactUri<NuGetArtifactType>(NuGetArtifactType.Nuspec, 
                 $"{basePath}{nameLowercase}/{versionLowercase}/{nameLowercase}.nuspec");
+        }
+
+        /// <inheritdoc />
+        public override async IAsyncEnumerable<PackageURL> GetPackagesFromOwnerAsync(string owner, bool useCache = true)
+        {
+            throw new NotImplementedException("Haven't found a way to implement this yet!");
+            yield break;
         }
 
         /// <summary>

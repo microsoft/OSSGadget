@@ -206,6 +206,18 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             }
         }
         
+        [DataTestMethod]
+        [DataRow("microsoft", "pkg:pypi/azdev")]
+        public async Task GetPackagesFromOwnerAsyncSucceeds_Async(string owner, string expectedPackage)
+        {
+            PyPIProjectManager projectManager = new(".");
+
+            List<PackageURL> packages = await projectManager.GetPackagesFromOwnerAsync(owner).ToListAsync();
+
+            packages.Should().OnlyHaveUniqueItems();
+            packages.Select(p => p.ToString()).Should().Contain(expectedPackage);
+        }
+        
         private static void MockHttpFetchResponse(
             HttpStatusCode statusCode,
             string url,

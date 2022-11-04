@@ -191,7 +191,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             // The Cocoapods standard uses MD5(project name) as a prefix for sharing. There is no security
             // issue here, but we cannot use another algorithm.
 #pragma warning disable SCS0006, CA5351, CA1308 // Weak hash, ToLowerInvarant()
-            using MD5 hashAlgorithm = MD5.Create();
+            using MD5 hashAlgorithm = MD5.Create(); // CodeQL [cs/weak-crypto] Required for compatibility with Cocoapods
 
             char[] prefixMD5 = BitConverter
                                 .ToString(hashAlgorithm.ComputeHash(packageNameBytes))

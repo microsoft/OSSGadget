@@ -38,7 +38,7 @@ public static class ArchiveHelper
 
         foreach (char c in Path.GetInvalidPathChars())
         {
-            dirBuilder.Replace(c, '-'); // ignore: lgtm [cs/string-concatenation-in-loop]
+            dirBuilder.Replace(c, '-'); // CodeQL [cs/string-concatenation-in-loop] This is a small loop
         }
 
         string fullTargetPath = Path.Combine(topLevelDirectory, dirBuilder.ToString());
@@ -71,4 +71,4 @@ public static class ArchiveHelper
 
         return fullTargetPath;
     }
-} 
+}

@@ -34,6 +34,9 @@ namespace Microsoft.CST.OpenSource
             PooledConnectionIdleTimeout = TimeSpan.FromSeconds(30),
             PooledConnectionLifetime = TimeSpan.FromSeconds(30),
             AutomaticDecompression = System.Net.DecompressionMethods.All,
+            SslOptions = new System.Net.Security.SslClientAuthenticationOptions() {
+                CertificateRevocationCheckMode = System.Security.Cryptography.X509Certificates.X509RevocationMode.Online
+            }
         };
 
         private readonly Lazy<HttpClient> _httpClientLazy;

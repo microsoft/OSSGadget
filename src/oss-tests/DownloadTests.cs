@@ -113,6 +113,7 @@ namespace Microsoft.CST.OpenSource.Tests
 
         [DataTestMethod]
         [DataRow("pkg:maven/org%2Fapache%2Fxmlgraphics/batik-anim@1.9", "MANIFEST.MF", 3)]
+        [DataRow("pkg:maven/ant/ant-junit@1.6.5", "MANIFEST.MF", 1)] // this project only has a jar file
         public async Task Maven_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
         {
             await TestDownload(purl, targetFilename, expectedDirectoryCount);

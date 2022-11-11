@@ -33,6 +33,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// </summary>
         public BaseProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory = ".")
         {
+            EnvironmentHelper.OverrideEnvironmentVariables(this);
             Options = new Dictionary<string, object>();
             TopLevelExtractionDirectory = destinationDirectory;
             HttpClientFactory = httpClientFactory;

@@ -54,10 +54,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 return downloadedPaths;
             }
 
-            try
+            string[] suffixes = new string[] { "-javadoc", "-sources", "" };
+            foreach (string suffix in suffixes)
             {
-                string[] suffixes = new string[] { "-javadoc", "-sources", "" };
-                foreach (string suffix in suffixes)
+                try
                 {
                     string url = $"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/{packageVersion}/{packageName}-{packageVersion}{suffix}.jar";
                     HttpClient httpClient = CreateHttpClient();
@@ -85,10 +85,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                         downloadedPaths.Add(extractionPath);
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                Logger.Warn(ex, "Error downloading Maven package: {0}", ex.Message);
+                catch (Exception ex)
+                {
+                    Logger.Warn(ex, "Error downloading Maven package: {0}", ex.Message);
+                }
             }
             return downloadedPaths;
         }

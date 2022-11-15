@@ -31,7 +31,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         public override string ManagerType => Type;
 
-        public static string ENV_PYPI_ENDPOINT { get; set; } = "https://pypi.org";
+        public const string DEFAULT_PYPI_ENDPOINT = "https://pypi.org";
+        public string ENV_PYPI_ENDPOINT { get; set; } = DEFAULT_PYPI_ENDPOINT;
 
         public PyPIProjectManager(
             string directory,

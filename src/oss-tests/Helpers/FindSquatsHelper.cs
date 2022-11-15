@@ -71,9 +71,9 @@ public static class FindSquatsHelper
     {
         return purl.Type switch
         {
-            "npm" => $"{NPMProjectManager.ENV_NPM_API_ENDPOINT}/{purl.GetFullName()}",
+            "npm" => $"{NPMProjectManager.DEFAULT_NPM_API_ENDPOINT}/{purl.GetFullName()}",
             "nuget" => $"{NuGetProjectManager.NUGET_DEFAULT_REGISTRATION_ENDPOINT}{purl.Name.ToLowerInvariant()}/index.json",
-            "pypi" => $"{PyPIProjectManager.ENV_PYPI_ENDPOINT}/pypi/{purl.Name}/json",
+            "pypi" => $"{PyPIProjectManager.DEFAULT_PYPI_ENDPOINT}/pypi/{purl.Name}/json",
             _ => throw new NotSupportedException(
                 $"{purl.Type} packages are not currently supported."),
         };

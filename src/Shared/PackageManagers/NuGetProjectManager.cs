@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
+// ReSharper disable FieldCanBeMadeReadOnly.Global
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using Contracts;
@@ -30,11 +31,15 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public override string ManagerType => Type;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        public const string ENV_NUGET_ENDPOINT_API = "https://api.nuget.org";
-        public const string ENV_NUGET_ENDPOINT = "https://www.nuget.org";
+        public string ENV_NUGET_ENDPOINT_API = "https://api.nuget.org";
+        
+        // Unused currently.
+        public string ENV_NUGET_ENDPOINT = "https://www.nuget.org";
+        
+        // These are named Default, do they need to be overridden as well?
         public const string NUGET_DEFAULT_REGISTRATION_ENDPOINT = "https://api.nuget.org/v3/registration5-gz-semver2/";
-        private const string NUGET_DEFAULT_CONTENT_ENDPOINT = "https://api.nuget.org/v3-flatcontainer/";
-        private const string NUGET_DEFAULT_INDEX = "https://api.nuget.org/v3/index.json";
+        public const string NUGET_DEFAULT_CONTENT_ENDPOINT = "https://api.nuget.org/v3-flatcontainer/";
+        public const string NUGET_DEFAULT_INDEX = "https://api.nuget.org/v3/index.json";
 
         private string? RegistrationEndpoint { get; set; } = null;
 

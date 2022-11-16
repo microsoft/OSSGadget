@@ -26,13 +26,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public override string ManagerType => Type;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        public static string ENV_CARGO_ENDPOINT = "https://crates.io";
+        public string ENV_CARGO_ENDPOINT = "https://crates.io";
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        public static string ENV_CARGO_ENDPOINT_STATIC = "https://static.crates.io";
+        public string ENV_CARGO_ENDPOINT_STATIC = "https://static.crates.io";
         
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        public static string ENV_CARGO_INDEX_ENDPOINT = "https://raw.githubusercontent.com/rust-lang/crates.io-index/master";
+        public string ENV_CARGO_INDEX_ENDPOINT = "https://raw.githubusercontent.com/rust-lang/crates.io-index/master";
 
         public CargoProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
         {

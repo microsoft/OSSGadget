@@ -207,7 +207,8 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         [DataTestMethod]
-        [DataRow("pkg:vsm/ms-vscode/PowerShell", "extension.vsixmanifest", 1)]
+        // The latest powershell has a second directory for code signing information
+        [DataRow("pkg:vsm/ms-vscode/PowerShell", "extension.vsixmanifest", 2)]
         [DataRow("pkg:vsm/ms-vscode/PowerShell@2020.6.0", "extension.vsixmanifest", 1)]
         [DataRow("pkg:vsm/liviuschera/noctis@10.39.1", "extension.vsixmanifest", 1)]
         public async Task VSM_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)

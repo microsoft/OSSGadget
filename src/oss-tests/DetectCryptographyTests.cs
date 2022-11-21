@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Tests
 {
+    using ApplicationInspector.RulesEngine;
     using PackageUrl;
 
     [TestClass]
@@ -28,6 +29,18 @@ namespace Microsoft.CST.OpenSource.Tests
         public async Task TestPackageDetectionSucceeds(string purl, params string[] expectedTags)
         {
             await TestDetectCryptography(purl, expectedTags);
+        }
+
+        [TestMethod]
+        public void TestDetectCryptographyRulesValid()
+        {
+            DetectCryptographyTool detectCryptographyTool = new();
+            Assert.IsNotNull(detectCryptographyTool);
+            RuleSet rules = detectCryptographyTool.GetEmbeddedRules();
+            RulesVerifier analyzer = new RulesVerifier(new RulesVerifierOptions() { DisableRequireUniqueIds = true });
+            RulesVerifierResult issues = analyzer.Verify(rules);
+            Assert.IsTrue(issues.Verified);
+            Assert.AreNotEqual(0, issues.CompiledRuleSet.GetAppInspectorRules().Count());
         }
 
         private async Task TestDetectCryptography(string purl, params string[] expectedTags)

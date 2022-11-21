@@ -50,7 +50,7 @@
     "tags": [
       "Security.Backdoor.Setup.WebRequest"
     ],
-    "applies_to": [ "setup.py" ],
+    "applies_to_file_regex": [ "setup.py" ],
     "severity": "important",
     "patterns": [
       {

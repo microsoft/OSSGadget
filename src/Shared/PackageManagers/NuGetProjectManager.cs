@@ -197,10 +197,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
         
         /// <inheritdoc />
-        public override async Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool useCache = true)
+        public override async Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool includePrerelease = false, bool useCache = true)
         {
-            string? latestVersion = await Actions.GetLatestVersionAsync(purl) ??
-                                    throw new InvalidOperationException($"Can't find the latest version of {purl}");;
+            string? latestVersion = await Actions.GetLatestVersionAsync(purl, includePrerelease: includePrerelease, useCache: useCache);
 
             // Construct a new PackageURL that's guaranteed to have a version, the latest version is used if no version was provided.
             PackageURL purlWithVersion = !string.IsNullOrWhiteSpace(purl.Version) ?
@@ -291,7 +290,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 .ToList();
 
             // Keywords
-            metadata.Keywords = new List<string>(packageVersionMetadata.Tags.Split(", "));
+            metadata.Keywords = new List<string>((IEnumerable<string>?)packageVersionMetadata.Tags?.Split(", ") ?? new List<string>());
 
             // Licenses
             if (packageVersionMetadata.LicenseMetadata is not null)

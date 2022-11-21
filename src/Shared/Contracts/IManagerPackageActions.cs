@@ -38,24 +38,30 @@ public interface IManagerPackageActions<T> where T : IManagerPackageVersionMetad
     Task<bool> DoesPackageExistAsync(PackageURL packageUrl, bool useCache = true, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets all versions of a package.
+    /// Gets all versions of a package, both releases and pre-releases are included by default.
     /// </summary>
     /// <remarks>The first version in the list is the latest, and the oldest version is the last.</remarks>
     /// <param name="packageUrl">The <see cref="PackageURL"/> to get all available versions for.</param>
-    /// <param name="includePrerelease">If pre-release/beta versions should be included.</param>
+    /// <param name="includePrerelease">If pre-release/beta versions should be included, defaults to <c>true</c>.</param>
     /// <param name="useCache">If the cache should be checked for the available versions of this package.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to be used in the method call, defaults to <see cref="CancellationToken.None"/>.</param>
     /// <returns>An <see cref="IEnumerable{String}"/> of all of the versions for this package, in descending order.</returns>
+    /// <remarks>
+    /// If <paramref name="includePrerelease"/> is <c>false</c>, and every version is a pre-release, this method will return an empty list.
+    /// </remarks>
     Task<IEnumerable<string>> GetAllVersionsAsync(PackageURL packageUrl, bool includePrerelease = true, bool useCache = true, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets the latest version of a package.
+    /// Gets the latest version of a package, both releases and pre-releases are included by default.
     /// </summary>
     /// <param name="packageUrl">The <see cref="PackageURL"/> to get the latest version for.</param>
-    /// <param name="includePrerelease">If pre-release/beta versions should be included.</param>
+    /// <param name="includePrerelease">If pre-release/beta versions should be included, defaults to <c>true</c>.</param>
     /// <param name="useCache">If the cache should be checked for the latest of this package.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to be used in the method call, defaults to <see cref="CancellationToken.None"/>.</param>
     /// <returns>The latest version of the <paramref name="packageUrl"/> or null if there are no versions.</returns>
+    /// <remarks>
+    /// If <paramref name="includePrerelease"/> is <c>false</c>, and every version is a pre-release, this method will return <c>null</c>.
+    /// </remarks>
     Task<string?> GetLatestVersionAsync(PackageURL packageUrl, bool includePrerelease = false, bool useCache = true, CancellationToken cancellationToken = default);
 
     /// <summary>

@@ -14,6 +14,7 @@ using NuGet.Versioning;
 using PackageUrl;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -141,8 +142,8 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
             cancellationToken);
 
         return versionsAscending
-            .Last(v => includePrerelease || !v.IsPrerelease) // The latest version is the last in ascending order.
-            .ToString();
+            .LastOrDefault<NuGetVersion?>(v => includePrerelease || (v != null && !v.IsPrerelease)) // The latest version is the last in ascending order.
+            ?.ToString();
     }
 
     /// <inheritdoc />
@@ -152,12 +153,13 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
         CancellationToken cancellationToken = default)
     {
         PackageMetadataResource resource = await _sourceRepository.GetResourceAsync<PackageMetadataResource>();
-        if (string.IsNullOrWhiteSpace(packageUrl.Version))
+        string? version = packageUrl.Version;
+        if (string.IsNullOrWhiteSpace(version))
         {
             throw new ArgumentException("There was no version on the PackageURL.", nameof(packageUrl));
         }
 
-        PackageIdentity packageIdentity = new(packageUrl.Name, NuGetVersion.Parse(packageUrl.Version));
+        PackageIdentity packageIdentity = new(packageUrl.Name, NuGetVersion.Parse(version));
 
         PackageSearchMetadataRegistration? packageVersion = await resource.GetMetadataAsync(
             packageIdentity,

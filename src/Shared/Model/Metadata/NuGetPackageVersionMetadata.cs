@@ -82,7 +82,7 @@ public record NuGetPackageVersionMetadata : IManagerPackageVersionMetadata
 
     [JsonProperty(PropertyName = JsonProperties.Tags)]
     [JsonConverter(typeof(MetadataFieldConverter))]
-    public string Tags { get; init; }
+    public string? Tags { get; init; }
 
     [JsonProperty(PropertyName = JsonProperties.Title)]
     public string Title { get; init; }

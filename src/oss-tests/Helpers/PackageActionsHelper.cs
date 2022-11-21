@@ -58,11 +58,6 @@ public static class PackageActionsHelper<T> where T : IManagerPackageVersionMeta
                             return versionsArray;
                         }
 
-                        if (!includePrerelease && versionsArray.All(v => NuGetVersion.Parse(v).IsPrerelease))
-                        {
-                            return new List<string>();
-                        }
-
                         return versionsArray
                             .Where(v => includePrerelease || !NuGetVersion.Parse(v).IsPrerelease)
                             .Select(v => v.ToString());

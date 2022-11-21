@@ -114,17 +114,11 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
     {
         FindPackageByIdResource resource = await _sourceRepository.GetResourceAsync<FindPackageByIdResource>();
 
-        ImmutableList<NuGetVersion> versionsAscending = (await resource.GetAllVersionsAsync(
+        IEnumerable<NuGetVersion> versionsAscending = await resource.GetAllVersionsAsync(
             packageUrl.Name,
             _sourceCacheContext,
             _logger, 
-            cancellationToken)).ToImmutableList();
-        
-        // If we don't want pre-releases, but all versions are pre-releases, return an empty list.
-        if (!includePrerelease && versionsAscending.All(v => v.IsPrerelease))
-        {
-            return new List<string>();
-        }
+            cancellationToken);
 
         return versionsAscending
             .Where(v => includePrerelease || !v.IsPrerelease)
@@ -141,21 +135,15 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
     {
         FindPackageByIdResource resource = await _sourceRepository.GetResourceAsync<FindPackageByIdResource>();
 
-        ImmutableList<NuGetVersion> versionsAscending = (await resource.GetAllVersionsAsync(
+        IEnumerable<NuGetVersion> versionsAscending = await resource.GetAllVersionsAsync(
             packageUrl.Name,
             _sourceCacheContext,
             _logger, 
-            cancellationToken)).ToImmutableList();
+            cancellationToken);
 
-        // If we don't want pre-releases, but all versions are pre-releases, return null.
-        if (!includePrerelease && versionsAscending.All(v => v.IsPrerelease))
-        {
-            return null;
-        }
-        
         return versionsAscending
-            .Last(v => includePrerelease || !v.IsPrerelease) // The latest version is the last in ascending order.
-            .ToString();
+            .LastOrDefault<NuGetVersion?>(v => includePrerelease || (v != null && !v.IsPrerelease)) // The latest version is the last in ascending order.
+            ?.ToString();
     }
 
     /// <inheritdoc />

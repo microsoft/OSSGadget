@@ -382,6 +382,31 @@ namespace Microsoft.CST.OpenSource
             return bufferString;
         }
 
+        public RuleSet GetEmbeddedRules()
+        {
+            RuleSet rules = new RuleSet(null);
+
+            Assembly? assembly = Assembly.GetExecutingAssembly();
+            foreach (string? resourceName in assembly.GetManifestResourceNames())
+            {
+                if (resourceName.EndsWith(".json"))
+                {
+                    try
+                    {
+                        Stream? stream = assembly.GetManifestResourceStream(resourceName);
+                        using StreamReader? resourceStream = new StreamReader(stream ?? new MemoryStream());
+                        rules.AddString(resourceStream.ReadToEnd(), resourceName);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Warn(ex, "Error loading {0}: {1}", resourceName, ex.Message);
+                    }
+                }
+            }
+
+            return rules;
+        }
+        
         /// <summary>
         /// Analyzes a directory of files.
         /// </summary>
@@ -393,32 +418,16 @@ namespace Microsoft.CST.OpenSource
 
             List<IssueRecord>? analysisResults = new List<IssueRecord>();
 
-            RuleSet rules = new RuleSet(null);
-            if (Options["disable-default-rules"] is bool disableDefaultRules && !disableDefaultRules)
+            RuleSet rules = new RuleSet();
+            if (Options["disable-default-rules"] is false)
             {
-                Assembly? assembly = Assembly.GetExecutingAssembly();
+                rules.AddRange(GetEmbeddedRules());
+                
+                // Add Application Inspector cryptography rules
+                var assembly = typeof(AnalyzeCommand).Assembly;
                 foreach (string? resourceName in assembly.GetManifestResourceNames())
                 {
-                    if (resourceName.EndsWith(".json"))
-                    {
-                        try
-                        {
-                            Stream? stream = assembly.GetManifestResourceStream(resourceName);
-                            using StreamReader? resourceStream = new StreamReader(stream ?? new MemoryStream());
-                            rules.AddString(resourceStream.ReadToEnd(), resourceName);
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Warn(ex, "Error loading {0}: {1}", resourceName, ex.Message);
-                        }
-                    }
-                }
-
-                // Add Appliation Inspector cryptography rules
-                assembly = typeof(AnalyzeCommand).Assembly;
-                foreach (string? resourceName in assembly.GetManifestResourceNames())
-                {
-                    if (resourceName.EndsWith(".json"))
+                    if (resourceName.EndsWith(".json") && resourceName.Contains("cryptography"))
                     {
                         try
                         {

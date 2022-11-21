@@ -113,6 +113,7 @@ namespace Microsoft.CST.OpenSource.Tests
 
         [DataTestMethod]
         [DataRow("pkg:maven/org%2Fapache%2Fxmlgraphics/batik-anim@1.9", "MANIFEST.MF", 3)]
+        [DataRow("pkg:maven/ant/ant-junit@1.6.5", "MANIFEST.MF", 1)] // this project only has a jar file
         public async Task Maven_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
         {
             await TestDownload(purl, targetFilename, expectedDirectoryCount);
@@ -206,7 +207,8 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         [DataTestMethod]
-        [DataRow("pkg:vsm/ms-vscode/PowerShell", "extension.vsixmanifest", 1)]
+        // The latest powershell has a second directory for code signing information
+        [DataRow("pkg:vsm/ms-vscode/PowerShell", "extension.vsixmanifest", 2)]
         [DataRow("pkg:vsm/ms-vscode/PowerShell@2020.6.0", "extension.vsixmanifest", 1)]
         [DataRow("pkg:vsm/liviuschera/noctis@10.39.1", "extension.vsixmanifest", 1)]
         public async Task VSM_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)

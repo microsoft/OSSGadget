@@ -31,9 +31,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         public override string ManagerType => Type;
 
-        public static string ENV_NPM_API_ENDPOINT { get; set; } = "https://registry.npmjs.org";
-        public static string ENV_NPM_ENDPOINT { get; set; } = "https://www.npmjs.com";
+        public const string DEFAULT_NPM_API_ENDPOINT = "https://registry.npmjs.org";
+        public string ENV_NPM_API_ENDPOINT { get; set; } = DEFAULT_NPM_API_ENDPOINT;
+        
+        public const string DEFAULT_ENV_NPM_ENDPOINT = "https://www.npmjs.com";
+        public string ENV_NPM_ENDPOINT { get; set; } = DEFAULT_ENV_NPM_ENDPOINT;
 
+        // Should this be overridable by Environment Helper?
         private static readonly string NPM_SECURITY_HOLDING_VERSION = "0.0.1-security";
 
         public NPMProjectManager(

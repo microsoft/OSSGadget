@@ -25,7 +25,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         public override string ManagerType => Type;
 
-        public static string ENV_GITHUB_ENDPOINT = "https://github.com";
+        private const string DEFAULT_GITHUB_ENDPOINT = "https://github.com";
+        public string ENV_GITHUB_ENDPOINT = DEFAULT_GITHUB_ENDPOINT;
 
         public GitHubProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
         {
@@ -253,7 +254,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
         
         /// <summary>
-        /// Gets if the URL is a GitHub repo URL.
+        /// Gets if the URL is a GitHub repo URL using the default endpoint.
         /// </summary>
         /// <param name="url">A URL to check if it's from GitHub.</param>
         /// <param name="purl">The variable to set the purl of if it is a GitHub repo.</param>
@@ -263,7 +264,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             Check.NotNull(nameof(url), url);
             purl = null;
 
-            if (url.Contains(ENV_GITHUB_ENDPOINT))
+            if (url.Contains(DEFAULT_GITHUB_ENDPOINT))
             {
                 try
                 {
@@ -278,6 +279,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
             return false;
         }
+        
+        
 
         private static readonly Regex GithubExtractorRegex = new(
                     @"((?<protocol>https?|git|ssh|rsync)\+?)+\://" +

@@ -24,7 +24,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public override string ManagerType => Type;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        public static string ENV_MAVEN_ENDPOINT = "https://repo1.maven.org/maven2";
+        public string ENV_MAVEN_ENDPOINT = "https://repo1.maven.org/maven2";
 
         public MavenProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
         {
@@ -54,10 +54,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 return downloadedPaths;
             }
 
-            try
+            string[] suffixes = new string[] { "-javadoc", "-sources", "" };
+            foreach (string suffix in suffixes)
             {
-                string[] suffixes = new string[] { "-javadoc", "-sources", "" };
-                foreach (string suffix in suffixes)
+                try
                 {
                     string url = $"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/{packageVersion}/{packageName}-{packageVersion}{suffix}.jar";
                     HttpClient httpClient = CreateHttpClient();
@@ -85,10 +85,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                         downloadedPaths.Add(extractionPath);
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                Logger.Warn(ex, "Error downloading Maven package: {0}", ex.Message);
+                catch (Exception ex)
+                {
+                    Logger.Warn(ex, "Error downloading Maven package: {0}", ex.Message);
+                }
             }
             return downloadedPaths;
         }

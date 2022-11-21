@@ -30,6 +30,14 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         {
             { "https://api.nuget.org/v3/registration5-gz-semver2/razorengine/index.json", Resources.razorengine_json },
             { "https://api.nuget.org/v3/catalog0/data/2022.03.11.23.17.27/razorengine.4.2.3-beta1.json", Resources.razorengine_4_2_3_beta1_json },
+            { "https://api.nuget.org/v3/registration5-gz-semver2/slipeserver.scripting/index.json", Resources.slipeserver_scripting_json },
+            { "https://api.nuget.org/v3/catalog0/data/2022.06.07.08.44.59/slipeserver.scripting.0.1.0-ci-20220607-083949.json", Resources.slipeserver_scripting_0_1_0_ci_20220607_083949_json },
+        }.ToImmutableDictionary();
+        
+        private readonly IDictionary<string, string> _catalogPages = new Dictionary<string, string>()
+        {
+            { "https://api.nuget.org/v3/registration5-gz-semver2/slipeserver.scripting/page/0.1.0-ci-20220325-215611/0.1.0-ci-20220807-160739.json", Resources.slipeserver_scripting_catalogpage_2_json },
+            { "https://api.nuget.org/v3/registration5-gz-semver2/slipeserver.scripting/page/0.1.0-ci-20221013-182634/0.1.0-ci-20221120-180516.json", Resources.slipeserver_scripting_catalogpage_3_json },
         }.ToImmutableDictionary();
 
         // Map PackageURLs to metadata as json.
@@ -37,6 +45,8 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         {
             { "pkg:nuget/razorengine@4.2.3-beta1", Resources.razorengine_4_2_3_beta1_metadata_json },
             { "pkg:nuget/razorengine", Resources.razorengine_latest_metadata_json },
+            { "pkg:nuget/slipeserver.scripting@0.1.0-CI-20220607-083949", Resources.slipeserver_scripting_0_1_0_ci_20220607_083949_json },
+            { "pkg:nuget/slipeserver.scripting", Resources.slipeserver_scripting_0_1_0_ci_20220607_083949_json },
         }.ToImmutableDictionary();
 
         // Map PackageURLs to the list of versions as json.
@@ -44,6 +54,8 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         {
             { "pkg:nuget/razorengine@4.2.3-beta1", Resources.razorengine_versions_json },
             { "pkg:nuget/razorengine", Resources.razorengine_versions_json },
+            { "pkg:nuget/slipeserver.scripting@0.1.0-CI-20220607-083949", Resources.slipeserver_scripting_versions_json },
+            { "pkg:nuget/slipeserver.scripting", Resources.slipeserver_scripting_versions_json },
         }.ToImmutableDictionary();
 
         private NuGetProjectManager _projectManager;
@@ -64,6 +76,11 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             {
                 MockHttpFetchResponse(HttpStatusCode.OK, url, json, mockHttp);
             }
+            
+            foreach ((string url, string json) in _catalogPages)
+            {
+                MockHttpFetchResponse(HttpStatusCode.OK, url, json, mockHttp);
+            }
 
             mockHttp.When(HttpMethod.Get, "https://api.nuget.org/v3-flatcontainer/*.nupkg").Respond(HttpStatusCode.OK);
             mockHttp.When(HttpMethod.Get, "https://api.nuget.org/v3-flatcontainer/*.nuspec").Respond(HttpStatusCode.OK);
@@ -77,6 +94,8 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         [DataRow("pkg:nuget/razorengine@4.2.3-beta1")]
         [DataRow("pkg:nuget/razorengine@4.2.3-Beta1")]
         [DataRow("pkg:nuget/rAzOrEnGiNe@4.2.3-Beta1")]
+        [DataRow("pkg:nuget/SlipeServer.Scripting@0.1.0-CI-20220607-083949")]
+        [DataRow("pkg:nuget/slipeserver.scripting@0.1.0-ci-20220607-083949")]
         public async Task TestNugetCaseInsensitiveHandlingPackageExistsSucceeds(string purlString)
         {
             PackageURL purl = new(purlString);
@@ -88,18 +107,33 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         }
 
         [DataTestMethod]
-        [DataRow("pkg:nuget/razorengine@4.2.3-beta1", "RazorEngine - A Templating Engine based on the Razor parser.", "Matthew Abbott, Ben Dornis, Matthias Dittrich")] // Normal package
-        [DataRow("pkg:nuget/razorengine", "RazorEngine - A Templating Engine based on the Razor parser.", "Matthew Abbott, Ben Dornis, Matthias Dittrich", "4.5.1-alpha001")] // Normal package, no specified version
-        public async Task MetadataSucceeds(string purlString, string? description = null, string? authors = null, string? latestVersion = null)
+        [DataRow("pkg:nuget/razorengine@4.2.3-beta1", false, "RazorEngine - A Templating Engine based on the Razor parser.", "Matthew Abbott, Ben Dornis, Matthias Dittrich")] // Normal package
+        [DataRow("pkg:nuget/razorengine", false, "RazorEngine - A Templating Engine based on the Razor parser.", "Matthew Abbott, Ben Dornis, Matthias Dittrich", "4.5.1-alpha001")] // Normal package, no specified version
+        [DataRow("pkg:nuget/slipeserver.scripting@0.1.0-CI-20220607-083949", false, "Scripting layer C# Server for MTA San Andreas", "Slipe", null)] // Normal package, no specified version, pre-release versions only, returns null for latest version by default
+        [DataRow("pkg:nuget/slipeserver.scripting", true, "Scripting layer C# Server for MTA San Andreas", "Slipe", "0.1.0-ci-20221120-180516")] // Normal package, no specified version, pre-release versions only, returns latest pre-release for latest version because of override
+        public async Task MetadataSucceeds(string purlString, bool includePrerelease = false, string? description = null, string? authors = null, string? latestVersion = null)
         {
             PackageURL purl = new(purlString);
+            NuGetPackageVersionMetadata? setupMetadata = null;
+            IEnumerable<string>? setupVersions = null;
+
+            if (_metadata.TryGetValue(purl.ToString(), out string? setupMetadataString))
+            {
+                setupMetadata = JsonConvert.DeserializeObject<NuGetPackageVersionMetadata>(setupMetadataString);
+            }
+            
+            if (_versions.TryGetValue(purl.ToString(), out string? setupVersionsString))
+            {
+                setupVersions = JsonConvert.DeserializeObject<IEnumerable<string>>(setupVersionsString);
+            }
+
             IManagerPackageActions<NuGetPackageVersionMetadata>? nugetPackageActions = PackageActionsHelper<NuGetPackageVersionMetadata>.SetupPackageActions(
                 purl,
-                JsonConvert.DeserializeObject<NuGetPackageVersionMetadata>(_metadata[purl.ToString()]),
-                JsonConvert.DeserializeObject<IEnumerable<string>>(_versions[purl.ToString()])?.Reverse());
+                setupMetadata,
+                setupVersions?.Reverse());
             _projectManager = new NuGetProjectManager(".", nugetPackageActions, _httpFactory);
 
-            PackageMetadata metadata = await _projectManager.GetPackageMetadataAsync(purl, useCache: false);
+            PackageMetadata metadata = await _projectManager.GetPackageMetadataAsync(purl, includePrerelease: includePrerelease, useCache: false);
 
             Assert.AreEqual(purl.Name, metadata.Name, ignoreCase: true);
             
@@ -118,24 +152,39 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         [DataRow("pkg:nuget/razorengine@4.2.3-beta1", 84, "4.5.1-alpha001")]
         [DataRow("pkg:nuget/razorengine", 84, "4.5.1-alpha001")]
         [DataRow("pkg:nuget/razorengine", 40, "3.10.0", false)]
+        [DataRow("pkg:nuget/slipeserver.scripting", 234, "0.1.0-ci-20221120-180516", true)]
+        [DataRow("pkg:nuget/slipeserver.scripting", 0, null, false)]
         public async Task EnumerateVersionsSucceeds(
             string purlString, 
             int count, 
-            string latestVersion, 
+            string? latestVersion, 
             bool includePrerelease = true)
         {
             PackageURL purl = new(purlString);
+            NuGetPackageVersionMetadata? setupMetadata = null;
+            IEnumerable<string>? setupVersions = null;
+
+            if (_metadata.TryGetValue(purl.ToString(), out string? setupMetadataString))
+            {
+                setupMetadata = JsonConvert.DeserializeObject<NuGetPackageVersionMetadata>(setupMetadataString);
+            }
+            
+            if (_versions.TryGetValue(purl.ToString(), out string? setupVersionsString))
+            {
+                setupVersions = JsonConvert.DeserializeObject<IEnumerable<string>>(setupVersionsString);
+            }
+
             IManagerPackageActions<NuGetPackageVersionMetadata>? nugetPackageActions = PackageActionsHelper<NuGetPackageVersionMetadata>.SetupPackageActions(
                 purl,
-                JsonConvert.DeserializeObject<NuGetPackageVersionMetadata>(_metadata[purl.ToString()]),
-                JsonConvert.DeserializeObject<IEnumerable<string>>(_versions[purl.ToString()])?.Reverse(),
+                setupMetadata,
+                setupVersions?.Reverse(),
                 includePrerelease: includePrerelease);
             _projectManager = new NuGetProjectManager(".", nugetPackageActions, _httpFactory);
 
             List<string> versions = (await _projectManager.EnumerateVersionsAsync(purl, false, includePrerelease)).ToList();
 
             Assert.AreEqual(count, versions.Count);
-            Assert.AreEqual(latestVersion, versions.First());
+            Assert.AreEqual(latestVersion, versions.FirstOrDefault());
         }
         
         [DataTestMethod]

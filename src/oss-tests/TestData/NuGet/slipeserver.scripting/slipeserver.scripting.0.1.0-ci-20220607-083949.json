@@ -1,0 +1,132 @@
+﻿{
+  "@id": "https://api.nuget.org/v3/catalog0/data/2022.06.07.08.44.59/slipeserver.scripting.0.1.0-ci-20220607-083949.json",
+  "@type": [
+    "PackageDetails",
+    "catalog:Permalink"
+  ],
+  "authors": "Slipe",
+  "catalog:commitId": "ebe15ca4-3d58-4ff6-a448-940e5af9fcef",
+  "catalog:commitTimeStamp": "2022-06-07T08:44:59.8308559Z",
+  "created": "2022-06-07T08:42:15.957Z",
+  "description": "Scripting layer C# Server for MTA San Andreas",
+  "iconFile": "slipe-logo.png",
+  "id": "SlipeServer.Scripting",
+  "isPrerelease": true,
+  "lastEdited": "2022-06-07T08:44:46.28Z",
+  "licenseFile": "LICENSE",
+  "licenseUrl": "https://aka.ms/deprecateLicenseUrl",
+  "listed": true,
+  "packageHash": "6TViIGFVQuUPWS4uD1I8+59dkgXUBg6DtwDulkTGND0rJwrnZfRgwbD0fUblU/aFMuteQGONBoUdjzt3rjSB8A==",
+  "packageHashAlgorithm": "SHA512",
+  "packageSize": 191823,
+  "projectUrl": "https://github.com/mta-slipe/Slipe-server",
+  "published": "2022-06-07T08:42:15.957Z",
+  "repository": "",
+  "verbatimVersion": "0.1.0-CI-20220607-083949",
+  "version": "0.1.0-CI-20220607-083949",
+  "dependencyGroups": [
+    {
+      "@id": "https://api.nuget.org/v3/catalog0/data/2022.06.07.08.44.59/slipeserver.scripting.0.1.0-ci-20220607-083949.json#dependencygroup/net6.0",
+      "@type": "PackageDependencyGroup",
+      "dependencies": [
+        {
+          "@id": "https://api.nuget.org/v3/catalog0/data/2022.06.07.08.44.59/slipeserver.scripting.0.1.0-ci-20220607-083949.json#dependencygroup/net6.0/slipeserver.server",
+          "@type": "PackageDependency",
+          "id": "SlipeServer.Server",
+          "range": "[0.1.0-CI-20220607-083949, )"
+        }
+      ],
+      "targetFramework": "net6.0"
+    }
+  ],
+  "packageEntries": [
+    {
+      "@id": "https://api.nuget.org/v3/catalog0/data/2022.06.07.08.44.59/slipeserver.scripting.0.1.0-ci-20220607-083949.json#SlipeServer.Scripting.nuspec",
+      "@type": "PackageEntry",
+      "compressedLength": 453,
+      "fullName": "SlipeServer.Scripting.nuspec",
+      "length": 851,
+      "name": "SlipeServer.Scripting.nuspec"
+    },
+    {
+      "@id": "https://api.nuget.org/v3/catalog0/data/2022.06.07.08.44.59/slipeserver.scripting.0.1.0-ci-20220607-083949.json#lib/net6.0/SlipeServer.Scripting.dll",
+      "@type": "PackageEntry",
+      "compressedLength": 10646,
+      "fullName": "lib/net6.0/SlipeServer.Scripting.dll",
+      "length": 23552,
+      "name": "SlipeServer.Scripting.dll"
+    },
+    {
+      "@id": "https://api.nuget.org/v3/catalog0/data/2022.06.07.08.44.59/slipeserver.scripting.0.1.0-ci-20220607-083949.json#LICENSE",
+      "@type": "PackageEntry",
+      "compressedLength": 640,
+      "fullName": "LICENSE",
+      "length": 1083,
+      "name": "LICENSE"
+    },
+    {
+      "@id": "https://api.nuget.org/v3/catalog0/data/2022.06.07.08.44.59/slipeserver.scripting.0.1.0-ci-20220607-083949.json#slipe-logo.png",
+      "@type": "PackageEntry",
+      "compressedLength": 168636,
+      "fullName": "slipe-logo.png",
+      "length": 168703,
+      "name": "slipe-logo.png"
+    },
+    {
+      "@id": "https://api.nuget.org/v3/catalog0/data/2022.06.07.08.44.59/slipeserver.scripting.0.1.0-ci-20220607-083949.json#.signature.p7s",
+      "@type": "PackageEntry",
+      "compressedLength": 9461,
+      "fullName": ".signature.p7s",
+      "length": 9461,
+      "name": ".signature.p7s"
+    }
+  ],
+  "@context": {
+    "@vocab": "http://schema.nuget.org/schema#",
+    "catalog": "http://schema.nuget.org/catalog#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dependencies": {
+      "@id": "dependency",
+      "@container": "@set"
+    },
+    "dependencyGroups": {
+      "@id": "dependencyGroup",
+      "@container": "@set"
+    },
+    "packageEntries": {
+      "@id": "packageEntry",
+      "@container": "@set"
+    },
+    "packageTypes": {
+      "@id": "packageType",
+      "@container": "@set"
+    },
+    "supportedFrameworks": {
+      "@id": "supportedFramework",
+      "@container": "@set"
+    },
+    "tags": {
+      "@id": "tag",
+      "@container": "@set"
+    },
+    "vulnerabilities": {
+      "@id": "vulnerability",
+      "@container": "@set"
+    },
+    "published": {
+      "@type": "xsd:dateTime"
+    },
+    "created": {
+      "@type": "xsd:dateTime"
+    },
+    "lastEdited": {
+      "@type": "xsd:dateTime"
+    },
+    "catalog:commitTimeStamp": {
+      "@type": "xsd:dateTime"
+    },
+    "reasons": {
+      "@container": "@set"
+    }
+  }
+}

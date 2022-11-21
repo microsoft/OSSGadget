@@ -443,10 +443,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// Return a normalized package metadata.
         /// </summary>
         /// <param name="purl">The <see cref="PackageURL"/> to get the normalized metadata for.</param>
+        /// <param name="includePrerelease">If pre-releases should count for getting the latest version, and the list of versions. Defaults to <c>false</c>.</param>
         /// <param name="useCache">If the <see cref="PackageMetadata"/> should be retrieved from the cache, if it is available.</param>
         /// <remarks>If no version specified, defaults to latest version.</remarks>
         /// <returns>A <see cref="PackageMetadata"/> object representing this <see cref="PackageURL"/>.</returns>
-        public virtual Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool useCache = true)
+        public virtual Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool includePrerelease = false, bool useCache = true)
         {
             string typeName = GetType().Name;
             throw new NotImplementedException($"{typeName} does not implement GetPackageMetadata.");

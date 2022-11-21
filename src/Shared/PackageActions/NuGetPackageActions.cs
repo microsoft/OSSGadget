@@ -14,6 +14,7 @@ using NuGet.Versioning;
 using PackageUrl;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -113,11 +114,17 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
     {
         FindPackageByIdResource resource = await _sourceRepository.GetResourceAsync<FindPackageByIdResource>();
 
-        IEnumerable<NuGetVersion> versionsAscending = await resource.GetAllVersionsAsync(
+        ImmutableList<NuGetVersion> versionsAscending = (await resource.GetAllVersionsAsync(
             packageUrl.Name,
             _sourceCacheContext,
             _logger, 
-            cancellationToken);
+            cancellationToken)).ToImmutableList();
+        
+        // If we don't want pre-releases, but all versions are pre-releases, return an empty list.
+        if (!includePrerelease && versionsAscending.All(v => v.IsPrerelease))
+        {
+            return new List<string>();
+        }
 
         return versionsAscending
             .Where(v => includePrerelease || !v.IsPrerelease)
@@ -134,12 +141,18 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
     {
         FindPackageByIdResource resource = await _sourceRepository.GetResourceAsync<FindPackageByIdResource>();
 
-        IEnumerable<NuGetVersion> versionsAscending = await resource.GetAllVersionsAsync(
+        ImmutableList<NuGetVersion> versionsAscending = (await resource.GetAllVersionsAsync(
             packageUrl.Name,
             _sourceCacheContext,
             _logger, 
-            cancellationToken);
+            cancellationToken)).ToImmutableList();
 
+        // If we don't want pre-releases, but all versions are pre-releases, return null.
+        if (!includePrerelease && versionsAscending.All(v => v.IsPrerelease))
+        {
+            return null;
+        }
+        
         return versionsAscending
             .Last(v => includePrerelease || !v.IsPrerelease) // The latest version is the last in ascending order.
             .ToString();
@@ -152,12 +165,13 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
         CancellationToken cancellationToken = default)
     {
         PackageMetadataResource resource = await _sourceRepository.GetResourceAsync<PackageMetadataResource>();
-        if (string.IsNullOrWhiteSpace(packageUrl.Version))
+        string? version = packageUrl.Version;
+        if (string.IsNullOrWhiteSpace(version))
         {
             throw new ArgumentException("There was no version on the PackageURL.", nameof(packageUrl));
         }
 
-        PackageIdentity packageIdentity = new(packageUrl.Name, NuGetVersion.Parse(packageUrl.Version));
+        PackageIdentity packageIdentity = new(packageUrl.Name, NuGetVersion.Parse(version));
 
         PackageSearchMetadataRegistration? packageVersion = await resource.GetMetadataAsync(
             packageIdentity,

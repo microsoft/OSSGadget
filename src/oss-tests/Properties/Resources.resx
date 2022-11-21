@@ -60,6 +60,21 @@
     <data name="razorengine.4.2.3-beta1.metadata.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
         <value>..\TestData\NuGet\razorengine\4.2.3-beta1.metadata.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </data>
+    <data name="slipeserver.scripting.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>..\TestData\NuGet\slipeserver.scripting\index.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </data>
+    <data name="slipeserver.scripting.versions.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>..\TestData\NuGet\slipeserver.scripting\versions.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </data>
+    <data name="slipeserver.scripting.catalogpage.2.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>..\TestData\NuGet\slipeserver.scripting\page\0.1.0-ci-20220325-215611\0.1.0-ci-20220807-160739.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </data>
+    <data name="slipeserver.scripting.catalogpage.3.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>..\TestData\NuGet\slipeserver.scripting\page\0.1.0-ci-20221013-182634\0.1.0-ci-20221120-180516.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </data>
+    <data name="slipeserver.scripting.0.1.0-ci-20220607-083949.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>..\TestData\NuGet\slipeserver.scripting\slipeserver.scripting.0.1.0-ci-20220607-083949.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </data>
     <data name="nuget_registration.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
         <value>..\TestData\NuGet\nuget_registration.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </data>

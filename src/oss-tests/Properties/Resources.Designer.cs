@@ -234,7 +234,21 @@ namespace oss {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {&quot;info&quot;:{&quot;author&quot;:&quot;Kenneth Reitz&quot;,&quot;author_email&quot;:&quot;me@kennethreitz.org&quot;,&quot;bugtrack_url&quot;:null,&quot;classifiers&quot;:[&quot;Development Status :: 5 - Production/Stable&quot;,&quot;Environment :: Web Environment&quot;,&quot;Intended Audience :: Developers&quot;,&quot;License :: OSI Approved :: Apache Software License&quot;,&quot;Natural Language :: English&quot;,&quot;Operating System :: OS Independent&quot;,&quot;Programming Language :: Python&quot;,&quot;Programming Language :: Python :: 2&quot;,&quot;Programming Language :: Python :: 2.7&quot;,&quot;Programming Language :: Python :: 3&quot;,&quot;Programming Language :: [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to {
+        ///  &quot;info&quot;: {
+        ///    &quot;author&quot;: &quot;Kenneth Reitz&quot;,
+        ///    &quot;author_email&quot;: &quot;me@kennethreitz.org&quot;,
+        ///    &quot;bugtrack_url&quot;: null,
+        ///    &quot;classifiers&quot;: [
+        ///      &quot;Development Status :: 5 - Production/Stable&quot;,
+        ///      &quot;Environment :: Web Environment&quot;,
+        ///      &quot;Intended Audience :: Developers&quot;,
+        ///      &quot;License :: OSI Approved :: Apache Software License&quot;,
+        ///      &quot;Natural Language :: English&quot;,
+        ///      &quot;Operating System :: OS Independent&quot;,
+        ///      &quot;Programming Language :: Python&quot;,
+        ///      &quot;Programming Language :: Python :: 2&quot;,
+        ///    [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string requests_2_27_1_json {
             get {
@@ -257,6 +271,63 @@ namespace oss {
         internal static string rly_cli_json {
             get {
                 return ResourceManager.GetString("rly-cli.json", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  &quot;@id&quot;: &quot;https://api.nuget.org/v3/catalog0/data/2022.06.07.08.44.59/slipeserver.scripting.0.1.0-ci-20220607-083949.json&quot;,
+        ///  &quot;@type&quot;: [
+        ///    &quot;PackageDetails&quot;,
+        ///    &quot;catalog:Permalink&quot;
+        ///  ],
+        ///  &quot;authors&quot;: &quot;Slipe&quot;,
+        ///  &quot;catalog:commitId&quot;: &quot;ebe15ca4-3d58-4ff6-a448-940e5af9fcef&quot;,
+        ///  &quot;catalog:commitTimeStamp&quot;: &quot;2022-06-07T08:44:59.8308559Z&quot;,
+        ///  &quot;created&quot;: &quot;2022-06-07T08:42:15.957Z&quot;,
+        ///  &quot;description&quot;: &quot;Scripting layer C# Server for MTA San Andreas&quot;,
+        ///  &quot;iconFile&quot;: &quot;slipe-logo.png&quot;,
+        ///  &quot;id&quot;: &quot;SlipeServer.Script [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string slipeserver_scripting_0_1_0_ci_20220607_083949_json {
+            get {
+                return ResourceManager.GetString("slipeserver.scripting.0.1.0-ci-20220607-083949.json", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;@id&quot;:&quot;https://api.nuget.org/v3/registration5-gz-semver2/slipeserver.scripting/page/0.1.0-ci-20220325-215611/0.1.0-ci-20220807-160739.json&quot;,&quot;@type&quot;:&quot;catalog:CatalogPage&quot;,&quot;commitId&quot;:&quot;092a36d4-efb8-4e35-8d96-74a12ed8de57&quot;,&quot;commitTimeStamp&quot;:&quot;2022-08-07T16:12:38.9645281+00:00&quot;,&quot;count&quot;:64,&quot;items&quot;:[{&quot;@id&quot;:&quot;https://api.nuget.org/v3/registration5-gz-semver2/slipeserver.scripting/0.1.0-ci-20220325-215611.json&quot;,&quot;@type&quot;:&quot;Package&quot;,&quot;commitId&quot;:&quot;f9481809-13c3-43c3-8d0e-d6d35d72663a&quot;,&quot;commitTimeStamp&quot;:&quot;2022-03-25T22:03:10 [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string slipeserver_scripting_catalogpage_2_json {
+            get {
+                return ResourceManager.GetString("slipeserver.scripting.catalogpage.2.json", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;@id&quot;:&quot;https://api.nuget.org/v3/registration5-gz-semver2/slipeserver.scripting/page/0.1.0-ci-20221013-182634/0.1.0-ci-20221120-180516.json&quot;,&quot;@type&quot;:&quot;catalog:CatalogPage&quot;,&quot;commitId&quot;:&quot;5c5c9ce6-0f54-4364-ac33-a79fb8bcc6d3&quot;,&quot;commitTimeStamp&quot;:&quot;2022-11-20T18:10:52.9301862+00:00&quot;,&quot;count&quot;:42,&quot;items&quot;:[{&quot;@id&quot;:&quot;https://api.nuget.org/v3/registration5-gz-semver2/slipeserver.scripting/0.1.0-ci-20221013-182634.json&quot;,&quot;@type&quot;:&quot;Package&quot;,&quot;commitId&quot;:&quot;48b86cee-4f37-4ad8-ab95-ae84a6b8e2e2&quot;,&quot;commitTimeStamp&quot;:&quot;2022-10-13T18:33:00 [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string slipeserver_scripting_catalogpage_3_json {
+            get {
+                return ResourceManager.GetString("slipeserver.scripting.catalogpage.3.json", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;@id&quot;:&quot;https://api.nuget.org/v3/registration5-gz-semver2/slipeserver.scripting/index.json&quot;,&quot;@type&quot;:[&quot;catalog:CatalogRoot&quot;,&quot;PackageRegistration&quot;,&quot;catalog:Permalink&quot;],&quot;commitId&quot;:&quot;5c5c9ce6-0f54-4364-ac33-a79fb8bcc6d3&quot;,&quot;commitTimeStamp&quot;:&quot;2022-11-20T18:10:52.9301862+00:00&quot;,&quot;count&quot;:4,&quot;items&quot;:[{&quot;@id&quot;:&quot;https://api.nuget.org/v3/registration5-gz-semver2/slipeserver.scripting/page/0.1.0-ci-20210204-180233/0.1.0-ci-20210826-172946.json&quot;,&quot;@type&quot;:&quot;catalog:CatalogPage&quot;,&quot;commitId&quot;:&quot;8f3408ff-7a72-48f4-a532-cb71483f4a05&quot;,&quot;c [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string slipeserver_scripting_json {
+            get {
+                return ResourceManager.GetString("slipeserver.scripting.json", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [&quot;0.1.0-ci-20210204-180233&quot;,&quot;0.1.0-ci-20210206-131710&quot;,&quot;0.1.0-ci-20210206-133010&quot;,&quot;0.1.0-ci-20210208-235527&quot;,&quot;0.1.0-ci-20210210-215134&quot;,&quot;0.1.0-ci-20210211-180018&quot;,&quot;0.1.0-ci-20210220-123834&quot;,&quot;0.1.0-ci-20210220-161521&quot;,&quot;0.1.0-ci-20210223-083609&quot;,&quot;0.1.0-ci-20210227-122954&quot;,&quot;0.1.0-ci-20210227-145637&quot;,&quot;0.1.0-ci-20210227-145902&quot;,&quot;0.1.0-ci-20210304-203550&quot;,&quot;0.1.0-ci-20210807-163214&quot;,&quot;0.1.0-ci-20210808-105103&quot;,&quot;0.1.0-ci-20210808-110016&quot;,&quot;0.1.0-ci-20210808-114931&quot;,&quot;0.1.0-ci-20210808-141049&quot;,&quot;0.1.0-ci-20210808-223150 [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string slipeserver_scripting_versions_json {
+            get {
+                return ResourceManager.GetString("slipeserver.scripting.versions.json", resourceCulture);
             }
         }
         

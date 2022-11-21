@@ -53,9 +53,19 @@ public static class PackageActionsHelper<T> where T : IManagerPackageVersionMeta
                     It.IsAny<CancellationToken>()).Result)
                     .Returns(() =>
                     {
-                        return typeof(T) == typeof(NuGetPackageVersionMetadata)
-                            ? versionsArray.Where(v => includePrerelease || !NuGetVersion.Parse(v).IsPrerelease)
-                            : versionsArray;
+                        if (typeof(T) != typeof(NuGetPackageVersionMetadata))
+                        {
+                            return versionsArray;
+                        }
+
+                        if (!includePrerelease && versionsArray.All(v => NuGetVersion.Parse(v).IsPrerelease))
+                        {
+                            return new List<string>();
+                        }
+
+                        return versionsArray
+                            .Where(v => includePrerelease || !NuGetVersion.Parse(v).IsPrerelease)
+                            .Select(v => v.ToString());
                     });
 
                 // Mock the call to GetLatestVersionAsync to be the first version in the list that was provided, as it should be in descending order.

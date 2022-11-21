@@ -62,7 +62,7 @@
     "severity": "critical",
     "patterns": [
       {
-        "pattern": "resolve4\\((.*+){2}.*",
+        "pattern": "resolve4\\((.+){2}.*",
         "type": "regex",
         "scopes": [ "code" ],
         "modifiers": [ "i" ],

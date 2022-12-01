@@ -41,13 +41,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             : base(actions ?? new NoOpPackageActions(), httpClientFactory ?? new DefaultHttpClientFactory(), directory)
         {
         }
-
-        /// <inheritdoc />
-        [Obsolete("Deprecated in favor of GetArtifactDownloadUrisAsync.")]
-        public override IEnumerable<ArtifactUri<PyPIArtifactType>> GetArtifactDownloadUris(PackageURL purl)
-        {
-            return GetArtifactDownloadUrisAsync(purl).ToListAsync().Result;
-        }
         
         /// <inheritdoc />
         public override async IAsyncEnumerable<ArtifactUri<PyPIArtifactType>> GetArtifactDownloadUrisAsync(PackageURL purl, bool useCache = true)

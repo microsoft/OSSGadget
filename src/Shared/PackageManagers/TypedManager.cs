@@ -12,6 +12,7 @@ using Polly.Retry;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -95,7 +96,10 @@ public abstract class TypedManager<T, TArtifactUriType> : BaseProjectManager whe
     /// <returns>A list of the relevant <see cref="ArtifactUri{TArtifactUriType}"/>.</returns>
     /// <remarks>Returns the expected URIs for resources. Does not validate that the URIs resolve at the moment of enumeration.</remarks>
     [Obsolete(message: $"Deprecated in favor of {nameof(GetArtifactDownloadUrisAsync)}.")]
-    public abstract IEnumerable<ArtifactUri<TArtifactUriType>> GetArtifactDownloadUris(PackageURL purl);
+    public IEnumerable<ArtifactUri<TArtifactUriType>> GetArtifactDownloadUris(PackageURL purl)
+    {
+        return GetArtifactDownloadUrisAsync(purl).ToListAsync().GetAwaiter().GetResult();
+    }
     
     /// <summary>
     /// Gets the relevant URI(s) to download the files related to a <see cref="PackageURL"/>.

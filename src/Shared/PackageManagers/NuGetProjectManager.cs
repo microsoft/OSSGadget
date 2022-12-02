@@ -51,13 +51,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
             GetRegistrationEndpointAsync().Wait();
         }
-        
-        /// <inheritdoc />
-        [Obsolete("Deprecated in favor of GetArtifactDownloadUrisAsync.")]
-        public override IEnumerable<ArtifactUri<NuGetArtifactType>> GetArtifactDownloadUris(PackageURL purl)
-        {
-            return GetArtifactDownloadUrisAsync(purl).ToListAsync().Result;
-        }
 
         /// <inheritdoc />
         public override async IAsyncEnumerable<ArtifactUri<NuGetArtifactType>> GetArtifactDownloadUrisAsync(PackageURL purl, bool useCache = true)

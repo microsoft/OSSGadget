@@ -84,7 +84,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 return downloadedPaths;
             }
 
-            string url = $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}/{packageVersion}/download";
+            Uri url = (await GetArtifactDownloadUrisAsync(purl, cached).ToListAsync()).Single().Uri;
             try
             {
                 string targetName = $"cargo-{fileName}";
@@ -108,7 +108,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 }
                 else
                 {
-                    extractionPath += Path.GetExtension(url) ?? "";
+                    extractionPath += Path.GetExtension(url.ToString()) ?? "";
                     await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
                     downloadedPaths.Add(extractionPath);
                 }

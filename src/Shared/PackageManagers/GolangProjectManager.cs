@@ -45,8 +45,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             string packageNamespace = Check.NotNull(nameof(purl.Namespace), purl?.Namespace);
             string packageName = Check.NotNull(nameof(purl.Name), purl?.Name);
             string packageVersion = Check.NotNull(nameof(purl.Version), purl?.Version);
+            string? packageSubpath = purl?.Subpath;
 
-            string artifactUri = $"{ENV_GO_PROXY_ENDPOINT}/{packageNamespace.ToLowerInvariant()}/{packageName.ToLowerInvariant()}/@v/{packageVersion}.zip";
+            // PackageURL normally replaces slashes in the namespace to be commas. This code changes it back to slashes to correctly format the download url.
+            string packageSubpathNormalized = !string.IsNullOrWhiteSpace(packageSubpath) ? packageSubpath.ToLowerInvariant() + "/" : string.Empty;
+            string artifactUri = $"{ENV_GO_PROXY_ENDPOINT}/{packageNamespace.ToLowerInvariant().Replace(',', '/')}/{packageName.ToLowerInvariant()}/{packageSubpathNormalized}@v/{packageVersion}.zip";
             yield return new ArtifactUri<GolangArtifactType>(GolangArtifactType.Zip, artifactUri);
         }
 
@@ -69,6 +72,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             string? packageNamespace = purl?.Namespace;
             string? packageName = purl?.Name;
             string? packageVersion = purl?.Version;
+            string? packageSubpath = purl?.Subpath;
             List<string> downloadedPaths = new();
 
             if (string.IsNullOrWhiteSpace(packageNamespace) || string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
@@ -79,14 +83,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             try
             {
-                string url = $"{ENV_GO_PROXY_ENDPOINT}/{packageNamespace.ToLowerInvariant()}/{packageName.ToLowerInvariant()}/@v/{packageVersion}.zip";
+                Uri url = (await GetArtifactDownloadUrisAsync(purl, cached).ToListAsync()).Single().Uri;
                 HttpClient httpClient = CreateHttpClient();
 
                 System.Net.Http.HttpResponseMessage result = await httpClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
                 Logger.Debug("Downloading {0}...", purl);
 
-                string targetName = $"golang-{packageNamespace}-{packageName}@{packageVersion}";
+                string targetName = $"golang-{packageNamespace}-{packageName}-{packageSubpath}@{packageVersion}";
                 string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                 if (doExtract && Directory.Exists(extractionPath) && cached == true)
                 {
@@ -99,7 +103,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 }
                 else
                 {
-                    extractionPath += Path.GetExtension(url) ?? "";
+                    extractionPath += Path.GetExtension(url.ToString()) ?? "";
                     await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
                     downloadedPaths.Add(extractionPath);
                 }

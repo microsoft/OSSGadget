@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 {
+    using Microsoft.CST.OpenSource.PackageActions;
     using Moq;
     using oss;
     using PackageManagers;
@@ -40,7 +41,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
             _httpFactory = mockFactory.Object;
 
-            _projectManager = new CargoProjectManager(_httpFactory, ".");
+            _projectManager = new CargoProjectManager(".", new NoOpPackageActions(), _httpFactory);
         }
 
         [DataTestMethod]

@@ -90,6 +90,10 @@ jobs:
       TreatSignatureUpdateFailureAs: 'Warning'
       SignatureFreshness: 'UpToDate'
       TreatStaleSignatureAs: 'Warning'
+  - task: UseDotNet@2
+    inputs:
+      packageType: 'sdk'
+      version: '2.1.804'
   - task: EsrpCodeSigning@1
     displayName: Code Sign Nuget Packages
     condition: and(succeeded(), eq('${{ parameters.publishToNuget }}', 'true'))

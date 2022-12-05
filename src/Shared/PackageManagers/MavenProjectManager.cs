@@ -2,7 +2,13 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using AngleSharp.Dom;
+    using AngleSharp.Html.Parser;
     using Helpers;
+    using Microsoft.CST.OpenSource.Contracts;
+    using Microsoft.CST.OpenSource.Extensions;
+    using Microsoft.CST.OpenSource.Model;
+    using Microsoft.CST.OpenSource.PackageActions;
     using PackageUrl;
     using System;
     using System.Collections.Generic;
@@ -13,7 +19,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Threading.Tasks;
     using System.Xml;
 
-    internal class MavenProjectManager : BaseProjectManager
+    public class MavenProjectManager : TypedManager<IManagerPackageVersionMetadata, MavenProjectManager.MavenArtifactType>
     {
         /// <summary>
         /// The type of the project manager from the package-url type specifications.
@@ -23,15 +29,50 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         public override string ManagerType => Type;
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        public string ENV_MAVEN_ENDPOINT = "https://repo1.maven.org/maven2";
+        public const string DEFAULT_MAVEN_ENDPOINT = "https://repo1.maven.org/maven2";
+        public string ENV_MAVEN_ENDPOINT { get; set; } = DEFAULT_MAVEN_ENDPOINT;
 
-        public MavenProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        public MavenProjectManager(
+            string directory,
+            IManagerPackageActions<IManagerPackageVersionMetadata>? actions = null,
+            IHttpClientFactory? httpClientFactory = null)
+            : base(actions ?? new NoOpPackageActions(), httpClientFactory ?? new DefaultHttpClientFactory(), directory)
         {
         }
 
-        public MavenProjectManager(string destinationDirectory) : base(destinationDirectory)
+        /// <inheritdoc />
+        public override async IAsyncEnumerable<ArtifactUri<MavenArtifactType>> GetArtifactDownloadUrisAsync(PackageURL purl, bool useCache = true)
         {
+            string? packageNamespace = Check.NotNull(nameof(purl.Namespace), purl?.Namespace).Replace('.', '/');
+            string? packageName = Check.NotNull(nameof(purl.Name), purl?.Name);
+            string? packageVersion = Check.NotNull(nameof(purl.Version), purl?.Version);
+            string feedUrl = (purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT).EnsureTrailingSlash();
+            
+            HttpClient httpClient = CreateHttpClient();
+            string baseUrl = $"{feedUrl}{packageNamespace}/{packageName}/{packageVersion}/";
+            string? html = await GetHttpStringCache(httpClient, baseUrl, useCache);
+            if (string.IsNullOrEmpty(html))
+            {
+                throw new InvalidOperationException();
+            }
+
+            HtmlParser parser = new();
+            AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(html);
+            foreach (string fileName in document.QuerySelectorAll("a").Select(link => link.GetAttribute("href").ToString()))
+            {
+                if (fileName == "../") continue;
+
+                MavenArtifactType artifactType = GetMavenArtifactType(fileName);
+                yield return new ArtifactUri<MavenArtifactType>(artifactType, baseUrl + fileName);
+            }
+        }
+
+        /// <inheritdoc />
+        public override async IAsyncEnumerable<PackageURL> GetPackagesFromOwnerAsync(string owner, bool useCache = true)
+        {
+            // Packages by owner is not currently supported for Maven, so an empty list is returned. This is due to multiple registries
+            // being supported, and this method not being able to support that.
+            yield break;
         }
 
         /// <summary>
@@ -54,19 +95,19 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 return downloadedPaths;
             }
 
-            string[] suffixes = new string[] { "-javadoc", "-sources", "" };
-            foreach (string suffix in suffixes)
+            IEnumerable<ArtifactUri<MavenArtifactType>> artifacts = (await GetArtifactDownloadUrisAsync(purl, useCache: cached).ToListAsync())
+                .Where(artifact => artifact.Type is MavenArtifactType.Jar or MavenArtifactType.SourcesJar or MavenArtifactType.JavadocJar);
+            foreach (ArtifactUri<MavenArtifactType> artifact in artifacts)
             {
                 try
                 {
-                    string url = $"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/{packageVersion}/{packageName}-{packageVersion}{suffix}.jar";
                     HttpClient httpClient = CreateHttpClient();
 
-                    System.Net.Http.HttpResponseMessage result = await httpClient.GetAsync(url);
+                    System.Net.Http.HttpResponseMessage result = await httpClient.GetAsync(artifact.Uri);
                     result.EnsureSuccessStatusCode();
                     Logger.Debug($"Downloading {purl}...");
 
-                    string targetName = $"maven-{packageNamespace}-{packageName}{suffix}@{packageVersion}";
+                    string targetName = $"maven-{packageNamespace}-{packageName}{artifact.Type}@{packageVersion}";
                     targetName = targetName.Replace('/', '-');
                     string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                     if (doExtract && Directory.Exists(extractionPath) && cached == true)
@@ -80,7 +121,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     }
                     else
                     {
-                        extractionPath += Path.GetExtension(url) ?? "";
+                        extractionPath += artifact.Uri.GetExtension() ?? "";
                         await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
                         downloadedPaths.Add(extractionPath);
                     }
@@ -104,9 +145,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
             string packageNamespace = purl.Namespace.Replace('.', '/');
             string packageName = purl.Name;
+            string feedUrl = (purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT).EnsureTrailingSlash();
             HttpClient httpClient = CreateHttpClient();
 
-            return await CheckHttpCacheForPackage(httpClient, $"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/maven-metadata.xml", useCache);
+            return await CheckHttpCacheForPackage(httpClient, $"{feedUrl}{packageNamespace}/{packageName}/maven-metadata.xml", useCache);
         }
 
         /// <inheritdoc />
@@ -121,9 +163,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {
                 string packageNamespace = purl.Namespace.Replace('.', '/');
                 string packageName = purl.Name;
+                string feedUrl = (purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT).EnsureTrailingSlash();
                 HttpClient httpClient = CreateHttpClient();
 
-                string? content = await GetHttpStringCache(httpClient, $"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/maven-metadata.xml", useCache);
+                string? content = await GetHttpStringCache(httpClient, $"{feedUrl}{packageNamespace}/{packageName}/maven-metadata.xml", useCache);
                 List<string> versionList = new();
                 if (string.IsNullOrWhiteSpace(content))
                 {
@@ -160,19 +203,20 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {
                 string? packageNamespace = purl?.Namespace?.Replace('.', '/');
                 string? packageName = purl?.Name;
+                string feedUrl = (purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT).EnsureTrailingSlash();
                 HttpClient httpClient = CreateHttpClient();
                 if (purl?.Version == null)
                 {
                     foreach (string? version in await EnumerateVersionsAsync(purl, useCache))
                     {
-                        return await GetHttpStringCache(httpClient, $"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/{version}/{packageName}-{version}.pom", useCache);
+                        return await GetHttpStringCache(httpClient, $"{feedUrl}{packageNamespace}/{packageName}/{version}/{packageName}-{version}.pom", useCache);
                     }
                     throw new Exception("No version specified and unable to enumerate.");
                 }
                 else
                 {
                     string version = purl.Version;
-                    return await GetHttpStringCache(httpClient, $"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}/{version}/{packageName}-{version}.pom", useCache);
+                    return await GetHttpStringCache(httpClient, $"{feedUrl}{packageNamespace}/{packageName}/{version}/{packageName}-{version}.pom", useCache);
                 }
             }
             catch (Exception ex)
@@ -186,8 +230,34 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
             string? packageNamespace = purl?.Namespace?.Replace('.', '/');
             string? packageName = purl?.Name;
+            string feedUrl = (purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT).EnsureTrailingSlash();
 
-            return new Uri($"{ENV_MAVEN_ENDPOINT}/{packageNamespace}/{packageName}");
+            return new Uri($"{feedUrl}{packageNamespace}/{packageName}");
+        }
+
+        public enum MavenArtifactType
+        {
+            Unknown = 0,
+            Jar,
+            JavadocJar,
+            Pom,
+            SourcesJar,
+            TestsJar,
+            TestSourcesJar,
+        }
+
+        private static MavenArtifactType GetMavenArtifactType(string fileName)
+        {
+            switch (fileName)
+            {
+                case string _ when fileName.EndsWith("-tests-sources.jar"): return MavenArtifactType.TestSourcesJar;
+                case string _ when fileName.EndsWith("-tests.jar"): return MavenArtifactType.TestsJar;
+                case string _ when fileName.EndsWith("-sources.jar"): return MavenArtifactType.SourcesJar;
+                case string _ when fileName.EndsWith(".pom"): return MavenArtifactType.Pom;
+                case string _ when fileName.EndsWith("-javadoc.jar"): return MavenArtifactType.JavadocJar;
+                case string _ when fileName.EndsWith(".jar"): return MavenArtifactType.Jar;
+                default: return MavenArtifactType.Unknown;
+            }
         }
     }
 }

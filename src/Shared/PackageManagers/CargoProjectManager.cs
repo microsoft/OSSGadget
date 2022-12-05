@@ -4,7 +4,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using Extensions;
     using Helpers;
+    using Microsoft.CST.OpenSource.Contracts;
+    using Microsoft.CST.OpenSource.Model;
+    using Microsoft.CST.OpenSource.PackageActions;
     using Model.Enums;
+    using Octokit;
     using PackageUrl;
     using System;
     using System.Collections.Generic;
@@ -15,7 +19,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Text.Json;
     using System.Threading.Tasks;
 
-    public class CargoProjectManager : BaseProjectManager
+    public class CargoProjectManager : TypedManager<IManagerPackageVersionMetadata, CargoProjectManager.CargoArtifactType>
     {
         /// <summary>
         /// The type of the project manager from the package-url type specifications.
@@ -34,12 +38,30 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public string ENV_CARGO_INDEX_ENDPOINT = "https://raw.githubusercontent.com/rust-lang/crates.io-index/master";
 
-        public CargoProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        public CargoProjectManager(
+            string directory,
+            IManagerPackageActions<IManagerPackageVersionMetadata>? actions = null,
+            IHttpClientFactory? httpClientFactory = null)
+            : base(actions ?? new NoOpPackageActions(), httpClientFactory ?? new DefaultHttpClientFactory(), directory)
         {
         }
 
-        public CargoProjectManager(string destinationDirectory) : base(destinationDirectory)
+        /// <inheritdoc />
+        public override async IAsyncEnumerable<ArtifactUri<CargoArtifactType>> GetArtifactDownloadUrisAsync(PackageURL purl, bool useCache = true)
         {
+            Check.NotNull(nameof(purl.Version), purl.Version);
+            string? packageName = purl?.Name;
+            string? packageVersion = purl?.Version;
+
+            string artifactUri = $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}/{packageVersion}/download";
+            yield return new ArtifactUri<CargoArtifactType>(CargoArtifactType.Tarball, artifactUri);
+        }
+
+        /// <inheritdoc />
+        public override async IAsyncEnumerable<PackageURL> GetPackagesFromOwnerAsync(string owner, bool useCache = true)
+        {
+            // Packages by owner is not currently supported for Cargo, so an empty list is returned.
+            yield break;
         }
 
         /// <summary>
@@ -62,7 +84,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 return downloadedPaths;
             }
 
-            string url = $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}/{packageVersion}/download";
+            Uri url = (await GetArtifactDownloadUrisAsync(purl, cached).ToListAsync()).Single().Uri;
             try
             {
                 string targetName = $"cargo-{fileName}";
@@ -86,7 +108,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 }
                 else
                 {
-                    extractionPath += Path.GetExtension(url) ?? "";
+                    extractionPath += Path.GetExtension(url.ToString()) ?? "";
                     await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
                     downloadedPaths.Add(extractionPath);
                 }
@@ -209,6 +231,12 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 default:
                     return $"{crateName[..2]}/{crateName[2..4]}/{crateName}";
             }
+        }
+
+        public enum CargoArtifactType
+        {
+            Unknown = 0,
+            Tarball,
         }
     }
 }

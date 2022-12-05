@@ -3,6 +3,9 @@
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using Helpers;
+    using Microsoft.CST.OpenSource.Contracts;
+    using Microsoft.CST.OpenSource.Model;
+    using Microsoft.CST.OpenSource.PackageActions;
     using PackageUrl;
     using System;
     using System.Collections.Generic;
@@ -12,7 +15,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Net.Http;
     using System.Threading.Tasks;
 
-    internal class GolangProjectManager : BaseProjectManager
+    public class GolangProjectManager : TypedManager<IManagerPackageVersionMetadata, GolangProjectManager.GolangArtifactType>
     {
         /// <summary>
         /// The type of the project manager from the package-url type specifications.
@@ -28,12 +31,33 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public string ENV_GO_PKG_ENDPOINT = "https://pkg.go.dev";
 
-        public GolangProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        public GolangProjectManager(
+            string directory,
+            IManagerPackageActions<IManagerPackageVersionMetadata>? actions = null,
+            IHttpClientFactory? httpClientFactory = null)
+            : base(actions ?? new NoOpPackageActions(), httpClientFactory ?? new DefaultHttpClientFactory(), directory)
         {
         }
 
-        public GolangProjectManager(string destinationDirectory) : base(destinationDirectory)
+        /// <inheritdoc />
+        public override async IAsyncEnumerable<ArtifactUri<GolangArtifactType>> GetArtifactDownloadUrisAsync(PackageURL purl, bool useCache = true)
         {
+            string packageNamespace = Check.NotNull(nameof(purl.Namespace), purl?.Namespace);
+            string packageName = Check.NotNull(nameof(purl.Name), purl?.Name);
+            string packageVersion = Check.NotNull(nameof(purl.Version), purl?.Version);
+            string? packageSubpath = purl?.Subpath;
+
+            // PackageURL normally replaces slashes in the namespace to be commas. This code changes it back to slashes to correctly format the download url.
+            string packageSubpathNormalized = !string.IsNullOrWhiteSpace(packageSubpath) ? packageSubpath.ToLowerInvariant() + "/" : string.Empty;
+            string artifactUri = $"{ENV_GO_PROXY_ENDPOINT}/{packageNamespace.ToLowerInvariant().Replace(',', '/')}/{packageName.ToLowerInvariant()}/{packageSubpathNormalized}@v/{packageVersion}.zip";
+            yield return new ArtifactUri<GolangArtifactType>(GolangArtifactType.Zip, artifactUri);
+        }
+
+        /// <inheritdoc />
+        public override async IAsyncEnumerable<PackageURL> GetPackagesFromOwnerAsync(string owner, bool useCache = true)
+        {
+            // Packages by owner is not currently supported for Golang, so an empty list is returned.
+            yield break;
         }
 
         /// <summary>
@@ -48,6 +72,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             string? packageNamespace = purl?.Namespace;
             string? packageName = purl?.Name;
             string? packageVersion = purl?.Version;
+            string? packageSubpath = purl?.Subpath;
             List<string> downloadedPaths = new();
 
             if (string.IsNullOrWhiteSpace(packageNamespace) || string.IsNullOrWhiteSpace(packageName) || string.IsNullOrWhiteSpace(packageVersion))
@@ -58,14 +83,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             try
             {
-                string url = $"{ENV_GO_PROXY_ENDPOINT}/{packageNamespace.ToLowerInvariant()}/{packageName.ToLowerInvariant()}/@v/{packageVersion}.zip";
+                Uri url = (await GetArtifactDownloadUrisAsync(purl, cached).ToListAsync()).Single().Uri;
                 HttpClient httpClient = CreateHttpClient();
 
                 System.Net.Http.HttpResponseMessage result = await httpClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
                 Logger.Debug("Downloading {0}...", purl);
 
-                string targetName = $"golang-{packageNamespace}-{packageName}@{packageVersion}";
+                string targetName = $"golang-{packageNamespace}-{packageName}-{packageSubpath}@{packageVersion}";
                 string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                 if (doExtract && Directory.Exists(extractionPath) && cached == true)
                 {
@@ -78,7 +103,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 }
                 else
                 {
-                    extractionPath += Path.GetExtension(url) ?? "";
+                    extractionPath += Path.GetExtension(url.ToString()) ?? "";
                     await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
                     downloadedPaths.Add(extractionPath);
                 }
@@ -187,6 +212,12 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public override Uri GetPackageAbsoluteUri(PackageURL purl)
         {
             return new Uri($"{ENV_GO_PKG_ENDPOINT}/{purl?.Namespace}/{purl?.Name}");
+        }
+
+        public enum GolangArtifactType
+        {
+            Unknown = 0,
+            Zip,
         }
     }
 }

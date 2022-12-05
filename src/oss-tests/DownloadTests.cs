@@ -69,6 +69,7 @@ namespace Microsoft.CST.OpenSource.Tests
 
         [DataTestMethod]
         [DataRow("pkg:golang/sigs.k8s.io/yaml", "yaml.go", 1)]
+        [DataRow("pkg:golang/github.com/Azure/go-autorest@v0.11.28#autorest", "go.mod", 1)]
         public async Task Golang_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
         {
             await TestDownload(purl, targetFilename, expectedDirectoryCount);

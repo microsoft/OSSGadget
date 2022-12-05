@@ -61,7 +61,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {
                 {
                     CargoProjectManager.Type, destinationDirectory =>
-                        new CargoProjectManager(httpClientFactory, destinationDirectory)
+                        new CargoProjectManager(destinationDirectory, new NoOpPackageActions(), httpClientFactory)
                 },
                 {
                     CocoapodsProjectManager.Type, destinationDirectory =>
@@ -89,7 +89,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 },
                 {
                     GolangProjectManager.Type, destinationDirectory =>
-                        new GolangProjectManager(httpClientFactory, destinationDirectory)
+                        new GolangProjectManager(destinationDirectory, new NoOpPackageActions(), httpClientFactory)
                 },
                 {
                     HackageProjectManager.Type, destinationDirectory =>
@@ -97,7 +97,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 },
                 {
                     MavenProjectManager.Type, destinationDirectory =>
-                        new MavenProjectManager(httpClientFactory, destinationDirectory)
+                        new MavenProjectManager(destinationDirectory, new NoOpPackageActions(), httpClientFactory)
                 },
                 {
                     NPMProjectManager.Type, destinationDirectory =>

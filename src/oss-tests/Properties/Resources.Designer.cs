@@ -115,6 +115,37 @@ namespace oss {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;
+        ///&lt;html&gt;
+        ///
+        ///&lt;head&gt;
+        ///	&lt;title&gt;Central Repository: ant/ant/1.6&lt;/title&gt;
+        ///	&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+        ///	&lt;style&gt;
+        ///body {
+        ///	background: #fff;
+        ///}
+        ///	&lt;/style&gt;
+        ///&lt;/head&gt;
+        ///
+        ///&lt;body&gt;
+        ///	&lt;header&gt;
+        ///		&lt;h1&gt;ant/ant/1.6&lt;/h1&gt;
+        ///	&lt;/header&gt;
+        ///	&lt;hr/&gt;
+        ///	&lt;main&gt;
+        ///		&lt;pre id=&quot;contents&quot;&gt;
+        ///&lt;a href=&quot;../&quot;&gt;../&lt;/a&gt;
+        ///&lt;a href=&quot;ant-1.6-sources.jar&quot; title=&quot;ant-1.6-sources.jar&quot;&gt;ant-1.6-sources.jar&lt;/a&gt;                               2005-09-20 05:44   2182693      
+        ///&lt;a href=&quot;ant-1.6-sources.jar.md5&quot; title=&quot;ant-1.6-s [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string maven_ant_1_6_html {
+            get {
+                return ResourceManager.GetString("maven_ant_1.6_html", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {&quot;_id&quot;:&quot;example&quot;,&quot;name&quot;:&quot;example&quot;,&quot;dist-tags&quot;:{&quot;latest&quot;:&quot;0.0.0&quot;},&quot;versions&quot;:{&quot;0.0.0&quot;:{&quot;name&quot;:&quot;example&quot;,&quot;version&quot;:&quot;0.0.0&quot;,&quot;_id&quot;:&quot;example@0.0.0&quot;,&quot;_npmVersion&quot;:&quot;1.0.0&quot;,&quot;_npmUser&quot;:{&quot;name&quot;:&quot;test&quot;,&quot;email&quot;:&quot;test@microsoft.com&quot;}}},&quot;time&quot;:{&quot;created&quot;:&quot;2022-08-10T21:35:37.950Z&quot;,&quot;0.0.0&quot;:&quot;2022-08-10T21:35:38.278Z&quot;,&quot;modified&quot;:&quot;2022-08-10T21:35:37.950Z&quot;}}.
         /// </summary>
         internal static string minimum_json_json {

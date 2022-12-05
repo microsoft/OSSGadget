@@ -2,6 +2,8 @@
 
 namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 {
+    using Microsoft.CST.OpenSource.Model;
+    using Microsoft.CST.OpenSource.PackageActions;
     using Moq;
     using oss;
     using PackageManagers;
@@ -40,7 +42,19 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
             _httpFactory = mockFactory.Object;
 
-            _projectManager = new CargoProjectManager(_httpFactory, ".");
+            _projectManager = new CargoProjectManager(".", new NoOpPackageActions(), _httpFactory);
+        }
+
+        [DataTestMethod]
+        [DataRow("pkg:cargo/rand@0.8.5", "https://crates.io/api/v1/crates/rand/0.8.5/download")]
+        [DataRow("pkg:cargo/quote@1.0.21", "https://crates.io/api/v1/crates/quote/1.0.21/download")]
+        public async Task GetArtifactDownloadUrisSucceeds_Async(string purlString, string expectedUri)
+        {
+            PackageURL purl = new(purlString);
+            List<ArtifactUri<CargoProjectManager.CargoArtifactType>> uris = await _projectManager.GetArtifactDownloadUrisAsync(purl).ToListAsync();
+
+            Assert.AreEqual(expectedUri, uris.First().Uri.AbsoluteUri);
+            Assert.AreEqual(CargoProjectManager.CargoArtifactType.Tarball, uris.First().Type);
         }
 
         [DataTestMethod]

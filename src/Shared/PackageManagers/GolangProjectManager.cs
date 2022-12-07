@@ -215,15 +215,15 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         public override async Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool includePrerelease = false, bool useCache = true)
         {
+            string? content = await GetMetadataAsync(purl, useCache);
+            if (string.IsNullOrEmpty(content)) { return null; }
+
             PackageMetadata metadata = new();
             metadata.Name = purl?.Name;
             metadata.PackageVersion = purl?.Version;
             metadata.PackageManagerUri = ENV_GO_PROXY_ENDPOINT.EnsureTrailingSlash();
             metadata.Platform = "Go";
             metadata.Language = "Go";
-
-            string? content = await GetMetadataAsync(purl, useCache);
-            if (string.IsNullOrEmpty(content)) { return null; }
 
             return metadata;
         }

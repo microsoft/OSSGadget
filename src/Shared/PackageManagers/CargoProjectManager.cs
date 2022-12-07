@@ -196,15 +196,15 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         public override async Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool includePrerelease = false, bool useCache = true)
         {
+            string? content = await GetMetadataAsync(purl, useCache);
+            if (string.IsNullOrEmpty(content)) { return null; }
+
             PackageMetadata metadata = new();
             metadata.Name = purl?.Name;
             metadata.PackageVersion = purl?.Version;
             metadata.PackageManagerUri = ENV_CARGO_ENDPOINT.EnsureTrailingSlash();
             metadata.Platform = "Cargo";
             metadata.Language = "Rust";
-
-            string? content = await GetMetadataAsync(purl, useCache);
-            if (string.IsNullOrEmpty(content)) { return null; }
 
             JsonDocument contentJSON = JsonDocument.Parse(content);
             JsonElement root = contentJSON.RootElement;

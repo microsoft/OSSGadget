@@ -47,7 +47,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             string? packageName = Check.NotNull(nameof(purl.Name), purl?.Name);
             string? packageVersion = Check.NotNull(nameof(purl.Version), purl?.Version);
             string feedUrl = (purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT).EnsureTrailingSlash();
-            
+
             HttpClient httpClient = CreateHttpClient();
             string baseUrl = $"{feedUrl}{packageNamespace}/{packageName}/{packageVersion}/";
             string? html = await GetHttpStringCache(httpClient, baseUrl, useCache);
@@ -224,6 +224,21 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 Logger.Warn(ex, $"Error fetching Maven metadata: {ex.Message}");
                 return null;
             }
+        }
+
+        public override async Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool includePrerelease = false, bool useCache = true)
+        {
+            string? content = await GetMetadataAsync(purl, useCache);
+            if (string.IsNullOrEmpty(content)) { return null; }
+
+            PackageMetadata metadata = new();
+            metadata.Name = purl?.Name;
+            metadata.PackageVersion = purl?.Version;
+            metadata.PackageManagerUri = (purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT).EnsureTrailingSlash();
+            metadata.Platform = "Maven";
+            metadata.Language = "Java";
+
+            return metadata;
         }
 
         public override Uri GetPackageAbsoluteUri(PackageURL purl)

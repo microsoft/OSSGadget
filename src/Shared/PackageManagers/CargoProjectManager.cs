@@ -7,6 +7,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using Microsoft.CST.OpenSource.Contracts;
     using Microsoft.CST.OpenSource.Model;
     using Microsoft.CST.OpenSource.PackageActions;
+    using Microsoft.CST.OpenSource.Utilities;
     using Model.Enums;
     using Octokit;
     using PackageUrl;
@@ -204,6 +205,25 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             string? content = await GetMetadataAsync(purl, useCache);
             if (string.IsNullOrEmpty(content)) { return null; }
+
+            JsonDocument contentJSON = JsonDocument.Parse(content);
+            JsonElement root = contentJSON.RootElement;
+            JsonElement? crateElement = OssUtilities.GetJSONPropertyIfExists(root, "crate");
+
+            if (crateElement != null)
+            {
+                if (OssUtilities.GetJSONPropertyStringIfExists(crateElement, "description") is string description &&
+                        !string.IsNullOrWhiteSpace(description))
+                {
+                    metadata.Description = description;
+                }
+
+                if (OssUtilities.GetJSONPropertyStringIfExists(crateElement, "newest_version") is string newestVersion &&
+                        !string.IsNullOrWhiteSpace(newestVersion))
+                {
+                    metadata.LatestPackageVersion = newestVersion;
+                }
+            }
 
             return metadata;
         }

@@ -299,12 +299,12 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         }
         
         [DataTestMethod]
-        [DataRow("pkg:npm/lodash@4.17.15", "2019-07-19T02:28:46.584Z")]
-        [DataRow("pkg:npm/%40angular/core@13.2.5", "2022-03-02T18:25:31.169Z")]
-        [DataRow("pkg:npm/ds-modal@0.0.2", "2018-08-09T07:24:06.206Z")]
-        [DataRow("pkg:npm/monorepolint@0.4.0", "2019-08-07T16:20:53.525Z")]
-        [DataRow("pkg:npm/rly-cli@0.0.2", "2022-03-08T17:26:27.219Z")]
-        [DataRow("pkg:npm/example@0.0.0", "2022-08-10T21:35:38.278Z")]
+        [DataRow("pkg:npm/lodash@4.17.15", "2019-07-19T02:28:46.584")]
+        [DataRow("pkg:npm/%40angular/core@13.2.5", "2022-03-02T18:25:31.169")]
+        [DataRow("pkg:npm/ds-modal@0.0.2", "2018-08-09T07:24:06.206")]
+        [DataRow("pkg:npm/monorepolint@0.4.0", "2019-08-07T16:20:53.525")]
+        [DataRow("pkg:npm/rly-cli@0.0.2", "2022-03-08T17:26:27.219")]
+        [DataRow("pkg:npm/example@0.0.0", "2022-08-10T21:35:38.278")]
         [DataRow("pkg:npm/example@0.0.1")] // No time property in the json for this version
         public async Task GetPublishedAtSucceeds(string purlString, string? expectedTime = null)
         {

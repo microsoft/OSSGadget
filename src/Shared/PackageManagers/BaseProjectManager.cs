@@ -600,9 +600,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         protected HttpClient CreateHttpClient()
         {
-            HttpClient client = HttpClientFactory.CreateClient(GetType().Name);
-            client.DefaultRequestHeaders.Add("User-Agent", "microsoft_ossgadget_bot (https://github.com/microsoft/OSSGadget)");
-            return client;
+            return HttpClientFactory.CreateClient(GetType().Name);
         }
     }
 }

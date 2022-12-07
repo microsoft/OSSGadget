@@ -69,7 +69,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
             Logger.Trace("DownloadVersion {0}", purl?.ToString());
 
-            string? packageNamespace = purl?.Namespace;
+            string? packageNamespace = purl?.Namespace?.Replace(',', '/');
             string? packageName = purl?.Name;
             string? packageVersion = purl?.Version;
             string? packageSubpath = purl?.Subpath;
@@ -124,7 +124,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 Logger.Trace("Provided PackageURL was null.");
                 return false;
             }
-            string packageNamespaceLower = purl.Namespace.ToLowerInvariant();
+            string packageNamespaceLower = purl.Namespace.ToLowerInvariant().Replace(',', '/');
             string packageNameLower = purl.Name.ToLowerInvariant();
             HttpClient httpClient = CreateHttpClient();
 
@@ -142,12 +142,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             try
             {
-                string? packageNamespaceLower = purl?.Namespace?.ToLowerInvariant();
+                string? packageNamespaceLower = purl?.Namespace?.ToLowerInvariant()?.Replace(',', '/');
                 string? packageNameLower = purl?.Name?.ToLowerInvariant();
+                string? packageSubpathLower = purl?.Subpath?.ToLowerInvariant();
                 List<string> versionList = new();
                 HttpClient httpClient = CreateHttpClient();
 
-                string? doc = await GetHttpStringCache(httpClient, $"{ENV_GO_PROXY_ENDPOINT}/{packageNamespaceLower}/{packageNameLower}/@v/list");
+                string subPathValue = string.IsNullOrEmpty(packageSubpathLower) ? string.Empty : '/' + packageSubpathLower;
+                string? doc = await GetHttpStringCache(httpClient, $"{ENV_GO_PROXY_ENDPOINT}/{packageNamespaceLower}/{packageNameLower}{subPathValue}/@v/list");
                 if (doc != null)
                 {
                     foreach (string line in doc.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
@@ -191,11 +193,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 if (versions.Any())
                 {
                     string latestVersion = versions.Last();
-                    string packageNamespaceLower = purl.Namespace.ToLowerInvariant();
+                    string packageNamespaceLower = purl.Namespace.ToLowerInvariant().Replace(',', '/');
                     string packageNameLower = purl.Name.ToLowerInvariant();
+                    string? packageSubpathLower = purl?.Subpath?.ToLowerInvariant();
                     HttpClient httpClient = CreateHttpClient();
 
-                    return await GetHttpStringCache(httpClient, $"{ENV_GO_PROXY_ENDPOINT}/{packageNamespaceLower}/{packageNameLower}/@v/{latestVersion}.mod", useCache);
+                    string subPathValue = string.IsNullOrEmpty(packageSubpathLower) ? string.Empty : '/' + packageSubpathLower;
+                    return await GetHttpStringCache(httpClient, $"{ENV_GO_PROXY_ENDPOINT}/{packageNamespaceLower}/{packageNameLower}{subPathValue}/@v/{latestVersion}.mod", useCache);
                 }
                 else
                 {
@@ -209,9 +213,28 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
         }
 
+        public override async Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool includePrerelease = false, bool useCache = true)
+        {
+            PackageMetadata metadata = new();
+            metadata.Name = purl?.Name;
+            metadata.PackageVersion = purl?.Version;
+            metadata.PackageManagerUri = ENV_GO_PROXY_ENDPOINT.EnsureTrailingSlash();
+            metadata.Platform = "Go";
+            metadata.Language = "Go";
+
+            string? content = await GetMetadataAsync(purl, useCache);
+            if (string.IsNullOrEmpty(content)) { return null; }
+
+            return metadata;
+        }
+
         public override Uri GetPackageAbsoluteUri(PackageURL purl)
         {
-            return new Uri($"{ENV_GO_PKG_ENDPOINT}/{purl?.Namespace}/{purl?.Name}");
+            string packageNamespaceLower = purl.Namespace.ToLowerInvariant().Replace(',', '/');
+            string packageNameLower = purl.Name.ToLowerInvariant();
+            string? packageSubpathLower = purl?.Subpath?.ToLowerInvariant();
+            string subPathValue = string.IsNullOrEmpty(packageSubpathLower) ? string.Empty : '/' + packageSubpathLower;
+            return new Uri($"{ENV_GO_PKG_ENDPOINT}/{packageNamespaceLower}/{packageNameLower}{subPathValue}");
         }
 
         public enum GolangArtifactType

@@ -193,6 +193,21 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
         }
 
+        public override async Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool includePrerelease = false, bool useCache = true)
+        {
+            PackageMetadata metadata = new();
+            metadata.Name = purl?.Name;
+            metadata.PackageVersion = purl?.Version;
+            metadata.PackageManagerUri = ENV_CARGO_ENDPOINT.EnsureTrailingSlash();
+            metadata.Platform = "Cargo";
+            metadata.Language = "Rust";
+
+            string? content = await GetMetadataAsync(purl, useCache);
+            if (string.IsNullOrEmpty(content)) { return null; }
+
+            return metadata;
+        }
+
         public override Uri GetPackageAbsoluteUri(PackageURL purl)
         {
             string? packageName = purl?.Name;

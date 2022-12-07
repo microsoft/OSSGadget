@@ -297,7 +297,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public async Task GetPublishedAtSucceeds(string purlString, string? expectedTime = null)
         {
             PackageURL purl = new(purlString);
-            DateTime? time = await _projectManager.Object.GetPublishedAtAsync(purl, useCache: false);
+            DateTime? time = await _projectManager.Object.GetPublishedAtUtcAsync(purl, useCache: false);
 
             if (expectedTime == null)
             {

@@ -309,10 +309,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <param name="useCache">If the cache should be used when looking for the versions.</param>
         /// <param name="includePrerelease">If pre-release versions should be included.</param>
         /// <returns> A list of package version numbers.</returns>
-        public virtual Task<IEnumerable<string>> EnumerateVersionsAsync(PackageURL purl, bool useCache = true, bool includePrerelease = true)
-        {
-            throw new NotImplementedException("BaseProjectManager does not implement EnumerateVersions.");
-        }
+        public abstract Task<IEnumerable<string>> EnumerateVersionsAsync(PackageURL purl, bool useCache = true, bool includePrerelease = true);
 
         /// <summary>
         /// Gets the latest version from the package metadata.
@@ -425,10 +422,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <param name="useCache">If the metadata should be retrieved from the cache, if it is available.</param>
         /// <remarks>If no version specified, defaults to latest version.</remarks>
         /// <returns>A string representing the <see cref="PackageURL"/>'s metadata, or null if it wasn't found.</returns>
-        public virtual Task<string?> GetMetadataAsync(PackageURL purl, bool useCache = true)
-        {
-            throw new NotImplementedException($"{GetType().Name} does not implement GetMetadata.");
-        }
+        public abstract Task<string?> GetMetadataAsync(PackageURL purl, bool useCache = true);
 
         /// <summary>
         /// Get the uri for the package home page (no version)
@@ -522,6 +516,19 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
 
             return sourceRepositoryMap;
+        }
+
+        /// <summary>
+        /// Gets the <see cref="DateTime"/> a package version was published at.
+        /// </summary>
+        /// <param name="purl">Package URL specifying the package. Version is mandatory.</param>
+        /// <param name="useCache">If the cache should be used when looking for the published time.</param>
+        /// <returns>The <see cref="DateTime"/> when this version was published, or null if not found.</returns>
+        public async Task<DateTime?> GetPublishedAtUtcAsync(PackageURL purl, bool useCache = true)
+        {
+            Check.NotNull(nameof(purl.Version), purl.Version);
+            DateTime? uploadTime = (await GetPackageMetadataAsync(purl, useCache))?.UploadTime?.ToUniversalTime();
+            return uploadTime;
         }
 
         /// <summary>

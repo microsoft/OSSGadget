@@ -137,7 +137,7 @@ namespace oss {
         ///		&lt;pre id=&quot;contents&quot;&gt;
         ///&lt;a href=&quot;../&quot;&gt;../&lt;/a&gt;
         ///&lt;a href=&quot;ant-1.6-sources.jar&quot; title=&quot;ant-1.6-sources.jar&quot;&gt;ant-1.6-sources.jar&lt;/a&gt;                               2005-09-20 05:44   2182693      
-        ///&lt;a href=&quot;ant-1.6-sources.jar.md5&quot; title=&quot;ant-1.6-s [rest of string was truncated]&quot;;.
+        ///&lt;a href=&quot;ant-1.6-sources.jar [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string maven_ant_1_6_html {
             get {
@@ -247,7 +247,23 @@ namespace oss {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {&quot;authors&quot;:&quot;Matthew Abbott, Ben Dornis, Matthias Dittrich&quot;,&quot;dependencyGroups&quot;:[{&quot;TargetFramework&quot;:{&quot;Framework&quot;:&quot;.NETFramework&quot;,&quot;Version&quot;:&quot;4.5.1.0&quot;,&quot;Platform&quot;:&quot;&quot;,&quot;PlatformVersion&quot;:&quot;0.0.0.0&quot;,&quot;HasPlatform&quot;:false,&quot;HasProfile&quot;:false,&quot;Profile&quot;:&quot;&quot;,&quot;DotNetFrameworkName&quot;:&quot;.NETFramework,Version=v4.5.1&quot;,&quot;DotNetPlatformName&quot;:&quot;&quot;,&quot;IsPCL&quot;:false,&quot;IsPackageBased&quot;:false,&quot;AllFrameworkVersions&quot;:false,&quot;IsUnsupported&quot;:false,&quot;IsAgnostic&quot;:false,&quot;IsAny&quot;:false,&quot;IsSpecificFramework&quot;:true},&quot;Packages&quot;:[{&quot;Id&quot;:&quot;Microsoft.AspNetCore.Razor [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to {
+        ///  &quot;authors&quot;: &quot;Matthew Abbott, Ben Dornis, Matthias Dittrich&quot;,
+        ///  &quot;dependencyGroups&quot;: [
+        ///    {
+        ///      &quot;TargetFramework&quot;: {
+        ///        &quot;Framework&quot;: &quot;.NETFramework&quot;,
+        ///        &quot;Version&quot;: &quot;4.5.1.0&quot;,
+        ///        &quot;Platform&quot;: &quot;&quot;,
+        ///        &quot;PlatformVersion&quot;: &quot;0.0.0.0&quot;,
+        ///        &quot;HasPlatform&quot;: false,
+        ///        &quot;HasProfile&quot;: false,
+        ///        &quot;Profile&quot;: &quot;&quot;,
+        ///        &quot;DotNetFrameworkName&quot;: &quot;.NETFramework,Version=v4.5.1&quot;,
+        ///        &quot;DotNetPlatformName&quot;: &quot;&quot;,
+        ///        &quot;IsPCL&quot;: false,
+        ///        &quot;IsPackageBased&quot;: false,
+        ///        &quot; [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string razorengine_latest_metadata_json {
             get {
@@ -359,6 +375,15 @@ namespace oss {
         internal static string slipeserver_scripting_versions_json {
             get {
                 return ResourceManager.GetString("slipeserver.scripting.versions.json", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;_id&quot;:&quot;tslib&quot;,&quot;_rev&quot;:&quot;78-cb398e6ce0b13d23a20af78cebd80bd9&quot;,&quot;name&quot;:&quot;tslib&quot;,&quot;time&quot;:{&quot;modified&quot;:&quot;2022-10-31T18:26:42.070Z&quot;,&quot;created&quot;:&quot;2014-12-30T09:21:20.138Z&quot;,&quot;0.0.1&quot;:&quot;2014-12-30T09:21:22.769Z&quot;,&quot;0.0.2&quot;:&quot;2014-12-30T11:02:46.195Z&quot;,&quot;0.0.1-security&quot;:&quot;2016-06-16T22:56:19.306Z&quot;,&quot;1.0.0&quot;:&quot;2016-06-28T00:46:05.835Z&quot;,&quot;1.1.0&quot;:&quot;2016-11-21T19:18:50.947Z&quot;,&quot;1.2.0&quot;:&quot;2016-11-30T01:20:12.477Z&quot;,&quot;1.3.0&quot;:&quot;2016-12-21T17:39:27.117Z&quot;,&quot;1.4.0&quot;:&quot;2016-12-22T04:46:12.098Z&quot;,&quot;1.5.0&quot;:&quot;2017-01-05T18:07:30.457Z&quot;,&quot;1.6.0&quot;:&quot;2017-02-22T00:24:40.5 [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string tslib_json {
+            get {
+                return ResourceManager.GetString("tslib.json", resourceCulture);
             }
         }
         

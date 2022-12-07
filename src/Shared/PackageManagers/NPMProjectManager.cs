@@ -572,7 +572,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             JsonElement root = contentJSON.RootElement;
 
             // Check to make sure that the package version ever existed.
-            if (!PackageVersionEverExisted(purl, root))
+            bool versionEverExisted = PackageVersionEverExisted(purl, root);
+            if (!versionEverExisted)
             {
                 return new PackageVersionNotFound();
             }
@@ -593,12 +594,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 removalReasons.Add(PackageVersionRemovalReason.VersionUnpublished);
             }
 
-            if (consideredMalicious)
+            // The version has to be pulled entirely in order for it to be considered malicious.
+            if (!versionEverExisted && consideredMalicious)
             {
                 removalReasons.Add(PackageVersionRemovalReason.RemovedByRepository);
             }
 
-            if (pulled || versionPulled || consideredMalicious)
+            if (pulled || versionPulled || (!versionEverExisted && consideredMalicious))
             {
                 return new PackageVersionRemoved(removalReasons);
             }

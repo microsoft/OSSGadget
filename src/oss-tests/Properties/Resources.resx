@@ -42,6 +42,9 @@
     <data name="minimum_json.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
         <value>..\TestData\NPM\minimum_json.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </data>
+    <data name="tslib.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>..\TestData\NPM\tslib.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </data>
     <data name="unpublishedpackage.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
         <value>..\TestData\NPM\unpublishedpackage.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </data>

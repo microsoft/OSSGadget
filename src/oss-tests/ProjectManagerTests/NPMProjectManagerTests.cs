@@ -89,6 +89,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             { "https://registry.npmjs.org/ds-modal", Resources.ds_modal_json },
             { "https://registry.npmjs.org/monorepolint", Resources.monorepolint_json },
             { "https://registry.npmjs.org/rly-cli", Resources.rly_cli_json },
+            { "https://registry.npmjs.org/tslib", Resources.tslib_json },
             { "https://registry.npmjs.org/example", Resources.minimum_json_json },
         }.ToImmutableDictionary();
 
@@ -170,6 +171,17 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             PackageURL purl = new(purlString);
 
             Assert.IsFalse(await _projectManager.Object.PackageVersionExistsAsync(purl, useCache: false));
+        }
+        
+        [DataTestMethod]
+        [DataRow("pkg:npm/tslib@2.4.1", "currently_exists")]
+        public async Task DetailedPackageVersionExistsAsync_PurlSucceeds(string purlString, string existenceKey)
+        {
+            PackageURL purl = new(purlString);
+
+            var existence = await _projectManager.Object.DetailedPackageVersionExistsAsync(purl, useCache: false);
+
+            existence.Should().BeEquivalentTo(_packageVersionExistence[existenceKey].packageVersionExistence);
         }
 
         [DataTestMethod]

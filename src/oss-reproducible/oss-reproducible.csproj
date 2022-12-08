@@ -72,7 +72,7 @@
 
   <ItemGroup>
     <PackageReference Include="DiffPlex" Version="1.7.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageReference Include="SharpCompress" Version="0.32.2" />
   </ItemGroup>
 

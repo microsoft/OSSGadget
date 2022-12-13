@@ -7,6 +7,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using Helpers;
     using Microsoft.CST.OpenSource.Model;
     using Model.Enums;
+    using Model.Metadata.NPM;
     using Model.PackageExistence;
     using PackageActions;
     using PackageUrl;
@@ -17,6 +18,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Net;
     using System.Net.Http;
     using System.Text.Json;
+    using System.Text.Json.Serialization;
     using System.Threading.Tasks;
     using Utilities;
     using Version = SemanticVersioning.Version;
@@ -423,6 +425,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                         metadata.Repository.Add(repository);
                     }
 
+                    // Downloads
+                    metadata.Downloads = await GetDownloadsAsync(purl, useCache);
+
                     // keywords
                     metadata.Keywords = OssUtilities.ConvertJSONToList(OssUtilities.GetJSONPropertyIfExists(versionElement, "keywords"));
 
@@ -476,6 +481,44 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             catch (InvalidOperationException) { return null; }
 
             return null;
+        }
+        
+        public async Task<Downloads?> GetDownloadsAsync(PackageURL purl, bool useCache = true)
+        {
+            using HttpClient httpClient = CreateHttpClient();
+            string? packageName = purl.HasNamespace() ? $"{purl.GetNamespaceFormatted()}/{purl.Name}" : purl.Name;
+
+            string? versionWeeklyDownloads = await GetHttpStringCache(httpClient, $"https://api.npmjs.org/versions/{packageName}/last-week", useCache);
+            long? versionWeeklyDownloadCount = DownloadParser(purl, versionWeeklyDownloads);
+            
+            string? packageLastDayDownloads = await GetHttpStringCache(httpClient, $"https://api.npmjs.org/downloads/point/last-day/{packageName}", useCache);
+            long? packageLastDayDownloadCount =
+                JsonSerializer.Deserialize<NPMDownloads>(packageLastDayDownloads).Downloads;
+            string? packageMonthlyDownloads = await GetHttpStringCache(httpClient, $"https://api.npmjs.org/downloads/point/last-month/{packageName}", useCache);
+            long? packageMonthlyDownloadCount =
+                JsonSerializer.Deserialize<NPMDownloads>(packageMonthlyDownloads).Downloads;
+            string? packageYearlyDownloads = await GetHttpStringCache(httpClient, $"https://api.npmjs.org/downloads/point/last-year/{packageName}", useCache);
+            long? packageYearlyDownloadCount =
+                JsonSerializer.Deserialize<NPMDownloads>(packageYearlyDownloads).Downloads;
+
+            return new Downloads
+            {
+                Daily = packageLastDayDownloadCount,
+                Monthly = packageMonthlyDownloadCount,
+                Overall = null,
+                Weekly = versionWeeklyDownloadCount,
+                Yearly = packageYearlyDownloadCount
+            };
+        }
+
+        private long? DownloadParser(PackageURL purl, string? content)
+        {
+            JsonDocument contentJSON = JsonDocument.Parse(content);
+            if (contentJSON is null) { return null; }
+            JsonElement root = contentJSON.RootElement;
+            var downloads = root.GetProperty("downloads").EnumerateObject().FirstOrDefault((v) => v.Name == purl.Version).Value;
+
+            return downloads.GetInt64();
         }
 
         public override List<Version> GetVersions(JsonDocument? contentJSON)

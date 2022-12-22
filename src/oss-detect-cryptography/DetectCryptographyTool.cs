@@ -71,6 +71,8 @@ namespace Microsoft.CST.OpenSource
                     sb.Clear();
                     try
                     {
+                        sb.AppendLine($"{target}");
+
                         List<IssueRecord>? results = null;
                         if (target.StartsWith("pkg:", StringComparison.InvariantCulture))
                         {
@@ -114,7 +116,6 @@ namespace Microsoft.CST.OpenSource
                         else
                         {
                             sb.AppendLine("Summary Results:");
-
                             sb.AppendLine(Blue("Cryptographic Implementations:"));
                             IOrderedEnumerable<string>? implementations = results.SelectMany(r => r.Issue.Rule.Tags ?? Array.Empty<string>())
                                                          .Distinct()
@@ -735,8 +736,8 @@ optional arguments:
   --disable-default-rules       do not load default, built-in rules.
   --download-directory          the directory to download the package to
   --use-cache                   do not download the package if it is already present in the destination directory
-  --format                      specify the output format (text|sarifv1|sarifv2). (default is text)
-  --output-file                 send the command output to a file instead of stdout
+  --format                      specify the output format (text|sarifv1|sarifv2). (default is text) (currently not supported)
+  --output-file                 send the command output to a file instead of stdout (currently not supported)
   --help                        show this help message and exit
   --version                     show version of this tool
 ");

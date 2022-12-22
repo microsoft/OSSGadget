@@ -41,6 +41,9 @@ public static class ArchiveHelper
             dirBuilder.Replace(c, '-'); // CodeQL [cs/string-concatenation-in-loop] This is a small loop
         }
 
+        // Extractor does not handle slashes well, so we need to remove them here.
+        dirBuilder.Replace('/', '-');
+
         string fullTargetPath = Path.Combine(topLevelDirectory, dirBuilder.ToString());
 
         if (!cached)

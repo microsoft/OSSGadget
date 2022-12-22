@@ -41,6 +41,11 @@ namespace Microsoft.CST.OpenSource
             {
                 usingTemp = true;
                 destinationDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+
+                if (!Directory.Exists(destinationDirectory))
+                {
+                    Directory.CreateDirectory(destinationDirectory);
+                }
             }
             else
             {

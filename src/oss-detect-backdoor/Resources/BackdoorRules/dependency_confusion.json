@@ -29,7 +29,7 @@
         "scopes": [ "code", "comment" ],
         "modifiers": [ "i" ],
         "confidence": "high"
-      }   
+      }
     ]
   },
   {
@@ -43,7 +43,7 @@
     "severity": "critical",
     "patterns": [
       {
-        "pattern": ".{1,45}\\.(pipedream\\.net|ceye\\.io|burpcollaborator\\.net|interact\\.sh|requestbin\\.net|nmnfbb\\.com)",
+        "pattern": ".{1,45}(pipedream\\.net|ceye\\.io|burpcollaborator\\.net|interact\\.sh|requestbin\\.net|nmnfbb\\.com)",
         "type": "regex",
         "scopes": [ "code", "comment" ],
         "modifiers": [ "i" ],
@@ -69,5 +69,5 @@
         "confidence": "high"
       }
     ]
-  }  
+  }
 ]

@@ -72,6 +72,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                         new ComposerProjectManager(httpClientFactory, destinationDirectory)
                 },
                 {
+                    CondaProjectManager.Type, destinationDirectory =>
+                        new CondaProjectManager(destinationDirectory, new NoOpPackageActions(), httpClientFactory)
+                },
+                {
                     CPANProjectManager.Type, destinationDirectory =>
                         new CPANProjectManager(httpClientFactory, destinationDirectory)
                 },

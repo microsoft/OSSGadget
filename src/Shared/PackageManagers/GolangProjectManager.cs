@@ -4,8 +4,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using Helpers;
     using Microsoft.CST.OpenSource.Contracts;
+    using Microsoft.CST.OpenSource.Extensions;
     using Microsoft.CST.OpenSource.Model;
     using Microsoft.CST.OpenSource.PackageActions;
+    using Microsoft.CST.OpenSource.Utilities;
     using PackageUrl;
     using System;
     using System.Collections.Generic;
@@ -13,6 +15,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Linq;
     using System.Net;
     using System.Net.Http;
+    using System.Text.Json;
     using System.Threading.Tasks;
 
     public class GolangProjectManager : TypedManager<IManagerPackageVersionMetadata, GolangProjectManager.GolangArtifactType>
@@ -192,7 +195,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 IEnumerable<string> versions = await EnumerateVersionsAsync(purl, useCache);
                 if (versions.Any())
                 {
-                    string latestVersion = versions.Last();
+                    string latestVersion = versions.First();
                     string packageNamespaceLower = purl.Namespace.ToLowerInvariant().Replace(',', '/');
                     string packageNameLower = purl.Name.ToLowerInvariant();
                     string? packageSubpathLower = purl?.Subpath?.ToLowerInvariant();
@@ -219,11 +222,24 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             if (string.IsNullOrEmpty(content)) { return null; }
 
             PackageMetadata metadata = new();
-            metadata.Name = purl?.Name;
+            metadata.Name = purl.GetFullName();
             metadata.PackageVersion = purl?.Version;
             metadata.PackageManagerUri = ENV_GO_PROXY_ENDPOINT.EnsureTrailingSlash();
             metadata.Platform = "Go";
             metadata.Language = "Go";
+
+            string? infoContent = await GetInfoMetadataAsync(purl, useCache);
+            if (!string.IsNullOrEmpty(infoContent))
+            {
+                JsonDocument infoContentJSON = JsonDocument.Parse(infoContent);
+                JsonElement root = infoContentJSON.RootElement;
+
+                if (OssUtilities.GetJSONPropertyStringIfExists(root, "Time") is string publishedAtDateString &&
+                    !string.IsNullOrWhiteSpace(publishedAtDateString) && DateTime.TryParse(publishedAtDateString, out DateTime publishedAtDate))
+                {
+                    metadata.UploadTime = publishedAtDate;
+                }
+            }
 
             return metadata;
         }
@@ -241,6 +257,32 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
             Unknown = 0,
             Zip,
+        }
+
+        private async Task<string?> GetInfoMetadataAsync(PackageURL purl, bool useCache = true)
+        {
+            if (purl is null || purl.Name is null || purl.Namespace is null || purl.Version is null)
+            {
+                return null;
+            }
+            try
+            {
+                string packageNamespaceLower = purl.Namespace.ToLowerInvariant().Replace(',', '/');
+                string packageNameLower = purl.Name.ToLowerInvariant();
+                string? packageSubpathLower = purl?.Subpath?.ToLowerInvariant();
+                string packageVersion = purl.Version;
+                HttpClient httpClient = CreateHttpClient();
+
+                string subPathValue = string.IsNullOrEmpty(packageSubpathLower) ? string.Empty : '/' + packageSubpathLower;
+                string? content = await GetHttpStringCache(httpClient, $"{ENV_GO_PROXY_ENDPOINT}/{packageNamespaceLower}/{packageNameLower}{subPathValue}/@v/{packageVersion}.info", useCache);
+
+                return content;
+            }
+            catch (Exception ex)
+            {
+                Logger.Debug(ex, "Error fetching publish date: {0}", ex.Message);
+                return null;
+            }
         }
     }
 }

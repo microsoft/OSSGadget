@@ -225,6 +225,28 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 }
             }
 
+            JsonElement.ArrayEnumerator? versionsListElement = OssUtilities.GetJSONEnumerator(OssUtilities.GetJSONPropertyIfExists(root, "versions"));
+            if (versionsListElement != null)
+            {
+                JsonElement targetVersionElement = versionsListElement.Value
+                    .Where(versionElement =>
+                    {
+                        return OssUtilities.GetJSONPropertyStringIfExists(versionElement, "num") is string versionNumber && versionNumber == purl?.Version;
+                    }).SingleOrDefault();
+
+                // The specified version does not exist. Return null for the method.
+                if (targetVersionElement.Equals(default(JsonElement)))
+                {
+                    return null;
+                }
+
+                if (OssUtilities.GetJSONPropertyStringIfExists(targetVersionElement, "created_at") is string createdAtString &&
+                    !string.IsNullOrWhiteSpace(createdAtString) && DateTime.TryParse(createdAtString, out DateTime createdAtDate))
+                {
+                    metadata.UploadTime = createdAtDate;
+                }
+            }
+
             return metadata;
         }
 

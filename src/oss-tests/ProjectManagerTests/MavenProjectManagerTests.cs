@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 {
+    using Microsoft.CST.OpenSource.Extensions;
     using Model;
     using Moq;
     using Octokit;
@@ -27,6 +28,9 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         private readonly IDictionary<string, string> _packages = new Dictionary<string, string>()
         {
             { "https://repo1.maven.org/maven2/ant/ant/1.6/", Resources.maven_ant_1_6_html },
+            { "https://repo1.maven.org/maven2/ant/ant/", Resources.maven_ant_all_html },
+            { "https://repo1.maven.org/maven2/ant/ant/maven-metadata.xml", Resources.maven_ant_metadata_xml },
+            { "https://repo1.maven.org/maven2/ant/ant/1.6/ant-1.6.pom", Resources.maven_ant_1_6_pom },
         }.ToImmutableDictionary();
 
         public MavenProjectManagerTests()
@@ -61,6 +65,19 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
                 && artifact.Uri == new System.Uri(expectedUriPrefix + $"{purl.Name}-{purl.Version}.pom")));
         }
 
+        [DataTestMethod]
+        [DataRow("pkg:maven/ant/ant@1.6?repository_url=https://repo1.maven.org/maven2")] // Normal package
+        public async Task MetadataSucceeds(string purlString)
+        {
+            PackageURL purl = new(purlString);
+            PackageMetadata? metadata = await _projectManager.Object.GetPackageMetadataAsync(purl, useCache: false);
+
+            Assert.IsNotNull(metadata);
+            Assert.AreEqual(purl.GetFullName(), metadata.Name);
+            Assert.AreEqual(purl.Version, metadata.PackageVersion);
+            Assert.IsNotNull(metadata.UploadTime);
+        }
+
         private static void MockHttpFetchResponse(
             HttpStatusCode statusCode,
             string url,
@@ -70,7 +87,6 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             httpMock
                 .When(HttpMethod.Get, url)
                 .Respond(statusCode, "application/json", content);
-            httpMock.When(HttpMethod.Get, $"{url}/*.tgz").Respond(statusCode);
         }
     }
 }

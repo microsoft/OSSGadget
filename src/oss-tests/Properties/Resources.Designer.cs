@@ -86,6 +86,12 @@ namespace oss {
                 return ResourceManager.GetString("cargo.rand", resourceCulture);
             }
         }
+
+        internal static string cargo_rand_json {
+            get {
+                return ResourceManager.GetString("cargo.rand.json", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to {&quot;_id&quot;:&quot;ds-modal&quot;,&quot;_rev&quot;:&quot;9-9ea35761f56735940a8303bde2186667&quot;,&quot;time&quot;:{&quot;1.0.0&quot;:&quot;2018-08-05T11:35:40.880Z&quot;,&quot;1.0.1&quot;:&quot;2018-08-05T11:35:40.880Z&quot;,&quot;1.0.2&quot;:&quot;2018-08-05T11:35:40.880Z&quot;,&quot;1.0.3&quot;:&quot;2018-08-05T11:35:40.880Z&quot;,&quot;1.0.4&quot;:&quot;2018-08-05T11:35:40.880Z&quot;,&quot;created&quot;:&quot;2018-08-06T12:04:34.792Z&quot;,&quot;0.0.0&quot;:&quot;2018-08-06T12:04:34.910Z&quot;,&quot;modified&quot;:&quot;2018-08-09T07:24:09.131Z&quot;,&quot;0.0.1&quot;:&quot;2018-08-09T04:53:46.623Z&quot;,&quot;0.0.2&quot;:&quot;2018-08-09T07:24:06.206Z&quot;},&quot;name&quot;:&quot;ds-modal&quot;,&quot;dist-tags&quot;:{&quot;latest&quot;:&quot;0.0.2&quot;},&quot;versions&quot;:{&quot;0.0.0&quot;:{&quot;name&quot;:&quot;ds-modal [rest of string was truncated]&quot;;.
@@ -142,6 +148,60 @@ namespace oss {
         internal static string maven_ant_1_6_html {
             get {
                 return ResourceManager.GetString("maven_ant_1.6_html", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string.
+        /// </summary>
+        internal static string maven_ant_all_html {
+            get {
+                return ResourceManager.GetString("maven_ant_all_html", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string.
+        /// </summary>
+        internal static string maven_ant_metadata_xml {
+            get {
+                return ResourceManager.GetString("maven_ant_metadata_xml", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string.
+        /// </summary>
+        internal static string maven_ant_1_6_pom {
+            get {
+                return ResourceManager.GetString("maven_ant_1.6_pom", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string.
+        /// </summary>
+        internal static string go_yaml_list {
+            get {
+                return ResourceManager.GetString("go_yaml_list", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string.
+        /// </summary>
+        internal static string go_yaml_1_3_0_info {
+            get {
+                return ResourceManager.GetString("go_yaml_1.3.0_info", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string.
+        /// </summary>
+        internal static string go_yaml_1_3_0_mod {
+            get {
+                return ResourceManager.GetString("go_yaml_1.3.0_mod", resourceCulture);
             }
         }
         

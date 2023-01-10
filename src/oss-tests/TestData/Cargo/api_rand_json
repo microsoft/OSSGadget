@@ -1,0 +1,2064 @@
+{
+  "categories": [
+    {
+      "category": "Algorithms",
+      "crates_cnt": 1905,
+      "created_at": "2017-01-17T19:13:05.112025+00:00",
+      "description": "Rust implementations of core algorithms such as hashing, sorting, searching, and more.",
+      "id": "algorithms",
+      "slug": "algorithms"
+    },
+    {
+      "category": "No standard library",
+      "crates_cnt": 4518,
+      "created_at": "2017-02-10T01:52:09.447906+00:00",
+      "description": "Crates that are able to function without the Rust standard library.\n",
+      "id": "no-std",
+      "slug": "no-std"
+    }
+  ],
+  "crate": {
+    "badges": [],
+    "categories": [ "algorithms", "no-std" ],
+    "created_at": "2015-02-03T06:17:14.147783+00:00",
+    "description": "Random number generators and other randomness functionality.\n",
+    "documentation": "https://docs.rs/rand",
+    "downloads": 170037275,
+    "exact_match": false,
+    "homepage": "https://rust-random.github.io/book",
+    "id": "rand",
+    "keywords": [ "rng", "random" ],
+    "links": {
+      "owner_team": "/api/v1/crates/rand/owner_team",
+      "owner_user": "/api/v1/crates/rand/owner_user",
+      "owners": "/api/v1/crates/rand/owners",
+      "reverse_dependencies": "/api/v1/crates/rand/reverse_dependencies",
+      "version_downloads": "/api/v1/crates/rand/downloads",
+      "versions": null
+    },
+    "max_stable_version": "0.8.5",
+    "max_version": "0.8.5",
+    "name": "rand",
+    "newest_version": "0.8.5",
+    "recent_downloads": 17200115,
+    "repository": "https://github.com/rust-random/rand",
+    "updated_at": "2022-02-14T08:37:47.035988+00:00",
+    "versions": [ 499768, 390022, 331918, 326822, 322376, 316445, 202916, 176558, 176021, 158945, 158711, 155960, 154971, 130460, 127212, 125555, 125521, 119212, 117808, 115893, 113343, 130165, 102932, 99538, 98022, 97193, 95831, 93664, 92908, 89893, 86584, 130166, 127355, 127151, 104133, 76564, 74803, 73853, 130167, 79903, 78200, 76563, 75606, 70485, 67607, 60891, 38564, 22300, 20439, 17884, 15268, 14687, 13851, 9238, 7843, 7771, 7710, 7648, 7248, 7239, 7237, 6964, 6704, 6029, 5937, 5252, 4371, 4362 ]
+  },
+  "keywords": [
+    {
+      "crates_cnt": 81,
+      "created_at": "2015-02-02T03:37:04.452064+00:00",
+      "id": "rng",
+      "keyword": "rng"
+    },
+    {
+      "crates_cnt": 277,
+      "created_at": "2014-11-21T00:22:50.038243+00:00",
+      "id": "random",
+      "keyword": "random"
+    }
+  ],
+  "versions": [
+    {
+      "audit_actions": [
+        {
+          "action": "publish",
+          "time": "2022-02-14T08:37:47.035988+00:00",
+          "user": {
+            "avatar": "https://avatars.githubusercontent.com/u/134893?v=4",
+            "id": 1234,
+            "login": "dhardy",
+            "name": "Diggory Hardy",
+            "url": "https://github.com/dhardy"
+          }
+        }
+      ],
+      "checksum": "34af8d1a0e25924bc5b7c43c079c942339d8f0a8b57c39049bef581b46327404",
+      "crate": "rand",
+      "crate_size": 87113,
+      "created_at": "2022-02-14T08:37:47.035988+00:00",
+      "dl_path": "/api/v1/crates/rand/0.8.5/download",
+      "downloads": 27014517,
+      "features": {
+        "alloc": [ "rand_core/alloc" ],
+        "default": [ "std", "std_rng" ],
+        "getrandom": [ "rand_core/getrandom" ],
+        "min_const_gen": [],
+        "nightly": [],
+        "serde1": [ "serde", "rand_core/serde1" ],
+        "simd_support": [ "packed_simd" ],
+        "small_rng": [],
+        "std": [ "rand_core/std", "rand_chacha/std", "alloc", "getrandom", "libc" ],
+        "std_rng": [ "rand_chacha" ]
+      },
+      "id": 499768,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.8.5/authors",
+        "dependencies": "/api/v1/crates/rand/0.8.5/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.8.5/downloads"
+      },
+      "num": "0.8.5",
+      "published_by": {
+        "avatar": "https://avatars.githubusercontent.com/u/134893?v=4",
+        "id": 1234,
+        "login": "dhardy",
+        "name": "Diggory Hardy",
+        "url": "https://github.com/dhardy"
+      },
+      "readme_path": "/api/v1/crates/rand/0.8.5/readme",
+      "updated_at": "2022-02-14T08:37:47.035988+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [
+        {
+          "action": "publish",
+          "time": "2021-06-15T14:42:29.815250+00:00",
+          "user": {
+            "avatar": "https://avatars.githubusercontent.com/u/134893?v=4",
+            "id": 1234,
+            "login": "dhardy",
+            "name": "Diggory Hardy",
+            "url": "https://github.com/dhardy"
+          }
+        }
+      ],
+      "checksum": "2e7573632e6454cf6b99d7aac4ccca54be06da05aca2ef7423d22d27d4d4bcd8",
+      "crate": "rand",
+      "crate_size": 87406,
+      "created_at": "2021-06-15T14:42:29.815250+00:00",
+      "dl_path": "/api/v1/crates/rand/0.8.4/download",
+      "downloads": 21629393,
+      "features": {
+        "alloc": [ "rand_core/alloc" ],
+        "default": [ "std", "std_rng" ],
+        "getrandom": [ "rand_core/getrandom" ],
+        "min_const_gen": [],
+        "nightly": [],
+        "serde1": [ "serde", "rand_core/serde1" ],
+        "simd_support": [ "packed_simd" ],
+        "small_rng": [],
+        "std": [ "rand_core/std", "rand_chacha/std", "alloc", "getrandom", "libc" ],
+        "std_rng": [ "rand_chacha", "rand_hc" ]
+      },
+      "id": 390022,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.8.4/authors",
+        "dependencies": "/api/v1/crates/rand/0.8.4/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.8.4/downloads"
+      },
+      "num": "0.8.4",
+      "published_by": {
+        "avatar": "https://avatars.githubusercontent.com/u/134893?v=4",
+        "id": 1234,
+        "login": "dhardy",
+        "name": "Diggory Hardy",
+        "url": "https://github.com/dhardy"
+      },
+      "readme_path": "/api/v1/crates/rand/0.8.4/readme",
+      "updated_at": "2021-06-15T14:42:29.815250+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [
+        {
+          "action": "publish",
+          "time": "2021-01-26T08:50:46.191427+00:00",
+          "user": {
+            "avatar": "https://avatars.githubusercontent.com/u/134893?v=4",
+            "id": 1234,
+            "login": "dhardy",
+            "name": "Diggory Hardy",
+            "url": "https://github.com/dhardy"
+          }
+        }
+      ],
+      "checksum": "0ef9e7e66b4468674bfcb0c81af8b7fa0bb154fa9f28eb840da5c447baeb8d7e",
+      "crate": "rand",
+      "crate_size": 84493,
+      "created_at": "2021-01-26T08:50:46.191427+00:00",
+      "dl_path": "/api/v1/crates/rand/0.8.3/download",
+      "downloads": 9880040,
+      "features": {
+        "alloc": [ "rand_core/alloc" ],
+        "default": [ "std", "std_rng" ],
+        "getrandom": [ "rand_core/getrandom" ],
+        "nightly": [],
+        "serde1": [ "serde" ],
+        "simd_support": [ "packed_simd" ],
+        "small_rng": [],
+        "std": [ "rand_core/std", "rand_chacha/std", "alloc", "getrandom", "libc" ],
+        "std_rng": [ "rand_chacha", "rand_hc" ]
+      },
+      "id": 331918,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.8.3/authors",
+        "dependencies": "/api/v1/crates/rand/0.8.3/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.8.3/downloads"
+      },
+      "num": "0.8.3",
+      "published_by": {
+        "avatar": "https://avatars.githubusercontent.com/u/134893?v=4",
+        "id": 1234,
+        "login": "dhardy",
+        "name": "Diggory Hardy",
+        "url": "https://github.com/dhardy"
+      },
+      "readme_path": "/api/v1/crates/rand/0.8.3/readme",
+      "updated_at": "2021-01-26T08:50:46.191427+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [
+        {
+          "action": "publish",
+          "time": "2021-01-13T09:55:20.922296+00:00",
+          "user": {
+            "avatar": "https://avatars.githubusercontent.com/u/134893?v=4",
+            "id": 1234,
+            "login": "dhardy",
+            "name": "Diggory Hardy",
+            "url": "https://github.com/dhardy"
+          }
+        }
+      ],
+      "checksum": "18519b42a40024d661e1714153e9ad0c3de27cd495760ceb09710920f1098b1e",
+      "crate": "rand",
+      "crate_size": 84288,
+      "created_at": "2021-01-13T09:55:20.922296+00:00",
+      "dl_path": "/api/v1/crates/rand/0.8.2/download",
+      "downloads": 870453,
+      "features": {
+        "alloc": [ "rand_core/alloc" ],
+        "default": [ "std", "std_rng" ],
+        "getrandom": [ "rand_core/getrandom" ],
+        "nightly": [],
+        "serde1": [ "serde" ],
+        "simd_support": [ "packed_simd" ],
+        "small_rng": [],
+        "std": [ "rand_core/std", "rand_chacha/std", "alloc", "getrandom", "libc" ],
+        "std_rng": [ "rand_chacha", "rand_hc" ]
+      },
+      "id": 326822,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.8.2/authors",
+        "dependencies": "/api/v1/crates/rand/0.8.2/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.8.2/downloads"
+      },
+      "num": "0.8.2",
+      "published_by": {
+        "avatar": "https://avatars.githubusercontent.com/u/134893?v=4",
+        "id": 1234,
+        "login": "dhardy",
+        "name": "Diggory Hardy",
+        "url": "https://github.com/dhardy"
+      },
+      "readme_path": "/api/v1/crates/rand/0.8.2/readme",
+      "updated_at": "2021-01-13T09:55:20.922296+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [
+        {
+          "action": "publish",
+          "time": "2021-01-04T15:40:22.098135+00:00",
+          "user": {
+            "avatar": "https://avatars.githubusercontent.com/u/134893?v=4",
+            "id": 1234,
+            "login": "dhardy",
+            "name": "Diggory Hardy",
+            "url": "https://github.com/dhardy"
+          }
+        }
+      ],
+      "checksum": "c24fcd450d3fa2b592732565aa4f17a27a61c65ece4726353e000939b0edee34",
+      "crate": "rand",
+      "crate_size": 84130,
+      "created_at": "2021-01-04T15:40:22.098135+00:00",
+      "dl_path": "/api/v1/crates/rand/0.8.1/download",
+      "downloads": 641040,
+      "features": {
+        "alloc": [ "rand_core/alloc" ],
+        "default": [ "std", "std_rng" ],
+        "getrandom": [ "rand_core/getrandom" ],
+        "nightly": [],
+        "serde1": [ "serde" ],
+        "simd_support": [ "packed_simd" ],
+        "small_rng": [],
+        "std": [ "rand_core/std", "rand_chacha/std", "alloc", "getrandom", "libc" ],
+        "std_rng": [ "rand_chacha", "rand_hc" ]
+      },
+      "id": 322376,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.8.1/authors",
+        "dependencies": "/api/v1/crates/rand/0.8.1/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.8.1/downloads"
+      },
+      "num": "0.8.1",
+      "published_by": {
+        "avatar": "https://avatars.githubusercontent.com/u/134893?v=4",
+        "id": 1234,
+        "login": "dhardy",
+        "name": "Diggory Hardy",
+        "url": "https://github.com/dhardy"
+      },
+      "readme_path": "/api/v1/crates/rand/0.8.1/readme",
+      "updated_at": "2021-01-04T15:40:22.098135+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [
+        {
+          "action": "publish",
+          "time": "2020-12-18T23:27:50.864347+00:00",
+          "user": {
+            "avatar": "https://avatars.githubusercontent.com/u/134893?v=4",
+            "id": 1234,
+            "login": "dhardy",
+            "name": "Diggory Hardy",
+            "url": "https://github.com/dhardy"
+          }
+        }
+      ],
+      "checksum": "a76330fb486679b4ace3670f117bbc9e16204005c4bde9c4bd372f45bed34f12",
+      "crate": "rand",
+      "crate_size": 84076,
+      "created_at": "2020-12-18T23:27:50.864347+00:00",
+      "dl_path": "/api/v1/crates/rand/0.8.0/download",
+      "downloads": 202167,
+      "features": {
+        "alloc": [ "rand_core/alloc" ],
+        "default": [ "std", "std_rng" ],
+        "getrandom": [ "rand_core/getrandom" ],
+        "nightly": [],
+        "serde1": [ "serde" ],
+        "simd_support": [ "packed_simd" ],
+        "small_rng": [],
+        "std": [ "rand_core/std", "rand_chacha/std", "alloc", "getrandom", "libc" ],
+        "std_rng": [ "rand_chacha", "rand_hc" ]
+      },
+      "id": 316445,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.8.0/authors",
+        "dependencies": "/api/v1/crates/rand/0.8.0/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.8.0/downloads"
+      },
+      "num": "0.8.0",
+      "published_by": {
+        "avatar": "https://avatars.githubusercontent.com/u/134893?v=4",
+        "id": 1234,
+        "login": "dhardy",
+        "name": "Diggory Hardy",
+        "url": "https://github.com/dhardy"
+      },
+      "readme_path": "/api/v1/crates/rand/0.8.0/readme",
+      "updated_at": "2020-12-18T23:27:50.864347+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [
+        {
+          "action": "publish",
+          "time": "2020-01-10T21:46:21.337656+00:00",
+          "user": {
+            "avatar": "https://avatars.githubusercontent.com/u/134893?v=4",
+            "id": 1234,
+            "login": "dhardy",
+            "name": "Diggory Hardy",
+            "url": "https://github.com/dhardy"
+          }
+        }
+      ],
+      "checksum": "6a6b1679d49b24bbfe0c803429aa1874472f50d9b363131f0e89fc356b544d03",
+      "crate": "rand",
+      "crate_size": 112246,
+      "created_at": "2020-01-10T21:46:21.337656+00:00",
+      "dl_path": "/api/v1/crates/rand/0.7.3/download",
+      "downloads": 40595444,
+      "features": {
+        "alloc": [ "rand_core/alloc" ],
+        "default": [ "std" ],
+        "getrandom": [ "getrandom_package", "rand_core/getrandom" ],
+        "nightly": [ "simd_support" ],
+        "serde1": [],
+        "simd_support": [ "packed_simd" ],
+        "small_rng": [ "rand_pcg" ],
+        "std": [ "rand_core/std", "rand_chacha/std", "alloc", "getrandom", "libc" ],
+        "stdweb": [ "getrandom_package/stdweb" ],
+        "wasm-bindgen": [ "getrandom_package/wasm-bindgen" ]
+      },
+      "id": 202916,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.7.3/authors",
+        "dependencies": "/api/v1/crates/rand/0.7.3/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.7.3/downloads"
+      },
+      "num": "0.7.3",
+      "published_by": {
+        "avatar": "https://avatars.githubusercontent.com/u/134893?v=4",
+        "id": 1234,
+        "login": "dhardy",
+        "name": "Diggory Hardy",
+        "url": "https://github.com/dhardy"
+      },
+      "readme_path": "/api/v1/crates/rand/0.7.3/readme",
+      "updated_at": "2020-01-10T21:46:21.337656+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "3ae1b169243eaf61759b8475a998f0a385e42042370f3a7dbaf35246eacc8412",
+      "crate": "rand",
+      "crate_size": 111438,
+      "created_at": "2019-09-16T20:09:24.860231+00:00",
+      "dl_path": "/api/v1/crates/rand/0.7.2/download",
+      "downloads": 2222000,
+      "features": {
+        "alloc": [ "rand_core/alloc" ],
+        "default": [ "std" ],
+        "getrandom": [ "getrandom_package", "rand_core/getrandom" ],
+        "nightly": [ "simd_support" ],
+        "serde1": [],
+        "simd_support": [ "packed_simd" ],
+        "small_rng": [ "rand_pcg" ],
+        "std": [ "rand_core/std", "rand_chacha/std", "alloc", "getrandom" ],
+        "stdweb": [ "getrandom_package/stdweb" ],
+        "wasm-bindgen": [ "getrandom_package/wasm-bindgen" ]
+      },
+      "id": 176558,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.7.2/authors",
+        "dependencies": "/api/v1/crates/rand/0.7.2/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.7.2/downloads"
+      },
+      "num": "0.7.2",
+      "published_by": {
+        "avatar": "https://avatars.githubusercontent.com/u/134893?v=4",
+        "id": 1234,
+        "login": "dhardy",
+        "name": "Diggory Hardy",
+        "url": "https://github.com/dhardy"
+      },
+      "readme_path": "/api/v1/crates/rand/0.7.2/readme",
+      "updated_at": "2019-09-16T20:09:24.860231+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "59cea0d944b32347a1863e95942fd6ebdb486afb4f038119494f2860380c1d51",
+      "crate": "rand",
+      "crate_size": 108412,
+      "created_at": "2019-09-13T15:10:33.345335+00:00",
+      "dl_path": "/api/v1/crates/rand/0.7.1/download",
+      "downloads": 59588,
+      "features": {
+        "alloc": [ "rand_core/alloc" ],
+        "default": [ "std" ],
+        "getrandom": [ "getrandom_package", "rand_core/getrandom" ],
+        "nightly": [ "simd_support" ],
+        "serde1": [],
+        "simd_support": [ "packed_simd" ],
+        "small_rng": [ "rand_pcg" ],
+        "std": [ "rand_core/std", "rand_chacha/std", "alloc", "getrandom" ],
+        "stdweb": [ "getrandom_package/stdweb" ],
+        "wasm-bindgen": [ "getrandom_package/wasm-bindgen" ]
+      },
+      "id": 176021,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.7.1/authors",
+        "dependencies": "/api/v1/crates/rand/0.7.1/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.7.1/downloads"
+      },
+      "num": "0.7.1",
+      "published_by": {
+        "avatar": "https://avatars.githubusercontent.com/u/134893?v=4",
+        "id": 1234,
+        "login": "dhardy",
+        "name": "Diggory Hardy",
+        "url": "https://github.com/dhardy"
+      },
+      "readme_path": "/api/v1/crates/rand/0.7.1/readme",
+      "updated_at": "2019-09-16T20:09:38.509094+00:00",
+      "yanked": true
+    },
+    {
+      "audit_actions": [],
+      "checksum": "d47eab0e83d9693d40f825f86948aa16eff6750ead4bdffc4ab95b8b3a7f052c",
+      "crate": "rand",
+      "crate_size": 104208,
+      "created_at": "2019-06-28T08:45:50.459959+00:00",
+      "dl_path": "/api/v1/crates/rand/0.7.0/download",
+      "downloads": 1403892,
+      "features": {
+        "alloc": [ "rand_core/alloc" ],
+        "default": [ "std" ],
+        "getrandom": [ "getrandom_package", "rand_core/getrandom" ],
+        "nightly": [ "simd_support" ],
+        "serde1": [],
+        "simd_support": [ "packed_simd" ],
+        "small_rng": [ "rand_pcg" ],
+        "std": [ "rand_core/std", "alloc", "getrandom" ],
+        "stdweb": [ "getrandom_package/stdweb" ],
+        "wasm-bindgen": [ "getrandom_package/wasm-bindgen" ]
+      },
+      "id": 158945,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.7.0/authors",
+        "dependencies": "/api/v1/crates/rand/0.7.0/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.7.0/downloads"
+      },
+      "num": "0.7.0",
+      "published_by": {
+        "avatar": "https://avatars.githubusercontent.com/u/134893?v=4",
+        "id": 1234,
+        "login": "dhardy",
+        "name": "Diggory Hardy",
+        "url": "https://github.com/dhardy"
+      },
+      "readme_path": "/api/v1/crates/rand/0.7.0/readme",
+      "updated_at": "2019-06-28T08:45:50.459959+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "1bd7d04eb3653c2e5d89e2f705b44491413c9d3ad0e1aadac607ae9aeecea51e",
+      "crate": "rand",
+      "crate_size": 104192,
+      "created_at": "2019-06-27T09:37:26.903661+00:00",
+      "dl_path": "/api/v1/crates/rand/0.7.0-pre.2/download",
+      "downloads": 2042,
+      "features": {
+        "alloc": [ "rand_core/alloc" ],
+        "default": [ "std" ],
+        "getrandom": [ "getrandom_package", "rand_core/getrandom" ],
+        "nightly": [ "simd_support" ],
+        "serde1": [],
+        "simd_support": [ "packed_simd" ],
+        "small_rng": [ "rand_pcg" ],
+        "std": [ "rand_core/std", "alloc", "getrandom" ],
+        "stdweb": [ "getrandom_package/stdweb" ],
+        "wasm-bindgen": [ "getrandom_package/wasm-bindgen" ]
+      },
+      "id": 158711,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.7.0-pre.2/authors",
+        "dependencies": "/api/v1/crates/rand/0.7.0-pre.2/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.7.0-pre.2/downloads"
+      },
+      "num": "0.7.0-pre.2",
+      "published_by": {
+        "avatar": "https://avatars.githubusercontent.com/u/134893?v=4",
+        "id": 1234,
+        "login": "dhardy",
+        "name": "Diggory Hardy",
+        "url": "https://github.com/dhardy"
+      },
+      "readme_path": "/api/v1/crates/rand/0.7.0-pre.2/readme",
+      "updated_at": "2019-06-27T09:37:26.903661+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "866531c9bb6613da04a1e6ad99d27a7c8acd488020d7a8b177b058a10c900eec",
+      "crate": "rand",
+      "crate_size": 103377,
+      "created_at": "2019-06-12T09:19:21.581541+00:00",
+      "dl_path": "/api/v1/crates/rand/0.7.0-pre.1/download",
+      "downloads": 3304,
+      "features": {
+        "alloc": [ "rand_core/alloc" ],
+        "default": [ "std" ],
+        "getrandom": [ "getrandom_package", "rand_core/getrandom" ],
+        "nightly": [ "simd_support" ],
+        "serde1": [ "rand_core/serde1", "rand_isaac/serde1", "rand_xorshift/serde1" ],
+        "simd_support": [ "packed_simd" ],
+        "small_rng": [ "rand_pcg" ],
+        "std": [ "rand_core/std", "alloc", "getrandom" ],
+        "stdweb": [ "getrandom_package/stdweb" ],
+        "wasm-bindgen": [ "getrandom_package/wasm-bindgen" ]
+      },
+      "id": 155960,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.7.0-pre.1/authors",
+        "dependencies": "/api/v1/crates/rand/0.7.0-pre.1/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.7.0-pre.1/downloads"
+      },
+      "num": "0.7.0-pre.1",
+      "published_by": {
+        "avatar": "https://avatars.githubusercontent.com/u/134893?v=4",
+        "id": 1234,
+        "login": "dhardy",
+        "name": "Diggory Hardy",
+        "url": "https://github.com/dhardy"
+      },
+      "readme_path": "/api/v1/crates/rand/0.7.0-pre.1/readme",
+      "updated_at": "2019-06-12T09:19:21.581541+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "3f8957987ae321379d922baeeba7bc1b928647f641fbc1cdfc6aad784eb6e0c9",
+      "crate": "rand",
+      "crate_size": 105174,
+      "created_at": "2019-06-06T17:07:16.500459+00:00",
+      "dl_path": "/api/v1/crates/rand/0.7.0-pre.0/download",
+      "downloads": 1899,
+      "features": {
+        "alloc": [ "rand_core/alloc" ],
+        "default": [ "std" ],
+        "getrandom": [ "getrandom_package", "rand_core/getrandom" ],
+        "nightly": [ "simd_support" ],
+        "serde1": [ "rand_core/serde1", "rand_isaac/serde1", "rand_xorshift/serde1" ],
+        "simd_support": [ "packed_simd" ],
+        "small_rng": [ "rand_pcg" ],
+        "std": [ "rand_core/std", "alloc", "getrandom" ],
+        "stdweb": [ "getrandom_package/stdweb" ],
+        "wasm-bindgen": [ "getrandom_package/wasm-bindgen" ]
+      },
+      "id": 154971,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.7.0-pre.0/authors",
+        "dependencies": "/api/v1/crates/rand/0.7.0-pre.0/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.7.0-pre.0/downloads"
+      },
+      "num": "0.7.0-pre.0",
+      "published_by": {
+        "avatar": "https://avatars.githubusercontent.com/u/134893?v=4",
+        "id": 1234,
+        "login": "dhardy",
+        "name": "Diggory Hardy",
+        "url": "https://github.com/dhardy"
+      },
+      "readme_path": "/api/v1/crates/rand/0.7.0-pre.0/readme",
+      "updated_at": "2019-06-11T10:18:05.590937+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "6d71dacdc3c88c1fde3885a3be3fbab9f35724e6ce99467f7d9c5026132184ca",
+      "crate": "rand",
+      "crate_size": 104814,
+      "created_at": "2019-01-28T09:56:57.788327+00:00",
+      "dl_path": "/api/v1/crates/rand/0.6.5/download",
+      "downloads": 18509694,
+      "features": {
+        "alloc": [ "rand_core/alloc" ],
+        "default": [ "std" ],
+        "i128_support": [],
+        "nightly": [ "simd_support" ],
+        "serde1": [ "rand_core/serde1", "rand_isaac/serde1", "rand_xorshift/serde1" ],
+        "simd_support": [ "packed_simd" ],
+        "std": [ "rand_core/std", "alloc", "rand_os", "rand_jitter/std" ],
+        "stdweb": [ "rand_os/stdweb" ],
+        "wasm-bindgen": [ "rand_os/wasm-bindgen" ]
+      },
+      "id": 130460,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.6.5/authors",
+        "dependencies": "/api/v1/crates/rand/0.6.5/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.6.5/downloads"
+      },
+      "num": "0.6.5",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.6.5/readme",
+      "updated_at": "2019-01-28T09:56:57.788327+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "3906503e80ac6cbcacb2c2973fa8e473f24d7e2747c8c92bb230c2441cad96b5",
+      "crate": "rand",
+      "crate_size": 116260,
+      "created_at": "2019-01-08T17:43:03.911462+00:00",
+      "dl_path": "/api/v1/crates/rand/0.6.4/download",
+      "downloads": 344782,
+      "features": {
+        "alloc": [ "rand_core/alloc" ],
+        "default": [ "std", "rand_os" ],
+        "i128_support": [],
+        "nightly": [ "simd_support" ],
+        "serde1": [ "rand_core/serde1", "rand_isaac/serde1", "rand_xorshift/serde1" ],
+        "simd_support": [ "packed_simd" ],
+        "std": [ "rand_core/std", "alloc", "rand_os" ],
+        "stdweb": [ "rand_os/stdweb" ],
+        "wasm-bindgen": [ "rand_os/wasm-bindgen" ]
+      },
+      "id": 127212,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.6.4/authors",
+        "dependencies": "/api/v1/crates/rand/0.6.4/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.6.4/downloads"
+      },
+      "num": "0.6.4",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.6.4/readme",
+      "updated_at": "2019-01-08T17:43:03.911462+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "b65e163105a6284f841bd23100a015895f54340e88a5ffc9ca7b8b33827cfce0",
+      "crate": "rand",
+      "crate_size": 117566,
+      "created_at": "2019-01-04T17:25:53.393514+00:00",
+      "dl_path": "/api/v1/crates/rand/0.6.3/download",
+      "downloads": 85936,
+      "features": {
+        "alloc": [ "rand_core/alloc" ],
+        "default": [ "std", "rand_os" ],
+        "i128_support": [],
+        "nightly": [ "simd_support" ],
+        "serde1": [ "rand_core/serde1", "rand_isaac/serde1", "rand_xorshift/serde1" ],
+        "simd_support": [ "packed_simd" ],
+        "std": [ "rand_core/std", "alloc", "rand_os" ],
+        "stdweb": [ "rand_os/stdweb" ],
+        "wasm-bindgen": [ "rand_os/wasm-bindgen" ]
+      },
+      "id": 125555,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.6.3/authors",
+        "dependencies": "/api/v1/crates/rand/0.6.3/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.6.3/downloads"
+      },
+      "num": "0.6.3",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.6.3/readme",
+      "updated_at": "2019-01-04T17:25:53.393514+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "1b17b5f684cbbe4187c49b658353766e369278a66ecde6aa2cd13cf663177f9b",
+      "crate": "rand",
+      "crate_size": 117467,
+      "created_at": "2019-01-04T12:35:16.732753+00:00",
+      "dl_path": "/api/v1/crates/rand/0.6.2/download",
+      "downloads": 9882,
+      "features": {
+        "alloc": [ "rand_core/alloc" ],
+        "default": [ "std", "rand_os" ],
+        "i128_support": [],
+        "nightly": [ "simd_support" ],
+        "serde1": [ "rand_core/serde1", "rand_isaac/serde1", "rand_xorshift/serde1" ],
+        "simd_support": [ "packed_simd" ],
+        "std": [ "rand_core/std", "alloc" ]
+      },
+      "id": 125521,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.6.2/authors",
+        "dependencies": "/api/v1/crates/rand/0.6.2/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.6.2/downloads"
+      },
+      "num": "0.6.2",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.6.2/readme",
+      "updated_at": "2019-01-04T12:35:16.732753+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "ae9d223d52ae411a33cf7e54ec6034ec165df296ccd23533d671a28252b6f66a",
+      "crate": "rand",
+      "crate_size": 126613,
+      "created_at": "2018-11-23T10:43:32.927231+00:00",
+      "dl_path": "/api/v1/crates/rand/0.6.1/download",
+      "downloads": 1041733,
+      "features": {
+        "alloc": [ "rand_core/alloc" ],
+        "default": [ "std" ],
+        "i128_support": [],
+        "nightly": [ "simd_support" ],
+        "serde1": [ "rand_core/serde1", "rand_isaac/serde1", "rand_xorshift/serde1" ],
+        "simd_support": [ "packed_simd" ],
+        "std": [ "rand_core/std", "alloc", "libc", "winapi", "cloudabi", "fuchsia-zircon" ]
+      },
+      "id": 119212,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.6.1/authors",
+        "dependencies": "/api/v1/crates/rand/0.6.1/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.6.1/downloads"
+      },
+      "num": "0.6.1",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.6.1/readme",
+      "updated_at": "2018-11-23T10:43:32.927231+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "de3f08319b5395bd19b70e73c4c465329495db02dafeb8ca711a20f1c2bd058c",
+      "crate": "rand",
+      "crate_size": 126632,
+      "created_at": "2018-11-14T11:36:08.017486+00:00",
+      "dl_path": "/api/v1/crates/rand/0.6.0/download",
+      "downloads": 37669,
+      "features": {
+        "alloc": [ "rand_core/alloc" ],
+        "default": [ "std" ],
+        "i128_support": [],
+        "nightly": [ "simd_support" ],
+        "serde1": [ "rand_core/serde1", "rand_isaac/serde1", "rand_xorshift/serde1" ],
+        "simd_support": [ "packed_simd" ],
+        "std": [ "rand_core/std", "alloc", "libc", "winapi", "cloudabi", "fuchsia-zircon" ]
+      },
+      "id": 117808,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.6.0/authors",
+        "dependencies": "/api/v1/crates/rand/0.6.0/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.6.0/downloads"
+      },
+      "num": "0.6.0",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.6.0/readme",
+      "updated_at": "2018-11-14T11:36:08.017486+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "2d0066ad546849d70e7fc3ca0d2842a8d670455e37f0aa05429f9935bbc6e32e",
+      "crate": "rand",
+      "crate_size": 142150,
+      "created_at": "2018-11-02T14:32:22.000182+00:00",
+      "dl_path": "/api/v1/crates/rand/0.6.0-pre.1/download",
+      "downloads": 3727,
+      "features": {
+        "alloc": [ "rand_core/alloc" ],
+        "default": [ "std" ],
+        "i128_support": [],
+        "nightly": [ "simd_support" ],
+        "serde1": [ "rand_core/serde1", "rand_isaac/serde1", "rand_xorshift/serde1" ],
+        "simd_support": [ "packed_simd" ],
+        "std": [ "rand_core/std", "alloc", "libc", "winapi", "cloudabi", "fuchsia-zircon" ]
+      },
+      "id": 115893,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.6.0-pre.1/authors",
+        "dependencies": "/api/v1/crates/rand/0.6.0-pre.1/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.6.0-pre.1/downloads"
+      },
+      "num": "0.6.0-pre.1",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.6.0-pre.1/readme",
+      "updated_at": "2018-11-02T14:32:22.000182+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "e35d4dec9ea1cb455a230b8e22a1c87be21e400d46fed5fb34ca057a275c7144",
+      "crate": "rand",
+      "crate_size": 147575,
+      "created_at": "2018-10-17T10:11:49.105381+00:00",
+      "dl_path": "/api/v1/crates/rand/0.6.0-pre.0/download",
+      "downloads": 2620,
+      "features": {
+        "alloc": [ "rand_core/alloc" ],
+        "default": [ "std" ],
+        "i128_support": [],
+        "nightly": [ "simd_support" ],
+        "serde1": [ "rand_core/serde1", "rand_isaac/serde1", "rand_xorshift/serde1" ],
+        "simd_support": [ "packed_simd" ],
+        "std": [ "rand_core/std", "alloc", "libc", "winapi", "cloudabi", "fuchsia-zircon" ]
+      },
+      "id": 113343,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.6.0-pre.0/authors",
+        "dependencies": "/api/v1/crates/rand/0.6.0-pre.0/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.6.0-pre.0/downloads"
+      },
+      "num": "0.6.0-pre.0",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.6.0-pre.0/readme",
+      "updated_at": "2018-10-17T10:11:49.105381+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "c618c47cd3ebd209790115ab837de41425723956ad3ce2e6a7f09890947cacb9",
+      "crate": "rand",
+      "crate_size": 137236,
+      "created_at": "2019-01-26T10:20:14.558184+00:00",
+      "dl_path": "/api/v1/crates/rand/0.5.6/download",
+      "downloads": 5165212,
+      "features": {
+        "alloc": [ "rand_core/alloc" ],
+        "default": [ "std" ],
+        "i128_support": [],
+        "nightly": [ "i128_support" ],
+        "serde1": [ "serde", "serde_derive", "rand_core/serde1" ],
+        "std": [ "rand_core/std", "alloc", "libc", "winapi", "cloudabi", "fuchsia-cprng" ]
+      },
+      "id": 130165,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.5.6/authors",
+        "dependencies": "/api/v1/crates/rand/0.5.6/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.5.6/downloads"
+      },
+      "num": "0.5.6",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.5.6/readme",
+      "updated_at": "2019-01-26T10:20:14.558184+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "e464cd887e869cddcae8792a4ee31d23c7edd516700695608f5b98c67ee0131c",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2018-08-07T15:59:14.899961+00:00",
+      "dl_path": "/api/v1/crates/rand/0.5.5/download",
+      "downloads": 1924308,
+      "features": {
+        "alloc": [ "rand_core/alloc" ],
+        "default": [ "std" ],
+        "i128_support": [],
+        "nightly": [ "i128_support" ],
+        "serde1": [ "serde", "serde_derive", "rand_core/serde1" ],
+        "std": [ "rand_core/std", "alloc", "libc", "winapi", "cloudabi", "fuchsia-zircon" ]
+      },
+      "id": 102932,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.5.5/authors",
+        "dependencies": "/api/v1/crates/rand/0.5.5/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.5.5/downloads"
+      },
+      "num": "0.5.5",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.5.5/readme",
+      "updated_at": "2018-08-07T15:59:14.899961+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "12397506224b2f93e6664ffc4f664b29be8208e5157d3d90b44f09b5fae470ea",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2018-07-12T10:03:12.973175+00:00",
+      "dl_path": "/api/v1/crates/rand/0.5.4/download",
+      "downloads": 283207,
+      "features": {
+        "alloc": [ "rand_core/alloc" ],
+        "default": [ "std" ],
+        "i128_support": [],
+        "nightly": [ "i128_support" ],
+        "serde1": [ "serde", "serde_derive", "rand_core/serde1" ],
+        "std": [ "rand_core/std", "alloc", "libc", "winapi", "cloudabi", "fuchsia-zircon" ]
+      },
+      "id": 99538,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.5.4/authors",
+        "dependencies": "/api/v1/crates/rand/0.5.4/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.5.4/downloads"
+      },
+      "num": "0.5.4",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.5.4/readme",
+      "updated_at": "2018-07-12T10:03:12.973175+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "6802c0e883716383777e147b7c21323d5de7527257c8b6dc1365a7f2983e90f6",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2018-06-27T09:31:10.660151+00:00",
+      "dl_path": "/api/v1/crates/rand/0.5.3/download",
+      "downloads": 44997,
+      "features": {
+        "alloc": [ "rand_core/alloc" ],
+        "default": [ "std" ],
+        "i128_support": [],
+        "nightly": [ "i128_support" ],
+        "serde1": [ "serde", "serde_derive", "rand_core/serde1" ],
+        "std": [ "rand_core/std", "alloc", "libc", "winapi", "cloudabi", "fuchsia-zircon" ]
+      },
+      "id": 98022,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.5.3/authors",
+        "dependencies": "/api/v1/crates/rand/0.5.3/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.5.3/downloads"
+      },
+      "num": "0.5.3",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.5.3/readme",
+      "updated_at": "2018-06-27T09:31:10.660151+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "d0d9f869af32e387d9e0f2bdb64326b8ac84c81d5e55459d0bc7526b0fdb3671",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2018-06-20T08:18:32.801565+00:00",
+      "dl_path": "/api/v1/crates/rand/0.5.2/download",
+      "downloads": 19904,
+      "features": {
+        "alloc": [ "rand_core/alloc" ],
+        "default": [ "std" ],
+        "i128_support": [],
+        "nightly": [ "i128_support" ],
+        "serde1": [ "serde", "serde_derive", "rand_core/serde1" ],
+        "std": [ "rand_core/std", "alloc", "libc", "winapi", "cloudabi", "fuchsia-zircon" ]
+      },
+      "id": 97193,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.5.2/authors",
+        "dependencies": "/api/v1/crates/rand/0.5.2/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.5.2/downloads"
+      },
+      "num": "0.5.2",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.5.2/readme",
+      "updated_at": "2018-06-20T08:18:32.801565+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "482c45f965103f2433002a0c4d908599f38d1b8c1375e66e801a24c1c6cadc03",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2018-06-08T07:47:42.218944+00:00",
+      "dl_path": "/api/v1/crates/rand/0.5.1/download",
+      "downloads": 33220,
+      "features": {
+        "alloc": [ "rand_core/alloc" ],
+        "default": [ "std" ],
+        "i128_support": [],
+        "nightly": [ "i128_support" ],
+        "serde1": [ "serde", "serde_derive", "rand_core/serde1" ],
+        "std": [ "rand_core/std", "alloc", "libc", "winapi", "cloudabi", "fuchsia-zircon" ]
+      },
+      "id": 95831,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.5.1/authors",
+        "dependencies": "/api/v1/crates/rand/0.5.1/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.5.1/downloads"
+      },
+      "num": "0.5.1",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.5.1/readme",
+      "updated_at": "2018-06-08T07:47:42.218944+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "7a89abf8d34faf9783692392dca7bcdc6e82fa84eca86ccb6301ec87f3497185",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2018-05-21T15:33:10.166567+00:00",
+      "dl_path": "/api/v1/crates/rand/0.5.0/download",
+      "downloads": 80458,
+      "features": {
+        "alloc": [ "rand_core/alloc" ],
+        "default": [ "std" ],
+        "i128_support": [],
+        "nightly": [ "i128_support" ],
+        "serde1": [ "serde", "serde_derive", "rand_core/serde1" ],
+        "std": [ "rand_core/std", "alloc", "libc", "winapi", "cloudabi", "fuchsia-zircon" ]
+      },
+      "id": 93664,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.5.0/authors",
+        "dependencies": "/api/v1/crates/rand/0.5.0/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.5.0/downloads"
+      },
+      "num": "0.5.0",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.5.0/readme",
+      "updated_at": "2018-05-21T15:33:10.166567+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "3795e4701d9628a63a84d0289e66279883b40df165fca7caed7b87122447032a",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2018-05-15T11:24:19.867458+00:00",
+      "dl_path": "/api/v1/crates/rand/0.5.0-pre.2/download",
+      "downloads": 15522,
+      "features": {
+        "alloc": [ "rand_core/alloc" ],
+        "default": [ "std" ],
+        "i128_support": [],
+        "nightly": [ "i128_support" ],
+        "serde1": [ "serde", "serde_derive", "rand_core/serde1" ],
+        "std": [ "rand_core/std", "alloc", "libc", "winapi", "cloudabi", "fuchsia-zircon" ]
+      },
+      "id": 92908,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.5.0-pre.2/authors",
+        "dependencies": "/api/v1/crates/rand/0.5.0-pre.2/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.5.0-pre.2/downloads"
+      },
+      "num": "0.5.0-pre.2",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.5.0-pre.2/readme",
+      "updated_at": "2018-05-15T11:24:19.867458+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "7d7a7728c20bfd9fcc6e713e748e787c3d00e5ffd139b3ad1b5be92c5dfbaad5",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2018-04-22T09:08:33.322846+00:00",
+      "dl_path": "/api/v1/crates/rand/0.5.0-pre.1/download",
+      "downloads": 6379,
+      "features": {
+        "alloc": [ "rand_core/alloc" ],
+        "default": [ "std" ],
+        "i128_support": [],
+        "nightly": [ "i128_support" ],
+        "serde1": [ "serde", "serde_derive", "rand_core/serde1" ],
+        "std": [ "rand_core/std", "alloc", "libc", "winapi", "cloudabi", "fuchsia-zircon" ]
+      },
+      "id": 89893,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.5.0-pre.1/authors",
+        "dependencies": "/api/v1/crates/rand/0.5.0-pre.1/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.5.0-pre.1/downloads"
+      },
+      "num": "0.5.0-pre.1",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.5.0-pre.1/readme",
+      "updated_at": "2018-04-22T09:08:33.322846+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "bdabe8654fc412303409a9ddb23cd8878cd54b1f0a7112b6cc95eb9fe684f3f1",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2018-03-27T11:41:46.243023+00:00",
+      "dl_path": "/api/v1/crates/rand/0.5.0-pre.0/download",
+      "downloads": 6492,
+      "features": {
+        "alloc": [ "rand_core/alloc" ],
+        "default": [ "std" ],
+        "i128_support": [],
+        "nightly": [ "i128_support" ],
+        "serde-1": [ "serde", "serde_derive" ],
+        "std": [ "rand_core/std", "winapi", "libc", "alloc" ]
+      },
+      "id": 86584,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.5.0-pre.0/authors",
+        "dependencies": "/api/v1/crates/rand/0.5.0-pre.0/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.5.0-pre.0/downloads"
+      },
+      "num": "0.5.0-pre.0",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.5.0-pre.0/readme",
+      "updated_at": "2018-03-27T11:41:46.243023+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "552840b97013b1a26992c11eac34bdd778e464601a4c2054b5f0bff7c6761293",
+      "crate": "rand",
+      "crate_size": 76401,
+      "created_at": "2019-01-26T10:21:14.395663+00:00",
+      "dl_path": "/api/v1/crates/rand/0.4.6/download",
+      "downloads": 19057555,
+      "features": {
+        "alloc": [],
+        "default": [ "std" ],
+        "i128_support": [],
+        "nightly": [ "i128_support" ],
+        "std": [ "libc" ]
+      },
+      "id": 130166,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.4.6/authors",
+        "dependencies": "/api/v1/crates/rand/0.4.6/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.4.6/downloads"
+      },
+      "num": "0.4.6",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.4.6/readme",
+      "updated_at": "2019-01-26T10:21:14.395663+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "dee497e66d8d76bf08ce20c8d36e16f93749ab0bf89975b4f8ae5cee660c2da2",
+      "crate": "rand",
+      "crate_size": 76465,
+      "created_at": "2019-01-09T16:25:16.882709+00:00",
+      "dl_path": "/api/v1/crates/rand/0.4.5/download",
+      "downloads": 177596,
+      "features": {
+        "alloc": [],
+        "default": [ "std" ],
+        "i128_support": [],
+        "nightly": [ "i128_support" ],
+        "std": [ "libc" ]
+      },
+      "id": 127355,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.4.5/authors",
+        "dependencies": "/api/v1/crates/rand/0.4.5/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.4.5/downloads"
+      },
+      "num": "0.4.5",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.4.5/readme",
+      "updated_at": "2019-01-09T16:25:16.882709+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "34106854203c08f04b364c9c683bfe657e9214b082a5eda8e6c3ebfdec3ce02c",
+      "crate": "rand",
+      "crate_size": 76460,
+      "created_at": "2019-01-08T12:39:19.894769+00:00",
+      "dl_path": "/api/v1/crates/rand/0.4.4/download",
+      "downloads": 13371,
+      "features": {
+        "alloc": [],
+        "default": [ "std" ],
+        "i128_support": [],
+        "nightly": [ "i128_support" ],
+        "std": [ "libc" ]
+      },
+      "id": 127151,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.4.4/authors",
+        "dependencies": "/api/v1/crates/rand/0.4.4/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.4.4/downloads"
+      },
+      "num": "0.4.4",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.4.4/readme",
+      "updated_at": "2019-01-09T16:25:41.940799+00:00",
+      "yanked": true
+    },
+    {
+      "audit_actions": [],
+      "checksum": "8356f47b32624fef5b3301c1be97e5944ecdd595409cc5da11d05f211db6cfbd",
+      "crate": "rand",
+      "crate_size": 76094,
+      "created_at": "2018-08-16T11:35:56.572441+00:00",
+      "dl_path": "/api/v1/crates/rand/0.4.3/download",
+      "downloads": 1576496,
+      "features": {
+        "alloc": [],
+        "default": [ "std" ],
+        "i128_support": [],
+        "nightly": [ "i128_support" ],
+        "std": [ "libc" ]
+      },
+      "id": 104133,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.4.3/authors",
+        "dependencies": "/api/v1/crates/rand/0.4.3/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.4.3/downloads"
+      },
+      "num": "0.4.3",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.4.3/readme",
+      "updated_at": "2018-08-16T11:35:56.572441+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "eba5f8cb59cc50ed56be8880a5c7b496bfd9bd26394e176bc67884094145c2c5",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2018-01-06T11:26:47.039110+00:00",
+      "dl_path": "/api/v1/crates/rand/0.4.2/download",
+      "downloads": 2010017,
+      "features": {
+        "alloc": [],
+        "default": [ "std" ],
+        "i128_support": [],
+        "nightly": [ "i128_support" ],
+        "std": [ "libc" ]
+      },
+      "id": 76564,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.4.2/authors",
+        "dependencies": "/api/v1/crates/rand/0.4.2/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.4.2/downloads"
+      },
+      "num": "0.4.2",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.4.2/readme",
+      "updated_at": "2018-01-06T11:26:47.039110+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "9d5f78082e6a6d042862611e9640cf20776185fee506cf6cf67e93c6225cee31",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2017-12-18T11:28:02.757880+00:00",
+      "dl_path": "/api/v1/crates/rand/0.4.1/download",
+      "downloads": 74195,
+      "features": {
+        "alloc": [],
+        "default": [ "std" ],
+        "i128_support": [],
+        "nightly": [ "i128_support" ],
+        "std": [ "libc" ]
+      },
+      "id": 74803,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.4.1/authors",
+        "dependencies": "/api/v1/crates/rand/0.4.1/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.4.1/downloads"
+      },
+      "num": "0.4.1",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.4.1/readme",
+      "updated_at": "2017-12-18T11:28:02.757880+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "ad0542bd983d3ca9238b6f70fd8e43689fc95c0f4cbc7524ac68c304e2d4d5f8",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2017-12-11T17:04:54.749661+00:00",
+      "dl_path": "/api/v1/crates/rand/0.4.0-pre.0/download",
+      "downloads": 2144,
+      "features": {
+        "i128_support": [],
+        "nightly": [ "i128_support" ]
+      },
+      "id": 73853,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.4.0-pre.0/authors",
+        "dependencies": "/api/v1/crates/rand/0.4.0-pre.0/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.4.0-pre.0/downloads"
+      },
+      "num": "0.4.0-pre.0",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.4.0-pre.0/readme",
+      "updated_at": "2017-12-11T17:04:54.749661+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "64ac302d8f83c0c1974bf758f6b041c6c8ada916fbb44a609158ca8b064cc76c",
+      "crate": "rand",
+      "crate_size": 11318,
+      "created_at": "2019-01-26T10:22:04.993065+00:00",
+      "dl_path": "/api/v1/crates/rand/0.3.23/download",
+      "downloads": 7398365,
+      "features": {
+        "i128_support": [],
+        "nightly": [ "i128_support" ]
+      },
+      "id": 130167,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.3.23/authors",
+        "dependencies": "/api/v1/crates/rand/0.3.23/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.3.23/downloads"
+      },
+      "num": "0.3.23",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.3.23/readme",
+      "updated_at": "2019-01-26T10:22:04.993065+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "15a732abf9d20f0ad8eeb6f909bf6868722d9a06e1e50802b6a70351f40b4eb1",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2018-02-05T09:56:34.099992+00:00",
+      "dl_path": "/api/v1/crates/rand/0.3.22/download",
+      "downloads": 1894261,
+      "features": {
+        "i128_support": [],
+        "nightly": [ "i128_support" ]
+      },
+      "id": 79903,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.3.22/authors",
+        "dependencies": "/api/v1/crates/rand/0.3.22/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.3.22/downloads"
+      },
+      "num": "0.3.22",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.3.22/readme",
+      "updated_at": "2018-02-05T09:56:34.099992+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "2065120c1768ae23c80b8e732370108156a07a3e1d437bebc8065151ac38e132",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2018-01-21T15:38:12.762298+00:00",
+      "dl_path": "/api/v1/crates/rand/0.3.21-pre.0/download",
+      "downloads": 1997,
+      "features": {
+        "i128_support": [],
+        "nightly": [ "i128_support" ]
+      },
+      "id": 78200,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.3.21-pre.0/authors",
+        "dependencies": "/api/v1/crates/rand/0.3.21-pre.0/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.3.21-pre.0/downloads"
+      },
+      "num": "0.3.21-pre.0",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.3.21-pre.0/readme",
+      "updated_at": "2018-01-21T15:38:12.762298+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "512870020642bb8c221bf68baa1b2573da814f6ccfe5c9699b1c303047abe9b1",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2018-01-06T11:23:51.744471+00:00",
+      "dl_path": "/api/v1/crates/rand/0.3.20/download",
+      "downloads": 257744,
+      "features": {
+        "i128_support": [],
+        "nightly": [ "i128_support" ]
+      },
+      "id": 76563,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.3.20/authors",
+        "dependencies": "/api/v1/crates/rand/0.3.20/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.3.20/downloads"
+      },
+      "num": "0.3.20",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.3.20/readme",
+      "updated_at": "2018-01-06T11:23:51.744471+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "9e7944d95d25ace8f377da3ac7068ce517e4c646754c43a1b1849177bbf72e59",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2017-12-27T15:08:08.777274+00:00",
+      "dl_path": "/api/v1/crates/rand/0.3.19/download",
+      "downloads": 98457,
+      "features": {
+        "i128_support": [],
+        "nightly": [ "i128_support" ]
+      },
+      "id": 75606,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.3.19/authors",
+        "dependencies": "/api/v1/crates/rand/0.3.19/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.3.19/downloads"
+      },
+      "num": "0.3.19",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.3.19/readme",
+      "updated_at": "2017-12-27T15:08:08.777274+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "6475140dfd8655aeb72e1fd4b7a1cc1c202be65d71669476e392fe62532b9edd",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2017-11-06T16:14:49.577429+00:00",
+      "dl_path": "/api/v1/crates/rand/0.3.18/download",
+      "downloads": 468977,
+      "features": {
+        "i128_support": [],
+        "nightly": [ "i128_support" ]
+      },
+      "id": 70485,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.3.18/authors",
+        "dependencies": "/api/v1/crates/rand/0.3.18/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.3.18/downloads"
+      },
+      "num": "0.3.18",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.3.18/readme",
+      "updated_at": "2017-11-30T03:01:39.779366+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "61efcbcd9fa8d8fbb07c84e34a8af18a1ff177b449689ad38a6e9457ecc7b2ae",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2017-10-06T23:14:49.189763+00:00",
+      "dl_path": "/api/v1/crates/rand/0.3.17/download",
+      "downloads": 231977,
+      "features": {
+        "i128_support": [],
+        "nightly": [ "i128_support" ]
+      },
+      "id": 67607,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.3.17/authors",
+        "dependencies": "/api/v1/crates/rand/0.3.17/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.3.17/downloads"
+      },
+      "num": "0.3.17",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.3.17/readme",
+      "updated_at": "2017-11-30T03:23:09.777592+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "eb250fd207a4729c976794d03db689c9be1d634ab5a1c9da9492a13d8fecbcdf",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2017-07-27T21:36:53.538621+00:00",
+      "dl_path": "/api/v1/crates/rand/0.3.16/download",
+      "downloads": 447754,
+      "features": {
+        "i128_support": [],
+        "nightly": [ "i128_support" ]
+      },
+      "id": 60891,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.3.16/authors",
+        "dependencies": "/api/v1/crates/rand/0.3.16/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.3.16/downloads"
+      },
+      "num": "0.3.16",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.3.16/readme",
+      "updated_at": "2017-11-30T02:38:03.828610+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "022e0636ec2519ddae48154b028864bdce4eaf7d35226ab8e65c611be97b189d",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2016-11-26T22:34:32.458356+00:00",
+      "dl_path": "/api/v1/crates/rand/0.3.15/download",
+      "downloads": 1696097,
+      "features": {},
+      "id": 38564,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.3.15/authors",
+        "dependencies": "/api/v1/crates/rand/0.3.15/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.3.15/downloads"
+      },
+      "num": "0.3.15",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.3.15/readme",
+      "updated_at": "2017-11-30T03:52:13.958691+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "2791d88c6defac799c3f20d74f094ca33b9332612d9aef9078519c82e4fe04a5",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2016-02-13T08:28:26.855136+00:00",
+      "dl_path": "/api/v1/crates/rand/0.3.14/download",
+      "downloads": 1586549,
+      "features": {},
+      "id": 22300,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.3.14/authors",
+        "dependencies": "/api/v1/crates/rand/0.3.14/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.3.14/downloads"
+      },
+      "num": "0.3.14",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.3.14/readme",
+      "updated_at": "2017-11-30T02:50:07.026891+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "2416b8bbd96336311c2ff9e6fca7338cc76a57a235d7a153aee88928a06b3657",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2016-01-09T17:59:17.530313+00:00",
+      "dl_path": "/api/v1/crates/rand/0.3.13/download",
+      "downloads": 136365,
+      "features": {},
+      "id": 20439,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.3.13/authors",
+        "dependencies": "/api/v1/crates/rand/0.3.13/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.3.13/downloads"
+      },
+      "num": "0.3.13",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.3.13/readme",
+      "updated_at": "2017-11-30T04:00:53.555990+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "5eee40bdf3d293e1648490ab47e5471d9ab3e455e6b0bd48e558c454be4a015e",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2015-11-09T15:57:54.952164+00:00",
+      "dl_path": "/api/v1/crates/rand/0.3.12/download",
+      "downloads": 196017,
+      "features": {},
+      "id": 17884,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.3.12/authors",
+        "dependencies": "/api/v1/crates/rand/0.3.12/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.3.12/downloads"
+      },
+      "num": "0.3.12",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.3.12/readme",
+      "updated_at": "2017-11-30T02:29:39.167151+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "9f7c7a46a8a1f876a89c594f7171a4152f5d7db20bfd4861c4f59b314ee81bff",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2015-08-31T06:12:15.702270+00:00",
+      "dl_path": "/api/v1/crates/rand/0.3.11/download",
+      "downloads": 167514,
+      "features": {},
+      "id": 15268,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.3.11/authors",
+        "dependencies": "/api/v1/crates/rand/0.3.11/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.3.11/downloads"
+      },
+      "num": "0.3.11",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.3.11/readme",
+      "updated_at": "2017-11-30T03:28:50.400876+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "ea766199c2c97314b1c1aa5c5084d0e85558e4bfadfbe657ee8cd61fecf7cda0",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2015-08-17T05:06:53.870047+00:00",
+      "dl_path": "/api/v1/crates/rand/0.3.10/download",
+      "downloads": 40007,
+      "features": {},
+      "id": 14687,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.3.10/authors",
+        "dependencies": "/api/v1/crates/rand/0.3.10/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.3.10/downloads"
+      },
+      "num": "0.3.10",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.3.10/readme",
+      "updated_at": "2017-11-30T02:49:18.256536+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "275425710294d2715a1896b965fb02648745dbfac7ed3b39d5d30d6522d3d7ec",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2015-07-30T00:18:14.527848+00:00",
+      "dl_path": "/api/v1/crates/rand/0.3.9/download",
+      "downloads": 50762,
+      "features": {},
+      "id": 13851,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.3.9/authors",
+        "dependencies": "/api/v1/crates/rand/0.3.9/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.3.9/downloads"
+      },
+      "num": "0.3.9",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.3.9/readme",
+      "updated_at": "2017-11-30T03:23:24.915468+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "b674087a811e0f96133764b93f2f95ab843c0ade512ca52fd5df732c93d4c596",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2015-04-23T15:45:27.537203+00:00",
+      "dl_path": "/api/v1/crates/rand/0.3.8/download",
+      "downloads": 143849,
+      "features": {},
+      "id": 9238,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.3.8/authors",
+        "dependencies": "/api/v1/crates/rand/0.3.8/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.3.8/downloads"
+      },
+      "num": "0.3.8",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.3.8/readme",
+      "updated_at": "2017-11-30T03:10:46.675998+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "bcc0c42cf8d6c4feacf0ddcd2f62a26683e70e1624d7aa09c68ff5eab5ae3ea7",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2015-04-03T01:05:31.952768+00:00",
+      "dl_path": "/api/v1/crates/rand/0.3.7/download",
+      "downloads": 24866,
+      "features": {},
+      "id": 7843,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.3.7/authors",
+        "dependencies": "/api/v1/crates/rand/0.3.7/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.3.7/downloads"
+      },
+      "num": "0.3.7",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.3.7/readme",
+      "updated_at": "2017-11-30T03:29:52.524963+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "546d28af08aa9ce97d46db15c37c762c49f81024528e3ca2763df39693c81df9",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2015-04-02T16:19:41.260649+00:00",
+      "dl_path": "/api/v1/crates/rand/0.3.6/download",
+      "downloads": 2644,
+      "features": {},
+      "id": 7771,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.3.6/authors",
+        "dependencies": "/api/v1/crates/rand/0.3.6/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.3.6/downloads"
+      },
+      "num": "0.3.6",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.3.6/readme",
+      "updated_at": "2017-11-30T03:29:50.862185+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "5a99d6b538b5367b9b75ba9cc46352c79b49391c504b2c8b02b209fc4d966d4f",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2015-04-01T16:31:09.324585+00:00",
+      "dl_path": "/api/v1/crates/rand/0.3.5/download",
+      "downloads": 3064,
+      "features": {},
+      "id": 7710,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.3.5/authors",
+        "dependencies": "/api/v1/crates/rand/0.3.5/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.3.5/downloads"
+      },
+      "num": "0.3.5",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.3.5/readme",
+      "updated_at": "2017-11-30T03:29:50.860086+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "0797f8670f9770908805ad3013eae9fbcbc8afbce1cc11fbec9057cc47876d8e",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2015-03-31T16:27:07.045712+00:00",
+      "dl_path": "/api/v1/crates/rand/0.3.4/download",
+      "downloads": 3355,
+      "features": {},
+      "id": 7648,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.3.4/authors",
+        "dependencies": "/api/v1/crates/rand/0.3.4/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.3.4/downloads"
+      },
+      "num": "0.3.4",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.3.4/readme",
+      "updated_at": "2017-11-30T02:22:43.660971+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "197ab35dc84c9690fe08e631147a3bc65c495a076fde9dbcbb831cb357cb4dcc",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2015-03-26T16:51:30.584466+00:00",
+      "dl_path": "/api/v1/crates/rand/0.3.3/download",
+      "downloads": 7023,
+      "features": {},
+      "id": 7248,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.3.3/authors",
+        "dependencies": "/api/v1/crates/rand/0.3.3/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.3.3/downloads"
+      },
+      "num": "0.3.3",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.3.3/readme",
+      "updated_at": "2017-11-30T03:20:02.518029+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "7509d0e54dba4809929528cb2fa9b3204aea8e09daa4488528c09ac5d7919d2b",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2015-03-26T16:27:26.614515+00:00",
+      "dl_path": "/api/v1/crates/rand/0.3.2/download",
+      "downloads": 2184,
+      "features": {},
+      "id": 7239,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.3.2/authors",
+        "dependencies": "/api/v1/crates/rand/0.3.2/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.3.2/downloads"
+      },
+      "num": "0.3.2",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.3.2/readme",
+      "updated_at": "2017-11-30T02:52:48.647396+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "84a1254b55b4dcbba4f14a115839e047cde6b0f7cff422dedf95c0dcc9f9dd5f",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2015-03-26T16:22:02.670733+00:00",
+      "dl_path": "/api/v1/crates/rand/0.3.1/download",
+      "downloads": 2197,
+      "features": {},
+      "id": 7237,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.3.1/authors",
+        "dependencies": "/api/v1/crates/rand/0.3.1/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.3.1/downloads"
+      },
+      "num": "0.3.1",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.3.1/readme",
+      "updated_at": "2017-11-30T03:23:33.647509+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "3cf4775b9343739293be5509eace6b92934f960eee13f499c4aef2fd6264e0be",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2015-03-25T03:45:18.933975+00:00",
+      "dl_path": "/api/v1/crates/rand/0.3.0/download",
+      "downloads": 7555,
+      "features": {},
+      "id": 6964,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.3.0/authors",
+        "dependencies": "/api/v1/crates/rand/0.3.0/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.3.0/downloads"
+      },
+      "num": "0.3.0",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.3.0/readme",
+      "updated_at": "2017-11-30T03:45:43.693804+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "28cb601e872bcf1e2667d0433d2b5f2c53d37a6ca05e948fd1a977fa087e42e3",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2015-03-22T17:34:50.855059+00:00",
+      "dl_path": "/api/v1/crates/rand/0.2.1/download",
+      "downloads": 13662,
+      "features": {},
+      "id": 6704,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.2.1/authors",
+        "dependencies": "/api/v1/crates/rand/0.2.1/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.2.1/downloads"
+      },
+      "num": "0.2.1",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.2.1/readme",
+      "updated_at": "2017-11-30T02:43:00.497770+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "84ea08184d9918e81fc12b3fd0f4140d08d685eaba32a2ad99ad37598cec21ee",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2015-03-06T19:24:21.728280+00:00",
+      "dl_path": "/api/v1/crates/rand/0.2.0/download",
+      "downloads": 9320,
+      "features": {},
+      "id": 6029,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.2.0/authors",
+        "dependencies": "/api/v1/crates/rand/0.2.0/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.2.0/downloads"
+      },
+      "num": "0.2.0",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.2.0/readme",
+      "updated_at": "2017-11-30T03:53:38.652065+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "2d37d90a6118f2925173cb2b778aaabda804247d389cbff6f39fb558fddda113",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2015-03-04T17:43:01.186628+00:00",
+      "dl_path": "/api/v1/crates/rand/0.1.4/download",
+      "downloads": 18935,
+      "features": {},
+      "id": 5937,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.1.4/authors",
+        "dependencies": "/api/v1/crates/rand/0.1.4/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.1.4/downloads"
+      },
+      "num": "0.1.4",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.1.4/readme",
+      "updated_at": "2017-11-30T03:37:01.444909+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "9d331e7989fa270543aebfe03b04b4230a78a159456a62248a9cf3e12393987e",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2015-02-20T17:51:03.914107+00:00",
+      "dl_path": "/api/v1/crates/rand/0.1.3/download",
+      "downloads": 9796,
+      "features": {},
+      "id": 5252,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.1.3/authors",
+        "dependencies": "/api/v1/crates/rand/0.1.3/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.1.3/downloads"
+      },
+      "num": "0.1.3",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.1.3/readme",
+      "updated_at": "2017-11-30T03:19:24.310777+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "6e229ed392842fa93c1d76018d197b7e1b74250532bafb37b0e1d121a92d4cf7",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2015-02-03T11:15:19.001762+00:00",
+      "dl_path": "/api/v1/crates/rand/0.1.2/download",
+      "downloads": 8731,
+      "features": {},
+      "id": 4371,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.1.2/authors",
+        "dependencies": "/api/v1/crates/rand/0.1.2/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.1.2/downloads"
+      },
+      "num": "0.1.2",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.1.2/readme",
+      "updated_at": "2017-11-30T03:14:27.545115+00:00",
+      "yanked": false
+    },
+    {
+      "audit_actions": [],
+      "checksum": "48a45b46c2a8c38348adb1205b13c3c5eb0174e0c0fec52cc88e9fb1de14c54d",
+      "crate": "rand",
+      "crate_size": null,
+      "created_at": "2015-02-03T06:17:14.169972+00:00",
+      "dl_path": "/api/v1/crates/rand/0.1.1/download",
+      "downloads": 54356,
+      "features": {},
+      "id": 4362,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "authors": "/api/v1/crates/rand/0.1.1/authors",
+        "dependencies": "/api/v1/crates/rand/0.1.1/dependencies",
+        "version_downloads": "/api/v1/crates/rand/0.1.1/downloads"
+      },
+      "num": "0.1.1",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/rand/0.1.1/readme",
+      "updated_at": "2017-11-30T03:33:14.186028+00:00",
+      "yanked": false
+    }
+  ]
+}

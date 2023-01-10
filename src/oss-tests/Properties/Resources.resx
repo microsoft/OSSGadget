@@ -102,7 +102,28 @@
     <data name="cargo.rand" type="System.Resources.ResXFileRef, System.Windows.Forms">
         <value>..\TestData\Cargo\rand;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </data>
-	<data name="maven_ant_1.6_html" type="System.Resources.ResXFileRef, System.Windows.Forms">
-		<value>..\TestData\Maven\maven_ant_1.6.html;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-	</data>
+    <data name="cargo.rand.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>..\testdata\cargo\api_rand_json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </data>
+    <data name="maven_ant_1.6_html" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>..\TestData\Maven\maven_ant_1.6.html;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </data>
+    <data name="maven_ant_all_html" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>..\TestData\Maven\maven_ant_all.html;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </data>
+    <data name="maven_ant_metadata_xml" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>..\TestData\Maven\maven_ant_metadata.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </data>
+    <data name="maven_ant_1.6_pom" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>..\TestData\Maven\maven_ant_1.6.pom;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </data>
+    <data name="go_yaml_list" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>..\TestData\Go\go_yaml_list;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </data>
+    <data name="go_yaml_1.3.0_info" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>..\TestData\Go\go_yaml_1.3.0_info;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </data>
+    <data name="go_yaml_1.3.0_mod" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>..\TestData\Go\go_yaml_1.3.0_mod;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </data>
 </root>

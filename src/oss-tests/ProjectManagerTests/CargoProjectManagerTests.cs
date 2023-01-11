@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 {
+    using Microsoft.CST.OpenSource.Extensions;
     using Microsoft.CST.OpenSource.Model;
     using Microsoft.CST.OpenSource.PackageActions;
     using Moq;
@@ -23,6 +24,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         private readonly IDictionary<string, string> _packages = new Dictionary<string, string>()
         {
             { "https://raw.githubusercontent.com/rust-lang/crates.io-index/master/ra/nd/rand", Resources.cargo_rand },
+            { "https://crates.io/api/v1/crates/rand", Resources.cargo_rand_json },
         }.ToImmutableDictionary();
 
         private readonly CargoProjectManager _projectManager;
@@ -84,6 +86,29 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             PackageURL purl = new(purlString);
 
             Assert.IsFalse(await _projectManager.PackageVersionExistsAsync(purl, useCache: false));
+        }
+
+        [DataTestMethod]
+        [DataRow("pkg:cargo/rand@0.7.3")] // Normal package
+        public async Task MetadataSucceeds(string purlString)
+        {
+            PackageURL purl = new(purlString);
+            PackageMetadata? metadata = await _projectManager.GetPackageMetadataAsync(purl, useCache: false);
+
+            Assert.IsNotNull(metadata);
+            Assert.AreEqual(purl.GetFullName(), metadata.Name);
+            Assert.AreEqual(purl.Version, metadata.PackageVersion);
+            Assert.IsNotNull(metadata.UploadTime);
+        }
+
+        [DataTestMethod]
+        [DataRow("pkg:cargo/rand@0.7.4")] // Does Not Exist package
+        public async Task MetadataFails(string purlString)
+        {
+            PackageURL purl = new(purlString);
+            PackageMetadata? metadata = await _projectManager.GetPackageMetadataAsync(purl, useCache: false);
+
+            Assert.IsNull(metadata);
         }
 
         private static void MockHttpFetchResponse(

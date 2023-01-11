@@ -232,11 +232,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             if (string.IsNullOrEmpty(content)) { return null; }
 
             PackageMetadata metadata = new();
-            metadata.Name = purl?.Name;
+            metadata.Name = purl.GetFullName();
             metadata.PackageVersion = purl?.Version;
             metadata.PackageManagerUri = (purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT).EnsureTrailingSlash();
             metadata.Platform = "Maven";
             metadata.Language = "Java";
+
+            metadata.UploadTime = await GetPackagePublishDateAsync(purl, useCache);
 
             return metadata;
         }
@@ -273,6 +275,49 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 case string _ when fileName.EndsWith(".jar"): return MavenArtifactType.Jar;
                 default: return MavenArtifactType.Unknown;
             }
+        }
+
+        private async Task<DateTime?> GetPackagePublishDateAsync(PackageURL purl, bool useCache = true)
+        {
+            string? packageNamespace = Check.NotNull(nameof(purl.Namespace), purl?.Namespace).Replace('.', '/');
+            string? packageName = Check.NotNull(nameof(purl.Name), purl?.Name);
+            string? packageVersion = Check.NotNull(nameof(purl.Version), purl?.Version);
+            string feedUrl = (purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT).EnsureTrailingSlash();
+
+            HttpClient httpClient = CreateHttpClient();
+            string baseUrl = $"{feedUrl}{packageNamespace}/{packageName}/";
+            string? html = await GetHttpStringCache(httpClient, baseUrl, useCache);
+            if (string.IsNullOrEmpty(html))
+            {
+                throw new InvalidOperationException();
+            }
+
+            HtmlParser parser = new();
+            AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(html);
+
+            // Break the version content down into its individual lines, and then find the one that represents the
+            // intended version.
+            string? versionContent = document.QuerySelector("#contents").TextContent
+                .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .SingleOrDefault(versionText => versionText.StartsWith($"{packageVersion}/"));
+
+            if (versionContent == null)
+            {
+                return null;
+            }
+
+            // Split the version content into its individual parts.
+            // [0] - The version
+            // [1] - The date it was published
+            // [2] - The time it waas published
+            // [3] - The download count
+            string[] versionParts = versionContent.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            if (DateTime.TryParse($"{versionParts[1]} {versionParts[2]}", out DateTime publishDateTime))
+            {
+                return publishDateTime;
+            }
+
+            return null;
         }
     }
 }

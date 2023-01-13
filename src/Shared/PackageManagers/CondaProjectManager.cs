@@ -78,7 +78,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public override IAsyncEnumerable<PackageURL> GetPackagesFromOwnerAsync(string owner, bool useCache = true) => throw new NotImplementedException();
 
         /// <inheritdoc />
-        public override async Task<bool> PackageExistsAsync(PackageURL purl, bool useCache = true)
+        public override async Task<bool> PackageVersionExistsAsync(PackageURL purl, bool useCache = true)
         {
             if (!IsValidPackageUrlForConda(purl))
             {

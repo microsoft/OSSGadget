@@ -199,5 +199,26 @@
         "modifiers": [ "i" ]
       }
     ]
-  }  
+  },
+  {
+    "name": "Backdoor: Obfuscated Comparison Between Two Constants",
+    "id": "BD000810",
+    "description": "Backdoor: Obfuscated Comparison Between Two Constants",
+    "tags": [
+      "Security.Backdoor.Obfuscation.CompareTwoConstants"
+    ],
+    "severity": "critical",
+    "patterns": [
+      {
+        "pattern": "(el)?if\\s[0-9]+\\s[<>=]{1,2}\\s*[0-9]+",
+        "type": "string",
+        "scopes": [
+          "code"
+        ],
+        "modifiers": [
+          "i"
+        ]
+      }
+    ]
+  }
 ]

@@ -46,6 +46,13 @@
         "scopes": [ "code" ],
         "modifiers": [ "i" ],
         "confidence": "high"
+      },
+      {
+        "pattern": "(\\\\x[a-f0-9][a-f0-9]){5,}",
+        "type": "regex",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
       }
     ]
   },

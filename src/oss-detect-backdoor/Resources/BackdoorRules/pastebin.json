@@ -9,7 +9,7 @@
     "severity": "moderate",
     "patterns": [
       {
-        "pattern": "pastebin|zerobin|ghostbin|hastebin",
+        "pattern": "pastebin|zerobin|ghostbin|hastebin|klgrth\\.io",
         "type": "regexword",
         "scopes": [ "code", "comment" ],
         "modifiers": [ "i" ],

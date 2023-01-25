@@ -98,5 +98,23 @@
         "confidence": "medium"
       }
     ]
+  },
+  {
+    "name": "Backdoor: Directly Exec UrlOpen",
+    "id": "BD000105",
+    "description": "Backdoor: Directly Exec UrlOpen",
+    "tags": [
+      "Security.Backdoor.ExecUrlOpen"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": "exec\\(\\\\s*urlopen",
+        "type": "regex",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "medium"
+      }
+    ]
   }
 ]

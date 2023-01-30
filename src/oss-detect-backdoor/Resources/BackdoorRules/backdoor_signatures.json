@@ -52,5 +52,23 @@
         "confidence": "high"
       }
     ]
+  },
+  {
+    "name": "Backdoor: Hyperion",
+    "id": "BD000203",
+    "description": "Backdoor: Hyperion",
+    "tags": [
+      "Security.Backdoor.Signature.Hyperion"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": "billythegoat356",
+        "type": "string",
+        "scopes": [ "code", "comment" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      }
+    ]
   }
 ]

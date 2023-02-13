@@ -13,7 +13,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 
         public IEnumerable<Mutation> Generate(string arg)
         {
-            for (int i = 1; i < arg.Length - 1; i++)
+            for (int i = 0; i < arg.Length - 1; i++)
             {
                 // Don't want to swap the same character for the same character, foo -> foo.
                 if (arg[i + 1] == arg[i])

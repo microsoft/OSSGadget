@@ -52,7 +52,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
         /// <summary>
         /// Common variations known uniquely for NPM/Javascript. 
         /// </summary>
-        internal static IEnumerable<IMutator> NpmMutators { get; } = BaseMutators.Where(x => x is not UnicodeHomoglyphMutator and not SuffixMutator)
+        internal static IEnumerable<IMutator> NpmMutators { get; } = BaseMutators.Where(x => x is not UnicodeHomoglyphMutator and not PrefixMutator and not SuffixMutator)
             .Concat(new IMutator[]
                 {
                     new SubstitutionMutator(new List<(string Original, string Substitution)>()
@@ -60,8 +60,22 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
                         ("js", "javascript"),
                         ("ts", "typescript"),
                     }),
-                    new SuffixMutator(additionalSuffixes: new[] { "js", ".js", "javascript", "ts", ".ts", "typescript"})
+                    new PrefixMutator(additionalPrefixes: new[] { "js", "js-", "node", "node-","ts", "ts-"}),
+                    new SuffixMutator(additionalSuffixes: new[] { "js", ".js", "-js", "javascript", "-javascript", "ts", ".ts", "-ts", "typescript", "-typescript", "node", "-node"})
                 });
+                
+        /// <summary>
+        /// Common variations known uniquely for Python. 
+        /// </summary>
+        internal static IEnumerable<IMutator> PythonMutators { get; } = BaseMutators.Where(x => x is not UnicodeHomoglyphMutator and not SuffixMutator)
+            .Concat(new IMutator[]
+            {
+                new SubstitutionMutator(new List<(string Original, string Substitution)>()
+                {
+                    ("py", "python"),
+                }),
+                new SuffixMutator(additionalSuffixes: new[] { "py", ".py", "-py", "python", "-python"})
+            });
 
         /// <summary>
         /// Gets the default set of mutators for a given BaseProjectManager based on its Type.
@@ -72,6 +86,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
         {
             NuGetProjectManager => NugetMutators,
             NPMProjectManager => NpmMutators,
+            PyPIProjectManager => PythonMutators,
             _ => BaseMutators
         };
 

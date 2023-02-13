@@ -35,6 +35,18 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                         reason: $"Close Letters on QWERTY Keyboard: {arg[i]} => {c}");
                 }
             }
+            
+            // Also try adding an additional character at the end of neighbouring characters.
+            List<char>? n2 = QwertyKeyboardHelper.GetNeighboringCharacters(arg.Last()).ToList();
+
+            foreach (char c in n2)
+            {
+                yield return new Mutation(
+                    mutated: string.Concat(arg, c),
+                    original: arg,
+                    mutator: Kind,
+                    reason: $"Close Letters on QWERTY Keyboard, added to end: {arg} => {c}");
+            }
         }
     }
 }

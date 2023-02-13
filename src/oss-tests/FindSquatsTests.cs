@@ -258,6 +258,60 @@ namespace Microsoft.CST.OpenSource.Tests
         }
         
         [TestMethod]
+        public async Task UniversalifyMutations_Succeeds_Async()
+        {
+            // arrange
+            PackageURL universalify = new("pkg:npm/universalify");
+
+            string[] squattingPackages = new[]
+            {
+                "pkg:npm/universalfiy", 
+                "pkg:npm/nuiversalify",
+                "pkg:npm/universalifyt",
+            };
+
+            IHttpClientFactory httpClientFactory =
+                FindSquatsHelper.SetupHttpCalls(purl: universalify, validSquats: squattingPackages);
+
+            FindPackageSquats findPackageSquats = new(new ProjectManagerFactory(httpClientFactory), universalify);
+
+            // act
+            IDictionary<string, IList<Mutation>>? squatCandidates = findPackageSquats.GenerateSquatCandidates();
+            List<FindPackageSquatResult> existingMutations = await findPackageSquats.FindExistingSquatsAsync(squatCandidates, new MutateOptions(){UseCache = false}).ToListAsync();
+            Assert.IsNotNull(existingMutations);
+            Assert.IsTrue(existingMutations.Any());
+            string[] resultingMutationNames = existingMutations.Select(m => m.MutatedPackageUrl.ToString()).ToArray();
+            CollectionAssert.AreEquivalent(squattingPackages, resultingMutationNames);
+        }
+        
+        [TestMethod]
+        public async Task WebidlConversionsMutations_Succeeds_Async()
+        {
+            // arrange
+            PackageURL webidlConversions = new("pkg:npm/webidl-conversions");
+
+            string[] squattingPackages = new[]
+            {
+                "pkg:npm/webidl-conversion", 
+                "pkg:npm/webidl-covnersions",
+                "pkg:npm/ewbidl-conversions",
+            };
+
+            IHttpClientFactory httpClientFactory =
+                FindSquatsHelper.SetupHttpCalls(purl: webidlConversions, validSquats: squattingPackages);
+
+            FindPackageSquats findPackageSquats = new(new ProjectManagerFactory(httpClientFactory), webidlConversions);
+
+            // act
+            IDictionary<string, IList<Mutation>>? squatCandidates = findPackageSquats.GenerateSquatCandidates();
+            List<FindPackageSquatResult> existingMutations = await findPackageSquats.FindExistingSquatsAsync(squatCandidates, new MutateOptions(){UseCache = false}).ToListAsync();
+            Assert.IsNotNull(existingMutations);
+            Assert.IsTrue(existingMutations.Any());
+            string[] resultingMutationNames = existingMutations.Select(m => m.MutatedPackageUrl.ToString()).ToArray();
+            CollectionAssert.AreEquivalent(squattingPackages, resultingMutationNames);
+        }
+
+        [TestMethod]
         public async Task FooMutations_Succeeds_Async()
         {
             // arrange

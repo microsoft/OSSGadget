@@ -20,14 +20,11 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
         /// They get replaced in both directions.
         /// e.g. "js" -> "javascript" and "javascript" -> "js".
         /// </summary>
-        private static IList<(string Original, string Substitution)> _substitutions = new List<(string Original, string Substitution)>();
+        private readonly IList<(string Original, string Substitution)> _substitutions;
 
         public SubstitutionMutator(IList<(string Original, string Substitution)>? substitutions = null)
         {
-            if (substitutions != null)
-            {
-                _substitutions = substitutions;
-            }
+            _substitutions = substitutions ?? new List<(string Original, string Substitution)>();
         }
 
         public IEnumerable<Mutation> Generate(string arg)

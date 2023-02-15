@@ -91,6 +91,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             { "https://registry.npmjs.org/rly-cli", Resources.rly_cli_json },
             { "https://registry.npmjs.org/tslib", Resources.tslib_json },
             { "https://registry.npmjs.org/example", Resources.minimum_json_json },
+            { "https://registry.npmjs.org/tslib/2.4.1", Resources.tslib_241_json },
         }.ToImmutableDictionary();
 
         private readonly Mock<NPMProjectManager> _projectManager;
@@ -155,13 +156,15 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         [DataRow("pkg:npm/example@0.0.0")]
         [DataRow("pkg:npm/rly-cli@0.0.2")]
         [DataRow("pkg:npm/lodash.js@0.0.1-security")]
+        [DataRow("pkg:npm/tslib@2.4.1")]
         public async Task PackageVersionExistsAsyncSucceeds(string purlString)
         {
+            NPMProjectManager projectManager = new(".");
             PackageURL purl = new(purlString);
 
-            Assert.IsTrue(await _projectManager.Object.PackageVersionExistsAsync(purl, useCache: false));
+            Assert.IsTrue(await projectManager.PackageVersionExistsAsync(purl, useCache: false));
         }
-        
+
         [DataTestMethod]
         [DataRow("pkg:npm/lodash@1.2.3.4.5.6.7")]
         [DataRow("pkg:npm/%40angular/core@1.2.3.4.5.6.7")]
@@ -180,7 +183,6 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             PackageURL purl = new(purlString);
 
             var existence = await _projectManager.Object.DetailedPackageVersionExistsAsync(purl, useCache: false);
-
             existence.Should().BeEquivalentTo(_packageVersionExistence[existenceKey].packageVersionExistence);
         }
 
@@ -353,7 +355,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             packages.Should().OnlyHaveUniqueItems();
             packages.Select(p => p.ToString()).Should().Contain(expectedPackage);
         }
-        
+
         private static void MockHttpFetchResponse(
             HttpStatusCode statusCode,
             string url,

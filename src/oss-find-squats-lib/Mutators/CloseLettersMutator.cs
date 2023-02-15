@@ -13,6 +13,30 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     public class CloseLettersMutator : IMutator
     {
         public MutatorType Kind { get; } = MutatorType.CloseLetters;
+        
+        private readonly List<char> _excludedCharacters = new() { ',', '[', ']', '=', ';', '\'' };
+
+        /// <summary>
+        /// Initializes a <see cref="CloseLettersMutator"/> instance.
+        /// Optionally takes in a additional characters to be excluded, or a list of overriding characters to be excluded to replace the default list with.
+        /// </summary>
+        /// <param name="additionalExcludedChars">An optional parameter for extra characters to be excluded.</param>
+        /// <param name="overrideExcludedChars">An optional parameter for list of characters to be excluded to replace the default list with.</param>
+        public CloseLettersMutator(char[]? additionalExcludedChars = null, char[]? overrideExcludedChars = null, char[]? skipExcludedChars = null)
+        {
+            if (overrideExcludedChars != null)
+            {
+                _excludedCharacters = overrideExcludedChars.ToList();
+            }
+            if (additionalExcludedChars != null)
+            {
+                _excludedCharacters.AddRange(additionalExcludedChars);
+            }
+            if (skipExcludedChars != null)
+            {
+                _excludedCharacters.RemoveAll(skipExcludedChars.Contains);
+            }
+        }
 
         public IEnumerable<Mutation> Generate(string arg)
         {
@@ -24,6 +48,12 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                 {
                     // We don't want mutations like pkg:npm//odash mutated from pkg:npm/lodash that is the same as pkg:npm/odash
                     if (i == 0 && c == '/')
+                    {
+                        continue;
+                    }
+
+                    // We don't want mutations that include any of the characters we want to exclude.
+                    if (_excludedCharacters.Contains(c))
                     {
                         continue;
                     }
@@ -41,6 +71,12 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 
             foreach (char c in n2)
             {
+                // We don't want mutations that include any of the characters we want to exclude.
+                if (_excludedCharacters.Contains(c))
+                {
+                    continue;
+                }
+
                 yield return new Mutation(
                     mutated: string.Concat(arg, c),
                     original: arg,

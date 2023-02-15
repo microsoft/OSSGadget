@@ -12,7 +12,10 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     /// </summary>
     public class SeparatorMutator : IMutator
     {
-        public MutatorType Kind { get; } = MutatorType.Separator;
+        /// <summary>
+        /// Gets the MutatorType as <see cref="MutatorType.SeparatorRemoved"/>. It can however also be <see cref="MutatorType.SeparatorChanged"/>.
+        /// </summary>
+        public MutatorType Kind { get; } = MutatorType.SeparatorRemoved;
 
         public HashSet<char> Separators { get; set; } = DefaultSeparators.ToHashSet();
 
@@ -56,7 +59,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                         yield return new Mutation(
                             mutated: target.Replace(separator, otherSeparator),
                             original: target,
-                            mutator: Kind,
+                            mutator: MutatorType.SeparatorChanged,
                             reason: $"Separator Changed: {separator} => {otherSeparator}");
                     }
 

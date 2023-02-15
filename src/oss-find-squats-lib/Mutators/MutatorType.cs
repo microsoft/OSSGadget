@@ -16,9 +16,9 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
         /// </summary>
         Custom,
         /// <summary>
-        /// The <see cref="AfterSeparatorMutator"/> mutator.
+        /// The <see cref="AddCharacterMutator"/> mutator.
         /// </summary>
-        AfterSeparator,
+        AddCharacter,
         /// <summary>
         /// The <see cref="AsciiHomoglyphMutator"/> mutator.
         /// </summary>
@@ -52,9 +52,21 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
         /// </summary>
         RemovedNamespace,
         /// <summary>
+        /// The <see cref="RemoveSeparatedSectionMutator"/> mutator.
+        /// </summary>
+        RemoveSeparatedSection,
+        /// <summary>
+        /// The <see cref="ReplaceCharacterMutator"/> mutator.
+        /// </summary>
+        ReplaceCharacter,
+        /// <summary>
         /// The <see cref="SeparatorMutator"/> mutator.
         /// </summary>
-        Separator,
+        SeparatorChanged,
+        /// <summary>
+        /// The <see cref="SeparatorMutator"/> mutator.
+        /// </summary>
+        SeparatorRemoved,
         /// <summary>
         /// The <see cref="SubstitutionMutator"/> mutator.
         /// </summary>

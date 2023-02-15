@@ -61,5 +61,29 @@ namespace Microsoft.CST.OpenSource.Helpers
 
             return url;
         }
+        
+        /// <summary>
+        /// Returns the input string <paramref name="source"/> with the first instance of <paramref name="oldValue"/>
+        /// being replaced with <paramref name="newValue"/>.
+        /// </summary>
+        /// <remarks>If the string doesn't have an instance of <paramref name="oldValue"/>, no changes are made.</remarks>
+        public static string ReplaceAtStart(this string source, string oldValue, string newValue)
+        {
+            int place = source.IndexOf(oldValue);
+    
+            return place == -1 ? source : source.Remove(place, oldValue.Length).Insert(place, newValue);
+        }
+        
+        /// <summary>
+        /// Returns the input string <paramref name="source"/> with the last instance of <paramref name="oldValue"/>
+        /// being replaced with <paramref name="newValue"/>.
+        /// </summary>
+        /// <remarks>If the string doesn't have an instance of <paramref name="oldValue"/>, no changes are made.</remarks>
+        public static string ReplaceAtEnd(this string source, string oldValue, string newValue)
+        {
+            int place = source.LastIndexOf(oldValue);
+    
+            return place == -1 ? source : source.Remove(place, oldValue.Length).Insert(place, newValue);
+        }
     }
 }

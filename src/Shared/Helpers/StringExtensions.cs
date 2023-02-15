@@ -14,7 +14,7 @@ namespace Microsoft.CST.OpenSource.Helpers
         /// </summary>
         /// <param name="str">The string have a character replaced in.</param>
         /// <param name="c">The character to insert into the string.</param>
-        /// <param name="pos">The position in the string to replace with the provided character..</param>
+        /// <param name="pos">The position in the string to replace with the provided character.</param>
         /// <returns>The string with the swapped character.</returns>
         public static string ReplaceCharAtPosition(this string str, char c, int pos)
         {

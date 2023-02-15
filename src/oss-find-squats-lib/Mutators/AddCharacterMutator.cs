@@ -43,6 +43,12 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
         {
             for (int i = 0; i < arg.Length+1; i++)
             {
+                // Can't add a character before an @ for a scoped package.
+                if (i == 0 && arg[i] == '@')
+                {
+                    continue;
+                }
+
                 foreach (var c in _characters)
                 {
                     yield return new Mutation(

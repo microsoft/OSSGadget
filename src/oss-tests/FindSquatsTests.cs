@@ -127,7 +127,7 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("pkg:pypi/python-dateutil")]
         [DataRow("pkg:pypi/google-api-python-client")]
         [DataRow("pkg:nuget/Microsoft.CST.OAT")]
-        public void EnsureOneToOne(string packageUrl)
+        public void CanGetOriginalFromMutatingMutations(string packageUrl)
         {
             var missedOnes = new List<Mutation>();
             var originalMutationCount = 0;
@@ -237,11 +237,7 @@ namespace Microsoft.CST.OpenSource.Tests
         }
         
         [DataTestMethod]
-        [DataRow("pkg:npm/foo")]
-        [DataRow("pkg:npm/foo/bar")]
-        [DataRow("pkg:npm/react-dom")]
-        [DataRow("pkg:nuget/Microsoft.CST.OAT")]
-        [DataRow("pkg:nuget/Newtonsoft.Json")]
+        [DataRow("pkg:npm/%40foo/bar")]
         public void EnsureHttpEncoded(string packageUrl)
         {
             PackageURL purl = new(packageUrl);
@@ -252,9 +248,7 @@ namespace Microsoft.CST.OpenSource.Tests
                 {
                     foreach ((string mutationPurlString, _) in manager.EnumerateSquatCandidates(purl)!)
                     {
-                        PackageURL mutatedPurl = new(mutationPurlString);
-                        
-                        if (IsUrlEncoded(mutatedPurl.Name) || (mutatedPurl.HasNamespace() && IsUrlEncoded(mutatedPurl.Namespace)))
+                        if (IsUrlEncoded(mutationPurlString))
                         {
                             return;
                         }

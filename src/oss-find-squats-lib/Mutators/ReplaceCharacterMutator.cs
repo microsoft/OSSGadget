@@ -52,6 +52,12 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 
                 foreach (var c in _characters)
                 {
+                    // Continue if the character would be replaced with itself.
+                    if (arg[i] == c)
+                    {
+                        continue;
+                    }
+
                     yield return new Mutation(
                         mutated: arg.ReplaceCharAtPosition(c, i),
                         original: arg,

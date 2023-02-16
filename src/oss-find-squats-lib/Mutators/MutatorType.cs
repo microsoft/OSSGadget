@@ -60,11 +60,11 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
         /// </summary>
         ReplaceCharacter,
         /// <summary>
-        /// The <see cref="SeparatorMutator"/> mutator.
+        /// The <see cref="SeparatorChangedMutator"/> mutator.
         /// </summary>
         SeparatorChanged,
         /// <summary>
-        /// The <see cref="SeparatorMutator"/> mutator.
+        /// The <see cref="SeparatorRemovedMutator"/> mutator.
         /// </summary>
         SeparatorRemoved,
         /// <summary>

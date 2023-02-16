@@ -71,7 +71,7 @@ namespace Microsoft.CST.OpenSource.Helpers
         {
             int place = source.IndexOf(oldValue);
     
-            return place == -1 ? source : source.Remove(place, oldValue.Length).Insert(place, newValue);
+            return place == -1 ? source : $"{source[..place]}{newValue}{source[(place + oldValue.Length)..]}";
         }
         
         /// <summary>
@@ -83,7 +83,7 @@ namespace Microsoft.CST.OpenSource.Helpers
         {
             int place = source.LastIndexOf(oldValue);
     
-            return place == -1 ? source : source.Remove(place, oldValue.Length).Insert(place, newValue);
+            return place == -1 ? source : $"{source[..place]}{newValue}{source[(place + oldValue.Length)..]}";
         }
     }
 }

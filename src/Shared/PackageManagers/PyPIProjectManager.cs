@@ -191,6 +191,28 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
+        public override async Task<bool> PackageVersionExistsAsync(PackageURL purl, bool useCache = true)
+        {
+            Logger.Trace("PackageVersionExists {0}", purl?.ToString());
+            if (string.IsNullOrEmpty(purl?.Name))
+            {
+                Logger.Trace("Provided PackageURL was null.");
+                return false;
+            }
+
+            if (purl.Version.IsBlank())
+            {
+                Logger.Trace("Provided PackageURL version was null or blank.");
+                return false;
+            }
+
+            string packageName = $"{purl.Name}/{purl.Version}";
+            HttpClient httpClient = CreateHttpClient();
+
+            return await CheckJsonCacheForPackage(httpClient, $"{ENV_PYPI_ENDPOINT}/pypi/{packageName}/json", useCache);
+        }
+
+        /// <inheritdoc />
         public override async Task<IEnumerable<string>> EnumerateVersionsAsync(PackageURL purl, bool useCache = true, bool includePrerelease = true)
         {
             Logger.Trace("EnumerateVersions {0}", purl?.ToString());

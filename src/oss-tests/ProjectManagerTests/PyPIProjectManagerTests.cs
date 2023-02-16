@@ -147,7 +147,20 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             Assert.AreEqual(count, versions.Count);
             Assert.AreEqual(latestVersion, versions.First());
         }
-        
+
+        [DataTestMethod]
+        [DataRow("pkg:pypi/pandas@1.4.2")]
+        [DataRow("pkg:pypi/plotly@3.7.1")]
+        [DataRow("pkg:pypi/requests@2.27.1")]
+        public async Task PackageVersionExistsAsyncSucceeds(string purlString)
+        {
+            PyPIProjectManager projectManager = new(".");
+            PackageURL purl = new(purlString);
+
+            Assert.IsTrue(await projectManager.PackageVersionExistsAsync(purl, useCache: false));
+        }
+
+
         [DataTestMethod]
         [DataRow("pkg:pypi/pandas", true)]
         [DataRow("pkg:pypi/plotly@3.7.1", true)]
@@ -163,7 +176,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         [DataTestMethod]
         [DataRow("pkg:pypi/pandas@1.4.2", true)]
         [DataRow("pkg:pypi/pandas@12.34.56.78", false)]
-        [DataRow("pkg:pypi/plotly@3.7.1", true)]
+        [DataRow("pkg:pypi/plotly@5.7.0", true)]
         [DataRow("pkg:pypi/requests@2.27.1", true)]
         [DataRow("pkg:pypi/notarealpackage@0.0.0", false)]
         public async Task DetailedPackageVersionExistsAsync_WorksAsExpected(string purlString, bool exists)

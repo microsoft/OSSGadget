@@ -43,12 +43,14 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                         reason: mutation.Reason,
                         mutator: mutation.Mutator);
                 }
-
-                yield return new Mutation(
-                    mutated: arg.CreateWithNewNames(HttpUtility.UrlEncode(mutation.Mutated), arg.Namespace).ToString(),
-                    original: mutation.Original,
-                    reason: mutation.Reason,
-                    mutator: mutation.Mutator);
+                else
+                {
+                    yield return new Mutation(
+                        mutated: arg.CreateWithNewNames(HttpUtility.UrlEncode(mutation.Mutated), arg.Namespace).ToString(),
+                        original: mutation.Original,
+                        reason: mutation.Reason,
+                        mutator: mutation.Mutator);
+                }
             }
         }
     }

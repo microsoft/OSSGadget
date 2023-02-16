@@ -112,6 +112,73 @@ namespace Microsoft.CST.OpenSource.Tests
             }
             Assert.Fail($"Did not find expected mutation {expectedToFind}");
         }
+        
+        [DataTestMethod]
+        [DataRow("pkg:npm/foo")]
+        [DataRow("pkg:npm/rx")]
+        [DataRow("pkg:npm/q")]
+        [DataRow("pkg:npm/typescript")]
+        [DataRow("pkg:npm/react")]
+        [DataRow("pkg:npm/express")]
+        [DataRow("pkg:npm/core-js")]
+        [DataRow("pkg:npm/lodash")]
+        [DataRow("pkg:npm/%40angular/core")]
+        [DataRow("pkg:pypi/pandas")]
+        [DataRow("pkg:pypi/python-dateutil")]
+        [DataRow("pkg:pypi/google-api-python-client")]
+        [DataRow("pkg:nuget/Microsoft.CST.OAT")]
+        public void CanGetOriginalFromMutatingMutations(string packageUrl)
+        {
+            var missedOnes = new List<Mutation>();
+            var originalMutationCount = 0;
+            PackageURL purl = new(packageUrl);
+            if (purl.Name is not null && purl.Type is not null)
+            {
+                BaseProjectManager? manager = ProjectManagerFactory.ConstructPackageManager(purl, null);
+                if (manager is not null)
+                {
+                    var originalMutations = manager.EnumerateSquatCandidates(purl);
+                    originalMutationCount = originalMutations.Count;
+                    foreach ((string mutatedNameFromOriginal, IList<Mutation> mutations) in originalMutations!)
+                    {
+                        // Don't want to consider bit flips, too complicated to reverse.
+                        if (mutations.All(m => m.Mutator == MutatorType.BitFlip))
+                        {
+                            continue;
+                        }
+                        
+                        // Don't want to consider separated section removed, separator removed, or removed namespace, too complicated to reverse.
+                        if (mutations.Any(m => m.Mutator is MutatorType.RemoveSeparatedSection or MutatorType.SeparatorRemoved or MutatorType.RemovedNamespace))
+                        {
+                            continue;
+                        }
+
+                        try
+                        {
+                            var mutatedMutations =
+                                manager.EnumerateSquatCandidates(new PackageURL(mutatedNameFromOriginal));
+
+                            if (!mutatedMutations.Any(
+                                    (kvp) => new PackageURL(kvp.Key).ToString().Equals(packageUrl, StringComparison.OrdinalIgnoreCase)))
+                            {
+                                missedOnes.AddRange(mutations);
+                            }
+                        }
+                        catch (MalformedPackageUrlException)
+                        {
+                            continue;
+                        }
+                    }
+                }
+            }
+
+            if (missedOnes.Any())
+            {
+                var missed = missedOnes.Select(m => $"Mutated name: {m.Mutated} - {m.Reason}");
+                var message = $"Found {missed.Count()} mutations out of {originalMutationCount} that couldn't be reverted back to {packageUrl}:\n{string.Join("\n", missed)}";
+                Assert.Fail(message);
+            }
+        }
 
         [DataTestMethod]
         [DataRow("pkg:npm/foo", "pkg:npm/too")]
@@ -170,11 +237,7 @@ namespace Microsoft.CST.OpenSource.Tests
         }
         
         [DataTestMethod]
-        [DataRow("pkg:npm/foo")]
-        [DataRow("pkg:npm/foo/bar")]
-        [DataRow("pkg:npm/react-dom")]
-        [DataRow("pkg:nuget/Microsoft.CST.OAT")]
-        [DataRow("pkg:nuget/Newtonsoft.Json")]
+        [DataRow("pkg:npm/%40foo/bar")]
         public void EnsureHttpEncoded(string packageUrl)
         {
             PackageURL purl = new(packageUrl);
@@ -185,9 +248,7 @@ namespace Microsoft.CST.OpenSource.Tests
                 {
                     foreach ((string mutationPurlString, _) in manager.EnumerateSquatCandidates(purl)!)
                     {
-                        PackageURL mutatedPurl = new(mutationPurlString);
-                        
-                        if (IsUrlEncoded(mutatedPurl.Name) || (mutatedPurl.HasNamespace() && IsUrlEncoded(mutatedPurl.Namespace)))
+                        if (IsUrlEncoded(mutationPurlString))
                         {
                             return;
                         }

@@ -16,23 +16,27 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
         private static readonly Dictionary<char, string> homoglyphs = new()
         {
             ['a'] = "eoq4",
-            ['b'] = "dp",
+            ['b'] = "dhp",
             ['c'] = "o",
             ['d'] = "bpq",
             ['e'] = "ao",
             ['f'] = "t",
-            ['g'] = "q",
+            ['g'] = "pq",
             ['h'] = "b",
             ['i'] = "lj",
             ['j'] = "il",
             ['l'] = "ij1",
             ['m'] = "n",
             ['n'] = "rmu",
-            ['o'] = "ea0",
-            ['p'] = "qg",
-            ['q'] = "pg",
+            ['o'] = "cea0",
+            ['p'] = "bdqg",
+            ['q'] = "adpg",
             ['r'] = "n",
             ['t'] = "f",
+            ['u'] = "n",
+            ['0'] = "o",
+            ['1'] = "l",
+            ['4'] = "a"
         };
 
         public IEnumerable<Mutation> Generate(string arg)

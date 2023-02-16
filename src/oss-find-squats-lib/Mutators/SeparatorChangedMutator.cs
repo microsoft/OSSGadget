@@ -7,26 +7,24 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
     using System.Linq;
 
     /// <summary>
-    /// Generates mutations of added or removed separators.
+    /// Generates mutations where each separator is swapped for another.
     /// The default separators are '.', '-', '_'.
     /// </summary>
-    public class SeparatorMutator : IMutator
+    public class SeparatorChangedMutator : IMutator
     {
-        public MutatorType Kind { get; } = MutatorType.Separator;
+        public MutatorType Kind { get; } = MutatorType.SeparatorChanged;
 
-        public HashSet<char> Separators { get; set; } = DefaultSeparators.ToHashSet();
-
-        public static ImmutableHashSet<char> DefaultSeparators { get => ImmutableHashSet.Create(new[] { '.', '-', '_' }); }
+        public HashSet<char> Separators { get; set; } = SeparatorRemovedMutator.DefaultSeparators.ToHashSet();
 
         /// <summary>
-        /// Initializes a <see cref="SeparatorMutator"/> instance.
+        /// Initializes a <see cref="SeparatorChangedMutator"/> instance.
         /// Optionally takes in a additional separators, or a list of overriding separators to
         /// replace the default list with.
         /// </summary>
         /// <param name="additionalSeparators">An optional parameter for extra separators.</param>
         /// <param name="overrideSeparators">An optional parameter for list of separators to replace the
         /// default list with.</param>
-        public SeparatorMutator(char[]? additionalSeparators = null, char[]? overrideSeparators = null)
+        public SeparatorChangedMutator(char[]? additionalSeparators = null, char[]? overrideSeparators = null)
         {
             if (overrideSeparators != null)
             {
@@ -40,7 +38,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 
         /// <summary>
         /// Generates mutations by replacing each candidate <see cref="Separators"/> with each other <see cref="Separators"/> and with <see cref="string.Empty"/>
-        /// For example: foo-js generates foo.js, foojs and foo_js
+        /// For example: foo-js generates foo.js and foo_js
         /// </summary>
         /// <param name="target">String to mutate</param>
         /// <returns>The generated mutations.</returns>
@@ -59,12 +57,6 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                             mutator: Kind,
                             reason: $"Separator Changed: {separator} => {otherSeparator}");
                     }
-
-                    yield return new Mutation(
-                        mutated: target.Replace(separator.ToString(), string.Empty),
-                        original: target,
-                        mutator: Kind,
-                        reason: $"Separator Removed {separator}");
                 }
             }
         }

@@ -3,7 +3,7 @@
 <root>
     <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
         <xsd:element name="root" msdata:IsDataSet="true">
-            
+
         </xsd:element>
     </xsd:schema>
     <resheader name="resmimetype">
@@ -103,7 +103,7 @@
         <value>..\TestData\Cargo\rand;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </data>
     <data name="cargo.rand.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\testdata\cargo\api_rand_json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+        <value>..\TestData\Cargo\api_rand_json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </data>
     <data name="maven_ant_1.6_html" type="System.Resources.ResXFileRef, System.Windows.Forms">
         <value>..\TestData\Maven\maven_ant_1.6.html;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>

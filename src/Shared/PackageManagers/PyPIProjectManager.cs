@@ -41,7 +41,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             : base(actions ?? new NoOpPackageActions(), httpClientFactory ?? new DefaultHttpClientFactory(), directory)
         {
         }
-        
+
         /// <inheritdoc />
         public override async IAsyncEnumerable<ArtifactUri<PyPIArtifactType>> GetArtifactDownloadUrisAsync(PackageURL purl, bool useCache = true)
         {
@@ -88,7 +88,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {
                 throw new InvalidOperationException();
             }
-            
+
             HtmlParser parser = new();
             AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(html);
             foreach (AngleSharp.Dom.IElement packageSnippet in document.QuerySelectorAll("a.package-snippet"))
@@ -285,7 +285,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             JsonElement root = contentJSON.RootElement;
 
             JsonElement infoElement = root.GetProperty("info");
-            
+
             metadata.LatestPackageVersion = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "version"); // Ran in the root, always points to latest version.
 
             if (purl.Version.IsBlank() && metadata.LatestPackageVersion.IsNotBlank())
@@ -392,7 +392,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                             metadata.VersionUri = $"{ENV_PYPI_ENDPOINT}/project/{purl.Name}/{purl.Version}";
                             metadata.VersionDownloadUri = OssUtilities.GetJSONPropertyStringIfExists(url, "url");
                         }
-                        
+
                         string? uploadTime = OssUtilities.GetJSONPropertyStringIfExists(url, "upload_time");
                         if (uploadTime != null)
                         {
@@ -467,7 +467,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             JsonDocument contentJSON = JsonDocument.Parse(metadata);
 
             List<string> possibleProperties = new() { "homepage", "home_page" };
-            List<string> searchPropertiesProjectURLs = new() { "Source", "Source Code", "homepage", "Bug Tracker", "Repository", "Bug Reports" };
 
             JsonElement infoJSON;
             try
@@ -496,17 +495,16 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     }
                     else if (property.Name.Equals("project_urls"))
                     {
-                        foreach (var propertyName in searchPropertiesProjectURLs)
+                       foreach (JsonProperty project_url in property.Value.EnumerateObject())
                         {
-                            if (property.Value.TryGetProperty(propertyName, out JsonElement projectUrl))
+                            string projectUrl = project_url.Value.ToString() ?? string.Empty;
+                            IEnumerable<PackageURL>? packageUrls = GitHubProjectManager.ExtractGitHubPackageURLs(projectUrl);
+                            // if we were able to extract a github url, return
+                            if (packageUrls != null && packageUrls.Any())
                             {
-                                IEnumerable<PackageURL>? packageUrls = GitHubProjectManager.ExtractGitHubPackageURLs(projectUrl.ToString());
-                                // if we were able to extract a github url, return
-                                if (packageUrls != null && packageUrls.Any())
-                                {
-                                    mapping.Add(packageUrls.First(), 1.0F);
-                                    return mapping;
-                                }
+                                mapping.Add(packageUrls.First(),
+                                1.0F);
+                                return mapping;
                             }
                         }
                     }

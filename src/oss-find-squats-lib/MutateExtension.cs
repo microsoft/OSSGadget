@@ -36,7 +36,6 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
             new RemoveSeparatedSectionMutator(),
             new ReplaceCharacterMutator(),
             new SeparatorChangedMutator(),
-            new SeparatorRemovedMutator(),
             new SuffixMutator(),
             new SwapOrderOfLettersMutator(),
             new UnicodeHomoglyphMutator(),
@@ -74,11 +73,12 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
         /// Common variations known uniquely for Python. 
         /// </summary>
         internal static IEnumerable<IMutator> PythonMutators { get; } = BaseMutators.Where(x => 
-                x is not UnicodeHomoglyphMutator and not SuffixMutator and not CloseLettersMutator and not DoubleHitMutator)
+                x is not UnicodeHomoglyphMutator and not SuffixMutator and not CloseLettersMutator and not DoubleHitMutator and not SeparatorChangedMutator)
             .Concat(new IMutator[]
             {
                 new CloseLettersMutator(additionalExcludedChars: new[] { '/' }),
                 new DoubleHitMutator(additionalExcludedChars: new[] { '/' }),
+                new SeparatorChangedMutator(overrideSeparators: new[] { '.', '-' }),
                 new SubstitutionMutator(new List<(string Original, string Substitution)>()
                 {
                     ("py", "python"),

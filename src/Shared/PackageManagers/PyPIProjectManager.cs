@@ -187,7 +187,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             string packageName = purl.Name;
             HttpClient httpClient = CreateHttpClient();
 
-            return await CheckJsonCacheForPackage(httpClient, $"{ENV_PYPI_ENDPOINT}/pypi/{packageName}/json", useCache);
+            return await CheckHttpCacheForPackage(httpClient, $"{ENV_PYPI_ENDPOINT}/pypi/{packageName}/json", useCache);
         }
 
         /// <inheritdoc />
@@ -206,10 +206,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 return false;
             }
 
-            string packageName = $"{purl.Name}/{purl.Version}";
             HttpClient httpClient = CreateHttpClient();
+            string endpoint = $"{ENV_PYPI_ENDPOINT}/pypi/{purl.Name}/{purl.Version}/json";
 
-            return await CheckJsonCacheForPackage(httpClient, $"{ENV_PYPI_ENDPOINT}/pypi/{packageName}/json", useCache);
+            return await CheckHttpCacheForPackage(httpClient, endpoint, useCache);
         }
 
         /// <inheritdoc />

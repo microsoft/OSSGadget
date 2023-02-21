@@ -145,11 +145,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             string packageName = purl.GetFullName();
             HttpClient httpClient = CreateHttpClient();
 
-            return await CheckJsonCacheForPackage(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}", useCache);
+            return await CheckHttpCacheForPackage(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}", useCache);
         }
 
         /// <inheritdoc />
-        public override async Task<bool> PackageVersionExistsAsync(PackageURL purl, bool useCache = true) // MICHELLE
+        public override async Task<bool> PackageVersionExistsAsync(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("PackageVersionExists {0}", purl?.ToString());
             if (string.IsNullOrEmpty(purl?.Name))
@@ -164,10 +164,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 return false;
             }
 
-            string packageName = purl.HasNamespace() ? $"{purl.GetNamespaceFormatted()}/{purl.Name}/{purl.Version}" : $"{purl.Name}/{purl.Version}";
+            string packageName = purl.GetFullName();
             HttpClient httpClient = CreateHttpClient();
+            string endpoint = $"{ENV_NPM_API_ENDPOINT}/{packageName}/{purl.Version}";
 
-            return await CheckJsonCacheForPackage(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}", useCache);
+            return await CheckHttpCacheForPackage(httpClient, endpoint, useCache);
         }
 
         /// <inheritdoc />
@@ -578,10 +579,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             if (packageVersionCurrentlyExists) { return new PackageVersionExists(); }
             
             // if version isn't currently listed, check for other kinds of existence
-            string? packageContent = await GetMetadataAsync(purl, useCache);
-            if (string.IsNullOrEmpty(packageContent)) { return new PackageNotFound(); }
+            string? content = await GetMetadataAsync(purl, useCache);
+            if (string.IsNullOrEmpty(content)) { return new PackageNotFound(); }
 
-            JsonDocument contentJSON = JsonDocument.Parse(packageContent);
+            JsonDocument contentJSON = JsonDocument.Parse(content);
             JsonElement root = contentJSON.RootElement;
 
             // Check to make sure that the package version ever existed.
@@ -617,7 +618,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {
                 return new PackageVersionRemoved(removalReasons);
             }
-            
+
             return new PackageVersionExists();
         }
 

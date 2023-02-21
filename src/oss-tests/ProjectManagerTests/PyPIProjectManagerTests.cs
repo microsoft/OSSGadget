@@ -95,7 +95,8 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             {
                 MockHttpFetchResponse(HttpStatusCode.OK, url, json, mockHttp);
             }
- 
+
+            mockHttp.When(HttpMethod.Get, "https://pypi.org/pypi/plotly/3.7.1/json").Respond(HttpStatusCode.OK);
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
             _httpFactory = mockFactory.Object;
 
@@ -154,12 +155,10 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         [DataRow("pkg:pypi/requests@2.27.1")]
         public async Task PackageVersionExistsAsyncSucceeds(string purlString)
         {
-            PyPIProjectManager projectManager = new(".");
             PackageURL purl = new(purlString);
 
-            Assert.IsTrue(await projectManager.PackageVersionExistsAsync(purl, useCache: false));
+            Assert.IsTrue(await _projectManager.PackageVersionExistsAsync(purl, useCache: false));
         }
-
 
         [DataTestMethod]
         [DataRow("pkg:pypi/pandas", true)]

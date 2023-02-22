@@ -466,7 +466,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
             JsonDocument contentJSON = JsonDocument.Parse(metadata);
 
-            List<string> possibleHomePageProperties = new() { "homepage", "home_page" };
+            // See https://setuptools.pypa.io/en/latest/references/keywords.html
+            List<string> possibleLocationProperties = new() { "url", "download_url" };
 
             JsonElement infoJSON;
             try
@@ -479,39 +480,50 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
 
             foreach (JsonProperty property in infoJSON.EnumerateObject())
-            {   // there are a couple of possibilities where the repository url might be present - check all of them
-                try
+            {
+                if (possibleLocationProperties.Contains(property.Name.ToLower()) && property.Value.ToString() is {} url)
                 {
-                    if (possibleHomePageProperties.Contains(property.Name.ToLower()) && property.Value.ToString() is {} homePage)
+                    IEnumerable<PackageURL>? packageUrls = GitHubProjectManager.ExtractGitHubPackageURLs(url);
+                    // if we were not able to extract a github url, continue
+                    if (packageUrls.FirstOrDefault() is {} packageUrl)
                     {
-                        IEnumerable<PackageURL>? packageUrls = GitHubProjectManager.ExtractGitHubPackageURLs(homePage).ToList();
-                        // if we were not able to extract a github url, continue
-                        if (!packageUrls.Any())
-                        {
-                            continue;
-                        }
-
-                        mapping.Add(packageUrls.First(), 1.0F);
+                        mapping.Add(packageUrl, 1.0F);
                         return mapping;
                     }
+                }
+
+                try
+                {
+                    // See https://setuptools.pypa.io/en/latest/references/keywords.html
+                    // project_urls is a map of arbitrary strings to strings (values are expected to be urls)
+                    // The key name is arbitrary, so we can check all the keys and if any are detected as repository urls,
+                    //   that should be what we are looking for.
                     if (property.Name.Equals("project_urls"))
                     {
                         foreach (JsonProperty projectUrl in property.Value.EnumerateObject())
                         {
                             if (projectUrl.Value.ToString() is { } possibleGitHubUrl)
                             {
-                                IEnumerable<PackageURL>? packageUrls = GitHubProjectManager.ExtractGitHubPackageURLs(possibleGitHubUrl).ToList();
+                                IEnumerable<PackageURL>? packageUrls =
+                                    GitHubProjectManager.ExtractGitHubPackageURLs(possibleGitHubUrl);
                                 // if we were able to extract a github url, return
-                                if (packageUrls.Any())
+                                if (packageUrls.FirstOrDefault() is { } packageUrl)
                                 {
-                                    mapping.Add(packageUrls.First(), 1.0F);
+                                    mapping.Add(packageUrl, 1.0F);
                                     return mapping;
                                 }
                             }
                         }
                     }
                 }
-                catch (Exception) { continue; /* try the next property */ }
+                catch (ObjectDisposedException)
+                {
+                    break;
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
             }
 
             return mapping;

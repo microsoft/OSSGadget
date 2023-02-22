@@ -466,7 +466,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
             JsonDocument contentJSON = JsonDocument.Parse(metadata);
 
-            List<string> possibleProperties = new() { "homepage", "home_page" };
+            List<string> possibleHomePageProperties = new() { "homepage", "home_page" };
 
             JsonElement infoJSON;
             try
@@ -482,29 +482,31 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {   // there are a couple of possibilities where the repository url might be present - check all of them
                 try
                 {
-                    if (possibleProperties.Contains(property.Name.ToLower()))
+                    if (possibleHomePageProperties.Contains(property.Name.ToLower()) && property.Value.ToString() is {} homePage)
                     {
-                        string homepage = property.Value.ToString() ?? string.Empty;
-                        IEnumerable<PackageURL>? packageUrls = GitHubProjectManager.ExtractGitHubPackageURLs(homepage);
-                        // if we were able to extract a github url, return
-                        if (packageUrls != null && packageUrls.Any())
+                        IEnumerable<PackageURL>? packageUrls = GitHubProjectManager.ExtractGitHubPackageURLs(homePage).ToList();
+                        // if we were not able to extract a github url, continue
+                        if (!packageUrls.Any())
                         {
-                            mapping.Add(packageUrls.First(), 1.0F);
-                            return mapping;
+                            continue;
                         }
+
+                        mapping.Add(packageUrls.First(), 1.0F);
+                        return mapping;
                     }
-                    else if (property.Name.Equals("project_urls"))
+                    if (property.Name.Equals("project_urls"))
                     {
-                       foreach (JsonProperty project_url in property.Value.EnumerateObject())
+                        foreach (JsonProperty projectUrl in property.Value.EnumerateObject())
                         {
-                            string projectUrl = project_url.Value.ToString() ?? string.Empty;
-                            IEnumerable<PackageURL>? packageUrls = GitHubProjectManager.ExtractGitHubPackageURLs(projectUrl);
-                            // if we were able to extract a github url, return
-                            if (packageUrls != null && packageUrls.Any())
+                            if (projectUrl.Value.ToString() is { } possibleGitHubUrl)
                             {
-                                mapping.Add(packageUrls.First(),
-                                1.0F);
-                                return mapping;
+                                IEnumerable<PackageURL>? packageUrls = GitHubProjectManager.ExtractGitHubPackageURLs(possibleGitHubUrl).ToList();
+                                // if we were able to extract a github url, return
+                                if (packageUrls.Any())
+                                {
+                                    mapping.Add(packageUrls.First(), 1.0F);
+                                    return mapping;
+                                }
                             }
                         }
                     }

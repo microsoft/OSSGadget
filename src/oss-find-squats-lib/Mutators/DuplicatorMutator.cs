@@ -24,18 +24,24 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 
             for (int i = 0; i < arg.Length - 2; i++)
             {
+                if (!string.Concat(arg[..(i + 1)], arg[i], arg[(i + 2)..]).Equals(arg))
+                {
+                    yield return new Mutation(
+                        mutated: string.Concat(arg[..(i + 1)], arg[i], arg[(i + 2)..]),
+                        original: arg,
+                        mutator: Kind,
+                        reason: $"Letter Duplicated and Replaced: {arg[i]}");
+                }
+            }
+
+            if (!string.Concat(arg[..arg.Length], arg[^1]).Equals(arg))
+            {
                 yield return new Mutation(
-                    mutated: string.Concat(arg[..(i + 1)], arg[i], arg[(i + 2)..]),
+                    mutated: string.Concat(arg[..arg.Length], arg[^1]),
                     original: arg,
                     mutator: Kind,
                     reason: "Letter Duplicated and Replaced");
             }
-
-            yield return new Mutation(
-                mutated: string.Concat(arg[..arg.Length], arg[^1]),
-                original: arg,
-                mutator: Kind,
-                reason: "Letter Duplicated and Replaced");
         }
     }
 }

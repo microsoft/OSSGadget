@@ -91,19 +91,18 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             { "https://registry.npmjs.org/rly-cli", Resources.rly_cli_json },
             { "https://registry.npmjs.org/tslib", Resources.tslib_json },
             { "https://registry.npmjs.org/example", Resources.minimum_json_json },
-            { "https://registry.npmjs.org/tslib/2.4.1", Resources.tslib_241_json },
         }.ToImmutableDictionary();
 
         private readonly IDictionary<string, string> _packageVersions = new Dictionary<string, string>()
         {
-            { "https://registry.npmjs.org/lodash/4.17.15", "mockHttpHeader" },
-            { "https://registry.npmjs.org/@angular/core/13.2.5","mockHttpHeader" },
-            { "https://registry.npmjs.org/ds-modal/0.0.2", "mockHttpHeader" },
-            { "https://registry.npmjs.org/monorepolint/0.4.0", "mockHeader" },
-            { "https://registry.npmjs.org/example/0.0.0", "mockHttpHeader" },
-            { "https://registry.npmjs.org/tslib/2.4.1", "mockHttpHeader" },
-            { "https://registry.npmjs.org/rly-cli/0.0.2", "mockHttpHeader" },
-            { "https://registry.npmjs.org/lodash.js/0.0.1-security", "mockHttpHeader" },
+            { "https://registry.npmjs.org/lodash/4.17.15", "mockContent" },
+            { "https://registry.npmjs.org/@angular/core/13.2.5","mockContent" },
+            { "https://registry.npmjs.org/ds-modal/0.0.2", "mockContent" },
+            { "https://registry.npmjs.org/monorepolint/0.4.0", "mockContent" },
+            { "https://registry.npmjs.org/example/0.0.0", "mockContent" },
+            { "https://registry.npmjs.org/rly-cli/0.0.2", "mockContent" },
+            { "https://registry.npmjs.org/lodash.js/0.0.1-security", "mockContent" },
+            { "https://registry.npmjs.org/tslib/2.4.1", "mockContent" },
         }.ToImmutableDictionary();
 
         private readonly Mock<NPMProjectManager> _projectManager;
@@ -120,9 +119,9 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
                 MockHttpFetchResponse(HttpStatusCode.OK, url, json, mockHttp);
             }
 
-            foreach ((string url, string header) in _packageVersions)
+            foreach ((string url, string content) in _packageVersions)
             {
-                MockHttpFetchResponse(HttpStatusCode.OK, url, header, mockHttp);
+                MockHttpFetchResponse(HttpStatusCode.OK, url, content, mockHttp);
             }
 
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
@@ -177,7 +176,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public async Task PackageVersionExistsAsyncSucceeds(string purlString)
         {
             PackageURL purl = new(purlString);
-            
+
             Assert.IsTrue(await _projectManager.Object.PackageVersionExistsAsync(purl, useCache: false));
         }
 

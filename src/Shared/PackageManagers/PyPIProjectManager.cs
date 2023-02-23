@@ -466,8 +466,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
             JsonDocument contentJSON = JsonDocument.Parse(metadata);
 
-            // See https://setuptools.pypa.io/en/latest/references/keywords.html
-            List<string> possibleLocationProperties = new() { "url", "download_url" };
+            List<string> possibleLocationProperties = new() { "home_page", "download_url" };
 
             JsonElement infoJSON;
             try

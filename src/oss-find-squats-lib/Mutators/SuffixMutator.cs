@@ -2,11 +2,12 @@
 
 namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 {
+    using Helpers;
     using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>
-    /// Generates mutations for if a suffix was added to the string.
+    /// Generates mutations for if a suffix was added to, or removed from the string.
     /// By default, we check for these prefixes: "s", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "ng", "-ng", ".", "x", "-", "_".
     /// </summary>
     public class SuffixMutator : IMutator
@@ -33,16 +34,25 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
             }
             if (skipSuffixes != null)
             {
-                _suffixes.RemoveAll(x => skipSuffixes.Contains(x));
+                _suffixes.RemoveAll(skipSuffixes.Contains);
             }
         }
+        
         public IEnumerable<Mutation> Generate(string arg)
-        {
-            return _suffixes.Select(s => new Mutation(
+        { 
+            var addedSuffixes = _suffixes.Select(s => new Mutation(
                     mutated: string.Concat(arg, s),
                     original: arg,
                     mutator: Kind,
                     reason: $"Suffix Added: {s}"));
+            
+            var removedSuffixes = _suffixes.Where(arg.EndsWith).Select(s => new Mutation(
+                mutated: arg.ReplaceAtEnd(s, string.Empty),
+                original: arg,
+                mutator: Kind,
+                reason: $"Suffix Removed: {s}"));
+
+            return addedSuffixes.Concat(removedSuffixes);
         }
     }
 }

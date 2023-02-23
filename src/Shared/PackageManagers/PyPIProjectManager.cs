@@ -41,7 +41,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             : base(actions ?? new NoOpPackageActions(), httpClientFactory ?? new DefaultHttpClientFactory(), directory)
         {
         }
-        
+
         /// <inheritdoc />
         public override async IAsyncEnumerable<ArtifactUri<PyPIArtifactType>> GetArtifactDownloadUrisAsync(PackageURL purl, bool useCache = true)
         {
@@ -88,7 +88,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {
                 throw new InvalidOperationException();
             }
-            
+
             HtmlParser parser = new();
             AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(html);
             foreach (AngleSharp.Dom.IElement packageSnippet in document.QuerySelectorAll("a.package-snippet"))
@@ -307,7 +307,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             JsonElement root = contentJSON.RootElement;
 
             JsonElement infoElement = root.GetProperty("info");
-            
+
             metadata.LatestPackageVersion = OssUtilities.GetJSONPropertyStringIfExists(infoElement, "version"); // Ran in the root, always points to latest version.
 
             if (purl.Version.IsBlank() && metadata.LatestPackageVersion.IsNotBlank())
@@ -414,7 +414,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                             metadata.VersionUri = $"{ENV_PYPI_ENDPOINT}/project/{purl.Name}/{purl.Version}";
                             metadata.VersionDownloadUri = OssUtilities.GetJSONPropertyStringIfExists(url, "url");
                         }
-                        
+
                         string? uploadTime = OssUtilities.GetJSONPropertyStringIfExists(url, "upload_time");
                         if (uploadTime != null)
                         {
@@ -488,8 +488,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
             JsonDocument contentJSON = JsonDocument.Parse(metadata);
 
-            List<string> possibleProperties = new() { "homepage", "home_page" };
-            List<string> searchPropertiesProjectURLs = new() { "Source", "Source Code", "homepage", "Bug Tracker", "Repository", "Bug Reports" };
+            // See https://setuptools.pypa.io/en/latest/references/keywords.html
+            List<string> possibleLocationProperties = new() { "url", "download_url" };
 
             JsonElement infoJSON;
             try
@@ -502,38 +502,50 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
 
             foreach (JsonProperty property in infoJSON.EnumerateObject())
-            {   // there are a couple of possibilities where the repository url might be present - check all of them
+            {
+                if (possibleLocationProperties.Contains(property.Name.ToLower()) && property.Value.ToString() is {} url)
+                {
+                    IEnumerable<PackageURL>? packageUrls = GitHubProjectManager.ExtractGitHubPackageURLs(url);
+                    // if we were not able to extract a github url, continue
+                    if (packageUrls.FirstOrDefault() is {} packageUrl)
+                    {
+                        mapping.Add(packageUrl, 1.0F);
+                        return mapping;
+                    }
+                }
+
                 try
                 {
-                    if (possibleProperties.Contains(property.Name.ToLower()))
+                    // See https://setuptools.pypa.io/en/latest/references/keywords.html
+                    // project_urls is a map of arbitrary strings to strings (values are expected to be urls)
+                    // The key name is arbitrary, so we can check all the keys and if any are detected as repository urls,
+                    //   that should be what we are looking for.
+                    if (property.Name.Equals("project_urls"))
                     {
-                        string homepage = property.Value.ToString() ?? string.Empty;
-                        IEnumerable<PackageURL>? packageUrls = GitHubProjectManager.ExtractGitHubPackageURLs(homepage);
-                        // if we were able to extract a github url, return
-                        if (packageUrls != null && packageUrls.Any())
+                        foreach (JsonProperty projectUrl in property.Value.EnumerateObject())
                         {
-                            mapping.Add(packageUrls.First(), 1.0F);
-                            return mapping;
-                        }
-                    }
-                    else if (property.Name.Equals("project_urls"))
-                    {
-                        foreach (var propertyName in searchPropertiesProjectURLs)
-                        {
-                            if (property.Value.TryGetProperty(propertyName, out JsonElement projectUrl))
+                            if (projectUrl.Value.ToString() is { } possibleGitHubUrl)
                             {
-                                IEnumerable<PackageURL>? packageUrls = GitHubProjectManager.ExtractGitHubPackageURLs(projectUrl.ToString());
+                                IEnumerable<PackageURL>? packageUrls =
+                                    GitHubProjectManager.ExtractGitHubPackageURLs(possibleGitHubUrl);
                                 // if we were able to extract a github url, return
-                                if (packageUrls != null && packageUrls.Any())
+                                if (packageUrls.FirstOrDefault() is { } packageUrl)
                                 {
-                                    mapping.Add(packageUrls.First(), 1.0F);
+                                    mapping.Add(packageUrl, 1.0F);
                                     return mapping;
                                 }
                             }
                         }
                     }
                 }
-                catch (Exception) { continue; /* try the next property */ }
+                catch (ObjectDisposedException)
+                {
+                    break;
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
             }
 
             return mapping;

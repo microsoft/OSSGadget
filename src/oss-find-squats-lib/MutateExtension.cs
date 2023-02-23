@@ -24,7 +24,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
         /// </summary>
         internal static IEnumerable<IMutator> BaseMutators { get; } = new List<IMutator>()
         {
-            new AfterSeparatorMutator(),
+            new AddCharacterMutator(),
             new AsciiHomoglyphMutator(),
             new BitFlipMutator(),
             new CloseLettersMutator(),
@@ -33,7 +33,9 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
             new PrefixMutator(),
             new RemovedCharacterMutator(),
             new RemoveNamespaceMutator(),
-            new SeparatorMutator(),
+            new RemoveSeparatedSectionMutator(),
+            new ReplaceCharacterMutator(),
+            new SeparatorChangedMutator(),
             new SuffixMutator(),
             new SwapOrderOfLettersMutator(),
             new UnicodeHomoglyphMutator(),
@@ -43,9 +45,12 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
         /// <summary>
         /// Common variations known uniquely for Nuget/C#. Excludes '.' because Nuget will match "Microsoft.CST.OAT." against "Microsoft.CST.OAT", giving false positives for the same package.
         /// </summary>
-        internal static IEnumerable<IMutator> NugetMutators { get; } = BaseMutators.Where(x => x is not UnicodeHomoglyphMutator and not SuffixMutator)
+        internal static IEnumerable<IMutator> NugetMutators { get; } = BaseMutators.Where(x => 
+                x is not UnicodeHomoglyphMutator and not SuffixMutator and not CloseLettersMutator and not DoubleHitMutator)
             .Concat(new IMutator[]
                 {
+                    new CloseLettersMutator(additionalExcludedChars: new[] { '/' }),
+                    new DoubleHitMutator(additionalExcludedChars: new[] { '/' }),
                     new SuffixMutator(additionalSuffixes: new[] { "net", ".net", "nuget" }, skipSuffixes: new[] { "." })
                 });
 
@@ -67,9 +72,13 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
         /// <summary>
         /// Common variations known uniquely for Python. 
         /// </summary>
-        internal static IEnumerable<IMutator> PythonMutators { get; } = BaseMutators.Where(x => x is not UnicodeHomoglyphMutator and not SuffixMutator)
+        internal static IEnumerable<IMutator> PythonMutators { get; } = BaseMutators.Where(x => 
+                x is not UnicodeHomoglyphMutator and not SuffixMutator and not CloseLettersMutator and not DoubleHitMutator and not SeparatorChangedMutator)
             .Concat(new IMutator[]
             {
+                new CloseLettersMutator(additionalExcludedChars: new[] { '/' }),
+                new DoubleHitMutator(additionalExcludedChars: new[] { '/' }),
+                new SeparatorChangedMutator(overrideSeparators: new[] { '.', '-' }),
                 new SubstitutionMutator(new List<(string Original, string Substitution)>()
                 {
                     ("py", "python"),

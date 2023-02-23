@@ -65,7 +65,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <returns>PackageURLs (type=GitHub) located in the text.</returns>
         public static IEnumerable<PackageURL> ExtractGitHubPackageURLs(string content)
         {
-            Logger.Trace("ExtractGitHubPackageURLs({0})", content?.Substring(0, 30));
+            Logger.Trace("ExtractGitHubPackageURLs({0})", content?.Take(30));
 
             if (string.IsNullOrWhiteSpace(content))
             {

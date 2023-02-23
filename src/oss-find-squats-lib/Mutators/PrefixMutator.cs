@@ -2,11 +2,12 @@
 
 namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 {
+    using Helpers;
     using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>
-    /// Generates mutations for if a prefix was added to the string.
+    /// Generates mutations for if a prefix was added to, or removed from the string.
     /// By default, we check for these prefixes: ".", "x", "-", "X", "_".
     /// </summary>
     public class PrefixMutator : IMutator
@@ -39,11 +40,19 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 
         public IEnumerable<Mutation> Generate(string arg)
         {
-            return _prefixes.Select(s => new Mutation(
-                    mutated: string.Concat(s, arg),
-                    original: arg,
-                    mutator: Kind,
-                    reason: $"Prefix Added: {s}"));
+            var addedPrefixes = _prefixes.Select(s => new Mutation(
+                mutated: string.Concat(s, arg),
+                original: arg,
+                mutator: Kind,
+                reason: $"Prefix Added: {s}"));
+            
+            var removedPrefixes = _prefixes.Where(arg.StartsWith).Select(s => new Mutation(
+                mutated: arg.ReplaceAtStart(s, string.Empty),
+                original: arg,
+                mutator: Kind,
+                reason: $"Prefix Removed: {s}"));
+
+            return addedPrefixes.Concat(removedPrefixes);
         }
     }
 }

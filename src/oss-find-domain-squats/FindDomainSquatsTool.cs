@@ -23,7 +23,6 @@ namespace Microsoft.CST.OpenSource.DomainSquats
     {
         internal static IList<IMutator> BaseMutators { get; } = new List<IMutator>()
         {
-            new AfterSeparatorMutator(),
             new AsciiHomoglyphMutator(),
             new BitFlipMutator(),
             new CloseLettersMutator(),
@@ -31,7 +30,9 @@ namespace Microsoft.CST.OpenSource.DomainSquats
             new DuplicatorMutator(),
             new PrefixMutator(),
             new RemovedCharacterMutator(),
-            new SeparatorMutator(),
+            new RemoveSeparatedSectionMutator(),
+            new SeparatorChangedMutator(),
+            new SeparatorRemovedMutator(),
             new SubstitutionMutator(),
             new SuffixMutator(),
             new SwapOrderOfLettersMutator(),

@@ -82,9 +82,10 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
                 MockHttpFetchResponse(HttpStatusCode.OK, url, json, mockHttp);
             }
 
+            mockHttp.When(HttpMethod.Get, "https://api.nuget.org/v3-flatcontainer/notarealpackage/0.0.0/notarealpackage.nuspec").Respond(HttpStatusCode.NotFound);
             mockHttp.When(HttpMethod.Get, "https://api.nuget.org/v3-flatcontainer/*.nupkg").Respond(HttpStatusCode.OK);
             mockHttp.When(HttpMethod.Get, "https://api.nuget.org/v3-flatcontainer/*.nuspec").Respond(HttpStatusCode.OK);
- 
+
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
             _httpFactory = mockFactory.Object;
             _projectManager = new NuGetProjectManager(".", new NuGetPackageActions(), _httpFactory);

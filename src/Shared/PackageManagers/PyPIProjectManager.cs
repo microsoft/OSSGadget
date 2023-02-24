@@ -187,7 +187,29 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             string packageName = purl.Name;
             HttpClient httpClient = CreateHttpClient();
 
-            return await CheckJsonCacheForPackage(httpClient, $"{ENV_PYPI_ENDPOINT}/pypi/{packageName}/json", useCache);
+            return await CheckHttpCacheForPackage(httpClient, $"{ENV_PYPI_ENDPOINT}/pypi/{packageName}/json", useCache);
+        }
+
+        /// <inheritdoc />
+        public override async Task<bool> PackageVersionExistsAsync(PackageURL purl, bool useCache = true)
+        {
+            Logger.Trace("PackageVersionExists {0}", purl?.ToString());
+            if (string.IsNullOrEmpty(purl?.Name))
+            {
+                Logger.Trace("Provided PackageURL was null.");
+                return false;
+            }
+
+            if (purl.Version.IsBlank())
+            {
+                Logger.Trace("Provided PackageURL version was null or blank.");
+                return false;
+            }
+
+            HttpClient httpClient = CreateHttpClient();
+            string endpoint = $"{ENV_PYPI_ENDPOINT}/pypi/{purl.Name}/{purl.Version}/json";
+
+            return await CheckHttpCacheForPackage(httpClient, endpoint, useCache);
         }
 
         /// <inheritdoc />

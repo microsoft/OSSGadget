@@ -145,7 +145,30 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             string packageName = purl.GetFullName();
             HttpClient httpClient = CreateHttpClient();
 
-            return await CheckJsonCacheForPackage(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}", useCache);
+            return await CheckHttpCacheForPackage(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}", useCache);
+        }
+
+        /// <inheritdoc />
+        public override async Task<bool> PackageVersionExistsAsync(PackageURL purl, bool useCache = true)
+        {
+            Logger.Trace("PackageVersionExists {0}", purl?.ToString());
+            if (string.IsNullOrEmpty(purl?.Name))
+            {
+                Logger.Trace("Provided PackageURL was null.");
+                return false;
+            }
+
+            if (purl.Version.IsBlank())
+            {
+                Logger.Trace("Provided PackageURL version was null or blank.");
+                return false;
+            }
+
+            string packageName = purl.GetFullName();
+            HttpClient httpClient = CreateHttpClient();
+            string endpoint = $"{ENV_NPM_API_ENDPOINT}/{packageName}/{purl.Version}";
+
+            return await CheckHttpCacheForPackage(httpClient, endpoint, useCache);
         }
 
         /// <inheritdoc />
@@ -552,8 +575,12 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     "Cannot call DetailedPackageVersionExists on a purl without a version. Call DetailedPackageExists.");
             }
 
+            bool packageVersionCurrentlyExists = await PackageVersionExistsAsync(purl, useCache);
+            if (packageVersionCurrentlyExists) { return new PackageVersionExists(); }
+            
+            // if version isn't currently listed, check for other kinds of existence
             string? content = await GetMetadataAsync(purl, useCache);
-            if (string.IsNullOrEmpty(content)) { return new PackageVersionNotFound(); }
+            if (string.IsNullOrEmpty(content)) { return new PackageNotFound(); }
 
             JsonDocument contentJSON = JsonDocument.Parse(content);
             JsonElement root = contentJSON.RootElement;

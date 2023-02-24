@@ -226,26 +226,48 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return metadata;
         }
         
-        /// <inheritdoc />
-        public override async Task<bool> PackageVersionExistsAsync(PackageURL purl, bool useCache = true)
+        /// <inheritdoc/>
+        public override async Task<bool> PackageExistsAsync(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("PackageExists {0}", purl?.ToString());
             if (purl is null)
             {
                 Logger.Trace("Provided PackageURL was null.");
+                throw new ArgumentNullException(nameof(purl), "Provided PackageURL was null.");
+            }
+
+            HttpClient httpClient = CreateHttpClient();
+            
+            // NuGet packages are case insensitive
+            string endpoint = $"{RegistrationEndpoint}{purl.Name.ToLowerInvariant()}/index.json";
+
+            return await CheckHttpCacheForPackage(httpClient, endpoint, useCache);
+        }
+
+        /// <inheritdoc />
+        public override async Task<bool> PackageVersionExistsAsync(PackageURL purl, bool useCache = true)
+        {
+            Logger.Trace("PackageVersionExists {0}", purl?.ToString());
+            if (string.IsNullOrEmpty(purl?.Name))
+            {
+                Logger.Trace("Provided PackageURL was null.");
                 return false;
             }
 
-            if(purl.Version.IsBlank())
+            if (purl.Version.IsBlank())
             {
                 Logger.Trace("Provided PackageURL version was null or blank.");
                 return false;
             }
 
-            // NuGet packages are case insensitive.
-            return (await EnumerateVersionsAsync(purl, useCache)).Contains(purl.Version, StringComparer.InvariantCultureIgnoreCase);
+            HttpClient httpClient = CreateHttpClient();
+
+            // NuGet packages are case insensitive
+            string endpoint = $"{NUGET_DEFAULT_CONTENT_ENDPOINT.EnsureTrailingSlash()}{purl.Name.ToLowerInvariant()}/{purl.Version.ToLowerInvariant()}/{purl.Name.ToLowerInvariant()}.nuspec";
+
+            return await CheckHttpCacheForPackage(httpClient, endpoint, useCache);
         }
-    
+
         /// <summary>
         /// Updates the package version specific values in <see cref="PackageMetadata"/>.
         /// </summary>

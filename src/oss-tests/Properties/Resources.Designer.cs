@@ -446,7 +446,7 @@ namespace oss {
                 return ResourceManager.GetString("tslib.json", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to {&quot;_id&quot;:&quot;@somosme/webflowutils&quot;,&quot;_rev&quot;:&quot;3-9be941baa0509bbc96a1349f8464fd6d&quot;,&quot;name&quot;:&quot;@somosme/webflowutils&quot;,&quot;time&quot;:{&quot;created&quot;:&quot;2022-08-10T19:49:56.913Z&quot;,&quot;1.0.0&quot;:&quot;2022-08-10T19:49:57.198Z&quot;,&quot;modified&quot;:&quot;2022-08-10T21:31:52.293Z&quot;,&quot;unpublished&quot;:{&quot;time&quot;:&quot;2022-08-10T21:31:32.856Z&quot;,&quot;versions&quot;:[&quot;1.0.0&quot;]}},&quot;maintainers&quot;:[{&quot;email&quot;:&quot;antonio@somos.me&quot;,&quot;name&quot;:&quot;antoniomb&quot;}]}.
         /// </summary>

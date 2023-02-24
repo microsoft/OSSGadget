@@ -420,7 +420,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// </summary>
         /// <param name="purl">The <see cref="PackageURL"/> to get the metadata for.</param>
         /// <param name="useCache">If the metadata should be retrieved from the cache, if it is available.</param>
-        /// <remarks>If no version specified, defaults to latest version.</remarks>
         /// <returns>A string representing the <see cref="PackageURL"/>'s metadata, or null if it wasn't found.</returns>
         public abstract Task<string?> GetMetadataAsync(PackageURL purl, bool useCache = true);
 

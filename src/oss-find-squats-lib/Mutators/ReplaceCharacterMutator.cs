@@ -3,6 +3,7 @@
 namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 {
     using Helpers;
+    using System;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -53,7 +54,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                 foreach (var c in _characters)
                 {
                     // Continue if the character would be replaced with itself.
-                    if (arg[i] == c)
+                    if (char.ToLower(arg[i]) == c)
                     {
                         continue;
                     }

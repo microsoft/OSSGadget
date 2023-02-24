@@ -93,6 +93,18 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             { "https://registry.npmjs.org/example", Resources.minimum_json_json },
         }.ToImmutableDictionary();
 
+        private readonly IDictionary<string, string> _packageVersions = new Dictionary<string, string>()
+        {
+            { "https://registry.npmjs.org/lodash/4.17.15", "mockContent" },
+            { "https://registry.npmjs.org/@angular/core/13.2.5","mockContent" },
+            { "https://registry.npmjs.org/ds-modal/0.0.2", "mockContent" },
+            { "https://registry.npmjs.org/monorepolint/0.4.0", "mockContent" },
+            { "https://registry.npmjs.org/example/0.0.0", "mockContent" },
+            { "https://registry.npmjs.org/rly-cli/0.0.2", "mockContent" },
+            { "https://registry.npmjs.org/lodash.js/0.0.1-security", "mockContent" },
+            { "https://registry.npmjs.org/tslib/2.4.1", "mockContent" },
+        }.ToImmutableDictionary();
+
         private readonly Mock<NPMProjectManager> _projectManager;
         private readonly IHttpClientFactory _httpFactory;
         
@@ -105,6 +117,11 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             foreach ((string url, string json) in _packages)
             {
                 MockHttpFetchResponse(HttpStatusCode.OK, url, json, mockHttp);
+            }
+
+            foreach ((string url, string content) in _packageVersions)
+            {
+                MockHttpFetchResponse(HttpStatusCode.OK, url, content, mockHttp);
             }
 
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
@@ -155,13 +172,14 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         [DataRow("pkg:npm/example@0.0.0")]
         [DataRow("pkg:npm/rly-cli@0.0.2")]
         [DataRow("pkg:npm/lodash.js@0.0.1-security")]
+        [DataRow("pkg:npm/tslib@2.4.1")]
         public async Task PackageVersionExistsAsyncSucceeds(string purlString)
         {
             PackageURL purl = new(purlString);
 
             Assert.IsTrue(await _projectManager.Object.PackageVersionExistsAsync(purl, useCache: false));
         }
-        
+
         [DataTestMethod]
         [DataRow("pkg:npm/lodash@1.2.3.4.5.6.7")]
         [DataRow("pkg:npm/%40angular/core@1.2.3.4.5.6.7")]
@@ -180,7 +198,6 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             PackageURL purl = new(purlString);
 
             var existence = await _projectManager.Object.DetailedPackageVersionExistsAsync(purl, useCache: false);
-
             existence.Should().BeEquivalentTo(_packageVersionExistence[existenceKey].packageVersionExistence);
         }
 
@@ -353,7 +370,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             packages.Should().OnlyHaveUniqueItems();
             packages.Select(p => p.ToString()).Should().Contain(expectedPackage);
         }
-        
+
         private static void MockHttpFetchResponse(
             HttpStatusCode statusCode,
             string url,

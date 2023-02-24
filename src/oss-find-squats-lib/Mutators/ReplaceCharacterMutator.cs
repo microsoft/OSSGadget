@@ -54,21 +54,13 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                 foreach (var c in _characters)
                 {
                     // Continue if the character would be replaced with itself.
-                    if (arg[i] == c)
+                    if (char.ToLower(arg[i]) == c)
                     {
                         continue;
                     }
 
-                    var mutated = arg.ReplaceCharAtPosition(c, i);
-                    
-                    // Want to make sure the mutated string doesn't equal the original, regardless of case.
-                    if (mutated.Equals(arg, StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        continue;
-                    }
-                    
                     yield return new Mutation(
-                        mutated: mutated,
+                        mutated: arg.ReplaceCharAtPosition(c, i),
                         original: arg,
                         mutator: Kind,
                         reason: $"Character Replaced: {c}");

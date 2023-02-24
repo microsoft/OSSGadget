@@ -3,6 +3,7 @@
 namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 {
     using Helpers;
+    using System;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -58,8 +59,16 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                         continue;
                     }
 
+                    var mutated = arg.ReplaceCharAtPosition(c, i);
+                    
+                    // Want to make sure the mutated string doesn't equal the original, regardless of case.
+                    if (mutated.Equals(arg, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        continue;
+                    }
+                    
                     yield return new Mutation(
-                        mutated: arg.ReplaceCharAtPosition(c, i),
+                        mutated: mutated,
                         original: arg,
                         mutator: Kind,
                         reason: $"Character Replaced: {c}");

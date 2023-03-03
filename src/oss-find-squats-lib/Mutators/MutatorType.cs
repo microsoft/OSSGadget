@@ -40,6 +40,10 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
         /// </summary>
         Duplicator,
         /// <summary>
+        /// The <see cref="NamespaceInNameMutator"/> mutator.
+        /// </summary>
+        NamespaceInName,
+        /// <summary>
         /// The <see cref="PrefixMutator"/> mutator.
         /// </summary>
         Prefix,
@@ -48,7 +52,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
         /// </summary>
         RemovedCharacter,
         /// <summary>
-        /// A mutator which removes the namespace.
+        /// The <see cref="RemoveNamespaceMutator"/> mutator.
         /// </summary>
         RemovedNamespace,
         /// <summary>

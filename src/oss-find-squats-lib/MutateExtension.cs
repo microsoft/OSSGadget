@@ -30,6 +30,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
             new CloseLettersMutator(),
             new DoubleHitMutator(),
             new DuplicatorMutator(),
+            new NamespaceInNameMutator(),
             new PrefixMutator(),
             new RemovedCharacterMutator(),
             new RemoveNamespaceMutator(),
@@ -132,6 +133,12 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
 
             foreach (IMutator mutator in mutators)
             {
+                // If the mutator is in the list of mutators to exclude in the options, then skip.
+                if (options is { ExcludedMutators: { } } && options.ExcludedMutators.Contains(mutator.Kind))
+                {
+                    continue;
+                }
+
                 foreach (Mutation mutation in mutator.Generate(purl))
                 {
                     generatedMutations.AddOrUpdate(mutation.Mutated, new List<Mutation>() { mutation }, (_, list) =>

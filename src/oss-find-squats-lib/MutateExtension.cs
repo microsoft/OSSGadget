@@ -30,6 +30,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
             new CloseLettersMutator(),
             new DoubleHitMutator(),
             new DuplicatorMutator(),
+            new NamespaceInNameMutator(),
             new PrefixMutator(),
             new RemovedCharacterMutator(),
             new RemoveNamespaceMutator(),

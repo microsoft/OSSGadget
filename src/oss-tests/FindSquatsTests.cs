@@ -64,8 +64,8 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         [DataTestMethod]
-        [DataRow("pkg:npm/angular/core", "pkg:npm/engular/core", "pkg:npm/angullar/core", "pkg:npm/core")]
-        [DataRow("pkg:npm/%40angular/core", "pkg:npm/%40engular/core", "pkg:npm/%40angullar/core", "pkg:npm/core")] // back compat check
+        [DataRow("pkg:npm/angular/core", "pkg:npm/engular/core", "pkg:npm/angullar/core", "pkg:npm/core", "pkg:npm/angular-core", "pkg:npm/angular.core", "pkg:npm/angularcore")]
+        [DataRow("pkg:npm/%40angular/core", "pkg:npm/%40engular/core", "pkg:npm/%40angullar/core", "pkg:npm/core","pkg:npm/angular-core", "pkg:npm/angular.core", "pkg:npm/angularcore")] // back compat check
         [DataRow("pkg:npm/lodash", "pkg:npm/odash", "pkg:npm/lodah")]
         [DataRow("pkg:npm/babel/runtime", "pkg:npm/abel/runtime", "pkg:npm/bable/runtime", "pkg:npm/runtime")]
         public void ScopedNpmPackageSquats(string packageUrl, params string[] expectedSquats)
@@ -89,6 +89,9 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("pkg:npm/lodash", "pkg:npm/odash")] // RemovedCharacter, first character
         [DataRow("pkg:npm/angular/core", "pkg:npm/anguular/core")] // DoubleHit, third character
         [DataRow("pkg:npm/angular/core", "pkg:npm/core")] // RemovedNamespace, 'angular'
+        [DataRow("pkg:npm/angular/core", "pkg:npm/angular-core")] // NamespaceInName, 'angular'
+        [DataRow("pkg:npm/angular/core", "pkg:npm/angularcore")] // NamespaceInName, 'angular'
+        [DataRow("pkg:npm/%40angular/core", "pkg:npm/angular.core")] // NamespaceInName, 'angular'
         [DataRow("pkg:nuget/Microsoft.CST.OAT", "pkg:nuget/microsoft.cst.oat.net")] // SuffixAdded, .net
         public void GenerateManagerSpecific(string packageUrl, string expectedToFind)
         {
@@ -111,6 +114,34 @@ namespace Microsoft.CST.OpenSource.Tests
                 }
             }
             Assert.Fail($"Did not find expected mutation {expectedToFind}");
+        }
+        
+        [DataTestMethod]
+        [DataRow("pkg:npm/angular/core")]
+        [DataRow("pkg:npm/%40angular/core")]
+        public void ExcludeRemoveNamespaceMutator(string packageUrl)
+        {
+            MutateOptions mutateOptions = new()
+            {
+                ExcludedMutators = new[] { MutatorType.RemovedNamespace }
+            };
+
+            PackageURL purl = new(packageUrl);
+            if (purl.Name is not null && purl.Type is not null)
+            {
+                BaseProjectManager? manager = ProjectManagerFactory.ConstructPackageManager(purl, null);
+                if (manager is not null)
+                {
+                    foreach ((string _, IList<Mutation> mutations) in manager.EnumerateSquatCandidates(purl, options: mutateOptions)!)
+                    {
+                        if (mutations.All(m => m.Mutator != MutatorType.RemovedNamespace))
+                        {
+                            return;
+                        }
+                    }
+                }
+            }
+            Assert.Fail($"Found a mutation with a removed namespace, which shouldn't happen");
         }
         
         [DataTestMethod]
@@ -147,8 +178,8 @@ namespace Microsoft.CST.OpenSource.Tests
                             continue;
                         }
                         
-                        // Don't want to consider separated section removed, separator removed, or removed namespace, too complicated to reverse.
-                        if (mutations.Any(m => m.Mutator is MutatorType.RemoveSeparatedSection or MutatorType.SeparatorRemoved or MutatorType.RemovedNamespace))
+                        // Don't want to consider separated section removed, separator removed, removed namespace, or namespace in name, too complicated to reverse.
+                        if (mutations.Any(m => m.Mutator is MutatorType.RemoveSeparatedSection or MutatorType.SeparatorRemoved or MutatorType.RemovedNamespace or MutatorType.NamespaceInName))
                         {
                             continue;
                         }

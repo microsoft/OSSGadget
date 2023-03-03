@@ -2,6 +2,9 @@
 
 namespace Microsoft.CST.OpenSource.FindSquats
 {
+    using Mutators;
+    using System.Collections.Generic;
+
     /// <summary>
     /// Options to provide to MutateExtension.EnumerateSquats
     /// </summary>
@@ -16,5 +19,10 @@ namespace Microsoft.CST.OpenSource.FindSquats
         /// If the cache should be used when checking if mutations exist.
         /// </summary>
         public bool UseCache { get; set; } = true;
+        
+        /// <summary>
+        /// Mutators that should be excluded.
+        /// </summary>
+        public IEnumerable<MutatorType>? ExcludedMutators { get; set; }
     }
 }

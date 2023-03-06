@@ -64,8 +64,8 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         [DataTestMethod]
-        [DataRow("pkg:npm/angular/core", "pkg:npm/engular/core", "pkg:npm/angullar/core", "pkg:npm/core", "pkg:npm/angular-core", "pkg:npm/angular.core", "pkg:npm/angularcore")]
-        [DataRow("pkg:npm/%40angular/core", "pkg:npm/%40engular/core", "pkg:npm/%40angullar/core", "pkg:npm/core","pkg:npm/angular-core", "pkg:npm/angular.core", "pkg:npm/angularcore")] // back compat check
+        [DataRow("pkg:npm/angular/core", "pkg:npm/engular/core", "pkg:npm/angullar/core", "pkg:npm/node-angular/core", "pkg:npm/core", "pkg:npm/angular-core", "pkg:npm/angular.core", "pkg:npm/angularcore")]
+        [DataRow("pkg:npm/%40angular/core", "pkg:npm/%40engular/core", "pkg:npm/%40angullar/core", "pkg:npm/%40node-angular/core", "pkg:npm/core","pkg:npm/angular-core", "pkg:npm/angular.core", "pkg:npm/angularcore")] // back compat check
         [DataRow("pkg:npm/lodash", "pkg:npm/odash", "pkg:npm/lodah")]
         [DataRow("pkg:npm/babel/runtime", "pkg:npm/abel/runtime", "pkg:npm/bable/runtime", "pkg:npm/runtime")]
         public void ScopedNpmPackageSquats(string packageUrl, params string[] expectedSquats)
@@ -142,6 +142,69 @@ namespace Microsoft.CST.OpenSource.Tests
                 }
             }
             Assert.Fail($"Found a mutation with a removed namespace, which shouldn't happen");
+        }
+        
+        [DataTestMethod]
+        [DataRow("pkg:npm/i")]
+        [DataRow("pkg:npm/ts")]
+        [DataRow("pkg:nuget/d")]
+        [DataRow("pkg:pypi/python")]
+        public void DontMakeMutationsOfJustSeparators(string packageUrl)
+        {
+            PackageURL purl = new(packageUrl);
+            if (purl.Name is not null && purl.Type is not null)
+            {
+                BaseProjectManager? manager = ProjectManagerFactory.ConstructPackageManager(purl, null);
+                if (manager is not null)
+                {
+                    foreach ((string _, IList<Mutation> mutations) in manager.EnumerateSquatCandidates(purl)!)
+                    {
+                        if (mutations.Any(m =>
+                            {
+                                var mutatedPurl = new PackageURL(m.Mutated);
+                                return mutatedPurl.Name.Length == 1 &&
+                                       !char.IsLetterOrDigit(mutatedPurl.Name[0]);
+                            }))
+                        {
+                            Assert.Fail($"Found a mutation that's a separator.");
+                        }
+                    }
+                }
+            }
+        }
+        
+        [DataTestMethod]
+        [DataRow("pkg:npm/i")]
+        [DataRow("pkg:npm/ts")]
+        [DataRow("pkg:nuget/d")]
+        [DataRow("pkg:pypi/python")]
+        public void DontMakeEmptyMutations(string packageUrl)
+        {
+            PackageURL purl = new(packageUrl);
+            if (purl.Name is not null && purl.Type is not null)
+            {
+                BaseProjectManager? manager = ProjectManagerFactory.ConstructPackageManager(purl, null);
+                if (manager is not null)
+                {
+                    foreach ((string mutation, IList<Mutation> mutations) in manager.EnumerateSquatCandidates(purl)!)
+                    {
+                        try
+                        {
+                            var mutatedPurl = new PackageURL(mutation);
+                            if (mutations.Any(m => mutatedPurl.Name.Length == 0))
+                            {
+                                Assert.Fail($"Found a mutation that's got an empty name.");
+                            }
+                        }
+                        catch (MalformedPackageUrlException e)
+                        {
+                            Console.WriteLine(e);
+                            throw;
+                        }
+
+                    }
+                }
+            }
         }
         
         [DataTestMethod]

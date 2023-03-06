@@ -4,6 +4,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 {
     using Extensions;
     using PackageUrl;
+    using System;
     using System.Collections.Generic;
     using System.Web;
 
@@ -35,6 +36,18 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
             bool hasNamespace = arg.HasNamespace();
             foreach (Mutation mutation in Generate(hasNamespace ? arg.Namespace : arg.Name))
             {
+                if (mutation.Mutated.Length == 0)
+                {
+                    // Don't make mutations that are empty. i.e pkg:npm/ isn't valid.
+                    continue;
+                }
+                
+                if (mutation.Mutated.Length == 1 && !char.IsLetterOrDigit(mutation.Mutated[0]))
+                {
+                    // Don't make mutations that are just one separator. i.e pkg:npm/. isn't valid.
+                    continue;
+                }
+
                 if (hasNamespace)
                 {
                     yield return new Mutation(

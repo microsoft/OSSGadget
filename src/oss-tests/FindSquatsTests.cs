@@ -64,8 +64,8 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         [DataTestMethod]
-        [DataRow("pkg:npm/angular/core", "pkg:npm/engular/core", "pkg:npm/angullar/core", "pkg:npm/core", "pkg:npm/angular-core", "pkg:npm/angular.core", "pkg:npm/angularcore")]
-        [DataRow("pkg:npm/%40angular/core", "pkg:npm/%40engular/core", "pkg:npm/%40angullar/core", "pkg:npm/core","pkg:npm/angular-core", "pkg:npm/angular.core", "pkg:npm/angularcore")] // back compat check
+        [DataRow("pkg:npm/angular/core", "pkg:npm/engular/core", "pkg:npm/angullar/core", "pkg:npm/node-angular/core", "pkg:npm/core", "pkg:npm/angular-core", "pkg:npm/angular.core", "pkg:npm/angularcore")]
+        [DataRow("pkg:npm/%40angular/core", "pkg:npm/%40engular/core", "pkg:npm/%40angullar/core", "pkg:npm/%40node-angular/core", "pkg:npm/core","pkg:npm/angular-core", "pkg:npm/angular.core", "pkg:npm/angularcore")] // back compat check
         [DataRow("pkg:npm/lodash", "pkg:npm/odash", "pkg:npm/lodah")]
         [DataRow("pkg:npm/babel/runtime", "pkg:npm/abel/runtime", "pkg:npm/bable/runtime", "pkg:npm/runtime")]
         public void ScopedNpmPackageSquats(string packageUrl, params string[] expectedSquats)

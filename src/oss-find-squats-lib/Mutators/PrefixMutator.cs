@@ -40,6 +40,24 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
 
         public IEnumerable<Mutation> Generate(string arg)
         {
+            // Can't add a character before an @ for a scoped package.
+            if (arg.StartsWith('@'))
+            {
+                var addedPrefixesWithScope = _prefixes.Select(s => new Mutation(
+                    mutated: $"@{s}{arg[1..]}",
+                    original: arg,
+                    mutator: Kind,
+                    reason: $"Prefix Added: {s}"));
+
+                var removedPrefixesWithScope = _prefixes.Where(arg[1..].StartsWith).Select(s => new Mutation(
+                    mutated: '@' + arg[1..].ReplaceAtStart(s, string.Empty),
+                    original: arg,
+                    mutator: Kind,
+                    reason: $"Prefix Removed: {s}"));
+
+                return addedPrefixesWithScope.Concat(removedPrefixesWithScope);
+            }
+            
             var addedPrefixes = _prefixes.Select(s => new Mutation(
                 mutated: string.Concat(s, arg),
                 original: arg,

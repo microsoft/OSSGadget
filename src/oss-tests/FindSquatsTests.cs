@@ -163,7 +163,7 @@ namespace Microsoft.CST.OpenSource.Tests
                             {
                                 var mutatedPurl = new PackageURL(m.Mutated);
                                 return mutatedPurl.Name.Length == 1 &&
-                                       !char.IsLetterOrDigit(Convert.ToChar(mutatedPurl.Name));
+                                       !char.IsLetterOrDigit(mutatedPurl.Name[0]);
                             }))
                         {
                             Assert.Fail($"Found a mutation that's a separator.");

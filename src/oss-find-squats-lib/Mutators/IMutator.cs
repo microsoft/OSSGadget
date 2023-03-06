@@ -42,7 +42,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                     continue;
                 }
                 
-                if (mutation.Mutated.Length == 1 && !char.IsLetterOrDigit(Convert.ToChar(mutation.Mutated)))
+                if (mutation.Mutated.Length == 1 && !char.IsLetterOrDigit(mutation.Mutated[0]))
                 {
                     // Don't make mutations that are just one separator. i.e pkg:npm/. isn't valid.
                     continue;

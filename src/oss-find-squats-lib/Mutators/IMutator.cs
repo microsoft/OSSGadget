@@ -36,6 +36,12 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
             bool hasNamespace = arg.HasNamespace();
             foreach (Mutation mutation in Generate(hasNamespace ? arg.Namespace : arg.Name))
             {
+                if (mutation.Mutated.Length == 0)
+                {
+                    // Don't make mutations that are empty. i.e pkg:npm/ isn't valid.
+                    continue;
+                }
+                
                 if (mutation.Mutated.Length == 1 &&
                     SeparatorRemovedMutator.DefaultSeparators.Contains(Convert.ToChar(mutation.Mutated)))
                 {

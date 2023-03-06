@@ -159,14 +159,52 @@ namespace Microsoft.CST.OpenSource.Tests
                 {
                     foreach ((string _, IList<Mutation> mutations) in manager.EnumerateSquatCandidates(purl)!)
                     {
-                        if (mutations.Any(m => m.Mutated.Length == 1 && SeparatorRemovedMutator.DefaultSeparators.Contains(Convert.ToChar(m.Mutated))))
+                        if (mutations.Any(m =>
+                            {
+                                var mutatedPurl = new PackageURL(m.Mutated);
+                                return mutatedPurl.Name.Length == 1 &&
+                                       SeparatorRemovedMutator.DefaultSeparators.Contains(Convert.ToChar(mutatedPurl.Name));
+                            }))
                         {
                             Assert.Fail($"Found a mutation that's a separator.");
                         }
                     }
                 }
             }
+        }
+        
+        [DataTestMethod]
+        [DataRow("pkg:npm/i")]
+        [DataRow("pkg:npm/ts")]
+        [DataRow("pkg:nuget/d")]
+        [DataRow("pkg:pypi/python")]
+        public void DontMakeEmptyMutations(string packageUrl)
+        {
+            PackageURL purl = new(packageUrl);
+            if (purl.Name is not null && purl.Type is not null)
+            {
+                BaseProjectManager? manager = ProjectManagerFactory.ConstructPackageManager(purl, null);
+                if (manager is not null)
+                {
+                    foreach ((string mutation, IList<Mutation> mutations) in manager.EnumerateSquatCandidates(purl)!)
+                    {
+                        try
+                        {
+                            var mutatedPurl = new PackageURL(mutation);
+                            if (mutations.Any(m => mutatedPurl.Name.Length == 0))
+                            {
+                                Assert.Fail($"Found a mutation that's got an empty name.");
+                            }
+                        }
+                        catch (MalformedPackageUrlException e)
+                        {
+                            Console.WriteLine(e);
+                            throw;
+                        }
 
+                    }
+                }
+            }
         }
         
         [DataTestMethod]

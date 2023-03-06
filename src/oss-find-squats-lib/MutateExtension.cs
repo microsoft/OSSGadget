@@ -34,6 +34,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
             new PrefixMutator(),
             new RemovedCharacterMutator(),
             new RemoveNamespaceMutator(),
+            new RemoveSeparatedSectionMutator(),
             new ReplaceCharacterMutator(),
             new SeparatorChangedMutator(),
             new SeparatorRemovedMutator(),
@@ -58,7 +59,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
         /// <summary>
         /// Common variations known uniquely for NPM/Javascript. 
         /// </summary>
-        internal static IEnumerable<IMutator> NpmMutators { get; } = BaseMutators.Where(x => x is not UnicodeHomoglyphMutator and not PrefixMutator and not SuffixMutator)
+        internal static IEnumerable<IMutator> NpmMutators { get; } = BaseMutators.Where(x => x is not UnicodeHomoglyphMutator and not PrefixMutator and not SuffixMutator and not RemoveSeparatedSectionMutator)
             .Concat(new IMutator[]
                 {
                     new SubstitutionMutator(new List<(string Original, string Substitution)>()

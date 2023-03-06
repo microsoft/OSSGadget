@@ -145,6 +145,31 @@ namespace Microsoft.CST.OpenSource.Tests
         }
         
         [DataTestMethod]
+        [DataRow("pkg:npm/i")]
+        [DataRow("pkg:npm/ts")]
+        [DataRow("pkg:nuget/d")]
+        [DataRow("pkg:pypi/python")]
+        public void DontMakeMutationsOfJustSeparators(string packageUrl)
+        {
+            PackageURL purl = new(packageUrl);
+            if (purl.Name is not null && purl.Type is not null)
+            {
+                BaseProjectManager? manager = ProjectManagerFactory.ConstructPackageManager(purl, null);
+                if (manager is not null)
+                {
+                    foreach ((string _, IList<Mutation> mutations) in manager.EnumerateSquatCandidates(purl)!)
+                    {
+                        if (mutations.Any(m => m.Mutated.Length == 1 && SeparatorRemovedMutator.DefaultSeparators.Contains(Convert.ToChar(m.Mutated))))
+                        {
+                            Assert.Fail($"Found a mutation that's a separator.");
+                        }
+                    }
+                }
+            }
+
+        }
+        
+        [DataTestMethod]
         [DataRow("pkg:npm/foo")]
         [DataRow("pkg:npm/rx")]
         [DataRow("pkg:npm/q")]

@@ -143,6 +143,41 @@ namespace Microsoft.CST.OpenSource.Tests
             }
             Assert.Fail($"Found a mutation with a removed namespace, which shouldn't happen");
         }
+
+        [DataTestMethod]
+        [DataRow("pkg:npm/angular/core")]
+        [DataRow("pkg:npm/%40angular/core")]
+        [DataRow("pkg:npm/foo")]
+        [DataRow("pkg:npm/rx")]
+        [DataRow("pkg:npm/q")]
+        [DataRow("pkg:npm/typescript")]
+        [DataRow("pkg:npm/react")]
+        [DataRow("pkg:npm/express")]
+        [DataRow("pkg:npm/core-js")]
+        [DataRow("pkg:npm/lodash")]
+        [DataRow("pkg:pypi/pandas")]
+        [DataRow("pkg:pypi/python-dateutil")]
+        [DataRow("pkg:pypi/google-api-python-client")]
+        [DataRow("pkg:nuget/Microsoft.CST.OAT")]
+        public void OriginalIsFullName(string packageUrl)
+        {
+            PackageURL purl = new(packageUrl);
+            if (purl.Name is not null && purl.Type is not null)
+            {
+                BaseProjectManager? manager = ProjectManagerFactory.ConstructPackageManager(purl, null);
+                if (manager is not null)
+                {
+                    foreach ((string _, IList<Mutation> mutations) in manager.EnumerateSquatCandidates(purl)!)
+                    {
+                        if (mutations.All(m => m.Original == packageUrl))
+                        {
+                            return;
+                        }
+                    }
+                }
+            }
+            Assert.Fail($"Found a mutation where the Mutator.Original didn't match the original purl.");
+        }
         
         [DataTestMethod]
         [DataRow("pkg:npm/i")]

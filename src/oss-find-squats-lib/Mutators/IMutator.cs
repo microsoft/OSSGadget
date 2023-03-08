@@ -52,7 +52,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                 {
                     yield return new Mutation(
                         mutated: arg.CreateWithNewNames(arg.Name, HttpUtility.UrlEncode(mutation.Mutated)).ToString(),
-                        original: mutation.Original,
+                        original: arg.ToString(),
                         reason: mutation.Reason,
                         mutator: mutation.Mutator);
                 }
@@ -60,7 +60,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                 {
                     yield return new Mutation(
                         mutated: arg.CreateWithNewNames(HttpUtility.UrlEncode(mutation.Mutated), arg.Namespace).ToString(),
-                        original: mutation.Original,
+                        original: arg.ToString(),
                         reason: mutation.Reason,
                         mutator: mutation.Mutator);
                 }

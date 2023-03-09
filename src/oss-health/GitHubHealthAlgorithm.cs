@@ -36,7 +36,7 @@ namespace Microsoft.CST.OpenSource.Health
         ///     Will be automatically set from matching Environment variable on class construction. 
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        public string? ENV_GITHUB_ACCESS_TOKEN = null;
+        public string? ENV_GITHUB_ACCESS_TOKEN { get; set; } = null;
 
         /// <summary>
         ///     User Agent used when connecting to GitHub.

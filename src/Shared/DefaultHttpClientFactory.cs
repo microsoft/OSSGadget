@@ -12,7 +12,7 @@ namespace Microsoft.CST.OpenSource
     public sealed class DefaultHttpClientFactory : IHttpClientFactory
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        private string ENV_HTTPCLIENT_USER_AGENT = "microsoft_oss_gadget (https://github.com/microsoft/OSSGadget)";
+        public string ENV_HTTPCLIENT_USER_AGENT = "microsoft_oss_gadget (https://github.com/microsoft/OSSGadget)";
 
         public DefaultHttpClientFactory(string? userAgent = null)
         {

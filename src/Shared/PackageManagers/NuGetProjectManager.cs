@@ -439,7 +439,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        private static string ENV_NUGET_HOMEPAGE = "https://www.nuget.org/packages";
+        public string ENV_NUGET_HOMEPAGE = "https://www.nuget.org/packages";
 
         public enum NuGetArtifactType
         {

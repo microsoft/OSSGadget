@@ -12,7 +12,7 @@ namespace Microsoft.CST.OpenSource
     public abstract class OssGadgetLib
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        protected static string ENV_HTTPCLIENT_USER_AGENT = "OSSDL";
+        public string ENV_HTTPCLIENT_USER_AGENT = "OSSDL";
 
         /// <summary>
         /// The <see cref="ProjectManagerFactory"/> to be used by classes that implement <see cref="OssGadgetLib"/>.

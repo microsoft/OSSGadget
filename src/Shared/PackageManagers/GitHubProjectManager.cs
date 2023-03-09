@@ -26,7 +26,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public override string ManagerType => Type;
 
         private const string DEFAULT_GITHUB_ENDPOINT = "https://github.com";
-        public string ENV_GITHUB_ENDPOINT = DEFAULT_GITHUB_ENDPOINT;
+        public string ENV_GITHUB_ENDPOINT { get; set; } = DEFAULT_GITHUB_ENDPOINT;
 
         public GitHubProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
         {

@@ -11,8 +11,8 @@ using System.Collections.Generic;
 public class LibrariesIoMetadataSource : BaseMetadataSource
 {
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-    public string ENV_LIBRARIES_IO_ENDPOINT = "https://libraries.io/api";
-    public string? ENV_LIBRARIES_IO_API_KEY = null;
+    public string ENV_LIBRARIES_IO_ENDPOINT { get; set; }= "https://libraries.io/api";
+    public string? ENV_LIBRARIES_IO_API_KEY { get; set; }= null;
 
     // Reload periodically from https://libraries.io/api/platforms
     // curl https://libraries.io/api/platforms | jq '.[].name' | sed 's/[A-Z]/\L&/g' | sed 's/$/,/g' | sort | sed '$ s/.$//'

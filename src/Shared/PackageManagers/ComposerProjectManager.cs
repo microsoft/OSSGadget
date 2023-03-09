@@ -24,7 +24,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public override string ManagerType => Type;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        public string ENV_COMPOSER_ENDPOINT = "https://repo.packagist.org";
+        public string ENV_COMPOSER_ENDPOINT { get; set; } = "https://repo.packagist.org";
 
         public ComposerProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
         {

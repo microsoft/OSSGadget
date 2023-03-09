@@ -11,8 +11,9 @@ using Microsoft.CST.OpenSource.PackageManagers;
 
 public class DepsDevMetadataSource : BaseMetadataSource
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-    public string ENV_DEPS_DEV_ENDPOINT = "https://deps.dev/_";
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier",
+        Justification = "Modified through reflection.")]
+    public string ENV_DEPS_DEV_ENDPOINT { get; set; } = "https://deps.dev/_";
 
     public static readonly List<string> VALID_TYPES = new List<string>() {
         "npm",

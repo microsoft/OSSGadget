@@ -43,7 +43,7 @@ namespace Microsoft.CST.OpenSource.Health
         ///     Will be automatically set from matching Environment variable on class construction. 
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        public string ENV_HTTPCLIENT_USER_AGENT = "GitHubProjectHealth";
+        public string ENV_HTTPCLIENT_USER_AGENT { get; set; } = "GitHubProjectHealth";
 
         /// <summary>
         ///     PackageURL to analyze

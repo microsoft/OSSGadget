@@ -187,7 +187,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             try
             {
                 List<string> versionList = new();
-                string githubUrl = $"https://github.com/{purl.Namespace}/{purl.Name}";
+                string githubUrl = GeneratePackageUriString(purl);
 
                 ProcessStartInfo gitLsRemoteStartInfo = new()
                 {

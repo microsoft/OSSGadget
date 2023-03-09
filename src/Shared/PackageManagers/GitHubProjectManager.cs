@@ -245,7 +245,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public override async Task<string?> GetMetadataAsync(PackageURL purl, bool useCache = true)
         {
             await Task.CompletedTask;
-            return $"https://github.com/{purl.Namespace}/{purl.Name}";
+            return $"{ENV_GITHUB_ENDPOINT}/{purl.Namespace}/{purl.Name}";
         }
 
         public override Uri GetPackageAbsoluteUri(PackageURL purl)

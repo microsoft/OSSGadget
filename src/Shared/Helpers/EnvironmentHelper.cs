@@ -16,7 +16,7 @@ namespace Microsoft.CST.OpenSource.Helpers
         /// <param name="targetObject"> Examine this object (using reflection) </param>
         public static void OverrideEnvironmentVariables(object targetObject)
         {
-            foreach (FieldInfo fieldInfo in targetObject.GetType().GetFields(BindingFlags.Public))
+            foreach (FieldInfo fieldInfo in targetObject.GetType().GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.NonPublic))
             {
                 if (fieldInfo.FieldType == typeof(string) &&
                     fieldInfo.Name.StartsWith("ENV_") &&

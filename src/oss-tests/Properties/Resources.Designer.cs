@@ -86,7 +86,24 @@ namespace oss {
                 return ResourceManager.GetString("cargo.rand", resourceCulture);
             }
         }
-
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  &quot;categories&quot;: [
+        ///    {
+        ///      &quot;category&quot;: &quot;Algorithms&quot;,
+        ///      &quot;crates_cnt&quot;: 1905,
+        ///      &quot;created_at&quot;: &quot;2017-01-17T19:13:05.112025+00:00&quot;,
+        ///      &quot;description&quot;: &quot;Rust implementations of core algorithms such as hashing, sorting, searching, and more.&quot;,
+        ///      &quot;id&quot;: &quot;algorithms&quot;,
+        ///      &quot;slug&quot;: &quot;algorithms&quot;
+        ///    },
+        ///    {
+        ///      &quot;category&quot;: &quot;No standard library&quot;,
+        ///      &quot;crates_cnt&quot;: 4518,
+        ///      &quot;created_at&quot;: &quot;2017-02-10T01:52:09.447906+00:00&quot;,
+        ///      &quot;description&quot;: &quot;Crates that are able to function wit [rest of string was truncated]&quot;;.
+        /// </summary>
         internal static string cargo_rand_json {
             get {
                 return ResourceManager.GetString("cargo.rand.json", resourceCulture);
@@ -99,6 +116,43 @@ namespace oss {
         internal static string ds_modal_json {
             get {
                 return ResourceManager.GetString("ds-modal.json", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;Version&quot;:&quot;v1.3.0&quot;,&quot;Time&quot;:&quot;2021-09-22T21:48:32Z&quot;}.
+        /// </summary>
+        internal static string go_yaml_1_3_0_info {
+            get {
+                return ResourceManager.GetString("go_yaml_1.3.0_info", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to module sigs.k8s.io/yaml
+        ///
+        ///go 1.12
+        ///
+        ///require (
+        ///	github.com/davecgh/go-spew v1.1.1
+        ///	gopkg.in/yaml.v2 v2.4.0
+        ///).
+        /// </summary>
+        internal static string go_yaml_1_3_0_mod {
+            get {
+                return ResourceManager.GetString("go_yaml_1.3.0_mod", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to v1.3.0
+        ///v1.0.0
+        ///v1.2.0
+        ///v1.1.0.
+        /// </summary>
+        internal static string go_yaml_list {
+            get {
+                return ResourceManager.GetString("go_yaml_list", resourceCulture);
             }
         }
         
@@ -150,58 +204,170 @@ namespace oss {
                 return ResourceManager.GetString("maven_ant_1.6_html", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        ///   Looks up a localized string.
-        /// </summary>
-        internal static string maven_ant_all_html {
-            get {
-                return ResourceManager.GetString("maven_ant_all_html", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string.
-        /// </summary>
-        internal static string maven_ant_metadata_xml {
-            get {
-                return ResourceManager.GetString("maven_ant_metadata_xml", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string.
+        ///   Looks up a localized string similar to &lt;project&gt;
+        ///    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+        ///    &lt;groupId&gt;ant&lt;/groupId&gt;
+        ///    &lt;artifactId&gt;ant&lt;/artifactId&gt;
+        ///    &lt;name&gt;Ant&lt;/name&gt;
+        ///    &lt;version&gt;1.6&lt;/version&gt;
+        ///&lt;/project&gt;.
         /// </summary>
         internal static string maven_ant_1_6_pom {
             get {
                 return ResourceManager.GetString("maven_ant_1.6_pom", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        ///   Looks up a localized string.
+        ///   Looks up a localized string similar to 
+        ///&lt;!DOCTYPE html&gt;
+        ///&lt;html&gt;
+        ///
+        ///&lt;head&gt;
+        ///	&lt;title&gt;Central Repository: ant/ant&lt;/title&gt;
+        ///	&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+        ///	&lt;style&gt;
+        ///body {
+        ///	background: #fff;
+        ///}
+        ///	&lt;/style&gt;
+        ///&lt;/head&gt;
+        ///
+        ///&lt;body&gt;
+        ///	&lt;header&gt;
+        ///		&lt;h1&gt;ant/ant&lt;/h1&gt;
+        ///	&lt;/header&gt;
+        ///	&lt;hr/&gt;
+        ///	&lt;main&gt;
+        ///		&lt;pre id=&quot;contents&quot;&gt;
+        ///&lt;a href=&quot;../&quot;&gt;../&lt;/a&gt;
+        ///&lt;a href=&quot;1.4.1/&quot; title=&quot;1.4.1/&quot;&gt;1.4.1/&lt;/a&gt;                                            2005-09-20 05:44         -      
+        ///&lt;a href=&quot;1.5/&quot; title=&quot;1.5/&quot;&gt;1.5/&lt;/a&gt;                         [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string go_yaml_list {
+        internal static string maven_ant_all_html {
             get {
-                return ResourceManager.GetString("go_yaml_list", resourceCulture);
+                return ResourceManager.GetString("maven_ant_all_html", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        ///   Looks up a localized string.
+        ///   Looks up a localized string similar to &lt;metadata&gt;
+        ///    &lt;groupId&gt;ant&lt;/groupId&gt;
+        ///    &lt;artifactId&gt;ant&lt;/artifactId&gt;
+        ///    &lt;version&gt;1.4.1&lt;/version&gt;
+        ///    &lt;versioning&gt;
+        ///        &lt;versions&gt;
+        ///            &lt;version&gt;1.4.1&lt;/version&gt;
+        ///            &lt;version&gt;1.5&lt;/version&gt;
+        ///            &lt;version&gt;1.5.1&lt;/version&gt;
+        ///            &lt;version&gt;1.5.2&lt;/version&gt;
+        ///            &lt;version&gt;1.5.3-1&lt;/version&gt;
+        ///            &lt;version&gt;1.5.4&lt;/version&gt;
+        ///            &lt;version&gt;1.6&lt;/version&gt;
+        ///            &lt;version&gt;1.6.1&lt;/version&gt;
+        ///            &lt;version&gt;1.6.2&lt;/version&gt;
+        ///            &lt;version&gt;1.6.3&lt;/ve [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string go_yaml_1_3_0_info {
+        internal static string maven_ant_metadata_xml {
             get {
-                return ResourceManager.GetString("go_yaml_1.3.0_info", resourceCulture);
+                return ResourceManager.GetString("maven_ant_metadata_xml", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        ///   Looks up a localized string.
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+        ///&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot; xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&gt;
+        ///  &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+        ///  &lt;groupId&gt;com.microsoft.fluentui&lt;/groupId&gt;
+        ///  &lt;artifactId&gt;fluentui_listitem&lt;/artifactId&gt;
+        ///  &lt;version&gt;0.0.8&lt;/version&gt;
+        ///  &lt;packaging&gt;aar&lt;/packaging&gt;
+        ///  &lt;name&gt;fluentui_listitem&lt;/name&gt;
+        ///  &lt;description&gt;Fluent UI Android, Module : fluentui_l [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string go_yaml_1_3_0_mod {
+        internal static string maven_fluentui_listitem_0_0_8_pom {
             get {
-                return ResourceManager.GetString("go_yaml_1.3.0_mod", resourceCulture);
+                return ResourceManager.GetString("maven_fluentui_listitem_0.0.8_pom", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;
+        ///&lt;!-- saved from url=(0078)https://repo1.maven.org/maven2/com/microsoft/fluentui/fluentui_listitem/0.0.8/ --&gt;
+        ///&lt;html&gt;&lt;head&gt;&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=windows-1252&quot;&gt;
+        ///	&lt;title&gt;Central Repository: com/microsoft/fluentui/fluentui_listitem/0.0.8&lt;/title&gt;
+        ///	&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+        ///	&lt;style&gt;
+        ///body {
+        ///	background: #fff;
+        ///}
+        ///	&lt;/style&gt;
+        ///&lt;/head&gt;
+        ///
+        ///&lt;body&gt;
+        ///	&lt;header&gt;
+        ///		&lt;h1&gt;com/microsoft/fluentui/fluentui_listitem/0.0.8&lt;/h1&gt;
+        ///	&lt;/header&gt;
+        ///	&lt;h [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string maven_microsoft_fluentui_listitem_0_0_8_html {
+            get {
+                return ResourceManager.GetString("maven_microsoft_fluentui_listitem_0.0.8_html", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;
+        ///&lt;!-- saved from url=(0072)https://repo1.maven.org/maven2/com/microsoft/fluentui/fluentui_listitem/ --&gt;
+        ///&lt;html&gt;&lt;head&gt;&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=windows-1252&quot;&gt;
+        ///	&lt;title&gt;Central Repository: com/microsoft/fluentui/fluentui_listitem&lt;/title&gt;
+        ///	&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+        ///	&lt;style&gt;
+        ///body {
+        ///	background: #fff;
+        ///}
+        ///	&lt;/style&gt;
+        ///&lt;/head&gt;
+        ///
+        ///&lt;body&gt;
+        ///	&lt;header&gt;
+        ///		&lt;h1&gt;com/microsoft/fluentui/fluentui_listitem&lt;/h1&gt;
+        ///	&lt;/header&gt;
+        ///	&lt;hr&gt;
+        ///	&lt;main&gt;
+        ///		&lt;pre  [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string maven_microsoft_fluentui_listitem_all_html {
+            get {
+                return ResourceManager.GetString("maven_microsoft_fluentui_listitem_all_html", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+        ///&lt;metadata&gt;
+        ///  &lt;groupId&gt;com.microsoft.fluentui&lt;/groupId&gt;
+        ///  &lt;artifactId&gt;fluentui_listitem&lt;/artifactId&gt;
+        ///  &lt;versioning&gt;
+        ///    &lt;latest&gt;0.1.6&lt;/latest&gt;
+        ///    &lt;release&gt;0.1.6&lt;/release&gt;
+        ///    &lt;versions&gt;
+        ///      &lt;version&gt;0.0.24&lt;/version&gt;
+        ///      &lt;version&gt;0.1.0&lt;/version&gt;
+        ///      &lt;version&gt;0.1.1&lt;/version&gt;
+        ///      &lt;version&gt;0.1.2&lt;/version&gt;
+        ///      &lt;version&gt;0.1.3&lt;/version&gt;
+        ///      &lt;version&gt;0.1.4&lt;/version&gt;
+        ///      &lt;version&gt;0.1.5&lt;/version&gt;
+        ///      &lt;version&gt;0.1.6&lt;/version&gt;
+        ///    &lt;/versions&gt;
+        ///    &lt;lastUpdated&gt;20230 [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string maven_microsoft_fluentui_listitem_metadata_xml {
+            get {
+                return ResourceManager.GetString("maven_microsoft_fluentui_listitem_metadata_xml", resourceCulture);
             }
         }
         
@@ -446,7 +612,7 @@ namespace oss {
                 return ResourceManager.GetString("tslib.json", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to {&quot;_id&quot;:&quot;@somosme/webflowutils&quot;,&quot;_rev&quot;:&quot;3-9be941baa0509bbc96a1349f8464fd6d&quot;,&quot;name&quot;:&quot;@somosme/webflowutils&quot;,&quot;time&quot;:{&quot;created&quot;:&quot;2022-08-10T19:49:56.913Z&quot;,&quot;1.0.0&quot;:&quot;2022-08-10T19:49:57.198Z&quot;,&quot;modified&quot;:&quot;2022-08-10T21:31:52.293Z&quot;,&quot;unpublished&quot;:{&quot;time&quot;:&quot;2022-08-10T21:31:32.856Z&quot;,&quot;versions&quot;:[&quot;1.0.0&quot;]}},&quot;maintainers&quot;:[{&quot;email&quot;:&quot;antonio@somos.me&quot;,&quot;name&quot;:&quot;antoniomb&quot;}]}.
         /// </summary>

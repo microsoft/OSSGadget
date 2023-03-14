@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.microsoft.fluentui</groupId>
+  <artifactId>fluentui_listitem</artifactId>
+  <version>0.0.8</version>
+  <packaging>aar</packaging>
+  <name>fluentui_listitem</name>
+  <description>Fluent UI Android, Module : fluentui_listitem</description>
+  <url>https://github.com/microsoft/fluentui-android</url>
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>https://github.com/microsoft/fluentui-android/blob/master/LICENSE</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <id>fluent-ui-android</id>
+      <name>Microsoft Inc.</name>
+      <email>fluentuinativeowners@microsoft.com</email>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:github.com/microsoft/fluentui-android.git</connection>
+    <developerConnection>scm:git:ssh://github.com/microsoft/fluentui-android.git</developerConnection>
+    <url>https://github.com/microsoft/fluentui-android/tree/main</url>
+  </scm>
+  <dependencies>
+    <dependency>
+      <groupId>com.microsoft.fluentui</groupId>
+      <artifactId>fluentui_core</artifactId>
+      <version>0.0.8</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jetbrains.kotlin</groupId>
+      <artifactId>kotlin-stdlib-jdk7</artifactId>
+      <version>1.4.30</version>
+    </dependency>
+    <dependency>
+      <groupId>androidx.appcompat</groupId>
+      <artifactId>appcompat</artifactId>
+      <version>1.2.0</version>
+    </dependency>
+    <dependency>
+      <groupId>androidx.recyclerview</groupId>
+      <artifactId>recyclerview</artifactId>
+      <version>1.1.0</version>
+    </dependency>
+  </dependencies>
+</project>

@@ -203,6 +203,41 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
+        public override async Task<bool> PackageVersionExistsAsync(PackageURL purl, bool useCache = true)
+        {
+            Logger.Trace("PackageVersionExists {0}", purl?.ToString());
+            if (purl is null || purl.Name is null || purl.Namespace is null)
+            {
+                return false;
+            }
+            try
+            {
+                string packageNamespace = purl.Namespace.Replace('.', '/');
+                string packageName = purl.Name;
+                string feedUrl = (purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT).EnsureTrailingSlash();
+                HttpClient httpClient = CreateHttpClient();
+
+                string? content = await GetHttpStringCache(httpClient, $"{feedUrl}{packageNamespace}/{packageName}/{purl.Version}/", useCache);
+                if (string.IsNullOrWhiteSpace(content))
+                {
+                    return false;
+                }
+
+                return true;
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+            {
+                Logger.Debug("Package version doesn't exist (404): {0}", ex.Message);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Logger.Debug("Unable to check for version existence: {0}", ex.Message);
+                throw;
+            }
+        }
+
+        /// <inheritdoc />
         public override async Task<string?> GetMetadataAsync(PackageURL purl, bool useCache = true)
         {
             try

@@ -2,7 +2,6 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
-    using AngleSharp.Dom;
     using AngleSharp.Html.Parser;
     using Helpers;
     using Microsoft.CST.OpenSource.Contracts;
@@ -17,7 +16,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using System.Xml;
 
     public class MavenProjectManager : TypedManager<IManagerPackageVersionMetadata, MavenProjectManager.MavenArtifactType>
     {
@@ -166,20 +164,28 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 string feedUrl = (purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT).EnsureTrailingSlash();
                 HttpClient httpClient = CreateHttpClient();
 
-                string? content = await GetHttpStringCache(httpClient, $"{feedUrl}{packageNamespace}/{packageName}/maven-metadata.xml", useCache);
+                string? content = await GetHttpStringCache(httpClient, $"{feedUrl}{packageNamespace}/{packageName}/", useCache);
                 List<string> versionList = new();
                 if (string.IsNullOrWhiteSpace(content))
                 {
                     return new List<string>();
                 }
-                XmlDocument doc = new();
-                doc.LoadXml(content);
-                foreach (XmlNode? versionObject in doc.GetElementsByTagName("version"))
+                
+                // Parse the html file.
+                HtmlParser parser = new();
+                AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(content);
+                
+                // Break the version content down into its individual lines. Includes the parent directory and xml + hash files.
+                IEnumerable<string> htmlEntries = document.QuerySelector("#contents").QuerySelectorAll("a").Select(a => a.TextContent);
+
+                foreach (string htmlEntry in htmlEntries)
                 {
-                    if (versionObject != null)
+                    // Get the version.
+                    if (htmlEntry.EndsWith('/') && !htmlEntry.Equals("../"))
                     {
-                        Logger.Debug("Identified {0} version {1}.", packageName, versionObject.InnerText);
-                        versionList.Add(versionObject.InnerText);
+                        var versionStr = htmlEntry.TrimEnd(htmlEntry[^1]);
+                        Logger.Debug("Identified {0} version {1}.", packageName, versionStr);
+                        versionList.Add(versionStr);
                     }
                 }
                 return SortVersions(versionList.Distinct());

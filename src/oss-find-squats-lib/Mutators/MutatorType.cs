@@ -20,6 +20,10 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
         /// </summary>
         AddCharacter,
         /// <summary>
+        /// The <see cref="AddContainingCharacterMutator"/> mutator.
+        /// </summary>
+        AddContainingCharacter,
+        /// <summary>
         /// The <see cref="AsciiHomoglyphMutator"/> mutator.
         /// </summary>
         AsciiHomoglyph,

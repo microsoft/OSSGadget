@@ -25,6 +25,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
         internal static IEnumerable<IMutator> BaseMutators { get; } = new List<IMutator>()
         {
             new AddCharacterMutator(),
+            new AddContainingCharacterMutator(),
             new AsciiHomoglyphMutator(),
             new BitFlipMutator(),
             new CloseLettersMutator(),

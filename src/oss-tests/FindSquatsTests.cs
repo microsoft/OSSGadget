@@ -566,6 +566,41 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         [TestMethod]
+        public async Task RequestsMutations_Succeeds_Async()
+        {
+            // arrange
+            PackageURL requests = new("pkg:pypi/requests@2.28.2");
+
+            string[] squattingPackages = new[]
+            {
+                "pkg:pypi/reuquests", // AddContainingCharacter
+                "pkg:pypi/requestss", // DoubleHit
+                "pkg:pypi/reqests", // RemovedCharacter
+                "pkg:pypi/request", // RemovedCharacter
+                "pkg:pypi/requets", // RemovedCharacter
+            };
+
+            IHttpClientFactory httpClientFactory =
+                FindSquatsHelper.SetupHttpCalls(purl: requests, validSquats: squattingPackages);
+
+            IManagerPackageActions<NuGetPackageVersionMetadata> packageActions = PackageActionsHelper<NuGetPackageVersionMetadata>.SetupPackageActions(requests, validSquats: squattingPackages) ?? throw new InvalidOperationException();
+            Dictionary<string, ProjectManagerFactory.ConstructProjectManager> overrideDict = ProjectManagerFactory.GetDefaultManagers(httpClientFactory);
+
+            overrideDict[NuGetProjectManager.Type] = directory =>
+                new NuGetProjectManager(directory, packageActions, httpClientFactory);
+            
+            FindPackageSquats findPackageSquats = new(new ProjectManagerFactory(overrideDict), requests);
+
+            // act
+            IDictionary<string, IList<Mutation>>? squatCandidates = findPackageSquats.GenerateSquatCandidates();
+            List<FindPackageSquatResult> existingMutations = await findPackageSquats.FindExistingSquatsAsync(squatCandidates, new MutateOptions(){UseCache = false}).ToListAsync();
+            Assert.IsNotNull(existingMutations);
+            Assert.IsTrue(existingMutations.Any());
+            string[] resultingMutationNames = existingMutations.Select(m => m.MutatedPackageUrl.ToString()).ToArray();
+            CollectionAssert.AreEquivalent(squattingPackages, resultingMutationNames);
+        }
+        
+        [TestMethod]
         public async Task ScopedPackage_Succeeds_Async()
         {
             // arrange

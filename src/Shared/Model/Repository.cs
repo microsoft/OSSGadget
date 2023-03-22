@@ -36,9 +36,6 @@ namespace Microsoft.CST.OpenSource.Model
         [JsonProperty(PropertyName = "created_at", NullValueHandling = NullValueHandling.Ignore)]
         public DateTimeOffset? CreatedAt { get; set; }
 
-        [JsonProperty(PropertyName = "downloads", NullValueHandling = NullValueHandling.Ignore)]
-        public Downloads? Downloads { get; set; }
-
         [JsonProperty(PropertyName = "followers", NullValueHandling = NullValueHandling.Ignore)]
         public int? FollowersCount { get; set; }
 

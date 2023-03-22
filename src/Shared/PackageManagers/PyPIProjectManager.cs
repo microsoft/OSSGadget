@@ -21,7 +21,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using Utilities;
     using Version = SemanticVersioning.Version;
 
-    public class PyPIProjectManager : TypedManager<IManagerPackageVersionMetadata, PyPIProjectManager.PyPIArtifactType>
+    public class PyPIProjectManager : TypedManager<BasePackageVersionMetadata, PyPIProjectManager.PyPIArtifactType>
     {
         /// <summary>
         /// The type of the project manager from the package-url type specifications.
@@ -36,7 +36,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         public PyPIProjectManager(
             string directory,
-            IManagerPackageActions<IManagerPackageVersionMetadata>? actions = null,
+            IManagerPackageActions<BasePackageVersionMetadata>? actions = null,
             IHttpClientFactory? httpClientFactory = null)
             : base(actions ?? new NoOpPackageActions(), httpClientFactory ?? new DefaultHttpClientFactory(), directory)
         {

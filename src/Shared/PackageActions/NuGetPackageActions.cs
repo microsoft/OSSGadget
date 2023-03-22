@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.PackageActions;
 
+using Extensions;
 using Microsoft.CST.OpenSource.Contracts;
 using Microsoft.CST.OpenSource.Helpers;
 using Microsoft.CST.OpenSource.Model.Metadata;
@@ -14,7 +15,6 @@ using NuGet.Versioning;
 using PackageUrl;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -125,7 +125,51 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
             .Select(v => v.ToString())
             .Reverse(); // We want the versions in descending order.
     }
-    
+
+    public async Task<int> GetVersionReleaseNumber(PackageURL packageUrl, bool includePrerelease = true,
+        bool useCache = true,
+        CancellationToken cancellationToken = default)
+    {
+        FindPackageByIdResource resource = await _sourceRepository.GetResourceAsync<FindPackageByIdResource>();
+
+        IEnumerable<NuGetVersion> versionsAscending = await resource.GetAllVersionsAsync(
+            packageUrl.Name,
+            _sourceCacheContext,
+            _logger, 
+            cancellationToken);
+
+        var versionsAscendingStrings = versionsAscending
+            .Where(v => includePrerelease || !v.IsPrerelease)
+            .Select(v => v.ToString());
+
+        return Array.IndexOf(versionsAscendingStrings.ToArray(), packageUrl.Version);
+    }
+
+    public async Task<Version> GetVersionIncrease(PackageURL packageUrl, bool includePrerelease = false,
+        bool useCache = true,
+        CancellationToken cancellationToken = default)
+    {
+        FindPackageByIdResource resource = await _sourceRepository.GetResourceAsync<FindPackageByIdResource>();
+
+        IEnumerable<NuGetVersion> versionsAscending = await resource.GetAllVersionsAsync(
+            packageUrl.Name,
+            _sourceCacheContext,
+            _logger, 
+            cancellationToken);
+
+        Version[] versionsAscendingVersions = versionsAscending
+            .Where(v => includePrerelease || !v.IsPrerelease)
+            .Select(v => v.Version).ToArray();
+        int indexOf = Array.IndexOf(versionsAscendingVersions.Select(v => v.ToString()).ToArray(), packageUrl.Version);
+        
+        if (indexOf == 0)
+        {
+            return new Version(0, 0, 0, 0);
+        }
+
+        return versionsAscendingVersions[indexOf].GetVersionDifference(versionsAscendingVersions[indexOf - 1]);
+    }
+
     /// <inheritdoc />
     public async Task<string?> GetLatestVersionAsync(
         PackageURL packageUrl,

@@ -6,24 +6,6 @@ namespace Microsoft.CST.OpenSource.Model
     using System;
     using System.Collections.Generic;
 
-    public class Downloads
-    {
-        [JsonProperty(PropertyName = "daily", NullValueHandling = NullValueHandling.Ignore)]
-        public long? Daily { get; set; }
-
-        [JsonProperty(PropertyName = "monthly", NullValueHandling = NullValueHandling.Ignore)]
-        public long? Monthly { get; set; }
-
-        [JsonProperty(PropertyName = "overall", NullValueHandling = NullValueHandling.Ignore)]
-        public long? Overall { get; set; }
-
-        [JsonProperty(PropertyName = "weekly", NullValueHandling = NullValueHandling.Ignore)]
-        public long? Weekly { get; set; }
-
-        [JsonProperty(PropertyName = "yearly", NullValueHandling = NullValueHandling.Ignore)]
-        public long? Yearly { get; set; }
-    }
-
     public class License
     {
         [JsonProperty(PropertyName = "type", NullValueHandling = NullValueHandling.Ignore)]
@@ -187,15 +169,6 @@ namespace Microsoft.CST.OpenSource.Model
 
         [JsonProperty(PropertyName = "version", NullValueHandling = NullValueHandling.Ignore)]
         public string? VersionString { get; set; }
-    }
-
-    public class Digest
-    {
-        [JsonProperty(PropertyName = "signature_algorithm", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Algorithm { get; set; }
-
-        [JsonProperty(PropertyName = "signature", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Signature { get; set; }
     }
 
     public class Dependency

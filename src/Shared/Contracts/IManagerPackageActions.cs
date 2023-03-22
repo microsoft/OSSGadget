@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 /// <summary>
 /// The interface to implement project manager specific actions.
 /// </summary>
-public interface IManagerPackageActions<T> where T : IManagerPackageVersionMetadata
+public interface IManagerPackageActions<T> where T : BasePackageVersionMetadata
 {
     /// <summary>
     /// Downloads the file(s) associated with a given <see cref="PackageURL"/>, and optionally extracts it if downloading an archive.
@@ -50,6 +50,31 @@ public interface IManagerPackageActions<T> where T : IManagerPackageVersionMetad
     /// If <paramref name="includePrerelease"/> is <c>false</c>, and every version is a pre-release, this method will return an empty list.
     /// </remarks>
     Task<IEnumerable<string>> GetAllVersionsAsync(PackageURL packageUrl, bool includePrerelease = true, bool useCache = true, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the number of this version in release order.
+    /// Zero is the first release, one is the second release, etc.
+    /// </summary>
+    /// <param name="packageUrl">The <see cref="PackageURL"/> to get the version number for.</param>
+    /// <param name="includePrerelease">If pre-release/beta versions should be included, defaults to <c>true</c>.</param>
+    /// <param name="useCache">If the cache should be checked for the available versions of this package.</param>
+    /// <param name="cancellationToken">The <see cref="CancellationToken"/> to be used in the method call, defaults to <see cref="CancellationToken.None"/>.</param>
+    /// <returns>A number representing the number of version this release was.</returns>
+    /// <remarks>
+    /// If <paramref name="includePrerelease"/> is <c>false</c>, and every version is a pre-release, this method will return 0.
+    /// </remarks>
+    Task<int> GetVersionReleaseNumber(PackageURL packageUrl, bool includePrerelease = true, bool useCache = true, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the <see cref="Version"/> as a metric of the increase between this version and the previous one.
+    /// </summary>
+    /// <remarks>The first version returns a <see cref="Version"/> where all values are 0.</remarks>
+    /// <param name="packageUrl">The <see cref="PackageURL"/> to get the version increase for.</param>
+    /// <param name="includePrerelease">If pre-release/beta versions should be included, defaults to <c>false</c>.</param>
+    /// <param name="useCache">If the cache should be checked for the available versions of this package.</param>
+    /// <param name="cancellationToken">The <see cref="CancellationToken"/> to be used in the method call, defaults to <see cref="CancellationToken.None"/>.</param>
+    /// <returns>A <see cref="Version"/> indicating the increase in the version from the previous release to this one.</returns>
+    Task<Version> GetVersionIncrease(PackageURL packageUrl, bool includePrerelease = false, bool useCache = true, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the latest version of a package, both releases and pre-releases are included by default.

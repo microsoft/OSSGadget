@@ -21,7 +21,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using Utilities;
     using Version = SemanticVersioning.Version;
 
-    public class NPMProjectManager : TypedManager<IManagerPackageVersionMetadata, NPMProjectManager.NPMArtifactType>
+    public class NPMProjectManager : TypedManager<BasePackageVersionMetadata, NPMProjectManager.NPMArtifactType>
     {
         /// <summary>
         /// The type of the project manager from the package-url type specifications.
@@ -42,7 +42,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         public NPMProjectManager(
             string directory,
-            IManagerPackageActions<IManagerPackageVersionMetadata>? actions = null,
+            IManagerPackageActions<BasePackageVersionMetadata>? actions = null,
             IHttpClientFactory? httpClientFactory = null)
             : base(actions ?? new NoOpPackageActions(), httpClientFactory ?? new DefaultHttpClientFactory(), directory)
         {

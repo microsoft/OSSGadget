@@ -20,7 +20,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Text.Json;
     using System.Threading.Tasks;
 
-    public class CargoProjectManager : TypedManager<IManagerPackageVersionMetadata, CargoProjectManager.CargoArtifactType>
+    public class CargoProjectManager : TypedManager<BasePackageVersionMetadata, CargoProjectManager.CargoArtifactType>
     {
         /// <summary>
         /// The type of the project manager from the package-url type specifications.
@@ -41,7 +41,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         public CargoProjectManager(
             string directory,
-            IManagerPackageActions<IManagerPackageVersionMetadata>? actions = null,
+            IManagerPackageActions<BasePackageVersionMetadata>? actions = null,
             IHttpClientFactory? httpClientFactory = null)
             : base(actions ?? new NoOpPackageActions(), httpClientFactory ?? new DefaultHttpClientFactory(), directory)
         {

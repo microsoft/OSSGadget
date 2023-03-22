@@ -17,7 +17,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Net.Http;
     using System.Threading.Tasks;
 
-    public class MavenProjectManager : TypedManager<IManagerPackageVersionMetadata, MavenProjectManager.MavenArtifactType>
+    public class MavenProjectManager : TypedManager<BasePackageVersionMetadata, MavenProjectManager.MavenArtifactType>
     {
         /// <summary>
         /// The type of the project manager from the package-url type specifications.
@@ -32,7 +32,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         public MavenProjectManager(
             string directory,
-            IManagerPackageActions<IManagerPackageVersionMetadata>? actions = null,
+            IManagerPackageActions<BasePackageVersionMetadata>? actions = null,
             IHttpClientFactory? httpClientFactory = null)
             : base(actions ?? new NoOpPackageActions(), httpClientFactory ?? new DefaultHttpClientFactory(), directory)
         {

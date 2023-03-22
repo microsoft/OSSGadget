@@ -305,7 +305,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 .ToList();
 
             // Keywords
-            metadata.Keywords = new List<string>((IEnumerable<string>?)packageVersionMetadata.Tags?.Split(", ") ?? new List<string>());
+            metadata.Keywords = new List<string>(packageVersionMetadata.Keywords);
 
             // Licenses
             if (packageVersionMetadata.LicenseMetadata is not null)
@@ -330,13 +330,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         private static void UpdateMetadataAuthorsAndMaintainers(PackageMetadata metadata, NuGetPackageVersionMetadata packageVersionPackageVersionMetadata)
         {
             // Author(s)
-            string? authors = packageVersionPackageVersionMetadata.Authors;
-            if (authors is not null)
-            {
-                metadata.Authors ??= new List<User>();
-                authors.Split(", ").ToList()
-                    .ForEach(author => metadata.Authors.Add(new User() { Name = author }));
-            }
+            string authors = packageVersionPackageVersionMetadata.Publisher;
+            metadata.Authors ??= new List<User>();
+            authors.Split(", ").ToList()
+                .ForEach(author => metadata.Authors.Add(new User() { Name = author }));
 
             // TODO: Collect the data about a package's maintainers as well.
         }

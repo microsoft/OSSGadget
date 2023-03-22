@@ -4,12 +4,13 @@ namespace Microsoft.CST.OpenSource.PackageActions;
 
 using Contracts;
 using PackageUrl;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-public class NoOpPackageActions : IManagerPackageActions<IManagerPackageVersionMetadata>
+public class NoOpPackageActions : IManagerPackageActions<BasePackageVersionMetadata>
 {
     public Task<string?> DownloadAsync(
         PackageURL packageUrl,
@@ -30,16 +31,24 @@ public class NoOpPackageActions : IManagerPackageActions<IManagerPackageVersionM
         bool useCache = true,
         CancellationToken cancellationToken = default) => Task.FromResult(Enumerable.Empty<string>());
 
+    public Task<int> GetVersionReleaseNumber(PackageURL packageUrl, bool includePrerelease = true, bool useCache = true,
+        CancellationToken cancellationToken = default) =>
+        Task.FromResult(0);
+
+    public Task<Version> GetVersionIncrease(PackageURL packageUrl, bool includePrerelease = false, bool useCache = true,
+        CancellationToken cancellationToken = default) =>
+        Task.FromResult(new Version(0, 0, 0));
+
     public Task<string?> GetLatestVersionAsync(
         PackageURL packageUrl,
         bool includePrerelease = false,
         bool useCache = true,
         CancellationToken cancellationToken = default) => Task.FromResult<string?>(null);
 
-    public Task<IManagerPackageVersionMetadata?> GetMetadataAsync(
+    public Task<BasePackageVersionMetadata?> GetMetadataAsync(
         PackageURL packageUrl,
         bool useCache = true,
-        CancellationToken cancellationToken = default) => Task.FromResult<IManagerPackageVersionMetadata?>(null);
+        CancellationToken cancellationToken = default) => Task.FromResult<BasePackageVersionMetadata?>(null);
 
     public Task<bool> GetHasReservedNamespaceAsync(PackageURL packageUrl, bool useCache = true, CancellationToken cancellationToken = default) => Task.FromResult(false);
 }

@@ -7,20 +7,25 @@ using Model.Enums;
 /// <summary>
 /// An interface representing the metadata returned from a project manager's API for a package's metadata, won't contain extra or calculated properties.
 /// </summary>
-public interface IManagerPackageMetadata
+public abstract record BasePackageMetadata
 {
-    /// <summary>
-    /// The name of the package.
-    /// </summary>
-    string Name { get; }
-
     /// <summary>
     /// The type of the package.
     /// </summary>
-    PackageType Type { get; }
+    public abstract PackageType Type { get; }
 
     /// <summary>
-    /// The Publisher of the package.
+    /// The name of the package.
     /// </summary>
-    string Publisher { get; }
+    public abstract string Name { get; init; }
+
+    /// <summary>
+    /// The namespace of the package.
+    /// </summary>
+    public abstract string? Namespace { get; init; }
+
+    /// <summary>
+    /// The description of the package.
+    /// </summary>
+    public abstract string? PackageDescription { get; init; }
 }

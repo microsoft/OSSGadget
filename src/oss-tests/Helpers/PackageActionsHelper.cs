@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
-public static class PackageActionsHelper<T> where T : IManagerPackageVersionMetadata
+public static class PackageActionsHelper<T> where T : BasePackageVersionMetadata
 {
     /// <summary>
     /// Set up a mock of <see cref="IManagerPackageActions{T}"/> for this test run.

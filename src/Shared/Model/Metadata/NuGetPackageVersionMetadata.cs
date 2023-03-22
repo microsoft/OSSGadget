@@ -11,15 +11,26 @@ using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using PackageType = Enums.PackageType;
 
 /// <summary>
 /// A class to represent Package Metadata for a NuGet package version.
 /// </summary>
-public record NuGetPackageVersionMetadata : IManagerPackageVersionMetadata
-{
+public record NuGetPackageVersionMetadata : BasePackageVersionMetadata {
+    public override PackageType Type => PackageType.NuGet;
+
+    [JsonProperty(PropertyName = JsonProperties.PackageId)]
+    public override string Name { get; init; }
+    
+    [JsonProperty(PropertyName = JsonProperties.Version)]
+    public override string Version { get; init; }
+
+    public override string? Namespace { get; init; }
+    public override string? PackageDescription { get; init; }
+
     [JsonProperty(PropertyName = JsonProperties.Authors)]
     [JsonConverter(typeof(MetadataFieldConverter))]
-    public string Authors { get; init; }
+    public override string Publisher { get; init; }
 
     [JsonProperty(PropertyName = JsonProperties.DependencyGroups, ItemConverterType = typeof(PackageDependencyGroupConverter))]
     public IEnumerable<PackageDependencyGroup> DependencySetsInternal { get; init; }
@@ -28,7 +39,7 @@ public record NuGetPackageVersionMetadata : IManagerPackageVersionMetadata
     public IEnumerable<PackageDependencyGroup> DependencySets => DependencySetsInternal;
 
     [JsonProperty(PropertyName = JsonProperties.Description)]
-    public string Description { get; init; }
+    public override string Description { get; init; }
 
     [JsonProperty(PropertyName = JsonProperties.DownloadCount)]
     public long? DownloadCount { get; init; }
@@ -39,9 +50,6 @@ public record NuGetPackageVersionMetadata : IManagerPackageVersionMetadata
 
     [JsonIgnore]
     public PackageIdentity Identity => new(Name, new NuGetVersion(Version));
-
-    [JsonProperty(PropertyName = JsonProperties.Version)]
-    public string Version { get; init; }
 
     [JsonProperty(PropertyName = JsonProperties.LicenseUrl)]
     [JsonConverter(typeof(SafeUriConverter))]
@@ -69,9 +77,6 @@ public record NuGetPackageVersionMetadata : IManagerPackageVersionMetadata
     [JsonConverter(typeof(MetadataFieldConverter))]
     public string Owners { get; init; }
 
-    [JsonProperty(PropertyName = JsonProperties.PackageId)]
-    public string Name { get; init; }
-
     [JsonProperty(PropertyName = JsonProperties.RequireLicenseAcceptance, DefaultValueHandling = DefaultValueHandling.Populate)]
     [DefaultValue(false)]
     [JsonConverter(typeof(SafeBoolConverter))]
@@ -81,8 +86,10 @@ public record NuGetPackageVersionMetadata : IManagerPackageVersionMetadata
     public string Summary { get; init; }
 
     [JsonProperty(PropertyName = JsonProperties.Tags)]
-    [JsonConverter(typeof(MetadataFieldConverter))]
-    public string? Tags { get; init; }
+    public override string[] Keywords { get; init; }
+
+    public override int NumberVersion { get; set; }
+    public override Version VersionIncrease { get; set; }
 
     [JsonProperty(PropertyName = JsonProperties.Title)]
     public string Title { get; init; }
@@ -121,7 +128,7 @@ public record NuGetPackageVersionMetadata : IManagerPackageVersionMetadata
     /// <param name="registration">The <see cref="PackageSearchMetadataRegistration"/> to get the values from.</param>
     public NuGetPackageVersionMetadata(PackageSearchMetadataRegistration registration)
     {
-        Authors = registration.Authors;
+        Publisher = registration.Authors;
         DependencySetsInternal = registration.DependencySets;
         Description = registration.Description;
         DownloadCount = registration.DownloadCount;
@@ -137,7 +144,7 @@ public record NuGetPackageVersionMetadata : IManagerPackageVersionMetadata
         Owners = registration.Owners;
         RequireLicenseAcceptance = registration.RequireLicenseAcceptance;
         Summary = registration.Summary;
-        Tags = registration.Tags;
+        Keywords = registration.Tags.Split(", ");
         Title = registration.Title;
         IsListed = registration.IsListed;
         PrefixReserved = registration.PrefixReserved;

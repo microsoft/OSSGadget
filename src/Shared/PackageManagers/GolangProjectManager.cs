@@ -18,7 +18,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Text.Json;
     using System.Threading.Tasks;
 
-    public class GolangProjectManager : TypedManager<IManagerPackageVersionMetadata, GolangProjectManager.GolangArtifactType>
+    public class GolangProjectManager : TypedManager<BasePackageVersionMetadata, GolangProjectManager.GolangArtifactType>
     {
         /// <summary>
         /// The type of the project manager from the package-url type specifications.
@@ -36,7 +36,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         public GolangProjectManager(
             string directory,
-            IManagerPackageActions<IManagerPackageVersionMetadata>? actions = null,
+            IManagerPackageActions<BasePackageVersionMetadata>? actions = null,
             IHttpClientFactory? httpClientFactory = null)
             : base(actions ?? new NoOpPackageActions(), httpClientFactory ?? new DefaultHttpClientFactory(), directory)
         {

@@ -54,7 +54,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
                 {
                     new CloseLettersMutator(additionalExcludedChars: new[] { '/' }),
                     new DoubleHitMutator(additionalExcludedChars: new[] { '/' }),
-                    new SuffixMutator(additionalSuffixes: new[] { "net", ".net", "nuget" }, skipSuffixes: new[] { "." })
+                    new SuffixMutator(additionalSuffixes: new[] { "net", ".net", "nuget", "core", ".core" }, skipSuffixes: new[] { "." })
                 });
 
         /// <summary>

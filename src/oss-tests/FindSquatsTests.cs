@@ -93,6 +93,9 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("pkg:npm/angular/core", "pkg:npm/angularcore")] // NamespaceInName, 'angular'
         [DataRow("pkg:npm/%40angular/core", "pkg:npm/angular.core")] // NamespaceInName, 'angular'
         [DataRow("pkg:nuget/Microsoft.CST.OAT", "pkg:nuget/microsoft.cst.oat.net")] // SuffixAdded, .net
+
+        // Based on attack seen here: https://medium.com/checkmarx-security/new-attack-vector-observed-targeting-net-developers-in-a-software-supply-chain-attack-c28bfe4decd2
+        [DataRow("pkg:nuget/Coinbase", "pkg:nuget/Coinbase.Core")] // SuffixAdded, .core
         public void GenerateManagerSpecific(string packageUrl, string expectedToFind)
         {
             PackageURL purl = new(packageUrl);

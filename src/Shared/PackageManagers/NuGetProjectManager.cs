@@ -63,15 +63,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     $"NuGet package URLs having a repository URL other than '{NUGET_DEFAULT_INDEX}' are not currently supported.");
             }
             
-            var basePath = NUGET_DEFAULT_CONTENT_ENDPOINT.EnsureTrailingSlash();
-            var nameLowercase = purl.Name.ToLowerInvariant();
-            var versionLowercase = purl.Version.ToLowerInvariant();
-
-            yield return new ArtifactUri<NuGetArtifactType>(NuGetArtifactType.Nupkg,
-                $"{basePath}{nameLowercase}/{versionLowercase}/{nameLowercase}.{versionLowercase}.nupkg");
-
-            yield return new ArtifactUri<NuGetArtifactType>(NuGetArtifactType.Nuspec, 
-                $"{basePath}{nameLowercase}/{versionLowercase}/{nameLowercase}.nuspec");
+            yield return new ArtifactUri<NuGetArtifactType>(NuGetArtifactType.Nupkg, GetNupkgUrl(purl.Name, purl.Version));
+            yield return new ArtifactUri<NuGetArtifactType>(NuGetArtifactType.Nuspec, GetNuspecUrl(purl.Name, purl.Version));
         }
 
         /// <inheritdoc />
@@ -236,12 +229,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 throw new ArgumentNullException(nameof(purl), "Provided PackageURL was null.");
             }
 
-            HttpClient httpClient = CreateHttpClient();
-            
-            // NuGet packages are case insensitive
-            string endpoint = $"{RegistrationEndpoint}{purl.Name.ToLowerInvariant()}/index.json";
-
-            return await CheckHttpCacheForPackage(httpClient, endpoint, useCache);
+            return await this.Actions.DoesPackageExistAsync(purl, useCache);
         }
 
         /// <inheritdoc />
@@ -254,18 +242,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 return false;
             }
 
-            if (purl.Version.IsBlank())
-            {
-                Logger.Trace("Provided PackageURL version was null or blank.");
-                return false;
-            }
-
-            HttpClient httpClient = CreateHttpClient();
-
-            // NuGet packages are case insensitive
-            string endpoint = $"{NUGET_DEFAULT_CONTENT_ENDPOINT.EnsureTrailingSlash()}{purl.Name.ToLowerInvariant()}/{purl.Version.ToLowerInvariant()}/{purl.Name.ToLowerInvariant()}.nuspec";
-
-            return await CheckHttpCacheForPackage(httpClient, endpoint, useCache);
+            return await this.Actions.DoesPackageExistAsync(purl, useCache);
         }
 
         /// <summary>
@@ -379,6 +356,20 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <summary>
+        /// Helper method to get the URL to download a NuGet package's .nuspec.
+        /// </summary>
+        /// <param name="id">The id/name of the package to get the .nuspec for.</param>
+        /// <param name="version">The version of the package to get the .nuspec for.</param>
+        /// <returns>The URL for the nuspec file.</returns>
+        private static string GetNuspecUrl(string id, string version)
+        {
+            string lowerId = id.ToLowerInvariant();
+            string lowerVersion = NuGetVersion.Parse(version).ToNormalizedString().ToLowerInvariant();
+            string url = $"{NUGET_DEFAULT_CONTENT_ENDPOINT.TrimEnd('/')}/{lowerId}/{lowerVersion}/{lowerId}.nuspec";
+            return url;
+        }
+
+        /// <summary>
         /// Searches the package manager metadata to figure out the source code repository.
         /// </summary>
         /// <param name="purl">The <see cref="PackageURL"/> that we need to find the source code repository.</param>
@@ -422,7 +413,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
             string lowerId = id.ToLowerInvariant();
             string lowerVersion = NuGetVersion.Parse(version).ToNormalizedString().ToLowerInvariant();
-            string uri = $"{NUGET_DEFAULT_CONTENT_ENDPOINT.TrimEnd('/')}/{lowerId}/{lowerVersion}/{lowerId}.nuspec";
+            string uri = GetNuspecUrl(lowerId, lowerVersion);
             try
             {
                 HttpClient httpClient = this.CreateHttpClient();

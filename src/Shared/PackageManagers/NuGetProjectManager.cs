@@ -65,7 +65,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             
             var basePath = NUGET_DEFAULT_CONTENT_ENDPOINT.EnsureTrailingSlash();
             var nameLowercase = purl.Name.ToLowerInvariant();
-            var versionLowercase = purl.Version.ToLowerInvariant();
+            var versionLowercase = NuGetVersion.Parse(purl.Version.ToLowerInvariant());
 
             yield return new ArtifactUri<NuGetArtifactType>(NuGetArtifactType.Nupkg,
                 $"{basePath}{nameLowercase}/{versionLowercase}/{nameLowercase}.{versionLowercase}.nupkg");
@@ -254,7 +254,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 return false;
             }
 
-            if (purl.Version.IsBlank())
+            if (!NuGetVersion.TryParse(purl.Version.ToLowerInvariant(), out NuGetVersion nugetVersion))
             {
                 Logger.Trace("Provided PackageURL version was null or blank.");
                 return false;
@@ -263,7 +263,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             HttpClient httpClient = CreateHttpClient();
 
             // NuGet packages are case insensitive
-            string endpoint = $"{NUGET_DEFAULT_CONTENT_ENDPOINT.EnsureTrailingSlash()}{purl.Name.ToLowerInvariant()}/{purl.Version.ToLowerInvariant()}/{purl.Name.ToLowerInvariant()}.nuspec";
+            string endpoint = $"{NUGET_DEFAULT_CONTENT_ENDPOINT.EnsureTrailingSlash()}{purl.Name.ToLowerInvariant()}/{nugetVersion}/{purl.Name.ToLowerInvariant()}.nuspec";
 
             return await CheckHttpCacheForPackage(httpClient, endpoint, useCache);
         }

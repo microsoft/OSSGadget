@@ -107,6 +107,17 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             Assert.IsTrue(exists);
         }
 
+        [TestMethod]
+        public async Task TestNugetPackageWithVersionMetadataInPurlExists()
+        {
+            PackageURL purl = new("pkg:nuget/Pulumi@3.29.0-alpha.1649173720+667fd085");
+            _projectManager = new NuGetProjectManager(".", null, _httpFactory);
+
+            bool exists = await _projectManager.PackageVersionExistsAsync(purl, useCache: false);
+
+            Assert.IsTrue(exists);
+        }
+
         [DataTestMethod]
         [DataRow("pkg:nuget/razorengine@4.2.3-beta1", false, "RazorEngine - A Templating Engine based on the Razor parser.", "Matthew Abbott, Ben Dornis, Matthias Dittrich")] // Normal package
         [DataRow("pkg:nuget/razorengine", false, "RazorEngine - A Templating Engine based on the Razor parser.", "Matthew Abbott, Ben Dornis, Matthias Dittrich", "4.5.1-alpha001")] // Normal package, no specified version
@@ -297,6 +308,9 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         [DataRow("pkg:nuget/SlipeServer.Scripting@0.1.0-CI-20220607-083949", 
             "https://api.nuget.org/v3-flatcontainer/slipeserver.scripting/0.1.0-ci-20220607-083949/slipeserver.scripting.0.1.0-ci-20220607-083949.nupkg",
             "https://api.nuget.org/v3-flatcontainer/slipeserver.scripting/0.1.0-ci-20220607-083949/slipeserver.scripting.nuspec")]
+        [DataRow("pkg:nuget/Pulumi@3.29.0-alpha.1649173720+667fd085",
+           "https://api.nuget.org/v3-flatcontainer/pulumi/3.29.0-alpha.1649173720/pulumi.3.29.0-alpha.1649173720.nupkg",
+            "https://api.nuget.org/v3-flatcontainer/pulumi/3.29.0-alpha.1649173720/pulumi.nuspec")]
         public async Task GetArtifactDownloadUrisSucceeds_Async(string purlString, string expectedNuPkgUrl, string expectedNuSpecUri)
         {
             PackageURL purl = new(purlString);

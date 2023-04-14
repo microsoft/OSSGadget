@@ -134,6 +134,8 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         [DataRow("pkg:nuget/razorengine", false, "RazorEngine - A Templating Engine based on the Razor parser.", "Matthew Abbott, Ben Dornis, Matthias Dittrich", "4.5.1-alpha001")] // Normal package, no specified version
         [DataRow("pkg:nuget/slipeserver.scripting@0.1.0-CI-20220607-083949", false, "Scripting layer C# Server for MTA San Andreas", "Slipe", null)] // Normal package, no specified version, pre-release versions only, returns null for latest version by default
         [DataRow("pkg:nuget/slipeserver.scripting", true, "Scripting layer C# Server for MTA San Andreas", "Slipe", "0.1.0-ci-20221120-180516")] // Normal package, no specified version, pre-release versions only, returns latest pre-release for latest version because of override
+        [DataRow("pkg:nuget/Pulumi@3.29.0-alpha.1649173720+667fd085",true,"The Pulumi .NET SDK lets you write cloud programs in C#, F#, and VB.NET.","Pulumi")]
+        [DataRow("pkg:nuget/Pulumi@3.29.0-alpha.1649173720", true, "The Pulumi .NET SDK lets you write cloud programs in C#, F#, and VB.NET.","Pulumi")]
         public async Task MetadataSucceeds(string purlString, bool includePrerelease = false, string? description = null, string? authors = null, string? latestVersion = null)
         {
             PackageURL purl = new(purlString);
@@ -154,7 +156,9 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
                 purl,
                 setupMetadata,
                 setupVersions?.Reverse());
-            _projectManager = new NuGetProjectManager(".", nugetPackageActions, _httpFactory);
+
+            // Use mocked response if version is not provided.
+            _projectManager = string.IsNullOrWhiteSpace(purl.Version) ? new NuGetProjectManager(".", nugetPackageActions, _httpFactory) : _projectManager;
 
             PackageMetadata metadata = await _projectManager.GetPackageMetadataAsync(purl, includePrerelease: includePrerelease, useCache: false);
 
@@ -241,16 +245,13 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             Assert.AreEqual(exists, existence.Exists);
         }
 
-        [TestMethod]
-        public async Task DetailedPackageVersionExistsAsync_ExistsSucceeds()
+        [DataTestMethod]
+        [DataRow("pkg:nuget/razorengine@4.2.3-beta1")]
+        [DataRow("pkg:nuget/Pulumi@3.29.0-alpha.1649173720+667fd085")]
+        [DataRow("pkg:nuget/Pulumi@3.29.0-alpha.1649173720")]
+        public async Task DetailedPackageVersionExistsAsync_ExistsSucceeds(string purlString)
         {
-            PackageURL purl = new("pkg:nuget/razorengine@4.2.3-beta1");
-
-            IManagerPackageActions<NuGetPackageVersionMetadata>? nugetPackageActions = PackageActionsHelper<NuGetPackageVersionMetadata>.SetupPackageActions(
-                purl,
-                JsonConvert.DeserializeObject<NuGetPackageVersionMetadata>(_metadata[purl.ToString()]),
-                JsonConvert.DeserializeObject<IEnumerable<string>>(_versions[purl.ToString()])?.Reverse());
-            _projectManager = new NuGetProjectManager(".", nugetPackageActions, _httpFactory);
+            PackageURL purl = new(purlString);
 
             IPackageExistence existence = await _projectManager.DetailedPackageVersionExistsAsync(purl, useCache: false);
 
@@ -262,9 +263,6 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         {
             PackageURL purl = new("pkg:nuget/notarealpackage@0.0.0");
 
-            IManagerPackageActions<NuGetPackageVersionMetadata>? nugetPackageActions = PackageActionsHelper<NuGetPackageVersionMetadata>.SetupPackageActions();
-            _projectManager = new NuGetProjectManager(".", nugetPackageActions, _httpFactory);
-
             IPackageExistence existence = await _projectManager.DetailedPackageVersionExistsAsync(purl, useCache: false);
 
             Assert.AreEqual(new PackageVersionNotFound(), existence);
@@ -273,6 +271,8 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         [DataTestMethod]
         [DataRow("pkg:nuget/razorengine@4.2.3-beta1", "2015-10-06T17:53:46.37+00:00")]
         [DataRow("pkg:nuget/razorengine@4.5.1-alpha001", "2017-09-02T05:17:55.973-04:00")]
+        [DataRow("pkg:nuget/Pulumi@3.29.0-alpha.1649173720+667fd085", "2022-04-05T16:56:44.043Z")]
+        [DataRow("pkg:nuget/Pulumi@3.29.0-alpha.1649173720", "2022-04-05T16:56:44.043Z")]
         public async Task GetPublishedAtSucceeds(string purlString, string? expectedTime = null)
         {
             PackageURL purl = new(purlString);

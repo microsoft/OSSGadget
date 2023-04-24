@@ -68,6 +68,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public static PackageURL ParseUri(Uri uri)
         {
             Match match = GithubMatchRegex.Match(uri.AbsoluteUri);
+            if (!match.Success)
+            {
+                var x = 1;
+            }
             GroupCollection matches = match.Groups;
             PackageURL packageURL = new(
                 "github",
@@ -286,7 +290,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             @"(github\.com)" +
             @"[:/]*" +
             @"(?<port>[\d]+){0,1}" +
-            @"(?<pathname>\/((?<owner>[\w\-]{1,39})\/)?" + // GitHub Username Limit is 39
+            @"(?<pathname>\/((?<namespace>[\w\-]{1,39})\/)?" + // GitHub Username Limit is 39
             @"((?<name>[\w\-\.]{1,250}?)(\.git|\/)?)?)$" + // GitHub Repository name limit is 250
             @"|" +
             @"(git\+)?" +
@@ -294,7 +298,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             @"((?<user>\w+)@)?" +
             @"(github\.com)" +
             @"(:(?<port>\d+))?" +
-            @"(?<pathname>\/((?<owner>[\w\-]{1,39})\/)?" + // GitHub Username Limit is 39
+            @"(?<pathname>\/((?<namespace>[\w\-]{1,39})\/)?" + // GitHub Username Limit is 39
             @"((?<name>[\w\-\.]{1,250}?)(\.git|\/)?)?)$", // GitHub Repository name limit is 250
                 RegexOptions.Compiled);
 
@@ -308,7 +312,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             @"(?<resource>[a-z0-9_.-]{0,253})" + // Hostname limit is 253
             @"[:/]*" +
             @"(?<port>[\d]+){0,1}" +
-            @"(?<pathname>\/((?<owner>[\w\-]{1,39})\/)?" + // GitHub Username Limit is 39
+            @"(?<pathname>\/((?<namespace>[\w\-]{1,39})\/)?" + // GitHub Username Limit is 39
             @"((?<name>[\w\-\.]{1,250}?)(\.git|\/)?)?)$" + // GitHub Repository name limit is 250
             @"|" +
             @"(git\+)?" +
@@ -316,7 +320,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             @"((?<user>\w+)@)?" +
             @"((?<resource>[\w\.\-]{0,253}))" + // Hostname limit is 253
             @"(:(?<port>\d+))?" +
-            @"(?<pathname>\/((?<owner>[\w\-]{1,39})\/)?" + // GitHub Username Limit is 39
+            @"(?<pathname>\/((?<namespace>[\w\-]{1,39})\/)?" + // GitHub Username Limit is 39
             @"((?<name>[\w\-\.]{1,250}?)(\.git|\/)?)?)$", // GitHub Repository name limit is 250
                 RegexOptions.Singleline | RegexOptions.Compiled);
     }

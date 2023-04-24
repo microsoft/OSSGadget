@@ -279,31 +279,45 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
             return false;
         }
-        
-        
 
         private static readonly Regex GithubExtractorRegex = new(
-                    @"((?<protocol>https?|git|ssh|rsync)\+?)+\://" +
-                    @"(?:(?<username>[\w-]+)@)*" +
-                    @"(github\.com)" +
-                    @"[:/]*" +
-                    @"(?<port>[\d]+)?" +
-                    @"/(?<user>[\w-\.]+)" +
-                    @"/(?<repo>[\w-\.]+)/?",
-                        RegexOptions.Compiled);
+            @"(?<protocol>https?|git|ssh|rsync)\://" +
+            @"(?:(?<user>.+)@)*" +
+            @"(github\.com)" +
+            @"[:/]*" +
+            @"(?<port>[\d]+){0,1}" +
+            @"(?<pathname>\/((?<owner>[\w\-]{1,39})\/)?" + // GitHub Username Limit is 39
+            @"((?<name>[\w\-\.]{1,250}?)(\.git|\/)?)?)$" + // GitHub Repository name limit is 250
+            @"|" +
+            @"(git\+)?" +
+            @"((?<protocol>\w+)://)" +
+            @"((?<user>\w+)@)?" +
+            @"(github\.com)" +
+            @"(:(?<port>\d+))?" +
+            @"(?<pathname>\/((?<owner>[\w\-]{1,39})\/)?" + // GitHub Username Limit is 39
+            @"((?<name>[\w\-\.]{1,250}?)(\.git|\/)?)?)$", // GitHub Repository name limit is 250
+                RegexOptions.Compiled);
 
         /// <summary>
         ///     Regular expression that matches possible GitHub URLs
         /// </summary>
+        // Based on https://github.com/coala/git-url-parse/blob/d3eac95b21b2b166562e657fdfd974545653dfcc/giturlparse/parser.py#L38-L62
         private static readonly Regex GithubMatchRegex = new(
-            @"^((?<protocol>https?|git|ssh|rsync)\+?)+\://" +
-            @"(?:(?<user>.+)@)*" +
-            @"(?<resource>[a-z0-9_.-]*)" +
+            @"(?<protocol>https?|git|ssh|rsync)\://" +
+            @"(?:(?<user>.+)@){0,1}" +
+            @"(?<resource>[a-z0-9_.-]{0,253})" + // Hostname limit is 253
             @"[:/]*" +
-            @"(?<port>[\d]+)?" +
-            @"(?<pathname>\/((?<namespace>[\w\-\.]+)/)" +
-            @"(?<subpath>[\w\-]+/)*" +
-            @"((?<name>[\w\-\.]+?)(\.git|/)?)?)$",
+            @"(?<port>[\d]+){0,1}" +
+            @"(?<pathname>\/((?<owner>[\w\-]{1,39})\/)?" + // GitHub Username Limit is 39
+            @"((?<name>[\w\-\.]{1,250}?)(\.git|\/)?)?)$" + // GitHub Repository name limit is 250
+            @"|" +
+            @"(git\+)?" +
+            @"((?<protocol>\w+)://)" +
+            @"((?<user>\w+)@)?" +
+            @"((?<resource>[\w\.\-]{0,253}))" + // Hostname limit is 253
+            @"(:(?<port>\d+))?" +
+            @"(?<pathname>\/((?<owner>[\w\-]{1,39})\/)?" + // GitHub Username Limit is 39
+            @"((?<name>[\w\-\.]{1,250}?)(\.git|\/)?)?)$", // GitHub Repository name limit is 250
                 RegexOptions.Singleline | RegexOptions.Compiled);
     }
 }

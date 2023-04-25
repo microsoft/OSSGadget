@@ -65,13 +65,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return repositoryList;
         }
 
+        /// <summary>
+        ///     Parse a GitHub URL into a PackageURL object.
+        /// </summary>
+        /// <param name="purl"> Package URL of the package to download. </param>
+        /// <returns>PackageURL object for the provided Uri</returns>
         public static PackageURL ParseUri(Uri uri)
         {
             Match match = GithubMatchRegex.Match(uri.AbsoluteUri);
-            if (!match.Success)
-            {
-                var x = 1;
-            }
             GroupCollection matches = match.Groups;
             PackageURL packageURL = new(
                 "github",

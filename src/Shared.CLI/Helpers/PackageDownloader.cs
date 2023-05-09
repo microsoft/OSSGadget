@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource
 {
+    using Contracts;
     using Extensions;
     using Microsoft.CST.OpenSource.Helpers;
     using Microsoft.CST.OpenSource.PackageManagers;
@@ -293,7 +294,7 @@ namespace Microsoft.CST.OpenSource
         // folders created
         private List<string> downloadPaths { get; set; } = new List<string>();
 
-        private BaseProjectManager? packageManager { get; set; }
+        private IBaseProjectManager? packageManager { get; set; }
         public List<PackageURL> PackageVersions { get; set; }
     }
 }

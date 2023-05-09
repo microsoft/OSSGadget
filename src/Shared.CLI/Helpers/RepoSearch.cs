@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using Contracts;
     using Microsoft.CST.OpenSource.PackageManagers;
     using PackageUrl;
     using System;
@@ -59,7 +60,7 @@ namespace Microsoft.CST.OpenSource.Shared
             Logger.Debug("Searching for source code for: {0}", purlNoVersion.ToString());
 
             // Get the correct project manager using the factory.
-            BaseProjectManager? projectManager = _projectManagerFactory.CreateProjectManager(purl);
+            IBaseProjectManager? projectManager = _projectManagerFactory.CreateProjectManager(purl);
 
             if (projectManager != null)
             {

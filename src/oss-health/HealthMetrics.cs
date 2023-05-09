@@ -13,6 +13,7 @@ using System.Text.RegularExpressions;
 
 namespace Microsoft.CST.OpenSource.Health
 {
+    using Contracts;
     using PackageUrl;
 
     public class HealthMetrics
@@ -43,7 +44,7 @@ namespace Microsoft.CST.OpenSource.Health
 
         public List<Result> toSarif()
         {
-            BaseProjectManager? projectManager = ProjectManagerFactory.ConstructPackageManager(purl, null);
+            IBaseProjectManager? projectManager = ProjectManagerFactory.ConstructPackageManager(purl, null);
 
             if (projectManager == null)
             {

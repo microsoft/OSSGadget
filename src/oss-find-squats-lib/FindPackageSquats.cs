@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.FindSquats
 {
+    using Contracts;
     using ExtensionMethods;
     using Microsoft.CST.OpenSource;
     using Microsoft.CST.OpenSource.Exceptions;
@@ -19,7 +20,7 @@ namespace Microsoft.CST.OpenSource.FindSquats
         /// </summary>
         public PackageURL PackageUrl { get; }
 
-        public BaseProjectManager? ProjectManager { get;  }
+        public IBaseProjectManager? ProjectManager { get;  }
 
         public FindPackageSquats(ProjectManagerFactory projectManagerFactory, PackageURL packageUrl)
             : base(projectManagerFactory)

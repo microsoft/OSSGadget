@@ -13,5 +13,5 @@ public interface IProjectManagerFactory
     /// <param name="purl">The <see cref="PackageURL"/> for the package to create the project manager for.</param>
     /// <param name="destinationDirectory">The new destination directory, if provided.</param>
     /// <returns>The implementation of <see cref="BaseProjectManager"/> for this <paramref name="purl"/>'s type.</returns>
-    BaseProjectManager? CreateProjectManager(PackageURL purl, string destinationDirectory = ".");
+    IBaseProjectManager? CreateProjectManager(PackageURL purl, string destinationDirectory = ".");
 }

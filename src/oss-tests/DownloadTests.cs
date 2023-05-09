@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Tests
 {
+    using Contracts;
     using PackageManagers;
     using PackageUrl;
     using System.Collections.Generic;
@@ -151,7 +152,7 @@ namespace Microsoft.CST.OpenSource.Tests
         public async Task Wildcard_Download_Version_Succeeds(string packageUrl, string targetFilename)
         {
             PackageURL purl = new(packageUrl);
-            BaseProjectManager? manager = new ProjectManagerFactory().CreateProjectManager(purl);
+            IBaseProjectManager? manager = new ProjectManagerFactory().CreateProjectManager(purl);
             IEnumerable<string> versions = await manager?.EnumerateVersionsAsync(purl) ?? throw new InvalidOperationException();
             await TestDownload(packageUrl, targetFilename, versions.Count());
         }

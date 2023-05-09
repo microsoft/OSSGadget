@@ -132,7 +132,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
-        public BaseProjectManager? CreateProjectManager(PackageURL purl, string destinationDirectory = ".")
+        public IBaseProjectManager? CreateProjectManager(PackageURL purl, string destinationDirectory = ".")
         {
             ConstructProjectManager? projectManager = _projectManagers.GetValueOrDefault(purl.Type);
 
@@ -147,7 +147,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <param name="overrideManagers"> If provided, will set the project manager dictionary instead of using the defaults.</param>
         /// <param name="destinationDirectory">The new destination directory, if provided.</param>
         /// <returns>A new <see cref="BaseProjectManager"/> implementation.</returns>
-        public static BaseProjectManager? ConstructPackageManager(PackageURL packageUrl, IHttpClientFactory? httpClientFactory = null, Dictionary<string, ConstructProjectManager>? overrideManagers = null, string destinationDirectory = ".")
+        public static IBaseProjectManager? ConstructPackageManager(PackageURL packageUrl, IHttpClientFactory? httpClientFactory = null, Dictionary<string, ConstructProjectManager>? overrideManagers = null, string destinationDirectory = ".")
         {
             if (overrideManagers != null && overrideManagers.Any())
             {

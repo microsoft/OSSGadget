@@ -11,6 +11,7 @@ using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
 
 namespace Microsoft.CST.OpenSource
 {
+    using Contracts;
     using Microsoft.CST.OpenSource.PackageManagers;
     using PackageUrl;
 
@@ -26,7 +27,7 @@ namespace Microsoft.CST.OpenSource
         }
         public async Task<HealthMetrics?> CheckHealth(PackageURL purl)
         {
-            BaseProjectManager? packageManager = ProjectManagerFactory.CreateProjectManager(purl);
+            IBaseProjectManager? packageManager = ProjectManagerFactory.CreateProjectManager(purl);
 
             if (packageManager != null)
             {

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Tests
 {
+    using Contracts;
     using Model;
     using PackageManagers;
     using PackageUrl;
@@ -36,7 +37,7 @@ namespace Microsoft.CST.OpenSource.Tests
         public async Task MetadataToFromJsonSucceeds(string packageUrlString)
         {
             PackageURL packageUrl = new(packageUrlString);
-            BaseProjectManager? projectManager = ProjectManagerFactory.ConstructPackageManager(packageUrl);
+            IBaseProjectManager? projectManager = ProjectManagerFactory.ConstructPackageManager(packageUrl);
 
             if (projectManager == null)
             {

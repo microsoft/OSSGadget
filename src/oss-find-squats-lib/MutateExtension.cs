@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
 {
+    using Contracts;
     using Extensions;
     using Microsoft.CST.OpenSource.FindSquats.Mutators;
     using Microsoft.CST.OpenSource.PackageManagers;
@@ -94,7 +95,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
         /// </summary>
         /// <param name="manager"></param>
         /// <returns>An IEnumerable of the recommended IMutators.</returns>
-        public static IEnumerable<IMutator> GetDefaultMutators(this BaseProjectManager manager) => manager switch
+        public static IEnumerable<IMutator> GetDefaultMutators(this IBaseProjectManager manager) => manager switch
         {
             NuGetProjectManager => NugetMutators,
             NPMProjectManager => NpmMutators,
@@ -110,7 +111,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
         /// <param name="purl">The Target package to check for squats.</param>
         /// <param name="options">The options for enumerating squats.</param>
         /// <returns>An <see cref="IDictionary{T, V}"/> where the key is the mutated name, and the value is a <see cref="IList{Mutation}"/> representing each candidate squat.</returns>
-        public static IDictionary<string, IList<Mutation>>? EnumerateSquatCandidates(this BaseProjectManager manager, PackageURL purl, MutateOptions? options = null)
+        public static IDictionary<string, IList<Mutation>>? EnumerateSquatCandidates(this IBaseProjectManager manager, PackageURL purl, MutateOptions? options = null)
         {
             return manager.EnumerateSquatCandidates(purl, manager.GetDefaultMutators(), options);
         }
@@ -124,7 +125,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
         /// <param name="mutators">The mutators to use. Will ignore the default set of mutators.</param>
         /// <param name="options">The options for enumerating squats.</param>
         /// <returns>An <see cref="IDictionary{T, V}"/> where the key is the mutated name, and the value is a <see cref="IList{Mutation}"/> representing each candidate squat.</returns>
-        public static IDictionary<string, IList<Mutation>>? EnumerateSquatCandidates(this BaseProjectManager manager, PackageURL purl, IEnumerable<IMutator> mutators, MutateOptions? options = null)
+        public static IDictionary<string, IList<Mutation>>? EnumerateSquatCandidates(this IBaseProjectManager manager, PackageURL purl, IEnumerable<IMutator> mutators, MutateOptions? options = null)
         {
             if (purl.Name is null || purl.Type is null)
             {
@@ -164,7 +165,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
         /// <param name="candidateMutations">The <see cref="IList{Mutation}"/> representing each squatting candidate.</param>
         /// <param name="options">The options for enumerating through existing squats.</param>
         /// <returns>An <see cref="IAsyncEnumerable{FindPackageSquatResult}"/> with the packages that exist which match one of the <paramref name="candidateMutations"/>.</returns>
-        public static async IAsyncEnumerable<FindPackageSquatResult> EnumerateExistingSquatsAsync(this BaseProjectManager manager, PackageURL purl, IDictionary<string, IList<Mutation>>? candidateMutations, MutateOptions? options = null)
+        public static async IAsyncEnumerable<FindPackageSquatResult> EnumerateExistingSquatsAsync(this IBaseProjectManager manager, PackageURL purl, IDictionary<string, IList<Mutation>>? candidateMutations, MutateOptions? options = null)
         {
             if (purl.Name is null || purl.Type is null)
             {

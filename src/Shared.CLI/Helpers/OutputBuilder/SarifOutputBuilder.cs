@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.Shared
 {
+    using Contracts;
     using Microsoft.CodeAnalysis.Sarif;
     using Microsoft.CST.OpenSource.PackageManagers;
     using Newtonsoft.Json;
@@ -26,7 +27,7 @@ namespace Microsoft.CST.OpenSource.Shared
         /// <returns>Location list with single location object</returns>
         public static List<Location> BuildPurlLocation(PackageURL purl)
         {
-            BaseProjectManager? projectManager = ProjectManagerFactory.ConstructPackageManager(purl, null);
+            IBaseProjectManager? projectManager = ProjectManagerFactory.ConstructPackageManager(purl, null);
             if (projectManager == null)
             {
                 Logger.Debug("Cannot determine the package type");

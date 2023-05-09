@@ -101,7 +101,7 @@ namespace Microsoft.CST.OpenSource.Tests
             PackageURL purl = new(packageUrl);
             if (purl.Name is not null && purl.Type is not null)
             {
-                BaseProjectManager? manager = ProjectManagerFactory.ConstructPackageManager(purl, null);
+                IBaseProjectManager? manager = ProjectManagerFactory.ConstructPackageManager(purl, null);
                 if (manager is not null)
                 {
                     foreach ((string _, IList<Mutation> mutations) in manager.EnumerateSquatCandidates(purl)!)
@@ -132,7 +132,7 @@ namespace Microsoft.CST.OpenSource.Tests
             PackageURL purl = new(packageUrl);
             if (purl.Name is not null && purl.Type is not null)
             {
-                BaseProjectManager? manager = ProjectManagerFactory.ConstructPackageManager(purl, null);
+                IBaseProjectManager? manager = ProjectManagerFactory.ConstructPackageManager(purl, null);
                 if (manager is not null)
                 {
                     foreach ((string _, IList<Mutation> mutations) in manager.EnumerateSquatCandidates(purl, options: mutateOptions)!)
@@ -167,7 +167,7 @@ namespace Microsoft.CST.OpenSource.Tests
             PackageURL purl = new(packageUrl);
             if (purl.Name is not null && purl.Type is not null)
             {
-                BaseProjectManager? manager = ProjectManagerFactory.ConstructPackageManager(purl, null);
+                IBaseProjectManager? manager = ProjectManagerFactory.ConstructPackageManager(purl, null);
                 if (manager is not null)
                 {
                     foreach ((string _, IList<Mutation> mutations) in manager.EnumerateSquatCandidates(purl)!)
@@ -192,7 +192,7 @@ namespace Microsoft.CST.OpenSource.Tests
             PackageURL purl = new(packageUrl);
             if (purl.Name is not null && purl.Type is not null)
             {
-                BaseProjectManager? manager = ProjectManagerFactory.ConstructPackageManager(purl, null);
+                IBaseProjectManager? manager = ProjectManagerFactory.ConstructPackageManager(purl, null);
                 if (manager is not null)
                 {
                     foreach ((string _, IList<Mutation> mutations) in manager.EnumerateSquatCandidates(purl)!)
@@ -221,7 +221,7 @@ namespace Microsoft.CST.OpenSource.Tests
             PackageURL purl = new(packageUrl);
             if (purl.Name is not null && purl.Type is not null)
             {
-                BaseProjectManager? manager = ProjectManagerFactory.ConstructPackageManager(purl, null);
+                IBaseProjectManager? manager = ProjectManagerFactory.ConstructPackageManager(purl, null);
                 if (manager is not null)
                 {
                     foreach ((string mutation, IList<Mutation> mutations) in manager.EnumerateSquatCandidates(purl)!)
@@ -266,7 +266,7 @@ namespace Microsoft.CST.OpenSource.Tests
             PackageURL purl = new(packageUrl);
             if (purl.Name is not null && purl.Type is not null)
             {
-                BaseProjectManager? manager = ProjectManagerFactory.ConstructPackageManager(purl, null);
+                IBaseProjectManager? manager = ProjectManagerFactory.ConstructPackageManager(purl, null);
                 if (manager is not null)
                 {
                     var originalMutations = manager.EnumerateSquatCandidates(purl);
@@ -321,7 +321,7 @@ namespace Microsoft.CST.OpenSource.Tests
             PackageURL purl = new(packageUrl);
             if (purl.Name is not null && purl.Type is not null)
             {
-                BaseProjectManager? manager = ProjectManagerFactory.ConstructPackageManager(purl, null);
+                IBaseProjectManager? manager = ProjectManagerFactory.ConstructPackageManager(purl, null);
                 if (manager is not null)
                 {
                     foreach ((string mutationPurlString, IList<Mutation> mutations) in manager.EnumerateSquatCandidates(purl)!)
@@ -354,7 +354,7 @@ namespace Microsoft.CST.OpenSource.Tests
             PackageURL purl = new(packageUrl);
             if (purl.Name is not null && purl.Type is not null)
             {
-                BaseProjectManager? manager = ProjectManagerFactory.ConstructPackageManager(purl, null);
+                IBaseProjectManager? manager = ProjectManagerFactory.ConstructPackageManager(purl, null);
                 if (manager is not null)
                 {
                     foreach (IMutator mutator in manager.GetDefaultMutators())
@@ -375,7 +375,7 @@ namespace Microsoft.CST.OpenSource.Tests
             PackageURL purl = new(packageUrl);
             if (purl.Name is not null && purl.Type is not null)
             {
-                BaseProjectManager? manager = ProjectManagerFactory.ConstructPackageManager(purl, null);
+                IBaseProjectManager? manager = ProjectManagerFactory.ConstructPackageManager(purl, null);
                 if (manager is not null)
                 {
                     foreach ((string mutationPurlString, _) in manager.EnumerateSquatCandidates(purl)!)

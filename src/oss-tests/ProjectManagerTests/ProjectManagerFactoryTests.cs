@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests;
 
+using Contracts;
 using PackageActions;
 using PackageManagers;
 using PackageUrl;
@@ -82,10 +83,10 @@ public class ProjectManagerFactoryTests
         AssertFactoryCreatesCorrect(projectManagerFactory);
 
         // Assert that the overrides worked by checking the TopLevelExtractionDirectory was changed.
-        BaseProjectManager? nuGetProjectManager = projectManagerFactory.CreateProjectManager(new PackageURL("pkg:nuget/foo"));
+        IBaseProjectManager? nuGetProjectManager = projectManagerFactory.CreateProjectManager(new PackageURL("pkg:nuget/foo"));
         Assert.AreEqual("nugetTestDirectory", nuGetProjectManager?.TopLevelExtractionDirectory);
         
-        BaseProjectManager? npmProjectManager = projectManagerFactory.CreateProjectManager(new PackageURL("pkg:npm/foo"));
+        IBaseProjectManager? npmProjectManager = projectManagerFactory.CreateProjectManager(new PackageURL("pkg:npm/foo"));
         Assert.AreEqual("npmTestDirectory", npmProjectManager?.TopLevelExtractionDirectory);
     }
     
@@ -145,8 +146,8 @@ public class ProjectManagerFactoryTests
         foreach ((string purlType, ProjectManagerFactory.ConstructProjectManager ctor) in _managerOverrides)
         {
             PackageURL packageUrl = new($"pkg:{purlType}/foo");
-            BaseProjectManager? expectedManager = ctor.Invoke();
-            BaseProjectManager? manager = projectManagerFactory.CreateProjectManager(packageUrl);
+            IBaseProjectManager? expectedManager = ctor.Invoke();
+            IBaseProjectManager? manager = projectManagerFactory.CreateProjectManager(packageUrl);
             Assert.AreEqual(expectedManager?.ManagerType, manager?.ManagerType);
             Assert.AreEqual(expectedManager?.GetType(), manager?.GetType());
         }

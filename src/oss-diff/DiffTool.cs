@@ -20,6 +20,7 @@ using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
 
 namespace Microsoft.CST.OpenSource.DiffTool
 {
+    using Contracts;
     using Microsoft.CST.OpenSource.Helpers;
     using Microsoft.CST.OpenSource.PackageManagers;
     using PackageUrl;
@@ -120,7 +121,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
             try
             {
                 PackageURL purl1 = new PackageURL(options.Targets.First());
-                BaseProjectManager? manager = ProjectManagerFactory.CreateProjectManager(purl1, options.DownloadDirectory ?? Path.GetTempPath());
+                IBaseProjectManager? manager = ProjectManagerFactory.CreateProjectManager(purl1, options.DownloadDirectory ?? Path.GetTempPath());
 
                 if (manager is not null)
                 {
@@ -154,7 +155,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
             try
             {
                 PackageURL purl2 = new PackageURL(options.Targets.Last());
-                BaseProjectManager? manager2 = ProjectManagerFactory.CreateProjectManager(purl2, options.DownloadDirectory ?? Path.GetTempPath());
+                IBaseProjectManager? manager2 = ProjectManagerFactory.CreateProjectManager(purl2, options.DownloadDirectory ?? Path.GetTempPath());
 
                 if (manager2 is not null)
                 {

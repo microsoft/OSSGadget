@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Contracts;
     using PackageActions;
     using PackageUrl;
     using System;
@@ -9,7 +10,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Linq;
     using System.Net.Http;
 
-    public class ProjectManagerFactory
+    public class ProjectManagerFactory : IProjectManagerFactory
     {
         /// <summary>
         /// This delegate takes the path to operate a project manager in and returns a new ProjectManager.
@@ -130,12 +131,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             };
         }
 
-        /// <summary>
-        /// Creates an appropriate project manager for a <see cref="PackageURL"/> given its <see cref="PackageURL.Type"/>.
-        /// </summary>
-        /// <param name="purl">The <see cref="PackageURL"/> for the package to create the project manager for.</param>
-        /// <param name="destinationDirectory">The new destination directory, if provided.</param>
-        /// <returns>The implementation of <see cref="BaseProjectManager"/> for this <paramref name="purl"/>'s type.</returns>
+        /// <inheritdoc />
         public BaseProjectManager? CreateProjectManager(PackageURL purl, string destinationDirectory = ".")
         {
             ConstructProjectManager? projectManager = _projectManagers.GetValueOrDefault(purl.Type);

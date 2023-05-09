@@ -28,7 +28,7 @@ using System.Threading.Tasks;
 /// The <see cref="Enum"/> for the valid types a URI of this manager could be.
 /// </typeparam>
 /// TODO: Combine ArtifactUriType and PackageVersionMetadata as they will always be linked. https://github.com/microsoft/OSSGadget/issues/333
-public abstract class TypedManager<T, TArtifactUriType> : BaseProjectManager where T : IManagerPackageVersionMetadata where TArtifactUriType : Enum
+public abstract class TypedManager<T, TArtifactUriType> : BaseProjectManager, ITypedManager<TArtifactUriType> where T : IManagerPackageVersionMetadata where TArtifactUriType : Enum
 {
     /// <summary>
     /// The actions object to be used in the project manager.
@@ -89,12 +89,7 @@ public abstract class TypedManager<T, TArtifactUriType> : BaseProjectManager whe
         return (await Actions.GetMetadataAsync(purl, useCache))?.ToString();
     }
 
-    /// <summary>
-    /// Gets the relevant URI(s) to download the files related to a <see cref="PackageURL"/>.
-    /// </summary>
-    /// <param name="purl">The <see cref="PackageURL"/> to get the URI(s) for.</param>
-    /// <returns>A list of the relevant <see cref="ArtifactUri{TArtifactUriType}"/>.</returns>
-    /// <remarks>Returns the expected URIs for resources. Does not validate that the URIs resolve at the moment of enumeration.</remarks>
+    /// <inheritdoc />
     [Obsolete(message: $"Deprecated in favor of {nameof(GetArtifactDownloadUrisAsync)}.")]
     public IEnumerable<ArtifactUri<TArtifactUriType>> GetArtifactDownloadUris(PackageURL purl)
     {
@@ -118,12 +113,7 @@ public abstract class TypedManager<T, TArtifactUriType> : BaseProjectManager whe
     /// <returns>A list of the <see cref="PackageURL"/>s from this owner.</returns>
     public abstract IAsyncEnumerable<PackageURL> GetPackagesFromOwnerAsync(string owner, bool useCache = true);
 
-    /// <summary>
-    /// Check to see if the <see cref="Uri"/> exists.
-    /// </summary>
-    /// <param name="artifactUri">The <see cref="Uri"/> to check if exists.</param>
-    /// <param name="policy">An optional <see cref="AsyncRetryPolicy"/> to use with the http request.</param>
-    /// <returns>If the request returns <see cref="HttpStatusCode.OK"/>.</returns>
+    /// <inheritdoc />
     public async Task<bool> UriExistsAsync(Uri artifactUri, AsyncRetryPolicy<HttpResponseMessage>? policy = null)
     {
         policy ??= DefaultPolicy;

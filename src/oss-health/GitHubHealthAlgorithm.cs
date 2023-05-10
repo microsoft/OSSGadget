@@ -32,17 +32,18 @@ namespace Microsoft.CST.OpenSource.Health
         private static readonly ApiOptions DEFAULT_API_OPTIONS = new ApiOptions { PageCount = 5, PageSize = 100 };
 
         /// <summary>
-        ///     Access token used when connecting to GitHub. Multiple allowed, separated by a comma. Updated
-        ///     automatically during program start.
+        ///     Access token used when connecting to GitHub. Multiple allowed, separated by a comma.
+        ///     Will be automatically set from matching Environment variable on class construction. 
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        private static string? ENV_GITHUB_ACCESS_TOKEN = null;
+        public string? ENV_GITHUB_ACCESS_TOKEN { get; set; } = null;
 
         /// <summary>
-        ///     User Agent used when connecting to GitHub. Updated automatically during program start, if needed.
+        ///     User Agent used when connecting to GitHub.
+        ///     Will be automatically set from matching Environment variable on class construction. 
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        private static string ENV_HTTPCLIENT_USER_AGENT = "GitHubProjectHealth";
+        public string ENV_HTTPCLIENT_USER_AGENT { get; set; } = "GitHubProjectHealth";
 
         /// <summary>
         ///     PackageURL to analyze

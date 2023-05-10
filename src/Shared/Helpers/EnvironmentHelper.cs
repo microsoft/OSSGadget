@@ -16,19 +16,19 @@ namespace Microsoft.CST.OpenSource.Helpers
         /// <param name="targetObject"> Examine this object (using reflection) </param>
         public static void OverrideEnvironmentVariables(object targetObject)
         {
-            foreach (FieldInfo fieldInfo in targetObject.GetType().GetFields(BindingFlags.Public))
+            foreach (PropertyInfo propertyInfo in targetObject.GetType().GetProperties())
             {
-                if (fieldInfo.FieldType == typeof(string) &&
-                    fieldInfo.Name.StartsWith("ENV_") &&
-                    fieldInfo.Name.Length > 4)
+                if (propertyInfo.PropertyType == typeof(string) &&
+                    propertyInfo.Name.StartsWith("ENV_") &&
+                    propertyInfo.Name.Length > 4)
                 {
-                    string? bareName = fieldInfo.Name[4..];
+                    string? bareName = propertyInfo.Name[4..];
 
                     string? value = Environment.GetEnvironmentVariable(bareName);
                     if (value != null)
                     {
-                        Logger.Debug("Assiging value of {0} to {1}", bareName, fieldInfo.Name);
-                        fieldInfo.SetValue(targetObject, value);
+                        Logger.Debug("Assiging value of {0} to {1}", bareName, propertyInfo.Name);
+                        propertyInfo.SetValue(targetObject, value);
                     }
                 }
             }

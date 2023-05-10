@@ -28,13 +28,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public override string ManagerType => Type;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        public string ENV_COCOAPODS_SPECS_ENDPOINT = "https://github.com/CocoaPods/Specs/tree/master";
+        public string ENV_COCOAPODS_SPECS_ENDPOINT { get; set; } = "https://github.com/CocoaPods/Specs/tree/master";
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        public string ENV_COCOAPODS_SPECS_RAW_ENDPOINT = "https://raw.githubusercontent.com/CocoaPods/Specs/master";
+        public string ENV_COCOAPODS_SPECS_RAW_ENDPOINT { get; set; } = "https://raw.githubusercontent.com/CocoaPods/Specs/master";
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        public string ENV_COCOAPODS_METADATA_ENDPOINT = "https://cocoapods.org";
+        public string ENV_COCOAPODS_METADATA_ENDPOINT { get; set; } = "https://cocoapods.org";
 
         public CocoapodsProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
         {

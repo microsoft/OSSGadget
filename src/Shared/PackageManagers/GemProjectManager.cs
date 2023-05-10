@@ -24,8 +24,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         public override string ManagerType => Type;
 
-        public string ENV_RUBYGEMS_ENDPOINT = "https://rubygems.org";
-        public string ENV_RUBYGEMS_ENDPOINT_API = "https://api.rubygems.org";
+        public string ENV_RUBYGEMS_ENDPOINT { get; set; } = "https://rubygems.org";
+        public string ENV_RUBYGEMS_ENDPOINT_API { get; set; } = "https://api.rubygems.org";
 
         public GemProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
         {

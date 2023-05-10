@@ -26,7 +26,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public override string ManagerType => Type;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        public string ENV_VS_MARKETPLACE_ENDPOINT = "https://marketplace.visualstudio.com";
+        public string ENV_VS_MARKETPLACE_ENDPOINT { get; set; } = "https://marketplace.visualstudio.com";
 
         public VSMProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
         {

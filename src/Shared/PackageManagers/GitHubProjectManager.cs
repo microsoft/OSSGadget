@@ -26,7 +26,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public override string ManagerType => Type;
 
         private const string DEFAULT_GITHUB_ENDPOINT = "https://github.com";
-        public string ENV_GITHUB_ENDPOINT = DEFAULT_GITHUB_ENDPOINT;
+        public string ENV_GITHUB_ENDPOINT { get; set; } = DEFAULT_GITHUB_ENDPOINT;
 
         public GitHubProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
         {
@@ -192,7 +192,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             try
             {
                 List<string> versionList = new();
-                string githubUrl = $"https://github.com/{purl.Namespace}/{purl.Name}";
+                string githubUrl = GeneratePackageUriString(purl);
 
                 ProcessStartInfo gitLsRemoteStartInfo = new()
                 {
@@ -250,13 +250,16 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public override async Task<string?> GetMetadataAsync(PackageURL purl, bool useCache = true)
         {
             await Task.CompletedTask;
-            return $"https://github.com/{purl.Namespace}/{purl.Name}";
+            return GeneratePackageUriString(purl);
         }
 
         public override Uri GetPackageAbsoluteUri(PackageURL purl)
         {
-            return new Uri($"{ENV_GITHUB_ENDPOINT}/{purl.Namespace}/{purl.Name}");
+            return new Uri(GeneratePackageUriString(purl));
         }
+
+        private string GeneratePackageUriString(PackageURL purl) =>
+            $"{ENV_GITHUB_ENDPOINT}/{purl.Namespace}/{purl.Name}";
         
         /// <summary>
         /// Gets if the URL is a GitHub repo URL using the default endpoint.

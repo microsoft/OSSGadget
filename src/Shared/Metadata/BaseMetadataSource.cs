@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource;
 
+using Helpers;
 using System.Threading.Tasks;
 using System.Text.Json;
 using PackageUrl;
@@ -21,6 +22,7 @@ public abstract class BaseMetadataSource
     
     public BaseMetadataSource()
     {
+        EnvironmentHelper.OverrideEnvironmentVariables(this);
         ServiceProvider serviceProvider = new ServiceCollection()
             .AddHttpClient()
             .BuildServiceProvider();

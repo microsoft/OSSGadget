@@ -189,7 +189,7 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
     pkg:github/Microsoft/DevSkim  The latest release of DevSkim (via GitHub)
     pkg:hackage/a50@*             All versions of a50 (via hackage.haskell.org)
     pkg:maven/org.apdplat/deep-qa The latest version of org.apdplat.deep-qa (via repo1.maven.org)
-    pkg:npm/express               The latest version of Express (via npm.org)
+    pkg:npm/express               The latest version of Express (via npmjs.com)
     pkg:nuget/Newtonsoft.JSON     The latest version of Newtonsoft.JSON (via nuget.org)
     pkg:pypi/django@1.11.1        Version 1.11.1 of Django (via pypi.org)
     pkg:ubuntu/zerofree           The latest version of zerofree from Ubuntu (via packages.ubuntu.com)

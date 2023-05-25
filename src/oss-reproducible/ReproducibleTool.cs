@@ -34,7 +34,7 @@ namespace Microsoft.CST.OpenSource
                 get
                 {
                     return new List<Example>() {
-                        new Example("Checks reproducibility of the given package",
+                        new Example("Estimate semantic reproducibility of the given package",
                             new Options { Targets = new List<string>() {"[options]", "package-url..." } })
                     };
                 }
@@ -105,7 +105,7 @@ namespace Microsoft.CST.OpenSource
         {
             if (fullResult.Results == null)
             {
-                return KeyValuePair.Create(0.0, "No reproducibility results were created.");
+                return KeyValuePair.Create(0.0, "No semantic reproducibility results were created.");
             }
 
             KeyValuePair<double, string> bestScore = KeyValuePair.Create(0.0, "No strategies were able to successfully derive the package from the source code.");

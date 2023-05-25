@@ -10,7 +10,7 @@ Reproducible builds allow confidence that packages are derived from the source c
 ## Semantic Reproducibility
 A project build is `semantically reproducible` if its build results can be either recreated exactly (a bit for bit [reproducible build](https://en.wikipedia.org/wiki/Reproducible_builds)), or if the differences between the release package and a rebuilt package are not expected to produce functional differences in normal cases.
 
-For example, the rebuilt package might have different date/time stamps, or one one might include files like .gitignore that are not in the other and would not change the execution of a program under normal circumstances.
+For example, the rebuilt package might have different date/time stamps, or one might include files like .gitignore that are not in the other and would not change the execution of a program under normal circumstances.
 
 ## How It Works
 

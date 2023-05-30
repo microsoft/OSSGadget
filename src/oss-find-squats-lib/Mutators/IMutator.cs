@@ -51,7 +51,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                 if (hasNamespace)
                 {
                     yield return new Mutation(
-                        mutated: arg.CreateWithNewNames(arg.Name, HttpUtility.UrlEncode(mutation.Mutated)).ToString(),
+                        mutated: arg.CreateWithNewNames(arg.Name, mutation.Mutated).ToString(),
                         original: arg.ToString(),
                         reason: mutation.Reason,
                         mutator: mutation.Mutator);
@@ -59,7 +59,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.Mutators
                 else
                 {
                     yield return new Mutation(
-                        mutated: arg.CreateWithNewNames(HttpUtility.UrlEncode(mutation.Mutated), arg.Namespace).ToString(),
+                        mutated: arg.CreateWithNewNames(mutation.Mutated, arg.Namespace).ToString(),
                         original: arg.ToString(),
                         reason: mutation.Reason,
                         mutator: mutation.Mutator);

@@ -110,7 +110,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         [TestMethod]
         public async Task TestNugetPackageWithVersionMetadataInPurlExists()
         {
-            PackageURL purl = new("pkg:nuget/Pulumi@3.29.0-alpha.1649173720+667fd085");
+            PackageURL purl = new("pkg:nuget/Pulumi@3.29.0-alpha.1649173720%2B667fd085");
             _projectManager = new NuGetProjectManager(".", null, _httpFactory);
 
             bool exists = await _projectManager.PackageVersionExistsAsync(purl, useCache: false);
@@ -134,7 +134,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         [DataRow("pkg:nuget/razorengine", false, "RazorEngine - A Templating Engine based on the Razor parser.", "Matthew Abbott, Ben Dornis, Matthias Dittrich", "4.5.1-alpha001")] // Normal package, no specified version
         [DataRow("pkg:nuget/slipeserver.scripting@0.1.0-CI-20220607-083949", false, "Scripting layer C# Server for MTA San Andreas", "Slipe", null)] // Normal package, no specified version, pre-release versions only, returns null for latest version by default
         [DataRow("pkg:nuget/slipeserver.scripting", true, "Scripting layer C# Server for MTA San Andreas", "Slipe", "0.1.0-ci-20221120-180516")] // Normal package, no specified version, pre-release versions only, returns latest pre-release for latest version because of override
-        [DataRow("pkg:nuget/Pulumi@3.29.0-alpha.1649173720+667fd085",true,"The Pulumi .NET SDK lets you write cloud programs in C#, F#, and VB.NET.","Pulumi")]
+        [DataRow("pkg:nuget/Pulumi@3.29.0-alpha.1649173720%2B667fd085",true,"The Pulumi .NET SDK lets you write cloud programs in C#, F#, and VB.NET.","Pulumi")]
         [DataRow("pkg:nuget/Pulumi@3.29.0-alpha.1649173720", true, "The Pulumi .NET SDK lets you write cloud programs in C#, F#, and VB.NET.","Pulumi")]
         public async Task MetadataSucceeds(string purlString, bool includePrerelease = false, string? description = null, string? authors = null, string? latestVersion = null)
         {
@@ -247,7 +247,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 
         [DataTestMethod]
         [DataRow("pkg:nuget/razorengine@4.2.3-beta1")]
-        [DataRow("pkg:nuget/Pulumi@3.29.0-alpha.1649173720+667fd085")]
+        [DataRow("pkg:nuget/Pulumi@3.29.0-alpha.1649173720%2B667fd085")]
         [DataRow("pkg:nuget/Pulumi@3.29.0-alpha.1649173720")]
         public async Task DetailedPackageVersionExistsAsync_ExistsSucceeds(string purlString)
         {
@@ -271,7 +271,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         [DataTestMethod]
         [DataRow("pkg:nuget/razorengine@4.2.3-beta1", "2015-10-06T17:53:46.37+00:00")]
         [DataRow("pkg:nuget/razorengine@4.5.1-alpha001", "2017-09-02T05:17:55.973-04:00")]
-        [DataRow("pkg:nuget/Pulumi@3.29.0-alpha.1649173720+667fd085", "2022-04-05T16:56:44.043Z")]
+        [DataRow("pkg:nuget/Pulumi@3.29.0-alpha.1649173720%2B667fd085", "2022-04-05T16:56:44.043Z")]
         [DataRow("pkg:nuget/Pulumi@3.29.0-alpha.1649173720", "2022-04-05T16:56:44.043Z")]
         public async Task GetPublishedAtSucceeds(string purlString, string? expectedTime = null)
         {
@@ -319,7 +319,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         [DataRow("pkg:nuget/SlipeServer.Scripting@0.1.0-CI-20220607-083949", 
             "https://api.nuget.org/v3-flatcontainer/slipeserver.scripting/0.1.0-ci-20220607-083949/slipeserver.scripting.0.1.0-ci-20220607-083949.nupkg",
             "https://api.nuget.org/v3-flatcontainer/slipeserver.scripting/0.1.0-ci-20220607-083949/slipeserver.scripting.nuspec")]
-        [DataRow("pkg:nuget/Pulumi@3.29.0-alpha.1649173720+667fd085",
+        [DataRow("pkg:nuget/Pulumi@3.29.0-alpha.1649173720%2B667fd085",
            "https://api.nuget.org/v3-flatcontainer/pulumi/3.29.0-alpha.1649173720/pulumi.3.29.0-alpha.1649173720.nupkg",
             "https://api.nuget.org/v3-flatcontainer/pulumi/3.29.0-alpha.1649173720/pulumi.nuspec")]
         [DataRow("pkg:nuget/Pulumi@3.29.0-alpha.1649173720",

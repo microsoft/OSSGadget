@@ -34,8 +34,7 @@ namespace Microsoft.CST.OpenSource
                 get
                 {
                     return new List<Example>() {
-                        new Example("Estimate semantic equivalency of the given package and source code", new Options { Targets = new List<string>() {"[options]", "package-url..." } }),
-                            new Options { Targets = new List<string>() {"[options]", "package-url..." } })
+                        new Example("Estimate semantic equivalency of the given package and source code", new Options { Targets = new List<string>() {"[options]", "package-url..." } })
                     };
                 }
             }

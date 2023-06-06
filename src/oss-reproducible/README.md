@@ -1,6 +1,6 @@
 ﻿# OSS Reproducible
 
-The purpose of *oss-reproducible* is to analyze open source packages for `semantic reproducibility`. We start with
+The purpose of *oss-reproducible* is to analyze open source packages for `semantic equivalency`. We start with
 an existing package (for example, the NPM "left-pad" package, version 1.3.0), and we try to answer the
 question, **How accurately does the source code represent the published package?**
 
@@ -8,7 +8,7 @@ question, **How accurately does the source code represent the published package?
 Reproducible builds allow confidence that packages are derived from the source code that produced them.
 
 ## Semantic Reproducibility
-A project build is `semantically reproducible` if its build results can be either recreated exactly (a bit for bit [reproducible build](https://en.wikipedia.org/wiki/Reproducible_builds)), or if the differences between the release package and a rebuilt package are not expected to produce functional differences in normal cases.
+A project build is `semantically equivalent` if its build results can be either recreated exactly (a bit for bit [reproducible build](https://en.wikipedia.org/wiki/Reproducible_builds)), or if the differences between the release package and a rebuilt package are not expected to produce functional differences in normal cases.
 
 For example, the rebuilt package might have different date/time stamps, or one might include files like .gitignore that are not in the other and would not change the execution of a program under normal circumstances.
 
@@ -35,7 +35,7 @@ and the associated source code from OSS-Find-Source.
 
 ## Ignoring Files
 
-Certain files are uninteresting from a `semantic reproducibility` perspective and are excluded from analyses. 
+Certain files are uninteresting from a `semantic equivalency` perspective and are excluded from analyses. 
 These files are defined in Strategies/PackageIgnoreList.txt.
 
 ## Contributing to OSS Reproducible

@@ -100,6 +100,9 @@ namespace Microsoft.CST.OpenSource
                 {
                     try
                     {
+                        // PackageURL requires the @ in a namespace declaration to be escaped
+                        // We find if the namespace contains an @ in the namespace
+                        // And replace it with %40
                         string? mutableIterationTarget = target;
                         MatchCollection matches = detectUnencodedNamespace.Matches(target);
                         if (matches.Any())

@@ -11,6 +11,7 @@ namespace Microsoft.CST.OpenSource
 {
     using PackageManagers;
     using PackageUrl;
+    using System.Text.RegularExpressions;
 
     public class DownloadTool : OSSGadget
     {
@@ -89,6 +90,8 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
+        private Regex detectUnencodedNamespace = new Regex("pkg:[^/]+/(@)[^/]+/[^/]+");
+        
         private async Task<ErrorCode> RunAsync(Options options)
         {
             if (options.Targets is IEnumerable<string> targetList && targetList.Any())
@@ -97,7 +100,14 @@ namespace Microsoft.CST.OpenSource
                 {
                     try
                     {
-                        PackageURL? purl = new PackageURL(target);
+                        string? mutableIterationTarget = target;
+                        MatchCollection matches = detectUnencodedNamespace.Matches(target);
+                        if (matches.Any())
+                        {
+                            var indexOfAt = matches.First().Groups[1].Index;
+                            mutableIterationTarget = target[0..indexOfAt] + "%40" + target[(indexOfAt +1)..];
+                        }
+                        PackageURL? purl = new PackageURL(mutableIterationTarget);
                         string downloadDirectory = options.DownloadDirectory == "." ? System.IO.Directory.GetCurrentDirectory() : options.DownloadDirectory;
                         bool useCache = options.UseCache;
                         PackageDownloader? packageDownloader = new PackageDownloader(purl, ProjectManagerFactory, downloadDirectory, useCache);

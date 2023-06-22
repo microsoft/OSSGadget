@@ -103,7 +103,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             try
             {
                 HttpClient httpClient = CreateHttpClient();
-                JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}");
+                string uri = string.IsNullOrEmpty(purl?.Namespace)
+                    ? $"{ENV_NPM_API_ENDPOINT}/{packageName}"
+                    : $"{ENV_NPM_API_ENDPOINT}/{purl.Namespace}/{packageName}";
+                JsonDocument doc = await GetJsonCache(httpClient, uri);
                 string? tarball = doc.RootElement.GetProperty("versions").GetProperty(packageVersion).GetProperty("dist").GetProperty("tarball").GetString();
                 HttpResponseMessage result = await httpClient.GetAsync(tarball);
                 result.EnsureSuccessStatusCode();

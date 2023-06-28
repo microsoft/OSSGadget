@@ -436,7 +436,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
-        public async Task<DateTime?> GetPublishedAtUtcAsync(PackageURL purl, bool useCache = true)
+        public virtual async Task<DateTime?> GetPublishedAtUtcAsync(PackageURL purl, bool useCache = true)
         {
             Check.NotNull(nameof(purl.Version), purl.Version);
             DateTime? uploadTime = (await GetPackageMetadataAsync(purl, useCache))?.UploadTime?.ToUniversalTime();

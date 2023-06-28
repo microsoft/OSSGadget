@@ -482,6 +482,23 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return metadata;
         }
 
+        public override async Task<DateTime?> GetPublishedAtUtcAsync(PackageURL purl, bool useCache = true)
+        {
+            Check.NotNull(nameof(purl.Version), purl.Version);
+            HttpClient client = CreateHttpClient();
+            string? packageName = purl.HasNamespace() ? $"{purl.GetNamespaceFormatted()}/{purl.Name}" : purl.Name;
+            JsonDocument jsonDoc = await GetJsonCache(client, $"{ENV_NPM_API_ENDPOINT}/{packageName}", useCache);
+            if (jsonDoc.RootElement.TryGetProperty("time", out JsonElement time))
+            {
+                string? uploadTime = OssUtilities.GetJSONPropertyStringIfExists(time, purl.Version);
+                if (uploadTime != null)
+                {
+                    return DateTime.Parse(uploadTime).ToUniversalTime();
+                }
+            }
+            return null;
+        }
+
         public override JsonElement? GetVersionElement(JsonDocument? contentJSON, Version version)
         {
             if (contentJSON is null) { return null; }

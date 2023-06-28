@@ -432,6 +432,29 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return metadata;
         }
 
+        public override async Task<DateTime?> GetPublishedAtUtcAsync(PackageURL purl, bool useCache = true)
+        {
+            Check.NotNull(nameof(purl.Version), purl.Version);
+            HttpClient client = CreateHttpClient();
+
+            JsonDocument contentJSON = await GetJsonCache(client, $"{ENV_PYPI_ENDPOINT}/pypi/{purl.Name}/{purl.Version}/json");
+            JsonElement root = contentJSON.RootElement;
+
+            JsonElement.ArrayEnumerator? urlsArray = OssUtilities.GetJSONEnumerator(root.GetProperty("urls"));
+            DateTime? uploadTime = null;
+            if (urlsArray is not null)
+            {
+                foreach (JsonElement url in urlsArray.Value)
+                {
+                    string? urlStr = OssUtilities.GetJSONPropertyStringIfExists(url, "url");
+                    string? uploadTimeStr = OssUtilities.GetJSONPropertyStringIfExists(url, "upload_time");
+                    uploadTime = uploadTimeStr != null ? DateTime.Parse(uploadTimeStr).ToUniversalTime() : null;
+                }
+            }
+
+            return uploadTime;
+        }
+
         public override List<Version> GetVersions(JsonDocument? contentJSON)
         {
             List<Version> allVersions = new();

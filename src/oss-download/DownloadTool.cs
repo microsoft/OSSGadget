@@ -89,8 +89,6 @@ namespace Microsoft.CST.OpenSource
                 return (int)(await downloadTool.RunAsync(opts.Value));
             }
         }
-
-        private Regex detectUnencodedNamespace = new Regex("pkg:[^/]+/(@)[^/]+/[^/]+");
         
         private async Task<ErrorCode> RunAsync(Options options)
         {
@@ -103,14 +101,8 @@ namespace Microsoft.CST.OpenSource
                         // PackageURL requires the @ in a namespace declaration to be escaped
                         // We find if the namespace contains an @ in the namespace
                         // And replace it with %40
-                        string? mutableIterationTarget = target;
-                        MatchCollection matches = detectUnencodedNamespace.Matches(target);
-                        if (matches.Any())
-                        {
-                            var indexOfAt = matches.First().Groups[1].Index;
-                            mutableIterationTarget = target[0..indexOfAt] + "%40" + target[(indexOfAt +1)..];
-                        }
-                        PackageURL? purl = new PackageURL(mutableIterationTarget);
+                        string escapedNameSpaceTarget = EscapeAtSymbolInNameSpace(target);
+                        PackageURL? purl = new PackageURL(escapedNameSpaceTarget);
                         string downloadDirectory = options.DownloadDirectory == "." ? System.IO.Directory.GetCurrentDirectory() : options.DownloadDirectory;
                         bool useCache = options.UseCache;
                         PackageDownloader? packageDownloader = new PackageDownloader(purl, ProjectManagerFactory, downloadDirectory, useCache);

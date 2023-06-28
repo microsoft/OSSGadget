@@ -14,6 +14,8 @@ namespace Microsoft.CST.OpenSource
     using Contracts;
     using Microsoft.CST.OpenSource.PackageManagers;
     using PackageUrl;
+    using System.Linq;
+    using System.Text.RegularExpressions;
 
     public class HealthTool : OSSGadget
     {
@@ -113,6 +115,7 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
+
         private async Task RunAsync(Options options)
         {
             // select output destination and format
@@ -120,11 +123,15 @@ namespace Microsoft.CST.OpenSource
             IOutputBuilder outputBuilder = SelectFormat(options.Format ?? OutputFormat.text.ToString());
             if (options.Targets is IList<string> targetList && targetList.Count > 0)
             {
-                foreach (string? target in targetList)
+                foreach (string target in targetList)
                 {
                     try
                     {
-                        PackageURL? purl = new PackageURL(target);
+                        // PackageURL requires the @ in a namespace declaration to be escaped
+                        // We find if the namespace contains an @ in the namespace
+                        // And replace it with %40
+                        string escapedNameSpaceTarget = EscapeAtSymbolInNameSpace(target);
+                        PackageURL? purl = new PackageURL(escapedNameSpaceTarget);
                         HealthMetrics? healthMetrics = CheckHealth(purl).Result;
                         if (healthMetrics == null)
                         {

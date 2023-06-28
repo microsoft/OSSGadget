@@ -11,6 +11,7 @@ namespace Microsoft.CST.OpenSource
     using System.IO;
     using System.Linq;
     using System.Reflection;
+    using System.Text.RegularExpressions;
     using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
 
     public class OSSGadget : OssGadgetLib
@@ -201,6 +202,23 @@ The package-url specifier is described at https://github.com/package-url/purl-sp
         private static List<string> GetCommonSupportedHelpTextLines()
         {
             return GetCommonSupportedHelpText().Split(Environment.NewLine).ToList<string>();
+        }
+
+        private static Regex detectUnencodedNamespace = new Regex("pkg:[^/]+/(@)[^/]+/[^/]+");
+        /// <summary>
+        /// This method converts an @ specified in a PackageURL namespace to %40 to comply with the PackageURL specification.
+        /// This is only intended for use from CLI context where the input is provided by an interactive user to the application to reduce confusion.
+        /// </summary>
+        /// <returns>The PackageURL with @ converted to %40 if it appears in as the first character in the namespace specification.</returns>
+        protected static string EscapeAtSymbolInNameSpace(string originalPackageUrlString)
+        {
+            MatchCollection matches = detectUnencodedNamespace.Matches(originalPackageUrlString);
+            if (matches.Any())
+            {
+                var indexOfAt = matches.First().Groups[1].Index;
+                return originalPackageUrlString[0..indexOfAt] + "%40" + originalPackageUrlString[(indexOfAt +1)..];
+            }
+            return originalPackageUrlString;
         }
     }
 }

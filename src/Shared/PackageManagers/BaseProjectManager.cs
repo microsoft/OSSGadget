@@ -261,8 +261,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     MemoryCacheEntryOptions? mce = new() 
                     {
                         Size = contentLength,
-                        SlidingExpiration = TimeSpan.FromMinutes(30),
-                        AbsoluteExpiration = DateTimeOffset.UtcNow.AddHours(6),
+                        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30),
                     };
                     DataCache.Set<JsonDocument>(uri, doc, mce);
                 }
@@ -458,7 +457,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         protected static readonly MemoryCache DataCache = new(
             new MemoryCacheOptions
             {
-                SizeLimit = 1024 * 1024 * 800
+                SizeLimit = 1024 * 1024 * 100
             }
         );
 

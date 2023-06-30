@@ -161,9 +161,9 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         }
 
         [DataTestMethod]
-        [DataRow("pkg:pypi/pandas@1.4.2", "2022-04-02T10:37:04")]
-        [DataRow("pkg:pypi/plotly@5.7.0", "2022-04-05T16:26:12")]
-        [DataRow("pkg:pypi/requests@2.27.1", "2022-01-05T15:40:51")]
+        [DataRow("pkg:pypi/pandas@1.4.2", "2022-04-02T10:32:27")]
+        [DataRow("pkg:pypi/plotly@5.7.0", "2022-04-05T16:26:03")]
+        [DataRow("pkg:pypi/requests@2.27.1", "2022-01-05T15:40:49")]
         public async Task GetPublishedAtUtcSucceeds(string purlString, string? expectedTime = null)
         {
             PackageURL purl = new(purlString);

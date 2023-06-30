@@ -448,7 +448,15 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 {
                     string? urlStr = OssUtilities.GetJSONPropertyStringIfExists(url, "url");
                     string? uploadTimeStr = OssUtilities.GetJSONPropertyStringIfExists(url, "upload_time");
-                    uploadTime = uploadTimeStr != null ? DateTime.Parse(uploadTimeStr).ToUniversalTime() : null;
+                    if (uploadTimeStr != null)
+                    {
+                        DateTime newUploadTime = DateTime.Parse(uploadTimeStr).ToUniversalTime();
+                        // Used to set the minimum upload time for all associated files for this version to get the publish time.
+                        if (uploadTime == null || uploadTime > newUploadTime)
+                        {
+                            uploadTime = newUploadTime;
+                        }
+                    }
                 }
             }
 

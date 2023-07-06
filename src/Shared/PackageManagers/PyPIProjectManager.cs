@@ -432,6 +432,37 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return metadata;
         }
 
+        public override async Task<DateTime?> GetPublishedAtUtcAsync(PackageURL purl, bool useCache = true)
+        {
+            Check.NotNull(nameof(purl.Version), purl.Version);
+            HttpClient client = CreateHttpClient();
+
+            JsonDocument contentJSON = await GetJsonCache(client, $"{ENV_PYPI_ENDPOINT}/pypi/{purl.Name}/{purl.Version}/json");
+            JsonElement root = contentJSON.RootElement;
+
+            JsonElement.ArrayEnumerator? urlsArray = OssUtilities.GetJSONEnumerator(root.GetProperty("urls"));
+            DateTime? uploadTime = null;
+            if (urlsArray is not null)
+            {
+                foreach (JsonElement url in urlsArray.Value)
+                {
+                    string? urlStr = OssUtilities.GetJSONPropertyStringIfExists(url, "url");
+                    string? uploadTimeStr = OssUtilities.GetJSONPropertyStringIfExists(url, "upload_time");
+                    if (uploadTimeStr != null)
+                    {
+                        DateTime newUploadTime = DateTime.Parse(uploadTimeStr).ToUniversalTime();
+                        // Used to set the minimum upload time for all associated files for this version to get the publish time.
+                        if (uploadTime == null || uploadTime > newUploadTime)
+                        {
+                            uploadTime = newUploadTime;
+                        }
+                    }
+                }
+            }
+
+            return uploadTime;
+        }
+
         public override List<Version> GetVersions(JsonDocument? contentJSON)
         {
             List<Version> allVersions = new();

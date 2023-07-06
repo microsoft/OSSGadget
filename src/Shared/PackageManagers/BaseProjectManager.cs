@@ -18,6 +18,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using Utilities;
     using Version = SemanticVersioning.Version;
     using PackageUrl;
+    using System.IO;
 
     public abstract class BaseProjectManager : IBaseProjectManager
     {
@@ -230,13 +231,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             Logger.Trace("Loading Uri...");
             HttpResponseMessage result = await client.GetAsync(uri);
             result.EnsureSuccessStatusCode(); // Don't cache error codes.
-            long contentLength = result.Content.Headers.ContentLength ?? 8192;
+            long contentLength = 0;
             JsonDocument doc;
 
             switch (jsonParsingOption)
             {
                 case JsonParsingOption.NotInArrayNotCsv:
                     string data = await result.Content.ReadAsStringAsync();
+                    contentLength = data.Length;
                     data = Regex.Replace(data, @"\r\n?|\n", ",");
                     data = $"[{data}]";
 
@@ -245,8 +247,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                         AllowTrailingCommas = true,
                     });
                     break;
-                default: 
-                    doc = await JsonDocument.ParseAsync(await result.Content.ReadAsStreamAsync());
+                default:
+                    Stream responseStream = await result.Content.ReadAsStreamAsync();
+                    contentLength = responseStream.Length;
+                    doc = await JsonDocument.ParseAsync(responseStream);
                     break;
             }
             
@@ -254,7 +258,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {
                 lock (DataCache)
                 {
-                    MemoryCacheEntryOptions? mce = new() { Size = contentLength };
+                    MemoryCacheEntryOptions? mce = new() 
+                    {
+                        Size = contentLength,
+                        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30),
+                    };
                     DataCache.Set<JsonDocument>(uri, doc, mce);
                 }
             }
@@ -436,7 +444,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
-        public async Task<DateTime?> GetPublishedAtUtcAsync(PackageURL purl, bool useCache = true)
+        public virtual async Task<DateTime?> GetPublishedAtUtcAsync(PackageURL purl, bool useCache = true)
         {
             Check.NotNull(nameof(purl.Version), purl.Version);
             DateTime? uploadTime = (await GetPackageMetadataAsync(purl, useCache))?.UploadTime?.ToUniversalTime();
@@ -449,7 +457,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         protected static readonly MemoryCache DataCache = new(
             new MemoryCacheOptions
             {
-                SizeLimit = 1024 * 1024 * 8
+                SizeLimit = 1024 * 1024 * 100
             }
         );
 

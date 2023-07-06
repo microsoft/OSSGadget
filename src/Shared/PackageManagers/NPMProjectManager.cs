@@ -314,15 +314,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {
                 Version versionToGet = new(metadata.PackageVersion);
                 JsonElement? versionElement = GetVersionElement(contentJSON, versionToGet);
-                
-                if (root.TryGetProperty("time", out JsonElement time))
-                {
-                    string? uploadTime = OssUtilities.GetJSONPropertyStringIfExists(time, metadata.PackageVersion);
-                    if (uploadTime != null)
-                    {
-                        metadata.UploadTime = DateTime.Parse(uploadTime);
-                    }
-                }
+                metadata.UploadTime = ParseUploadTime(contentJSON, metadata.PackageVersion);
 
                 if (versionElement != null)
                 {
@@ -480,6 +472,29 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
 
             return metadata;
+        }
+
+        public override async Task<DateTime?> GetPublishedAtUtcAsync(PackageURL purl, bool useCache = true)
+        {
+            Check.NotNull(nameof(purl.Version), purl.Version);
+            HttpClient client = CreateHttpClient();
+            string? packageName = purl.HasNamespace() ? $"{purl.GetNamespaceFormatted()}/{purl.Name}" : purl.Name;
+            JsonDocument jsonDoc = await GetJsonCache(client, $"{ENV_NPM_API_ENDPOINT}/{packageName}", useCache);
+            return ParseUploadTime(jsonDoc, purl.Version);
+        }
+
+        private DateTime? ParseUploadTime(JsonDocument jsonDoc, string versionKey)
+        {
+            if (jsonDoc.RootElement.TryGetProperty("time", out JsonElement time))
+            {
+                string? uploadTime = OssUtilities.GetJSONPropertyStringIfExists(time, versionKey);
+                if (uploadTime != null)
+                {
+                    return DateTime.Parse(uploadTime).ToUniversalTime();
+                }
+            }
+            return null;
+
         }
 
         public override JsonElement? GetVersionElement(JsonDocument? contentJSON, Version version)

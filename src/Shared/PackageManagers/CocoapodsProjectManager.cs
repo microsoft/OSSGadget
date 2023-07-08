@@ -2,9 +2,11 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using AngleSharp.Html.Dom;
     using AngleSharp.Html.Parser;
     using Extensions;
     using Helpers;
+    using Newtonsoft.Json.Linq;
     using PackageUrl;
     using System;
     using System.Collections.Generic;
@@ -158,17 +160,22 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 string? html = await GetHttpStringCache(httpClient, $"{ENV_COCOAPODS_SPECS_ENDPOINT}/Specs/{prefix}/{packageName}");
                 HtmlParser parser = new();
                 AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(html);
-                AngleSharp.Dom.IHtmlCollection<AngleSharp.Dom.IElement> navItems = document.QuerySelectorAll("div.Details a.js-navigation-open");
+                // Fetch the embedded react data
+                string innerHtml = document.QuerySelector("script[data-target='react-app.embeddedData']").InnerHtml;
+                // The contents of the script tag are JSON, so parse the innerHtml as a JObject
+                JObject embeddedData = JObject.Parse(innerHtml);
+                // use JsonPath to select the version numbers as JValues
+                var versions = embeddedData.SelectTokens("$.payload.tree.items[*].name");
                 List<string> versionList = new();
 
-                foreach (AngleSharp.Dom.IElement? navItem in navItems)
+                // For each version add it to the list
+                foreach (var version in versions)
                 {
-                    if (string.IsNullOrWhiteSpace(Regex.Replace(navItem.TextContent, @"\s", "").Replace(".", "")))
+                    if (version is JValue jValue)
                     {
-                        continue;
+                        Logger.Debug("Identified {0} version {1}.", packageName, jValue.Value);
+                        versionList.Add(jValue.Value.ToString());
                     }
-                    Logger.Debug("Identified {0} version {1}.", packageName, navItem.TextContent);
-                    versionList.Add(navItem.TextContent);
                 }
                 return SortVersions(versionList.Distinct());
             }

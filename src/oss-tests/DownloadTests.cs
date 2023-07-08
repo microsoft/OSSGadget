@@ -27,7 +27,6 @@ namespace Microsoft.CST.OpenSource.Tests
         }
 
         [DataTestMethod]
-        [Ignore("Skipping this test due to https://github.com/microsoft/OSSGadget/issues/437")]
         [DataRow("pkg:cocoapods/RandomKit", "RandomKit.podspec", 1)]
         public async Task Cocoapods_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
         {

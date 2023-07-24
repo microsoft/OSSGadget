@@ -127,14 +127,17 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
                 HttpResponseMessage result = await client.GetAsync(uri);
                 result.EnsureSuccessStatusCode(); // Don't cache error codes.
-                long contentLength = result.Content.Headers.ContentLength ?? 8192;
                 resultString = await result.Content.ReadAsStringAsync();
+                long contentLength = resultString.Length;
 
                 if (useCache)
                 {
                     lock (DataCache)
                     {
-                        MemoryCacheEntryOptions mce = new() { Size = contentLength };
+                        MemoryCacheEntryOptions mce = new() { 
+                            Size = contentLength,
+                            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30),
+                        };
                         DataCache.Set<string>(uri, resultString, mce);
                     }
                 }
@@ -218,11 +221,12 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public static async Task<JsonDocument> GetJsonCache(HttpClient client, string uri, bool useCache = true, JsonParsingOption jsonParsingOption = JsonParsingOption.None)
         {
             Logger.Trace("GetJsonCache({0}, {1})", uri, useCache);
+            var cacheKey = $"{uri}/json";
             if (useCache)
             {
                 lock (DataCache)
                 {
-                    if (DataCache.TryGetValue(uri, out JsonDocument js))
+                    if (DataCache.TryGetValue(cacheKey, out JsonDocument js))
                     {
                         return js;
                     }
@@ -263,7 +267,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                         Size = contentLength,
                         AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30),
                     };
-                    DataCache.Set<JsonDocument>(uri, doc, mce);
+                    DataCache.Set<JsonDocument>(cacheKey, doc, mce);
                 }
             }
 

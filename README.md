@@ -23,6 +23,7 @@ A list of tools included is below.  Click on the name of a tool to go to the wik
 * [oss-health](https://github.com/microsoft/OSSGadget/wiki/OSS-Health): Calculates health metrics for a given package.
 * [oss-metadata](https://github.com/microsoft/OSSGadget/wiki/OSS-Metadata): Retrieves metadata from deps.dev or libraries.io for a given package.
 * [oss-risk-calculator](https://github.com/microsoft/OSSGadget/wiki/OSS-Risk-Calculator): Calculates a metric for risk of using a package.
+* [oss-reproducible](https://github.com/microsoft/OSSGadget/wiki/OSS-Reproducible): Evaluates a package for semantic equivalency with the detected source code to produce an estimate of how well the two comport.
 
 All OSS Gadget tools accept one or more [Package URLs](https://github.com/package-url/purl-spec) as a way to uniquely identify a package. Package URLs look like `pkg:npm/express` or `pkg:gem/azure@0.7.10`. If you leave the version number off, it implicitly means, "attempt to find the latest version". Using an asterisk (`pkg:npm/express@*`) means "perform the action on all available versions".
 

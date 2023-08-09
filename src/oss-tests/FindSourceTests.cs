@@ -90,7 +90,7 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("pkg:pypi/moment", "pkg:github/zachwill/moment")]
         [DataRow("pkg:nuget/Newtonsoft.Json", "pkg:github/jamesnk/newtonsoft.json")]
         [DataRow("pkg:pypi/django", "pkg:github/django/django")]
-        [DataRow("pkg:pypi/pylint", "pkg:github/pycqa/pylint")]
+        [DataRow("pkg:pypi/pylint", "pkg:github/pylint-dev/pylint")]
         [DataRow("pkg:pypi/arrow", "pkg:github/arrow-py/arrow")]
         public async Task FindSource_Success(string purl, string targetResult)
         {

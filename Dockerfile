@@ -2,7 +2,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0-preview-cbl-mariner2.0
 COPY . /app/
 WORKDIR /app/src
 RUN set -o errexit -o nounset \
-    && dotnet build -C Release \
+    && dotnet build -c Release \
     && ln --symbolic /app/src/oss-characteristics/bin/Release/net6.0/oss-characteristic /usr/bin/oss-characteristic \
     && ln --symbolic /app/src/oss-defog/bin/Release/net6.0/oss-defog /usr/bin/oss-defog \
     && ln --symbolic /app/src/oss-detect-backdoor/bin/Release/net6.0/oss-detect-backdoor /usr/bin/oss-detect-backdoor \

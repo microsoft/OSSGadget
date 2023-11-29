@@ -28,7 +28,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Sarif.Sdk" Version="3.1.0" />
+    <PackageReference Include="Sarif.Sdk" Version="4.3.7" />
   </ItemGroup>
 
   <ItemGroup>
@@ -39,5 +39,9 @@
   <ItemGroup>
     <ProjectReference Include="..\oss-find-squats-lib\oss-find-squats-lib.csproj" />
     <ProjectReference Include="..\Shared.CLI\Shared.CLI.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.133" />
   </ItemGroup>
 </Project>

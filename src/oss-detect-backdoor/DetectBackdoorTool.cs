@@ -121,7 +121,7 @@ namespace Microsoft.CST.OpenSource
                         Console.WriteLine("  Severity: " + Cyan(match.Severity.ToString()) + ", Confidence: " + Cyan(match.Confidence.ToString()));
                         Console.WriteLine("  Filename: " + Yellow(filename));
                         Console.WriteLine("   Pattern: " + Green(match.MatchingPattern.Pattern));
-                        foreach (string? line in match.Excerpt.Split(new[] {"\r", "\n", "\r\n"}, StringSplitOptions.None))
+                        foreach (string? line in match.Excerpt.Split(Environment.NewLine, StringSplitOptions.None))
                         {
                             string? s = line;
                             if (s.Length > 100)

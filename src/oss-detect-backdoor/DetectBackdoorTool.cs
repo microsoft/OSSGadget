@@ -122,8 +122,8 @@ namespace Microsoft.CST.OpenSource
                         Console.WriteLine("  Filename: " + Yellow(filename));
                         Console.WriteLine("   Pattern: " + Green(match.MatchingPattern.Pattern));
 
-                        string[] FullTextLines = match.FullTextContainer.FullContent.Split(new[] { "\r", "\n", "\r\n" }, StringSplitOptions.None);
-                        string[] ExcerptsLines = match.Excerpt.Split(new[] { "\r", "\n", "\r\n" }, StringSplitOptions.None);
+                        string[] FullTextLines = match.FullTextContainer.FullContent.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+                        string[] ExcerptsLines = match.Excerpt.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
 
                         int ExcerptStart = -1;
 

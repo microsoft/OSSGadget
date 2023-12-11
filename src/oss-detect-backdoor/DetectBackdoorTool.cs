@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
+// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using CommandLine;
 using CommandLine.Text;
@@ -121,14 +121,38 @@ namespace Microsoft.CST.OpenSource
                         Console.WriteLine("  Severity: " + Cyan(match.Severity.ToString()) + ", Confidence: " + Cyan(match.Confidence.ToString()));
                         Console.WriteLine("  Filename: " + Yellow(filename));
                         Console.WriteLine("   Pattern: " + Green(match.MatchingPattern.Pattern));
-                        foreach (string? line in match.Excerpt.Split(new[] {"\r", "\n", "\r\n"}, StringSplitOptions.None))
+
+                        string[] FullTextLines = match.FullTextContainer.FullContent.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+                        string[] ExcerptsLines = match.Excerpt.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+
+                        int ExcerptStart = -1;
+
+                        for (int i = 0; i < ExcerptsLines.Length; i++)
+                        {
+                            if (string.Equals(ExcerptsLines[i].TrimStart().TrimEnd(), FullTextLines[match.StartLocationLine - 1].TrimStart().TrimEnd()))
+                            {
+                                ExcerptStart = match.StartLocationLine - i;
+                                break;
+                            }
+                        }
+
+                        Array.Resize(ref ExcerptsLines, ExcerptsLines.Length - 1);
+                        foreach (string? line in ExcerptsLines)
                         {
                             string? s = line;
                             if (s.Length > 100)
                             {
                                 s = s.Substring(0, 100);
                             }
-                            Console.WriteLine(Bright.Black("  | ") + Magenta(s));
+
+                            if (ExcerptStart != -1)
+                            {
+                                Console.WriteLine(Bright.Black($"{ExcerptStart++} | ") + Magenta(s));
+                            }
+                            else
+                            {
+                                Console.WriteLine(Bright.Black("  | ") + Magenta(s));
+                            }
                         }
                         Console.WriteLine();
                     }

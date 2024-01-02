@@ -107,8 +107,9 @@ namespace Microsoft.CST.OpenSource
                 ConfidenceFilters = new [] { Confidence.High | Confidence.Medium | Confidence.Low },
                 ScanUnknownTypes = true,
                 AllowAllTagsInBuildFiles = options.AllowTagsInBuildFiles,
-                SingleThread = false,
-                FilePathExclusions = options.FilePathExclusions?.Split(',') ?? Array.Empty<string>()
+                SingleThread = true,
+                FilePathExclusions = options.FilePathExclusions?.Split(',') ?? Array.Empty<string>(),
+                EnableNonBacktrackingRegex = true
             };
 
             try

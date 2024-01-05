@@ -28,8 +28,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DiffPlex" Version="1.7.1" />
-    <PackageReference Include="Pastel" Version="3.0.1" />
+    <PackageReference Include="DiffPlex" Version="1.7.2" />
+    <PackageReference Include="Pastel" Version="4.2.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -39,5 +39,9 @@
   <ItemGroup>
     <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="" />
     <None Include="..\..\icon-128.png" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.133" />
   </ItemGroup>
 </Project>

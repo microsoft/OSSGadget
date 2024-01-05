@@ -39,19 +39,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AngleSharp" Version="1.0.0-alpha-844" />
+    <PackageReference Include="AngleSharp" Version="1.0.7" />
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
     <PackageReference Include="Crayon" Version="2.0.69" />
-    <PackageReference Include="F23.StringSimilarity" Version="5.0.0" />
-    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.0.1" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.46" />
-    <PackageReference Include="Microsoft.CST.RecursiveExtractor" Version="1.1.18" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="6.0.1" />
-    <PackageReference Include="NLog" Version="5.0.4" />
-    <PackageReference Include="NLog.Schema" Version="5.0.4" />
-    <PackageReference Include="NuGet.Versioning" Version="6.6.1" />
-    <PackageReference Include="Octokit" Version="4.0.1" />
-    <PackageReference Include="Sarif.Sdk" Version="3.1.0" />
+    <PackageReference Include="F23.StringSimilarity" Version="6.0.0" />
+    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.1.0" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.57" />
+    <PackageReference Include="Microsoft.CST.RecursiveExtractor" Version="1.2.23" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.0" />
+    <PackageReference Include="NLog" Version="5.2.8" />
+    <PackageReference Include="NLog.Schema" Version="5.2.8" />
+    <PackageReference Include="NuGet.Versioning" Version="6.8.0" />
+    <PackageReference Include="Octokit" Version="9.1.0" />
+    <PackageReference Include="Sarif.Sdk" Version="4.4.0" />
     <PackageReference Include="SemanticVersioning" Version="2.0.2" />
     <PackageReference Include="System.Console" Version="4.3.1" />
   </ItemGroup>
@@ -63,5 +63,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Shared\Shared.Lib.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.133" />
   </ItemGroup>
 </Project>

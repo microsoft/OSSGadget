@@ -43,4 +43,8 @@
     <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="" />
     <None Include="..\..\icon-128.png" Pack="true" PackagePath="" />
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.133" />
+  </ItemGroup>
 </Project>

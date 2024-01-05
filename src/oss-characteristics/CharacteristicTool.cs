@@ -66,6 +66,12 @@ namespace Microsoft.CST.OpenSource
                 HelpText = "exclude files or paths which match provided glob patterns.")]
             public string FilePathExclusions { get; set; } = "";
 
+            [Option('b', "backtracking", Required = false, HelpText = "disable using non-backtracking regex engine")]
+            public bool EnableBacktracking { get; set; } = false;
+
+            [Option('s', "single-threaded", Required = false, HelpText = "Use single-threaded analysis")]
+            public bool SingleThread { get; set; } = false;
+
             public bool AllowTagsInBuildFiles { get; set; } = true;
 
             public bool AllowDupTags { get; set; } = false;
@@ -107,9 +113,9 @@ namespace Microsoft.CST.OpenSource
                 ConfidenceFilters = new [] { Confidence.High | Confidence.Medium | Confidence.Low },
                 ScanUnknownTypes = true,
                 AllowAllTagsInBuildFiles = options.AllowTagsInBuildFiles,
-                SingleThread = true,
+                SingleThread = options.SingleThread,
                 FilePathExclusions = options.FilePathExclusions?.Split(',') ?? Array.Empty<string>(),
-                EnableNonBacktrackingRegex = true
+                EnableNonBacktrackingRegex = !options.EnableBacktracking
             };
 
             try

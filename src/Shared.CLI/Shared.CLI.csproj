@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
     <RootNamespace>Microsoft.CST.OpenSource</RootNamespace>
     <Description>OSS Gadget - Shared CLI Functionality</Description>
     <RepositoryType>GitHub</RepositoryType>

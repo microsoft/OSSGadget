@@ -50,7 +50,7 @@ namespace Microsoft.CST.OpenSource
                 HelpText = "do not download the package if it is already present in the destination directory.")]
             public bool UseCache { get; set; }
 
-            [Option('b', "backtracking", Required = false, HelpText = "disable using non-backtracking regex engine")]
+            [Option('b', "backtracking", Required = false, HelpText = "Use backtracking engine by default.")]
             public bool EnableBacktracking { get; set; } = false;
 
             [Option('s', "single-threaded", Required = false, HelpText = "Use single-threaded analysis")]

@@ -66,7 +66,7 @@ namespace Microsoft.CST.OpenSource
                 HelpText = "exclude files or paths which match provided glob patterns.")]
             public string FilePathExclusions { get; set; } = "";
 
-            [Option('b', "backtracking", Required = false, HelpText = "disable using non-backtracking regex engine")]
+            [Option('b', "backtracking", Required = false, HelpText = "Use backtracking regex engine by default.")]
             public bool EnableBacktracking { get; set; } = false;
 
             [Option('s', "single-threaded", Required = false, HelpText = "Use single-threaded analysis")]

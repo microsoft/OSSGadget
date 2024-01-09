@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
     <RootNamespace>Microsoft.CST.OpenSource</RootNamespace>
     <Description>OSS Gadget - Package Typosquatting Detector</Description>
     <RepositoryType>GitHub</RepositoryType>
@@ -28,7 +28,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Sarif.Sdk" Version="3.1.0" />
+    <PackageReference Include="Sarif.Sdk" Version="4.4.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -39,5 +39,9 @@
   <ItemGroup>
     <ProjectReference Include="..\oss-find-squats-lib\oss-find-squats-lib.csproj" />
     <ProjectReference Include="..\Shared.CLI\Shared.CLI.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.133" />
   </ItemGroup>
 </Project>

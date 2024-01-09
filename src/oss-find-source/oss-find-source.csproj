@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
     <RootNamespace>Microsoft.CST.OpenSource</RootNamespace>
     <Description>OSS Gadget - Source Code Locator</Description>
     <RepositoryType>GitHub</RepositoryType>
@@ -37,11 +37,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Sarif.Sdk" Version="3.1.0" />
+    <PackageReference Include="Sarif.Sdk" Version="4.4.0" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="" />
     <None Include="..\..\icon-128.png" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.133" />
   </ItemGroup>
 </Project>

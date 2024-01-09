@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
     <RootNamespace>Microsoft.CST.OpenSource</RootNamespace>
     <Company>Microsoft Corporation</Company>
     <Description>OSS Gadget - Domain Typosquatting Detector</Description>
@@ -17,13 +17,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Pastel" Version="3.0.1" />
+    <PackageReference Include="Pastel" Version="4.2.0" />
     <PackageReference Include="Whois" Version="3.0.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\oss-find-squats\oss-find-squats.csproj" />
     <ProjectReference Include="..\Shared.CLI\Shared.CLI.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.133" />
   </ItemGroup>
 
 </Project>

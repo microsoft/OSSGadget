@@ -10,7 +10,11 @@ parameters:
 # Version of Dotnet SDK to use
 - name: dotnetVersion
   type: string
-  default: '6.0.x'
+  default: '8.0.x'
+# Version of Dotnet to publish
+- name: dotnetPublishVersion
+  type: string
+  default: 'net8.0'
 # Include preview versions of Dotnet SDK
 - name: includePreviewVersions
   type: boolean
@@ -67,28 +71,28 @@ jobs:
     displayName: Publish Linux x64
     inputs:
       command: 'publish'
-      arguments: '${{ parameters.solutionPath }} -c ${{ parameters.buildConfiguration }} -o bin/linux/${{ parameters.projectName }}_linux_$(ReleaseVersion) --sc -r linux-x64'
+      arguments: '${{ parameters.solutionPath }} -c ${{ parameters.buildConfiguration }} -o bin/linux/${{ parameters.projectName }}_linux_$(ReleaseVersion) --sc -r linux-x64 -f ${{ parameters.dotnetPublishVersion }}'
       publishWebProjects: false
       zipAfterPublish: false
   - task: DotNetCoreCLI@2
     displayName: Publish MacOS x64
     inputs:
       command: 'publish'
-      arguments: '${{ parameters.solutionPath }} -c ${{ parameters.buildConfiguration }} -o bin/macos/${{ parameters.projectName }}_macos_$(ReleaseVersion) --sc -r osx-x64'
+      arguments: '${{ parameters.solutionPath }} -c ${{ parameters.buildConfiguration }} -o bin/macos/${{ parameters.projectName }}_macos_$(ReleaseVersion) --sc -r osx-x64 -f ${{ parameters.dotnetPublishVersion }}'
       publishWebProjects: false
       zipAfterPublish: false
   - task: DotNetCoreCLI@2
     displayName: Publish Win x64
     inputs:
       command: 'publish'
-      arguments: '${{ parameters.solutionPath }} -c ${{ parameters.buildConfiguration }} -o bin/win/${{ parameters.projectName }}_win_$(ReleaseVersion) --sc -r win-x64'
+      arguments: '${{ parameters.solutionPath }} -c ${{ parameters.buildConfiguration }} -o bin/win/${{ parameters.projectName }}_win_$(ReleaseVersion) --sc -r win-x64 -f ${{ parameters.dotnetPublishVersion }}'
       publishWebProjects: false
       zipAfterPublish: false
   - task: DotNetCoreCLI@2
     displayName: Build .NET Core App
     inputs:
       command: 'publish'
-      arguments: '${{ parameters.solutionPath }} -c ${{ parameters.buildConfiguration }} -o bin/netcoreapp/${{ parameters.projectName }}_netcoreapp_$(ReleaseVersion)'
+      arguments: '${{ parameters.solutionPath }} -c ${{ parameters.buildConfiguration }} -o bin/netcoreapp/${{ parameters.projectName }}_netcoreapp_$(ReleaseVersion) -f ${{ parameters.dotnetPublishVersion }}'
       publishWebProjects: false
       zipAfterPublish: false
   - task: ArchiveFiles@2

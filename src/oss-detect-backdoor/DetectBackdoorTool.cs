@@ -49,6 +49,12 @@ namespace Microsoft.CST.OpenSource
             [Option('c', "use-cache", Required = false, Default = false,
                 HelpText = "do not download the package if it is already present in the destination directory.")]
             public bool UseCache { get; set; }
+
+            [Option('b', "backtracking", Required = false, HelpText = "Use backtracking engine by default.")]
+            public bool EnableBacktracking { get; set; } = false;
+
+            [Option('s', "single-threaded", Required = false, HelpText = "Use single-threaded analysis")]
+            public bool SingleThread { get; set; } = false;
         }
 
         public DetectBackdoorTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
@@ -177,7 +183,9 @@ namespace Microsoft.CST.OpenSource
                     AllowTagsInBuildFiles = true,
                     FilePathExclusions = ".md,LICENSE,.txt",
                     AllowDupTags = true,
-                    SarifLevel = CodeAnalysis.Sarif.FailureLevel.Warning
+                    SarifLevel = CodeAnalysis.Sarif.FailureLevel.Warning,
+                    EnableBacktracking = options.EnableBacktracking,
+                    SingleThread = options.SingleThread
                 };
 
                 return await characteristicTool.RunAsync(cOptions);

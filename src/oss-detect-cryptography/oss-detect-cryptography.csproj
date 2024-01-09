@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
     <RootNamespace>Microsoft.CST.OpenSource</RootNamespace>
     <Description>OSS Gadget - Cryptography Detector</Description>
     <RepositoryType>GitHub</RepositoryType>
@@ -70,11 +70,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ELFSharp" Version="2.15.0" />
-    <PackageReference Include="ICSharpCode.Decompiler" Version="7.2.1.6856" />
-    <PackageReference Include="Microsoft.CST.ApplicationInspector.Commands" Version="1.6.24" />
-    <PackageReference Include="Microsoft.CST.DevSkim" Version="0.6.32" />
-    <PackageReference Include="PeNet" Version="2.9.9" />
+    <PackageReference Include="ELFSharp" Version="2.17.3" />
+    <PackageReference Include="ICSharpCode.Decompiler" Version="8.2.0.7535" />
+    <PackageReference Include="Microsoft.CST.ApplicationInspector.Commands" Version="1.9.17" />
+    <PackageReference Include="Microsoft.CST.DevSkim" Version="1.0.27" />
+    <PackageReference Include="PeNet" Version="4.0.4" />
     <PackageReference Include="SharpDisasm" Version="1.1.11" />
     <PackageReference Include="WebAssembly" Version="1.2.1" />
   </ItemGroup>
@@ -87,5 +87,9 @@
   <ItemGroup>
     <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="" />
     <None Include="..\..\icon-128.png" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.133" />
   </ItemGroup>
 </Project>

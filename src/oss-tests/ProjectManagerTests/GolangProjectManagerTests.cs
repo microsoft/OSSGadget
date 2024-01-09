@@ -60,19 +60,20 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             Assert.AreEqual(GolangProjectManager.GolangArtifactType.Zip, uris.First().Type);
         }
 
-        // Test fails in pipeline
-        // [DataTestMethod]
-        // [DataRow("pkg:golang/sigs.k8s.io/yaml@v1.3.0")] // Normal package
-        // public async Task MetadataSucceeds(string purlString)
-        // {
-        //     PackageURL purl = new(purlString);
-        //     PackageMetadata? metadata = await _projectManager.Object.GetPackageMetadataAsync(purl, useCache: false);
+        //Test fails in pipeline
+        [Ignore]
+        [DataTestMethod]
+        [DataRow("pkg:golang/sigs.k8s.io/yaml@v1.3.0")] // Normal package
+        public async Task MetadataSucceeds(string purlString)
+        {
+            PackageURL purl = new(purlString);
+            PackageMetadata? metadata = await _projectManager.Object.GetPackageMetadataAsync(purl, useCache: false);
 
-        //     Assert.IsNotNull(metadata);
-        //     Assert.AreEqual(purl.GetFullName(), metadata.Name);
-        //     Assert.AreEqual(purl.Version, metadata.PackageVersion);
-        //     Assert.IsNotNull(metadata.UploadTime);
-        // }
+            Assert.IsNotNull(metadata);
+            Assert.AreEqual(purl.GetFullName(), metadata.Name);
+            Assert.AreEqual(purl.Version, metadata.PackageVersion);
+            Assert.IsNotNull(metadata.UploadTime);
+        }
 
         private static void MockHttpFetchResponse(
             HttpStatusCode statusCode,

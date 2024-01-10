@@ -4,9 +4,9 @@ parameters:
   type: string
   default: 'dotnet_test'
 # Version of Dotnet SDK to use
-- name: dotnetVersion
-  type: string
-  default: '8.0.x'
+- name: dotnetVersions
+  type: object
+  default: ['6.0.x','8.0.x']
 # Should Dotnet SDK install preview versions?
 - name: includePreviewVersions
   type: boolean
@@ -26,12 +26,13 @@ jobs:
   pool:
     vmImage: 'windows-latest'
   steps:
-  - task: UseDotNet@2
-    displayName: Install Dotnet SDK
-    inputs:
-      packageType: 'sdk'
-      version: ${{ parameters.dotnetVersion }}
-      includePreviewVersions: ${{ parameters.includePreviewVersions }}
+  # Install dotnet versions
+  - ${{ each version in parameters.dotnetVersions }}:
+    - task: UseDotNet@2
+      displayName: Install Dotnet SDK
+      inputs:
+        packageType: 'sdk'
+        version: ${{ version }}
   - task: DotNetCoreCLI@2
     displayName: Dotnet Restore
     inputs:

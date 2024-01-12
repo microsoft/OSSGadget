@@ -268,7 +268,7 @@ stages:
     - task: GitHubRelease@1
       displayName: Release to GitHub
       inputs:
-        gitHubConnection: 'OSSGadget'
+        gitHubConnection: 'OSSGadget_gfs'
         repositoryName: 'microsoft/OSSGadget'
         action: 'create'
         target: '$(Build.SourceVersion)'

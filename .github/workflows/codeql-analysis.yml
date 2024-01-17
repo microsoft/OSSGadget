@@ -27,18 +27,18 @@ jobs:
     - name: Setup .NET Core SDK
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 8.0.x
 
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v1
+      uses: github/codeql-action/init@v2
       with:
         languages: csharp
 
     - name: Build OSS Gadget
       run: |
          dotnet restore OSSGadget.sln
-         dotnet build -c Release -p:SelfContained=false
+         dotnet build -c Release -f net8.0 -p:SelfContained=false
       working-directory: ./src
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v1
+      uses: github/codeql-action/analyze@v2

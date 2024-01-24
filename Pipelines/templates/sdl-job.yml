@@ -8,7 +8,8 @@ jobs:
 - job: sdl_tools
   displayName: SDL Tools
   pool:
-    vmImage: 'windows-latest'
+    name: CSPA
+    demands: ImageOverride -equals win2022-image-base
   steps:
   - task: DownloadBuildArtifacts@0
     displayName: Download Unsigned Binary Archives

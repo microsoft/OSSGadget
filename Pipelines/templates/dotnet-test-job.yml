@@ -24,7 +24,8 @@ jobs:
 - job: ${{ parameters.jobName }}
   displayName: Dotnet Test
   pool:
-    vmImage: 'windows-latest'
+    name: CSPA
+    demands: ImageOverride -equals win2022-image-base
   steps:
   # Install dotnet versions
   - ${{ each version in parameters.dotnetVersions }}:

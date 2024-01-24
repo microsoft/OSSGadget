@@ -54,7 +54,8 @@ jobs:
   condition: eq(dependencies.${{ parameters.dependsOnArg }}.outputs['check_script.${{ parameters.conditionedOnTag }}'], 'true')
   displayName: NuGet Package ${{ parameters.projectName }}
   pool:
-    vmImage: 'windows-latest'
+    name: CSPA
+    demands: ImageOverride -equals win2022-image-base
   steps:
   - task: UseDotNet@2
     displayName: Install Dotnet SDK

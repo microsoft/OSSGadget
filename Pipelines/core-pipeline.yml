@@ -54,7 +54,7 @@ stages:
     displayName: Code Sign, Generate Hashes, Publish Public Releases
     pool:
       name: CSPA
-       demands: ImageOverride -equals ubuntu-22.04-image-base
+      demands: ImageOverride -equals ubuntu-22.04-image-base
     steps:
     - task: UseDotNet@2
       inputs:

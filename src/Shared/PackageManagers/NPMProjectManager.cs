@@ -482,6 +482,26 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             JsonDocument jsonDoc = await GetJsonCache(client, $"{ENV_NPM_API_ENDPOINT}/{packageName}", useCache);
             return ParseUploadTime(jsonDoc, purl.Version);
         }
+        public override async Task<DateTime?> GetPackageCreatedAtUtcAsync(PackageURL purl, bool useCache = true)
+        {
+            HttpClient client = CreateHttpClient();
+            string? packageName = purl.HasNamespace() ? $"{purl.GetNamespaceFormatted()}/{purl.Name}" : purl.Name;
+            JsonDocument jsonDoc = await GetJsonCache(client, $"{ENV_NPM_API_ENDPOINT}/{packageName}", useCache);
+            return ParseCreatedTime(jsonDoc);
+        }
+
+        private DateTime? ParseCreatedTime(JsonDocument jsonDoc)
+        {
+            if (jsonDoc.RootElement.TryGetProperty("time", out JsonElement time))
+            {
+                string? createdTime = OssUtilities.GetJSONPropertyStringIfExists(time, "created");
+                if (createdTime != null)
+                {
+                    return DateTime.Parse(createdTime).ToUniversalTime();
+                }
+            }
+            return null;
+        }
 
         private DateTime? ParseUploadTime(JsonDocument jsonDoc, string versionKey)
         {

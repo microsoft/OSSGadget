@@ -337,7 +337,20 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
                 Assert.AreEqual(DateTime.Parse(expectedTime), time);
             }
         }
-        
+
+        [DataTestMethod]
+        [DataRow("pkg:npm/lodash@4.17.15", "2012-04-23T16:37:11.912")]
+        [DataRow("pkg:npm/%40angular/core@13.2.5", "2016-04-28T04:23:30.108")]
+        [DataRow("pkg:npm/ds-modal@0.0.2", "2018-08-06T12:04:34.792")]
+        [DataRow("pkg:npm/monorepolint@0.4.0", "2018-12-19T23:29:18.197")]
+        [DataRow("pkg:npm/rly-cli@0.0.2", "2022-03-04T05:57:01.108")]
+        public async Task GetCreatedAtSucceeds(string purlString, string? expectedTime = null)
+        {
+            PackageURL purl = new(purlString);
+            DateTime? time = await _projectManager.Object.GetPackageCreatedAtUtcAsync(purl, useCache: false);
+            Assert.AreEqual(DateTime.Parse(expectedTime), time);
+        }
+
         [DataTestMethod]
         [DataRow("pkg:npm/lodash@4.17.15", "https://registry.npmjs.org/lodash/-/lodash-4.17.15.tgz")]
         [DataRow("pkg:npm/%40angular/core@13.2.5", "https://registry.npmjs.org/%40angular/core/-/core-13.2.5.tgz")]

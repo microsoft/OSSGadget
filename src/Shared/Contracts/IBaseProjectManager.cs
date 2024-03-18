@@ -153,4 +153,12 @@ public interface IBaseProjectManager
     /// <param name="useCache">If the cache should be used when looking for the published time.</param>
     /// <returns>The <see cref="DateTime"/> when this version was published, or null if not found.</returns>
     public Task<DateTime?> GetPublishedAtUtcAsync(PackageURL purl, bool useCache = true);
+
+    /// <summary>
+    /// Gets the time at which the first version of the package is created at.
+    /// </summary>
+    /// <param name="purl">Package URL specifying the package. Version is mandatory.</param>
+    /// <param name="useCache">If the cache should be used when looking for the created time.</param>
+    /// <returns>The <see cref="DateTime"/> when this package was created, or null if not found.</returns>
+    public Task<DateTime?> GetPackageCreatedAtUtcAsync(PackageURL purl, bool useCache = true);
 }

@@ -412,6 +412,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <inheritdoc />
+        public virtual Task<DateTime?> GetPackageCreatedAtUtcAsync(PackageURL purl, bool useCache = true)
+        {
+            string typeName = GetType().Name;
+            throw new NotImplementedException($"{typeName} does not implement GetPackageCreatedAtUtcAsync.");
+        }
+
+        /// <inheritdoc />
         public async Task<Dictionary<PackageURL, double>> IdentifySourceRepositoryAsync(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("IdentifySourceRepository({0})", purl);

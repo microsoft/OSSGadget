@@ -347,8 +347,8 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public async Task GetCreatedAtSucceeds(string purlString, string? expectedTime = null)
         {
             PackageURL purl = new(purlString);
-            DateTime? time = await _projectManager.Object.GetPackageCreatedAtUtcAsync(purl, useCache: false);
-            Assert.AreEqual(DateTime.Parse(expectedTime), time);
+            var metadata = await _projectManager.Object.GetPackageMetadataAsync(purl, useCache: false);
+            Assert.AreEqual(DateTime.Parse(expectedTime), metadata.CreatedTime);
         }
 
         [DataTestMethod]

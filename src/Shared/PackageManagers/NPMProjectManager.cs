@@ -295,6 +295,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             metadata.Language = "JavaScript";
             metadata.PackageUri = $"{metadata.PackageManagerUri}/package/{metadata.Name}";
             metadata.ApiPackageUri = $"{ENV_NPM_API_ENDPOINT}/{metadata.Name}";
+            metadata.CreatedTime = ParseCreatedTime(contentJSON);
 
             List<Version> versions = GetVersions(contentJSON);
             Version? latestVersion = GetLatestVersion(versions);
@@ -427,7 +428,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     }
 
                     // repository
-                    Dictionary<PackageURL, double> repoMappings = await SearchRepoUrlsInPackageMetadata(purl, content);
+                    Dictionary<PackageURL, double> repoMappings = await SearchRepoUrlsInPackageMetadata(purl, contentJSON);
                     foreach (KeyValuePair<PackageURL, double> repoMapping in repoMappings)
                     {
                         Repository repository = new()
@@ -481,13 +482,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             string? packageName = purl.HasNamespace() ? $"{purl.GetNamespaceFormatted()}/{purl.Name}" : purl.Name;
             JsonDocument jsonDoc = await GetJsonCache(client, $"{ENV_NPM_API_ENDPOINT}/{packageName}", useCache);
             return ParseUploadTime(jsonDoc, purl.Version);
-        }
-        public override async Task<DateTime?> GetPackageCreatedAtUtcAsync(PackageURL purl, bool useCache = true)
-        {
-            HttpClient client = CreateHttpClient();
-            string? packageName = purl.HasNamespace() ? $"{purl.GetNamespaceFormatted()}/{purl.Name}" : purl.Name;
-            JsonDocument jsonDoc = await GetJsonCache(client, $"{ENV_NPM_API_ENDPOINT}/{packageName}", useCache);
-            return ParseCreatedTime(jsonDoc);
         }
 
         private DateTime? ParseCreatedTime(JsonDocument jsonDoc)

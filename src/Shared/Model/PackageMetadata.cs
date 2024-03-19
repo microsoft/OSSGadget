@@ -114,6 +114,9 @@ namespace Microsoft.CST.OpenSource.Model
         [JsonProperty(PropertyName = "upload_time", NullValueHandling = NullValueHandling.Ignore)]
         public DateTime? UploadTime { get; set; }
 
+        [JsonProperty(PropertyName = "created_time", NullValueHandling = NullValueHandling.Ignore)]
+        public DateTime? CreatedTime { get; set; }
+
         [JsonProperty(PropertyName = "commit_id", NullValueHandling = NullValueHandling.Ignore)]
         public string? CommitId { get; set; }
 

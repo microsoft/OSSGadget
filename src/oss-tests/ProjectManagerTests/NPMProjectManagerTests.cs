@@ -352,6 +352,24 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         }
 
         [DataTestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public async Task FetchesRepositoryMetadataSuccessfully(bool includeRepositoryMetadata)
+        {
+            PackageURL purl = new("pkg:npm/lodash.js");
+            var metadata = await _projectManager.Object.GetNpmPackageMetadataAsync(purl, includeRepositoryMetadata: includeRepositoryMetadata);
+           
+            if(includeRepositoryMetadata)
+            {
+                Assert.IsNotNull(metadata.Repository);
+            }
+            else
+            {
+                Assert.IsNull(metadata.Repository);
+            }
+        }
+
+        [DataTestMethod]
         [DataRow("pkg:npm/lodash@4.17.15", "https://registry.npmjs.org/lodash/-/lodash-4.17.15.tgz")]
         [DataRow("pkg:npm/%40angular/core@13.2.5", "https://registry.npmjs.org/%40angular/core/-/core-13.2.5.tgz")]
         [DataRow("pkg:npm/ds-modal@0.0.2", "https://registry.npmjs.org/ds-modal/-/ds-modal-0.0.2.tgz")]

@@ -279,6 +279,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <remarks>Currently doesn't respect the <paramref name="includePrerelease"/> flag.</remarks>
         public override async Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool includePrerelease = false, bool useCache = true)
         {
+           return await GetNpmPackageMetadataAsync(purl, includePrerelease, useCache);
+        }
+
+        public  async Task<PackageMetadata?> GetNpmPackageMetadataAsync(PackageURL purl, bool includePrerelease = false, bool useCache = true, bool includeRepositoryMetadata = true)
+        {
             PackageMetadata metadata = new();
             string? content = await GetMetadataAsync(purl, useCache);
             if (string.IsNullOrEmpty(content)) { return null; }
@@ -329,7 +334,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     {
                         metadata.Description = description;
                     }
-                    
+
                     JsonElement? distElement = OssUtilities.GetJSONPropertyIfExists(versionElement, "dist");
                     if (OssUtilities.GetJSONPropertyIfExists(distElement, "tarball") is JsonElement tarballElement)
                     {
@@ -350,7 +355,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                             Signature = pair[1]
                         });
                     }
-                    
+
                     // size
                     if (OssUtilities.GetJSONPropertyIfExists(distElement, "unpackedSize") is JsonElement sizeElement &&
                         sizeElement.GetInt64() is long size)
@@ -371,7 +376,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     {
                         metadata.Homepage = homepage;
                     }
-                    
+
                     // commit id
                     if (OssUtilities.GetJSONPropertyStringIfExists(versionElement, "gitHead") is string gitHead &&
                         !string.IsNullOrWhiteSpace(gitHead))
@@ -428,18 +433,21 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     }
 
                     // repository
-                    Dictionary<PackageURL, double> repoMappings = await SearchRepoUrlsInPackageMetadata(purl, contentJSON);
-                    foreach (KeyValuePair<PackageURL, double> repoMapping in repoMappings)
+                    if (includeRepositoryMetadata)
                     {
-                        Repository repository = new()
+                        Dictionary<PackageURL, double> repoMappings = await SearchRepoUrlsInPackageMetadata(purl, contentJSON);
+                        foreach (KeyValuePair<PackageURL, double> repoMapping in repoMappings)
                         {
-                            Rank = repoMapping.Value,
-                            Type = repoMapping.Key.Type
-                        };
-                        await repository.ExtractRepositoryMetadata(repoMapping.Key);
+                            Repository repository = new()
+                            {
+                                Rank = repoMapping.Value,
+                                Type = repoMapping.Key.Type
+                            };
+                            await repository.ExtractRepositoryMetadata(repoMapping.Key);
 
-                        metadata.Repository ??= new List<Repository>();
-                        metadata.Repository.Add(repository);
+                            metadata.Repository ??= new List<Repository>();
+                            metadata.Repository.Add(repository);
+                        }
                     }
 
                     // keywords

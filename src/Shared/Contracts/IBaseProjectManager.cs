@@ -113,9 +113,10 @@ public interface IBaseProjectManager
     /// <param name="purl">The <see cref="PackageURL"/> to get the normalized metadata for.</param>
     /// <param name="includePrerelease">If pre-releases should count for getting the latest version, and the list of versions. Defaults to <c>false</c>.</param>
     /// <param name="useCache">If the <see cref="PackageMetadata"/> should be retrieved from the cache, if it is available.</param>
+    /// <param name="includeRepositoryMetadata"> If repository metadata should be retrieved or not. </param>
     /// <remarks>If no version specified, defaults to latest version.</remarks>
     /// <returns>A <see cref="PackageMetadata"/> object representing this <see cref="PackageURL"/>.</returns>
-    public Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool includePrerelease = false, bool useCache = true);
+    public Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool includePrerelease = false, bool useCache = true, bool includeRepositoryMetadata = true);
 
     /// <summary>
     /// Gets everything contained in a JSON element for the package version

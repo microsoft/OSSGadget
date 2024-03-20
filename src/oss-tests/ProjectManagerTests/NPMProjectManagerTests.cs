@@ -357,7 +357,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public async Task FetchesRepositoryMetadataSuccessfully(bool includeRepositoryMetadata)
         {
             PackageURL purl = new("pkg:npm/lodash.js");
-            var metadata = await _projectManager.Object.GetNpmPackageMetadataAsync(purl, includeRepositoryMetadata: includeRepositoryMetadata);
+            var metadata = await _projectManager.Object.GetPackageMetadataAsync(purl, includeRepositoryMetadata: includeRepositoryMetadata);
            
             if(includeRepositoryMetadata)
             {

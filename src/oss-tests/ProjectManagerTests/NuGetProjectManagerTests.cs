@@ -299,7 +299,15 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 
             Assert.AreEqual(expectedReserved, isReserved);
         }
-                
+
+        public async Task SkipsRepositoryMetadataFetchSuccessfully()
+        {
+            PackageURL purl = new("pkg:nuget/newtonsoft.json@13.0.1");
+            var metadata = await _projectManager.GetPackageMetadataAsync(purl, includeRepositoryMetadata: false);
+
+            Assert.IsNull(metadata.Repository);
+        }
+
         [DataTestMethod]
         [DataRow("pkg:nuget/newtonsoft.json@13.0.1", 
             "https://api.nuget.org/v3-flatcontainer/newtonsoft.json/13.0.1/newtonsoft.json.13.0.1.nupkg",

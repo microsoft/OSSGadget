@@ -297,7 +297,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         /// <inheritdoc />
         /// <remarks>Currently doesn't respect the <paramref name="includePrerelease"/> flag.</remarks>
-        public override async Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool includePrerelease = false, bool useCache = true)
+        public override async Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool includePrerelease = false, bool useCache = true, bool includeRepositoryMetadata = true)
         {
             PackageMetadata metadata = new();
             string? content = await GetMetadataAsync(purl, useCache);
@@ -345,18 +345,21 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             metadata.Maintainers.Add(maintainer);
 
             // repository
-            Dictionary<PackageURL, double>? repoMappings = await SearchRepoUrlsInPackageMetadata(purl, content);
-            foreach (KeyValuePair<PackageURL, double> repoMapping in repoMappings)
+            if (includeRepositoryMetadata)
             {
-                Repository repository = new()
+                Dictionary<PackageURL, double>? repoMappings = await SearchRepoUrlsInPackageMetadata(purl, content);
+                foreach (KeyValuePair<PackageURL, double> repoMapping in repoMappings)
                 {
-                    Rank = repoMapping.Value,
-                    Type = repoMapping.Key.Type
-                };
-                await repository.ExtractRepositoryMetadata(repoMapping.Key);
+                    Repository repository = new()
+                    {
+                        Rank = repoMapping.Value,
+                        Type = repoMapping.Key.Type
+                    };
+                    await repository.ExtractRepositoryMetadata(repoMapping.Key);
 
-                metadata.Repository ??= new List<Repository>();
-                metadata.Repository.Add(repository);
+                    metadata.Repository ??= new List<Repository>();
+                    metadata.Repository.Add(repository);
+                }
             }
 
             // license

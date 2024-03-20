@@ -191,6 +191,25 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             Assert.AreEqual(exists, existence.Exists);
         }
 
+
+        [DataTestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public async Task FetchesRepositoryMetadataSuccessfully(bool includeRepositoryMetadata)
+        {
+            PackageURL purl = new("pkg:pypi/pandas@1.4.2");
+            var metadata = await _projectManager.GetPackageMetadataAsync(purl, includeRepositoryMetadata: includeRepositoryMetadata);
+
+            if (includeRepositoryMetadata)
+            {
+                Assert.IsNotNull(metadata.Repository);
+            }
+            else
+            {
+                Assert.IsNull(metadata.Repository);
+            }
+        }
+
         [DataTestMethod]
         [DataRow("pkg:pypi/pandas@1.4.2", true)]
         [DataRow("pkg:pypi/pandas@12.34.56.78", false)]

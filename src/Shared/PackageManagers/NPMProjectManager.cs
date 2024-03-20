@@ -277,12 +277,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         /// <inheritdoc />
         /// <remarks>Currently doesn't respect the <paramref name="includePrerelease"/> flag.</remarks>
-        public override async Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool includePrerelease = false, bool useCache = true)
-        {
-           return await GetNpmPackageMetadataAsync(purl, includePrerelease, useCache);
-        }
-
-        public  async Task<PackageMetadata?> GetNpmPackageMetadataAsync(PackageURL purl, bool includePrerelease = false, bool useCache = true, bool includeRepositoryMetadata = true)
+        public override async Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool includePrerelease = false, bool useCache = true, bool includeRepositoryMetadata = true)
         {
             PackageMetadata metadata = new();
             string? content = await GetMetadataAsync(purl, useCache);

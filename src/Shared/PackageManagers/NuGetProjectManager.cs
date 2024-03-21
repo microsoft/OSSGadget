@@ -183,7 +183,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
         
         /// <inheritdoc />
-        public override async Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool includePrerelease = false, bool useCache = true)
+        public override async Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool includePrerelease = false, bool useCache = true, bool includeRepositoryMetadata = true)
         {
             string? latestVersion = await Actions.GetLatestVersionAsync(purl, includePrerelease: includePrerelease, useCache: useCache);
 
@@ -214,7 +214,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             metadata.LatestPackageVersion = latestVersion;
 
             // Get the metadata for either the specified package version, or the latest package version
-            await UpdateVersionMetadata(metadata, packageVersionMetadata);
+            await UpdateVersionMetadata(metadata, packageVersionMetadata, includeRepositoryMetadata);
 
             return metadata;
         }
@@ -250,7 +250,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// </summary>
         /// <param name="metadata">The <see cref="PackageMetadata"/> object to update with the values for this version.</param>
         /// <param name="packageVersionMetadata">The <see cref="NuGetPackageVersionMetadata"/> representing this version.</param>
-        private async Task UpdateVersionMetadata(PackageMetadata metadata, NuGetPackageVersionMetadata packageVersionMetadata)
+        private async Task UpdateVersionMetadata(PackageMetadata metadata, NuGetPackageVersionMetadata packageVersionMetadata, bool includeRepositoryMetadata)
         {
             if (metadata.PackageVersion is null)
             {
@@ -273,7 +273,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             UpdateMetadataAuthorsAndMaintainers(metadata, packageVersionMetadata);
 
             // Repository
-            await UpdateMetadataRepository(metadata);
+            if(includeRepositoryMetadata)
+            {
+                await UpdateMetadataRepository(metadata);
+            }
 
             // Dependencies
             IList<PackageDependencyGroup> dependencyGroups = packageVersionMetadata.DependencySets.ToList();

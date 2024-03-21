@@ -277,7 +277,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         /// <inheritdoc />
         /// <remarks>Currently doesn't respect the <paramref name="includePrerelease"/> flag.</remarks>
-        public override async Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool includePrerelease = false, bool useCache = true)
+        public override async Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool includePrerelease = false, bool useCache = true, bool includeRepositoryMetadata = true)
         {
             PackageMetadata metadata = new();
             string? content = await GetMetadataAsync(purl, useCache);
@@ -295,6 +295,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             metadata.Language = "JavaScript";
             metadata.PackageUri = $"{metadata.PackageManagerUri}/package/{metadata.Name}";
             metadata.ApiPackageUri = $"{ENV_NPM_API_ENDPOINT}/{metadata.Name}";
+            metadata.CreatedTime = ParseCreatedTime(contentJSON);
 
             List<Version> versions = GetVersions(contentJSON);
             Version? latestVersion = GetLatestVersion(versions);
@@ -328,7 +329,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     {
                         metadata.Description = description;
                     }
-                    
+
                     JsonElement? distElement = OssUtilities.GetJSONPropertyIfExists(versionElement, "dist");
                     if (OssUtilities.GetJSONPropertyIfExists(distElement, "tarball") is JsonElement tarballElement)
                     {
@@ -349,7 +350,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                             Signature = pair[1]
                         });
                     }
-                    
+
                     // size
                     if (OssUtilities.GetJSONPropertyIfExists(distElement, "unpackedSize") is JsonElement sizeElement &&
                         sizeElement.GetInt64() is long size)
@@ -370,7 +371,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     {
                         metadata.Homepage = homepage;
                     }
-                    
+
                     // commit id
                     if (OssUtilities.GetJSONPropertyStringIfExists(versionElement, "gitHead") is string gitHead &&
                         !string.IsNullOrWhiteSpace(gitHead))
@@ -427,18 +428,21 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     }
 
                     // repository
-                    Dictionary<PackageURL, double> repoMappings = await SearchRepoUrlsInPackageMetadata(purl, content);
-                    foreach (KeyValuePair<PackageURL, double> repoMapping in repoMappings)
+                    if (includeRepositoryMetadata)
                     {
-                        Repository repository = new()
+                        Dictionary<PackageURL, double> repoMappings = await SearchRepoUrlsInPackageMetadata(purl, contentJSON);
+                        foreach (KeyValuePair<PackageURL, double> repoMapping in repoMappings)
                         {
-                            Rank = repoMapping.Value,
-                            Type = repoMapping.Key.Type
-                        };
-                        await repository.ExtractRepositoryMetadata(repoMapping.Key);
+                            Repository repository = new()
+                            {
+                                Rank = repoMapping.Value,
+                                Type = repoMapping.Key.Type
+                            };
+                            await repository.ExtractRepositoryMetadata(repoMapping.Key);
 
-                        metadata.Repository ??= new List<Repository>();
-                        metadata.Repository.Add(repository);
+                            metadata.Repository ??= new List<Repository>();
+                            metadata.Repository.Add(repository);
+                        }
                     }
 
                     // keywords
@@ -481,6 +485,19 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             string? packageName = purl.HasNamespace() ? $"{purl.GetNamespaceFormatted()}/{purl.Name}" : purl.Name;
             JsonDocument jsonDoc = await GetJsonCache(client, $"{ENV_NPM_API_ENDPOINT}/{packageName}", useCache);
             return ParseUploadTime(jsonDoc, purl.Version);
+        }
+
+        private DateTime? ParseCreatedTime(JsonDocument jsonDoc)
+        {
+            if (jsonDoc.RootElement.TryGetProperty("time", out JsonElement time))
+            {
+                string? createdTime = OssUtilities.GetJSONPropertyStringIfExists(time, "created");
+                if (createdTime != null)
+                {
+                    return DateTime.Parse(createdTime).ToUniversalTime();
+                }
+            }
+            return null;
         }
 
         private DateTime? ParseUploadTime(JsonDocument jsonDoc, string versionKey)

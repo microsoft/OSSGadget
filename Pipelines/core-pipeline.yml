@@ -11,14 +11,6 @@ trigger:
     include:
     - Pipelines
     - src
-pr:
-  branches:
-    include:
-    - main
-  paths:
-    include:
-    - Pipelines
-    - src
 
 stages:
 - stage: Test

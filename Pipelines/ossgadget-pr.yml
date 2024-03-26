@@ -30,7 +30,6 @@ extends:
       os: windows
     stages:
     - stage: Test
-      dependsOn: []
       jobs:
       - template: dotnet-test-job.yml@templates
         parameters:
@@ -42,8 +41,6 @@ extends:
           projectPath: 'src/oss-tests/oss-tests.csproj'
 
     - stage: Build
-      dependsOn:
-      - Test
       jobs:
         - template: dotnet-build-job.yml@templates
           parameters:

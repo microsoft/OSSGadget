@@ -1,0 +1,61 @@
+name: OSSGadget_PR_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
+trigger: none
+pr:
+  branches:
+    include:
+    - main
+
+resources:
+  repositories:
+    - repository: templates
+      type: git
+      name: SecurityEngineering/OSS-Tools-Pipeline-Templates
+      # ref: refs/tags/v1.1.1
+      ref: refs/heads/gfs/UpdateTemplates
+    - repository: 1esPipelines
+      type: git
+      name: 1ESPipelineTemplates/1ESPipelineTemplates
+      ref: refs/tags/release
+
+variables:
+  BuildConfiguration: 'Release'
+  dotnetVersion: '8.0.x'
+
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1esPipelines
+  parameters:
+    pool:
+      name: MSSecurity-1ES-Build-Agents-Pool
+      image: MSSecurity-1ES-Windows-2022
+      os: windows
+    stages:
+    - stage: Test
+      dependsOn: []
+      jobs:
+      - template: dotnet-test-job.yml@templates
+        parameters:
+          jobName: 'dotnet_test_windows'
+          dotnetVersions: ['6.0.x','7.0.x','8.0.x']
+          poolName: MSSecurity-1ES-Build-Agents-Pool
+          poolImage: MSSecurity-1ES-Windows-2022
+          poolOs: windows
+          projectPath: 'src/oss-tests/oss-tests.csproj'
+
+    - stage: Build
+      dependsOn:
+      - Test
+      jobs:
+        - template: dotnet-build-job.yml@templates
+          parameters:
+            buildTool: 'dotnet'
+            buildConfiguration: 'Release'
+            dotnetVersion: '8.0.x'
+            targetFramework: 'net8.0'
+            projectPath: 'src/OSSGadget.sln'
+            projectName: 'OSSGadget'
+            poolName: MSSecurity-1ES-Build-Agents-Pool
+            poolImage: MSSecurity-1ES-Windows-2022
+            poolOs: windows
+            artifactName: 'OSSGadget-archive'
+            preBuild:
+            - template: nbgv-set-version-steps.yml@templates

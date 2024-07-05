@@ -49,7 +49,7 @@
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.0" />
     <PackageReference Include="NLog" Version="5.2.8" />
     <PackageReference Include="NLog.Schema" Version="5.2.8" />
-    <PackageReference Include="NuGet.Versioning" Version="6.8.0" />
+    <PackageReference Include="NuGet.Versioning" Version="6.8.1" />
     <PackageReference Include="Octokit" Version="9.1.0" />
     <PackageReference Include="Sarif.Sdk" Version="4.4.0" />
     <PackageReference Include="SemanticVersioning" Version="2.0.2" />

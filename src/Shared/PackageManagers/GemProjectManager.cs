@@ -27,11 +27,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public string ENV_RUBYGEMS_ENDPOINT { get; set; } = "https://rubygems.org";
         public string ENV_RUBYGEMS_ENDPOINT_API { get; set; } = "https://api.rubygems.org";
 
-        public GemProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        public GemProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory, TimeSpan? timeout = null) : base(httpClientFactory, destinationDirectory, timeout)
         {
         }
 
-        public GemProjectManager(string destinationDirectory) : base(destinationDirectory)
+        public GemProjectManager(string destinationDirectory, TimeSpan? timeout = null) : base(destinationDirectory, timeout)
         {
         }
 

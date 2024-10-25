@@ -34,11 +34,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public string ENV_CPAN_API_ENDPOINT { get; set; } = "https://fastapi.metacpan.org";
 
-        public CPANProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        public CPANProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory, TimeSpan? timeout = null) : base(httpClientFactory, destinationDirectory, timeout)
         {
         }
 
-        public CPANProjectManager(string destinationDirectory) : base(destinationDirectory)
+        public CPANProjectManager(string destinationDirectory, TimeSpan? timeout = null) : base(destinationDirectory, timeout)
         {
         }
 

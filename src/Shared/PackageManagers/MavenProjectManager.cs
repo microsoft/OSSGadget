@@ -33,8 +33,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public MavenProjectManager(
             string directory,
             IManagerPackageActions<IManagerPackageVersionMetadata>? actions = null,
-            IHttpClientFactory? httpClientFactory = null)
-            : base(actions ?? new NoOpPackageActions(), httpClientFactory ?? new DefaultHttpClientFactory(), directory)
+            IHttpClientFactory? httpClientFactory = null,
+            TimeSpan? timeout = null)
+            : base(actions ?? new NoOpPackageActions(), httpClientFactory ?? new DefaultHttpClientFactory(), directory, timeout)
         {
         }
 

@@ -25,7 +25,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             Mock<IHttpClientFactory> mockFactory = new();
             _httpFactory = mockFactory.Object;
 
-            _projectManager = new Mock<CondaProjectManager>(".", new NoOpPackageActions(), _httpFactory) { CallBase = true };
+            _projectManager = new Mock<CondaProjectManager>(".", new NoOpPackageActions(), _httpFactory, null) { CallBase = true };
         }
 
         [DataTestMethod]

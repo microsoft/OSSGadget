@@ -44,7 +44,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
             _httpFactory = mockFactory.Object;
 
-            _projectManager = new Mock<GolangProjectManager>(".", new NoOpPackageActions(), _httpFactory) { CallBase = true };
+            _projectManager = new Mock<GolangProjectManager>(".", new NoOpPackageActions(), _httpFactory, null) { CallBase = true };
         }
 
         [DataTestMethod]

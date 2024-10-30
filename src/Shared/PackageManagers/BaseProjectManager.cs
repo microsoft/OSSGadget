@@ -25,7 +25,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <inheritdoc />
         public abstract string ManagerType { get; }
 
-        private TimeSpan? _timeout;
+        /// <inheritdoc/>
+        public TimeSpan? Timeout { get; } = null;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BaseProjectManager"/> class.
@@ -36,7 +37,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             Options = new Dictionary<string, object>();
             TopLevelExtractionDirectory = destinationDirectory;
             HttpClientFactory = httpClientFactory;
-            _timeout = timeout;
+            Timeout = timeout;
         }
 
         public BaseProjectManager(string destinationDirectory = ".", TimeSpan? timeout = null) : this(new DefaultHttpClientFactory(), destinationDirectory, timeout)
@@ -528,9 +529,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         protected HttpClient CreateHttpClient()
         {
             HttpClient client = HttpClientFactory.CreateClient(GetType().Name);
-            if (_timeout.HasValue)
+            if (Timeout.HasValue)
             {
-                client.Timeout = _timeout.Value;
+                client.Timeout = Timeout.Value;
             }
             return client;
         }

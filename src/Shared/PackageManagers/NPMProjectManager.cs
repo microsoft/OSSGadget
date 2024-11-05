@@ -130,6 +130,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     downloadedPaths.Add(extractionPath);
                 }
             }
+            catch (TaskCanceledException ex)
+            {
+                Logger.Debug(ex, "Downloading NPM package timed out: {0}", ex.Message);
+                throw;
+            }
             catch (Exception ex)
             {
                 Logger.Debug(ex, "Error downloading NPM package: {0}", ex.Message);

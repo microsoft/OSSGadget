@@ -3,13 +3,16 @@
 namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests;
 
 using Contracts;
+using Moq;
 using PackageActions;
 using PackageManagers;
 using PackageUrl;
+using RichardSzalay.MockHttp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Threading.Tasks;
 using VisualStudio.TestTools.UnitTesting;
 
 [TestClass]
@@ -155,6 +158,40 @@ public class ProjectManagerFactoryTests
         // Assert
         Assert.AreEqual(testTimeout, testProjectManager?.Timeout);
         Assert.IsNull(testProjectManagerWithoutTimeout?.Timeout);
+    }
+
+    /// <summary>
+    /// Test that requests time out after the timespan if specified.
+    /// </summary>
+    [TestMethod]
+    public async Task PackageManagerRequestsTimeOutCorrectly()
+    {
+        // Arrange
+        Mock<IHttpClientFactory> mockFactory = new();
+        MockHttpMessageHandler mockHttp = new();
+        mockHttp
+            .When(HttpMethod.Get, "*")
+            .Respond(async () =>
+            {
+                await Task.Delay(5000); // simulate a 5 seconds delay
+                return new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+                {
+                    Content = new StringContent("This is a delayed response")
+                };
+            });
+        HttpClient testClient = mockHttp.ToHttpClient();
+        testClient.Timeout = TimeSpan.FromMilliseconds(100);
+        mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(testClient);
+        IHttpClientFactory httpFactory = mockFactory.Object;
+        PackageURL testPackageUrl = new("pkg:npm/foo@0.1");
+
+        Mock<NPMProjectManager> testProjectManager = new Mock<NPMProjectManager>(".", new NoOpPackageActions(), httpFactory, null) { CallBase = true };
+
+        //Act
+        Func<Task> act = async () => await testProjectManager.Object.DownloadVersionAsync(testPackageUrl, false, false);
+
+        //Assert
+        await Assert.ThrowsExceptionAsync<TaskCanceledException>(act);
     }
 
     /// <summary>

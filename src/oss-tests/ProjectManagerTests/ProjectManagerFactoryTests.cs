@@ -11,6 +11,7 @@ using RichardSzalay.MockHttp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using VisualStudio.TestTools.UnitTesting;
@@ -173,7 +174,7 @@ public class ProjectManagerFactoryTests
             .When(HttpMethod.Get, "*")
             .Respond(async () =>
             {
-                await Task.Delay(5000); // simulate a 5 seconds delay
+                await Task.Delay(120); // simulate a delay slightly longer than the timeout set
                 return new HttpResponseMessage(System.Net.HttpStatusCode.OK)
                 {
                     Content = new StringContent("This is a delayed response")
@@ -188,10 +189,11 @@ public class ProjectManagerFactoryTests
         Mock<NPMProjectManager> testProjectManager = new Mock<NPMProjectManager>(".", new NoOpPackageActions(), httpFactory, null) { CallBase = true };
 
         //Act
-        Func<Task> act = async () => await testProjectManager.Object.DownloadVersionAsync(testPackageUrl, false, false);
+        Exception exception = await Assert.ThrowsExceptionAsync<TaskCanceledException>(() => testProjectManager.Object.DownloadVersionAsync(testPackageUrl, false, false));
 
         //Assert
-        await Assert.ThrowsExceptionAsync<TaskCanceledException>(act);
+        Assert.IsNotNull(exception.InnerException);
+        Assert.IsInstanceOfType(exception.InnerException, typeof(TimeoutException));
     }
 
     /// <summary>

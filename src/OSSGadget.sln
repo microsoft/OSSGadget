@@ -44,6 +44,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared.CLI", "Shared.CLI\Sh
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "oss-fresh", "oss-fresh\oss-fresh.csproj", "{5E0E66AB-D141-42A1-B53F-BEE63FBD62FB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "oss-gadget-cli", "oss-gadget-cli\oss-gadget-cli.csproj", "{9B2B9345-186C-44B7-90C3-0D7A892D464F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -121,6 +123,10 @@ Global
 		{5E0E66AB-D141-42A1-B53F-BEE63FBD62FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5E0E66AB-D141-42A1-B53F-BEE63FBD62FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5E0E66AB-D141-42A1-B53F-BEE63FBD62FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B2B9345-186C-44B7-90C3-0D7A892D464F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B2B9345-186C-44B7-90C3-0D7A892D464F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B2B9345-186C-44B7-90C3-0D7A892D464F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B2B9345-186C-44B7-90C3-0D7A892D464F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

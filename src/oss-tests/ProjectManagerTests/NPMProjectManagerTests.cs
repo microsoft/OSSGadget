@@ -127,7 +127,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
             _httpFactory = mockFactory.Object;
 
-            _projectManager = new Mock<NPMProjectManager>(".", new NoOpPackageActions(), _httpFactory) { CallBase = true };
+            _projectManager = new Mock<NPMProjectManager>(".", new NoOpPackageActions(), _httpFactory, null) { CallBase = true };
         }
 
         [DataTestMethod]
@@ -290,6 +290,8 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public async Task PackageVersionPulledAsync(string purlString, bool expectedPulled = true)
         {
             PackageURL purl = new(purlString);
+
+            var project = _projectManager;
             
             string? content = await _projectManager.Object.GetMetadataAsync(purl);
 

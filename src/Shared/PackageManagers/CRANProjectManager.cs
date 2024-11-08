@@ -26,11 +26,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public string ENV_CRAN_ENDPOINT { get; set; } = "https://cran.r-project.org";
 
-        public CRANProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        public CRANProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory, TimeSpan? timeout = null) : base(httpClientFactory, destinationDirectory, timeout)
         {
         }
 
-        public CRANProjectManager(string destinationDirectory) : base(destinationDirectory)
+        public CRANProjectManager(string destinationDirectory, TimeSpan? timeout = null) : base(destinationDirectory, timeout)
         {
         }
 

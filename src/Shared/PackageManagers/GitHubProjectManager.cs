@@ -28,11 +28,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         private const string DEFAULT_GITHUB_ENDPOINT = "https://github.com";
         public string ENV_GITHUB_ENDPOINT { get; set; } = DEFAULT_GITHUB_ENDPOINT;
 
-        public GitHubProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        public GitHubProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory, TimeSpan? timeout = null) : base(httpClientFactory, destinationDirectory, timeout)
         {
         }
 
-        public GitHubProjectManager(string destinationDirectory) : base(destinationDirectory)
+        public GitHubProjectManager(string destinationDirectory, TimeSpan? timeout = null) : base(destinationDirectory, timeout)
         {
         }
 

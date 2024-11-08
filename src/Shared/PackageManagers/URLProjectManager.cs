@@ -20,11 +20,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         public override string ManagerType => Type;
 
-        public URLProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        public URLProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory, TimeSpan? timeout = null) : base(httpClientFactory, destinationDirectory, timeout)
         {
         }
 
-        public URLProjectManager(string destinationDirectory) : base(destinationDirectory)
+        public URLProjectManager(string destinationDirectory, TimeSpan? timeout = null) : base(destinationDirectory, timeout)
         {
         }
 

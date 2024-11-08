@@ -20,6 +20,8 @@ public interface IBaseProjectManager
     /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
     public string ManagerType { get; }
 
+    public TimeSpan? Timeout { get; }
+
     /// <summary>
     /// Per-object option container.
     /// </summary>

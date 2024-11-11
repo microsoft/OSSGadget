@@ -21,7 +21,7 @@ namespace Microsoft.CST.OpenSource
     using System.Text.Json;
     using System.Text.RegularExpressions;
 
-    public class FreshTool : OSSGadget
+    public class FreshTool : BaseTool<FreshToolOptions>
     {
         public FreshTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
         {
@@ -37,7 +37,7 @@ namespace Microsoft.CST.OpenSource
             await freshTool.ParseOptions<FreshToolOptions>(args).WithParsedAsync(freshTool.RunAsync);
         }
 
-        private async Task RunAsync(FreshToolOptions freshToolOptions)
+        public override async Task<ErrorCode> RunAsync(FreshToolOptions freshToolOptions)
         {
             // select output destination and format
             SelectOutput(freshToolOptions.OutputFile);
@@ -167,6 +167,8 @@ namespace Microsoft.CST.OpenSource
                     }
                 }
             }
+
+            return ErrorCode.Ok;
         }
     }
 }

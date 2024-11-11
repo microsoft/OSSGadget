@@ -80,7 +80,7 @@ namespace Microsoft.CST.OpenSource.OssGadget.Tools.HealthTool
         }
 
 
-        public async Task RunAsync(HealthToolOptions options)
+        public override async Task<ErrorCode> RunAsync(HealthToolOptions options)
         {
             // select output destination and format
             SelectOutput(options.OutputFile);
@@ -114,6 +114,8 @@ namespace Microsoft.CST.OpenSource.OssGadget.Tools.HealthTool
                 outputBuilder.PrintOutput();
             }
             RestoreOutput();
+
+            return ErrorCode.Ok;
         }
     }
 }

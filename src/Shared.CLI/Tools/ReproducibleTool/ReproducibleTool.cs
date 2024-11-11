@@ -138,7 +138,7 @@ namespace Microsoft.CST.OpenSource
             return bestScore;
         }
 
-        private async Task RunAsync(ReproducibleToolOptions reproducibleToolOptions)
+        public override async Task<ErrorCode> RunAsync(ReproducibleToolOptions reproducibleToolOptions)
         {
             if (reproducibleToolOptions.ShowAllDifferences)
             {
@@ -165,7 +165,7 @@ namespace Microsoft.CST.OpenSource
                         Console.WriteLine($" * {s.Name}");
                     }
                     Console.WriteLine("Example: oss-reproducible --specific-strategies AutoBuildProducesSamePackage,PackageMatchesSourceStrategy pkg:npm/left-pad@1.3.0");
-                    return;
+                    return ErrorCode.ErrorParsingOptions;
                 }
             }
 
@@ -488,6 +488,8 @@ namespace Microsoft.CST.OpenSource
             {
                 Logger.Debug("No results were produced.");
             }
+
+            return ErrorCode.Ok;
         }
     }
 }

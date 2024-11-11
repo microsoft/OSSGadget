@@ -17,7 +17,7 @@ namespace Microsoft.CST.OpenSource
     using System.Threading.Tasks;
     using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
 
-    public class BaseTool<T> : OssGadgetLib where T: BaseToolOptions
+    public abstract class BaseTool<T> : OssGadgetLib where T: BaseToolOptions
     {
         public OutputFormat currentOutputFormat = OutputFormat.text;
 
@@ -31,10 +31,7 @@ namespace Microsoft.CST.OpenSource
         public BaseTool() : base()
         {}
 
-        public async Task RunAsync(T opt)
-        {
-            throw new NotImplementedException();
-        }
+        public abstract Task<ErrorCode> RunAsync(T opt);
 
         /// <summary>
         /// Formulates the help text for each derived tool

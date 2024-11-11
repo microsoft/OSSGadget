@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.CST.OpenSource.DiffTool
+namespace Microsoft.CST.OpenSource.OssGadget.Tools
 {
     public class Diff
     {

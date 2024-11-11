@@ -49,7 +49,7 @@ namespace Microsoft.CST.OpenSource.DomainSquats
 
         private readonly Regex ValidDomainRegex = new("^[0-9a-z]+[0-9a-z\\-]*[0-9a-z]+$", RegexOptions.Compiled);
 
-        public async Task<(string output, int registeredSquats, int unregisteredSquats)> RunAsync(FindDomainSquatsToolOptions FindDomainSquatsToolOptions)
+        public override async Task<ErrorCode> RunAsync(FindDomainSquatsToolOptions FindDomainSquatsToolOptions)
         {
             IOutputBuilder outputBuilder = SelectFormat(FindDomainSquatsToolOptions.Format);
             List<(string, KeyValuePair<string, List<Mutation>>)> registeredSquats = new();
@@ -221,7 +221,7 @@ namespace Microsoft.CST.OpenSource.DomainSquats
             string outString = outputBuilder.GetOutput();
             fw.WriteLine(outString);
             fw.Close();
-            return (outString, registeredSquats.Count, unregisteredSquats.Count);
+            return ErrorCode.Ok;
         }
     }
 }

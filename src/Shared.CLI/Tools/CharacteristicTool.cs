@@ -254,9 +254,10 @@ namespace Microsoft.CST.OpenSource.OssGadget.Tools
             }
         }
 
-        public async Task RunAsync(CharacteristicToolOptions options)
+        public override async Task<ErrorCode> RunAsync(CharacteristicToolOptions options)
         {
             _ = await LegacyRunAsync(options);
+            return ErrorCode.Ok;
         }
         
         public async Task<List<Dictionary<string, AnalyzeResult?>>> LegacyRunAsync(CharacteristicToolOptions options)

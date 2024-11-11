@@ -177,7 +177,7 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        private async Task RunAsync(FindSourceToolOptions findSourceToolOptions)
+        public override async Task<ErrorCode> RunAsync(FindSourceToolOptions findSourceToolOptions)
         {
             // Save the console logger to restore it later if we are in single mode
             NLog.Targets.Target? oldConfig = LogManager.Configuration.FindTargetByName("consoleLog");
@@ -221,6 +221,8 @@ namespace Microsoft.CST.OpenSource
             {
                 LogManager.Configuration.AddTarget(oldConfig);
             }
+
+            return ErrorCode.Ok;
         }
     }
 }

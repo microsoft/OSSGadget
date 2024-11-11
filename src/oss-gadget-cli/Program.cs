@@ -2,6 +2,7 @@
 
 using CommandLine;
 using Microsoft.CST.OpenSource;
+using Microsoft.CST.OpenSource.DomainSquats;
 using Microsoft.CST.OpenSource.OssGadget.Options;
 using Microsoft.CST.OpenSource.OssGadget.CLI.Tools;
 using Microsoft.CST.OpenSource.OssGadget.Tools;
@@ -34,7 +35,12 @@ class OssGadgetCli : OSSGadget
             HealthToolOptions healthToolOptions => await new HealthTool(ProjectManagerFactory).RunAsync(healthToolOptions),
             RiskCalculatorToolOptions riskCalculatorToolOptions => await new RiskCalculatorTool(ProjectManagerFactory).RunAsync(riskCalculatorToolOptions),
             CharacteristicToolOptions characteristicToolOptions => await new CharacteristicTool(ProjectManagerFactory).RunAsync(characteristicToolOptions),
-            _ => ErrorCode.Ok
+            FreshToolOptions freshToolOptions => await new FreshTool(ProjectManagerFactory).RunAsync(freshToolOptions),
+            DiffToolOptions diffToolOptions => await new DiffTool(ProjectManagerFactory).RunAsync(diffToolOptions),
+            ReproducibleToolOptions reproducibleToolOptions => await new ReproducibleTool(ProjectManagerFactory).RunAsync(reproducibleToolOptions),
+            FindDomainSquatsToolOptions findDomainSquatsToolOptions => await new FindDomainSquatsTool(new DefaultHttpClientFactory()).RunAsync(findDomainSquatsToolOptions),
+            FindSourceToolOptions findSourceToolOptions => await new FindSourceTool(ProjectManagerFactory).RunAsync(findSourceToolOptions),
+            _ => ErrorCode.ErrorParsingOptions
         };
     }
     

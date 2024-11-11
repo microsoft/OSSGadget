@@ -18,7 +18,7 @@ using Microsoft.CST.RecursiveExtractor;
 using Pastel;
 using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
 
-namespace Microsoft.CST.OpenSource.DiffTool
+namespace Microsoft.CST.OpenSource.OssGadget.Tools
 {
     using Contracts;
     using Microsoft.CST.OpenSource.Helpers;
@@ -27,7 +27,7 @@ namespace Microsoft.CST.OpenSource.DiffTool
     using OssGadget.Options;
     using PackageUrl;
 
-    class DiffTool : BaseTool<DiffToolOptions>
+    public class DiffTool : BaseTool<DiffToolOptions>
     { 
         public DiffTool(ProjectManagerFactory projectManagerFactory) : base(projectManagerFactory)
         {
@@ -400,12 +400,12 @@ namespace Microsoft.CST.OpenSource.DiffTool
             return outputBuilder;
         }
 
-        public async Task RunAsync(DiffToolOptions options)
+        public override async Task<ErrorCode> RunAsync(DiffToolOptions options)
         {
             if (options.Targets.Count() != 2)
             {
                 Logger.Error("Must provide exactly two packages to diff.");
-                return;
+                return ErrorCode.NoTargets;
             }
 
             if (options.Context > 0)
@@ -424,6 +424,8 @@ namespace Microsoft.CST.OpenSource.DiffTool
             {
                 result.WriteOutput(options.OutputLocation);
             }
+
+            return ErrorCode.Ok;
         }
     }
 }

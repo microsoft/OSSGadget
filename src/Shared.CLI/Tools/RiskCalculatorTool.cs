@@ -175,7 +175,7 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
-        public async Task RunAsync(RiskCalculatorToolOptions options)
+        public override async Task<ErrorCode> RunAsync(RiskCalculatorToolOptions options)
         {
             // select output destination and format
             SelectOutput(options.OutputFile);
@@ -212,6 +212,8 @@ namespace Microsoft.CST.OpenSource
 
                 RestoreOutput();
             }
+
+            return ErrorCode.Ok;
         }
     }
 }

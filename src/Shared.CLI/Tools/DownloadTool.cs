@@ -1,14 +1,18 @@
 // Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-namespace oss_gadget_cli;
+namespace Microsoft.CST.OpenSource.OssGadget.CLI.Tools;
 
 using Microsoft.CST.OpenSource;
 using Microsoft.CST.OpenSource.Helpers;
 using Microsoft.CST.OpenSource.PackageManagers;
 using NLog;
 using PackageUrl;
-
-public class DownloadTool
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.CST.OpenSource.OssGadget.CLI.Options;
+public class DownloadTool : BaseTool<DownloadToolOptions>
 {
     private readonly ProjectManagerFactory _projectManagerFactory;
     private readonly ILogger _logger;
@@ -19,7 +23,7 @@ public class DownloadTool
         _logger = CliHelpers.Logger;
     }
     
-    public async Task<ErrorCode> RunAsync(DownloadOptions options)
+    public async Task<ErrorCode> RunAsync(DownloadToolOptions options)
         {
             if (options.Targets is IEnumerable<string> targetList && targetList.Any())
             {

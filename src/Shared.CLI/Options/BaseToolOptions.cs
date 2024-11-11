@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-namespace oss_gadget_cli;
+namespace Microsoft.CST.OpenSource.OssGadget.CLI.Options;
 
 using CommandLine;
 using CommandLine.Text;
+using System.Collections.Generic;
 
-[Verb("download", HelpText = "Download a specified package by PackageUrl")]
-public class DownloadOptions
+public class BaseToolOptions
 {
     [Usage()]
     public static IEnumerable<Example> Examples
@@ -15,7 +15,7 @@ public class DownloadOptions
         {
             return new List<Example>() {
                 new Example("Download the given package",
-                    new DownloadOptions { Targets = new List<string>() {"[options]", "package-url..." } })};
+                    new DownloadToolOptions { Targets = new List<string>() {"[options]", "package-url..." } })};
         }
     }
 

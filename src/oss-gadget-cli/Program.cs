@@ -2,6 +2,8 @@
 
 using CommandLine;
 using Microsoft.CST.OpenSource;
+using Microsoft.CST.OpenSource.OssGadget.CLI.Options;
+using Microsoft.CST.OpenSource.OssGadget.CLI.Tools;
 using System.Reflection;
 
 class OssGadgetCli : OSSGadget
@@ -26,7 +28,7 @@ class OssGadgetCli : OSSGadget
     {
         _returnCode = obj switch
         {
-            DownloadOptions d => await new DownloadTool(ProjectManagerFactory).RunAsync(d),
+            DownloadToolOptions d => await new DownloadTool(ProjectManagerFactory).RunAsync(d),
             _ => ErrorCode.Ok
         };
     }

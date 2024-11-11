@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Requires Yarn to be installed
+npm -g i yarn

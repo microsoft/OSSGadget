@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft Corporation. Licensed under the MIT License.
-
-namespace Microsoft.CST.OpenSource.OssGadget.CLI.Options;
+namespace Microsoft.CST.OpenSource.OssGadget.Options;
 
 using CommandLine;
 using CommandLine.Text;

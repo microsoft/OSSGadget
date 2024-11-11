@@ -11,7 +11,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Microsoft.CST.OpenSource.Health
+namespace Microsoft.CST.OpenSource.OssGadget.Tools.HealthTool
 {
     using Contracts;
     using PackageUrl;

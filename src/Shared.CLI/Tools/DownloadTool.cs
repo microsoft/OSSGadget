@@ -11,7 +11,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CST.OpenSource.OssGadget.CLI.Options;
+using Microsoft.CST.OpenSource.OssGadget.Options;
+using Options;
+
 public class DownloadTool : BaseTool<DownloadToolOptions>
 {
     private readonly ProjectManagerFactory _projectManagerFactory;

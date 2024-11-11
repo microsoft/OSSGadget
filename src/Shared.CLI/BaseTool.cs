@@ -6,7 +6,7 @@ namespace Microsoft.CST.OpenSource
     using CommandLine.Text;
     using Helpers;
     using Microsoft.CST.OpenSource.Shared;
-    using OssGadget.CLI.Options;
+    using OssGadget.Options;
     using PackageManagers;
     using System;
     using System.Collections.Generic;
@@ -14,6 +14,7 @@ namespace Microsoft.CST.OpenSource
     using System.Linq;
     using System.Reflection;
     using System.Text.RegularExpressions;
+    using System.Threading.Tasks;
     using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
 
     public class BaseTool<T> : OssGadgetLib where T: BaseToolOptions
@@ -29,6 +30,11 @@ namespace Microsoft.CST.OpenSource
         
         public BaseTool() : base()
         {}
+
+        public async Task RunAsync(T opt)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// Formulates the help text for each derived tool

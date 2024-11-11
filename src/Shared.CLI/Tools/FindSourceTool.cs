@@ -13,10 +13,11 @@ using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
 
 namespace Microsoft.CST.OpenSource
 {
+    using OssGadget.Options;
     using PackageManagers;
     using PackageUrl;
 
-    public class FindSourceTool : OSSGadget
+    public class FindSourceTool : BaseTool<FindSourceToolOptions>
     {
         private static readonly HashSet<string> IGNORE_PURLS = new()
         {
@@ -180,11 +181,7 @@ namespace Microsoft.CST.OpenSource
         {
             // Save the console logger to restore it later if we are in single mode
             NLog.Targets.Target? oldConfig = LogManager.Configuration.FindTargetByName("consoleLog");
-            if (!findSourceToolOptions.Single)
-            {
-                ShowToolBanner();
-            }
-            else
+            if (findSourceToolOptions.Single)
             {
                 // Suppress console logging for single mode
                 LogManager.Configuration.RemoveTarget("consoleLog");

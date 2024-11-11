@@ -5,7 +5,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Microsoft.CST.OpenSource.Health
+namespace Microsoft.CST.OpenSource.OssGadget.Tools.HealthTool
 {
     using PackageUrl;
 

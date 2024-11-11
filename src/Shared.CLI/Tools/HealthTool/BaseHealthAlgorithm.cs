@@ -3,7 +3,7 @@
 using Microsoft.CST.OpenSource.Helpers;
 using System.Threading.Tasks;
 
-namespace Microsoft.CST.OpenSource.Health
+namespace Microsoft.CST.OpenSource.OssGadget.Tools.HealthTool
 {
     /// <summary>
     ///     Abstract base class for health algorithms

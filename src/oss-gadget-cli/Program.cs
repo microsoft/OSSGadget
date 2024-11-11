@@ -2,8 +2,10 @@
 
 using CommandLine;
 using Microsoft.CST.OpenSource;
-using Microsoft.CST.OpenSource.OssGadget.CLI.Options;
+using Microsoft.CST.OpenSource.OssGadget.Options;
 using Microsoft.CST.OpenSource.OssGadget.CLI.Tools;
+using Microsoft.CST.OpenSource.OssGadget.Tools;
+using Microsoft.CST.OpenSource.OssGadget.Tools.HealthTool;
 using System.Reflection;
 
 class OssGadgetCli : OSSGadget
@@ -29,6 +31,9 @@ class OssGadgetCli : OSSGadget
         _returnCode = obj switch
         {
             DownloadToolOptions d => await new DownloadTool(ProjectManagerFactory).RunAsync(d),
+            HealthToolOptions healthToolOptions => await new HealthTool(ProjectManagerFactory).RunAsync(healthToolOptions),
+            RiskCalculatorToolOptions riskCalculatorToolOptions => await new RiskCalculatorTool(ProjectManagerFactory).RunAsync(riskCalculatorToolOptions),
+            CharacteristicToolOptions characteristicToolOptions => await new CharacteristicTool(ProjectManagerFactory).RunAsync(characteristicToolOptions),
             _ => ErrorCode.Ok
         };
     }

@@ -29,25 +29,25 @@
 	</PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="AngleSharp" Version="1.0.7" />
+        <PackageReference Include="AngleSharp" Version="1.1.2" />
         <PackageReference Include="CommandLineParser" Version="2.9.1" />
         <PackageReference Include="Crayon" Version="2.0.69" />
         <PackageReference Include="F23.StringSimilarity" Version="6.0.0" />
-        <PackageReference Include="HtmlAgilityPack" Version="1.11.57" />
-        <PackageReference Include="Microsoft.CST.RecursiveExtractor" Version="1.2.23" />
-        <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.0" />
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
-        <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
-        <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="8.0.0" />
-        <PackageReference Include="NLog" Version="5.2.8" />
-        <PackageReference Include="NLog.Schema" Version="5.2.8" />
-        <PackageReference Include="NuGet.Packaging" Version="6.8.0" />
-        <PackageReference Include="NuGet.Protocol" Version="6.8.0" />
-        <PackageReference Include="Octokit" Version="9.1.0" />
+        <PackageReference Include="HtmlAgilityPack" Version="1.11.71" />
+        <PackageReference Include="Microsoft.CST.RecursiveExtractor" Version="1.2.32" />
+        <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.0" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="9.0.0" />
+        <PackageReference Include="NLog" Version="5.3.4" />
+        <PackageReference Include="NLog.Schema" Version="5.3.4" />
+        <PackageReference Include="NuGet.Packaging" Version="6.11.1" />
+        <PackageReference Include="NuGet.Protocol" Version="6.11.1" />
+        <PackageReference Include="Octokit" Version="13.0.1" />
         <PackageReference Include="packageurl-dotnet" Version="1.3.0" />
         <PackageReference Include="Polly.Contrib.WaitAndRetry" Version="1.1.1" />
-        <PackageReference Include="Sarif.Sdk" Version="4.4.0" />
+        <PackageReference Include="Sarif.Sdk" Version="4.5.4" />
         <PackageReference Include="SemanticVersioning" Version="2.0.2" />
         <PackageReference Include="System.Console" Version="4.3.1" />
         <PackageReference Include="System.Linq.Async" Version="6.0.1" />
@@ -63,9 +63,4 @@
         <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="" />
         <None Include="..\..\icon-128.png" Pack="true" PackagePath="" />
     </ItemGroup>
-
-    <ItemGroup>
-      <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.133" />
-    </ItemGroup>
-
 </Project>

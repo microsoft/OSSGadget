@@ -84,7 +84,6 @@
     <PackageReference Include="F23.StringSimilarity" Version="6.0.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.71" />
     <PackageReference Include="MediaTypeMap.Core" Version="2.3.3" />
-    <PackageReference Include="Microsoft.CST.ApplicationInspector.Commands" Version="1.9.17" />
     <PackageReference Include="Microsoft.CST.ApplicationInspector.Common" Version="1.9.28" />
     <PackageReference Include="Microsoft.CST.RecursiveExtractor" Version="1.2.32" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.0" />

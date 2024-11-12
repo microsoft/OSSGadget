@@ -1,0 +1,1449 @@
+[
+  {
+    "name": "OpenSSL",
+    "id": "DS802600",
+    "description": "A reference to OpenSSL",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.OpenSSL"
+    ],
+    "applies_to": ["c", "cpp"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "openssl",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "OpenSSL is a common cryptographic library."
+      }
+    ]
+  },
+  {
+    "name": "Reference to BearSSL",
+    "id": "DS802601",
+    "description": "A reference to the BearSSL cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.BearSSL"
+    ],
+    "applies_to": ["c", "cpp"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "bearssl",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "BearSSL is a cryptographic library, information at https://bearssl.org/"
+      }
+    ]
+  },
+  {
+    "name": "Reference to BoringSSL",
+    "id": "DS802602",
+    "description": "A reference to the BoringSSL cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.BoringSSL"
+    ],
+    "applies_to": ["c", "cpp"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "boringssl",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "BoringSSL is a cryptographic library, information at https://www.chromium.org/Home/chromium-security/boringssl"
+      }
+    ]
+  },
+  {
+    "name": "Reference to CryptLib",
+    "id": "DS802603",
+    "description": "A reference to the CryptLib cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.CryptLib"
+    ],
+    "applies_to": ["c", "cpp"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "cryptlib",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "CryptLib is a cryptographic library, information at https://www.cs.auckland.ac.nz/~pgut001/cryptlib/"
+      }
+    ]
+  },
+  {
+    "name": "Reference to GnuPG",
+    "id": "DS802604",
+    "description": "A reference to the GnuPG cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.GnuPG"
+    ],
+    "applies_to": ["c", "cpp"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "gnupg",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "GnuPG is a cryptographic library, information at https://gnupg.org"
+      }
+    ]
+  },
+  {
+    "name": "Reference to GnuTLS",
+    "id": "DS802605",
+    "description": "A reference to the GnuTLS cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.GnuTLS"
+    ],
+    "applies_to": ["c", "cpp"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "gnutls",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "GnuTLS is a cryptographic library, information at https://www.gnutls.org/"
+      }
+    ]
+  },
+  {
+    "name": "Reference to Libgcrypt",
+    "id": "DS802606",
+    "description": "A reference to the Libgcrypt cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.Libgcrypt"
+    ],
+    "applies_to": ["c", "cpp"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "libgcrypt",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "Libgcrypt is a cryptographic library, information at http://directory.fsf.org/wiki/Libgcrypt"
+      }
+    ]
+  },
+  {
+    "name": "Reference to LibreSSL",
+    "id": "DS802607",
+    "description": "A reference to the LibreSSL cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.LibreSSL"
+    ],
+    "applies_to": ["c", "cpp"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "libressl",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "LibreSSL is a cryptographic library, information at https://www.libressl.org"
+      }
+    ]
+  },
+  {
+    "name": "Reference to libsodium",
+    "id": "DS802608",
+    "description": "A reference to the libsodium cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.libsodium"
+    ],
+    "applies_to": ["c", "cpp"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "libsodium",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "libsodium is a cryptographic library, information at https://github.com/jedisct1/libsodium"
+      }
+    ]
+  },
+  {
+    "name": "Reference to libssh",
+    "id": "DS802609",
+    "description": "A reference to the libssh cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.libssh"
+    ],
+    "applies_to": ["c", "cpp"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "libssh",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "libssh is a cryptographic library, information at https://libssh.org"
+      }
+    ]
+  },
+  {
+    "name": "Reference to libtomcrypt",
+    "id": "DS802610",
+    "description": "A reference to the libtomcrypt cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.libtomcrypt"
+    ],
+    "applies_to": ["c", "cpp"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "libtomcrypt",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "libtomcrypt is a cryptographic library, information at https://github.com/libtom/libtomcrypt"
+      }
+    ]
+  },
+  {
+    "name": "Reference to libVES",
+    "id": "DS802611",
+    "description": "A reference to the libVES cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.libVES"
+    ],
+    "applies_to": ["c", "cpp"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "libves",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "libVES is a cryptographic library, information at https://github.com/vesvault/libVES.c"
+      }
+    ]
+  },
+  {
+    "name": "Reference to MatrixSSL",
+    "id": "DS802612",
+    "description": "A reference to the MatrixSSL cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.MatrixSSL"
+    ],
+    "applies_to": ["c", "cpp"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "matrixssl",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "MatrixSSL is a cryptographic library, information at https://github.com/matrixssl/matrixssl"
+      }
+    ]
+  },
+  {
+    "name": "Reference to monocypher",
+    "id": "DS802613",
+    "description": "A reference to the monocypher cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.monocypher"
+    ],
+    "applies_to": ["c", "cpp"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "monocypher",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "monocypher is a cryptographic library, information at https://monocypher.org"
+      }
+    ]
+  },
+  {
+    "name": "Reference to NaCl",
+    "id": "DS802614",
+    "description": "A reference to the NaCl cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.NaCl"
+    ],
+    "applies_to": ["c", "cpp"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "nacl",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "NaCl is a cryptographic library, information at https://nacl.cr.yp.to/"
+      }
+    ]
+  },
+  {
+    "name": "Reference to openPGP",
+    "id": "DS802615",
+    "description": "A reference to the openPGP cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.openPGP"
+    ],
+    "applies_to": ["c", "cpp"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "openpgp",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "openPGP is a cryptographic library, information at https://www.openpgp.org/"
+      }
+    ]
+  },
+  {
+    "name": "Reference to OpenSSH",
+    "id": "DS802616",
+    "description": "A reference to the OpenSSH cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.OpenSSH"
+    ],
+    "applies_to": ["c", "cpp"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "openssh",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "OpenSSH is a cryptographic library, information at https://openssh.com"
+      }
+    ]
+  },
+  {
+    "name": "Reference to mbedTLS",
+    "id": "DS802618",
+    "description": "A reference to the mbedTLS cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.mbedTLS"
+    ],
+    "applies_to": ["c", "cpp"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "mbedtls",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "mbedTLS is a cryptographic library, information at https://tls.mbed.org/"
+      }
+    ]
+  },
+  {
+    "name": "Reference to RHash",
+    "id": "DS802619",
+    "description": "A reference to the RHash cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.RHash"
+    ],
+    "applies_to": ["c", "cpp"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "rhash",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "RHash is a cryptographic library, information at https://github.com/rhash/RHash"
+      }
+    ]
+  },
+  {
+    "name": "Reference to tiny-aes128-c",
+    "id": "DS802620",
+    "description": "A reference to the tiny-aes128-c cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.tiny-aes128-c"
+    ],
+    "applies_to": ["c", "cpp"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "tiny-aes128-c",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "tiny-aes128-c is a cryptographic library, information at https://github.com/kokke/tiny-AES128-C"
+      }
+    ]
+  },
+  {
+    "name": "Reference to WolfCrypt",
+    "id": "DS802621",
+    "description": "A reference to the WolfCrypt cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.WolfCrypt"
+    ],
+    "applies_to": ["c", "cpp"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "wolfcrypt",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "WolfCrypt is a cryptographic library, information at https://www.wolfssl.com/products/wolfcrypt-2/"
+      }
+    ]
+  },
+  {
+    "name": "Reference to WolfSSL",
+    "id": "DS802622",
+    "description": "A reference to the WolfSSL cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.WolfSSL"
+    ],
+    "applies_to": ["c", "cpp"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "wolfssl",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "WolfSSL is a cryptographic library, information at https://github.com/wolfSSL/wolfssl"
+      }
+    ]
+  },
+  {
+    "name": "Reference to BouncyCastle",
+    "id": "DS802623",
+    "description": "A reference to the BouncyCastle cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.BouncyCastle"
+    ],
+    "applies_to": ["csharp", "java"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "bouncycastle",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "BouncyCastle is a cryptographic library, information at https://bouncycastle.org/csharp/index.html"
+      }
+    ]
+  },
+  {
+    "name": "Reference to PCLCrypto",
+    "id": "DS802624",
+    "description": "A reference to the PCLCrypto cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.PCLCrypto"
+    ],
+    "applies_to": ["csharp"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "pclcrypto",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "PCLCrypto is a cryptographic library, information at https://github.com/AArnott/PCLCrypto"
+      }
+    ]
+  },
+  {
+    "name": "Reference to SecurityDriven.Inferno",
+    "id": "DS802625",
+    "description": "A reference to the SecurityDriven.Inferno cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.SecurityDriven.Inferno"
+    ],
+    "applies_to": ["csharp"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "securitydriven.inferno",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "SecurityDriven.Inferno is a cryptographic library, information at https://github.com/sdrapkin/SecurityDriven.Inferno"
+      }
+    ]
+  },
+  {
+    "name": "Reference to StreamCryptor",
+    "id": "DS802626",
+    "description": "A reference to the StreamCryptor cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.StreamCryptor"
+    ],
+    "applies_to": ["csharp"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "streamcryptor",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "StreamCryptor is a cryptographic library, information at https://github.com/bitbeans/StreamCryptor"
+      }
+    ]
+  },
+  {
+    "name": "Reference to Cryptopp",
+    "id": "DS802627",
+    "description": "A reference to the Cryptopp cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.Cryptopp"
+    ],
+    "applies_to": ["cpp"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "cryptopp",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "Cryptopp is a cryptographic library, information at https://github.com/weidai11/cryptopp"
+      }
+    ]
+  },
+  {
+    "name": "Reference to HElib",
+    "id": "DS802628",
+    "description": "A reference to the HElib cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.HElib"
+    ],
+    "applies_to": ["cpp"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "helib",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "HElib is a cryptographic library, information at https://github.com/shaih/HElib"
+      }
+    ]
+  },
+  {
+    "name": "Reference to Nettle",
+    "id": "DS802629",
+    "description": "A reference to the Nettle cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.Nettle"
+    ],
+        "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "nettle",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "Nettle is a cryptographic library, information at http://www.lysator.liu.se/~nisse/nettle/"
+      }
+    ]
+  },
+  {
+    "name": "Reference to s2n",
+    "id": "DS802630",
+    "description": "A reference to the s2n cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.s2n"
+    ],
+    "applies_to": ["c", "cpp"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "s2n",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "s2n is a cryptographic library, information at https://github.com/awslabs/s2n"
+      }
+    ]
+  },
+  {
+    "name": "Reference to clj-crypto",
+    "id": "DS802631",
+    "description": "A reference to the clj-crypto cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.clj-crypto"
+    ],
+    "applies_to_file_regex": [".*\\.clj"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "clj-crypto",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "clj-crypto is a cryptographic library, information at https://github.com/macourtney/clj-crypto/"
+      }
+    ]
+  },
+  {
+    "name": "Reference to pandect",
+    "id": "DS802632",
+    "description": "A reference to the pandect cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.pandect"
+    ],
+    "applies_to_file_regex": [".*\\.clj"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "pandect",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "pandect is a cryptographic library, information at https://github.com/xsc/pandect"
+      }
+    ]
+  },
+  {
+    "name": "Reference to ironclad",
+    "id": "DS802633",
+    "description": "A reference to the ironclad cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.ironclad"
+    ],
+    "applies_to_file_regex": [".*\\.lisp", ".*\\.lsp"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "ironclad",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "ironclad is a cryptographic library, information at http://method-combination.net/lisp/ironclad/"
+      }
+    ]
+  },
+  {
+    "name": "Reference to trivial-ssh",
+    "id": "DS802634",
+    "description": "A reference to the trivial-ssh cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.trivial-ssh"
+    ],
+    "applies_to_file_regex": [".*\\.lisp", ".*\\.lsp"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "trivial-ssh",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "trivial-ssh is a cryptographic library, information at https://github.com/eudoxia0/trivial-ssh"
+      }
+    ]
+  },
+  {
+    "name": "Reference to DelphiEncryptionCompendium",
+    "id": "DS802635",
+    "description": "A reference to the DelphiEncryptionCompendium cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.DelphiEncryptionCompendium"
+    ],
+    "applies_to_file_regex": [".*\\.pas"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "delphiencryptioncompendium",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "DelphiEncryptionCompendium is a cryptographic library, information at https://github.com/winkelsdorf/DelphiEncryptionCompendium/releases"
+      }
+    ]
+  },
+  {
+    "name": "Reference to tplockbox",
+    "id": "DS802636",
+    "description": "A reference to the tplockbox cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.tplockbox"
+    ],
+    "applies_to_file_regex": [".*\\.pas"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "tplockbox",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "tplockbox is a cryptographic library, information at https://sourceforge.net/projects/tplockbox/"
+      }
+    ]
+  },
+  {
+    "name": "Reference to SynCrypto",
+    "id": "DS802637",
+    "description": "A reference to the SynCrypto cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.SynCrypto"
+    ],
+    "applies_to_file_regex": [".*\\.pas"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "syncrypto",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "SynCrypto is a cryptographic library, information at https://github.com/synopse/mORMot/blob/master/SynCrypto.pas"
+      }
+    ]
+  },
+  {
+    "name": "Reference to tforge",
+    "id": "DS802638",
+    "description": "A reference to the tforge cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.tforge"
+    ],
+    "applies_to_file_regex": [".*\\.pas"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "tforge",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "tforge is a cryptographic library, information at https://bitbucket.org/sergworks/tforge"
+      }
+    ]
+  },
+  {
+    "name": "Reference to cloak",
+    "id": "DS802639",
+    "description": "A reference to the cloak cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.cloak"
+    ],
+    "applies_to_file_regex": [".*\\.ex"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "cloak",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "cloak is a cryptographic library, information at https://github.com/danielberkompas/cloak"
+      }
+    ]
+  },
+  {
+    "name": "Reference to comeonin",
+    "id": "DS802640",
+    "description": "A reference to the comeonin cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.comeonin"
+    ],
+    "applies_to_file_regex": [".*\\.ex"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "comeonin",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "comeonin is a cryptographic library, information at https://github.com/elixircnx/comeonin"
+      }
+    ]
+  },
+  {
+    "name": "Reference to exilir_tea",
+    "id": "DS802641",
+    "description": "A reference to the exilir_tea cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.exilir_tea"
+    ],
+    "applies_to_file_regex": [".*\\.ex"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "exilir_tea",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "exilir_tea is a cryptographic library, information at https://github.com/keichan34/elixir_tea"
+      }
+    ]
+  },
+  {
+    "name": "Reference to elixir-rsa",
+    "id": "DS802642",
+    "description": "A reference to the elixir-rsa cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.elixir-rsa"
+    ],
+    "applies_to_file_regex": [".*\\.ex"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "elixir-rsa",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "elixir-rsa is a cryptographic library, information at https://github.com/trapped/elixir-rsa"
+      }
+    ]
+  },
+  {
+    "name": "Reference to ex_crypto",
+    "id": "DS802643",
+    "description": "A reference to the ex_crypto cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.ex_crypto"
+    ],
+    "applies_to_file_regex": [".*\\.ex"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "ex_crypto",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "ex_crypto is a cryptographic library, information at https://github.com/ntrepid8/ex_crypto"
+      }
+    ]
+  },
+  {
+    "name": "Reference to exgpg",
+    "id": "DS802644",
+    "description": "A reference to the exgpg cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.exgpg"
+    ],
+    "applies_to_file_regex": [".*\\.ex"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "exgpg",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "exgpg is a cryptographic library, information at https://github.com/rozap/exgpg"
+      }
+    ]
+  },
+  {
+    "name": "Reference to siphash-elixir",
+    "id": "DS802645",
+    "description": "A reference to the siphash-elixir cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.siphash-elixir"
+    ],
+    "applies_to_file_regex": [".*\\.ex"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "siphash-elixir",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "siphash-elixir is a cryptographic library, information at https://github.com/zackehh/siphash-elixir"
+      }
+    ]
+  },
+  {
+    "name": "Reference to gocrypto",
+    "id": "DS802646",
+    "description": "A reference to the gocrypto cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.gocrypto"
+    ],
+    "applies_to": ["go"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "gocrypto",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "gocrypto is a cryptographic library, information at https://github.com/kisom/gocrypto"
+      }
+    ]
+  },
+  {
+    "name": "Reference to cryptonite",
+    "id": "DS802647",
+    "description": "A reference to the cryptonite cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.cryptonite"
+    ],
+    "applies_to_file_regex": [".*\\.hs"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "cryptonite",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "cryptonite is a cryptographic library, information at https://hackage.haskell.org/package/cryptonite"
+      }
+    ]
+  },
+  {
+    "name": "Reference to keyczar",
+    "id": "DS802648",
+    "description": "A reference to the keyczar cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.keyczar"
+    ],
+        "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "keyczar",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "keyczar is a cryptographic library, information at https://github.com/google/keyczar"
+      }
+    ]
+  },
+  {
+    "name": "Reference to com.google.crypto.tink",
+    "id": "DS802649",
+    "description": "A reference to the com.google.crypto.tink cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.com.google.crypto.tink"
+    ],
+    "applies_to": ["java"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "com.google.crypto.tink is a cryptographic library, information at https://github.com/google/tink"
+      }
+    ]
+  },
+  {
+    "name": "Reference to github.com/google/tink/go/",
+    "id": "DS802650",
+    "description": "A reference to the github.com/google/tink/go/ cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.github.com/google/tink/go/"
+    ],
+    "applies_to": ["go"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "github.com/google/tink/go/",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "github.com/google/tink/go/ is a cryptographic library, information at https://github.com/google/tink"
+      }
+    ]
+  },
+  {
+    "name": "Reference to jbcrypt",
+    "id": "DS802651",
+    "description": "A reference to the jbcrypt cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.jbcrypt"
+    ],
+        "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "jbcrypt",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "jbcrypt is a cryptographic library, information at http://www.mindrot.org/projects/jBCrypt/"
+      }
+    ]
+  },
+  {
+    "name": "Reference to keycloak",
+    "id": "DS802652",
+    "description": "A reference to the keycloak cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.keycloak"
+    ],
+        "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "keycloak",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "keycloak is a cryptographic library, information at https://github.com/keycloak/keycloak"
+      }
+    ]
+  },
+  {
+    "name": "Reference to keywhiz",
+    "id": "DS802653",
+    "description": "A reference to the keywhiz cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.keywhiz"
+    ],
+        "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "keywhiz",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "keywhiz is a cryptographic library, information at https://github.com/square/keywhiz"
+      }
+    ]
+  },
+  {
+    "name": "Reference to asmcrypto.js",
+    "id": "DS802654",
+    "description": "A reference to the asmcrypto.js cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.asmcrypto.js"
+    ],
+    "applies_to": ["typescript", "javascript", "package.json"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "asmcrypto.js",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "asmcrypto.js is a cryptographic library, information at https://github.com/vibornoff/asmcrypto.js/"
+      }
+    ]
+  },
+  {
+    "name": "Reference to bcrypt-nodejs",
+    "id": "DS802655",
+    "description": "A reference to the bcrypt-nodejs cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.bcrypt-nodejs"
+    ],
+    "applies_to": ["typescript", "javascript", "package.json"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "bcrypt-nodejs",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "bcrypt-nodejs is a cryptographic library, information at https://github.com/shaneGirish/bcrypt-nodejs"
+      }
+    ]
+  },
+  {
+    "name": "Reference to cifre",
+    "id": "DS802656",
+    "description": "A reference to the cifre cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.cifre"
+    ],
+    "applies_to": ["typescript", "javascript", "package.json"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "cifre",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "cifre is a cryptographic library, information at https://github.com/openpeer/cifre"
+      }
+    ]
+  },
+  {
+    "name": "Reference to cryptico",
+    "id": "DS802657",
+    "description": "A reference to the cryptico cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.cryptico"
+    ],
+    "applies_to": ["typescript", "javascript", "package.json"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "cryptico",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "cryptico is a cryptographic library, information at https://github.com/wwwtyro/cryptico"
+      }
+    ]
+  },
+  {
+    "name": "Reference to cryptojs",
+    "id": "DS802658",
+    "description": "A reference to the cryptojs cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.cryptojs"
+    ],
+    "applies_to": ["typescript", "javascript", "package.json"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "cryptojs",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "cryptojs is a cryptographic library, information at https://github.com/gwjjeff/cryptojs"
+      }
+    ]
+  },
+  {
+    "name": "Reference to crypto-js",
+    "id": "DS802659",
+    "description": "A reference to the crypto-js cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.crypto-js"
+    ],
+    "applies_to": ["typescript", "javascript", "package.json"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "crypto-js",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "crypto-js is a cryptographic library, information at https://github.com/brix/crypto-js"
+      }
+    ]
+  },
+  {
+    "name": "Reference to sjcl",
+    "id": "DS802660",
+    "description": "A reference to the sjcl cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.sjcl"
+    ],
+    "applies_to": ["typescript", "javascript", "package.json"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "sjcl",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "sjcl is a cryptographic library, information at https://github.com/bitwiseshiftleft/sjcl"
+      }
+    ]
+  },
+  {
+    "name": "Reference to luacrypto",
+    "id": "DS802661",
+    "description": "A reference to the luacrypto cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.luacrypto"
+    ],
+    "applies_to": ["lua"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "luacrypto",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "luacrypto is a cryptographic library, information at https://github.com/mkottman/luacrypto"
+      }
+    ]
+  },
+  {
+    "name": "Reference to ObjectivePGP",
+    "id": "DS802662",
+    "description": "A reference to the ObjectivePGP cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.ObjectivePGP"
+    ],
+    "applies_to": ["objective-c"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "objectivepgp",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "ObjectivePGP is a cryptographic library, information at https://github.com/krzyzanowskim/ObjectivePGP"
+      }
+    ]
+  },
+  {
+    "name": "Reference to RNCryptor",
+    "id": "DS802663",
+    "description": "A reference to the RNCryptor cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.RNCryptor"
+    ],
+    "applies_to": ["swift"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "rncryptor",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "RNCryptor is a cryptographic library, information at https://github.com/RNCryptor/RNCryptor"
+      }
+    ]
+  },
+  {
+    "name": "Reference to Libsodium-Lavarel",
+    "id": "DS802664",
+    "description": "A reference to the Libsodium-Lavarel cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.Libsodium-Lavarel"
+    ],
+    "applies_to": ["php"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "libsodium-lavarel",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "Libsodium-Lavarel is a cryptographic library, information at https://github.com/scrothers/libsodium-laravel"
+      }
+    ]
+  },
+  {
+    "name": "Reference to TCrypto",
+    "id": "DS802665",
+    "description": "A reference to the TCrypto cryptographic library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.TCrypto"
+    ],
+    "applies_to": ["php"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "tcrypto",
+        "type": "string",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "TCrypto is a cryptographic library, information at https://github.com/timoh6/TCrypto"
+      }
+    ]
+  },
+  {
+    "name": "Reference to Node.js Crypto",
+    "id": "DS802666",
+    "description": "A reference to the Node.js Crypto library",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Reference.NodeJS-Crypto"
+    ],
+    "applies_to": ["typescript", "javascript"],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "require\\([\"']crypto[\"']\\)",
+        "type": "regex",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "Usage of the built-in Node crypto library."
+      }
+    ]
+  }  
+]

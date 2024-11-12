@@ -1,0 +1,25 @@
+[
+  {
+    "name": "Implementation of Ed25519",
+    "id": "DS802300",
+    "description": "Implementation of Ed25519",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Ed25519"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "78a3.{0,10}1359.{0,10}4dca",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Ed25519 D variable"
+      }
+    ]
+  }
+]

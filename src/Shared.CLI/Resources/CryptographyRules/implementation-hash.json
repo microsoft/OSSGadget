@@ -1,0 +1,748 @@
+[
+  {
+    "name": "Implementation of Blake",
+    "id": "DS802000",
+    "description": "An implementation Blake",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Hash.Blake"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "https://en.wikipedia.org/wiki/BLAKE_(hash_function)",
+    "patterns": [
+      {
+        "pattern": "243F6A88|243F6A8885A308D3|C1059ED8|CBBB9D5DC1059ED8|6A09E667F3BCC908",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": ""
+      }
+    ]
+  },
+  {
+    "name": "Implementation of Blake2",
+    "id": "DS802001",
+    "description": "An implementation Blake2",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Hash.Blake2"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "https://en.wikipedia.org/wiki/BLAKE_(hash_function)#BLAKE2",
+    "patterns": [
+      {
+        "pattern": "6A09E667F3BCC908",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "IV is also used with SHA2-512."
+      }
+    ]
+  },
+  {
+    "name": "Implementation of Blake3",
+    "id": "DS802002",
+    "description": "An implementation Blake3",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Hash.Blake3"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "https://en.wikipedia.org/wiki/BLAKE_(hash_function)#BLAKE3",
+    "patterns": [
+      {
+        "pattern": "12,\\s?13,\\s?9,\\s?11,\\s?15,\\s?10,\\s?14,\\s?8,\\s?7",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Blake3 message schedule"
+      },
+      {
+        "pattern": "1150833019",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Blake3 constants"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of GOST",
+    "id": "DS802003",
+    "description": "An implementation GOST",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Hash.GOST"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "https://en.wikipedia.org/wiki/GOST_(hash_function)",
+    "patterns": [
+      {
+        "pattern": "4,\\s?10,\\s?9,\\s?2,\\s?13,\\s?8,\\s?0,\\s?14,\\s?6,\\s?11,\\s?1,\\s?12,\\s?7,\\s?15,\\s?3",
+        "type": "regex",
+        "modifiers": [],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "sbox for GOST"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of Grøstl",
+    "id": "DS802004",
+    "description": "An implementation Grøstl",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Hash.Grøstl"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "http://www.groestl.info/implementations.html",
+    "patterns": [
+      {
+        "pattern": "0f0a0702050e0906|a5f432c6",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Grøstl constants"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of HAS-160",
+    "id": "DS802005",
+    "description": "An implementation HAS-160",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Hash.HAS-160"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "https://www.randombit.net/has160.html",
+    "patterns": [
+      {
+        "pattern": "5A827999|6ED9EBA1|8F1BBCDC",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "HAS-160 Initialization Vector"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of HAVAL",
+    "id": "DS802006",
+    "description": "An implementation HAVAL",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Hash.HAVAL"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "https://web.archive.org/web/20150111210116/http://labs.calyptix.com/haval.php",
+    "patterns": [
+      {
+        "pattern": "243F6A88|85A308D3|13198A2E|03707344",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "HAVAL Initialization Vector"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of Kupyna",
+    "id": "DS802007",
+    "description": "An implementation Kupyna",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Hash.Kupyna"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "https://github.com/Roman-Oliynykov/Kupyna-reference",
+    "patterns": [
+      {
+        "pattern": "0xa8,\\s?0x43,\\s?0x5f,\\s?0x06,\\s?0x6b,\\s?0x75,\\s?0x6c,\\s?0x59",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Kupyna s-box"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of JH",
+    "id": "DS802008",
+    "description": "An implementation JH",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Hash.JH"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "https://www3.ntu.edu.sg/home/wuhj/research/jh/index.html",
+    "patterns": [
+      {
+        "pattern": "0x2d,\\s?0xfe,\\s?0xdd,\\s?0x62,\\s?0xf9,\\s?0x9a,\\s?0x98,\\s?0xac",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Non-optimized 32-bit bit-slice reference implementation"
+      },
+      {
+        "pattern": "6[0x\\s,]{0,4}a[0x\\s,]{0,4}0[0x\\s,]{0,4}9[0x\\s,]{0,4}e[0x\\s,]{0,4}6[0x\\s,]{0,4}6[0x\\s,]{0,4}7[0x\\s,]{0,4}f[0x\\s,]{0,4}3",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Optimized implementations"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of MD2",
+    "id": "DS802009",
+    "description": "An implementation MD2",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Hash.MD2"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "https://en.wikipedia.org/wiki/MD2_(hash_function)",
+    "patterns": [
+      {
+        "pattern": "0x29,\\s?0x2e,\\s?0x42,\\s?0xc9,\\s?0xa2,\\s?0xd8,\\s?0x7c,\\s?0x01",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "MD2 s-box (hex)"
+      },
+      {
+        "pattern": "41,\\s?46,\\s?67,\\s?201,\\s?162,\\s?216,\\s?124,\\s?1",
+        "type": "regex",
+        "modifiers": [],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "MD2 s-box (decimal), from https://github.com/B-Con/crypto-algorithms/blob/master/md2.c"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of MD4 or SHA-1",
+    "id": "DS802010",
+    "description": "An implementation MD4 or SHA-1",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Hash.MD4",
+      "Cryptography.Implementation.Hash.SHA-1"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "https://en.wikipedia.org/wiki/MD4_(hash_function)",
+    "patterns": [
+      {
+        "pattern": "6ed9_?eba1|5a82_?7999",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "MD4 and SHA-1 constants"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of MD5",
+    "id": "DS802011",
+    "description": "An implementation MD5",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Hash.MD5"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "https://en.wikipedia.org/wiki/MD5_(hash_function)",
+    "patterns": [
+      {
+        "pattern": "d76aa478|e8c7b756|242070db|c1bdceee ",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "MD5 constants (hex)"
+      },
+      {
+        "pattern": "680876936|389564586|606105819|1044525330",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "MD5 constants (decimal)"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of MD6",
+    "id": "DS802012",
+    "description": "An implementation MD6",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Hash.MD6"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "https://en.wikipedia.org/wiki/MD5_(hash_function)",
+    "patterns": [
+      {
+        "pattern": "7311c281|2425cfa0",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "MD6 constants"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of RIPEMD",
+    "id": "DS802013",
+    "description": "An implementation RIPEMD",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Hash.RIPEMD"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "https://en.wikipedia.org/wiki/RIPEMD",
+    "patterns": [
+      {
+        "pattern": "7a6d76e9|5c4dd124",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "RIPEMD constants"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of SHA-1",
+    "id": "DS802014",
+    "description": "An implementation SHA-1.",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Hash.SHA-1"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "https://en.wikipedia.org/wiki/SHA-1",
+    "patterns": [
+      {
+        "pattern": "8F1BBCDC|5A827999|C3D2E1F0|3285377520",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "SHA-1 constants (hex)"
+      },
+      {
+        "pattern": "1518500249|1859775393|1894007588|899497514",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "SHA-1 constants (decimal)"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of SHA-224",
+    "id": "DS802015",
+    "description": "An implementation SHA-224.",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Hash.SHA-224"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "https://en.wikipedia.org/wiki/SHA-2",
+    "patterns": [
+      {
+        "pattern": "c1059ed8|367cd507|914150663",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Magic Constant for SHA-224"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of SHA-256",
+    "id": "DS802015",
+    "description": "An implementation SHA-2.",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Hash.SHA-256"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "https://en.wikipedia.org/wiki/SHA-2",
+    "patterns": [
+      {
+        "pattern": "53380d13|5cb0a9dc|1555081692",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Magic Constant for SHA-256"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of SHA-384",
+    "id": "DS802015",
+    "description": "An implementation SHA-384.",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Hash.SHA-384"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "https://en.wikipedia.org/wiki/SHA-2",
+    "patterns": [
+      {
+        "pattern": "9159015a|f70e5939|4144912697",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Magic Constant for SHA-384"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of SHA-512",
+    "id": "DS802015",
+    "description": "An implementation SHA-512.",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Hash.SHA-512"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "https://en.wikipedia.org/wiki/SHA-2",
+    "patterns": [
+      {
+        "pattern": "428A2F98|D728AE22|CBBB9D5D|FC2BF72C|8C3D37C8|6A09E667|1779033703",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Magic Constant for SHA-512"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of SHA-3",
+    "id": "DS802016",
+    "description": "An implementation SHA-3.",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Hash.SHA-3",
+      "Cryptography.Implementation.Hash.Keccak"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "https://en.wikipedia.org/wiki/SHA-3",
+    "patterns": [
+      {
+        "pattern": "8000000000008089|800000008000000A",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "SHA-3 constants"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of Skein",
+    "id": "DS802017",
+    "description": "An implementation Skein.",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Hash.Skein"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "http://www.skein-hash.info/",
+    "patterns": [
+      {
+        "pattern": "C6098A8C9AE5EA0B|FC9DA860D048B449|CCD0616248677224|CCD044A12FDB3E13|A3F6C6BF3A75EF5F|4903ADFF749C51CE",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Skein initialization vectors"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of Snefru",
+    "id": "DS802018",
+    "description": "An implementation Snefru.",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Hash.Snefru"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "https://en.wikipedia.org/wiki/Snefru",
+    "patterns": [
+      {
+        "pattern": "64f9001b|feddcdf6|7c8ff1e2|11d71514",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Snefru initialization vectors"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of Spectral Hash",
+    "id": "DS802019",
+    "description": "An implementation Spectral Hash.",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Hash.SpectralHash"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "http://koclab.org/shash/index.html",
+    "patterns": [
+      {
+        "pattern": "7,\\s?0,\\s?8,\\s?2,\\s?12,\\s?4,\\s?13,\\s?11,\\s?10,\\s?3,\\s?14,\\s?15,\\s?6,\\s?1,\\s?5,\\s?9",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Spectral Hash initialization vectors"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of Streebog",
+    "id": "DS802020",
+    "description": "An implementation Streebog.",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Hash.Streebog"
+    ],
+    "severity": "important",
+    "_comment": "GOST R 34.11-2012",
+    "rule_info": "https://tools.ietf.org/html/rfc6986",
+    "patterns": [
+      {
+        "pattern": "46b60f011a83988e|3435363738393031|dd806559f2a64507|0745a6f2596580dd",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Streebog constants"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of Tiger",
+    "id": "DS802021",
+    "description": "An implementation Tiger.",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Hash.Tiger"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "https://www.cs.technion.ac.il/~biham/Reports/Tiger/",
+    "patterns": [
+      {
+        "pattern": "F096A5B4C3B2E187",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Tiger constants"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of Whirlpool",
+    "id": "DS802022",
+    "description": "An implementation Whirlpool",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Hash.Whirlpool"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "https://en.wikipedia.org/wiki/Whirlpool_(hash_function)",
+    "patterns": [
+      {
+        "pattern": "1823c6e887b8014f|36a6d2f5796f9152",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Magic Constant for Whirlpool"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of Siphash",
+    "id": "DS802023",
+    "description": "An implementation Siphash",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.Siphash"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "https://en.wikipedia.org/wiki/SipHash",
+    "patterns": [
+      {
+        "pattern": "736f6d6570736575|646f72616e646f6d|6c7967656e657261|7465646279746573",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Magic Constant for Siphash"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of SM3",
+    "id": "DS802024",
+    "description": "An implementation SM3",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.SM3"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "https://en.wikipedia.org/wiki/SM3_(hash_function)",
+    "patterns": [
+      {
+        "pattern": "79CC4519|7A879D8A|7311465E|7380166F|4914B2B9",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "all"
+        ],
+        "_comment": "SM3 constants"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of bcrypt-pbkdf",
+    "id": "DS802025",
+    "description": "An implementation bcrypt-pbkdf.",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.BCryptPBKDF"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "(99,\\s?66,\\s?108,\\s?111,\\s?119,\\s?102,\\s?105,\\s?115)|OxychromaticBlowfishSwatDynamite",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Magic Constant for BCrypt-PBKDF"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of BCrypt",
+    "id": "DS802026",
+    "description": "An implementation BCrypt",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.BCrypt"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "https://en.wikipedia.org/wiki/Bcrypt",
+    "patterns": [
+      {
+        "pattern": "OrpheanBeholderScryDoubt",
+        "type": "string",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "all"
+        ],
+        "_comment": "Magic Constant for BCrypt"
+      },
+      {
+        "pattern": "0x4f,\\s?0x72,\\s?0x70,\\s?0x68",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Magic Constant for BCrypt"
+      }
+    ]
+  }
+]

@@ -1,0 +1,49 @@
+[
+  {
+    "name": "Skip32",
+    "id": "DS802041",
+    "description": "Skip32",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.PRNG.Skip32"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "a3.{0,10}d7.{0,10}09.{0,10}83.{0,10}f8.{0,10}48.{0,10}f6",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "https://wiki.postgresql.org/wiki/Skip32_(crypt_32_bits)"
+      }
+    ]
+  },
+
+  {
+    "name": "ChaCha",
+    "id": "DS802043",
+    "description": "ChaCha",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.ChaCha"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "61707865|6b206574",
+        "type": "regex",
+        "modifiers": [],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "ChaCha"
+      }
+    ]
+  }
+]

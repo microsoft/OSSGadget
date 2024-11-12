@@ -1,0 +1,89 @@
+[
+  {
+    "name": "Implementation of AES",
+    "id": "DS802040",
+    "description": "An implementation AES.",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.BlockCipher.AES"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "c66363a5|51f4a750|766df6ad",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Magic constant for AES (hex)"
+      },
+      {
+        "pattern": "3328402341|1374988112|1986918061",
+        "type": "regex",
+        "modifiers": [],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "Magic constant for AES (decimal)"
+      }
+    ]
+  },
+  {
+    "name": "DES",
+    "id": "DS802042",
+    "description": "DES",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.BlockCipher.DES"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "14,\\s{0,3}4,\\s{0,3}13,\\s{0,3}1,\\s{0,3}2,\\s{0,3}15",
+        "type": "regex",
+        "modifiers": [],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "DES S1 structure"
+      },
+      {
+        "pattern": "0x7fef7fe0",
+        "type": "regex",
+        "modifiers": [],
+        "scopes": [
+          "code"
+        ],
+        "_comment": "DES S2 structure"
+      }
+    ]
+  },
+  {
+    "name": "Implementation of SM4",
+    "id": "DS802050",
+    "description": "An implementation SM4",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.Implementation.BlockCipher.SM4"
+    ],
+    "severity": "important",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "d6.{0,10}90.{0,10}e9.{0,10}fe.{0,10}cc.{0,10}e1.{0,10}3d",
+        "type": "regex",
+        "modifiers": [ "i" ],
+        "scopes": [
+          "all"
+        ],
+        "_comment": "Magic Constant for SM4"
+      }
+    ]
+  }
+]

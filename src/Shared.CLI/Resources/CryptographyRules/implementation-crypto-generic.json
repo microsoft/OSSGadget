@@ -1,0 +1,44 @@
+[
+  {
+    "name": "Cryptographic Terms",
+    "id": "DS802030",
+    "description": "Cryptographic Terms",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.GenericImplementation.CryptographicTerms"
+    ],
+    "severity": "moderate",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "(roundkey|keyround|mixcolumns|s-?box|key\\s*schedule|(linear congruential)|(substitution box)|publickeymodulus|publickeyexponent)",
+        "type": "regex",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "Terms that are often used with crypto implementations"
+      }
+    ]
+  },
+  {
+    "name": "Cryptographic Terms (Hashing)",
+    "id": "DS802031",
+    "description": "Cryptographic Terms (Hashing)",
+    "recommendation": "",
+    "tags": [
+      "Cryptography.GenericImplementation.CryptographicTerms.Hashing"
+    ],
+    "severity": "moderate",
+    "_comment": "",
+    "rule_info": "",
+    "patterns": [
+      {
+        "pattern": "hash.digest",
+        "type": "regex",
+        "scopes": [ "all" ],
+        "modifiers": [ "i" ],
+        "_comment": "Suggests a call to a cryptographic hash function."
+      }
+    ]
+  }  
+]

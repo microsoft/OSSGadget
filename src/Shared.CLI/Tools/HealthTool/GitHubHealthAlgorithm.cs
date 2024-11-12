@@ -286,8 +286,8 @@ namespace Microsoft.CST.OpenSource.OssGadget.Tools.HealthTool
             int openSecurityIssues = 0;
             int closedSecurityIssues = 0;
 
-            System.Collections.Generic.IReadOnlyList<Issue>? issues = await Client.Issue.GetAllForRepository(purl.Namespace, purl.Name, filter);
-            foreach (Issue? issue in issues)
+            System.Collections.Generic.IReadOnlyList<Octokit.Issue>? issues = await Client.Issue.GetAllForRepository(purl.Namespace, purl.Name, filter);
+            foreach (Octokit.Issue? issue in issues)
             {
                 // filter out pull requests
                 if (issue.Url.Contains("/pull") || issue.HtmlUrl.Contains("/pull"))

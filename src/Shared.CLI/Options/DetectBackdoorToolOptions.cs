@@ -7,7 +7,7 @@ using CommandLine.Text;
 using System.Collections.Generic;
 
 [Verb("detect-backdoor", HelpText = "Run detect backdoor tool")]
-public class DetectBackdoorToolOptions
+public class DetectBackdoorToolOptions : BaseToolOptions
 {
     [Usage()]
     public static IEnumerable<Example> Examples

@@ -1,0 +1,224 @@
+[
+  {
+    "name": "Backdoor: Obfuscation",
+    "id": "BD000800",
+    "description": "Backdoor: Obfuscation",
+    "tags": [
+      "Security.Backdoor.Obfuscation"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": "base64|encodedcommand|obfuscate",
+        "type": "regexword",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Executing Obfuscated Code",
+    "id": "BD000801",
+    "description": "Backdoor: Executing Obfuscated Code",
+    "tags": [
+      "Security.Backdoor.ExecuteObfuscatedCode"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": "fromhex.+decode",
+        "type": "regexword",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      },
+      {
+        "pattern": "\\.get\\(.*(fromhex|decode)",
+        "type": "regex",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      },
+      {
+        "pattern": "65786563",
+        "type": "string",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      },
+      {
+        "pattern": "(\\\\x[a-f0-9][a-f0-9]){5,}",
+        "type": "regex",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Obfuscated String via Single Characters",
+    "id": "BD000802",
+    "description": "Backdoor: Obfuscated String via Single Characters",
+    "tags": [
+      "Security.Backdoor.Obfuscation"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": "([\\\"\\'].[\\\"\\']\\+){6,}",
+        "type": "regex",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Setting DNS Server",
+    "id": "BD000803",
+    "description": "Backdoor: Setting DNS Server",
+    "tags": [
+      "Security.Backdoor.Obfuscation.DNS"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": "dns.setServers",
+        "type": "string",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Long Strings",
+    "id": "BD000804",
+    "description": "Backdoor: Long Strings",
+    "tags": [
+      "Security.Backdoor.Obfuscation.LongStrings"
+    ],
+    "severity": "moderate",
+    "patterns": [
+      {
+        "pattern": "[\"'][a-z0-9]{40,}[\"']",
+        "type": "regex",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "medium"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Long Binary Strings",
+    "id": "BD000805",
+    "description": "Backdoor: Long Binary Strings",
+    "tags": [
+      "Security.Backdoor.Obfuscation.LongBinaryStrings"
+    ],
+    "severity": "moderate",
+    "patterns": [
+      {
+        "pattern": "(\\\\x[a-f0-9][a-f0-9]){10,}",
+        "type": "regex",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "medium"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Obfuscated Dangerous Commands (exec)",
+    "id": "BD000806",
+    "description": "Backdoor: Obfuscated Dangerous Command (exec)",
+    "tags": [
+      "Security.Backdoor.Obfuscation.DangerousCommands"
+    ],
+    "severity": "critical",
+    "applies_to": [ "python" ],
+    "patterns": [
+      {
+        "pattern": "65786563",
+        "type": "string",
+        "scopes": [ "code" ],
+        "modifiers": []
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Obfuscated Dangerous Commands (eval)",
+    "id": "BD000807",
+    "description": "Backdoor: Obfuscated Dangerous Command (eval)",
+    "tags": [
+      "Security.Backdoor.Obfuscation.DangerousCommands"
+    ],
+    "severity": "critical",
+    "applies_to": [ "python" ],
+    "patterns": [
+      {
+        "pattern": "6576616C28",
+        "type": "string",
+        "scopes": [ "code" ],
+        "modifiers": []
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Obfuscated Dangerous Commands (system)",
+    "id": "BD000808",
+    "description": "Backdoor: Obfuscated Dangerous Command (system)",
+    "tags": [
+      "Security.Backdoor.Obfuscation.DangerousCommands"
+    ],
+    "severity": "critical",
+    "applies_to": [ "python" ],
+    "patterns": [
+      {
+        "pattern": "73797374656d",
+        "type": "string",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ]
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Obfuscated Dangerous Commands (base64_decode)",
+    "id": "BD000809",
+    "description": "Backdoor: Obfuscated Dangerous Command (base64_decode)",
+    "tags": [
+      "Security.Backdoor.Obfuscation.DangerousCommands"
+    ],
+    "severity": "critical",
+    "applies_to": [ "python" ],
+    "patterns": [
+      {
+        "pattern": "61736536345f6465636f646528677a696e666c61746528",
+        "type": "string",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ]
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Obfuscated Comparison Between Two Constants",
+    "id": "BD000810",
+    "description": "Backdoor: Obfuscated Comparison Between Two Constants",
+    "tags": [
+      "Security.Backdoor.Obfuscation.CompareTwoConstants"
+    ],
+    "severity": "critical",
+    "patterns": [
+      {
+        "pattern": "(el)?if\\s[0-9]+\\s[<>=]{1,2}\\s*[0-9]+",
+        "type": "string",
+        "scopes": [
+          "code"
+        ],
+        "modifiers": [
+          "i"
+        ]
+      }
+    ]
+  }
+]

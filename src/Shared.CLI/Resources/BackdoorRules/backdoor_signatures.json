@@ -1,0 +1,74 @@
+[
+  {
+    "name": "Backdoor: CFDUID",
+    "id": "BD000200",
+    "description": "Backdoor: CFDUID",
+    "tags": [
+      "Security.Backdoor.Signature.CFDUID"
+    ],
+    "severity": "critical",
+    "patterns": [
+      {
+        "pattern": "___cfduid",
+        "type": "string",
+        "scopes": [ "code", "comment" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: ZAUTHSS",
+    "id": "BD000201",
+    "description": "Backdoor: ZAUTHSS",
+    "tags": [
+      "Security.Backdoor.Signature.ZAUTHSS"
+    ],
+    "severity": "critical",
+    "patterns": [
+      {
+        "pattern": "ZAUTHSS",
+        "type": "string",
+        "scopes": [ "code", "comment" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: gohack.xyz",
+    "id": "BD000202",
+    "description": "Backdoor: gohack.xyz",
+    "tags": [
+      "Security.Backdoor.Signature.gohackxyz"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": "gohack.xyz",
+        "type": "string",
+        "scopes": [ "code", "comment" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      }
+    ]
+  },
+  {
+    "name": "Backdoor: Hyperion",
+    "id": "BD000203",
+    "description": "Backdoor: Hyperion",
+    "tags": [
+      "Security.Backdoor.Signature.Hyperion"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": "billythegoat356",
+        "type": "string",
+        "scopes": [ "code", "comment" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      }
+    ]
+  }
+]

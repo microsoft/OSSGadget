@@ -1,0 +1,21 @@
+[
+  {
+    "name": "Backdoor: IOC (Common Commands)",
+    "id": "BD000900",
+    "description": "Backdoor: Reverse Shell",
+    "applies_to": [ "powershell" ],
+    "tags": [
+      "Security.Backdoor.ReverseShell"
+    ],
+    "severity": "important",
+    "patterns": [
+      {
+        "pattern": "(\\-bxor|cpassword|getnetworkcredential|securestringtobstr|shellexecute|processtartinfo|activexobject|regsvr32|mimikatz|new-scheduledtask|loadlibrary|ptrtostructure|getdelegateforfunctionpointer|unsafenativemethods|structuretoptr|virtualprotect)",
+        "type": "regexword",
+        "scopes": [ "code" ],
+        "modifiers": [ "i" ],
+        "confidence": "medium"
+      }
+    ]
+  }
+]

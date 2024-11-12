@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Backdoor: Pastebin",
+    "id": "BD000500",
+    "description": "Backdoor: Pastebin",
+    "tags": [
+      "Security.Backdoor.Pastebin"
+    ],
+    "severity": "moderate",
+    "patterns": [
+      {
+        "pattern": "pastebin|zerobin|ghostbin|hastebin|klgrth\\.io",
+        "type": "regexword",
+        "scopes": [ "code", "comment" ],
+        "modifiers": [ "i" ],
+        "confidence": "high"
+      }
+    ]
+  }
+]

@@ -10,6 +10,8 @@ using System.Text;
 namespace Microsoft.CST.OpenSource.Tests
 
 {
+    using OssGadget.Tools;
+
     [TestClass]
     public class DefoggerTests
     {

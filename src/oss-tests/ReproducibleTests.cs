@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CST.OpenSource.Tests
 {
+    using OssGadget.Options;
+
     [TestClass]
     public class ReproducibleTest
     {
@@ -24,7 +26,11 @@ namespace Microsoft.CST.OpenSource.Tests
         public async Task CheckReproducibility(string packageUrl, bool? expectedToBeReproducible)
         {
             string? outputFilename = Guid.NewGuid().ToString() + ".json";
-            ReproducibleTool.Main(new[] { "-a", "-o", outputFilename, packageUrl }).Wait();
+            var options = new ReproducibleToolOptions()
+            {
+                AllStrategies = true, OutputFile = outputFilename, Targets = new[] { packageUrl }
+            };
+            await new ReproducibleTool().RunAsync(options);
 
             bool outputFileExists = File.Exists(outputFilename);
 

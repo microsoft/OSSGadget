@@ -48,6 +48,7 @@
     <PackageReference Include="DiffPlex" Version="1.7.2" />
     <PackageReference Include="F23.StringSimilarity" Version="6.0.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.57" />
+    <PackageReference Include="MediaTypeMap.Core" Version="2.3.3" />
     <PackageReference Include="Microsoft.CST.ApplicationInspector.Commands" Version="1.9.17" />
     <PackageReference Include="Microsoft.CST.ApplicationInspector.Common" Version="1.9.28" />
     <PackageReference Include="Microsoft.CST.RecursiveExtractor" Version="1.2.23" />

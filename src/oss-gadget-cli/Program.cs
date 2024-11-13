@@ -13,23 +13,27 @@ class OssGadgetCli : OSSGadget
 {
     static async Task<int> Main(string[] args)
     {
-        var cli = new OssGadgetCli();
-        await cli.ExecuteAsync(args);
-        return (int)cli._returnCode;
+        OssGadgetCli cli = new OssGadgetCli();
+        Type[] verbs = LoadVerbs();
+        ParserResult<object> parsed = Parser.Default.ParseArguments(args, verbs);
+        if (parsed.Errors.Any())
+        {
+            return (int)cli.HandleErrors(parsed.Errors);
+        }
+        return (int)await cli.RunAsync(parsed.Value);
     }
-
-    private ErrorCode _returnCode = ErrorCode.Ok;
     
-    //load all types using Reflection
+    //load option types using reflection
     private	static Type[] LoadVerbs()
     {
-        return Assembly.GetExecutingAssembly().GetTypes()
-            .Where(t => t.GetCustomAttribute<VerbAttribute>() != null).ToArray();		 
+        return (Assembly.GetAssembly(typeof(BaseToolOptions))?.GetTypes() ?? [])
+            .Where(t => t.GetCustomAttribute<VerbAttribute>() != null 
+                        && t.IsAssignableTo(typeof(BaseToolOptions))).ToArray();		 
     }
     
-    private async Task Run(object obj)
+    private async Task<ErrorCode> RunAsync(object obj)
     {
-        _returnCode = obj switch
+        return obj switch
         {
             DownloadToolOptions d => await new DownloadTool(ProjectManagerFactory).RunAsync(d),
             HealthToolOptions healthToolOptions => await new HealthTool(ProjectManagerFactory).RunAsync(healthToolOptions),
@@ -44,16 +48,9 @@ class OssGadgetCli : OSSGadget
         };
     }
     
-    async Task ExecuteAsync(string[] args)
+    private ErrorCode HandleErrors(IEnumerable<Error> errs)
     {
-        var verbs = LoadVerbs();
-
-        var res = (await Parser.Default.ParseArguments(args, verbs).WithParsedAsync(Run)).WithNotParsed(HandleErrors);
-    }
-
-    private void HandleErrors(IEnumerable<Error> errs)
-    {
-        _returnCode = errs.Any(x =>
+        return errs.Any(x =>
             x.Tag is not ErrorType.VersionRequestedError
                 and not ErrorType.HelpVerbRequestedError
                 and not ErrorType.HelpRequestedError)

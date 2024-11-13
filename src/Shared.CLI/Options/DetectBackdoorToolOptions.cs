@@ -6,7 +6,7 @@ using CommandLine;
 using CommandLine.Text;
 using System.Collections.Generic;
 
-[Verb("detect-backdoor", HelpText = "Run detect backdoor tool")]
+[Verb("detect-backdoor", HelpText = "Identify potential malware or backdoors in the given package")]
 public class DetectBackdoorToolOptions : BaseToolOptions
 {
     [Usage()]

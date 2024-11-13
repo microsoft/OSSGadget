@@ -6,7 +6,7 @@ using CommandLine;
 using CommandLine.Text;
 using System.Collections.Generic;
 
-[Verb("reproducible", HelpText = "Run reproducible tool")]
+[Verb("reproducible", HelpText = "Estimate semantic equivalency of the given package and source code")]
 public class ReproducibleToolOptions : BaseToolOptions
 {
     [Usage()]

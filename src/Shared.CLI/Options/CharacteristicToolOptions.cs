@@ -7,7 +7,7 @@ using CommandLine;
 using CommandLine.Text;
 using System.Collections.Generic;
 
-[Verb("characteristic", HelpText = "Run risk calculator tool")]
+[Verb("characteristic", HelpText = "Find the characterstics for the given package")]
 public class CharacteristicToolOptions : BaseToolOptions
 {
         [Usage()]

@@ -6,7 +6,7 @@ using CommandLine;
 using CommandLine.Text;
 using System.Collections.Generic;
 
-[Verb("fresh", HelpText = "Run fresh tool")]
+[Verb("fresh", HelpText = "Find the source code repository for the given package")]
 public class FreshToolOptions : BaseToolOptions
 {
     [Usage()]

@@ -6,7 +6,7 @@ using CommandLine;
 using CommandLine.Text;
 using System.Collections.Generic;
 
-[Verb("health", HelpText = "Run oss-health tool")]
+[Verb("health", HelpText = "Calculate a health score based on package metadata")]
 public class HealthToolOptions : BaseToolOptions
 {
     [Usage()]
@@ -15,7 +15,7 @@ public class HealthToolOptions : BaseToolOptions
         get
         {
             return new List<Example>() {
-                new Example("Find the source code repository for the given package",
+                new Example("Calculate a health score based on package metadata",
                     new HealthToolOptions() { Targets = new List<string>() {"[options]", "package-url..." } })};
         }
     }

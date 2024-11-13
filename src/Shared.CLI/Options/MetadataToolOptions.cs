@@ -7,7 +7,7 @@ using CommandLine.Text;
 using System;
 using System.Collections.Generic;
 
-[Verb("metadata", HelpText = "Run oss-metadata tool")]
+[Verb("metadata", HelpText = "Find the normalized metadata for the given package. Not all package ecosystems are supported.")]
 public class MetadataToolOptions : BaseToolOptions
 {
     [Usage()]

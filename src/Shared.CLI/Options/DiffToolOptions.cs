@@ -7,7 +7,7 @@ using CommandLine.Text;
 using System;
 using System.Collections.Generic;
 
-[Verb("diff", HelpText = "Run diff tool")]
+[Verb("diff", HelpText = "Diff the given packages")]
 public class DiffToolOptions : BaseToolOptions
 {
     [Usage()]

@@ -5,7 +5,7 @@ using CommandLine;
 using CommandLine.Text;
 using System.Collections.Generic;
 
-[Verb("download", HelpText = "Download a specified package by PackageUrl")]
+[Verb("download", HelpText = "Download the given package")]
 public class DownloadToolOptions : BaseToolOptions
 {
     [Usage()]

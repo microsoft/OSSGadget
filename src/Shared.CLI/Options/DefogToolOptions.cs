@@ -6,7 +6,7 @@ using CommandLine;
 using CommandLine.Text;
 using System.Collections.Generic;
 
-[Verb("defog", HelpText = "Run defog tool")]
+[Verb("defog", HelpText = "Identify hidden strings")]
 public class DefogToolOptions : BaseToolOptions
 {
     [Usage()]

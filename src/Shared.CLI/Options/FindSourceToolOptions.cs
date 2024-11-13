@@ -6,7 +6,7 @@ using CommandLine;
 using CommandLine.Text;
 using System.Collections.Generic;
 
-[Verb("find-source", HelpText = "Run find-domain-squats tool")]
+[Verb("find-source", HelpText = "Find the source code repository for the given package")]
 public class FindSourceToolOptions : BaseToolOptions
 {
     [Usage()]

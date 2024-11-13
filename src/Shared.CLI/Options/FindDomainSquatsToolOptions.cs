@@ -6,7 +6,7 @@ using CommandLine;
 using CommandLine.Text;
 using System.Collections.Generic;
 
-[Verb("find-domain-squats", HelpText = "Run find-domain-squats tool")]
+[Verb("find-domain-squats", HelpText = "Find Squat Candidates for the Given Packages")]
 public class FindDomainSquatsToolOptions : BaseToolOptions
 {
     [Usage()]

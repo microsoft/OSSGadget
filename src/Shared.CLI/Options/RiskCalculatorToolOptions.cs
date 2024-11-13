@@ -6,7 +6,7 @@ using CommandLine;
 using CommandLine.Text;
 using System.Collections.Generic;
 
-[Verb("risk", HelpText = "Run risk calculator tool")]
+[Verb("risk", HelpText = "Calculate a risk metric for the given package")]
 public class RiskCalculatorToolOptions : BaseToolOptions
 {
     [Usage()]

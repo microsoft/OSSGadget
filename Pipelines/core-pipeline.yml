@@ -95,6 +95,16 @@ extends:
             artifactName: 'nuget-shared-cli-archive'
             preBuild:
             - template: nbgv-set-version-steps.yml@templates
+        - template: nuget-build-job.yml@templates
+          parameters:
+            jobName: 'pack_CLI'
+            buildConfiguration: 'Release'
+            dotnetVersion: ${{ variables.DotnetVersion }}
+            projectPath: 'src/OSSGadget.sln'
+            projectName: 'oss-gadget-cli'
+            artifactName: 'nuget-shared-cli-archive'
+            preBuild:
+            - template: nbgv-set-version-steps.yml@templates
   
     - stage: Release
       dependsOn:

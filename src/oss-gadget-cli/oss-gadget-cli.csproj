@@ -3,10 +3,29 @@
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework>net8.0</TargetFramework>
-        <RootNamespace>oss_gadget_cli</RootNamespace>
+        <RootNamespace>Microsoft.CST.OpenSource.OSSGadget.CLI</RootNamespace>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-    </PropertyGroup>
+        <AssemblyName>ossgadget</AssemblyName>
+        <StartupObject>Microsoft.CST.OpenSource.OSSGadget.CLI.OssGadgetCli</StartupObject>
+        <RuntimeIdentifiers>win-x64;linux-x64;osx-x64</RuntimeIdentifiers>
+        <Product>OSS Gadget Command Line Interface</Product>
+        <Version>0.0.0</Version>
+        <PackageVersion>0.0.0</PackageVersion>
+        <Authors>Microsoft</Authors>
+        <Company>Microsoft</Company>
+        <copyright>© Microsoft Corporation. All rights reserved.</copyright> 
+        <Description>OSS Gadget is a collection of tools that can help analyze open source projects. This is the command line interface.</Description>
+        <PackAsTool>true</PackAsTool>
+        <ToolCommandName>ossgadget</ToolCommandName>
+        <PackageId>Microsoft.CST.OSSGadget.CLI</PackageId>
+        <PackageTags>Security Analysis</PackageTags>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageIcon>icon-128.png</PackageIcon>
+        <PackageProjectUrl>https://github.com/Microsoft/OSSGadget</PackageProjectUrl>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+      </PropertyGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\Shared.CLI\Shared.CLI.csproj" />

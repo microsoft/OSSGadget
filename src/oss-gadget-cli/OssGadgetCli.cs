@@ -1,4 +1,4 @@
-﻿namespace oss_gadget_cli;
+﻿namespace Microsoft.CST.OpenSource.OSSGadget.CLI;
 
 using CommandLine;
 using Microsoft.CST.OpenSource;

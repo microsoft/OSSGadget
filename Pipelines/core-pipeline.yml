@@ -40,8 +40,7 @@ extends:
           poolImage: MSSecurity-1ES-Windows-2022
           poolOs: windows
           projectPath: 'src/oss-tests/oss-tests.csproj'
-          onInit:
-          - checkout: ossgadget
+
     - stage: Build
       dependsOn:
       - Test

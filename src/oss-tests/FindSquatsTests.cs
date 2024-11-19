@@ -15,6 +15,7 @@ namespace Microsoft.CST.OpenSource.Tests
     using Extensions;
     using Helpers;
     using Model.Metadata;
+    using OssGadget.Options;
     using PackageUrl;
     using System.Linq;
     using System.Net.Http;
@@ -54,12 +55,12 @@ namespace Microsoft.CST.OpenSource.Tests
             
             ProjectManagerFactory projectManagerFactory = new(managerOverrides);
             FindSquatsTool fst = new(projectManagerFactory);
-            FindSquatsTool.Options options = new()
+            FindSquatsToolOptions options = new()
             {
                 Quiet = true,
                 Targets = new string[] { packageUrl }
             };
-            (string output, int numSquats) result = await fst.RunAsync(options);
+            (string output, int numSquats) result = await fst.LegacyRunAsync(options);
             Assert.IsTrue(expectedToHaveSquats ? result.numSquats > 0 : result.numSquats == 0);
         }
 

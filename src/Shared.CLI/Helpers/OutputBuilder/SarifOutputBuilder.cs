@@ -3,6 +3,7 @@
 namespace Microsoft.CST.OpenSource.Shared
 {
     using Contracts;
+    using Helpers;
     using Microsoft.CodeAnalysis.Sarif;
     using Microsoft.CST.OpenSource.PackageManagers;
     using Newtonsoft.Json;
@@ -148,7 +149,7 @@ namespace Microsoft.CST.OpenSource.Shared
         private static readonly string AssemblyName = Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty;
 
         private static readonly string Company = "Microsoft Corporation";
-        private static readonly string Version = OSSGadget.GetToolVersion();
+        private static readonly string Version = CliHelpers.GetToolVersion();
         private readonly SarifVersion currentSarifVersion = SarifVersion.Current;
         private readonly List<Result> sarifResults = new();
     }

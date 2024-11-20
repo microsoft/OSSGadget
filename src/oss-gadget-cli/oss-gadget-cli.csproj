@@ -30,4 +30,10 @@
     <ItemGroup>
       <ProjectReference Include="..\Shared.CLI\Shared.CLI.csproj" />
     </ItemGroup>
+
+    <ItemGroup>
+      <None Update="icon-128.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
 </Project>

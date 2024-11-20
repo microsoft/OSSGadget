@@ -51,7 +51,7 @@ extends:
             dotnetVersion: ${{ variables.DotnetVersion }}
             projectPath: 'src/OSSGadget.sln'
             projectName: 'oss-gadget-cli'
-            exePath: 'oss-gadget-cli'
+            exePath: 'ossgadget'
             artifactName: 'linux-mac-archive'
             preBuild:
             - template: nbgv-set-version-steps.yml@templates
@@ -69,7 +69,7 @@ extends:
             jobName: 'pack_oss_find_squats_lib'
             buildConfiguration: 'Release'
             dotnetVersion: ${{ variables.DotnetVersion }}
-            projectPath: 'src/oss-find-squats-lib/oss-find-squats-lib.sln'
+            projectPath: 'src/oss-find-squats-lib/oss-find-squats-lib.csproj'
             projectName: 'oss-find-squats-lib'
             artifactName: 'nuget-find-squats-lib-archive'
             preBuild:

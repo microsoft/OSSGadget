@@ -50,7 +50,7 @@ extends:
             buildConfiguration: 'Release'
             dotnetVersion: ${{ variables.DotnetVersion }}
             projectPath: 'src/OSSGadget.sln'
-            projectName: 'OSSGadget'
+            projectName: 'oss-gadget-cli'
             exePath: 'oss-gadget-cli'
             artifactName: 'linux-mac-archive'
             preBuild:
@@ -69,7 +69,7 @@ extends:
             jobName: 'pack_oss_find_squats_lib'
             buildConfiguration: 'Release'
             dotnetVersion: ${{ variables.DotnetVersion }}
-            projectPath: 'src/OSSGadget.sln'
+            projectPath: 'src/oss-find-squats-lib/oss-find-squats-lib.sln'
             projectName: 'oss-find-squats-lib'
             artifactName: 'nuget-find-squats-lib-archive'
             preBuild:
@@ -79,7 +79,7 @@ extends:
             jobName: 'pack_SharedLib'
             buildConfiguration: 'Release'
             dotnetVersion: ${{ variables.DotnetVersion }}
-            projectPath: 'src/OSSGadget.sln'
+            projectPath: 'src/Shared/Shared.Lib.csproj'
             projectName: 'Shared.Lib'
             artifactName: 'nuget-shared-lib-archive'
             preBuild:
@@ -89,7 +89,7 @@ extends:
             jobName: 'pack_SharedCLI'
             buildConfiguration: 'Release'
             dotnetVersion: ${{ variables.DotnetVersion }}
-            projectPath: 'src/OSSGadget.sln'
+            projectPath: 'src/Shared.CLI/Shared.CLI.csproj'
             projectName: 'Shared.CLI'
             artifactName: 'nuget-shared-cli-archive'
             preBuild:
@@ -99,7 +99,7 @@ extends:
             jobName: 'pack_CLI'
             buildConfiguration: 'Release'
             dotnetVersion: ${{ variables.DotnetVersion }}
-            projectPath: 'src/OSSGadget.sln'
+            projectPath: 'src/oss-gadget-cli/oss-gadget-cli.csproj'
             projectName: 'oss-gadget-cli'
             artifactName: 'nuget-shared-cli-archive'
             preBuild:

@@ -192,7 +192,7 @@ extends:
             AuthAKVName: 'oss-signing-vault'
             AuthCertName: 'oss-gadget-auth-cert'
             AuthSignCertName: 'oss-gadget-signing-cert'
-            FolderPath: '$(Build.BinariesDirectory)/linux/OSSGadget_linux_$(ReleaseVersion)'
+            FolderPath: '$(Build.BinariesDirectory)/linux/oss-gadget-cli_linux_$(ReleaseVersion)'
             Pattern: ${{ variables.BinaryFiles }}
             signConfigType: 'inlineSignParams'
             inlineOperation: |
@@ -230,7 +230,7 @@ extends:
             AuthAKVName: 'oss-signing-vault'
             AuthCertName: 'oss-gadget-auth-cert'
             AuthSignCertName: 'oss-gadget-signing-cert'
-            FolderPath: '$(Build.BinariesDirectory)/macos/OSSGadget_macos_$(ReleaseVersion)'
+            FolderPath: '$(Build.BinariesDirectory)/macos/oss-gadget-cli_macos_$(ReleaseVersion)'
             Pattern: ${{ variables.BinaryFiles }}
             signConfigType: 'inlineSignParams'
             inlineOperation: |

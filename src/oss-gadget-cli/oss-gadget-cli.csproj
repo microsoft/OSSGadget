@@ -32,8 +32,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="icon-128.png">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
+      <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="" />
+      <None Include="..\..\icon-128.png" Pack="true" PackagePath="" />
     </ItemGroup>
 </Project>

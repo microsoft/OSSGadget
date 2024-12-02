@@ -101,7 +101,7 @@ extends:
             dotnetVersion: ${{ variables.DotnetVersion }}
             projectPath: 'src/oss-gadget-cli/oss-gadget-cli.csproj'
             projectName: 'oss-gadget-cli'
-            artifactName: 'nuget-shared-cli-archive'
+            artifactName: 'nuget-cli-archive'
             preBuild:
             - template: nbgv-set-version-steps.yml@templates
   
@@ -167,6 +167,12 @@ extends:
             displayName: 'Download nuget-shared-cli-archive'  
             buildType: 'current'
             artifactName: 'nuget-shared-cli-archive'
+            targetPath: $(Build.BinariesDirectory)\Unsigned_Binaries\
+        - task: DownloadPipelineArtifact@2
+          inputs:
+            displayName: 'Download nuget-cli-archive'  
+            buildType: 'current'
+            artifactName: 'nuget-cli-archive'
             targetPath: $(Build.BinariesDirectory)\Unsigned_Binaries\
 
         - task: ExtractFiles@1

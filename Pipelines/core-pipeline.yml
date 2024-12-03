@@ -340,18 +340,18 @@ extends:
         - task: ArchiveFiles@2
           displayName: Archive Artifact - Linux
           inputs:
-            rootFolderOrFile: '$(Build.BinariesDirectory)/linux/OSSGadget_linux_$(ReleaseVersion)'
+            rootFolderOrFile: '$(Build.BinariesDirectory)/linux/oss-gadget-cli_linux_$(ReleaseVersion)'
             includeRootFolder: true
             archiveType: 'tar'
-            archiveFile: '$(Build.StagingDirectory)/OSSGadget_linux_$(ReleaseVersion).tar.gz'
+            archiveFile: '$(Build.StagingDirectory)/oss-gadget-cli_linux_$(ReleaseVersion).tar.gz'
             replaceExistingArchive: true
         - task: ArchiveFiles@2
           displayName: Archive Artifact - MacOS
           inputs:
-            rootFolderOrFile: '$(Build.BinariesDirectory)/macos/OSSGadget_macos_$(ReleaseVersion)'
+            rootFolderOrFile: '$(Build.BinariesDirectory)/macos/oss-gadget-cli_macos_$(ReleaseVersion)'
             includeRootFolder: true
             archiveType: 'tar'
-            archiveFile: '$(Build.StagingDirectory)/OSSGadget_macos_$(ReleaseVersion).tar.gz'
+            archiveFile: '$(Build.StagingDirectory)/oss-gadget-cli_macos_$(ReleaseVersion).tar.gz'
             replaceExistingArchive: true
         - task: ArchiveFiles@2
           displayName: Archive Artifact - Windows
@@ -359,7 +359,7 @@ extends:
             rootFolderOrFile: '$(Build.BinariesDirectory)/win/oss-gadget-cli_win_$(ReleaseVersion)'
             includeRootFolder: true
             archiveType: 'zip'
-            archiveFile: '$(Build.StagingDirectory)/OSSGadget_win_$(ReleaseVersion).zip'
+            archiveFile: '$(Build.StagingDirectory)/oss-gadget-cli_win_$(ReleaseVersion).zip'
             replaceExistingArchive: true
         - task: ArchiveFiles@2
           displayName: Archive Artifact - .NET Core App
@@ -367,7 +367,7 @@ extends:
             rootFolderOrFile: '$(Build.BinariesDirectory)/netcoreapp/oss-gadget-cli_netcoreapp_$(ReleaseVersion)'
             includeRootFolder: true
             archiveType: 'zip'
-            archiveFile: '$(Build.StagingDirectory)/OSSGadget_netcoreapp_$(ReleaseVersion).zip'
+            archiveFile: '$(Build.StagingDirectory)/oss-gadget-cli_netcoreapp_$(ReleaseVersion).zip'
             replaceExistingArchive: true
         - task: PowerShell@2
           displayName: Generate Hashes

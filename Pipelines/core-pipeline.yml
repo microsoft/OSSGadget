@@ -335,6 +335,41 @@ extends:
             SessionTimeout: '60'
             MaxConcurrency: '50'
             MaxRetryAttempts: '5'
+
+        # Code Signing - NuGet Package
+        - task: EsrpCodeSigning@5
+          displayName: Code Sign Nuget Packages
+          inputs:
+            ConnectedServiceName: 'oss-esrp-signing-gadget-v5-connection'
+            AppRegistrationClientId: '8efe2bf9-b4d7-4058-8982-bfc87dcdb034'
+            AppRegistrationTenantId: '33e01921-4d64-4f8c-a055-5bdaffd5e33d'
+            AuthAKVName: 'oss-signing-vault'
+            AuthCertName: 'oss-gadget-auth-cert'
+            AuthSignCertName: 'oss-gadget-signing-cert'
+            FolderPath: '$(System.BinariesDirectory)'
+            Pattern: '*.nupkg, *.snupkg'
+            signConfigType: 'inlineSignParams'
+            inlineOperation: |
+              [
+                      {
+                          "KeyCode" : "CP-401405",
+                          "OperationCode" : "NuGetSign",
+                          "Parameters" : {},
+                          "ToolName" : "sign",
+                          "ToolVersion" : "1.0"
+                      },
+                      {
+                          "KeyCode" : "CP-401405",
+                          "OperationCode" : "NuGetVerify",
+                          "Parameters" : {},
+                          "ToolName" : "sign",
+                          "ToolVersion" : "1.0"
+                      }
+                  ]
+            SessionTimeout: '60'
+            MaxConcurrency: '50'
+            MaxRetryAttempts: '5'
+
         - powershell: 'Get-ChildItem -Path ''$(Build.BinariesDirectory)'' -Recurse CodeSign* | foreach { Remove-Item -Path $_.FullName }'
           displayName: 'Delete Code Sign Summaries'
         - task: ArchiveFiles@2

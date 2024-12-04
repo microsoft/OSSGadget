@@ -27,16 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\oss-characteristics\oss-characteristic.csproj" />
-    <ProjectReference Include="..\oss-defog\oss-defog.csproj" />
-    <ProjectReference Include="..\oss-detect-backdoor\oss-detect-backdoor.csproj" />
-    <ProjectReference Include="..\oss-detect-cryptography\oss-detect-cryptography.csproj" />
-    <ProjectReference Include="..\oss-download\oss-download.csproj" />
-    <ProjectReference Include="..\oss-find-source\oss-find-source.csproj" />
-    <ProjectReference Include="..\oss-find-squats\oss-find-squats.csproj" />
-    <ProjectReference Include="..\oss-health\oss-health.csproj" />
-     <ProjectReference Include="..\oss-metadata\oss-metadata.csproj" />
-    <ProjectReference Include="..\oss-reproducible\oss-reproducible.csproj" />
     <ProjectReference Include="..\Shared\Shared.Lib.csproj" />
     <ProjectReference Include="..\Shared.CLI\Shared.CLI.csproj" />
   </ItemGroup>

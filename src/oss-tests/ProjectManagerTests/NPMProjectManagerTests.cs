@@ -104,6 +104,13 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             { "https://registry.npmjs.org/lodash.js/0.0.1-security", "mockContent" },
             { "https://registry.npmjs.org/tslib/2.4.1", "mockContent" },
         }.ToImmutableDictionary();
+        
+        private readonly IDictionary<string, string> _packageOwners = new Dictionary<string, string>()
+        {
+            { "https://registry.npmjs.org/-/user/jdalton/package", Resources.jdalton_packages_json },
+            { "https://registry.npmjs.org/-/user/microsoft/package", Resources.microsoft_packages_json },
+            { "https://registry.npmjs.org/-/user/azure/package", Resources.azure_packages_json },
+        }.ToImmutableDictionary();
 
         private readonly Mock<NPMProjectManager> _projectManager;
         private readonly IHttpClientFactory _httpFactory;
@@ -120,6 +127,11 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             }
 
             foreach ((string url, string content) in _packageVersions)
+            {
+                MockHttpFetchResponse(HttpStatusCode.OK, url, content, mockHttp);
+            }
+
+            foreach ((string url, string content) in _packageOwners)
             {
                 MockHttpFetchResponse(HttpStatusCode.OK, url, content, mockHttp);
             }
@@ -398,7 +410,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         {
             NPMProjectManager projectManager = new(".");
 
-            List<PackageURL> packages = await projectManager.GetPackagesFromOwnerAsync(owner).ToListAsync();
+            List<PackageURL> packages = await _projectManager.Object.GetPackagesFromOwnerAsync(owner).ToListAsync();
 
             packages.Should().OnlyHaveUniqueItems();
             packages.Select(p => p.ToString()).Should().Contain(expectedPackage);

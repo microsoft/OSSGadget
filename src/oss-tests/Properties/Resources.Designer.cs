@@ -302,5 +302,11 @@ namespace oss {
                 return ResourceManager.GetString("azure_packages.json", resourceCulture);
             }
         }
+        
+        internal static string microsoft_pypi_profile_html {
+            get {
+                return ResourceManager.GetString("microsoft_pypi_profile.html", resourceCulture);
+            }
+        }
     }
 }

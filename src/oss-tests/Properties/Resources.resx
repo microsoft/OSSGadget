@@ -147,4 +147,7 @@
     <data name="azure_packages.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
         <value>..\TestData\NPM\azure_packages.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </data>
+    <data name="microsoft_pypi_profile.html" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>..\TestData\PyPi\microsoft_pypi_profile.html;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </data>
 </root>

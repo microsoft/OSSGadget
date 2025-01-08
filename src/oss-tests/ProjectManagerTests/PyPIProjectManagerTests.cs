@@ -34,6 +34,11 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             { "https://pypi.org/pypi/requests/json", Resources.requests_json },
             { "https://pypi.org/pypi/requests/2.27.1/json", Resources.requests_2_27_1_json },
         }.ToImmutableDictionary();
+
+        private readonly IDictionary<string, string> _owners = new Dictionary<string, string>()
+        {
+            { "https://pypi.org/user/microsoft", Resources.microsoft_pypi_profile_html }
+        };
         
         private readonly IDictionary<string, string[]> _packageArtifacts = new Dictionary<string, string[]>()
         {
@@ -83,6 +88,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         }.ToImmutableDictionary();
 
         private readonly PyPIProjectManager _projectManager;
+        private readonly Mock<PyPIProjectManager> _mockProjectManager;
         private readonly IHttpClientFactory _httpFactory;
 
         public PyPIProjectManagerTests()
@@ -93,7 +99,12 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 
             foreach ((string url, string json) in _packages)
             {
-                MockHttpFetchResponse(HttpStatusCode.OK, url, json, mockHttp);
+                MockHttpFetchResponse(HttpStatusCode.OK, url, json, "application/json", mockHttp);
+            }
+
+            foreach ((string url, string html) in _owners)
+            {
+                MockHttpFetchResponse(HttpStatusCode.OK, url, html, "text/html", mockHttp);
             }
 
             mockHttp.When(HttpMethod.Get, "https://pypi.org/pypi/plotly/3.7.1/json").Respond(HttpStatusCode.OK);
@@ -101,6 +112,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             _httpFactory = mockFactory.Object;
 
             _projectManager = new PyPIProjectManager(".", new NoOpPackageActions(), _httpFactory);
+            _mockProjectManager = new Mock<PyPIProjectManager>(".", new NoOpPackageActions(), _httpFactory, null) { CallBase = true };
         }
 
         [DataTestMethod]
@@ -262,7 +274,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         {
             PyPIProjectManager projectManager = new(".");
 
-            List<PackageURL> packages = await projectManager.GetPackagesFromOwnerAsync(owner).ToListAsync();
+            List<PackageURL> packages = await _mockProjectManager.Object.GetPackagesFromOwnerAsync(owner).ToListAsync();
 
             packages.Should().OnlyHaveUniqueItems();
             packages.Select(p => p.ToString()).Should().Contain(expectedPackage);
@@ -272,11 +284,12 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             HttpStatusCode statusCode,
             string url,
             string content,
+            string contentType,
             MockHttpMessageHandler httpMock)
         {
             httpMock
                 .When(HttpMethod.Get, url)
-                .Respond(statusCode, "application/json", content);
+                .Respond(statusCode, contentType, content);
 
             if (url.EndsWith("/json"))
             {

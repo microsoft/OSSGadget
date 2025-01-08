@@ -346,7 +346,7 @@ extends:
             AuthAKVName: 'oss-signing-vault'
             AuthCertName: 'oss-gadget-auth-cert'
             AuthSignCertName: 'oss-gadget-signing-cert'
-            FolderPath: '$(System.BinariesDirectory)'
+            FolderPath: '$(Build.BinariesDirectory)'
             Pattern: '*.nupkg, *.snupkg'
             signConfigType: 'inlineSignParams'
             inlineOperation: |

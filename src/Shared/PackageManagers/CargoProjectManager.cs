@@ -290,7 +290,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         
         // No published date available for Cargo packages via allowed high-volume endpoints. See https://crates.io/data-access
         // Returning null here short-circuits the base class implementation which otherwise makes an illegal call to GetMetadataAsync.
-        public override Task<DateTime?> GetPublishedAtUtcAsync(PackageURL purl, bool useCache = true)
+        public override async Task<DateTime?> GetPublishedAtUtcAsync(PackageURL purl, bool useCache = true)
         {
             Logger.Warn("CargoProjectManager.GetPublishedAtUtcAsync not implemented since a non-rate-limited Cargo API endpoint does not currently exist for this. See https://crates.io/data-access");
             

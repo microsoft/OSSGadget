@@ -354,3 +354,6 @@ MigrationBackup/
 
 # Rider
 src/.idea
+
+# Ignore Mac Folder Metadata
+**/.DS_Store

@@ -174,7 +174,7 @@ namespace Microsoft.CST.OpenSource.Model
         public string? Email { get; init; }
 
         [JsonProperty(PropertyName = "Id", NullValueHandling = NullValueHandling.Ignore)]
-        public int? Id { get; init; }
+        public long? Id { get; init; }
 
         [JsonProperty(PropertyName = "name", NullValueHandling = NullValueHandling.Ignore)]
         public string? Name { get; init; }

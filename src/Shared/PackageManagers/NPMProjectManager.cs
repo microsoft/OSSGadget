@@ -43,8 +43,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public NPMProjectManager(
             string directory,
             IManagerPackageActions<IManagerPackageVersionMetadata>? actions = null,
-            IHttpClientFactory? httpClientFactory = null)
-            : base(actions ?? new NoOpPackageActions(), httpClientFactory ?? new DefaultHttpClientFactory(), directory)
+            IHttpClientFactory? httpClientFactory = null,
+            TimeSpan? timeout = null)
+            : base(actions ?? new NoOpPackageActions(), httpClientFactory ?? new DefaultHttpClientFactory(), directory, timeout)
         {
         }
 
@@ -128,6 +129,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
                     downloadedPaths.Add(extractionPath);
                 }
+            }
+            catch (TaskCanceledException ex)
+            {
+                Logger.Debug(ex, "Downloading NPM package timed out: {0}", ex.Message);
+                throw;
             }
             catch (Exception ex)
             {

@@ -17,6 +17,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Security.Cryptography;
     using System.Text;
     using System.Text.RegularExpressions;
+    using System.Threading;
     using System.Threading.Tasks;
 
     internal class CocoapodsProjectManager : BaseProjectManager
@@ -38,11 +39,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public string ENV_COCOAPODS_METADATA_ENDPOINT { get; set; } = "https://cocoapods.org";
 
-        public CocoapodsProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory) : base(httpClientFactory, destinationDirectory)
+        public CocoapodsProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory, TimeSpan? timeout = null) : base(httpClientFactory, destinationDirectory, timeout)
         {
         }
 
-        public CocoapodsProjectManager(string destinationDirectory) : base(destinationDirectory)
+        public CocoapodsProjectManager(string destinationDirectory, TimeSpan? timeout = null) : base(destinationDirectory, timeout)
         {
         }
 

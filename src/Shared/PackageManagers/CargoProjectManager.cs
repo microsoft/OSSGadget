@@ -11,6 +11,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using Model.Enums;
     using Octokit;
     using PackageUrl;
+    using Polly.Retry;
+    using Polly;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -35,15 +37,25 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public string ENV_CARGO_ENDPOINT_STATIC { get; set; } = "https://static.crates.io";
-        
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public string ENV_CARGO_INDEX_ENDPOINT { get; set; } = "https://raw.githubusercontent.com/rust-lang/crates.io-index/master";
+
+        private static int InternalServerErrorMaxRetries = 3;
+
+        private AsyncRetryPolicy retryPolicy = Policy
+            .Handle<HttpRequestException>(ex => ex.StatusCode == HttpStatusCode.InternalServerError)
+            .RetryAsync(InternalServerErrorMaxRetries, (exception, retryCount) =>
+            {
+                Logger.Debug(exception, "Internal Server error 500, retrying... {0}/{1} tries", retryCount, InternalServerErrorMaxRetries);
+            });
 
         public CargoProjectManager(
             string directory,
             IManagerPackageActions<IManagerPackageVersionMetadata>? actions = null,
-            IHttpClientFactory? httpClientFactory = null)
-            : base(actions ?? new NoOpPackageActions(), httpClientFactory ?? new DefaultHttpClientFactory(), directory)
+            IHttpClientFactory? httpClientFactory = null,
+            TimeSpan? timeout = null)
+            : base(actions ?? new NoOpPackageActions(), httpClientFactory ?? new DefaultHttpClientFactory(), directory, timeout)
         {
         }
 
@@ -86,33 +98,41 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
 
             Uri url = (await GetArtifactDownloadUrisAsync(purl, cached).ToListAsync()).Single().Uri;
+
             try
             {
-                string targetName = $"cargo-{fileName}";
-                string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
-                // if the cache is already present, no need to extract
-                if (doExtract && cached && Directory.Exists(extractionPath))
+                await retryPolicy.ExecuteAsync(async () =>
                 {
-                    downloadedPaths.Add(extractionPath);
-                    return downloadedPaths;
-                }
-                Logger.Debug("Downloading {0}", url);
+                    string targetName = $"cargo-{fileName}";
+                    string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
+                    // if the cache is already present, no need to extract
+                    if (doExtract && cached && Directory.Exists(extractionPath))
+                    {
+                        downloadedPaths.Add(extractionPath);
+                        return;
+                    }
+                    Logger.Debug("Downloading {0}", url);
 
-                HttpClient httpClient = CreateHttpClient();
+                    HttpClient httpClient = CreateHttpClient();
 
-                System.Net.Http.HttpResponseMessage result = await httpClient.GetAsync(url);
-                result.EnsureSuccessStatusCode();
+                    System.Net.Http.HttpResponseMessage result = await httpClient.GetAsync(url);
+                    result.EnsureSuccessStatusCode();
 
-                if (doExtract)
-                {
-                    downloadedPaths.Add(await ArchiveHelper.ExtractArchiveAsync(TopLevelExtractionDirectory, targetName, await result.Content.ReadAsStreamAsync(), cached));
-                }
-                else
-                {
-                    extractionPath += Path.GetExtension(url.ToString()) ?? "";
-                    await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
-                    downloadedPaths.Add(extractionPath);
-                }
+                    if (doExtract)
+                    {
+                        downloadedPaths.Add(await ArchiveHelper.ExtractArchiveAsync(TopLevelExtractionDirectory, targetName, await result.Content.ReadAsStreamAsync(), cached));
+                    }
+                    else
+                    {
+                        extractionPath += Path.GetExtension(url.ToString()) ?? "";
+                        await File.WriteAllBytesAsync(extractionPath, await result.Content.ReadAsByteArrayAsync());
+                        downloadedPaths.Add(extractionPath);
+                    }
+                });
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.InternalServerError)
+            {
+                Logger.Debug($"Max retries reached. Unable to download the package: {purl}, error: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -147,23 +167,31 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             try
             {
-                string? packageName = purl.Name;
-                HttpClient httpClient = CreateHttpClient();
-                // NOTE: The file isn't valid json, so use the custom rule.
-                JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_CARGO_INDEX_ENDPOINT}/{CreatePath(packageName)}", jsonParsingOption: JsonParsingOption.NotInArrayNotCsv);
-                List<string> versionList = new();
-                foreach (JsonElement versionObject in doc.RootElement.EnumerateArray())
+                return await retryPolicy.ExecuteAsync(async () =>
                 {
-                    if (versionObject.TryGetProperty("vers", out JsonElement version))
+                    string? packageName = purl.Name;
+                    HttpClient httpClient = CreateHttpClient();
+                    // NOTE: The file isn't valid json, so use the custom rule.
+                    JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_CARGO_INDEX_ENDPOINT}/{CreatePath(packageName)}", jsonParsingOption: JsonParsingOption.NotInArrayNotCsv);
+                    List<string> versionList = new();
+                    foreach (JsonElement versionObject in doc.RootElement.EnumerateArray())
                     {
-                        Logger.Debug("Identified {0} version {1}.", packageName, version.ToString());
-                        if (version.ToString() is string s)
+                        if (versionObject.TryGetProperty("vers", out JsonElement version))
                         {
-                            versionList.Add(s);
+                            Logger.Debug("Identified {0} version {1}.", packageName, version.ToString());
+                            if (version.ToString() is string s)
+                            {
+                                versionList.Add(s);
+                            }
                         }
                     }
-                }
-                return SortVersions(versionList.Distinct());
+                    return SortVersions(versionList.Distinct());
+                });
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.InternalServerError)
+            {
+                Logger.Debug($"Max retries reached. Unable to enumerate versions for package: {purl}, error: {ex.Message}");
+                throw;
             }
             catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
             {
@@ -174,7 +202,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {
                 Logger.Debug("Unable to enumerate versions: {0}", ex.Message);
                 throw;
-            }
+            }      
         }
 
         /// <inheritdoc />
@@ -182,10 +210,18 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
             try
             {
-                string? packageName = purl.Name;
-                HttpClient httpClient = CreateHttpClient();
-                string? content = await GetHttpStringCache(httpClient, $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}", useCache);
-                return content;
+                return await retryPolicy.ExecuteAsync(async () =>
+                {
+                    string? packageName = purl.Name;
+                    HttpClient httpClient = CreateHttpClient();
+                    string? content = await GetHttpStringCache(httpClient, $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}", useCache);
+                    return content;
+                });
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.InternalServerError)
+            {
+                Logger.Debug($"Max retries reached. Unable to get metadata for package: {purl}, error: {ex.Message}");
+                throw;
             }
             catch (Exception ex)
             {
@@ -261,7 +297,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
             return new Uri(url);
         }
-        
+
         /// <summary>
         /// Helper method to create the path for the crates.io index for this package name.
         /// </summary>

@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 namespace Microsoft.CST.OpenSource.Tests
 {
     using ApplicationInspector.RulesEngine;
+    using OssGadget.Tools;
     using PackageUrl;
 
     [TestClass]

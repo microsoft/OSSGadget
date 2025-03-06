@@ -96,7 +96,7 @@ namespace Microsoft.CST.OpenSource
                     if (Directory.Exists(packageDirectory))
                     {
                         Logger.Trace("Removing directory {0}", packageDirectory);
-                        FileSystemHelper.RetryDeleteDirectory(packageDirectory);
+                        Helpers.FileSystemHelper.RetryDeleteDirectory(packageDirectory);
                     }
                 }
             }

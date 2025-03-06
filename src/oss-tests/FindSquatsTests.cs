@@ -15,6 +15,7 @@ namespace Microsoft.CST.OpenSource.Tests
     using Extensions;
     using Helpers;
     using Model.Metadata;
+    using OssGadget.Options;
     using PackageUrl;
     using System.Linq;
     using System.Net.Http;
@@ -50,16 +51,16 @@ namespace Microsoft.CST.OpenSource.Tests
 
             // Override the NuGet constructor to add the mocked NuGetPackageActions.
             managerOverrides[NuGetProjectManager.Type] =
-                _ => new NuGetProjectManager(".", nugetPackageActions, httpClientFactory);
+                (destinationDirectory, timeout) => new NuGetProjectManager(".", nugetPackageActions, httpClientFactory);
             
             ProjectManagerFactory projectManagerFactory = new(managerOverrides);
             FindSquatsTool fst = new(projectManagerFactory);
-            FindSquatsTool.Options options = new()
+            FindSquatsToolOptions options = new()
             {
                 Quiet = true,
                 Targets = new string[] { packageUrl }
             };
-            (string output, int numSquats) result = await fst.RunAsync(options);
+            (string output, int numSquats) result = await fst.LegacyRunAsync(options);
             Assert.IsTrue(expectedToHaveSquats ? result.numSquats > 0 : result.numSquats == 0);
         }
 
@@ -554,8 +555,8 @@ namespace Microsoft.CST.OpenSource.Tests
             IManagerPackageActions<NuGetPackageVersionMetadata> packageActions = PackageActionsHelper<NuGetPackageVersionMetadata>.SetupPackageActions(newtonsoft, validSquats: squattingPackages) ?? throw new InvalidOperationException();
             Dictionary<string, ProjectManagerFactory.ConstructProjectManager> overrideDict = ProjectManagerFactory.GetDefaultManagers(httpClientFactory);
 
-            overrideDict[NuGetProjectManager.Type] = directory =>
-                new NuGetProjectManager(directory, packageActions, httpClientFactory);
+            overrideDict[NuGetProjectManager.Type] = (destinationDirectory, timeout) =>
+                new NuGetProjectManager(destinationDirectory, packageActions, httpClientFactory);
             
             FindPackageSquats findPackageSquats = new(new ProjectManagerFactory(overrideDict), newtonsoft);
 
@@ -589,8 +590,8 @@ namespace Microsoft.CST.OpenSource.Tests
             IManagerPackageActions<NuGetPackageVersionMetadata> packageActions = PackageActionsHelper<NuGetPackageVersionMetadata>.SetupPackageActions(requests, validSquats: squattingPackages) ?? throw new InvalidOperationException();
             Dictionary<string, ProjectManagerFactory.ConstructProjectManager> overrideDict = ProjectManagerFactory.GetDefaultManagers(httpClientFactory);
 
-            overrideDict[NuGetProjectManager.Type] = directory =>
-                new NuGetProjectManager(directory, packageActions, httpClientFactory);
+            overrideDict[NuGetProjectManager.Type] = (destinationDirectory, timeout) =>
+                new NuGetProjectManager(destinationDirectory, packageActions, httpClientFactory);
             
             FindPackageSquats findPackageSquats = new(new ProjectManagerFactory(overrideDict), requests);
 

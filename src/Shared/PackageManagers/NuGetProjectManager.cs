@@ -46,8 +46,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public NuGetProjectManager(
             string directory,
             IManagerPackageActions<NuGetPackageVersionMetadata>? actions = null,
-            IHttpClientFactory? httpClientFactory = null)
-            : base(actions ?? new NuGetPackageActions(), httpClientFactory ?? new DefaultHttpClientFactory(), directory)
+            IHttpClientFactory? httpClientFactory = null,
+            TimeSpan? timeout = null)
+            : base(actions ?? new NuGetPackageActions(), httpClientFactory ?? new DefaultHttpClientFactory(), directory, timeout)
         {
             GetRegistrationEndpointAsync().Wait();
         }

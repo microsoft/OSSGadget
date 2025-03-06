@@ -35,7 +35,7 @@ public abstract class TypedManager<T, TArtifactUriType> : BaseProjectManager, IT
     /// </summary>
     protected readonly IManagerPackageActions<T> Actions;
 
-    protected TypedManager(IManagerPackageActions<T> actions, IHttpClientFactory httpClientFactory, string directory) : base(httpClientFactory, directory)
+    protected TypedManager(IManagerPackageActions<T> actions, IHttpClientFactory httpClientFactory, string directory, TimeSpan? timeout = null) : base(httpClientFactory, directory, timeout)
     {
         Actions = actions;
     }

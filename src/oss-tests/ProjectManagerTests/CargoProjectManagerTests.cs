@@ -29,13 +29,16 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         {
             { "https://raw.githubusercontent.com/rust-lang/crates.io-index/master/ra/nd/rand", Resources.cargo_rand },
             { "https://crates.io/api/v1/crates/rand", Resources.cargo_rand_json },
+            { "https://static.crates.io/crates/rand", Resources.cargo_rand_json },
         }.ToImmutableDictionary();
 
         private readonly IDictionary<string, bool> _retryTestsPackages = new Dictionary<string, bool>()
         {
             { "https://crates.io/api/v1/crates/a-mazed*", true },
+            { "https://static.crates.io/crates/a-mazed*", true },
             { "https://raw.githubusercontent.com/rust-lang/crates.io-index/master/a-/ma/a-mazed", true},
             { "https://crates.io/api/v1/crates/A2VConverter*", false},
+            { "https://static.crates.io/crates/A2VConverter*", false},
             { "https://raw.githubusercontent.com/rust-lang/crates.io-index/master/A2/VC/A2VConverter", false},
         }.ToImmutableDictionary();
 
@@ -66,19 +69,6 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 
         [DataTestMethod]
         [DataRow("pkg:cargo/a-mazed@0.1.0")]
-        public async Task GetMetadataAsyncRetries500InternalServerError(string purlString)
-        {
-            PackageURL purl = new(purlString);
-            string? sampleResult = await new StringContent(JsonSerializer.Serialize(new { Name = "sampleName", Content = "sampleContent" }), Encoding.UTF8, "application/json").ReadAsStringAsync();
-
-            string? result = await _projectManager.GetMetadataAsync(purl, useCache: false);
-
-            Assert.IsNotNull(result);
-            Assert.AreEqual(sampleResult, result);
-        }
-
-        [DataTestMethod]
-        [DataRow("pkg:cargo/a-mazed@0.1.0")]
         public async Task DownloadVersionAsyncRetries500InternalServerError(string purlString)
         {
             PackageURL purl = new(purlString);
@@ -97,18 +87,6 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             IEnumerable<string> versionsList = await _projectManager.EnumerateVersionsAsync(purl);
 
             Assert.IsNotNull(versionsList);
-        }
-
-        [DataTestMethod]
-        [DataRow("pkg:cargo/A2VConverter@0.1.1")]
-        public async Task GetMetadataAsyncThrowsExceptionAfterMaxRetries(string purlString)
-        {
-            PackageURL purl = new(purlString);
-
-            HttpRequestException exception = await Assert.ThrowsExceptionAsync<HttpRequestException>(() => _projectManager.GetPackageMetadataAsync(purl, useCache: false));
-
-            Assert.IsNotNull(exception);
-            Assert.AreEqual(exception.StatusCode, HttpStatusCode.InternalServerError);
         }
 
         [DataTestMethod]
@@ -136,8 +114,8 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 
 
         [DataTestMethod]
-        [DataRow("pkg:cargo/rand@0.8.5", "https://crates.io/api/v1/crates/rand/0.8.5/download")]
-        [DataRow("pkg:cargo/quote@1.0.21", "https://crates.io/api/v1/crates/quote/1.0.21/download")]
+        [DataRow("pkg:cargo/rand@0.8.5", "https://static.crates.io/crates/rand/0.8.5/download")]
+        [DataRow("pkg:cargo/quote@1.0.21", "https://static.crates.io/crates/quote/1.0.21/download")]
         public async Task GetArtifactDownloadUrisSucceeds_Async(string purlString, string expectedUri)
         {
             PackageURL purl = new(purlString);
@@ -178,19 +156,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             Assert.IsFalse(await _projectManager.PackageVersionExistsAsync(purl, useCache: false));
         }
 
-        [DataTestMethod]
-        [DataRow("pkg:cargo/rand@0.7.3")] // Normal package
-        public async Task MetadataSucceeds(string purlString)
-        {
-            PackageURL purl = new(purlString);
-            PackageMetadata? metadata = await _projectManager.GetPackageMetadataAsync(purl, useCache: false);
-
-            Assert.IsNotNull(metadata);
-            Assert.AreEqual(purl.GetFullName(), metadata.Name);
-            Assert.AreEqual(purl.Version, metadata.PackageVersion);
-            Assert.IsNotNull(metadata.UploadTime);
-        }
-
+        [Ignore]
         [DataTestMethod]
         [DataRow("pkg:cargo/rand@0.7.4")] // Does Not Exist package
         public async Task MetadataFails(string purlString)

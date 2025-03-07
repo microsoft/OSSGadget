@@ -36,7 +36,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public string ENV_CARGO_ENDPOINT { get; set; } = "https://crates.io";
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        public string ENV_CARGO_ENDPOINT_STATIC { get; set; } = "https://static.crates.io";
+        public string ENV_CARGO_ENDPOINT_STATIC { get; set; } = "https://static.crates.io/crates";
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public string ENV_CARGO_INDEX_ENDPOINT { get; set; } = "https://raw.githubusercontent.com/rust-lang/crates.io-index/master";
@@ -66,7 +66,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             string? packageName = purl?.Name;
             string? packageVersion = purl?.Version;
 
-            string artifactUri = $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}/{packageVersion}/download";
+            string artifactUri = $"{ENV_CARGO_ENDPOINT_STATIC}/{packageName}/{packageVersion}/download";
             yield return new ArtifactUri<CargoArtifactType>(CargoArtifactType.Tarball, artifactUri);
         }
 
@@ -208,26 +208,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <inheritdoc />
         public override async Task<string?> GetMetadataAsync(PackageURL purl, bool useCache = true)
         {
-            try
-            {
-                return await retryPolicy.ExecuteAsync(async () =>
-                {
-                    string? packageName = purl.Name;
-                    HttpClient httpClient = CreateHttpClient();
-                    string? content = await GetHttpStringCache(httpClient, $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}", useCache);
-                    return content;
-                });
-            }
-            catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.InternalServerError)
-            {
-                Logger.Debug($"Max retries reached. Unable to get metadata for package: {purl}, error: {ex.Message}");
-                throw;
-            }
-            catch (Exception ex)
-            {
-                Logger.Debug(ex, "Error fetching Cargo metadata: {0}", ex.Message);
-                throw;
-            }
+            throw new NotImplementedException("CargoProjectManager.GetMetadataAsync does not call the correct Cargo endpoint allowed by crates.io. See https://crates.io/data-access");
         }
 
         public override async Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool includePrerelease = false, bool useCache = true, bool includeRepositoryMetadata = true)
@@ -284,6 +265,17 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
 
             return metadata;
+        }
+        
+        // No published date available for Cargo packages via allowed high-volume endpoints. See https://crates.io/data-access
+        // Returning null here short-circuits the base class implementation which otherwise makes an illegal call to GetMetadataAsync.
+        public override async Task<DateTime?> GetPublishedAtUtcAsync(PackageURL purl, bool useCache = true)
+        {
+            Logger.Warn("CargoProjectManager.GetPublishedAtUtcAsync not implemented since a non-rate-limited Cargo API endpoint does not currently exist for this. See https://crates.io/data-access");
+            
+            // FIXME: Ensure that we can tell that this code path is being used while fixing ICM 595777915
+            Console.WriteLine("CargoProjectManager.GetPublishedAtUtcAsync not implemented since a non-rate-limited Cargo API endpoint does not currently exist for this. See https://crates.io/data-access");
+            return null!;
         }
 
         public override Uri GetPackageAbsoluteUri(PackageURL purl)

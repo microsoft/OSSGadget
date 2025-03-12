@@ -154,6 +154,7 @@ public interface IBaseProjectManager
     /// </summary>
     /// <param name="purl">Package URL specifying the package. Version is mandatory.</param>
     /// <param name="useCache">If the cache should be used when looking for the published time.</param>
+    /// <param name="useRateLimitedApi">If the rate-limited API should be used to fetch publishedtimestamp for cargo package manager.</param>
     /// <returns>The <see cref="DateTime"/> when this version was published, or null if not found.</returns>
-    public Task<DateTime?> GetPublishedAtUtcAsync(PackageURL purl, bool useCache = true);
+    public Task<DateTime?> GetPublishedAtUtcAsync(PackageURL purl, bool useCache = true, bool useRateLimitedApi = true);
 }

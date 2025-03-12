@@ -21,6 +21,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Net.Http;
     using System.Text.Json;
     using System.Threading.Tasks;
+    using System.Xml.Linq;
 
     public class CargoProjectManager : TypedManager<IManagerPackageVersionMetadata, CargoProjectManager.CargoArtifactType>
     {
@@ -66,7 +67,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             string? packageName = purl?.Name;
             string? packageVersion = purl?.Version;
 
-            string artifactUri = $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}/{packageVersion}/download";
+            string artifactUri = $"{ENV_CARGO_ENDPOINT_STATIC}/crates/{packageName}/{packageVersion}/download";
             yield return new ArtifactUri<CargoArtifactType>(CargoArtifactType.Tarball, artifactUri);
         }
 
@@ -229,6 +230,58 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 throw;
             }
         }
+        
+        private async Task<DateTime?> GetPackageVersionPublishedTimestampFromRssFeed(PackageURL purl, bool useCache = true)
+        {
+              try
+            {
+                string? rssFeedContent =  await retryPolicy.ExecuteAsync(async () =>
+                {
+                    string? packageName = purl.Name;
+                    HttpClient httpClient = CreateHttpClient();
+                    return await GetHttpStringCache(httpClient, $"{ENV_CARGO_ENDPOINT_STATIC}/rss/crates/{packageName}", useCache);
+                });
+                if(rssFeedContent == null)
+                {
+                    return null;
+                }
+                // Get the RSS feed of crate version updates
+                XDocument doc = XDocument.Parse(rssFeedContent);
+
+                // Process each item element
+                List<XElement> items = doc.Descendants("item").ToList();
+
+                // If items list is empty, throw an exception
+                if (!items.Any())
+                {
+                    throw new InvalidOperationException("Cargo follower: No items found in the RSS feed.");
+                }
+
+                foreach (XElement item in items) // In newest first order
+                {
+                    // Using LocalName to account for namespaces in custom elements
+                    string? pubDate = item.Elements().FirstOrDefault(e => e.Name == "pubDate")?.Value;
+                    string? crateName = item.Elements().FirstOrDefault(e => e.Name is { NamespaceName: "https://crates.io/", LocalName: "name" })?.Value;
+                    string? crateVersion = item.Elements().FirstOrDefault(e => e.Name is { NamespaceName: "https://crates.io/", LocalName: "version" })?.Value;
+                    if(crateName == purl.Name && crateVersion == purl.Version)
+                    {
+                        return pubDate != null ? DateTime.Parse(pubDate): null;
+                    }
+                }
+                return null;
+                    
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.InternalServerError)
+            {
+                Logger.Debug($"Max retries reached. Unable to get published timestamp for package: {purl}, error: {ex.Message}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Logger.Debug(ex, "Error fetching PublishedTimeStamp: {0}", ex.Message);
+                return null;
+            }
+        }
 
         public override async Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool includePrerelease = false, bool useCache = true, bool includeRepositoryMetadata = true)
         {
@@ -238,10 +291,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             PackageMetadata metadata = new();
             metadata.Name = purl?.Name;
             metadata.PackageVersion = purl?.Version;
-            metadata.PackageManagerUri = ENV_CARGO_ENDPOINT.EnsureTrailingSlash();
             metadata.Platform = "Cargo";
             metadata.Language = "Rust";
-
+            metadata.PackageManagerUri = ENV_CARGO_ENDPOINT.EnsureTrailingSlash();
             JsonDocument contentJSON = JsonDocument.Parse(content);
             JsonElement root = contentJSON.RootElement;
             JsonElement? crateElement = OssUtilities.GetJSONPropertyIfExists(root, "crate");
@@ -252,38 +304,52 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                         !string.IsNullOrWhiteSpace(description))
                 {
                     metadata.Description = description;
-                }
 
-                if (OssUtilities.GetJSONPropertyStringIfExists(crateElement, "newest_version") is string newestVersion &&
-                        !string.IsNullOrWhiteSpace(newestVersion))
-                {
-                    metadata.LatestPackageVersion = newestVersion;
-                }
-            }
 
-            JsonElement.ArrayEnumerator? versionsListElement = OssUtilities.GetJSONEnumerator(OssUtilities.GetJSONPropertyIfExists(root, "versions"));
-            if (versionsListElement != null)
-            {
-                JsonElement targetVersionElement = versionsListElement.Value
-                    .Where(versionElement =>
+                    if (OssUtilities.GetJSONPropertyStringIfExists(crateElement, "newest_version") is string newestVersion &&
+                            !string.IsNullOrWhiteSpace(newestVersion))
                     {
-                        return OssUtilities.GetJSONPropertyStringIfExists(versionElement, "num") is string versionNumber && versionNumber == purl?.Version;
-                    }).SingleOrDefault();
-
-                // The specified version does not exist. Return null for the method.
-                if (targetVersionElement.Equals(default(JsonElement)))
-                {
-                    return null;
+                        metadata.LatestPackageVersion = newestVersion;
+                    }
                 }
 
-                if (OssUtilities.GetJSONPropertyStringIfExists(targetVersionElement, "created_at") is string createdAtString &&
-                    !string.IsNullOrWhiteSpace(createdAtString) && DateTime.TryParse(createdAtString, out DateTime createdAtDate))
+                JsonElement.ArrayEnumerator? versionsListElement = OssUtilities.GetJSONEnumerator(OssUtilities.GetJSONPropertyIfExists(root, "versions"));
+                if (versionsListElement != null)
                 {
-                    metadata.UploadTime = createdAtDate;
+                    JsonElement targetVersionElement = versionsListElement.Value
+                        .Where(versionElement =>
+                        {
+                            return OssUtilities.GetJSONPropertyStringIfExists(versionElement, "num") is string versionNumber && versionNumber == purl?.Version;
+                        }).SingleOrDefault();
+
+                    // The specified version does not exist. Return null for the method.
+                    if (targetVersionElement.Equals(default(JsonElement)))
+                    {
+                        return null;
+                    }
+
+                    if (OssUtilities.GetJSONPropertyStringIfExists(targetVersionElement, "created_at") is string createdAtString &&
+                        !string.IsNullOrWhiteSpace(createdAtString) && DateTime.TryParse(createdAtString, out DateTime createdAtDate))
+                    {
+                        metadata.UploadTime = createdAtDate;
+                    }
                 }
             }
-
             return metadata;
+        }
+
+        public override async Task<DateTime?> GetPublishedAtUtcAsync(PackageURL purl, bool useCache = true, bool useRateLimitedApi = true)
+        {
+            if (purl == null || string.IsNullOrEmpty(purl.Name) || string.IsNullOrEmpty(purl.Version))
+            {
+                return null;
+            }
+            DateTime? uploadTime = await GetPackageVersionPublishedTimestampFromRssFeed(purl, useCache);
+            if (uploadTime == null && useRateLimitedApi)
+            {
+                uploadTime = (await GetPackageMetadataAsync(purl, useCache))?.UploadTime;
+            }
+            return uploadTime?.ToUniversalTime();
         }
 
         public override Uri GetPackageAbsoluteUri(PackageURL purl)

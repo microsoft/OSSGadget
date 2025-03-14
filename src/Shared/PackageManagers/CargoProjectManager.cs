@@ -244,9 +244,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             PackageMetadata metadata = new();
             metadata.Name = purl?.Name;
             metadata.PackageVersion = purl?.Version;
+            metadata.PackageManagerUri = ENV_CARGO_ENDPOINT.EnsureTrailingSlash();
             metadata.Platform = "Cargo";
             metadata.Language = "Rust";
-            metadata.PackageManagerUri = ENV_CARGO_ENDPOINT.EnsureTrailingSlash();
+
             JsonDocument contentJSON = JsonDocument.Parse(content);
             JsonElement root = contentJSON.RootElement;
             JsonElement? crateElement = OssUtilities.GetJSONPropertyIfExists(root, "crate");
@@ -257,38 +258,50 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                         !string.IsNullOrWhiteSpace(description))
                 {
                     metadata.Description = description;
-
-
-                    if (OssUtilities.GetJSONPropertyStringIfExists(crateElement, "newest_version") is string newestVersion &&
-                            !string.IsNullOrWhiteSpace(newestVersion))
-                    {
-                        metadata.LatestPackageVersion = newestVersion;
-                    }
                 }
 
-                JsonElement.ArrayEnumerator? versionsListElement = OssUtilities.GetJSONEnumerator(OssUtilities.GetJSONPropertyIfExists(root, "versions"));
-                if (versionsListElement != null)
+                if (OssUtilities.GetJSONPropertyStringIfExists(crateElement, "newest_version") is string newestVersion &&
+                        !string.IsNullOrWhiteSpace(newestVersion))
                 {
-                    JsonElement targetVersionElement = versionsListElement.Value
-                        .Where(versionElement =>
-                        {
-                            return OssUtilities.GetJSONPropertyStringIfExists(versionElement, "num") is string versionNumber && versionNumber == purl?.Version;
-                        }).SingleOrDefault();
-
-                    // The specified version does not exist. Return null for the method.
-                    if (targetVersionElement.Equals(default(JsonElement)))
-                    {
-                        return null;
-                    }
-
-                    if (OssUtilities.GetJSONPropertyStringIfExists(targetVersionElement, "created_at") is string createdAtString &&
-                        !string.IsNullOrWhiteSpace(createdAtString) && DateTime.TryParse(createdAtString, out DateTime createdAtDate))
-                    {
-                        metadata.UploadTime = createdAtDate;
-                    }
+                    metadata.LatestPackageVersion = newestVersion;
                 }
             }
+
+            JsonElement.ArrayEnumerator? versionsListElement = OssUtilities.GetJSONEnumerator(OssUtilities.GetJSONPropertyIfExists(root, "versions"));
+            if (versionsListElement != null)
+            {
+                JsonElement targetVersionElement = versionsListElement.Value
+                    .Where(versionElement =>
+                    {
+                        return OssUtilities.GetJSONPropertyStringIfExists(versionElement, "num") is string versionNumber && versionNumber == purl?.Version;
+                    }).SingleOrDefault();
+
+                // The specified version does not exist. Return null for the method.
+                if (targetVersionElement.Equals(default(JsonElement)))
+                {
+                    return null;
+                }
+
+                if (OssUtilities.GetJSONPropertyStringIfExists(targetVersionElement, "created_at") is string createdAtString &&
+                    !string.IsNullOrWhiteSpace(createdAtString) && DateTime.TryParse(createdAtString, out DateTime createdAtDate))
+                {
+                    metadata.UploadTime = createdAtDate;
+                }
+            }
+
             return metadata;
+        }
+
+        public override Uri GetPackageAbsoluteUri(PackageURL purl)
+        {
+            string? packageName = purl?.Name;
+            string? packageVersion = purl?.Version;
+            string url = $"{ENV_CARGO_ENDPOINT}/crates/{packageName}";
+            if (packageVersion.IsNotBlank())
+            {
+                url += $"/{packageVersion}";
+            }
+            return new Uri(url);
         }
 
         public override async Task<DateTime?> GetPublishedAtUtcAsync(PackageURL purl, bool useCache = true, bool highRequestVolume = false)
@@ -332,7 +345,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
             catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.InternalServerError)
             {
-                Logger.Debug($"Max retries reached. Unable to get published timestamp for package: {purl}, error: {ex.Message}");
+                Logger.Debug($"Unable to get published timestamp for package: {purl}, error: {ex.Message}");
                 return null;
             }
             catch (Exception ex)
@@ -342,18 +355,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
         }
 
-
-        public override Uri GetPackageAbsoluteUri(PackageURL purl)
-        {
-            string? packageName = purl?.Name;
-            string? packageVersion = purl?.Version;
-            string url = $"{ENV_CARGO_ENDPOINT}/crates/{packageName}";
-            if (packageVersion.IsNotBlank())
-            {
-                url += $"/{packageVersion}";
-            }
-            return new Uri(url);
-        }
 
         /// <summary>
         /// Helper method to create the path for the crates.io index for this package name.

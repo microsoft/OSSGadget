@@ -1,153 +1,256 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <root>
-    <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
-        <xsd:element name="root" msdata:IsDataSet="true">
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
 
-        </xsd:element>
-    </xsd:schema>
-    <resheader name="resmimetype">
-        <value>text/microsoft-resx</value>
-    </resheader>
-    <resheader name="version">
-        <value>1.3</value>
-    </resheader>
-    <resheader name="reader">
-        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </resheader>
-    <resheader name="writer">
-        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </resheader>
-    <data name="angular_core.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\NPM\angular_core.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="achievementify_client.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\NPM\achievementify_client.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="ds-modal.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\NPM\ds-modal.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="lodash.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\NPM\lodash.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="lodashjs.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\NPM\lodashjs.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="monorepolint.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\NPM\monorepolint.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="rly-cli.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\NPM\rly-cli.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="minimum_json.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\NPM\minimum_json.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="tslib.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\NPM\tslib.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="unpublishedpackage.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\NPM\unpublishedpackage.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="razorengine.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\NuGet\razorengine\index.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="razorengine.latest.metadata.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\NuGet\razorengine\latest.metadata.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="razorengine.versions.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\NuGet\razorengine\versions.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="razorengine.4.2.3-beta1.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\NuGet\razorengine\4.2.3-beta1.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="razorengine.4.2.3-beta1.metadata.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\NuGet\razorengine\4.2.3-beta1.metadata.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="slipeserver.scripting.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\NuGet\slipeserver.scripting\index.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="slipeserver.scripting.versions.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\NuGet\slipeserver.scripting\versions.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="slipeserver.scripting.catalogpage.2.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\NuGet\slipeserver.scripting\page\0.1.0-ci-20220325-215611\0.1.0-ci-20220807-160739.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="slipeserver.scripting.catalogpage.3.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\NuGet\slipeserver.scripting\page\0.1.0-ci-20221013-182634\0.1.0-ci-20221120-180516.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="slipeserver.scripting.0.1.0-ci-20220607-083949.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\NuGet\slipeserver.scripting\slipeserver.scripting.0.1.0-ci-20220607-083949.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="nuget_registration.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\NuGet\nuget_registration.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="pandas.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\PyPI\pandas.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="plotly.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\PyPI\plotly.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="requests.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\PyPI\requests.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="pandas_1.4.2.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\PyPI\pandas_1.4.2.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="plotly_5.7.0.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\PyPI\plotly_5.7.0.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="requests_2.27.1.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\PyPI\requests_2.27.1.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="cargo.rand" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\Cargo\rand;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="cargo.rand.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\Cargo\api_rand_json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="maven_ant_1.6_html" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\Maven\maven_ant_1.6.html;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="maven_ant_all_html" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\Maven\maven_ant_all.html;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="maven_ant_metadata_xml" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\Maven\maven_ant_metadata.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="maven_ant_1.6_pom" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\Maven\maven_ant_1.6.pom;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="maven_microsoft_fluentui_listitem_0.0.8_html" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\Maven\maven_microsoft_fluentui_listitem_0.0.8.html;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="maven_microsoft_fluentui_listitem_all_html" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\Maven\maven_microsoft_fluentui_listitem_all.html;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="maven_microsoft_fluentui_listitem_metadata_xml" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\Maven\maven_microsoft_fluentui_listitem_metadata.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="maven_fluentui_listitem_0.0.8_pom" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\Maven\maven_fluentui_listitem_0.0.8.pom;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="go_yaml_list" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\Go\go_yaml_list;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="go_yaml_1.3.0_info" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\Go\go_yaml_1.3.0_info;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="go_yaml_1.3.0_mod" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\Go\go_yaml_1.3.0_mod;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="jdalton_packages.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\NPM\jdalton_packages.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="microsoft_packages.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\NPM\microsoft_packages.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="azure_packages.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\NPM\azure_packages.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
-    <data name="microsoft_pypi_profile.html" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\TestData\PyPi\microsoft_pypi_profile.html;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="angular_core.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\NPM\angular_core.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="achievementify_client.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\NPM\achievementify_client.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="ds-modal.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\NPM\ds-modal.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="lodash.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\NPM\lodash.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="lodashjs.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\NPM\lodashjs.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="monorepolint.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\NPM\monorepolint.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="rly-cli.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\NPM\rly-cli.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="minimum_json.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\NPM\minimum_json.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="tslib.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\NPM\tslib.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="unpublishedpackage.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\NPM\unpublishedpackage.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="razorengine.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\NuGet\razorengine\index.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="razorengine.latest.metadata.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\NuGet\razorengine\latest.metadata.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="razorengine.versions.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\NuGet\razorengine\versions.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="razorengine.4.2.3-beta1.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\NuGet\razorengine\4.2.3-beta1.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="razorengine.4.2.3-beta1.metadata.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\NuGet\razorengine\4.2.3-beta1.metadata.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="slipeserver.scripting.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\NuGet\slipeserver.scripting\index.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="slipeserver.scripting.versions.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\NuGet\slipeserver.scripting\versions.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="slipeserver.scripting.catalogpage.2.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\NuGet\slipeserver.scripting\page\0.1.0-ci-20220325-215611\0.1.0-ci-20220807-160739.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="slipeserver.scripting.catalogpage.3.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\NuGet\slipeserver.scripting\page\0.1.0-ci-20221013-182634\0.1.0-ci-20221120-180516.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="slipeserver.scripting.0.1.0-ci-20220607-083949.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\NuGet\slipeserver.scripting\slipeserver.scripting.0.1.0-ci-20220607-083949.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="nuget_registration.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\NuGet\nuget_registration.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="pandas.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\PyPI\pandas.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="plotly.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\PyPI\plotly.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="requests.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\PyPI\requests.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="pandas_1.4.2.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\PyPI\pandas_1.4.2.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="plotly_5.7.0.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\PyPI\plotly_5.7.0.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="requests_2.27.1.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\PyPI\requests_2.27.1.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="cargo.rand" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\Cargo\rand;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="cargo.rand.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\Cargo\api_rand_json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="maven_ant_1.6_html" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\Maven\maven_ant_1.6.html;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="maven_ant_all_html" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\Maven\maven_ant_all.html;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="maven_ant_metadata_xml" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\Maven\maven_ant_metadata.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="maven_ant_1.6_pom" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\Maven\maven_ant_1.6.pom;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="maven_microsoft_fluentui_listitem_0.0.8_html" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\Maven\maven_microsoft_fluentui_listitem_0.0.8.html;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="maven_microsoft_fluentui_listitem_all_html" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\Maven\maven_microsoft_fluentui_listitem_all.html;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="maven_microsoft_fluentui_listitem_metadata_xml" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\Maven\maven_microsoft_fluentui_listitem_metadata.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="maven_fluentui_listitem_0.0.8_pom" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\Maven\maven_fluentui_listitem_0.0.8.pom;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="go_yaml_list" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\Go\go_yaml_list;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="go_yaml_1.3.0_info" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\Go\go_yaml_1.3.0_info;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="go_yaml_1.3.0_mod" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\Go\go_yaml_1.3.0_mod;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="jdalton_packages.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\NPM\jdalton_packages.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="microsoft_packages.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\NPM\microsoft_packages.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="azure_packages.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\NPM\azure_packages.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="microsoft_pypi_profile.html" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\PyPi\microsoft_pypi_profile.html;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="cargo_rss_rand.xml" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\Cargo\cargo_rss_rand.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
 </root>

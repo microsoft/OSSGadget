@@ -11,6 +11,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
     using PackageManagers;
     using PackageUrl;
     using RichardSzalay.MockHttp;
+    using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Linq;
@@ -20,6 +21,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
     using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Timers;
     using VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
@@ -29,6 +31,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         {
             { "https://raw.githubusercontent.com/rust-lang/crates.io-index/master/ra/nd/rand", Resources.cargo_rand },
             { "https://crates.io/api/v1/crates/rand", Resources.cargo_rand_json },
+            { "https://static.crates.io/rss/crates/rand", Resources.cargo_rss_rand_xml },
         }.ToImmutableDictionary();
 
         private readonly IDictionary<string, bool> _retryTestsPackages = new Dictionary<string, bool>()
@@ -158,6 +161,35 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 
             Assert.AreEqual(count, versions.Count);
             Assert.AreEqual(latestVersion, versions.First());
+        }
+
+        [DataTestMethod]
+        [DataRow("pkg:cargo/rand@0.9.0", "Mon, 27 Jan 2025 13:38:34 +0000")]
+        public async Task GetPublishedTimeStampFromRSSFeedSucceeds(string purlString, string expectedTime)
+        {
+            PackageURL purl = new(purlString);
+            DateTime? dateTime = await _projectManager.GetPublishedAtUtcAsync(purl, useCache: false);
+            Assert.IsNotNull(dateTime);
+            Assert.AreEqual(DateTime.Parse(expectedTime).ToUniversalTime(), dateTime);
+        }
+
+        [DataTestMethod]
+        [DataRow("pkg:cargo/rand@0.7.3", "2020-01-10T21:46:21.337656+00:00")]
+        public async Task GetPublishedTimeStampFromRateLimitedAPISucceeds(string purlString, string expectedTime)
+        {
+            PackageURL purl = new(purlString);
+            DateTime? dateTime = await _projectManager.GetPublishedAtUtcAsync(purl, useCache: false, highRequestVolume: false);
+            Assert.IsNotNull(dateTime);
+            Assert.AreEqual(DateTime.Parse(expectedTime).ToUniversalTime(), dateTime);
+        }
+
+        [DataTestMethod]
+        [DataRow("pkg:cargo/rand@0.7.3")]
+        public async Task GetPublishedTimeStampReturnsNullWhenRssFeedReturnsNullWithHighRequestVolumeSucceeds(string purlString)
+        {
+            PackageURL purl = new(purlString);
+            DateTime? dateTime = await _projectManager.GetPublishedAtUtcAsync(purl, useCache: false, highRequestVolume: true);
+            Assert.IsNull(dateTime);
         }
 
         [DataTestMethod]

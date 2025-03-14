@@ -206,7 +206,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }      
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// This method uses the Crates.io rate-limited API to get the metadata for a package. It should be used when the request volume is low (1 request per second).
+        /// </summary>
         public override async Task<string?> GetMetadataAsync(PackageURL purl, bool useCache = true)
         {
             try
@@ -231,58 +233,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
         }
         
-        private async Task<DateTime?> GetPackageVersionPublishedTimestampFromRssFeed(PackageURL purl, bool useCache = true)
-        {
-              try
-            {
-                string? rssFeedContent =  await retryPolicy.ExecuteAsync(async () =>
-                {
-                    string? packageName = purl.Name;
-                    HttpClient httpClient = CreateHttpClient();
-                    return await GetHttpStringCache(httpClient, $"{ENV_CARGO_ENDPOINT_STATIC}/rss/crates/{packageName}", useCache);
-                });
-                if(rssFeedContent == null)
-                {
-                    return null;
-                }
-                // Get the RSS feed of crate version updates
-                XDocument doc = XDocument.Parse(rssFeedContent);
-
-                // Process each item element
-                List<XElement> items = doc.Descendants("item").ToList();
-
-                // If items list is empty, throw an exception
-                if (!items.Any())
-                {
-                    throw new InvalidOperationException("Cargo follower: No items found in the RSS feed.");
-                }
-
-                foreach (XElement item in items) // In newest first order
-                {
-                    // Using LocalName to account for namespaces in custom elements
-                    string? pubDate = item.Elements().FirstOrDefault(e => e.Name == "pubDate")?.Value;
-                    string? crateName = item.Elements().FirstOrDefault(e => e.Name is { NamespaceName: "https://crates.io/", LocalName: "name" })?.Value;
-                    string? crateVersion = item.Elements().FirstOrDefault(e => e.Name is { NamespaceName: "https://crates.io/", LocalName: "version" })?.Value;
-                    if(crateName == purl.Name && crateVersion == purl.Version)
-                    {
-                        return pubDate != null ? DateTime.Parse(pubDate): null;
-                    }
-                }
-                return null;
-                    
-            }
-            catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.InternalServerError)
-            {
-                Logger.Debug($"Max retries reached. Unable to get published timestamp for package: {purl}, error: {ex.Message}");
-                return null;
-            }
-            catch (Exception ex)
-            {
-                Logger.Debug(ex, "Error fetching PublishedTimeStamp: {0}", ex.Message);
-                return null;
-            }
-        }
-
+        /// <summary>
+        /// This method uses the Crates.io rate-limited API to get the metadata for a package. It should be used when the request volume is low (1 request per second).
+        /// </summary>
         public override async Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool includePrerelease = false, bool useCache = true, bool includeRepositoryMetadata = true)
         {
             string? content = await GetMetadataAsync(purl, useCache);
@@ -338,19 +291,57 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return metadata;
         }
 
-        public override async Task<DateTime?> GetPublishedAtUtcAsync(PackageURL purl, bool useCache = true, bool useRateLimitedApi = true)
+        public override async Task<DateTime?> GetPublishedAtUtcAsync(PackageURL purl, bool useCache = true, bool highRequestVolume = false)
         {
-            if (purl == null || string.IsNullOrEmpty(purl.Name) || string.IsNullOrEmpty(purl.Version))
-            {
-                return null;
-            }
             DateTime? uploadTime = await GetPackageVersionPublishedTimestampFromRssFeed(purl, useCache);
-            if (uploadTime == null && useRateLimitedApi)
+            if (uploadTime == null && !highRequestVolume)
             {
                 uploadTime = (await GetPackageMetadataAsync(purl, useCache))?.UploadTime;
             }
             return uploadTime?.ToUniversalTime();
         }
+
+        private async Task<DateTime?> GetPackageVersionPublishedTimestampFromRssFeed(PackageURL purl, bool useCache = true)
+        {
+            try
+            {
+                string? packageName = purl.Name;
+                HttpClient httpClient = CreateHttpClient();
+                string? rssFeedContent = await GetHttpStringCache(httpClient, $"{ENV_CARGO_ENDPOINT_STATIC}/rss/crates/{packageName}", useCache);
+
+                if (rssFeedContent == null)
+                {
+                    return null;
+                }
+                XDocument doc = XDocument.Parse(rssFeedContent);
+                List<XElement> items = doc.Descendants("item").ToList();
+
+                foreach (XElement item in items)
+                {
+                    // Using LocalName to account for namespaces in custom elements
+                    string? pubDate = item.Elements().FirstOrDefault(e => e.Name == "pubDate")?.Value;
+                    string? crateName = item.Elements().FirstOrDefault(e => e.Name.LocalName == "name" && e.Name.NamespaceName == $"{ ENV_CARGO_ENDPOINT}/")?.Value;
+                    string? crateVersion = item.Elements().FirstOrDefault(e => e.Name.NamespaceName == $"{ENV_CARGO_ENDPOINT}/" && e.Name.LocalName == "version")?.Value;
+                    if (crateName == purl.Name && crateVersion == purl.Version)
+                    {
+                        return pubDate != null ? DateTime.Parse(pubDate) : null;
+                    }
+                }
+                return null;
+
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.InternalServerError)
+            {
+                Logger.Debug($"Max retries reached. Unable to get published timestamp for package: {purl}, error: {ex.Message}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Logger.Debug(ex, "Error fetching PublishedTimeStamp: {0}", ex.Message);
+                return null;
+            }
+        }
+
 
         public override Uri GetPackageAbsoluteUri(PackageURL purl)
         {

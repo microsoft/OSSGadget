@@ -175,7 +175,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 
         [DataTestMethod]
         [DataRow("pkg:cargo/rand@0.7.3", "2020-01-10T21:46:21.337656+00:00")]
-        public async Task GetPublishedTimeStampFromRateLimitedAPISucceeds(string purlString, string expectedTime)
+        public async Task GetPublishedTimeStampFromRateLimitedAPIWhenRssFeedReturnsNullWithLowRequestVolume(string purlString, string expectedTime)
         {
             PackageURL purl = new(purlString);
             DateTime? dateTime = await _projectManager.GetPublishedAtUtcAsync(purl, useCache: false, highRequestVolume: false);
@@ -185,7 +185,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 
         [DataTestMethod]
         [DataRow("pkg:cargo/rand@0.7.3")]
-        public async Task GetPublishedTimeStampReturnsNullWhenRssFeedReturnsNullWithHighRequestVolumeSucceeds(string purlString)
+        public async Task GetPublishedTimeStampReturnsNullWhenRssFeedReturnsNullWithHighRequestVolume(string purlString)
         {
             PackageURL purl = new(purlString);
             DateTime? dateTime = await _projectManager.GetPublishedAtUtcAsync(purl, useCache: false, highRequestVolume: true);

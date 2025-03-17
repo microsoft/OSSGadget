@@ -320,7 +320,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {
                 string? packageName = purl.Name;
                 HttpClient httpClient = CreateHttpClient();
-                string? rssFeedContent = await GetHttpStringCache(httpClient, $"{ENV_CARGO_ENDPOINT_STATIC}/rss/crates/{packageName}", useCache);
+                string? rssFeedContent = await GetHttpStringCache(httpClient, $"{ENV_CARGO_ENDPOINT_STATIC}/rss/crates/{packageName}.xml", useCache);
 
                 if (rssFeedContent == null)
                 {

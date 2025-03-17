@@ -31,7 +31,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         {
             { "https://raw.githubusercontent.com/rust-lang/crates.io-index/master/ra/nd/rand", Resources.cargo_rand },
             { "https://crates.io/api/v1/crates/rand", Resources.cargo_rand_json },
-            { "https://static.crates.io/rss/crates/rand", Resources.cargo_rss_rand_xml },
+            { "https://static.crates.io/rss/crates/rand.xml", Resources.cargo_rss_rand_xml },
         }.ToImmutableDictionary();
 
         private readonly IDictionary<string, bool> _retryTestsPackages = new Dictionary<string, bool>()

@@ -44,6 +44,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         private static int InternalServerErrorMaxRetries = 3;
 
+        private bool allowUseOfRateLimitedRegistryAPIs = true;
+
         private AsyncRetryPolicy retryPolicy = Policy
             .Handle<HttpRequestException>(ex => ex.StatusCode == HttpStatusCode.InternalServerError)
             .RetryAsync(InternalServerErrorMaxRetries, (exception, retryCount) =>
@@ -55,9 +57,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             string directory,
             IManagerPackageActions<IManagerPackageVersionMetadata>? actions = null,
             IHttpClientFactory? httpClientFactory = null,
-            TimeSpan? timeout = null)
+            TimeSpan? timeout = null,
+            bool? allowUseOfRateLimitedRegistryAPIs = null)
             : base(actions ?? new NoOpPackageActions(), httpClientFactory ?? new DefaultHttpClientFactory(), directory, timeout)
         {
+            this.allowUseOfRateLimitedRegistryAPIs = allowUseOfRateLimitedRegistryAPIs ?? true;
         }
 
         /// <inheritdoc />
@@ -211,6 +215,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// </summary>
         public override async Task<string?> GetMetadataAsync(PackageURL purl, bool useCache = true)
         {
+            if (!allowUseOfRateLimitedRegistryAPIs)
+            {
+                throw new InvalidOperationException("Rate-limited API is disabled. Crates.io does not have a non-rate-limited API defined to fetch metadata.  See https://crates.io/data-access.");
+            }
             try
             {
                 return await retryPolicy.ExecuteAsync(async () =>
@@ -238,6 +246,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// </summary>
         public override async Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool includePrerelease = false, bool useCache = true, bool includeRepositoryMetadata = true)
         {
+            if (!allowUseOfRateLimitedRegistryAPIs)
+            {
+                throw new InvalidOperationException("Rate-limited API is disabled. Crates.io does not have a non-rate-limited API defined to fetch metadata.  See https://crates.io/data-access.");
+            }
+
             string? content = await GetMetadataAsync(purl, useCache);
             if (string.IsNullOrEmpty(content)) { return null; }
 
@@ -304,10 +317,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return new Uri(url);
         }
 
-        public override async Task<DateTime?> GetPublishedAtUtcAsync(PackageURL purl, bool useCache = true, bool highRequestVolume = false)
+        public override async Task<DateTime?> GetPublishedAtUtcAsync(PackageURL purl, bool useCache = true)
         {
             DateTime? uploadTime = await GetPackageVersionPublishedTimestampFromRssFeed(purl, useCache);
-            if (uploadTime == null && !highRequestVolume)
+            if (uploadTime == null && allowUseOfRateLimitedRegistryAPIs)
             {
                 uploadTime = (await GetPackageMetadataAsync(purl, useCache))?.UploadTime;
             }

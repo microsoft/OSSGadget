@@ -117,6 +117,32 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 
         [DataTestMethod]
         [DataRow("pkg:cargo/A2VConverter@0.1.1")]
+        public async Task GetMetadataAsyncThrowsExceptionIfUsageOfRateLimitedApiIsDisabled(string purlString)
+        {
+            PackageURL purl = new(purlString);
+
+            var _projectManager = new CargoProjectManager(".", new NoOpPackageActions(), _httpFactory, allowUseOfRateLimitedRegistryAPIs: false);
+            InvalidOperationException exception = await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => _projectManager.GetMetadataAsync(purl, useCache: false));
+
+            Assert.IsNotNull(exception);
+            Assert.AreEqual(exception.Message, "Rate-limited API is disabled. Crates.io does not have a non-rate-limited API defined to fetch metadata.  See https://crates.io/data-access.");
+        }
+
+        [DataTestMethod]
+        [DataRow("pkg:cargo/A2VConverter@0.1.1")]
+        public async Task GetPackageMetadataAsyncThrowsExceptionIfUsageOfRateLimitedApiIsDisabled(string purlString)
+        {
+            PackageURL purl = new(purlString);
+
+            var _projectManager = new CargoProjectManager(".", new NoOpPackageActions(), _httpFactory, allowUseOfRateLimitedRegistryAPIs: false);
+            InvalidOperationException exception = await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => _projectManager.GetPackageMetadataAsync(purl, useCache: false));
+
+            Assert.IsNotNull(exception);
+            Assert.AreEqual(exception.Message, "Rate-limited API is disabled. Crates.io does not have a non-rate-limited API defined to fetch metadata.  See https://crates.io/data-access.");
+        }
+
+        [DataTestMethod]
+        [DataRow("pkg:cargo/A2VConverter@0.1.1")]
         public async Task DownloadVersionAsyncThrowsExceptionAfterMaxRetries(string purlString)
         {
             PackageURL purl = new(purlString);
@@ -176,20 +202,21 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 
         [DataTestMethod]
         [DataRow("pkg:cargo/rand@0.7.3", "2020-01-10T21:46:21.337656+00:00")]
-        public async Task GetPublishedTimeStampFromRateLimitedAPIWhenRssFeedReturnsNullWithLowRequestVolume(string purlString, string expectedTime)
+        public async Task GetPublishedTimeStampFromRateLimitedAPIWhenRssFeedReturnsNullAndUsageOfRateLimitedApiIsEnabled(string purlString, string expectedTime)
         {
             PackageURL purl = new(purlString);
-            DateTime? dateTime = await _projectManager.GetPublishedAtUtcAsync(purl, useCache: false, highRequestVolume: false);
+            DateTime? dateTime = await _projectManager.GetPublishedAtUtcAsync(purl, useCache: false);
             Assert.IsNotNull(dateTime);
             Assert.AreEqual(DateTime.Parse(expectedTime).ToUniversalTime(), dateTime);
         }
 
         [DataTestMethod]
         [DataRow("pkg:cargo/rand@0.7.3")]
-        public async Task GetPublishedTimeStampReturnsNullWhenRssFeedReturnsNullWithHighRequestVolume(string purlString)
+        public async Task GetPublishedTimeStampReturnsNullWhenRssFeedReturnsNullAndUsageOfRateLimitedApiIsDisabled(string purlString)
         {
             PackageURL purl = new(purlString);
-            DateTime? dateTime = await _projectManager.GetPublishedAtUtcAsync(purl, useCache: false, highRequestVolume: true);
+            var _projectManager = new CargoProjectManager(".", new NoOpPackageActions(), _httpFactory, allowUseOfRateLimitedRegistryAPIs:false);
+            DateTime? dateTime = await _projectManager.GetPublishedAtUtcAsync(purl, useCache: false);
             Assert.IsNull(dateTime);
         }
 

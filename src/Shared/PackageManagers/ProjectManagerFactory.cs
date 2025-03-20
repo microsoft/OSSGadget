@@ -18,13 +18,15 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <remarks>The only runtime parameter we need is the destination directory. Everything else can be defined in the constructor call itself.</remarks>
         /// <param name="destinationDirectory">The destination that any files should be saved to when downloading from this ProjectManager, defaults to the runtime directory.</param>
         /// <param name="timeout">The <see cref="TimeSpan"/> to wait before the request times out.</param>
+        /// <param name="allowUseOfRateLimitedRegistryAPIs"> The Cargo Project Manager uses this flag to disable the use of a ratelimited API for 
+        /// fetching metadata when the user scenario requires retrieving metadata for more than one package per second. </param>
         /// <returns>An implementation of the <see cref="BaseProjectManager"/> class, or null if unable to construct.</returns>
         /// <example>
         /// destinationDirectory =>
         /// new NPMProjectManager(httpClientFactory, destinationDirectory)
         /// </example>
         /// <seealso cref="ProjectManagerFactory.GetDefaultManagers">Example implementations in GetDefaultManagers(IHttpClientFactory?)</seealso>
-        public delegate BaseProjectManager? ConstructProjectManager(string destinationDirectory = ".", TimeSpan? timeout = null);
+        public delegate BaseProjectManager? ConstructProjectManager(string destinationDirectory = ".", TimeSpan? timeout = null, bool? allowUseOfRateLimitedRegistryAPIs = null);
 
         /// <summary>
         /// The dictionary of project managers.
@@ -62,82 +64,82 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return new Dictionary<string, ConstructProjectManager>(StringComparer.InvariantCultureIgnoreCase)
             {
                 {
-                    CargoProjectManager.Type, (destinationDirectory, timeout) =>
-                        new CargoProjectManager(destinationDirectory, new NoOpPackageActions(), httpClientFactory, timeout)
+                    CargoProjectManager.Type, (destinationDirectory, timeout, allowUseOfRateLimitedRegistryAPIs) =>
+                        new CargoProjectManager(destinationDirectory, new NoOpPackageActions(), httpClientFactory, timeout, allowUseOfRateLimitedRegistryAPIs)
                 },
                 {
-                    CocoapodsProjectManager.Type, (destinationDirectory, timeout) =>
+                    CocoapodsProjectManager.Type, (destinationDirectory, timeout, _) =>
                         new CocoapodsProjectManager(httpClientFactory, destinationDirectory, timeout)
                 },
                 {
-                    ComposerProjectManager.Type, (destinationDirectory, timeout) =>
+                    ComposerProjectManager.Type, (destinationDirectory, timeout, _) =>
                         new ComposerProjectManager(httpClientFactory, destinationDirectory, timeout)
                 },
                 {
-                    CondaProjectManager.Type, (destinationDirectory, timeout) =>
+                    CondaProjectManager.Type, (destinationDirectory, timeout, _) =>
                         new CondaProjectManager(destinationDirectory, new NoOpPackageActions(), httpClientFactory, timeout)
                 },
                 {
-                    CPANProjectManager.Type, (destinationDirectory, timeout) =>
+                    CPANProjectManager.Type, (destinationDirectory, timeout, _) =>
                         new CPANProjectManager(httpClientFactory, destinationDirectory, timeout)
                 },
                 {
-                    CRANProjectManager.Type, (destinationDirectory, timeout) =>
+                    CRANProjectManager.Type, (destinationDirectory, timeout, _) =>
                         new CRANProjectManager(httpClientFactory, destinationDirectory, timeout)
                 },
                 {
-                    GemProjectManager.Type, (destinationDirectory, timeout) =>
+                    GemProjectManager.Type, (destinationDirectory, timeout, _) =>
                         new GemProjectManager(httpClientFactory, destinationDirectory, timeout)
                 },
                 {
-                    GitHubProjectManager.Type, (destinationDirectory, timeout) =>
+                    GitHubProjectManager.Type, (destinationDirectory, timeout, _) =>
                         new GitHubProjectManager(httpClientFactory, destinationDirectory, timeout)
                 },
                 {
-                    GolangProjectManager.Type, (destinationDirectory, timeout) =>
+                    GolangProjectManager.Type, (destinationDirectory, timeout, _) =>
                         new GolangProjectManager(destinationDirectory, new NoOpPackageActions(), httpClientFactory, timeout)
                 },
                 {
-                    HackageProjectManager.Type, (destinationDirectory, timeout) =>
+                    HackageProjectManager.Type, (destinationDirectory, timeout, _) =>
                         new HackageProjectManager(httpClientFactory, destinationDirectory, timeout)
                 },
                 {
-                    MavenProjectManager.Type, (destinationDirectory, timeout) =>
+                    MavenProjectManager.Type, (destinationDirectory, timeout, _) =>
                         new MavenProjectManager(destinationDirectory, new NoOpPackageActions(), httpClientFactory, timeout)
                 },
                 {
-                    NPMProjectManager.Type, (destinationDirectory, timeout) =>
+                    NPMProjectManager.Type, (destinationDirectory, timeout, _) =>
                         new NPMProjectManager(destinationDirectory, new NoOpPackageActions(), httpClientFactory, timeout)
                 },
                 {
-                    NuGetProjectManager.Type, (destinationDirectory, timeout) =>
-                        new NuGetProjectManager(destinationDirectory, new NuGetPackageActions(), httpClientFactory, timeout) // Add the NuGetPackageActions to the NuGetProjectManager.
+                    NuGetProjectManager.Type, (destinationDirectory, timeout, _) =>
+                        new NuGetProjectManager(destinationDirectory, new NuGetPackageActions(), httpClientFactory, timeout)
                 },
                 {
-                    PyPIProjectManager.Type, (destinationDirectory, timeout) =>
+                    PyPIProjectManager.Type, (destinationDirectory, timeout, _) =>
                         new PyPIProjectManager(destinationDirectory, new NoOpPackageActions(), httpClientFactory, timeout)
                 },
                 {
-                    UbuntuProjectManager.Type, (destinationDirectory, timeout) =>
+                    UbuntuProjectManager.Type, (destinationDirectory, timeout, _) =>
                         new UbuntuProjectManager(httpClientFactory, destinationDirectory, timeout)
                 },
                 {
-                    URLProjectManager.Type, (destinationDirectory, timeout) =>
+                    URLProjectManager.Type, (destinationDirectory, timeout, _) =>
                         new URLProjectManager(httpClientFactory, destinationDirectory, timeout)
                 },
                 {
-                    VSMProjectManager.Type, (destinationDirectory, timeout) =>
+                    VSMProjectManager.Type, (destinationDirectory, timeout, _) =>
                         new VSMProjectManager(httpClientFactory, destinationDirectory, timeout)
                 },
             };
         }
 
         /// <inheritdoc />
-        public IBaseProjectManager? CreateProjectManager(PackageURL purl, string destinationDirectory = ".", TimeSpan? timeout = null)
+        public IBaseProjectManager? CreateProjectManager(PackageURL purl, string destinationDirectory = ".", TimeSpan? timeout = null, bool? allowUseOfRateLimitedRegistryAPIs = null)
         {
             ConstructProjectManager? projectManager = _projectManagers.GetValueOrDefault(purl.Type);
 
-            return projectManager?.Invoke(destinationDirectory, timeout);
+            return projectManager?.Invoke(destinationDirectory, timeout, allowUseOfRateLimitedRegistryAPIs);
         }
 
         /// <summary>

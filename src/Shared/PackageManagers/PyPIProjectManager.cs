@@ -436,7 +436,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return metadata;
         }
 
-        public override async Task<DateTime?> GetPublishedAtUtcAsync(PackageURL purl, bool useCache = true, bool highRequestVolume = false)
+        public override async Task<DateTime?> GetPublishedAtUtcAsync(PackageURL purl, bool useCache = true)
         {
             Check.NotNull(nameof(purl.Version), purl.Version);
             HttpClient client = CreateHttpClient();

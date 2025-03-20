@@ -37,6 +37,7 @@ public class ProjectManagerFactoryTests
     [DataRow("pkg:nuget/newtonsoft.json", typeof(NuGetProjectManager))]
     [DataRow("pkg:npm/foo", typeof(NPMProjectManager))]
     [DataRow("pkg:pypi/plotly", typeof(PyPIProjectManager))]
+    [DataRow("pkg:cargo/rand", typeof(CargoProjectManager))]
     [DataRow("pkg:foo/bar", null)]
     public void FactorySucceeds(string purlString, Type? expectedManager)
     {
@@ -46,6 +47,20 @@ public class ProjectManagerFactoryTests
 
         Assert.AreEqual(expectedManager, projectManagerFactory.CreateProjectManager(packageUrl)?.GetType());
     }
+
+    [DataTestMethod]
+    public void CargoPackageManagerCreatedWithDisablingRateLimitedRegistryAPI()
+    {
+        var purlString = "pkg:cargo/rand";
+        ProjectManagerFactory projectManagerFactory = new(allowUseOfRateLimitedRegistryAPIs:false);
+
+        PackageURL packageUrl = new(purlString);
+        var manager = projectManagerFactory.CreateProjectManager(packageUrl);
+
+        Assert.AreEqual(typeof(CargoProjectManager), manager.GetType());
+        Assert.IsFalse(((CargoProjectManager)manager).allowUseOfRateLimitedRegistryAPIs);
+    }
+
 
     /// <summary>
     /// Test if the default dictionary works, similar to <see cref="FactorySucceeds"/>, but uses the override constructor.
@@ -64,7 +79,7 @@ public class ProjectManagerFactoryTests
     [TestMethod]
     public void AddTestManagerSucceeds()
     {
-        _managerOverrides["test"] = (destinationDirectory, timeout, _) => new NuGetProjectManager(destinationDirectory, null, _httpClientFactory); // Create a test type with the NuGetProjectManager.
+        _managerOverrides["test"] = (destinationDirectory, timeout) => new NuGetProjectManager(destinationDirectory, null, _httpClientFactory); // Create a test type with the NuGetProjectManager.
 
         ProjectManagerFactory projectManagerFactory = new(_managerOverrides);
 
@@ -78,9 +93,9 @@ public class ProjectManagerFactoryTests
     public void OverrideManagerSucceeds()
     {
         _managerOverrides[NuGetProjectManager.Type] =
-            (destinationDirectory, timeout, _) => new NuGetProjectManager("nugetTestDirectory", null, _httpClientFactory); // Override the default entry for nuget, and override the destinationDirectory.
+            (destinationDirectory, timeout) => new NuGetProjectManager("nugetTestDirectory", null, _httpClientFactory); // Override the default entry for nuget, and override the destinationDirectory.
         _managerOverrides[NPMProjectManager.Type] =
-            (destinationDirectory, timeout, _) => new NPMProjectManager("npmTestDirectory", null, _httpClientFactory); // Override the default entry for npm, and override the destinationDirectory.
+            (destinationDirectory, timeout) => new NPMProjectManager("npmTestDirectory", null, _httpClientFactory); // Override the default entry for npm, and override the destinationDirectory.
 
         ProjectManagerFactory projectManagerFactory = new(_managerOverrides);
 
@@ -100,7 +115,7 @@ public class ProjectManagerFactoryTests
     [TestMethod]
     public void ChangeProjectManagerSucceeds()
     {
-        _managerOverrides[NuGetProjectManager.Type] = (destinationDirectory, timeout, _) => new NPMProjectManager(destinationDirectory, null, _httpClientFactory); // Override the default entry for nuget and set it as another NPMProjectManager.
+        _managerOverrides[NuGetProjectManager.Type] = (destinationDirectory, timeout) => new NPMProjectManager(destinationDirectory, null, _httpClientFactory); // Override the default entry for nuget and set it as another NPMProjectManager.
 
         ProjectManagerFactory projectManagerFactory = new(_managerOverrides);
 

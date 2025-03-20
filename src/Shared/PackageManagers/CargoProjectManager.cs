@@ -42,9 +42,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public string ENV_CARGO_INDEX_ENDPOINT { get; set; } = "https://raw.githubusercontent.com/rust-lang/crates.io-index/master";
 
-        private static int InternalServerErrorMaxRetries = 3;
+        public bool allowUseOfRateLimitedRegistryAPIs = true;
 
-        private bool allowUseOfRateLimitedRegistryAPIs = true;
+        private static int InternalServerErrorMaxRetries = 3;
 
         private AsyncRetryPolicy retryPolicy = Policy
             .Handle<HttpRequestException>(ex => ex.StatusCode == HttpStatusCode.InternalServerError)

@@ -320,6 +320,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {
                 string? packageName = purl.Name;
                 HttpClient httpClient = CreateHttpClient();
+
+                // The Rss feed fetches package versions published in the last 24 hours.
                 string? rssFeedContent = await GetHttpStringCache(httpClient, $"{ENV_CARGO_ENDPOINT_STATIC}/rss/crates/{packageName}.xml", useCache);
 
                 if (rssFeedContent == null)
@@ -331,7 +333,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
                 foreach (XElement item in items)
                 {
-                    // Using LocalName to account for namespaces in custom elements
                     string? pubDate = item.Elements().FirstOrDefault(e => e.Name == "pubDate")?.Value;
                     string? crateName = item.Elements().FirstOrDefault(e => e.Name.LocalName == "name" && e.Name.NamespaceName == $"{ ENV_CARGO_ENDPOINT}/")?.Value;
                     string? crateVersion = item.Elements().FirstOrDefault(e => e.Name.NamespaceName == $"{ENV_CARGO_ENDPOINT}/" && e.Name.LocalName == "version")?.Value;

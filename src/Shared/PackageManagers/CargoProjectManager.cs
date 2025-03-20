@@ -58,10 +58,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             IManagerPackageActions<IManagerPackageVersionMetadata>? actions = null,
             IHttpClientFactory? httpClientFactory = null,
             TimeSpan? timeout = null,
-            bool? allowUseOfRateLimitedRegistryAPIs = null)
+            bool allowUseOfRateLimitedRegistryAPIs = true)
             : base(actions ?? new NoOpPackageActions(), httpClientFactory ?? new DefaultHttpClientFactory(), directory, timeout)
         {
-            this.allowUseOfRateLimitedRegistryAPIs = allowUseOfRateLimitedRegistryAPIs ?? true;
+            this.allowUseOfRateLimitedRegistryAPIs = allowUseOfRateLimitedRegistryAPIs;
         }
 
         /// <inheritdoc />

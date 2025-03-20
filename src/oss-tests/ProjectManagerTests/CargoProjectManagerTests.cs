@@ -37,6 +37,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         private readonly IDictionary<string, bool> _retryTestsPackages = new Dictionary<string, bool>()
         {
             { "https://crates.io/api/v1/crates/a-mazed*", true },
+            { "https://static.crates.io/crates/a-mazed*", true },
             { "https://raw.githubusercontent.com/rust-lang/crates.io-index/master/a-/ma/a-mazed", true},
             { "https://crates.io/api/v1/crates/A2VConverter*", false},
             { "https://raw.githubusercontent.com/rust-lang/crates.io-index/master/A2/VC/A2VConverter", false},
@@ -139,8 +140,8 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 
 
         [DataTestMethod]
-        [DataRow("pkg:cargo/rand@0.8.5", "https://crates.io/api/v1/crates/rand/0.8.5/download")]
-        [DataRow("pkg:cargo/quote@1.0.21", "https://crates.io/api/v1/crates/quote/1.0.21/download")]
+        [DataRow("pkg:cargo/rand@0.8.5", "https://static.crates.io/crates/rand/0.8.5/download")]
+        [DataRow("pkg:cargo/quote@1.0.21", "https://static.crates.io/crates/quote/1.0.21/download")]
         public async Task GetArtifactDownloadUrisSucceeds_Async(string purlString, string expectedUri)
         {
             PackageURL purl = new(purlString);

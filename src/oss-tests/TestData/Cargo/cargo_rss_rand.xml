@@ -1,0 +1,89 @@
+﻿<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:crates="https://crates.io/" version="2.0">
+    <channel>
+        <title>crates.io: rand releases</title>
+        <link>https://crates.io/crates/rand</link>
+        <description>Recent releases of the rand crate on the crates.io package registry</description>
+        <language>en</language>
+        <atom:link href="https://static.crates.io/rss/crates/rand.xml" rel="self" type="application/rss+xml"/>
+        <item>
+            <title>New crate version published: rand v0.9.0</title>
+            <link>https://crates.io/crates/rand/0.9.0</link>
+            <guid>https://crates.io/crates/rand/0.9.0</guid>
+            <pubDate>Mon, 27 Jan 2025 13:38:34 +0000</pubDate>
+            <crates:name>rand</crates:name>
+            <crates:version>0.9.0</crates:version>
+        </item>
+        <item>
+            <title>New crate version published: rand v0.9.0-beta.3</title>
+            <link>https://crates.io/crates/rand/0.9.0-beta.3</link>
+            <guid>https://crates.io/crates/rand/0.9.0-beta.3</guid>
+            <pubDate>Tue, 14 Jan 2025 15:30:31 +0000</pubDate>
+            <crates:name>rand</crates:name>
+            <crates:version>0.9.0-beta.3</crates:version>
+        </item>
+        <item>
+            <title>New crate version published: rand v0.9.0-beta.1</title>
+            <link>https://crates.io/crates/rand/0.9.0-beta.1</link>
+            <guid>https://crates.io/crates/rand/0.9.0-beta.1</guid>
+            <pubDate>Sat, 30 Nov 2024 08:46:13 +0000</pubDate>
+            <crates:name>rand</crates:name>
+            <crates:version>0.9.0-beta.1</crates:version>
+        </item>
+        <item>
+            <title>New crate version published: rand v0.9.0-beta.0</title>
+            <link>https://crates.io/crates/rand/0.9.0-beta.0</link>
+            <guid>https://crates.io/crates/rand/0.9.0-beta.0</guid>
+            <pubDate>Tue, 26 Nov 2024 13:30:33 +0000</pubDate>
+            <crates:name>rand</crates:name>
+            <crates:version>0.9.0-beta.0</crates:version>
+        </item>
+        <item>
+            <title>New crate version published: rand v0.9.0-alpha.2</title>
+            <link>https://crates.io/crates/rand/0.9.0-alpha.2</link>
+            <guid>https://crates.io/crates/rand/0.9.0-alpha.2</guid>
+            <pubDate>Mon, 29 Jul 2024 10:47:32 +0000</pubDate>
+            <crates:name>rand</crates:name>
+            <crates:version>0.9.0-alpha.2</crates:version>
+        </item>
+        <item>
+            <title>New crate version published: rand v0.9.0-alpha.1</title>
+            <link>https://crates.io/crates/rand/0.9.0-alpha.1</link>
+            <guid>https://crates.io/crates/rand/0.9.0-alpha.1</guid>
+            <pubDate>Mon, 18 Mar 2024 19:12:26 +0000</pubDate>
+            <crates:name>rand</crates:name>
+            <crates:version>0.9.0-alpha.1</crates:version>
+        </item>
+        <item>
+            <title>New crate version published: rand v0.9.0-alpha.0</title>
+            <link>https://crates.io/crates/rand/0.9.0-alpha.0</link>
+            <guid>https://crates.io/crates/rand/0.9.0-alpha.0</guid>
+            <pubDate>Sun, 18 Feb 2024 17:52:19 +0000</pubDate>
+            <crates:name>rand</crates:name>
+            <crates:version>0.9.0-alpha.0</crates:version>
+        </item>
+        <item>
+            <title>New crate version published: rand v0.8.5</title>
+            <link>https://crates.io/crates/rand/0.8.5</link>
+            <guid>https://crates.io/crates/rand/0.8.5</guid>
+            <pubDate>Mon, 14 Feb 2022 08:37:47 +0000</pubDate>
+            <crates:name>rand</crates:name>
+            <crates:version>0.8.5</crates:version>
+        </item>
+        <item>
+            <title>New crate version published: rand v0.8.4</title>
+            <link>https://crates.io/crates/rand/0.8.4</link>
+            <guid>https://crates.io/crates/rand/0.8.4</guid>
+            <pubDate>Tue, 15 Jun 2021 14:42:29 +0000</pubDate>
+            <crates:name>rand</crates:name>
+            <crates:version>0.8.4</crates:version>
+        </item>
+        <item>
+            <title>New crate version published: rand v0.8.3</title>
+            <link>https://crates.io/crates/rand/0.8.3</link>
+            <guid>https://crates.io/crates/rand/0.8.3</guid>
+            <pubDate>Tue, 26 Jan 2021 08:50:46 +0000</pubDate>
+            <crates:name>rand</crates:name>
+            <crates:version>0.8.3</crates:version>
+        </item>
+    </channel>
+</rss>

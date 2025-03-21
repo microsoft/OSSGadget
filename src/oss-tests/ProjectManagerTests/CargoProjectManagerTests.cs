@@ -11,6 +11,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
     using PackageManagers;
     using PackageUrl;
     using RichardSzalay.MockHttp;
+    using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Linq;
@@ -20,6 +21,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
     using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Timers;
     using VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
@@ -29,11 +31,13 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         {
             { "https://raw.githubusercontent.com/rust-lang/crates.io-index/master/ra/nd/rand", Resources.cargo_rand },
             { "https://crates.io/api/v1/crates/rand", Resources.cargo_rand_json },
+            { "https://static.crates.io/rss/crates/rand.xml", Resources.cargo_rss_rand_xml },
         }.ToImmutableDictionary();
 
         private readonly IDictionary<string, bool> _retryTestsPackages = new Dictionary<string, bool>()
         {
             { "https://crates.io/api/v1/crates/a-mazed*", true },
+            { "https://static.crates.io/crates/a-mazed*", true },
             { "https://raw.githubusercontent.com/rust-lang/crates.io-index/master/a-/ma/a-mazed", true},
             { "https://crates.io/api/v1/crates/A2VConverter*", false},
             { "https://raw.githubusercontent.com/rust-lang/crates.io-index/master/A2/VC/A2VConverter", false},
@@ -113,6 +117,32 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 
         [DataTestMethod]
         [DataRow("pkg:cargo/A2VConverter@0.1.1")]
+        public async Task GetMetadataAsyncThrowsExceptionIfUsageOfRateLimitedApiIsDisabled(string purlString)
+        {
+            PackageURL purl = new(purlString);
+
+            var _projectManager = new CargoProjectManager(".", new NoOpPackageActions(), _httpFactory, allowUseOfRateLimitedRegistryAPIs: false);
+            InvalidOperationException exception = await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => _projectManager.GetMetadataAsync(purl, useCache: false));
+
+            Assert.IsNotNull(exception);
+            Assert.AreEqual(exception.Message, "Rate-limited API is disabled. Crates.io does not have a non-rate-limited API defined to fetch metadata.  See https://crates.io/data-access.");
+        }
+
+        [DataTestMethod]
+        [DataRow("pkg:cargo/A2VConverter@0.1.1")]
+        public async Task GetPackageMetadataAsyncThrowsExceptionIfUsageOfRateLimitedApiIsDisabled(string purlString)
+        {
+            PackageURL purl = new(purlString);
+
+            var _projectManager = new CargoProjectManager(".", new NoOpPackageActions(), _httpFactory, allowUseOfRateLimitedRegistryAPIs: false);
+            InvalidOperationException exception = await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => _projectManager.GetPackageMetadataAsync(purl, useCache: false));
+
+            Assert.IsNotNull(exception);
+            Assert.AreEqual(exception.Message, "Rate-limited API is disabled. Crates.io does not have a non-rate-limited API defined to fetch metadata.  See https://crates.io/data-access.");
+        }
+
+        [DataTestMethod]
+        [DataRow("pkg:cargo/A2VConverter@0.1.1")]
         public async Task DownloadVersionAsyncThrowsExceptionAfterMaxRetries(string purlString)
         {
             PackageURL purl = new(purlString);
@@ -136,8 +166,8 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 
 
         [DataTestMethod]
-        [DataRow("pkg:cargo/rand@0.8.5", "https://crates.io/api/v1/crates/rand/0.8.5/download")]
-        [DataRow("pkg:cargo/quote@1.0.21", "https://crates.io/api/v1/crates/quote/1.0.21/download")]
+        [DataRow("pkg:cargo/rand@0.8.5", "https://static.crates.io/crates/rand/0.8.5/download")]
+        [DataRow("pkg:cargo/quote@1.0.21", "https://static.crates.io/crates/quote/1.0.21/download")]
         public async Task GetArtifactDownloadUrisSucceeds_Async(string purlString, string expectedUri)
         {
             PackageURL purl = new(purlString);
@@ -158,6 +188,36 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 
             Assert.AreEqual(count, versions.Count);
             Assert.AreEqual(latestVersion, versions.First());
+        }
+
+        [DataTestMethod]
+        [DataRow("pkg:cargo/rand@0.9.0", "Mon, 27 Jan 2025 13:38:34 +0000")]
+        public async Task GetPublishedTimeStampFromRSSFeedSucceeds(string purlString, string expectedTime)
+        {
+            PackageURL purl = new(purlString);
+            DateTime? dateTime = await _projectManager.GetPublishedAtUtcAsync(purl, useCache: false);
+            Assert.IsNotNull(dateTime);
+            Assert.AreEqual(DateTime.Parse(expectedTime).ToUniversalTime(), dateTime);
+        }
+
+        [DataTestMethod]
+        [DataRow("pkg:cargo/rand@0.7.3", "2020-01-10T21:46:21.337656+00:00")]
+        public async Task GetPublishedTimeStampFromRateLimitedAPIWhenRssFeedReturnsNullAndUsageOfRateLimitedApiIsEnabled(string purlString, string expectedTime)
+        {
+            PackageURL purl = new(purlString);
+            DateTime? dateTime = await _projectManager.GetPublishedAtUtcAsync(purl, useCache: false);
+            Assert.IsNotNull(dateTime);
+            Assert.AreEqual(DateTime.Parse(expectedTime).ToUniversalTime(), dateTime);
+        }
+
+        [DataTestMethod]
+        [DataRow("pkg:cargo/rand@0.7.3")]
+        public async Task GetPublishedTimeStampReturnsNullWhenRssFeedReturnsNullAndUsageOfRateLimitedApiIsDisabled(string purlString)
+        {
+            PackageURL purl = new(purlString);
+            var _projectManager = new CargoProjectManager(".", new NoOpPackageActions(), _httpFactory, allowUseOfRateLimitedRegistryAPIs:false);
+            DateTime? dateTime = await _projectManager.GetPublishedAtUtcAsync(purl, useCache: false);
+            Assert.IsNull(dateTime);
         }
 
         [DataTestMethod]

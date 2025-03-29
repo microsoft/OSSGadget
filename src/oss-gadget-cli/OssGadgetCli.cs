@@ -41,6 +41,8 @@ class OssGadgetCli : OSSGadget
             CharacteristicToolOptions characteristicToolOptions => await new CharacteristicTool(ProjectManagerFactory).RunAsync(characteristicToolOptions),
             FreshToolOptions freshToolOptions => await new FreshTool(ProjectManagerFactory).RunAsync(freshToolOptions),
             DiffToolOptions diffToolOptions => await new DiffTool(ProjectManagerFactory).RunAsync(diffToolOptions),
+            MetadataToolOptions metadataToolOptions => await new MetadataTool(ProjectManagerFactory).RunAsync(metadataToolOptions),
+            DetectBackdoorToolOptions detectBackdoorToolOptions => await new DetectBackdoorTool(ProjectManagerFactory).RunAsync(detectBackdoorToolOptions),
             ReproducibleToolOptions reproducibleToolOptions => await new ReproducibleTool(ProjectManagerFactory).RunAsync(reproducibleToolOptions),
             FindDomainSquatsToolOptions findDomainSquatsToolOptions => await new FindDomainSquatsTool(new DefaultHttpClientFactory()).RunAsync(findDomainSquatsToolOptions),
             FindSourceToolOptions findSourceToolOptions => await new FindSourceTool(ProjectManagerFactory).RunAsync(findSourceToolOptions),

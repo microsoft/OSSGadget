@@ -10,8 +10,8 @@
 
 namespace oss {
     using System;
-    
-    
+
+
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -309,6 +309,84 @@ namespace oss {
         internal static string maven_ant_metadata_xml {
             get {
                 return ResourceManager.GetString("maven_ant_metadata_xml", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;
+        ///&lt;html lang=&quot;en&quot;&gt;
+        ///&lt;head&gt;
+        ///    &lt;style&gt;
+        ///        @charset &quot;UTF-8&quot;;
+        ///
+        ///        [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak, .ng-hide:not(.ng-hide-animate) {
+        ///            display: none !important;
+        ///        }
+        ///
+        ///        ng\:form {
+        ///            display: block;
+        ///        }
+        ///
+        ///        .ng-animate-shim {
+        ///            visibility: hidden;
+        ///        }
+        ///
+        ///        .ng-anchor {
+        ///            position: absolute;
+        ///        }
+        ///    &lt;/style&gt;
+        ///    &lt;script nonce=&quot;&quot;&gt;
+        ///    if (window [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string maven_core_1_0_0_alpha3_html {
+            get {
+                return ResourceManager.GetString("maven_core_1.0.0_alpha3_html", resourceCulture);
+            }
+        }
+
+        internal static string maven_appcompat_1_7_0_rc01_html {
+            get {
+                return ResourceManager.GetString("maven_appcompat_1.7.0_rc01_html", resourceCulture);
+            }
+        }
+
+        internal static string maven_appcompat_all_html
+        {
+            get
+            {
+                return ResourceManager.GetString("maven_appcompat_all_html", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;
+        ///&lt;html lang=&quot;en&quot;&gt;
+        ///&lt;head&gt;
+        ///    &lt;style&gt;
+        ///        @charset &quot;UTF-8&quot;;
+        ///
+        ///        [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak, .ng-hide:not(.ng-hide-animate) {
+        ///            display: none !important;
+        ///        }
+        ///
+        ///        ng\:form {
+        ///            display: block;
+        ///        }
+        ///
+        ///        .ng-animate-shim {
+        ///            visibility: hidden;
+        ///        }
+        ///
+        ///        .ng-anchor {
+        ///            position: absolute;
+        ///        }
+        ///    &lt;/style&gt;
+        ///    &lt;script nonce=&quot;&quot;&gt;
+        ///        if (wi [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string maven_core_all_html {
+            get {
+                return ResourceManager.GetString("maven_core_all_html", resourceCulture);
             }
         }
         

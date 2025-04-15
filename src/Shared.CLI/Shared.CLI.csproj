@@ -70,32 +70,35 @@
 
   <ItemGroup>
     <PackageReference Include="ELFSharp" Version="2.17.3" />
-    <PackageReference Include="ICSharpCode.Decompiler" Version="8.2.0.7535" />
+    <PackageReference Include="ICSharpCode.Decompiler" Version="9.0.0.7889" />
     <PackageReference Include="JmesPath.Net" Version="1.0.330" />
-    <PackageReference Include="Microsoft.CST.ApplicationInspector.Commands" Version="1.9.28" />
-    <PackageReference Include="Microsoft.CST.DevSkim" Version="1.0.44" />
-    <PackageReference Include="PeNet" Version="4.1.0" />
+    <PackageReference Include="Microsoft.CST.ApplicationInspector.Commands" Version="1.9.36" />
+    <PackageReference Include="Microsoft.CST.DevSkim" Version="1.0.56" />
+    <PackageReference Include="PeNet" Version="5.0.0" />
     <PackageReference Include="SharpDisasm" Version="1.1.11" />
     <PackageReference Include="WebAssembly" Version="1.2.1" />
-    <PackageReference Include="AngleSharp" Version="1.1.2" />
+    <PackageReference Include="AngleSharp" Version="1.2.0" />
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
     <PackageReference Include="Crayon" Version="2.0.69" />
     <PackageReference Include="DiffPlex" Version="1.7.2" />
     <PackageReference Include="F23.StringSimilarity" Version="6.0.0" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.71" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.12.1" />
     <PackageReference Include="MediaTypeMap.Core" Version="2.3.3" />
-    <PackageReference Include="Microsoft.CST.ApplicationInspector.Common" Version="1.9.28" />
-    <PackageReference Include="Microsoft.CST.RecursiveExtractor" Version="1.2.32" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.0" />
-    <PackageReference Include="NLog" Version="5.3.4" />
-    <PackageReference Include="NLog.Schema" Version="5.3.4" />
-    <PackageReference Include="NuGet.Versioning" Version="6.11.1" />
-    <PackageReference Include="Octokit" Version="13.0.1" />
-    <PackageReference Include="Pastel" Version="5.2.1" />
+    <PackageReference Include="Microsoft.CST.ApplicationInspector.Common" Version="1.9.36" />
+    <PackageReference Include="Microsoft.CST.RecursiveExtractor" Version="1.2.40" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.4" />
+    <PackageReference Include="NLog" Version="5.4.0" />
+    <PackageReference Include="NLog.Schema" Version="5.4.0" />
+    <PackageReference Include="NuGet.Versioning" Version="6.13.2" />
+    <PackageReference Include="Octokit" Version="14.0.0" />
+    <PackageReference Include="Pastel" Version="6.0.1" />
     <PackageReference Include="Sarif.Sdk" Version="4.5.4" />
-    <PackageReference Include="SemanticVersioning" Version="2.0.2" />
+    <PackageReference Include="SemanticVersioning" Version="3.0.0" />
     <PackageReference Include="System.Console" Version="4.3.1" />
     <PackageReference Include="Whois" Version="3.0.1" />
+    <PackageReference Update="Nerdbank.GitVersioning">
+      <Version>3.7.115</Version>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>

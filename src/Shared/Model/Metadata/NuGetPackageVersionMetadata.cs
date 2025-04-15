@@ -21,7 +21,7 @@ public record NuGetPackageVersionMetadata : IManagerPackageVersionMetadata
     [JsonConverter(typeof(MetadataFieldConverter))]
     public string Authors { get; init; }
 
-    [JsonProperty(PropertyName = JsonProperties.DependencyGroups, ItemConverterType = typeof(PackageDependencyGroupConverter))]
+    [JsonProperty(PropertyName = JsonProperties.DependencyGroups)]
     public IEnumerable<PackageDependencyGroup> DependencySetsInternal { get; init; }
 
     [JsonIgnore]

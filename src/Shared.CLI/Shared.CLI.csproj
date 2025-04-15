@@ -96,9 +96,6 @@
     <PackageReference Include="SemanticVersioning" Version="3.0.0" />
     <PackageReference Include="System.Console" Version="4.3.1" />
     <PackageReference Include="Whois" Version="3.0.1" />
-    <PackageReference Update="Nerdbank.GitVersioning">
-      <Version>3.7.115</Version>
-    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>

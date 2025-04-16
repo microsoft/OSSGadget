@@ -37,6 +37,17 @@ public static class MavenSupportedUpstreamExtensions
     };
 
     /// <summary>
+    /// Gets the download URI for the maven upstream repository.
+    /// </summary>
+    /// <param name="mavenUpstream">The <see cref="MavenSupportUpstream"/>.</param>
+    public static string GetDownloadRepositoryUrl(this MavenSupportedUpstream mavenUpstream) => mavenUpstream switch
+    {
+        MavenSupportedUpstream.MavenCentralRepository => "https://repo1.maven.org/maven2",
+        MavenSupportedUpstream.GoogleMavenRepository => "https://dl.google.com/android/maven2",
+        _ => throw new ArgumentOutOfRangeException(nameof(mavenUpstream), mavenUpstream, null),
+    };
+
+    /// <summary>
     /// Returns the <see cref="MavenSupportedUpstream"/> associated with a given string.
     /// </summary>
     /// <param name="mavenUpstream"></param>

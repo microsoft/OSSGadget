@@ -4,22 +4,19 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using AngleSharp.Html.Parser;
     using Helpers;
-    using Microsoft.CodeAnalysis.Sarif;
     using Microsoft.CST.OpenSource.Contracts;
     using Microsoft.CST.OpenSource.Extensions;
     using Microsoft.CST.OpenSource.Model;
     using Microsoft.CST.OpenSource.Model.Enums;
     using Microsoft.CST.OpenSource.PackageActions;
-    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using PackageUrl;
-    using PuppeteerSharp;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Net;
     using System.Net.Http;
-    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
 
     public class MavenProjectManager : TypedManager<IManagerPackageVersionMetadata, MavenProjectManager.MavenArtifactType>
@@ -48,16 +45,17 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public override async IAsyncEnumerable<ArtifactUri<MavenArtifactType>> GetArtifactDownloadUrisAsync(PackageURL purl, bool useCache = true)
         {
             string? packageName = Check.NotNull(nameof(purl.Name), purl?.Name);
+            string? packageNamespace = Check.NotNull(nameof(purl.Namespace), purl?.Namespace).Replace('.', '/');
             string? packageVersion = Check.NotNull(nameof(purl.Version), purl?.Version);
             string feedUrl = purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT.GetRepositoryUrl();
             MavenSupportedUpstream upstream = feedUrl.GetMavenSupportedUpstream();
 
+            HttpClient httpClient = CreateHttpClient();
+
             if (upstream == MavenSupportedUpstream.MavenCentralRepository)
             {
-                string? packageNamespace = Check.NotNull(nameof(purl.Namespace), purl?.Namespace).Replace('.', '/');
                 var baseUrl = $"{upstream.GetRepositoryUrl().EnsureTrailingSlash()}{packageNamespace}/{packageName}/{packageVersion}/";
 
-                HttpClient httpClient = CreateHttpClient();
                 string? html = await GetHttpStringCache(httpClient, baseUrl, useCache);
                 if (string.IsNullOrEmpty(html))
                 {
@@ -77,28 +75,50 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
             else if (upstream == MavenSupportedUpstream.GoogleMavenRepository)
             {
-                string packageNamespace = purl.Namespace;
-                var packageVersionUrl = $"{upstream.GetRepositoryUrl()}{packageNamespace}:{packageName}:{purl.Version}";
+                var baseUrl = $"{upstream.GetDownloadRepositoryUrl().EnsureTrailingSlash()}{packageNamespace}/{packageName}/{purl.Version}/";
 
-                // Google Maven Repository's webpage has dynamic content
-                var browserFetcher = new BrowserFetcher();
-                await browserFetcher.DownloadAsync();
-                var browser = await Puppeteer.LaunchAsync(new LaunchOptions { HeadlessMode = HeadlessMode.True });
-                var page = await browser.NewPageAsync();
-                await page.GoToAsync(packageVersionUrl, WaitUntilNavigation.DOMContentLoaded);
+                var fileNamesList = new List<string>();
 
-                await page.WaitForSelectorAsync("tr");
-                var trElement = await page.XPathAsync("//tr[td[contains(text(), 'Artifact(s)')]]");
-                var anchors = await trElement.ElementAt(0).QuerySelectorAllAsync("a");
-
-                foreach (var anchor in anchors)
+                // first try to retrieve the artifact-metadata.json file (only new versions have one)
+                try
                 {
-                    var hrefValue = await (await anchor.GetPropertyAsync("href")).JsonValueAsync<string>();
-                    MavenArtifactType artifactType = GetMavenArtifactType(hrefValue);
-                    yield return new ArtifactUri<MavenArtifactType>(artifactType, hrefValue);
+                    string? artifactMetadata = await GetHttpStringCache(httpClient, $"{baseUrl}artifact-metadata.json", useCache);
+
+                    // add all artifacts from the artifact-metadata.json
+                    JObject jsonObject = JObject.Parse(artifactMetadata);
+                    JArray artifactsArray = (JArray)jsonObject["artifacts"];
+
+                    foreach (JObject artifact in artifactsArray)
+                    {
+                        string fileName = artifact["name"].ToString();
+                        fileNamesList.Add(fileName);
+                    }
+                }
+                catch (HttpRequestException)
+                {
+                    // manually add artifact URLs since the artifact-metadata.json does not exist
+                    var filePrefix = $"{packageName}-{purl.Version}";
+
+                    // check for .aar file
+                    try
+                    {
+                        string? artifactMetadata = await GetHttpStringCache(httpClient, $"{baseUrl + filePrefix}.aar", useCache);
+                        fileNamesList.Add($"{filePrefix}.aar");
+                    }
+                    catch (HttpRequestException)
+                    {
+                        // .aar does not exist
+                    }
+
+                    // all package versions have a .pom file
+                    fileNamesList.Add($"{filePrefix}.pom");
                 }
 
-                await browser.CloseAsync();
+                foreach (string fileName in fileNamesList)
+                {
+                    MavenArtifactType artifactType = GetMavenArtifactType(fileName);
+                    yield return new ArtifactUri<MavenArtifactType>(artifactType, baseUrl + fileName);
+                }
             }
         }
 
@@ -210,6 +230,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             try
             {
                 string packageName = purl.Name;
+                string packageNamespace = purl.Namespace.Replace('.', '/');
                 string feedUrl = purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT.GetRepositoryUrl();
                 MavenSupportedUpstream upstream = feedUrl.GetMavenSupportedUpstream();
 
@@ -218,15 +239,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 string baseUrl = string.Empty;
                 if (upstream == MavenSupportedUpstream.MavenCentralRepository)
                 {
-                    string packageNamespace = purl.Namespace.Replace('.', '/');
                     baseUrl = $"{upstream.GetRepositoryUrl().EnsureTrailingSlash()}{packageNamespace}/{packageName}/";
                 }
                 else if (upstream == MavenSupportedUpstream.GoogleMavenRepository)
                 {
-                    string packageNamespace = purl.Namespace;
-                    baseUrl = $"{upstream.GetRepositoryUrl()}{packageNamespace}:{packageName}";
+                    baseUrl = $"{upstream.GetDownloadRepositoryUrl().EnsureTrailingSlash()}{packageNamespace}/group-index.xml";
                 }
 
+                // Check that the package exists
                 string? content = await GetHttpStringCache(httpClient, baseUrl, useCache);
 
                 List<string> versionList = new();
@@ -235,12 +255,12 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     return new List<string>();
                 }
 
+                // Parse the html file.
+                HtmlParser parser = new();
+                AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(content);
+
                 if (upstream == MavenSupportedUpstream.MavenCentralRepository)
                 {
-                    // Parse the html file.
-                    HtmlParser parser = new();
-                    AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(content);
-
                     // Break the version content down into its individual lines. Includes the parent directory and xml + hash files.
                     IEnumerable<string> htmlEntries = document.QuerySelector("#contents").QuerySelectorAll("a").Select(a => a.TextContent);
 
@@ -257,29 +277,19 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 }
                 else if (upstream == MavenSupportedUpstream.GoogleMavenRepository)
                 {
-                    // Google Maven Repository's webpage has dynamic content
-                    var browserFetcher = new BrowserFetcher();
-                    await browserFetcher.DownloadAsync();
-                    var browser = await Puppeteer.LaunchAsync(new LaunchOptions { HeadlessMode = HeadlessMode.True });
-                    var page = await browser.NewPageAsync();
-                    await page.GoToAsync(baseUrl, WaitUntilNavigation.DOMContentLoaded);
-
-                    await page.WaitForSelectorAsync(".artifact-child-item");
-                    var htmlEntries = await page.QuerySelectorAllAsync(".artifact-child-item");
-
-                    // Get the version.
-                    foreach (var htmlEntry in htmlEntries)
+                    var packageElement = document.QuerySelector($"{packageName}");
+ 
+                    if (packageElement != null)
                     {
-                        var span = await htmlEntry.QuerySelectorAsync("span");
-                        var versionStr = await (await span.GetPropertyAsync("textContent")).JsonValueAsync<string>();
-                        Logger.Debug("Identified {0} version {1}.", packageName, versionStr);
-                        versionList.Add(versionStr);
+                        string versions = packageElement.GetAttribute("versions");
+                        var versionsArray = versions.Split(',');
+
+                        foreach (string version in versionsArray)
+                        {
+                            versionList.Add(version.Trim());
+                        }
                     }
-
-                    await browser.CloseAsync();
-                    return versionList.Distinct();
                 }
-
                 return SortVersions(versionList.Distinct());
             }
             catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
@@ -348,6 +358,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             try
             {
                 string? packageName = purl?.Name;
+                string? packageNamespace = purl?.Namespace?.Replace('.', '/');
                 string feedUrl = purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT.GetRepositoryUrl();
                 MavenSupportedUpstream upstream = feedUrl.GetMavenSupportedUpstream();
 
@@ -372,16 +383,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
                 if (upstream == MavenSupportedUpstream.MavenCentralRepository)
                 {
-                    string? packageNamespace = purl?.Namespace?.Replace('.', '/');
                     return await GetHttpStringCache(httpClient, $"{upstream.GetRepositoryUrl().EnsureTrailingSlash()}{packageNamespace}/{packageName}/{version}/{packageName}-{version}.pom", useCache);
                 }
                 else if (upstream == MavenSupportedUpstream.GoogleMavenRepository)
                 {
-                    string packageNamespace = purl.Namespace;
-                    var packageVersionUrl = $"{upstream.GetRepositoryUrl()}{packageNamespace}:{packageName}:{version}";
-
-                    var metadata = await GoogleMavenRepositoryMetadataParserHelperAsync(packageVersionUrl);
-                    return JsonConvert.SerializeObject(metadata);
+                    return await GetHttpStringCache(httpClient, $"{upstream.GetDownloadRepositoryUrl().EnsureTrailingSlash()}{packageNamespace}/{packageName}/{version}/{packageName}-{version}.pom", useCache);
                 }
 
                 throw new Exception($"Unable to obtain metadata for {purl}.");
@@ -431,72 +437,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return null;
         }
 
-        internal async Task<Dictionary<string,string>> GoogleMavenRepositoryMetadataParserHelperAsync(string url)
-        {
-            var metadata = new Dictionary<string,string>();
-            
-            // Google Maven Repository's webpage has dynamic content. Scrape available metadata on the webpage.
-            var browserFetcher = new BrowserFetcher();
-            await browserFetcher.DownloadAsync();
-            var browser = await Puppeteer.LaunchAsync(new LaunchOptions { HeadlessMode = HeadlessMode.True });
-            var page = await browser.NewPageAsync();
-            await page.GoToAsync(url, WaitUntilNavigation.DOMContentLoaded);
-
-            await page.WaitForSelectorAsync("tr");
-            var fields = await page.QuerySelectorAllAsync("tr");
-
-            foreach (var field in fields)
-            {
-                var tds = await field.QuerySelectorAllAsync("td");
-
-                string key = string.Empty;
-                string value = string.Empty;
-                foreach (var td in tds)
-                {
-                    var className = await page.EvaluateFunctionAsync<string>("el => el.className", td);
-                    if (className.Contains("gav-pom-key"))
-                    {
-                        key = await(await td.GetPropertyAsync("textContent")).JsonValueAsync<string>();
-                    }
-                    else
-                    {
-                        // only include link- or text-based metadata
-                        var datas = (await td.QuerySelectorAllAsync("a")).IsEmptyEnumerable() ? await td.QuerySelectorAllAsync("span") :
-                            await td.QuerySelectorAllAsync("a");
-
-                        foreach (var data in datas)
-                        {
-                            if (data != null)
-                            {
-                                var rawValue = await(await data.GetPropertyAsync("textContent") ?? await data.GetPropertyAsync("href"))
-                                    .JsonValueAsync<string>();
-
-                                // format: remove newlines and excessive spaces and punctuation
-                                rawValue = Regex.Replace(rawValue, @"\s{2,}", "");
-                                rawValue = Regex.Replace(rawValue, @"\r\n|,", "");
-                                rawValue = Regex.Replace(rawValue, @"\r\n|\n", "");
-
-                                // append available artifact types as comma-separated string
-                                if (value == string.Empty)
-                                {
-                                    value = rawValue;
-                                }
-                                else
-                                {
-                                    value += $", {rawValue}";
-                                }
-                            }
-                        }
-                    }
-                }
-                metadata.Add(key, value);
-            }
-
-            await browser.CloseAsync();
-            return metadata;
-        }
-
-
         public enum MavenArtifactType
         {
             Unknown = 0,
@@ -527,6 +467,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public async Task<DateTime?> GetPackagePublishDateAsync(PackageURL purl, bool useCache = true)
         {
             string? packageName = Check.NotNull(nameof(purl.Name), purl?.Name);
+            string? packageNamespace = Check.NotNull(nameof(purl.Namespace), purl?.Namespace).Replace('.', '/');
             string? packageVersion = Check.NotNull(nameof(purl.Version), purl?.Version);
             string feedUrl = purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT.GetRepositoryUrl();
             MavenSupportedUpstream upstream = feedUrl.GetMavenSupportedUpstream();
@@ -535,7 +476,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             if (upstream == MavenSupportedUpstream.MavenCentralRepository)
             {
-                string? packageNamespace = Check.NotNull(nameof(purl.Namespace), purl?.Namespace).Replace('.', '/');
                 var baseUrl = $"{upstream.GetRepositoryUrl().EnsureTrailingSlash()}{packageNamespace}/{packageName}/";
 
                 string? html = await GetHttpStringCache(httpClient, baseUrl, useCache);
@@ -571,27 +511,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
             else if (upstream == MavenSupportedUpstream.GoogleMavenRepository)
             {
-                string packageNamespace = purl.Namespace;
-                var packageVersionUrl = $"{upstream.GetRepositoryUrl()}{packageNamespace}:{packageName}:{packageVersion}";
+                var baseUrl = $"{upstream.GetDownloadRepositoryUrl().EnsureTrailingSlash()}{packageNamespace}/{packageName}/{packageVersion}/{packageName}-{packageVersion}.pom";
+                HttpResponseMessage response = await httpClient.GetAsync(baseUrl);
 
-                // Google Maven Repository's webpage has dynamic content
-                var browserFetcher = new BrowserFetcher();
-                await browserFetcher.DownloadAsync();
-                var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
-                var page = await browser.NewPageAsync();
-                await page.GoToAsync(packageVersionUrl);
-
-                // Google Maven Repository offers a "Last Updated Date", which will be considered as the publish timestamp.
-                await page.WaitForSelectorAsync("tr");
-                var trElement = await page.XPathAsync("//tr[td[contains(text(), 'Last Updated Date')]]");
-                var content = await trElement.ElementAt(0).QuerySelectorAsync("span");
-                var lastUpdatedDate = await content.EvaluateFunctionAsync<string>("el => el.textContent");
-
-                await browser.CloseAsync();
-
-                if (DateTime.TryParse($"{lastUpdatedDate}", out DateTime publishDateTime))
+                // Try to get the "Last-Modified" header
+                if (response.Content.Headers.TryGetValues("Last-Modified", out var values))
                 {
-                    return publishDateTime;
+                    var lastModified = DateTime.Parse(values.First());
+                    return lastModified;
                 }
             }
 

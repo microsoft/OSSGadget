@@ -10,8 +10,8 @@
 
 namespace oss {
     using System;
-    
-    
+
+
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -309,6 +309,221 @@ namespace oss {
         internal static string maven_ant_metadata_xml {
             get {
                 return ResourceManager.GetString("maven_ant_metadata_xml", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PK
+        ///   YÂJ              R.txt PK
+        ///   YÂJ¥;âR  ª     AndroidManifest.xmlmSMoÛ0½ûWp:µ@l&apos;Á°
+        ///Y’ÂK;ÌXáqÚ¢GÅ¦-¶äIòœ\öÛG¤KÑéb˜||z|¤æ7Ç²€ß¨PrÁ&amp;Þ˜ÊD¥Bæ
+        ///VÛÌýÄn–Îüë: `¥ª“ùÞÂÕê¦ãÉGØî™j%RXW(!VµN~hõÛ–u¥÷&quot;Ai0…Z¦¨Á¶eOè3dFðØë€©7†«À†»þÜqœT
+        ///%?TjƒD&quot;d¢@Àc‚•!!QeU.IB#ì¾»h ñ:’çDí,&apos;&lt;§ŠŠþ²K$ðÂ»³·¶šù~Ó4ïT{Jç~Ñ£®î¢øÎ%å/u²@c@ã¯Zhê{w^‘´„ïHpÁPx®‘rVµÒ-,?£2ÛpO*ŒÕbWÛWÞ…’— rK`AaÌàK‡ñ¨cy
+        ///·ßÖ[x
+        ///6› Ú†w1¬7°ZG·á6\Gô÷‚è¾‡Ñíœ£‹ðXé¶ *ZW1í-Œ_‰ÈT/ÊT˜ˆL$ÔÌkž#äŠ–KRSP¡.…içkHbÚñ¢–Û.ö¦5Ïq] [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string maven_core_1_0_0_alpha2_aar {
+            get {
+                return ResourceManager.GetString("maven_core_1.0.0_alpha2_aar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;
+        ///&lt;html lang=&quot;en&quot;&gt;
+        ///
+        ///&lt;head&gt;
+        ///    &lt;script nonce=&quot;8DQ1A3FbR-RCf6afH0_tuQ&quot;&gt;if (window.location.search.substring(1) !== &quot;full=true&quot;) { // do not redirect if querystring is ?full=true
+        ///      if (navigator.userAgent.match(/i(Phone|Pad)|Android|Blackberry|WebOs/i)) { // detect mobile browser
+        ///        window.location.replace(&quot;m_index.html&quot;); // redirect if mobile browser detected
+        ///      }
+        ///    }&lt;/script&gt;
+        ///
+        ///    &lt;title&gt;Google&apos;s Maven Repository&lt;/title&gt;
+        ///    &lt;meta charset=&quot;utf-8&quot;&gt;
+        ///    &lt;meta name=&quot;viewport&quot; conte [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string maven_core_1_0_0_alpha2_html {
+            get {
+                return ResourceManager.GetString("maven_core_1.0.0_alpha2_html", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+        ///&lt;project xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot; xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot;
+        ///    xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&gt;
+        ///  &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+        ///  &lt;groupId&gt;android.arch.core&lt;/groupId&gt;
+        ///  &lt;artifactId&gt;core&lt;/artifactId&gt;
+        ///  &lt;version&gt;1.0.0-alpha2&lt;/version&gt;
+        ///  &lt;packaging&gt;aar&lt;/packaging&gt;
+        ///  &lt;url&gt;https://developer.android.com/topic/libraries/architecture/index.html&lt;/url&gt;
+        ///  &lt;incepti [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string maven_core_1_0_0_alpha2_pom {
+            get {
+                return ResourceManager.GetString("maven_core_1.0.0_alpha2_pom", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;
+        ///&lt;html lang=&quot;en&quot;&gt;
+        ///
+        ///&lt;head&gt;
+        ///    &lt;script nonce=&quot;8DQ1A3FbR-RCf6afH0_tuQ&quot;&gt;
+        ///        if (window.location.search.substring(1) !== &quot;full=true&quot;) { // do not redirect if querystring is ?full=true
+        ///            if (navigator.userAgent.match(/i(Phone|Pad)|Android|Blackberry|WebOs/i)) { // detect mobile browser
+        ///                window.location.replace(&quot;m_index.html&quot;); // redirect if mobile browser detected
+        ///            }
+        ///        }
+        ///    &lt;/script&gt;
+        ///
+        ///    &lt;title&gt;Google&apos;s Maven Repository&lt;/title&gt;
+        ///    &lt;meta charset=&quot;u [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string maven_core_all_html {
+            get {
+                return ResourceManager.GetString("maven_core_all_html", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&apos;1.0&apos; encoding=&apos;UTF-8&apos; ?&gt;
+        ///&lt;android.arch.core&gt;
+        ///    &lt;core-testing versions=&quot;1.0.0-alpha1,1.0.0-alpha2,1.0.0-alpha3,1.0.0-alpha4,1.0.0-alpha5,1.0.0-alpha6,1.0.0-alpha7,1.0.0-alpha8,1.0.0-alpha9,1.0.0-alpha9-1,1.0.0-beta1,1.0.0-beta2,1.0.0-rc1,1.0.0,1.1.0,1.1.1&quot; /&gt;
+        ///    &lt;core versions=&quot;1.0.0-alpha1,1.0.0-alpha2,1.0.0-alpha3&quot; /&gt;
+        ///    &lt;runtime versions=&quot;1.0.0-alpha4,1.0.0-alpha5,1.0.0-alpha6,1.0.0-alpha7,1.0.0-alpha8,1.0.0-alpha9,1.0.0-alpha9-1,1.0.0-beta1,1.0.0-beta2,1.0.0-rc1,1.0.0,1.1.0,1.1.1&quot; /&gt;
+        ///  [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string maven_core_all_xml {
+            get {
+                return ResourceManager.GetString("maven_core_all_xml", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  &quot;artifacts&quot;: [
+        ///    {
+        ///      &quot;name&quot;: &quot;cose-20230908-javadoc.jar&quot;,
+        ///      &quot;tag&quot;: &quot;javadoc&quot;
+        ///    },
+        ///    {
+        ///      &quot;name&quot;: &quot;cose-20230908.jar&quot;,
+        ///      &quot;tag&quot;: &quot;jar&quot;
+        ///    },
+        ///    {
+        ///      &quot;name&quot;: &quot;cose-20230908.pom&quot;,
+        ///      &quot;tag&quot;: &quot;pom&quot;
+        ///    }
+        ///  ]
+        ///}.
+        /// </summary>
+        internal static string maven_cose_20230908_artifact_metadata_json {
+            get {
+                return ResourceManager.GetString("maven_cose_20230908_artifact_metadata_json", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;
+        ///&lt;html lang=&quot;en&quot;&gt;
+        ///
+        ///&lt;head&gt;
+        ///    &lt;script nonce=&quot;8DQ1A3FbR-RCf6afH0_tuQ&quot;&gt;if (window.location.search.substring(1) !== &quot;full=true&quot;) { // do not redirect if querystring is ?full=true
+        ///      if (navigator.userAgent.match(/i(Phone|Pad)|Android|Blackberry|WebOs/i)) { // detect mobile browser
+        ///        window.location.replace(&quot;m_index.html&quot;); // redirect if mobile browser detected
+        ///      }
+        ///    }&lt;/script&gt;
+        ///
+        ///    &lt;title&gt;Google&apos;s Maven Repository&lt;/title&gt;
+        ///    &lt;meta charset=&quot;utf-8&quot;&gt;
+        ///    &lt;meta name=&quot;viewport&quot; conte [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string maven_cose_20230908_html {
+            get {
+                return ResourceManager.GetString("maven_cose_20230908_html", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PK   ,·(W
+        ///[ÝÀP   Q      META-INF/MANIFEST.MFóMÌËLK-.Ñ
+        ///K-*ÎÌÏ³R0Ô3àår.JM,IMÑuª´RðM,KÍSðJ,RÈ)MÏÌS0Ö3©q*ÍÌIÑõJÉÖ
+        ///.HMj4äåâå PK
+        ///    ,·(W            	   META-INF/PK
+        ///    *·(W               com/PK
+        ///    *·(W            
+        ///   com/google/PK
+        ///    *·(W               com/google/cose/PK
+        ///    *·(W               com/google/cose/utils/PK
+        ///    *·(W               com/google/cose/structure/PK
+        ///    *·(W               com/google/cose/exceptions/PK
+        ///    ,·(W               META-INF/maven/PK
+        ///    ,· [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string maven_cose_20230908_jar {
+            get {
+                return ResourceManager.GetString("maven_cose_20230908_jar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot;
+        ///    xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+        ///    xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot;&gt;
+        ///  &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+        ///  &lt;groupId&gt;com.google.cose&lt;/groupId&gt;
+        ///  &lt;artifactId&gt;cose&lt;/artifactId&gt;
+        ///  &lt;version&gt;20230908&lt;/version&gt;
+        ///  &lt;dependencies&gt;
+        ///    &lt;dependency&gt;
+        ///      &lt;groupId&gt;co.nstant.in&lt;/groupId&gt;
+        ///      &lt;artifactId&gt;cbor&lt;/artifactId&gt;
+        ///      &lt;version&gt;0.9&lt;/version&gt;
+        ///    &lt;/dependency&gt;
+        ///    &lt;dep [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string maven_cose_20230908_pom {
+            get {
+                return ResourceManager.GetString("maven_cose_20230908_pom", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;
+        ///&lt;html lang=&quot;en&quot;&gt;
+        ///
+        ///&lt;head&gt;
+        ///    &lt;script nonce=&quot;8DQ1A3FbR-RCf6afH0_tuQ&quot;&gt;
+        ///        if (window.location.search.substring(1) !== &quot;full=true&quot;) { // do not redirect if querystring is ?full=true
+        ///            if (navigator.userAgent.match(/i(Phone|Pad)|Android|Blackberry|WebOs/i)) { // detect mobile browser
+        ///                window.location.replace(&quot;m_index.html&quot;); // redirect if mobile browser detected
+        ///            }
+        ///        }
+        ///    &lt;/script&gt;
+        ///
+        ///    &lt;title&gt;Google&apos;s Maven Repository&lt;/title&gt;
+        ///    &lt;meta charset=&quot;u [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string maven_cose_all_html {
+            get {
+                return ResourceManager.GetString("maven_cose_all_html", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&apos;1.0&apos; encoding=&apos;UTF-8&apos;?&gt;
+        ///&lt;com.google.cose&gt;
+        ///	&lt;cose versions=&quot;20230908&quot;/&gt;
+        ///&lt;/com.google.cose&gt;
+        ///.
+        /// </summary>
+        internal static string maven_cose_all_xml {
+            get {
+                return ResourceManager.GetString("maven_cose_all_xml", resourceCulture);
             }
         }
         

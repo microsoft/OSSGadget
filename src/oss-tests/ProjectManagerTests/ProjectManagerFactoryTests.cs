@@ -37,6 +37,7 @@ public class ProjectManagerFactoryTests
     [DataRow("pkg:nuget/newtonsoft.json", typeof(NuGetProjectManager))]
     [DataRow("pkg:npm/foo", typeof(NPMProjectManager))]
     [DataRow("pkg:pypi/plotly", typeof(PyPIProjectManager))]
+    [DataRow("pkg:cargo/rand", typeof(CargoProjectManager))]
     [DataRow("pkg:foo/bar", null)]
     public void FactorySucceeds(string purlString, Type? expectedManager)
     {
@@ -46,6 +47,20 @@ public class ProjectManagerFactoryTests
 
         Assert.AreEqual(expectedManager, projectManagerFactory.CreateProjectManager(packageUrl)?.GetType());
     }
+
+    [DataTestMethod]
+    public void CargoPackageManagerCreatedWithDisablingRateLimitedRegistryAPI()
+    {
+        var purlString = "pkg:cargo/rand";
+        ProjectManagerFactory projectManagerFactory = new(allowUseOfRateLimitedRegistryAPIs:false);
+
+        PackageURL packageUrl = new(purlString);
+        var manager = projectManagerFactory.CreateProjectManager(packageUrl);
+
+        Assert.AreEqual(typeof(CargoProjectManager), manager.GetType());
+        Assert.IsFalse(((CargoProjectManager)manager).allowUseOfRateLimitedRegistryAPIs);
+    }
+
 
     /// <summary>
     /// Test if the default dictionary works, similar to <see cref="FactorySucceeds"/>, but uses the override constructor.

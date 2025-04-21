@@ -21,6 +21,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Net.Http;
     using System.Text.Json;
     using System.Threading.Tasks;
+    using System.Xml.Linq;
 
     public class CargoProjectManager : TypedManager<IManagerPackageVersionMetadata, CargoProjectManager.CargoArtifactType>
     {
@@ -41,6 +42,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public string ENV_CARGO_INDEX_ENDPOINT { get; set; } = "https://raw.githubusercontent.com/rust-lang/crates.io-index/master";
 
+        public bool allowUseOfRateLimitedRegistryAPIs = true;
+
         private static int InternalServerErrorMaxRetries = 3;
 
         private AsyncRetryPolicy retryPolicy = Policy
@@ -54,9 +57,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             string directory,
             IManagerPackageActions<IManagerPackageVersionMetadata>? actions = null,
             IHttpClientFactory? httpClientFactory = null,
-            TimeSpan? timeout = null)
+            TimeSpan? timeout = null,
+            bool allowUseOfRateLimitedRegistryAPIs = true)
             : base(actions ?? new NoOpPackageActions(), httpClientFactory ?? new DefaultHttpClientFactory(), directory, timeout)
         {
+            this.allowUseOfRateLimitedRegistryAPIs = allowUseOfRateLimitedRegistryAPIs;
         }
 
         /// <inheritdoc />
@@ -66,7 +71,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             string? packageName = purl?.Name;
             string? packageVersion = purl?.Version;
 
-            string artifactUri = $"{ENV_CARGO_ENDPOINT}/api/v1/crates/{packageName}/{packageVersion}/download";
+            string artifactUri = $"{ENV_CARGO_ENDPOINT_STATIC}/crates/{packageName}/{packageVersion}/download";
             yield return new ArtifactUri<CargoArtifactType>(CargoArtifactType.Tarball, artifactUri);
         }
 
@@ -205,9 +210,15 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }      
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// This method uses the Crates.io rate-limited API to get the metadata for a package. It should be used when the request volume is low (1 request per second).
+        /// </summary>
         public override async Task<string?> GetMetadataAsync(PackageURL purl, bool useCache = true)
         {
+            if (!allowUseOfRateLimitedRegistryAPIs)
+            {
+                throw new InvalidOperationException("Rate-limited API is disabled. Crates.io does not have a non-rate-limited API defined to fetch metadata.  See https://crates.io/data-access.");
+            }
             try
             {
                 return await retryPolicy.ExecuteAsync(async () =>
@@ -229,9 +240,17 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 throw;
             }
         }
-
+        
+        /// <summary>
+        /// This method uses the Crates.io rate-limited API to get the metadata for a package. It should be used when the request volume is low (1 request per second).
+        /// </summary>
         public override async Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool includePrerelease = false, bool useCache = true, bool includeRepositoryMetadata = true)
         {
+            if (!allowUseOfRateLimitedRegistryAPIs)
+            {
+                throw new InvalidOperationException("Rate-limited API is disabled. Crates.io does not have a non-rate-limited API defined to fetch metadata.  See https://crates.io/data-access.");
+            }
+
             string? content = await GetMetadataAsync(purl, useCache);
             if (string.IsNullOrEmpty(content)) { return null; }
 
@@ -297,6 +316,59 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
             return new Uri(url);
         }
+
+        public override async Task<DateTime?> GetPublishedAtUtcAsync(PackageURL purl, bool useCache = true)
+        {
+            DateTime? uploadTime = await GetPackageVersionPublishedTimestampFromRssFeed(purl, useCache);
+            if (uploadTime == null && allowUseOfRateLimitedRegistryAPIs)
+            {
+                uploadTime = (await GetPackageMetadataAsync(purl, useCache))?.UploadTime;
+            }
+            return uploadTime?.ToUniversalTime();
+        }
+
+        private async Task<DateTime?> GetPackageVersionPublishedTimestampFromRssFeed(PackageURL purl, bool useCache = true)
+        {
+            try
+            {
+                string? packageName = purl.Name;
+                HttpClient httpClient = CreateHttpClient();
+
+                // The Rss feed fetches package versions published in the last 24 hours.
+                string? rssFeedContent = await GetHttpStringCache(httpClient, $"{ENV_CARGO_ENDPOINT_STATIC}/rss/crates/{packageName}.xml", useCache);
+
+                if (rssFeedContent == null)
+                {
+                    return null;
+                }
+                XDocument doc = XDocument.Parse(rssFeedContent);
+                List<XElement> items = doc.Descendants("item").ToList();
+
+                foreach (XElement item in items)
+                {
+                    string? pubDate = item.Elements().FirstOrDefault(e => e.Name == "pubDate")?.Value;
+                    string? crateName = item.Elements().FirstOrDefault(e => e.Name.LocalName == "name" && e.Name.NamespaceName == $"{ ENV_CARGO_ENDPOINT}/")?.Value;
+                    string? crateVersion = item.Elements().FirstOrDefault(e => e.Name.NamespaceName == $"{ENV_CARGO_ENDPOINT}/" && e.Name.LocalName == "version")?.Value;
+                    if (crateName == purl.Name && crateVersion == purl.Version)
+                    {
+                        return pubDate != null ? DateTime.Parse(pubDate) : null;
+                    }
+                }
+                return null;
+
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.InternalServerError)
+            {
+                Logger.Debug($"Unable to get published timestamp for package: {purl}, error: {ex.Message}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Logger.Debug(ex, "Error fetching PublishedTimeStamp: {0}", ex.Message);
+                return null;
+            }
+        }
+
 
         /// <summary>
         /// Helper method to create the path for the crates.io index for this package name.

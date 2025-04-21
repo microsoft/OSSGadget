@@ -44,9 +44,11 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// Initializes a new instance of a <see cref="ProjectManagerFactory"/>.
         /// </summary>
         /// <param name="httpClientFactory">The <see cref="IHttpClientFactory"/> to use in <see cref="GetDefaultManagers"/>.</param>
-        public ProjectManagerFactory(IHttpClientFactory? httpClientFactory = null)
+        /// <param name="allowUseOfRateLimitedRegistryAPIs"> The Cargo Project Manager uses this flag to disable the use of a ratelimited API for 
+        /// fetching metadata when the user scenario requires retrieving metadata for more than one package per second. </param>
+        public ProjectManagerFactory(IHttpClientFactory? httpClientFactory = null, bool allowUseOfRateLimitedRegistryAPIs = true)
         {
-            _projectManagers = GetDefaultManagers(httpClientFactory);
+            _projectManagers = GetDefaultManagers(httpClientFactory, allowUseOfRateLimitedRegistryAPIs);
         }
 
         /// <summary>
@@ -54,7 +56,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// </summary>
         /// <param name="httpClientFactoryParam">The <see cref="IHttpClientFactory"/> to use in the project managers.</param>
         /// <returns>A dictionary of the default managers with associated constructors.</returns>
-        public static Dictionary<string, ConstructProjectManager> GetDefaultManagers(IHttpClientFactory? httpClientFactoryParam = null)
+        public static Dictionary<string, ConstructProjectManager> GetDefaultManagers(IHttpClientFactory? httpClientFactoryParam = null, bool allowUseOfRateLimitedRegistryAPIs = true)
         {
             // If the httpClientFactory parameter is null, set the factory to the DefaultHttpClientFactory.
             IHttpClientFactory httpClientFactory = httpClientFactoryParam ?? new DefaultHttpClientFactory();
@@ -63,7 +65,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {
                 {
                     CargoProjectManager.Type, (destinationDirectory, timeout) =>
-                        new CargoProjectManager(destinationDirectory, new NoOpPackageActions(), httpClientFactory, timeout)
+                        new CargoProjectManager(destinationDirectory, new NoOpPackageActions(), httpClientFactory, timeout, allowUseOfRateLimitedRegistryAPIs)
                 },
                 {
                     CocoapodsProjectManager.Type, (destinationDirectory, timeout) =>
@@ -111,7 +113,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 },
                 {
                     NuGetProjectManager.Type, (destinationDirectory, timeout) =>
-                        new NuGetProjectManager(destinationDirectory, new NuGetPackageActions(), httpClientFactory, timeout) // Add the NuGetPackageActions to the NuGetProjectManager.
+                        new NuGetProjectManager(destinationDirectory, new NuGetPackageActions(), httpClientFactory, timeout)
                 },
                 {
                     PyPIProjectManager.Type, (destinationDirectory, timeout) =>

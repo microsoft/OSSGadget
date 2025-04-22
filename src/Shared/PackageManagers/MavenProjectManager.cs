@@ -339,26 +339,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return metadata;
         }
 
-        public override Uri? GetPackageAbsoluteUri(PackageURL purl)
-        {
-            string? packageName = purl?.Name;
-            string feedUrl = purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT;
-
-            if (feedUrl == DEFAULT_MAVEN_ENDPOINT)
-            {
-                string? packageNamespace = purl?.Namespace?.Replace('.', '/');
-                return new Uri($"{feedUrl.EnsureTrailingSlash()}{packageNamespace}/{packageName}");
-            }
-            else if (feedUrl == GOOGLE_MAVEN_ENDPOINT)
-            {
-                string packageNamespace = purl.Namespace;
-                return new Uri($"{feedUrl.EnsureTrailingSlash()}web/index.html#{packageNamespace}/{packageName}");
-            }
-
-            Logger.Warn($"Unable to get package absolute URI for {purl}.");
-            return null;
-        }
-
         private static MavenArtifactType GetMavenArtifactType(string fileName)
         {
             if (string.IsNullOrEmpty(fileName))

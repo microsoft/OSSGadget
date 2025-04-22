@@ -18,8 +18,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using System.Xml;
 
-    public class MavenProjectManager : TypedManager<IManagerPackageVersionMetadata, MavenProjectManager.MavenArtifactType>
+    public class MavenProjectManager : TypedManager<IManagerPackageVersionMetadata, MavenArtifactType>
     {
         /// <summary>
         /// The type of the project manager from the package-url type specifications.
@@ -29,8 +30,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         public override string ManagerType => Type;
 
-        public const MavenSupportedUpstream DEFAULT_MAVEN_ENDPOINT = MavenSupportedUpstream.MavenCentralRepository;
-        public MavenSupportedUpstream ENV_MAVEN_ENDPOINT { get; set; } = DEFAULT_MAVEN_ENDPOINT;
+        public const string DEFAULT_MAVEN_ENDPOINT = "https://repo1.maven.org/maven2";
+        public const string GOOGLE_MAVEN_ENDPOINT = "https://maven.google.com";
+        public string ENV_MAVEN_ENDPOINT { get; set; } = DEFAULT_MAVEN_ENDPOINT;
 
         public MavenProjectManager(
             string directory,
@@ -47,78 +49,34 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             string? packageName = Check.NotNull(nameof(purl.Name), purl?.Name);
             string? packageNamespace = Check.NotNull(nameof(purl.Namespace), purl?.Namespace).Replace('.', '/');
             string? packageVersion = Check.NotNull(nameof(purl.Version), purl?.Version);
-            string feedUrl = purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT.GetRepositoryUrl();
-            MavenSupportedUpstream upstream = feedUrl.GetMavenSupportedUpstream();
+            string feedUrl = purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT;
 
-            HttpClient httpClient = CreateHttpClient();
+            var baseUrl = $"{feedUrl.EnsureTrailingSlash()}{packageNamespace}/{packageName}/{packageVersion}/";
+            var fileNamesList = new List<string>();
 
-            if (upstream == MavenSupportedUpstream.MavenCentralRepository)
+            // Most Maven repositories have web server directory indices (but not Google Maven).
+            // First attempt to obtain artifact download URIs via the index.
+            if (feedUrl != GOOGLE_MAVEN_ENDPOINT)
             {
-                var baseUrl = $"{upstream.GetRepositoryUrl().EnsureTrailingSlash()}{packageNamespace}/{packageName}/{packageVersion}/";
+                fileNamesList = await GetArtifactDownloadUris_DirectoryIndexStrategyAsync(baseUrl, useCache).ToListAsync();
+            }
+            if (!fileNamesList.Any())
+            {
+                // Attempt to retrieve the artifact-metadata.json file (only new versions have one).
+                fileNamesList = await GetArtifactDownloadUris_ArtifactMetadataStrategyAsync(baseUrl, useCache).ToListAsync();
 
-                string? html = await GetHttpStringCache(httpClient, baseUrl, useCache);
-                if (string.IsNullOrEmpty(html))
+                // Resort to manual file probe.
+                if (!fileNamesList.Any())
                 {
-                    throw new InvalidOperationException();
-                }
-
-                HtmlParser parser = new();
-                AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(html);
-
-                foreach (string fileName in document.QuerySelectorAll("a").Select(link => link.GetAttribute("href").ToString()))
-                {
-                    if (fileName == "../") continue;
-
-                    MavenArtifactType artifactType = GetMavenArtifactType(fileName);
-                    yield return new ArtifactUri<MavenArtifactType>(artifactType, baseUrl + fileName);
+                    baseUrl += $"{purl.Name}-{purl.Version}";
+                    fileNamesList = await GetArtifactDownloadUris_FileProbeStrategyAsync(baseUrl, purl, useCache).ToListAsync();
                 }
             }
-            else if (upstream == MavenSupportedUpstream.GoogleMavenRepository)
+
+            foreach (string fileName in fileNamesList)
             {
-                var baseUrl = $"{upstream.GetDownloadRepositoryUrl().EnsureTrailingSlash()}{packageNamespace}/{packageName}/{purl.Version}/";
-
-                var fileNamesList = new List<string>();
-
-                // first try to retrieve the artifact-metadata.json file (only new versions have one)
-                try
-                {
-                    string? artifactMetadata = await GetHttpStringCache(httpClient, $"{baseUrl}artifact-metadata.json", useCache);
-
-                    // add all artifacts from the artifact-metadata.json
-                    JObject jsonObject = JObject.Parse(artifactMetadata);
-                    JArray artifactsArray = (JArray)jsonObject["artifacts"];
-
-                    foreach (JObject artifact in artifactsArray)
-                    {
-                        string fileName = artifact["name"].ToString();
-                        fileNamesList.Add(fileName);
-                    }
-                }
-                catch (HttpRequestException)
-                {
-                    // manually add artifact URLs since the artifact-metadata.json does not exist
-                    var filePrefix = $"{packageName}-{purl.Version}";
-
-                    // check for .aar file
-                    try
-                    {
-                        string? artifactMetadata = await GetHttpStringCache(httpClient, $"{baseUrl + filePrefix}.aar", useCache);
-                        fileNamesList.Add($"{filePrefix}.aar");
-                    }
-                    catch (HttpRequestException)
-                    {
-                        // .aar does not exist
-                    }
-
-                    // all package versions have a .pom file
-                    fileNamesList.Add($"{filePrefix}.pom");
-                }
-
-                foreach (string fileName in fileNamesList)
-                {
-                    MavenArtifactType artifactType = GetMavenArtifactType(fileName);
-                    yield return new ArtifactUri<MavenArtifactType>(artifactType, baseUrl + fileName);
-                }
+                MavenArtifactType artifactType = GetMavenArtifactType(fileName);
+                yield return new ArtifactUri<MavenArtifactType>(artifactType, fileName);
             }
         }
 
@@ -199,24 +157,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 return false;
             }
             string packageName = purl.Name;
-            string feedUrl = purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT.GetRepositoryUrl();
-            MavenSupportedUpstream upstream = feedUrl.GetMavenSupportedUpstream();
+            string feedUrl = purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT;
 
             HttpClient httpClient = CreateHttpClient();
 
-            string packageRepositoryCheckUri = string.Empty;
-            if (upstream == MavenSupportedUpstream.MavenCentralRepository)
-            {
-                string packageNamespace = purl.Namespace.Replace('.', '/');
-                packageRepositoryCheckUri = $"{upstream.GetRepositoryUrl().EnsureTrailingSlash()}{packageNamespace}/{packageName}/maven-metadata.xml";
-            }
-            else if (upstream == MavenSupportedUpstream.GoogleMavenRepository)
-            {
-                string packageNamespace = purl.Namespace;
-                packageRepositoryCheckUri = $"{upstream.GetRepositoryUrl()}{packageNamespace}:{packageName}";
-            }
+            string packageNamespace = purl.Namespace.Replace('.', '/');
+            var baseUrl = $"{feedUrl.EnsureTrailingSlash()}{packageNamespace}/{packageName}/maven-metadata.xml";
 
-            return await CheckHttpCacheForPackage(httpClient, packageRepositoryCheckUri, useCache);
+            return await CheckHttpCacheForPackage(httpClient, baseUrl, useCache);
         }
 
         /// <inheritdoc />
@@ -231,36 +179,45 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {
                 string packageName = purl.Name;
                 string packageNamespace = purl.Namespace.Replace('.', '/');
-                string feedUrl = purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT.GetRepositoryUrl();
-                MavenSupportedUpstream upstream = feedUrl.GetMavenSupportedUpstream();
+                string feedUrl = purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT;
 
                 HttpClient httpClient = CreateHttpClient();
 
-                string baseUrl = string.Empty;
-                if (upstream == MavenSupportedUpstream.MavenCentralRepository)
-                {
-                    baseUrl = $"{upstream.GetRepositoryUrl().EnsureTrailingSlash()}{packageNamespace}/{packageName}/";
-                }
-                else if (upstream == MavenSupportedUpstream.GoogleMavenRepository)
-                {
-                    baseUrl = $"{upstream.GetDownloadRepositoryUrl().EnsureTrailingSlash()}{packageNamespace}/group-index.xml";
-                }
+                var baseUrl = $"{feedUrl.EnsureTrailingSlash()}{packageNamespace}/{packageName}/maven-metadata.xml";
 
-                // Check that the package exists
-                string? content = await GetHttpStringCache(httpClient, baseUrl, useCache);
+                string? content = string.Empty;
+                try
+                {
+                    content = await GetHttpStringCache(httpClient, baseUrl, useCache);
+                }
+                catch {}
 
                 List<string> versionList = new();
-                if (string.IsNullOrWhiteSpace(content))
+                if (!string.IsNullOrWhiteSpace(content))
                 {
-                    return new List<string>();
+                    // Parse the maven-metadata.xml file for the versions.
+                    XmlDocument xmlDoc = new XmlDocument();
+                    xmlDoc.LoadXml(content);
+
+                    var packageElement = xmlDoc.SelectSingleNode($"//versions");
+
+                    if (packageElement != null)
+                    {
+                        foreach (XmlNode versionNode in packageElement.ChildNodes)
+                        {
+                            versionList.Add(versionNode.InnerText.Trim());
+                        }
+                    }
                 }
-
-                // Parse the html file.
-                HtmlParser parser = new();
-                AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(content);
-
-                if (upstream == MavenSupportedUpstream.MavenCentralRepository)
+                else
                 {
+                    // If maven-metadata.xml file is unavailable, try using the web server directory index.
+                    baseUrl = $"{feedUrl.EnsureTrailingSlash()}{packageNamespace}/{packageName}/";
+                    content = await GetHttpStringCache(httpClient, baseUrl, useCache);
+
+                    HtmlParser parser = new();
+                    AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(content);
+
                     // Break the version content down into its individual lines. Includes the parent directory and xml + hash files.
                     IEnumerable<string> htmlEntries = document.QuerySelector("#contents").QuerySelectorAll("a").Select(a => a.TextContent);
 
@@ -272,21 +229,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                             var versionStr = htmlEntry.TrimEnd(htmlEntry[^1]);
                             Logger.Debug("Identified {0} version {1}.", packageName, versionStr);
                             versionList.Add(versionStr);
-                        }
-                    }
-                }
-                else if (upstream == MavenSupportedUpstream.GoogleMavenRepository)
-                {
-                    var packageElement = document.QuerySelector($"{packageName}");
- 
-                    if (packageElement != null)
-                    {
-                        string versions = packageElement.GetAttribute("versions");
-                        var versionsArray = versions.Split(',');
-
-                        foreach (string version in versionsArray)
-                        {
-                            versionList.Add(version.Trim());
                         }
                     }
                 }
@@ -308,31 +250,21 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public override async Task<bool> PackageVersionExistsAsync(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("PackageVersionExists {0}", purl?.ToString());
-            if (purl is null || purl.Name is null || purl.Namespace is null)
+            if (purl is null || purl.Name is null || purl.Namespace is null || purl.Version is null)
             {
                 return false;
             }
             try
             {
                 string packageName = purl.Name;
-                string feedUrl = purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT.GetRepositoryUrl();
-                MavenSupportedUpstream upstream = feedUrl.GetMavenSupportedUpstream();
+                string feedUrl = purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT;
 
                 HttpClient httpClient = CreateHttpClient();
 
-                string packageRepositoryCheckUri = string.Empty;
-                if (upstream == MavenSupportedUpstream.MavenCentralRepository)
-                {
-                    string packageNamespace = purl.Namespace.Replace('.', '/');
-                    packageRepositoryCheckUri = $"{upstream.GetRepositoryUrl().EnsureTrailingSlash()}{packageNamespace}/{packageName}/{purl.Version}/";
-                }
-                else if (upstream == MavenSupportedUpstream.GoogleMavenRepository)
-                {
-                    string packageNamespace = purl.Namespace;
-                    packageRepositoryCheckUri = $"{upstream.GetRepositoryUrl()}{packageNamespace}:{packageName}:{purl.Version}";
-                }
+                string packageNamespace = purl.Namespace.Replace('.', '/');
+                var baseUrl = $"{feedUrl.EnsureTrailingSlash()}{packageNamespace}/{packageName}/{purl.Version}/{packageName}-{purl.Version}.pom";
 
-                string? content = await GetHttpStringCache(httpClient, packageRepositoryCheckUri, useCache);
+                string? content = await GetHttpStringCache(httpClient, baseUrl, useCache);
                 if (string.IsNullOrWhiteSpace(content))
                 {
                     return false;
@@ -359,8 +291,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             {
                 string? packageName = purl?.Name;
                 string? packageNamespace = purl?.Namespace?.Replace('.', '/');
-                string feedUrl = purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT.GetRepositoryUrl();
-                MavenSupportedUpstream upstream = feedUrl.GetMavenSupportedUpstream();
+                string feedUrl = purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT;
 
                 HttpClient httpClient = CreateHttpClient();
 
@@ -381,16 +312,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     version = purl.Version;
                 }
 
-                if (upstream == MavenSupportedUpstream.MavenCentralRepository)
-                {
-                    return await GetHttpStringCache(httpClient, $"{upstream.GetRepositoryUrl().EnsureTrailingSlash()}{packageNamespace}/{packageName}/{version}/{packageName}-{version}.pom", useCache);
-                }
-                else if (upstream == MavenSupportedUpstream.GoogleMavenRepository)
-                {
-                    return await GetHttpStringCache(httpClient, $"{upstream.GetDownloadRepositoryUrl().EnsureTrailingSlash()}{packageNamespace}/{packageName}/{version}/{packageName}-{version}.pom", useCache);
-                }
-
-                throw new Exception($"Unable to obtain metadata for {purl}.");
+                var baseUrl = $"{feedUrl.EnsureTrailingSlash()}{packageNamespace}/{packageName}/{purl.Version}/{packageName}-{purl.Version}.pom";
+                return await GetHttpStringCache(httpClient, baseUrl, useCache);
             }
             catch (Exception ex)
             {
@@ -407,7 +330,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             PackageMetadata metadata = new();
             metadata.Name = purl.GetFullName();
             metadata.PackageVersion = purl?.Version;
-            metadata.PackageManagerUri = (purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT.GetRepositoryUrl()).EnsureTrailingSlash();
+            metadata.PackageManagerUri = (purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT).EnsureTrailingSlash();
             metadata.Platform = "Maven";
             metadata.Language = "Java";
 
@@ -419,49 +342,38 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public override Uri? GetPackageAbsoluteUri(PackageURL purl)
         {
             string? packageName = purl?.Name;
-            string feedUrl = purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT.GetRepositoryUrl();
-            MavenSupportedUpstream upstream = feedUrl.GetMavenSupportedUpstream();
+            string feedUrl = purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT;
 
-            if (upstream == MavenSupportedUpstream.MavenCentralRepository)
+            if (feedUrl == DEFAULT_MAVEN_ENDPOINT)
             {
                 string? packageNamespace = purl?.Namespace?.Replace('.', '/');
-                return new Uri($"{upstream.GetRepositoryUrl().EnsureTrailingSlash()}{packageNamespace}/{packageName}");
+                return new Uri($"{feedUrl.EnsureTrailingSlash()}{packageNamespace}/{packageName}");
             }
-            else if (upstream == MavenSupportedUpstream.GoogleMavenRepository)
+            else if (feedUrl == GOOGLE_MAVEN_ENDPOINT)
             {
                 string packageNamespace = purl.Namespace;
-                return new Uri($"{upstream.GetRepositoryUrl()}{packageNamespace}/{packageName}");
+                return new Uri($"{feedUrl.EnsureTrailingSlash()}web/index.html#{packageNamespace}/{packageName}");
             }
 
             Logger.Warn($"Unable to get package absolute URI for {purl}.");
             return null;
         }
 
-        public enum MavenArtifactType
-        {
-            Unknown = 0,
-            Jar,
-            JavadocJar,
-            Pom,
-            SourcesJar,
-            TestsJar,
-            TestSourcesJar,
-            Aar,
-        }
-
         private static MavenArtifactType GetMavenArtifactType(string fileName)
         {
-            switch (fileName)
+            if (string.IsNullOrEmpty(fileName))
             {
-                case string _ when fileName.EndsWith("-tests-sources.jar"): return MavenArtifactType.TestSourcesJar;
-                case string _ when fileName.EndsWith("-tests.jar"): return MavenArtifactType.TestsJar;
-                case string _ when fileName.EndsWith("-sources.jar"): return MavenArtifactType.SourcesJar;
-                case string _ when fileName.EndsWith(".pom"): return MavenArtifactType.Pom;
-                case string _ when fileName.EndsWith("-javadoc.jar"): return MavenArtifactType.JavadocJar;
-                case string _ when fileName.EndsWith(".jar"): return MavenArtifactType.Jar;
-                case string _ when fileName.EndsWith(".aar"): return MavenArtifactType.Aar;
-                default: return MavenArtifactType.Unknown;
+                return MavenArtifactType.Unknown;
             }
+
+            foreach (MavenArtifactType artifactType in Enum.GetValues<MavenArtifactType>())
+            {
+                if (fileName.EndsWith(artifactType.GetTypeNameExtension()))
+                {
+                    return artifactType;
+                }
+            }
+            return MavenArtifactType.Unknown;
         }
 
         public async Task<DateTime?> GetPackagePublishDateAsync(PackageURL purl, bool useCache = true)
@@ -469,21 +381,21 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             string? packageName = Check.NotNull(nameof(purl.Name), purl?.Name);
             string? packageNamespace = Check.NotNull(nameof(purl.Namespace), purl?.Namespace).Replace('.', '/');
             string? packageVersion = Check.NotNull(nameof(purl.Version), purl?.Version);
-            string feedUrl = purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT.GetRepositoryUrl();
-            MavenSupportedUpstream upstream = feedUrl.GetMavenSupportedUpstream();
+            string feedUrl = purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT;
 
             HttpClient httpClient = CreateHttpClient();
+            var baseUrl = $"{feedUrl.EnsureTrailingSlash()}{packageNamespace}/{packageName}/";
+            string? html = string.Empty;
 
-            if (upstream == MavenSupportedUpstream.MavenCentralRepository)
+            try
             {
-                var baseUrl = $"{upstream.GetRepositoryUrl().EnsureTrailingSlash()}{packageNamespace}/{packageName}/";
+                html = await GetHttpStringCache(httpClient, baseUrl, useCache);
+            }
+            catch (HttpRequestException) { }
 
-                string? html = await GetHttpStringCache(httpClient, baseUrl, useCache);
-                if (string.IsNullOrEmpty(html))
-                {
-                    throw new InvalidOperationException();
-                }
-
+            // Retrieve publish date via web server directory indices if available.
+            if (!string.IsNullOrEmpty(html))
+            {
                 HtmlParser parser = new();
                 AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(html);
 
@@ -501,28 +413,112 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 // Split the version content into its individual parts.
                 // [0] - The version
                 // [1] - The date it was published
-                // [2] - The time it waas published
-                // [3] - The download count
+                // [2] - The time it was published
+                // [3] - The file size in bytes
                 string[] versionParts = versionContent.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                 if (DateTime.TryParse($"{versionParts[1]} {versionParts[2]}", out DateTime publishDateTime))
                 {
                     return publishDateTime;
                 }
             }
-            else if (upstream == MavenSupportedUpstream.GoogleMavenRepository)
-            {
-                var baseUrl = $"{upstream.GetDownloadRepositoryUrl().EnsureTrailingSlash()}{packageNamespace}/{packageName}/{packageVersion}/{packageName}-{packageVersion}.pom";
-                HttpResponseMessage response = await httpClient.GetAsync(baseUrl);
 
-                // Try to get the "Last-Modified" header
-                if (response.Content.Headers.TryGetValues("Last-Modified", out var values))
-                {
-                    var lastModified = DateTime.Parse(values.First());
-                    return lastModified;
-                }
+            // If the directory index approach does not work, try to get the "Last-Modified" header from the .pom file.
+            baseUrl = $"{feedUrl.EnsureTrailingSlash()}{packageNamespace}/{packageName}/{packageVersion}/{packageName}-{packageVersion}.pom";
+            HttpResponseMessage response = await httpClient.GetAsync(baseUrl);
+
+            if (response.Content.Headers.TryGetValues("Last-Modified", out var values))
+            {
+                var lastModified = DateTime.Parse(values.First());
+                return lastModified;
             }
 
             return null;
+        }
+
+        private async IAsyncEnumerable<string> GetArtifactDownloadUris_DirectoryIndexStrategyAsync(string baseUrl, bool useCache = true)
+        {
+            HttpClient httpClient = CreateHttpClient();
+            var fileNameList = new List<string>();
+
+            try
+            {
+                string? html = await GetHttpStringCache(httpClient, baseUrl, useCache);
+                if (string.IsNullOrEmpty(html))
+                {
+                    throw new InvalidOperationException();
+                }
+
+                HtmlParser parser = new();
+                AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(html);
+
+                foreach (string fileName in document.QuerySelectorAll("a").Select(link => link.GetAttribute("href").ToString()))
+                {
+                    if (fileName == "../") continue;
+                    fileNameList.Add(baseUrl + fileName);
+                }
+            }
+            catch {}
+
+            foreach (var file in fileNameList)
+            {
+                yield return file;
+            }
+        }
+
+        private async IAsyncEnumerable<string> GetArtifactDownloadUris_ArtifactMetadataStrategyAsync(string baseUrl, bool useCache = true)
+        {
+            HttpClient httpClient = CreateHttpClient();
+            var fileNameList = new List<string>();
+
+            try
+            {
+                string? artifactMetadata = await GetHttpStringCache(httpClient, $"{baseUrl}artifact-metadata.json", useCache);
+
+                // add all artifacts from the artifact-metadata.json
+                JObject jsonObject = JObject.Parse(artifactMetadata);
+                JArray artifactsArray = (JArray)jsonObject["artifacts"];
+
+                foreach (JObject artifact in artifactsArray)
+                {
+                    string fileName = artifact["name"].ToString();
+                    fileNameList.Add(baseUrl + fileName);
+                }
+            }
+            catch {}
+
+            foreach (var file in fileNameList)
+            {
+                yield return file;
+            }
+        }
+
+        private async IAsyncEnumerable<string> GetArtifactDownloadUris_FileProbeStrategyAsync(string baseUrl, PackageURL purl, bool useCache = true)
+        {
+            HttpClient httpClient = CreateHttpClient();
+            var fileNamesList = new List<string>();
+
+            foreach (MavenArtifactType artifactType in Enum.GetValues<MavenArtifactType>())
+            {
+                if (artifactType != MavenArtifactType.Unknown)
+                {
+                    try
+                    {
+                        var extension = artifactType.GetTypeNameExtension();
+                        var fileName = $"{baseUrl}{extension}";
+                        string? artifactMetadata = await GetHttpStringCache(httpClient, fileName, useCache);
+                        fileNamesList.Add(fileName);
+                    }
+                    catch (HttpRequestException)
+                    {
+                        // file type does not exist
+                    }
+                }
+            }
+
+            foreach (string fileName in fileNamesList)
+            {
+                yield return fileName;
+            }
         }
     }
 }

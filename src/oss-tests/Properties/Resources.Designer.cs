@@ -368,38 +368,46 @@ namespace oss {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;
-        ///&lt;html lang=&quot;en&quot;&gt;
-        ///
-        ///&lt;head&gt;
-        ///    &lt;script nonce=&quot;8DQ1A3FbR-RCf6afH0_tuQ&quot;&gt;
-        ///        if (window.location.search.substring(1) !== &quot;full=true&quot;) { // do not redirect if querystring is ?full=true
-        ///            if (navigator.userAgent.match(/i(Phone|Pad)|Android|Blackberry|WebOs/i)) { // detect mobile browser
-        ///                window.location.replace(&quot;m_index.html&quot;); // redirect if mobile browser detected
-        ///            }
-        ///        }
-        ///    &lt;/script&gt;
-        ///
-        ///    &lt;title&gt;Google&apos;s Maven Repository&lt;/title&gt;
-        ///    &lt;meta charset=&quot;u [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to PK
+        ///   [ÂJ           	   META-INF/ PK
+        ///   [ÂJ²î         META-INF/MANIFEST.MFóMÌËLK-.Ñ
+        ///K-*ÎÌÏ³R0Ô3àåâå PK
+        ///   AÂJ              android/ PK
+        ///   AÂJ           
+        ///   android/arch/ PK
+        ///   AÂJ              android/arch/core/ PK
+        ///   AÂJ              android/arch/core/executor/ PK
+        ///   AÂJÜI¹†.     3   android/arch/core/executor/DefaultTaskExecutor.java•UßOÛ0~Ï_qâ)EÌa¼LB¢Ð²EëÔ”!ž&amp;×¹¶†ÔÎl§¥›øßwNÒ6´_jÇ÷ãû¾»s£Ã áRk#gs áe NŽ?~‚ñ¡«2£eI
+        ///R]pmô=
+        ///G^Þq *‹”*CÎ;\ÐOs [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string maven_core_all_html {
+        internal static string maven_core_1_0_0_alpha2_sources_jar {
             get {
-                return ResourceManager.GetString("maven_core_all_html", resourceCulture);
+                return ResourceManager.GetString("maven_core_1.0.0_alpha2_sources_jar", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;?xml version=&apos;1.0&apos; encoding=&apos;UTF-8&apos; ?&gt;
-        ///&lt;android.arch.core&gt;
-        ///    &lt;core-testing versions=&quot;1.0.0-alpha1,1.0.0-alpha2,1.0.0-alpha3,1.0.0-alpha4,1.0.0-alpha5,1.0.0-alpha6,1.0.0-alpha7,1.0.0-alpha8,1.0.0-alpha9,1.0.0-alpha9-1,1.0.0-beta1,1.0.0-beta2,1.0.0-rc1,1.0.0,1.1.0,1.1.1&quot; /&gt;
-        ///    &lt;core versions=&quot;1.0.0-alpha1,1.0.0-alpha2,1.0.0-alpha3&quot; /&gt;
-        ///    &lt;runtime versions=&quot;1.0.0-alpha4,1.0.0-alpha5,1.0.0-alpha6,1.0.0-alpha7,1.0.0-alpha8,1.0.0-alpha9,1.0.0-alpha9-1,1.0.0-beta1,1.0.0-beta2,1.0.0-rc1,1.0.0,1.1.0,1.1.1&quot; /&gt;
-        ///  [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to &lt;?xml version=&apos;1.0&apos; encoding=&apos;UTF-8&apos;?&gt;
+        ///&lt;metadata&gt;
+        ///	&lt;groupId&gt;android.arch.core&lt;/groupId&gt;
+        ///	&lt;artifactId&gt;core&lt;/artifactId&gt;
+        ///	&lt;versioning&gt;
+        ///		&lt;latest&gt;1.0.0-alpha3&lt;/latest&gt;
+        ///		&lt;release&gt;1.0.0-alpha3&lt;/release&gt;
+        ///		&lt;versions&gt;
+        ///			&lt;version&gt;1.0.0-alpha1&lt;/version&gt;
+        ///			&lt;version&gt;1.0.0-alpha2&lt;/version&gt;
+        ///			&lt;version&gt;1.0.0-alpha3&lt;/version&gt;
+        ///		&lt;/versions&gt;
+        ///		&lt;lastUpdated&gt;20170615113008&lt;/lastUpdated&gt;
+        ///	&lt;/versioning&gt;
+        ///&lt;/metadata&gt;
+        ///.
         /// </summary>
-        internal static string maven_core_all_xml {
+        internal static string maven_core_metadata_xml {
             get {
-                return ResourceManager.GetString("maven_core_all_xml", resourceCulture);
+                return ResourceManager.GetString("maven_core_metadata_xml", resourceCulture);
             }
         }
         
@@ -428,27 +436,6 @@ namespace oss {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;
-        ///&lt;html lang=&quot;en&quot;&gt;
-        ///
-        ///&lt;head&gt;
-        ///    &lt;script nonce=&quot;8DQ1A3FbR-RCf6afH0_tuQ&quot;&gt;if (window.location.search.substring(1) !== &quot;full=true&quot;) { // do not redirect if querystring is ?full=true
-        ///      if (navigator.userAgent.match(/i(Phone|Pad)|Android|Blackberry|WebOs/i)) { // detect mobile browser
-        ///        window.location.replace(&quot;m_index.html&quot;); // redirect if mobile browser detected
-        ///      }
-        ///    }&lt;/script&gt;
-        ///
-        ///    &lt;title&gt;Google&apos;s Maven Repository&lt;/title&gt;
-        ///    &lt;meta charset=&quot;utf-8&quot;&gt;
-        ///    &lt;meta name=&quot;viewport&quot; conte [rest of string was truncated]&quot;;.
-        /// </summary>
-        internal static string maven_cose_20230908_html {
-            get {
-                return ResourceManager.GetString("maven_cose_20230908_html", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to PK   ,·(W
         ///[ÝÀP   Q      META-INF/MANIFEST.MFóMÌËLK-.Ñ
         ///K-*ÎÌÏ³R0Ô3àår.JM,IMÑuª´RðM,KÍSðJ,RÈ)MÏÌS0Ö3©q*ÍÌIÑõJÉÖ
@@ -467,6 +454,15 @@ namespace oss {
         internal static string maven_cose_20230908_jar {
             get {
                 return ResourceManager.GetString("maven_cose_20230908_jar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PK   ,·(W*j€q\   c      META-INF/MANIFEST.MFóMÌËLK-.Ñ        ///K-*ÎÌÏ³R0Ô3àår.JM,IMÑuª´Rp,HLÎHUðM,KÍS0Ö³Ð3çår*ÍÌ)Ë–ef%æ¦&apos;–ADSt½R²¦ Ñ3´äåâå PK        ///    ,·(W            	   META-INF/PK        ///    ,·(W                    ///   resources/PK        ///    ,·(W               com/PK        ///    ,·(W               com/google/PK        ///    ,·(W               com/google/cose/PK        ///    ,·(W               com/google/cose/utils/PK        ///    ,·(W                com/google/cose/utils/class-use/PK        ///    ,·(W               com/google/cose/class-use/ [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string maven_cose_20230908_javadoc_jar {
+            get {
+                return ResourceManager.GetString("maven_cose_20230908_javadoc_jar", resourceCulture);
             }
         }
         
@@ -493,37 +489,47 @@ namespace oss {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;
-        ///&lt;html lang=&quot;en&quot;&gt;
-        ///
-        ///&lt;head&gt;
-        ///    &lt;script nonce=&quot;8DQ1A3FbR-RCf6afH0_tuQ&quot;&gt;
-        ///        if (window.location.search.substring(1) !== &quot;full=true&quot;) { // do not redirect if querystring is ?full=true
-        ///            if (navigator.userAgent.match(/i(Phone|Pad)|Android|Blackberry|WebOs/i)) { // detect mobile browser
-        ///                window.location.replace(&quot;m_index.html&quot;); // redirect if mobile browser detected
-        ///            }
-        ///        }
-        ///    &lt;/script&gt;
-        ///
-        ///    &lt;title&gt;Google&apos;s Maven Repository&lt;/title&gt;
-        ///    &lt;meta charset=&quot;u [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to &lt;?xml version=&apos;1.0&apos; encoding=&apos;UTF-8&apos;?&gt;
+        ///&lt;metadata&gt;
+        ///	&lt;groupId&gt;com.google.cose&lt;/groupId&gt;
+        ///	&lt;artifactId&gt;cose&lt;/artifactId&gt;
+        ///	&lt;versioning&gt;
+        ///		&lt;latest&gt;20230908&lt;/latest&gt;
+        ///		&lt;release&gt;20230908&lt;/release&gt;
+        ///		&lt;versions&gt;
+        ///			&lt;version&gt;20230908&lt;/version&gt;
+        ///		&lt;/versions&gt;
+        ///		&lt;lastUpdated&gt;20230908231136&lt;/lastUpdated&gt;
+        ///	&lt;/versioning&gt;
+        ///&lt;/metadata&gt;
+        ///.
         /// </summary>
-        internal static string maven_cose_all_html {
+        internal static string maven_cose_metadata_xml {
             get {
-                return ResourceManager.GetString("maven_cose_all_html", resourceCulture);
+                return ResourceManager.GetString("maven_cose_metadata_xml", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;?xml version=&apos;1.0&apos; encoding=&apos;UTF-8&apos;?&gt;
-        ///&lt;com.google.cose&gt;
-        ///	&lt;cose versions=&quot;20230908&quot;/&gt;
-        ///&lt;/com.google.cose&gt;
-        ///.
+        ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;
+        ///&lt;!-- saved from url=(0078)https://repo1.maven.org/maven2/com/microsoft/fluentui/fluentui_listitem/0.0.8/ --&gt;
+        ///&lt;html&gt;&lt;head&gt;&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=windows-1252&quot;&gt;
+        ///	&lt;title&gt;Central Repository: com/microsoft/fluentui/fluentui_listitem/0.0.8&lt;/title&gt;
+        ///	&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+        ///	&lt;style&gt;
+        ///body {
+        ///	background: #fff;
+        ///}
+        ///	&lt;/style&gt;
+        ///&lt;/head&gt;
+        ///
+        ///&lt;body&gt;
+        ///	&lt;header&gt;
+        ///		&lt;h1&gt;com/microsoft/fluentui/fluentui_listitem/0.0.8&lt;/h1&gt;        /// [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string maven_cose_all_xml {
+        internal static string maven_fluentui_listitem_0_0_8_html {
             get {
-                return ResourceManager.GetString("maven_cose_all_xml", resourceCulture);
+                return ResourceManager.GetString("maven_fluentui_listitem_0.0.8_html", resourceCulture);
             }
         }
         
@@ -546,29 +552,6 @@ namespace oss {
         
         /// <summary>
         ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;
-        ///&lt;!-- saved from url=(0078)https://repo1.maven.org/maven2/com/microsoft/fluentui/fluentui_listitem/0.0.8/ --&gt;
-        ///&lt;html&gt;&lt;head&gt;&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=windows-1252&quot;&gt;
-        ///	&lt;title&gt;Central Repository: com/microsoft/fluentui/fluentui_listitem/0.0.8&lt;/title&gt;
-        ///	&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
-        ///	&lt;style&gt;
-        ///body {
-        ///	background: #fff;
-        ///}
-        ///	&lt;/style&gt;
-        ///&lt;/head&gt;
-        ///
-        ///&lt;body&gt;
-        ///	&lt;header&gt;
-        ///		&lt;h1&gt;com/microsoft/fluentui/fluentui_listitem/0.0.8&lt;/h1&gt;        /// [rest of string was truncated]&quot;;.
-        /// </summary>
-        internal static string maven_microsoft_fluentui_listitem_0_0_8_html {
-            get {
-                return ResourceManager.GetString("maven_microsoft_fluentui_listitem_0.0.8_html", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;
         ///&lt;!-- saved from url=(0072)https://repo1.maven.org/maven2/com/microsoft/fluentui/fluentui_listitem/ --&gt;
         ///&lt;html&gt;&lt;head&gt;&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=windows-1252&quot;&gt;
         ///	&lt;title&gt;Central Repository: com/microsoft/fluentui/fluentui_listitem&lt;/title&gt;
@@ -586,35 +569,36 @@ namespace oss {
         ///	&lt;/header&gt;
         ///	&lt;hr&gt; [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string maven_microsoft_fluentui_listitem_all_html {
+        internal static string maven_fluentui_listitem_all_html {
             get {
-                return ResourceManager.GetString("maven_microsoft_fluentui_listitem_all_html", resourceCulture);
+                return ResourceManager.GetString("maven_fluentui_listitem_all_html", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-        ///&lt;metadata&gt;
-        ///  &lt;groupId&gt;com.microsoft.fluentui&lt;/groupId&gt;
-        ///  &lt;artifactId&gt;fluentui_listitem&lt;/artifactId&gt;
-        ///  &lt;versioning&gt;
-        ///    &lt;latest&gt;0.1.6&lt;/latest&gt;
-        ///    &lt;release&gt;0.1.6&lt;/release&gt;
-        ///    &lt;versions&gt;
-        ///      &lt;version&gt;0.0.24&lt;/version&gt;
-        ///      &lt;version&gt;0.1.0&lt;/version&gt;
-        ///      &lt;version&gt;0.1.1&lt;/version&gt;
-        ///      &lt;version&gt;0.1.2&lt;/version&gt;
-        ///      &lt;version&gt;0.1.3&lt;/version&gt;
-        ///      &lt;version&gt;0.1.4&lt;/version&gt;
-        ///      &lt;version&gt;0.1.5&lt;/version&gt;
-        ///      &lt;version&gt;0.1.6&lt;/version&gt;
-        ///    &lt;/versions&gt;
-        ///    &lt; [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to &lt;metadata&gt;
+        ///	&lt;groupId&gt;com.microsoft.fluentui&lt;/groupId&gt;
+        ///	&lt;artifactId&gt;fluentui_listitem&lt;/artifactId&gt;
+        ///	&lt;versioning&gt;
+        ///		&lt;latest&gt;0.3.4&lt;/latest&gt;
+        ///		&lt;release&gt;0.3.4&lt;/release&gt;
+        ///		&lt;versions&gt;
+        ///			&lt;version&gt;0.0.24&lt;/version&gt;
+        ///			&lt;version&gt;0.1.0&lt;/version&gt;
+        ///			&lt;version&gt;0.1.1&lt;/version&gt;
+        ///			&lt;version&gt;0.1.2&lt;/version&gt;
+        ///			&lt;version&gt;0.1.3&lt;/version&gt;
+        ///			&lt;version&gt;0.1.4&lt;/version&gt;
+        ///			&lt;version&gt;0.1.5&lt;/version&gt;
+        ///			&lt;version&gt;0.1.6&lt;/version&gt;
+        ///			&lt;version&gt;0.1.7&lt;/version&gt;
+        ///			&lt;version&gt;0.1.8&lt;/version&gt;
+        ///			&lt;version&gt;0.1.9&lt;/version&gt;
+        ///			&lt;vers [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string maven_microsoft_fluentui_listitem_metadata_xml {
+        internal static string maven_fluentui_listitem_metadata_xml {
             get {
-                return ResourceManager.GetString("maven_microsoft_fluentui_listitem_metadata_xml", resourceCulture);
+                return ResourceManager.GetString("maven_fluentui_listitem_metadata_xml", resourceCulture);
             }
         }
         

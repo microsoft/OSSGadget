@@ -52,26 +52,20 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             string feedUrl = purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT;
 
             var baseUrl = $"{feedUrl.EnsureTrailingSlash()}{packageNamespace}/{packageName}/{packageVersion}/";
-            var fileNamesList = new List<string>();
+            List<string>? fileNamesList = null;
 
             // Most Maven repositories have web server directory indices (but not Google Maven).
             // First attempt to obtain artifact download URIs via the index.
             if (feedUrl != GOOGLE_MAVEN_ENDPOINT)
             {
-                fileNamesList = await GetArtifactDownloadUris_DirectoryIndexStrategyAsync(baseUrl, useCache).ToListAsync();
+                fileNamesList = await GetArtifactDownloadUris_DirectoryIndexStrategyAsync(baseUrl, purl, useCache);
             }
-            if (!fileNamesList.Any())
-            {
-                // Attempt to retrieve the artifact-metadata.json file (only new versions have one).
-                fileNamesList = await GetArtifactDownloadUris_ArtifactMetadataStrategyAsync(baseUrl, useCache).ToListAsync();
 
-                // Resort to manual file probe.
-                if (!fileNamesList.Any())
-                {
-                    baseUrl += $"{purl.Name}-{purl.Version}";
-                    fileNamesList = await GetArtifactDownloadUris_FileProbeStrategyAsync(baseUrl, purl, useCache).ToListAsync();
-                }
-            }
+            // Attempt to retrieve the artifact-metadata.json file (only new versions have one).
+            fileNamesList ??= await GetArtifactDownloadUris_ArtifactMetadataStrategyAsync(baseUrl, purl, useCache);
+
+            // Resort to manual file probe.
+            fileNamesList ??= await GetArtifactDownloadUris_FileProbeStrategyAsync($"{baseUrl}{purl.Name}-{purl.Version}", purl, useCache);
 
             foreach (string fileName in fileNamesList)
             {
@@ -183,56 +177,17 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
                 HttpClient httpClient = CreateHttpClient();
 
-                var baseUrl = $"{feedUrl.EnsureTrailingSlash()}{packageNamespace}/{packageName}/maven-metadata.xml";
+                var baseUrl = $"{feedUrl.EnsureTrailingSlash()}{packageNamespace}/{packageName}";
 
-                string? content = string.Empty;
-                try
-                {
-                    content = await GetHttpStringCache(httpClient, baseUrl, useCache);
-                }
-                catch {}
+                List<string>? versionsList = null;
 
-                List<string> versionList = new();
-                if (!string.IsNullOrWhiteSpace(content))
-                {
-                    // Parse the maven-metadata.xml file for the versions.
-                    XmlDocument xmlDoc = new XmlDocument();
-                    xmlDoc.LoadXml(content);
+                // First try retrieving versions from the maven-metadata.xml.
+                versionsList = await GetVersionsList_MavenMetadataStrategyAsync($"{baseUrl}/maven-metadata.xml", purl, useCache);
 
-                    var packageElement = xmlDoc.SelectSingleNode($"//versions");
+                // If maven-metadata.xml file is unavailable, try using the web server directory index.
+                versionsList ??= await GetVersionsList_DirectoryIndexStrategyAsync(baseUrl, purl, useCache);
 
-                    if (packageElement != null)
-                    {
-                        foreach (XmlNode versionNode in packageElement.ChildNodes)
-                        {
-                            versionList.Add(versionNode.InnerText.Trim());
-                        }
-                    }
-                }
-                else
-                {
-                    // If maven-metadata.xml file is unavailable, try using the web server directory index.
-                    baseUrl = $"{feedUrl.EnsureTrailingSlash()}{packageNamespace}/{packageName}/";
-                    content = await GetHttpStringCache(httpClient, baseUrl, useCache);
-
-                    HtmlParser parser = new();
-                    AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(content);
-
-                    // Break the version content down into its individual lines. Includes the parent directory and xml + hash files.
-                    IEnumerable<string> htmlEntries = document.QuerySelector("#contents").QuerySelectorAll("a").Select(a => a.TextContent);
-
-                    foreach (string htmlEntry in htmlEntries)
-                    {
-                        // Get the version.
-                        if (htmlEntry.EndsWith('/') && !htmlEntry.Equals("../"))
-                        {
-                            var versionStr = htmlEntry.TrimEnd(htmlEntry[^1]);
-                            Logger.Debug("Identified {0} version {1}.", packageName, versionStr);
-                            versionList.Add(versionStr);
-                        }
-                    }
-                }
-                return SortVersions(versionList.Distinct());
+                return SortVersions(versionsList != null ? versionsList.Distinct() : new List<string>());
             }
             catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
             {
@@ -415,8 +370,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return null;
         }
 
-        private async IAsyncEnumerable<string> GetArtifactDownloadUris_DirectoryIndexStrategyAsync(string baseUrl, bool useCache = true)
+        private async Task<List<string>>? GetArtifactDownloadUris_DirectoryIndexStrategyAsync(string baseUrl, PackageURL purl, bool useCache = true)
         {
+            Logger.Trace($"Trying to retrieve artifact download URis for {purl} via directory index strategy.");
+
             HttpClient httpClient = CreateHttpClient();
             var fileNameList = new List<string>();
 
@@ -425,7 +382,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 string? html = await GetHttpStringCache(httpClient, baseUrl, useCache);
                 if (string.IsNullOrEmpty(html))
                 {
-                    throw new InvalidOperationException();
+                    return null;
                 }
 
                 HtmlParser parser = new();
@@ -437,16 +394,19 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     fileNameList.Add(baseUrl + fileName);
                 }
             }
-            catch {}
-
-            foreach (var file in fileNameList)
+            catch (Exception e)
             {
-                yield return file;
+                Logger.Trace($"Directory index strategy for {purl} was unsuccessful: {e.Message}");
+                return null;
             }
+
+            return fileNameList;
         }
 
-        private async IAsyncEnumerable<string> GetArtifactDownloadUris_ArtifactMetadataStrategyAsync(string baseUrl, bool useCache = true)
+        private async Task<List<string>>? GetArtifactDownloadUris_ArtifactMetadataStrategyAsync(string baseUrl, PackageURL purl, bool useCache = true)
         {
+            Logger.Trace($"Trying to retrieve artifact download URis for {purl} via artifact metadata strategy.");
+
             HttpClient httpClient = CreateHttpClient();
             var fileNameList = new List<string>();
 
@@ -464,16 +424,19 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     fileNameList.Add(baseUrl + fileName);
                 }
             }
-            catch {}
-
-            foreach (var file in fileNameList)
+            catch (Exception e)
             {
-                yield return file;
+                Logger.Trace($"Artifact metadata strategy for {purl} was unsuccessful: {e.Message}");
+                return null;
             }
+
+            return fileNameList;
         }
 
-        private async IAsyncEnumerable<string> GetArtifactDownloadUris_FileProbeStrategyAsync(string baseUrl, PackageURL purl, bool useCache = true)
+        private async Task<List<string>>? GetArtifactDownloadUris_FileProbeStrategyAsync(string baseUrl, PackageURL purl, bool useCache = true)
         {
+            Logger.Trace($"Trying to retrieve artifact download URis for {purl} via file probe strategy.");
+
             HttpClient httpClient = CreateHttpClient();
             var fileNamesList = new List<string>();
 
@@ -488,16 +451,99 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                         string? artifactMetadata = await GetHttpStringCache(httpClient, fileName, useCache);
                         fileNamesList.Add(fileName);
                     }
-                    catch (HttpRequestException)
+                    catch (HttpRequestException e) when (e.StatusCode == System.Net.HttpStatusCode.NotFound)
                     {
                         // file type does not exist
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Trace($"Unexpected error during file probe strategy for {purl}: {e.Message}");
                     }
                 }
             }
 
-            foreach (string fileName in fileNamesList)
+            return fileNamesList;
+        }
+
+        private async Task<List<string>>? GetVersionsList_MavenMetadataStrategyAsync(string baseUrl, PackageURL purl, bool useCache)
+        {
+            Logger.Trace($"Trying to retrieve versions list for {purl} via maven-metadata.xml strategy.");
+
+            HttpClient httpClient = CreateHttpClient();
+            var versionsList = new List<string>();
+
+            try
             {
-                yield return fileName;
+                string? content = await GetHttpStringCache(httpClient, baseUrl, useCache);
+
+                if (string.IsNullOrWhiteSpace(content))
+                {
+                    return null;
+                }
+
+                // Parse the maven-metadata.xml file for the versions.
+                XmlDocument xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(content);
+
+                var packageElement = xmlDoc.SelectSingleNode($"//versions");
+
+                if (packageElement != null)
+                {
+                    foreach (XmlNode versionNode in packageElement.ChildNodes)
+                    {
+                        versionsList.Add(versionNode.InnerText.Trim());
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+
+                Logger.Trace($"Maven-metadata strategy for {purl} versioning was unsuccessful: {e.Message}");
+                return null;
+            }
+
+            return versionsList;
+        }
+
+        private async Task<List<string>>? GetVersionsList_DirectoryIndexStrategyAsync(string baseUrl, PackageURL purl, bool useCache)
+        {
+            Logger.Trace($"Trying to retrieve versions list for {purl} via directory index strategy.");
+
+            HttpClient httpClient = CreateHttpClient();
+            var versionsList = new List<string>();
+
+            try
+            {
+                string? content = await GetHttpStringCache(httpClient, baseUrl, useCache);
+
+                if (string.IsNullOrWhiteSpace(content))
+                {
+                    return null;
+                }
+
+                HtmlParser parser = new();
+                AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(content);
+
+                // Break the version content down into its individual lines. Includes the parent directory and xml + hash files.
+                IEnumerable<string> htmlEntries = document.QuerySelector("#contents").QuerySelectorAll("a").Select(a => a.TextContent);
+
+                foreach (string htmlEntry in htmlEntries)
+                {
+                    // Get the version.
+                    if (htmlEntry.EndsWith('/') && !htmlEntry.Equals("../"))
+                    {
+                        var versionStr = htmlEntry.TrimEnd(htmlEntry[^1]);
+                        Logger.Debug("Identified {0} version {1}.", purl.Name, versionStr);
+                        versionsList.Add(versionStr);
+                    }
+                }
+
+                return versionsList;
+            }
+            catch (Exception e)
+            {
+                Logger.Trace($"Directory index strategy for {purl} versioning was unsuccessful: {e.Message}");
+                return null;
             }
         }
     }

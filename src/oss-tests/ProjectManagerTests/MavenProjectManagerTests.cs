@@ -80,38 +80,45 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 
         [DataTestMethod]
         [DataRow("pkg:maven/ant/ant@1.6?repository_url=https://repo1.maven.org/maven2", "https://repo1.maven.org/maven2/ant/ant/1.6/")]
-        [DataRow("pkg:maven/android.arch.core/core@1.0.0-alpha2?repository_url=https://maven.google.com", "https://maven.google.com/android/arch/core/core/1.0.0-alpha2/")]
-        [DataRow("pkg:maven/com.google.cose/cose@20230908?repository_url=https://maven.google.com", "https://maven.google.com/com/google/cose/cose/20230908/")]
-        public async Task GetArtifactDownloadUrisSucceeds_Async(string purlString, string expectedUriPrefix)
+        public async Task MavenCentral_GetArtifactDownloadUrisSucceeds_Async(string purlString, string expectedUriPrefix)
         {
             PackageURL purl = new(purlString);
             List<ArtifactUri<MavenArtifactType>> uris = await _projectManager.Object.GetArtifactDownloadUrisAsync(purl).ToListAsync();
 
-            if (purl?.Qualifiers?["repository_url"] == DEFAULT_MAVEN_ENDPOINT)
-            {
-                Assert.IsNotNull(uris.SingleOrDefault(artifact => artifact.Type == MavenArtifactType.Jar
+            Assert.IsNotNull(uris.SingleOrDefault(artifact => artifact.Type == MavenArtifactType.Jar
+            && artifact.Uri == new System.Uri(expectedUriPrefix + $"{purl.Name}-{purl.Version}.jar")));
+            Assert.IsNotNull(uris.SingleOrDefault(artifact => artifact.Type == MavenArtifactType.SourcesJar
+                && artifact.Uri == new System.Uri(expectedUriPrefix + $"{purl.Name}-{purl.Version}-sources.jar")));
+            Assert.IsNotNull(uris.SingleOrDefault(artifact => artifact.Type == MavenArtifactType.Pom
+                && artifact.Uri == new System.Uri(expectedUriPrefix + $"{purl.Name}-{purl.Version}.pom")));
+        }
+
+        [DataTestMethod]
+        [DataRow("pkg:maven/android.arch.core/core@1.0.0-alpha2?repository_url=https://maven.google.com", "https://maven.google.com/android/arch/core/core/1.0.0-alpha2/")]
+        public async Task GoogleMaven_Core_GetArtifactDownloadUrisSucceeds_Async(string purlString, string expectedUriPrefix)
+        {
+            PackageURL purl = new(purlString);
+            List<ArtifactUri<MavenArtifactType>> uris = await _projectManager.Object.GetArtifactDownloadUrisAsync(purl).ToListAsync();
+
+            Assert.IsNotNull(uris.SingleOrDefault(artifact => artifact.Type == MavenArtifactType.Pom
+                && artifact.Uri == new System.Uri(expectedUriPrefix + $"{purl.Name}-{purl.Version}.pom")));
+            Assert.IsNotNull(uris.SingleOrDefault(artifact => artifact.Type == MavenArtifactType.Aar
+                && artifact.Uri == new System.Uri(expectedUriPrefix + $"{purl.Name}-{purl.Version}.aar")));
+        }
+
+        [DataTestMethod]
+        [DataRow("pkg:maven/com.google.cose/cose@20230908?repository_url=https://maven.google.com", "https://maven.google.com/com/google/cose/cose/20230908/")]
+        public async Task GoogleMaven_Cose_GetArtifactDownloadUrisSucceeds_Async(string purlString, string expectedUriPrefix)
+        {
+            PackageURL purl = new(purlString);
+            List<ArtifactUri<MavenArtifactType>> uris = await _projectManager.Object.GetArtifactDownloadUrisAsync(purl).ToListAsync();
+
+            Assert.IsNotNull(uris.SingleOrDefault(artifact => artifact.Type == MavenArtifactType.Jar
                 && artifact.Uri == new System.Uri(expectedUriPrefix + $"{purl.Name}-{purl.Version}.jar")));
-                Assert.IsNotNull(uris.SingleOrDefault(artifact => artifact.Type == MavenArtifactType.SourcesJar
-                    && artifact.Uri == new System.Uri(expectedUriPrefix + $"{purl.Name}-{purl.Version}-sources.jar")));
-                Assert.IsNotNull(uris.SingleOrDefault(artifact => artifact.Type == MavenArtifactType.Pom
-                    && artifact.Uri == new System.Uri(expectedUriPrefix + $"{purl.Name}-{purl.Version}.pom")));
-            }
-            else if (purlString.Contains("android.arch.core"))
-            {
-                Assert.IsNotNull(uris.SingleOrDefault(artifact => artifact.Type == MavenArtifactType.Pom
-                    && artifact.Uri == new System.Uri(expectedUriPrefix + $"{purl.Name}-{purl.Version}.pom")));
-                Assert.IsNotNull(uris.SingleOrDefault(artifact => artifact.Type == MavenArtifactType.Aar
-                    && artifact.Uri == new System.Uri(expectedUriPrefix + $"{purl.Name}-{purl.Version}.aar")));
-            }
-            else if (purlString.Contains("com.google.cose"))
-            {
-                Assert.IsNotNull(uris.SingleOrDefault(artifact => artifact.Type == MavenArtifactType.Jar
-                    && artifact.Uri == new System.Uri(expectedUriPrefix + $"{purl.Name}-{purl.Version}.jar")));
-                Assert.IsNotNull(uris.SingleOrDefault(artifact => artifact.Type == MavenArtifactType.JavadocJar
-                    && artifact.Uri == new System.Uri(expectedUriPrefix + $"{purl.Name}-{purl.Version}-javadoc.jar")));
-                Assert.IsNotNull(uris.SingleOrDefault(artifact => artifact.Type == MavenArtifactType.Pom
-                    && artifact.Uri == new System.Uri(expectedUriPrefix + $"{purl.Name}-{purl.Version}.pom")));
-            }
+            Assert.IsNotNull(uris.SingleOrDefault(artifact => artifact.Type == MavenArtifactType.JavadocJar
+                && artifact.Uri == new System.Uri(expectedUriPrefix + $"{purl.Name}-{purl.Version}-javadoc.jar")));
+            Assert.IsNotNull(uris.SingleOrDefault(artifact => artifact.Type == MavenArtifactType.Pom
+                && artifact.Uri == new System.Uri(expectedUriPrefix + $"{purl.Name}-{purl.Version}.pom")));
         }
 
         [DataTestMethod]

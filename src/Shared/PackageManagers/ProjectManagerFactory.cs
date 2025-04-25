@@ -24,7 +24,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// new NPMProjectManager(httpClientFactory, destinationDirectory)
         /// </example>
         /// <seealso cref="ProjectManagerFactory.GetDefaultManagers">Example implementations in GetDefaultManagers(IHttpClientFactory?)</seealso>
-        public delegate BaseProjectManager? ConstructProjectManager(string destinationDirectory = ".", TimeSpan? timeout = null);
+        public delegate BaseProjectManager? ConstructProjectManager(string destinationDirectory = ".", TimeSpan? timeout = null, PackageURL? packageUrl = null);
 
         /// <summary>
         /// The dictionary of project managers.
@@ -64,73 +64,73 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return new Dictionary<string, ConstructProjectManager>(StringComparer.InvariantCultureIgnoreCase)
             {
                 {
-                    CargoProjectManager.Type, (destinationDirectory, timeout) =>
+                    CargoProjectManager.Type, (destinationDirectory, timeout, packageUrl) =>
                         new CargoProjectManager(destinationDirectory, new NoOpPackageActions(), httpClientFactory, timeout, allowUseOfRateLimitedRegistryAPIs)
                 },
                 {
-                    CocoapodsProjectManager.Type, (destinationDirectory, timeout) =>
+                    CocoapodsProjectManager.Type, (destinationDirectory, timeout, packageUrl) =>
                         new CocoapodsProjectManager(httpClientFactory, destinationDirectory, timeout)
                 },
                 {
-                    ComposerProjectManager.Type, (destinationDirectory, timeout) =>
+                    ComposerProjectManager.Type, (destinationDirectory, timeout, packageUrl) =>
                         new ComposerProjectManager(httpClientFactory, destinationDirectory, timeout)
                 },
                 {
-                    CondaProjectManager.Type, (destinationDirectory, timeout) =>
+                    CondaProjectManager.Type, (destinationDirectory, timeout, packageUrl) =>
                         new CondaProjectManager(destinationDirectory, new NoOpPackageActions(), httpClientFactory, timeout)
                 },
                 {
-                    CPANProjectManager.Type, (destinationDirectory, timeout) =>
+                    CPANProjectManager.Type, (destinationDirectory, timeout, packageUrl) =>
                         new CPANProjectManager(httpClientFactory, destinationDirectory, timeout)
                 },
                 {
-                    CRANProjectManager.Type, (destinationDirectory, timeout) =>
+                    CRANProjectManager.Type, (destinationDirectory, timeout, packageUrl) =>
                         new CRANProjectManager(httpClientFactory, destinationDirectory, timeout)
                 },
                 {
-                    GemProjectManager.Type, (destinationDirectory, timeout) =>
+                    GemProjectManager.Type, (destinationDirectory, timeout, packageUrl) =>
                         new GemProjectManager(httpClientFactory, destinationDirectory, timeout)
                 },
                 {
-                    GitHubProjectManager.Type, (destinationDirectory, timeout) =>
+                    GitHubProjectManager.Type, (destinationDirectory, timeout, packageUrl) =>
                         new GitHubProjectManager(httpClientFactory, destinationDirectory, timeout)
                 },
                 {
-                    GolangProjectManager.Type, (destinationDirectory, timeout) =>
+                    GolangProjectManager.Type, (destinationDirectory, timeout, packageUrl) =>
                         new GolangProjectManager(destinationDirectory, new NoOpPackageActions(), httpClientFactory, timeout)
                 },
                 {
-                    HackageProjectManager.Type, (destinationDirectory, timeout) =>
+                    HackageProjectManager.Type, (destinationDirectory, timeout, packageUrl) =>
                         new HackageProjectManager(httpClientFactory, destinationDirectory, timeout)
                 },
                 {
-                    MavenProjectManager.Type, (destinationDirectory, timeout) =>
+                    MavenProjectManager.Type, (destinationDirectory, timeout, packageUrl) =>
                         new MavenProjectManager(destinationDirectory, new NoOpPackageActions(), httpClientFactory, timeout)
                 },
                 {
-                    NPMProjectManager.Type, (destinationDirectory, timeout) =>
+                    NPMProjectManager.Type, (destinationDirectory, timeout, packageUrl) =>
                         new NPMProjectManager(destinationDirectory, new NoOpPackageActions(), httpClientFactory, timeout)
                 },
                 {
-                    NuGetProjectManager.Type, (destinationDirectory, timeout) =>
-                        new NuGetProjectManager(destinationDirectory, new NuGetPackageActions(), httpClientFactory, timeout)
+                    NuGetProjectManager.Type, (destinationDirectory, timeout, packageUrl) =>
+                        NuGetProjectManager.Create(destinationDirectory, httpClientFactory, timeout, packageUrl)
                 },
                 {
-                    PyPIProjectManager.Type, (destinationDirectory, timeout) =>
+                    PyPIProjectManager.Type, (destinationDirectory, timeout, packageUrl) =>
                         new PyPIProjectManager(destinationDirectory, new NoOpPackageActions(), httpClientFactory, timeout)
                 },
                 {
-                    UbuntuProjectManager.Type, (destinationDirectory, timeout) =>
+                    UbuntuProjectManager.Type, (destinationDirectory, timeout, packageUrl) =>
                         new UbuntuProjectManager(httpClientFactory, destinationDirectory, timeout)
                 },
                 {
-                    URLProjectManager.Type, (destinationDirectory, timeout) =>
+                    URLProjectManager.Type, (destinationDirectory, timeout, packageUrl) =>
                         new URLProjectManager(httpClientFactory, destinationDirectory, timeout)
                 },
                 {
-                    VSMProjectManager.Type, (destinationDirectory, timeout) =>
+                    VSMProjectManager.Type, (destinationDirectory, timeout, packageUrl) =>
                         new VSMProjectManager(httpClientFactory, destinationDirectory, timeout)
-                },
+                }
             };
         }
 
@@ -139,7 +139,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
             ConstructProjectManager? projectManager = _projectManagers.GetValueOrDefault(purl.Type);
 
-            return projectManager?.Invoke(destinationDirectory, timeout);
+            return projectManager?.Invoke(destinationDirectory, timeout, purl);
         }
 
         /// <summary>

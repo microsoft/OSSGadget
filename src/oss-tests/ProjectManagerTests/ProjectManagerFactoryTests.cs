@@ -34,6 +34,7 @@ public class ProjectManagerFactoryTests
     /// <param name="expectedManager">The <see cref="Type"/> of the <see cref="BaseProjectManager"/> implementation we expect the factory to return.</param>
     [Theory]
     [InlineData("pkg:nuget/newtonsoft.json", typeof(NuGetProjectManager))]
+    [InlineData("pkg:nuget/NuGet@1.3.3?repository_url=https://www.powershellgallery.com/api/v2", typeof(NuGetProjectManagerV2))]
     [InlineData("pkg:npm/foo", typeof(NPMProjectManager))]
     [InlineData("pkg:pypi/plotly", typeof(PyPIProjectManager))]
     [InlineData("pkg:cargo/rand", typeof(CargoProjectManager))]
@@ -78,7 +79,7 @@ public class ProjectManagerFactoryTests
     [Fact]
     public void AddTestManagerSucceeds()
     {
-        _managerOverrides["test"] = (destinationDirectory, timeout) => new NuGetProjectManager(destinationDirectory, null, _httpClientFactory); // Create a test type with the NuGetProjectManager.
+        _managerOverrides["test"] = (destinationDirectory, timeout, packageUrl) => new NuGetProjectManagerV3(destinationDirectory, null, _httpClientFactory); // Create a test type with the NuGetProjectManager.
 
         ProjectManagerFactory projectManagerFactory = new(_managerOverrides);
 
@@ -92,9 +93,9 @@ public class ProjectManagerFactoryTests
     public void OverrideManagerSucceeds()
     {
         _managerOverrides[NuGetProjectManager.Type] =
-            (destinationDirectory, timeout) => new NuGetProjectManager("nugetTestDirectory", null, _httpClientFactory); // Override the default entry for nuget, and override the destinationDirectory.
+            (destinationDirectory, timeout, packageUrl) => new NuGetProjectManagerV3("nugetTestDirectory", null, _httpClientFactory); // Override the default entry for nuget, and override the destinationDirectory.
         _managerOverrides[NPMProjectManager.Type] =
-            (destinationDirectory, timeout) => new NPMProjectManager("npmTestDirectory", null, _httpClientFactory); // Override the default entry for npm, and override the destinationDirectory.
+            (destinationDirectory, timeout, packageUrl) => new NPMProjectManager("npmTestDirectory", null, _httpClientFactory); // Override the default entry for npm, and override the destinationDirectory.
 
         ProjectManagerFactory projectManagerFactory = new(_managerOverrides);
 
@@ -114,7 +115,7 @@ public class ProjectManagerFactoryTests
     [Fact]
     public void ChangeProjectManagerSucceeds()
     {
-        _managerOverrides[NuGetProjectManager.Type] = (destinationDirectory, timeout) => new NPMProjectManager(destinationDirectory, null, _httpClientFactory); // Override the default entry for nuget and set it as another NPMProjectManager.
+        _managerOverrides[NuGetProjectManager.Type] = (destinationDirectory, timeout, packageUrl) => new NPMProjectManager(destinationDirectory, null, _httpClientFactory); // Override the default entry for nuget and set it as another NPMProjectManager.
 
         ProjectManagerFactory projectManagerFactory = new(_managerOverrides);
 

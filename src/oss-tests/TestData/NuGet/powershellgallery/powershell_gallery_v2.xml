@@ -1,0 +1,8 @@
+﻿<service xmlns="http://www.w3.org/2007/app" xmlns:atom="http://www.w3.org/2005/Atom" xml:base="https://www.powershellgallery.com/api/v2">
+  <workspace>
+    <atom:title type="text">Default</atom:title>
+    <collection href="Packages">
+      <atom:title type="text">Packages</atom:title>
+    </collection>
+  </workspace>
+</service>

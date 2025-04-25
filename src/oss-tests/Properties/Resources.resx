@@ -283,4 +283,16 @@
   <data name="cargo_rss_rand.xml" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\TestData\Cargo\cargo_rss_rand.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
+  <data name="powershell_gallery_v2.xml" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\NuGet\powershellgallery\powershell_gallery_v2.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="psreadline.xml" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\NuGet\powershellgallery\psreadline\psreadline.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="psreadline_v2_4_1_beta.xml" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\NuGet\powershellgallery\psreadline\psreadline_v2_4_1_beta.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="psreadline_versions.json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\NuGet\powershellgallery\psreadline\versions.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>

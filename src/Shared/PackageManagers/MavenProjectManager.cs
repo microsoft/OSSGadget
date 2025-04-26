@@ -27,7 +27,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// </summary>
         /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
         public const string Type = "maven";
-
         public override string ManagerType => Type;
 
         public const string DEFAULT_MAVEN_ENDPOINT = "https://repo1.maven.org/maven2";
@@ -185,7 +184,12 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 versionsList = await GetVersionsList_MavenMetadataStrategyAsync($"{baseUrl}/maven-metadata.xml", purl, useCache);
 
                 // If maven-metadata.xml file is unavailable, try using the web server directory index.
-                versionsList ??= await GetVersionsList_DirectoryIndexStrategyAsync(baseUrl, purl, useCache);
+                if (versionsList == null)
+                {
+                    Logger.Trace($"Trying to retrieve versions list for {purl} via directory index strategy.");
+                    var publishedTimestampDict = await DirectoryIndexStrategyAsync(baseUrl, purl, useCache);
+                    versionsList = publishedTimestampDict != null ? publishedTimestampDict.Keys.ToList() : null;
+                }
 
                 return SortVersions(versionsList != null ? versionsList.Distinct() : new List<string>());
             }
@@ -322,39 +326,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             var baseUrl = $"{feedUrl.EnsureTrailingSlash()}{packageNamespace}/{packageName}/";
             string? html = string.Empty;
 
-            try
-            {
-                html = await GetHttpStringCache(httpClient, baseUrl, useCache);
-            }
-            catch (HttpRequestException) { }
-
             // Retrieve publish date via web server directory indices if available.
-            if (!string.IsNullOrEmpty(html))
+            var publishedTimestampDict = await DirectoryIndexStrategyAsync(baseUrl, purl, useCache);
+            if (publishedTimestampDict != null && 
+                publishedTimestampDict.ContainsKey(packageVersion) && 
+                publishedTimestampDict[packageVersion] != null)
             {
-                HtmlParser parser = new();
-                AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(html);
-
-                // Break the version content down into its individual lines, and then find the one that represents the
-                // intended version.
-                string? versionContent = document.QuerySelector("#contents").TextContent
-                    .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
-                    .SingleOrDefault(versionText => versionText.StartsWith($"{packageVersion}/"));
-
-                if (versionContent == null)
-                {
-                    return null;
-                }
-
-                // Split the version content into its individual parts.
-                // [0] - The version
-                // [1] - The date it was published
-                // [2] - The time it was published
-                // [3] - The file size in bytes
-                string[] versionParts = versionContent.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                if (DateTime.TryParse($"{versionParts[1]} {versionParts[2]}", out DateTime publishDateTime))
-                {
-                    return publishDateTime;
-                }
+                return publishedTimestampDict[packageVersion];
             }
 
             // If the directory index approach does not work, try to get the "Last-Modified" header from the .pom file.
@@ -373,24 +351,18 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         private async Task<List<string>>? GetArtifactDownloadUris_DirectoryIndexStrategyAsync(string baseUrl, PackageURL purl, bool useCache = true)
         {
             Logger.Trace($"Trying to retrieve artifact download URis for {purl} via directory index strategy.");
-
-            HttpClient httpClient = CreateHttpClient();
             var fileNameList = new List<string>();
 
             try
             {
-                string? html = await GetHttpStringCache(httpClient, baseUrl, useCache);
-                if (string.IsNullOrEmpty(html))
+                var publishedTimestampDict = await DirectoryIndexStrategyAsync(baseUrl, purl, useCache);
+                if (publishedTimestampDict == null)
                 {
                     return null;
                 }
 
-                HtmlParser parser = new();
-                AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(html);
-
-                foreach (string fileName in document.QuerySelectorAll("a").Select(link => link.GetAttribute("href").ToString()))
+                foreach (string fileName in publishedTimestampDict.Keys)
                 {
-                    if (fileName == "../") continue;
                     fileNameList.Add(baseUrl + fileName);
                 }
             }
@@ -504,13 +476,16 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             return versionsList;
         }
-
-        private async Task<List<string>>? GetVersionsList_DirectoryIndexStrategyAsync(string baseUrl, PackageURL purl, bool useCache)
+    
+        /// <summary>
+        /// Parses the maven repository HTML to provide either a (version, published timestamp) mapping or a (file name, published timestamp) mapping
+        /// (depending on the provided baseUrl). 
+        /// </summary>
+        /// <returns></returns>
+        private async Task<Dictionary<string, DateTime?>>? DirectoryIndexStrategyAsync(string baseUrl, PackageURL purl, bool useCache)
         {
-            Logger.Trace($"Trying to retrieve versions list for {purl} via directory index strategy.");
-
             HttpClient httpClient = CreateHttpClient();
-            var versionsList = new List<string>();
+            var publishedTimestampDict = new Dictionary<string, DateTime?>();
 
             try
             {
@@ -524,27 +499,45 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 HtmlParser parser = new();
                 AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(content);
 
-                // Break the version content down into its individual lines. Includes the parent directory and xml + hash files.
-                IEnumerable<string> htmlEntries = document.QuerySelector("#contents").QuerySelectorAll("a").Select(a => a.TextContent);
+                // Break the content down into its individual lines. Includes the parent directory and xml + hash files.
+                var htmlRowArray = document.QuerySelector("#contents").TextContent.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-                foreach (string htmlEntry in htmlEntries)
+                if (htmlRowArray == null)
                 {
-                    // Get the version.
-                    if (htmlEntry.EndsWith('/') && !htmlEntry.Equals("../"))
-                    {
-                        var versionStr = htmlEntry.TrimEnd(htmlEntry[^1]);
-                        Logger.Debug("Identified {0} version {1}.", purl.Name, versionStr);
-                        versionsList.Add(versionStr);
-                    }
+                    return null;
                 }
 
-                return versionsList;
+                foreach (var row in htmlRowArray)
+                {
+                    // Split the content into its individual parts.
+                    // [0] - The version or file name (depending on the provided base URL)
+                    // [1] - The date it was published
+                    // [2] - The time it was published
+                    // [3] - The file size in bytes
+                    string[] rowParts = row.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+                    // Do not include the .xml and parent directory.
+                    if (!rowParts[0].Equals("../") && !rowParts[0].EndsWith(".xml") && !rowParts[0].EndsWith(".xml.md5") && !rowParts[0].EndsWith(".xml.sha1"))
+                    {
+                        // Try to parse the published timestamp.
+                        DateTime? publishedTimestamp = null;
+                        if (DateTime.TryParse($"{rowParts[1]} {rowParts[2]}", out DateTime publishDateTime))
+                        {
+                            publishedTimestamp = publishDateTime;
+                        }
+
+                        // Trim any '/' from the version or file name
+                        publishedTimestampDict.Add(rowParts[0].Replace("/", string.Empty), publishedTimestamp);
+                    }
+                }
             }
             catch (Exception e)
             {
-                Logger.Trace($"Directory index strategy for {purl} versioning was unsuccessful: {e.Message}");
+                Logger.Trace($"Directory index strategy for {purl} was unsuccessful: {e.Message}");
                 return null;
             }
+
+            return publishedTimestampDict;
         }
     }
 }

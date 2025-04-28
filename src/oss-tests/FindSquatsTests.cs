@@ -44,7 +44,7 @@ public class FindSquatsTest
             purl);
 
         // Override the NuGet constructor to add the mocked NuGetPackageActions.
-        managerOverrides[NuGetProjectManager.Type] =
+        managerOverrides[BaseNuGetProjectManager.Type] =
             (destinationDirectory, timeout, packageUrl) => new NuGetProjectManagerV3(".", nugetPackageActions, httpClientFactory);
         
         ProjectManagerFactory projectManagerFactory = new(managerOverrides);
@@ -549,7 +549,7 @@ public class FindSquatsTest
         IManagerPackageActions<NuGetPackageVersionMetadata> packageActions = PackageActionsHelper<NuGetPackageVersionMetadata>.SetupPackageActions(newtonsoft, validSquats: squattingPackages) ?? throw new InvalidOperationException();
         Dictionary<string, ProjectManagerFactory.ConstructProjectManager> overrideDict = ProjectManagerFactory.GetDefaultManagers(httpClientFactory);
 
-        overrideDict[NuGetProjectManager.Type] = (destinationDirectory, timeout, packageUrl) =>
+        overrideDict[BaseNuGetProjectManager.Type] = (destinationDirectory, timeout, packageUrl) =>
             new NuGetProjectManagerV3(destinationDirectory, packageActions, httpClientFactory);
         
         FindPackageSquats findPackageSquats = new(new ProjectManagerFactory(overrideDict), newtonsoft);
@@ -584,7 +584,7 @@ public class FindSquatsTest
         IManagerPackageActions<NuGetPackageVersionMetadata> packageActions = PackageActionsHelper<NuGetPackageVersionMetadata>.SetupPackageActions(requests, validSquats: squattingPackages) ?? throw new InvalidOperationException();
         Dictionary<string, ProjectManagerFactory.ConstructProjectManager> overrideDict = ProjectManagerFactory.GetDefaultManagers(httpClientFactory);
 
-        overrideDict[NuGetProjectManager.Type] = (destinationDirectory, timeout, packageUrl) =>
+        overrideDict[BaseNuGetProjectManager.Type] = (destinationDirectory, timeout, packageUrl) =>
             new NuGetProjectManager(destinationDirectory, packageActions, httpClientFactory);
         
         FindPackageSquats findPackageSquats = new(new ProjectManagerFactory(overrideDict), requests);

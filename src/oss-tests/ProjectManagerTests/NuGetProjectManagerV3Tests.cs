@@ -59,7 +59,7 @@ using System.Threading.Tasks;
         { "pkg:nuget/slipeserver.scripting", Resources.slipeserver_scripting_versions_json },
     }.ToImmutableDictionary();
 
-        private NuGetProjectManagerV3 _projectManager;
+        private NuGetProjectManager _projectManager;
         private readonly IHttpClientFactory _httpFactory;
 
         public NuGetProjectManagerV3Tests()
@@ -89,7 +89,7 @@ using System.Threading.Tasks;
 
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
             _httpFactory = mockFactory.Object;
-            _projectManager = new NuGetProjectManagerV3(".", NuGetPackageActions.CreateV3(), _httpFactory);
+            _projectManager = new NuGetProjectManager(".", NuGetPackageActions.CreateV3(), _httpFactory);
         }
 
     [Theory]
@@ -101,7 +101,7 @@ using System.Threading.Tasks;
     public async Task TestNugetCaseInsensitiveHandlingPackageExistsSucceeds(string purlString)
     {
         PackageURL purl = new(purlString);
-        _projectManager = new NuGetProjectManager(".", null, _httpFactory);
+        _projectManager = new NuGetProjectManagerV3(".", null, _httpFactory);
 
         bool exists = await _projectManager.PackageVersionExistsAsync(purl, useCache: false);
 
@@ -123,7 +123,7 @@ using System.Threading.Tasks;
     public async Task TestNugetPackageWithNormalizedVersionInPurlExists()
     {
         PackageURL purl = new("pkg:nuget/Pulumi@3.29.0-alpha.1649173720");
-        _projectManager = new NuGetProjectManager(".", null, _httpFactory);
+        _projectManager = new NuGetProjectManagerV3(".", null, _httpFactory);
 
         bool exists = await _projectManager.PackageVersionExistsAsync(purl, useCache: false);
 
@@ -259,7 +259,7 @@ using System.Threading.Tasks;
             setupVersions);
 
             // Use mocked response if version is not provided.
-            _projectManager = string.IsNullOrWhiteSpace(purl.Version) ? new NuGetProjectManagerV3(".", nugetPackageActions, _httpFactory) : _projectManager;
+            _projectManager = string.IsNullOrWhiteSpace(purl.Version) ? new NuGetProjectManager(".", nugetPackageActions, _httpFactory) : _projectManager;
 
         // Act
         PackageMetadata? metadata = await _projectManager.GetPackageMetadataAsync(purl, includePrerelease: includePrerelease, useCache: false);
@@ -402,7 +402,7 @@ using System.Threading.Tasks;
                 setupMetadata,
                 setupVersions,
                 includePrerelease: includePrerelease);
-            _projectManager = new NuGetProjectManagerV3(".", nugetPackageActions, _httpFactory);
+            _projectManager = new NuGetProjectManager(".", nugetPackageActions, _httpFactory);
 
         // Act
         List<string> versions = (await _projectManager.EnumerateVersionsAsync(purl, false, includePrerelease)).ToList();
@@ -490,7 +490,7 @@ using System.Threading.Tasks;
             nugetPackageActions = PackageActionsHelper<NuGetPackageVersionMetadata>.SetupPackageActions();
         }
 
-            _projectManager = new NuGetProjectManagerV3(".", nugetPackageActions, _httpFactory);
+            _projectManager = new NuGetProjectManager(".", nugetPackageActions, _httpFactory);
 
         // Act
         IPackageExistence existence = await _projectManager.DetailedPackageExistsAsync(purl, useCache: false);
@@ -590,16 +590,16 @@ using System.Threading.Tasks;
     public async Task GetArtifactDownloadUrisSucceeds_Async(string purlString, string expectedNuPkgUrl, string expectedNuSpecUri)
     {
         PackageURL purl = new(purlString);
-        List<ArtifactUri<NuGetProjectManager.NuGetArtifactType>> uris = _projectManager.GetArtifactDownloadUris(purl).ToList();
+        List<ArtifactUri<BaseNuGetProjectManager.NuGetArtifactType>> uris = _projectManager.GetArtifactDownloadUris(purl).ToList();
 
         var nupkgArtifactUri = uris
-            .First(it => it.Type == NuGetProjectManager.NuGetArtifactType.Nupkg);
+            .First(it => it.Type == BaseNuGetProjectManager.NuGetArtifactType.Nupkg);
 
         Assert.Equal(expectedNuPkgUrl, nupkgArtifactUri.Uri.ToString());
         Assert.True(await _projectManager.UriExistsAsync(nupkgArtifactUri.Uri));
 
         var nuspecArtifactUrl = uris
-            .First(it => it.Type == NuGetProjectManager.NuGetArtifactType.Nuspec);
+            .First(it => it.Type == BaseNuGetProjectManager.NuGetArtifactType.Nuspec);
         
         Assert.Equal(expectedNuSpecUri, nuspecArtifactUrl.Uri.ToString());
         Assert.True(await _projectManager.UriExistsAsync(nuspecArtifactUrl.Uri));

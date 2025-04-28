@@ -31,14 +31,14 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
     /// </summary>
     /// <param name="source">The source URL for the V2 repository. Defaults to the PowerShell Gallery index.</param>
     /// <returns>A new instance of <see cref="NuGetPackageActions"/>.</returns>
-    public static NuGetPackageActions CreateV2(string source = NuGetProjectManagerV2.POWER_SHELL_GALLERY_DEFAULT_INDEX) => new(Repository.Factory.GetCoreV2(new(source)));
+    public static NuGetPackageActions CreateV2(string source = NuGetV2ProjectManager.POWER_SHELL_GALLERY_DEFAULT_INDEX) => new(Repository.Factory.GetCoreV2(new(source)));
 
     /// <summary>
     /// Creates a new instance of <see cref="NuGetPackageActions"/> using a V3 source repository.
     /// </summary>
     /// <param name="source">The source URL for the V3 repository. Defaults to the NuGet default index.</param>
     /// <returns>A new instance of <see cref="NuGetPackageActions"/>.</returns>
-    public static NuGetPackageActions CreateV3(string source = NuGetProjectManagerV3.NUGET_DEFAULT_INDEX) => new(Repository.Factory.GetCoreV3(source));
+    public static NuGetPackageActions CreateV3(string source = NuGetProjectManager.NUGET_DEFAULT_INDEX) => new(Repository.Factory.GetCoreV3(source));
 
     /// <summary>
     /// Initializes a new instance of the <see cref="NuGetPackageActions"/> class.

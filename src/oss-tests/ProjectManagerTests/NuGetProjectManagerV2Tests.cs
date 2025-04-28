@@ -26,7 +26,7 @@
     [TestClass]
     public class NuGetProjectManagerV2Tests
     {
-        private NuGetProjectManagerV2 _projectManager;
+        private NuGetV2ProjectManager _projectManager;
         private readonly IHttpClientFactory _httpFactory;
 
         private readonly IDictionary<string, string> _packages = new Dictionary<string, string>()
@@ -66,7 +66,7 @@
 
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
             _httpFactory = mockFactory.Object;
-            _projectManager = new NuGetProjectManagerV2(".", NuGetPackageActions.CreateV2(), _httpFactory);
+            _projectManager = new NuGetV2ProjectManager(".", NuGetPackageActions.CreateV2(), _httpFactory);
         }
 
         [DataTestMethod]
@@ -102,7 +102,7 @@
             var uris = _projectManager.GetArtifactDownloadUrisAsync(purl);
 
             var nupkgArtifactUri = await uris
-                .FirstAsync(it => it.Type == NuGetProjectManager.NuGetArtifactType.Nupkg);
+                .FirstAsync(it => it.Type == BaseNuGetProjectManager.NuGetArtifactType.Nupkg);
 
             Assert.AreEqual(expectedNuPkgUrl, nupkgArtifactUri.Uri.ToString());
             Assert.IsTrue(await _projectManager.UriExistsAsync(nupkgArtifactUri.Uri));
@@ -136,7 +136,7 @@
                 setupVersions?.Reverse());
 
             // Use mocked response if version is not provided.
-            _projectManager = string.IsNullOrWhiteSpace(purl.Version) ? new NuGetProjectManagerV2(".", nugetPackageActions, _httpFactory) : _projectManager;
+            _projectManager = string.IsNullOrWhiteSpace(purl.Version) ? new NuGetV2ProjectManager(".", nugetPackageActions, _httpFactory) : _projectManager;
 
             PackageMetadata metadata = await _projectManager.GetPackageMetadataAsync(purl, includePrerelease: includePrerelease, useCache: false);
 
@@ -177,7 +177,7 @@
                 setupMetadata,
                 setupVersions?.Reverse(),
                 includePrerelease: includePrerelease);
-            _projectManager = new NuGetProjectManagerV2(".", nugetPackageActions, _httpFactory);
+            _projectManager = new NuGetV2ProjectManager(".", nugetPackageActions, _httpFactory);
 
             List<string> versions = (await _projectManager.EnumerateVersionsAsync(purl, false, includePrerelease)).ToList();
 
@@ -220,9 +220,9 @@
         }
 
         [DataTestMethod]
-        [DataRow("pkg:nuget/PSReadLine@2.0.0?repository_url=https://www.powershellgallery.com/api/v2/")]
-        [DataRow("pkg:nuget/Az.Accounts@2.5.3?repository_url=https://www.powershellgallery.com/api/v2/")]
-        [DataRow("pkg:nuget/Microsoft.Graph.Authentication@2.9.1?repository_url=https://www.powershellgallery.com/api/v2/")]
+        [DataRow("pkg:nuget/PSReadLine?repository_url=https://www.powershellgallery.com/api/v2/")]
+        [DataRow("pkg:nuget/Az.Accounts?repository_url=https://www.powershellgallery.com/api/v2/")]
+        [DataRow("pkg:nuget/Microsoft.Graph.Authentication?repository_url=https://www.powershellgallery.com/api/v2/")]
         public async Task GetPackagePrefixReserved_ReturnsFalse(string purlString)
         {
             PackageURL purl = new(purlString);
@@ -258,7 +258,7 @@
                 nugetPackageActions = PackageActionsHelper<NuGetPackageVersionMetadata>.SetupPackageActions();
             }
 
-            _projectManager = new NuGetProjectManagerV2(".", nugetPackageActions, _httpFactory);
+            _projectManager = new NuGetV2ProjectManager(".", nugetPackageActions, _httpFactory);
 
             IPackageExistence existence = await _projectManager.DetailedPackageExistsAsync(purl, useCache: false);
 

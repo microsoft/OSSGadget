@@ -17,7 +17,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     /// <summary>
     /// Project manager for NuGet V2 API endpoints, primarily used for PowerShell Gallery integration.
     /// </summary>
-    public class NuGetProjectManagerV2 : NuGetProjectManager
+    public class NuGetV2ProjectManager : BaseNuGetProjectManager
     {
         /// <summary>
         /// The default index URL for PowerShell Gallery V2 API.
@@ -26,13 +26,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public const string POWER_SHELL_GALLERY_DEFAULT_CONTENT_ENDPOINT = "https://www.powershellgallery.com/packages/";
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="NuGetProjectManagerV2"/> class.
+        /// Initializes a new instance of the <see cref="NuGetV2ProjectManager"/> class.
         /// </summary>
         /// <param name="directory">The working directory for package operations.</param>
         /// <param name="actions">Optional custom package actions implementation. If null, creates default V2 actions.</param>
         /// <param name="httpClientFactory">Optional HTTP client factory. If null, uses default factory.</param>
         /// <param name="timeout">Optional timeout for operations. If null, uses default timeout.</param>
-        public NuGetProjectManagerV2(
+        public NuGetV2ProjectManager(
             string directory,
             IManagerPackageActions<NuGetPackageVersionMetadata>? actions = null,
             IHttpClientFactory? httpClientFactory = null,
@@ -59,7 +59,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     $"NuGet package URLs having a repository URL other than '{POWER_SHELL_GALLERY_DEFAULT_INDEX}' are not currently supported.");
             }
 
-            yield return new ArtifactUri<NuGetArtifactType>(NuGetArtifactType.Nupkg, NuGetProjectManagerV2.GetNupkgUrl(purl.Name, purl.Version));
+            yield return new ArtifactUri<NuGetArtifactType>(NuGetArtifactType.Nupkg, NuGetV2ProjectManager.GetNupkgUrl(purl.Name, purl.Version));
         }
 
         /// <summary>

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 using System;
+using System.ComponentModel;
 
 namespace Microsoft.CST.OpenSource.Model.Enums;
 
@@ -9,17 +10,39 @@ namespace Microsoft.CST.OpenSource.Model.Enums;
 /// </summary>
 public enum MavenArtifactType
 {
+    [Description(".aar")]
     Aar,
+
+    [Description("-client.jar")]
     ClientJar,
+
+    [Description(".ear")]
     Ear,
+
+    [Description("-javadoc.jar")]
     JavadocJar,
+
+    [Description(".pom")]
     Pom,
+
+    [Description(".rar")]
     Rar,
+
+    [Description("-sources.jar")]
     SourcesJar,
+
+    [Description("-tests.jar")]
     TestsJar,
+
+    [Description("-tests-sources.jar")]
     TestSourcesJar,
+
+    [Description(".war")]
     War,
+
+    [Description(".jar")]
     Jar,
+
     Unknown,
 }
 
@@ -28,19 +51,11 @@ public enum MavenArtifactType
 /// </summary>
 public static class MavenArtifactTypeExtensions
 {
-    public static string GetTypeNameExtension(this MavenArtifactType type) => type switch
+    public static string GetTypeNameExtension(this MavenArtifactType type)
     {
-        MavenArtifactType.Aar => ".aar",
-        MavenArtifactType.ClientJar => "-client.jar",
-        MavenArtifactType.Ear => ".ear",
-        MavenArtifactType.Jar => ".jar",
-        MavenArtifactType.JavadocJar => "-javadoc.jar",
-        MavenArtifactType.Pom => ".pom",
-        MavenArtifactType.Rar => ".rar",
-        MavenArtifactType.SourcesJar => "-sources.jar",
-        MavenArtifactType.TestsJar => "-tests.jar",
-        MavenArtifactType.TestSourcesJar => "-tests-sources.jar",
-        MavenArtifactType.War => ".war",
-        _ => string.Empty,
-    };
+        var fieldInfo = type.GetType().GetField(type.ToString());
+        var attributes = (DescriptionAttribute[])fieldInfo.GetCustomAttributes(typeof(DescriptionAttribute), false);
+
+        return attributes.Length > 0 ? attributes[0].Description : string.Empty;
+    }
 }

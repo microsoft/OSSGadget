@@ -209,7 +209,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public override async Task<bool> PackageVersionExistsAsync(PackageURL purl, bool useCache = true)
         {
             Logger.Trace("PackageVersionExists {0}", purl?.ToString());
-            if (purl is null || purl.Name is null || purl.Namespace is null || purl.Version is null)
+            if(purl is null or { Name: null } or { Namespace: null } or { Version: null })
             {
                 return false;
             }

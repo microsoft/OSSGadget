@@ -368,7 +368,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
             catch (Exception e)
             {
-                Logger.Trace($"Directory index strategy for {purl} was unsuccessful: {e.Message}");
+                Logger.Trace(e, $"Directory index strategy for {purl} was unsuccessful: {e.Message}");
                 return null;
             }
 
@@ -398,7 +398,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
             catch (Exception e)
             {
-                Logger.Trace($"Artifact metadata strategy for {purl} was unsuccessful: {e.Message}");
+                Logger.Trace(e, $"Artifact metadata strategy for {purl} was unsuccessful: {e.Message}");
                 return null;
             }
 
@@ -429,7 +429,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     }
                     catch (Exception e)
                     {
-                        Logger.Trace($"Unexpected error during file probe strategy for {purl}: {e.Message}");
+                        Logger.Trace(e, $"Unexpected error during file probe strategy for {purl}: {e.Message}");
                     }
                 }
             }
@@ -470,7 +470,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             catch (Exception e)
             {
 
-                Logger.Trace($"Maven-metadata strategy for {purl} versioning was unsuccessful: {e.Message}");
+                Logger.Trace(e, $"Maven-metadata strategy for {purl} versioning was unsuccessful: {e.Message}");
                 return null;
             }
 
@@ -533,7 +533,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
             catch (Exception e)
             {
-                Logger.Trace($"Directory index strategy for {purl} was unsuccessful: {e.Message}");
+                Logger.Trace(e, $"Directory index strategy for {purl} was unsuccessful: {e.Message}");
                 return null;
             }
 

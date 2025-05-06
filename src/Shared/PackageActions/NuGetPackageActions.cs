@@ -83,15 +83,15 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
             NuGetVersion.Parse(packageUrl.Version),
             packageStream,
             _sourceCacheContext,
-            _logger, 
+            _logger,
             cancellationToken);
-        
+
         // If the download failed, return null.
         if (!downloaded)
         {
             return null;
         }
-        
+
         // If we want to extract the contents of the .nupkg, send it to ArchiveHelper.ExtractArchiveAsync.
         if (doExtract)
         {
@@ -116,17 +116,17 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
                 packageUrl.Name,
                 NuGetVersion.Parse(packageUrl.Version),
                 _sourceCacheContext,
-                _logger, 
+                _logger,
                 cancellationToken);
 
             return exists;
         }
-        
+
         // If no version is provided, check to see if any versions exist on a package with the given name.
         IEnumerable<NuGetVersion> versions = await resource.GetAllVersionsAsync(
             packageUrl.Name,
             _sourceCacheContext,
-            _logger, 
+            _logger,
             cancellationToken);
 
         return versions.Any();
@@ -144,7 +144,7 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
         IEnumerable<NuGetVersion> versionsAscending = await resource.GetAllVersionsAsync(
             packageUrl.Name,
             _sourceCacheContext,
-            _logger, 
+            _logger,
             cancellationToken);
 
         return versionsAscending
@@ -152,7 +152,7 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
             .Select(v => v.ToString())
             .Reverse(); // We want the versions in descending order.
     }
-    
+
     /// <inheritdoc />
     public async Task<string?> GetLatestVersionAsync(
         PackageURL packageUrl,
@@ -165,7 +165,7 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
         IEnumerable<NuGetVersion> versionsAscending = await resource.GetAllVersionsAsync(
             packageUrl.Name,
             _sourceCacheContext,
-            _logger, 
+            _logger,
             cancellationToken);
 
         return versionsAscending
@@ -210,13 +210,13 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
 
         SearchFilter searchFilter = new(includePrerelease: true);
 
-        IPackageSearchMetadata result = (await resource.SearchAsync(
+        IPackageSearchMetadata? result = (await resource.SearchAsync(
             packageUrl.Name,
             searchFilter,
             skip: 0,
             take: 1,
             _logger,
-            cancellationToken)).First();
+            cancellationToken)).FirstOrDefault();
 
         return result.Identity.Id
                    .Equals(packageUrl.Name, StringComparison.InvariantCultureIgnoreCase) &&

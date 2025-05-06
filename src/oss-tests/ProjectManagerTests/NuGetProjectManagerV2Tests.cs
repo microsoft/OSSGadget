@@ -220,7 +220,7 @@
         }
 
         [DataTestMethod]
-        [DataRow("pkg:nuget/PSReadLine?repository_url=https://www.powershellgallery.com/api/v2/")]
+        [DataRow("pkg:nuget/PSReadLine@2.4.1-beta1?repository_url=https://www.powershellgallery.com/api/v2/")]
         [DataRow("pkg:nuget/Az.Accounts?repository_url=https://www.powershellgallery.com/api/v2/")]
         [DataRow("pkg:nuget/Microsoft.Graph.Authentication?repository_url=https://www.powershellgallery.com/api/v2/")]
         public async Task GetPackagePrefixReserved_ReturnsFalse(string purlString)

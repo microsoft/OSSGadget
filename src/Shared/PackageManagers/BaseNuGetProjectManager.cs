@@ -34,19 +34,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         internal static BaseNuGetProjectManager Create(string destinationDirectory, IHttpClientFactory httpClientFactory, TimeSpan? timeout, PackageURL? packageUrl)
         {
-            if (packageUrl is null || packageUrl.Qualifiers?.TryGetValue("repository_url", out string? repositoryUrlQualifier) != true ||
-                repositoryUrlQualifier?.TrimEnd('/') == NuGetProjectManager.NUGET_DEFAULT_INDEX)
-            {
-                return new NuGetProjectManager(destinationDirectory, NuGetPackageActions.CreateV3(), httpClientFactory, timeout);
-            }
-            else if (repositoryUrlQualifier?.TrimEnd('/') == NuGetV2ProjectManager.POWER_SHELL_GALLERY_DEFAULT_INDEX)
+            if (packageUrl?.Qualifiers?.TryGetValue("repository_url", out string? repositoryUrlQualifier) == true &&
+                repositoryUrlQualifier?.TrimEnd('/') == NuGetV2ProjectManager.POWER_SHELL_GALLERY_DEFAULT_INDEX)
             {
                 return new NuGetV2ProjectManager(destinationDirectory, NuGetPackageActions.CreateV2(), httpClientFactory, timeout);
             }
-            else
-            {
-                throw new NotImplementedException($"NuGet package URLs having a repository URL other than '{NuGetV2ProjectManager.POWER_SHELL_GALLERY_DEFAULT_INDEX}' or '{NuGetProjectManager.NUGET_DEFAULT_INDEX}' are not currently supported.");
-            }
+
+            // Default case: Use NuGetProjectManager (V3)
+            return new NuGetProjectManager(destinationDirectory, NuGetPackageActions.CreateV3(), httpClientFactory, timeout);
         }
 
         /// <inheritdoc />

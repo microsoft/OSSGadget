@@ -6,11 +6,13 @@ using Helpers;
 using System.IO;
 using System.Text.RegularExpressions;
 using PackageUrl;
-using System;
 using System.Net;
+using System.Collections.Generic;
 
 public static class PackageUrlExtension
 {
+
+    private const string REPOSITORY_URL_KEY = "repository_url";
     
     /// <summary>
     /// Constructs a new <see cref="PackageURL"/> with the same type as the provided one, but with a new name,
@@ -118,5 +120,33 @@ public static class PackageUrlExtension
         version: packageUrl.Version,
         qualifiers: null,
         subpath: packageUrl.Subpath);
+
+    /// <summary>
+    /// Attempts to retrieve the repository URL from the qualifiers of the <paramref name="packageUrl"/>.
+    /// </summary>
+    /// <param name="packageUrl">The <see cref="PackageURL"/> to extract the repository URL from.</param>
+    /// <param name="repositoryUrl">The decoded repository URL if found, otherwise null.</param>
+    /// <returns>True if the repository URL was found, otherwise false.</returns>
+    public static bool TryGetRepositoryUrl(this PackageURL packageUrl, out string? repositoryUrl)
+    {
+        if (packageUrl.Qualifiers?.TryGetValue(REPOSITORY_URL_KEY, out repositoryUrl) == true)
+        {
+            return true;
+        }
+        repositoryUrl = null;
+        return false;
+    }
+
+
+    public static string? GetQualifierValueOrDefault(this PackageURL packageUrl, string key, string? defaultValue = null) => 
+            packageUrl.Qualifiers?.GetValueOrDefault(key, defaultValue) ?? defaultValue;
+
+    /// <summary>
+    /// Retrieves the repository URL from the qualifiers of the <paramref name="packageUrl"/>.
+    /// </summary>
+    /// <param name="packageUrl">The <see cref="PackageURL"/> to extract the repository URL from.</param>
+    /// <returns>The decoded repository URL if found, otherwise null.</returns>
+    public static string? GetRepositoryUrlOrDefault(this PackageURL packageUrl, string defaultValue) => 
+        packageUrl.GetQualifierValueOrDefault(REPOSITORY_URL_KEY, defaultValue);
 
 }

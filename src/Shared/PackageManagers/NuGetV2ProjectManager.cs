@@ -2,6 +2,7 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
+    using Microsoft.CST.OpenSource.Extensions;
     using Microsoft.CST.OpenSource.Contracts;
     using Microsoft.CST.OpenSource.Helpers;
     using Microsoft.CST.OpenSource.Model;
@@ -52,7 +53,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public override async IAsyncEnumerable<ArtifactUri<NuGetArtifactType>> GetArtifactDownloadUrisAsync(PackageURL purl, bool useCache = true)
         {
             Check.NotNull(nameof(purl.Version), purl.Version);
-            if (purl.Qualifiers?.TryGetValue("repository_url", out string? repositoryUrlQualifier) == true && repositoryUrlQualifier.Trim('/') != POWER_SHELL_GALLERY_DEFAULT_INDEX)
+            if (purl.TryGetRepositoryUrl(out string? repositoryUrlQualifier) && repositoryUrlQualifier?.Trim('/') != POWER_SHELL_GALLERY_DEFAULT_INDEX)
             {
                 // Throw an exception until we implement proper support for service indices other than nuget.org  
                 throw new NotImplementedException(

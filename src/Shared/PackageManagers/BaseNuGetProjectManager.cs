@@ -2,10 +2,11 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
-    using Contracts;
+    using Microsoft.CST.OpenSource.Extensions;
+    using Microsoft.CST.OpenSource.Contracts;
     using PackageUrl;
-    using Model.Metadata;
-    using PackageActions;
+    using Microsoft.CST.OpenSource.Model.Metadata;
+    using Microsoft.CST.OpenSource.PackageActions;
     using System;
     using System.Collections.Generic;
     using System.Net.Http;
@@ -32,10 +33,16 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             Nuspec,
         }
 
+        
+    
+        /// Creates an instance of a BaseNuGetProjectManager based on the provided PackageURL.
+        /// If the repository URL matches the PowerShell Gallery URL, a NuGetV2ProjectManager is created.
+        /// Otherwise, a default NuGetProjectManager (V3) is created.
         internal static BaseNuGetProjectManager Create(string destinationDirectory, IHttpClientFactory httpClientFactory, TimeSpan? timeout, PackageURL? packageUrl)
         {
-            if (packageUrl?.Qualifiers?.TryGetValue("repository_url", out string? repositoryUrlQualifier) == true &&
-                repositoryUrlQualifier?.TrimEnd('/') == NuGetV2ProjectManager.POWER_SHELL_GALLERY_DEFAULT_INDEX)
+            // Check if the repository_url exists and matches the PowerShell Gallery URL
+            if (packageUrl?.TryGetRepositoryUrl(out string? repositoryUrlQualifier) == true &&
+                repositoryUrlQualifier!.TrimEnd('/') == NuGetV2ProjectManager.POWER_SHELL_GALLERY_DEFAULT_INDEX)
             {
                 return new NuGetV2ProjectManager(destinationDirectory, NuGetPackageActions.CreateV2(), httpClientFactory, timeout);
             }

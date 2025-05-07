@@ -226,6 +226,7 @@
         public async Task GetPackagePrefixReserved_ReturnsFalse(string purlString)
         {
             PackageURL purl = new(purlString);
+            _projectManager = new NuGetV2ProjectManager(".", null, _httpFactory);
             bool isReserved = await _projectManager.GetHasReservedNamespaceAsync(purl, useCache: false);
 
             Assert.IsFalse(isReserved); // Reserved namespaces are not supported in NuGet V2

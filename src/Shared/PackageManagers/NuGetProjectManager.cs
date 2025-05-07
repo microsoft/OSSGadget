@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 // ReSharper disable FieldCanBeMadeReadOnly.Global
+using Microsoft.CST.OpenSource.Extensions;
+
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using Contracts;
@@ -51,7 +53,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public override async IAsyncEnumerable<ArtifactUri<NuGetArtifactType>> GetArtifactDownloadUrisAsync(PackageURL purl, bool useCache = true)
         {
             Check.NotNull(nameof(purl.Version), purl.Version);
-            if (purl.Qualifiers?.TryGetValue("repository_url", out var repositoryUrlQualifier) == true && repositoryUrlQualifier != NUGET_DEFAULT_INDEX)
+            if (purl.TryGetRepositoryUrl(out string? repositoryUrlQualifier) && repositoryUrlQualifier != NUGET_DEFAULT_INDEX)
             {
                 // Throw an exception until we implement proper support for service indices other than nuget.org
                 throw new NotImplementedException(

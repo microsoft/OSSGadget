@@ -3,6 +3,7 @@
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using Helpers;
+    using Microsoft.CST.OpenSource.Extensions;
     using PackageUrl;
     using System;
     using System.Collections.Generic;
@@ -30,7 +31,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         public override Uri GetPackageAbsoluteUri(PackageURL purl)
         {
-            string? url = purl.Qualifiers?.GetValueOrDefault("url") ?? "https://missing-url.com";
+            string url = purl.GetQualifierValueOrDefault("url", "https://missing-url.com")!;
             return new Uri(url);
         }
 

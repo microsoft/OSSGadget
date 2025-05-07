@@ -289,7 +289,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             PackageMetadata metadata = new();
             metadata.Name = purl.GetFullName();
             metadata.PackageVersion = purl?.Version;
-            metadata.PackageManagerUri = (purl?.Qualifiers?["repository_url"] ?? ENV_MAVEN_ENDPOINT).EnsureTrailingSlash();
+            metadata.PackageManagerUri = purl?.GetRepositoryUrlOrDefault(ENV_MAVEN_ENDPOINT)?.EnsureTrailingSlash();
             metadata.Platform = "Maven";
             metadata.Language = "Java";
 

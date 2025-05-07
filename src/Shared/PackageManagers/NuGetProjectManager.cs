@@ -259,7 +259,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
 
             // Dependencies
-            IList<PackageDependencyGroup> dependencyGroups = packageVersionMetadata.DependencySets.ToList();
+            IList<PackageDependencyGroup> dependencyGroups = packageVersionMetadata.DependencySets?.ToList() ?? new List<PackageDependencyGroup>();
             metadata.Dependencies ??= dependencyGroups.SelectMany(group => group.Packages, (dependencyGroup, package) => new { dependencyGroup, package })
                 .Select(dependencyGroupAndPackage => new Dependency() { Package = dependencyGroupAndPackage.package.ToString(), Framework = dependencyGroupAndPackage.dependencyGroup.TargetFramework?.ToString() })
                 .ToList();

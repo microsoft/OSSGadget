@@ -9,7 +9,6 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
     using Model.PackageExistence;
     using Moq;
     using Newtonsoft.Json;
-    using NuGet.Packaging;
     using NuGet.Protocol;
     using oss;
     using PackageActions;

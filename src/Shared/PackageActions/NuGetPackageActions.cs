@@ -50,7 +50,6 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
     public NuGetPackageActions(SourceRepository sourceRepository)
     {
         _sourceRepository = sourceRepository;
-        //sourceRepository.GetResource<FindPackageByIdResource>();
     }
 
     /// <inheritdoc />

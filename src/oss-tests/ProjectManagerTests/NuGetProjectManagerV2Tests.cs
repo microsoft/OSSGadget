@@ -215,7 +215,7 @@
             }
             else
             {
-                Assert.AreEqual(DateTime.Parse(expectedTime), time);
+                Assert.AreEqual(DateTime.Parse(expectedTime).ToUniversalTime(), time);
             }
         }
 

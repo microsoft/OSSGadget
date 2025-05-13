@@ -39,6 +39,12 @@ extends:
           poolOs: windows
           projectPath: 'src/oss-tests/oss-tests.csproj'
           dotnetTestArgs: '-- --coverage --report-trx'
+          postTest:
+          - task: PublishTestResults@2
+            inputs: 
+              testResultsFormat: 'VSTest'
+              testResultsFiles: '**/TestResults/oss-tests_*.log'
+              failTaskOnMissingResultsFile: true
 
     - stage: Build
       jobs:

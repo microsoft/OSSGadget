@@ -121,7 +121,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 Description = packageVersionMetadata.Description,
                 PackageVersion = purlWithVersion.Version,
                 LatestPackageVersion = latestVersion,
-                UploadTime = packageVersionMetadata.Published?.UtcDateTime
+                UploadTime = packageVersionMetadata.Published?.DateTime
             };
 
             return metadata;

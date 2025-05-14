@@ -202,8 +202,8 @@
         }
 
         [DataTestMethod]
-        [DataRow("pkg:nuget/PSReadLine@2.0.0?repository_url=https://www.powershellgallery.com/api/v2/", "2020-02-12T02:22:59.793+00:00")]
-        [DataRow("pkg:nuget/Az.Accounts@2.5.3?repository_url=https://www.powershellgallery.com/api/v2/", "2021-09-07T12:57:05.487+00:00")]
+        [DataRow("pkg:nuget/PSReadLine@2.0.0?repository_url=https://www.powershellgallery.com/api/v2/", "2020-02-11T18:22:59.793")]
+        [DataRow("pkg:nuget/Az.Accounts@2.5.3?repository_url=https://www.powershellgallery.com/api/v2/", "2021-09-07T05:57:05.487")]
         public async Task GetPublishedAtSucceeds(string purlString, string? expectedTime = null)
         {
             PackageURL purl = new(purlString);
@@ -215,7 +215,7 @@
             }
             else
             {
-                Assert.AreEqual(DateTime.Parse(expectedTime).ToUniversalTime(), time);
+                Assert.AreEqual(DateTime.Parse(expectedTime), time);
             }
         }
 

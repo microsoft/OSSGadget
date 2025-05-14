@@ -1,23 +1,17 @@
 // Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Threading.Tasks;
+namespace Microsoft.CST.OpenSource.Tests;
 
-namespace Microsoft.CST.OpenSource.Tests
+using Extensions;
+using PackageUrl;
+public class PackageUrlExtensionsTests
 {
-    using Extensions;
-    using PackageUrl;
-
-    [TestClass]
-    public class PackageUrlExtensionsTests
+    [Theory]
+    [InlineData("pkg:npm/lodash@4.17.15", "pkg-npm-lodash@4.17.15")]
+    [InlineData("pkg:nuget/newtonsoft.json", "pkg-nuget-newtonsoft.json")]
+    public void ToStringFilenameSucceeds(string packageUrlString, string filename)
     {
-        [DataTestMethod]
-        [DataRow("pkg:npm/lodash@4.17.15", "pkg-npm-lodash@4.17.15")]
-        [DataRow("pkg:nuget/newtonsoft.json", "pkg-nuget-newtonsoft.json")]
-        public async Task ToStringFilenameSucceeds(string packageUrlString, string filename)
-        {
-            PackageURL packageUrl = new(packageUrlString);
-            Assert.AreEqual(filename, packageUrl.ToStringFilename());
-        }
+        PackageURL packageUrl = new(packageUrlString);
+        Assert.Equal(filename, packageUrl.ToStringFilename());
     }
 }

@@ -7,15 +7,13 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using VisualStudio.TestTools.UnitTesting;
 
-[TestClass]
 public class ArchiveHelperTests
 {
     /// <summary>
     /// Unit test that ExtractArchiveAsync works successfully.
     /// </summary>
-    [TestMethod]
+    [Fact]
     public async Task ExtractArchiveSucceeds()
     {
         // Get the Base64Zip.zip file from our TestData resources.
@@ -40,11 +38,11 @@ public class ArchiveHelperTests
                     zip);
             
             // Assert that the directory we extracted the zip archive to exists.
-            Assert.IsTrue(Directory.Exists(path));
+            Directory.Exists(path).Should().BeTrue();
 
             // Check that the extracted files from the zip archive match the ones we expected.
             string?[] files = Directory.EnumerateFiles(Path.Combine(path, "Base64Zip")).Select(Path.GetFileName).ToArray();
-            CollectionAssert.AreEquivalent(expectedFiles, files);
+            files.Should().BeEquivalentTo(expectedFiles);
         }
         finally
         {

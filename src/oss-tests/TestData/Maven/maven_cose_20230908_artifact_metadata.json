@@ -1,0 +1,16 @@
+{
+  "artifacts": [
+    {
+      "name": "cose-20230908-javadoc.jar",
+      "tag": "javadoc"
+    },
+    {
+      "name": "cose-20230908.jar",
+      "tag": "jar"
+    },
+    {
+      "name": "cose-20230908.pom",
+      "tag": "pom"
+    }
+  ]
+}

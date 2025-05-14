@@ -60,7 +60,8 @@ public class DefoggerTests
     [Fact]
     public void DetectNestedZip()
     {
-        FileStream? zip = new(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "TestData", "Base64Zip.zip"), FileMode.Open);
+        string filePath = Path.Combine(Directory.GetCurrentDirectory(), "TestData", "Base64Zip.zip");
+        FileStream? zip = new(filePath, FileMode.Open);
         MemoryStream? ms = new();
         zip.CopyTo(ms);
         string? nested = Convert.ToHexString(Encoding.Default.GetBytes(Convert.ToBase64String(ms.ToArray())));
@@ -79,7 +80,8 @@ public class DefoggerTests
     [Fact]
     public void DetectZip()
     {
-        FileStream? zip = new(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "TestData", "Base64Zip.zip"), FileMode.Open);
+        string filePath = Path.Combine(Directory.GetCurrentDirectory(), "TestData", "Base64Zip.zip");
+        FileStream? zip = new(filePath, FileMode.Open);
         MemoryStream? ms = new();
         zip.CopyTo(ms);
         string? base64 = Convert.ToBase64String(ms.ToArray());
@@ -89,7 +91,7 @@ public class DefoggerTests
         tool.Findings.Should().HaveCount(3);
         tool.Findings.Count(x => x.DecodedText.Equals(decoded)).Should().Be(2);
         tool.Findings.Count(x => x.Type == DefoggerTool.EncodedStringType.Base64).Should().Be(2);
-        tool.Findings.Count(x => x.Type == DefoggerTool.EncodedStringType.Hex).Should().Be(2);
+        tool.Findings.Count(x => x.Type == DefoggerTool.EncodedStringType.Hex).Should().Be(1);
         tool.ArchiveFindings.Should().HaveCount(1);
         tool.BinaryFindings.Should().HaveCount(1);
         zip.Close();

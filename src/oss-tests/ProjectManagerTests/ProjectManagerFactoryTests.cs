@@ -203,12 +203,21 @@ public class ProjectManagerFactoryTests
         Mock<NPMProjectManager> testProjectManager = new Mock<NPMProjectManager>(".", new NoOpPackageActions(), httpFactory, null) { CallBase = true };
 
         //Act
-        //Exception exception = await Assert.ThrowsExceptionAsync<TaskCanceledException>(() => 
-        var action = async () => await testProjectManager.Object.DownloadVersionAsync(testPackageUrl, false, false);
-
-        //Assert
-        await action.Should().ThrowAsync<TaskCanceledException>()
-            .Where(ex => ex.InnerException != null && ex.InnerException.GetType() == typeof(TimeoutException));
+        // NOTE that the usual FluentAssertion throw exception does not work with the above setup.
+        TaskCanceledException? ex = null;
+        try
+        {
+            await testProjectManager.Object.DownloadVersionAsync(testPackageUrl, false, false);
+        }
+        catch(TaskCanceledException tex)
+        {
+            ex = tex;
+        }
+        // Assert
+        ex.Should().NotBeNull();
+        ex.InnerException.Should().NotBeNull();
+        Type innerExceptionType = ex.InnerException.GetType();
+        innerExceptionType.Should().Be(typeof(TimeoutException));
     }
 
     /// <summary>

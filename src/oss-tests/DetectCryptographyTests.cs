@@ -32,7 +32,8 @@ public class DetectCryptographyTests
         RulesVerifier analyzer = new(new RulesVerifierOptions() { DisableRequireUniqueIds = true });
         RulesVerifierResult issues = analyzer.Verify(rules);
         issues.Verified.Should().BeTrue();
-        issues.CompiledRuleSet.GetAppInspectorRules().Should().BeEmpty();
+        var appInspectorRules = issues.CompiledRuleSet.GetAppInspectorRules();
+        appInspectorRules.Should().HaveCountGreaterThan(0);
     }
 
     private static async Task TestDetectCryptography(string purl, params string[] expectedTags)

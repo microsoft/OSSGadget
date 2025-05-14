@@ -2,21 +2,20 @@
 
 namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests;
 
-using Contracts;
+using FluentAssertions;
+using Microsoft.CST.OpenSource;
+using Microsoft.CST.OpenSource.Contracts;
+using Microsoft.CST.OpenSource.PackageActions;
+using Microsoft.CST.OpenSource.PackageManagers;
 using Moq;
-using PackageActions;
-using PackageManagers;
 using PackageUrl;
 using RichardSzalay.MockHttp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using VisualStudio.TestTools.UnitTesting;
 
-[TestClass]
 public class ProjectManagerFactoryTests
 {
     private readonly IHttpClientFactory _httpClientFactory = new DefaultHttpClientFactory();
@@ -33,22 +32,22 @@ public class ProjectManagerFactoryTests
     /// </summary>
     /// <param name="purlString">The <see cref="PackageURL"/> as a string to create a manager for from the factory</param>
     /// <param name="expectedManager">The <see cref="Type"/> of the <see cref="BaseProjectManager"/> implementation we expect the factory to return.</param>
-    [DataTestMethod]
-    [DataRow("pkg:nuget/newtonsoft.json", typeof(NuGetProjectManager))]
-    [DataRow("pkg:npm/foo", typeof(NPMProjectManager))]
-    [DataRow("pkg:pypi/plotly", typeof(PyPIProjectManager))]
-    [DataRow("pkg:cargo/rand", typeof(CargoProjectManager))]
-    [DataRow("pkg:foo/bar", null)]
+    [Theory]
+    [InlineData("pkg:nuget/newtonsoft.json", typeof(NuGetProjectManager))]
+    [InlineData("pkg:npm/foo", typeof(NPMProjectManager))]
+    [InlineData("pkg:pypi/plotly", typeof(PyPIProjectManager))]
+    [InlineData("pkg:cargo/rand", typeof(CargoProjectManager))]
+    [InlineData("pkg:foo/bar", null)]
     public void FactorySucceeds(string purlString, Type? expectedManager)
     {
         ProjectManagerFactory projectManagerFactory = new(_httpClientFactory);
 
         PackageURL packageUrl = new(purlString);
 
-        Assert.AreEqual(expectedManager, projectManagerFactory.CreateProjectManager(packageUrl)?.GetType());
+        Assert.Equal(expectedManager, projectManagerFactory.CreateProjectManager(packageUrl)?.GetType());
     }
 
-    [DataTestMethod]
+    [Fact]
     public void CargoPackageManagerCreatedWithDisablingRateLimitedRegistryAPI()
     {
         var purlString = "pkg:cargo/rand";
@@ -57,15 +56,15 @@ public class ProjectManagerFactoryTests
         PackageURL packageUrl = new(purlString);
         var manager = projectManagerFactory.CreateProjectManager(packageUrl);
 
-        Assert.AreEqual(typeof(CargoProjectManager), manager.GetType());
-        Assert.IsFalse(((CargoProjectManager)manager).allowUseOfRateLimitedRegistryAPIs);
+        Assert.Equal(typeof(CargoProjectManager), manager.GetType());
+        Assert.False(((CargoProjectManager)manager).allowUseOfRateLimitedRegistryAPIs);
     }
 
 
     /// <summary>
     /// Test if the default dictionary works, similar to <see cref="FactorySucceeds"/>, but uses the override constructor.
     /// </summary>
-    [TestMethod]
+    [Fact]
     public void DefaultSucceeds()
     {
         ProjectManagerFactory projectManagerFactory = new(_managerOverrides);
@@ -76,7 +75,7 @@ public class ProjectManagerFactoryTests
     /// <summary>
     /// Test adding a new manager to the dictionary, not overriding an existing one.
     /// </summary>
-    [TestMethod]
+    [Fact]
     public void AddTestManagerSucceeds()
     {
         _managerOverrides["test"] = (destinationDirectory, timeout) => new NuGetProjectManager(destinationDirectory, null, _httpClientFactory); // Create a test type with the NuGetProjectManager.
@@ -89,7 +88,7 @@ public class ProjectManagerFactoryTests
     /// <summary>
     /// Test overriding the nuget and npm entries as well as their destination directories in the dictionary.
     /// </summary>
-    [TestMethod]
+    [Fact]
     public void OverrideManagerSucceeds()
     {
         _managerOverrides[NuGetProjectManager.Type] =
@@ -103,16 +102,16 @@ public class ProjectManagerFactoryTests
 
         // Assert that the overrides worked by checking the TopLevelExtractionDirectory was changed.
         IBaseProjectManager? nuGetProjectManager = projectManagerFactory.CreateProjectManager(new PackageURL("pkg:nuget/foo"));
-        Assert.AreEqual("nugetTestDirectory", nuGetProjectManager?.TopLevelExtractionDirectory);
+        Assert.Equal("nugetTestDirectory", nuGetProjectManager?.TopLevelExtractionDirectory);
 
         IBaseProjectManager? npmProjectManager = projectManagerFactory.CreateProjectManager(new PackageURL("pkg:npm/foo"));
-        Assert.AreEqual("npmTestDirectory", npmProjectManager?.TopLevelExtractionDirectory);
+        Assert.Equal("npmTestDirectory", npmProjectManager?.TopLevelExtractionDirectory);
     }
 
     /// <summary>
     /// Test changing an entry in the dictionary of constructors to construct a manager of a different type.
     /// </summary>
-    [TestMethod]
+    [Fact]
     public void ChangeProjectManagerSucceeds()
     {
         _managerOverrides[NuGetProjectManager.Type] = (destinationDirectory, timeout) => new NPMProjectManager(destinationDirectory, null, _httpClientFactory); // Override the default entry for nuget and set it as another NPMProjectManager.
@@ -125,22 +124,22 @@ public class ProjectManagerFactoryTests
     /// <summary>
     /// Test removing an entry from the default dictionary of project manager constructors.
     /// </summary>
-    [TestMethod]
+    [Fact]
     public void RemoveProjectManagerSucceeds()
     {
-        Assert.IsTrue(_managerOverrides.Remove(NuGetProjectManager.Type));
+        Assert.True(_managerOverrides.Remove(NuGetProjectManager.Type));
 
         ProjectManagerFactory projectManagerFactory = new(_managerOverrides);
 
         PackageURL packageUrl = new("pkg:nuget/foo");
-        Assert.IsNull(projectManagerFactory.CreateProjectManager(packageUrl));
+        Assert.Null(projectManagerFactory.CreateProjectManager(packageUrl));
     }
 
     /// <summary>
     /// Test removing all project managers from the dictionary of project manager constructors.
     /// </summary>
     /// <remarks>The <see cref="ProjectManagerFactory"/> should only ever return null in this case.</remarks>
-    [TestMethod]
+    [Fact]
     public void RemoveAllProjectManagersSucceeds()
     {
         _managerOverrides.Clear();
@@ -152,14 +151,14 @@ public class ProjectManagerFactoryTests
         foreach (PackageURL packageUrl in ProjectManagerFactory.GetDefaultManagers(_httpClientFactory).Keys
                      .Select(purlType => new PackageURL($"pkg:{purlType}/foo")))
         {
-            Assert.IsNull(projectManagerFactory.CreateProjectManager(packageUrl));
+            Assert.Null(projectManagerFactory.CreateProjectManager(packageUrl));
         }
     }
 
     /// <summary>
     /// Test that timeout is set if a value is passed.
     /// </summary>
-    [TestMethod]
+    [Fact]
     public void CreateProjectManagerSetsTimeOutCorrectly()
     {
         // Arrange
@@ -172,14 +171,14 @@ public class ProjectManagerFactoryTests
         IBaseProjectManager? testProjectManagerWithoutTimeout = projectManagerFactory.CreateProjectManager(testPackageUrl, ".");
 
         // Assert
-        Assert.AreEqual(testTimeout, testProjectManager?.Timeout);
-        Assert.IsNull(testProjectManagerWithoutTimeout?.Timeout);
+        Assert.Equal(testTimeout, testProjectManager?.Timeout);
+        Assert.Null(testProjectManagerWithoutTimeout?.Timeout);
     }
 
     /// <summary>
     /// Test that requests time out after the timespan if specified.
     /// </summary>
-    [TestMethod]
+    [Fact]
     public async Task PackageManagerRequestsTimeOutCorrectly()
     {
         // Arrange
@@ -204,11 +203,12 @@ public class ProjectManagerFactoryTests
         Mock<NPMProjectManager> testProjectManager = new Mock<NPMProjectManager>(".", new NoOpPackageActions(), httpFactory, null) { CallBase = true };
 
         //Act
-        Exception exception = await Assert.ThrowsExceptionAsync<TaskCanceledException>(() => testProjectManager.Object.DownloadVersionAsync(testPackageUrl, false, false));
+        //Exception exception = await Assert.ThrowsExceptionAsync<TaskCanceledException>(() => 
+        var action = async () => await testProjectManager.Object.DownloadVersionAsync(testPackageUrl, false, false);
 
         //Assert
-        Assert.IsNotNull(exception.InnerException);
-        Assert.IsInstanceOfType(exception.InnerException, typeof(TimeoutException));
+        await action.Should().ThrowAsync<TaskCanceledException>()
+            .Where(ex => ex.InnerException != null && ex.InnerException.GetType() == typeof(TimeoutException));
     }
 
     /// <summary>
@@ -222,8 +222,8 @@ public class ProjectManagerFactoryTests
             PackageURL packageUrl = new($"pkg:{purlType}/foo");
             IBaseProjectManager? expectedManager = ctor.Invoke();
             IBaseProjectManager? manager = projectManagerFactory.CreateProjectManager(packageUrl);
-            Assert.AreEqual(expectedManager?.ManagerType, manager?.ManagerType);
-            Assert.AreEqual(expectedManager?.GetType(), manager?.GetType());
+            Assert.Equal(expectedManager?.ManagerType, manager?.ManagerType);
+            Assert.Equal(expectedManager?.GetType(), manager?.GetType());
         }
     }
 }

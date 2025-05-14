@@ -39,7 +39,7 @@ extends:
           poolOs: windows
           projectPath: 'src/oss-tests/oss-tests.csproj'
           dotnetTestArgs: '-- --coverage --report-trx'
-
+          
     - stage: Build
       jobs:
         - template: dotnet-build-job.yml@templates

@@ -37,8 +37,9 @@ extends:
           poolName: MSSecurity-1ES-Build-Agents-Pool
           poolImage: MSSecurity-1ES-Windows-2022
           poolOs: windows
-          projectPath: 'src/oss-tests/oss-tests.csproj'
-          dotnetTestArgs: '--verbosity diag -- --coverage --report-trx'
+          projectPath: 'src/oss-tests/oss-tests.csproj'     
+          dotnetTestArgs: '--logger:"console;verbosity=detailed" --logger:"trx;LogFileName=test_results.trx" -- --coverage'
+
 
     - stage: Build
       jobs:

@@ -9,7 +9,6 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
     using Model.PackageExistence;
     using Moq;
     using Newtonsoft.Json;
-    using NuGet.Packaging;
     using NuGet.Protocol;
     using oss;
     using PackageActions;
@@ -26,7 +25,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
     using VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
-    public class NuGetProjectManagerTests
+    public class NuGetProjectManagerV3Tests
     {
         private JsonSerializerSettings NugetJsonSerializationSettings = JsonExtensions.ObjectSerializationSettings;
         private readonly IDictionary<string, string> _packages = new Dictionary<string, string>()
@@ -64,7 +63,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         private NuGetProjectManager _projectManager;
         private readonly IHttpClientFactory _httpFactory;
 
-        public NuGetProjectManagerTests()
+        public NuGetProjectManagerV3Tests()
         {
             Mock<IHttpClientFactory> mockFactory = new();
 
@@ -91,7 +90,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
             _httpFactory = mockFactory.Object;
-            _projectManager = new NuGetProjectManager(".", new NuGetPackageActions(), _httpFactory);
+            _projectManager = new NuGetProjectManager(".", NuGetPackageActions.CreateV3(), _httpFactory);
         }
 
         [DataTestMethod]
@@ -524,6 +523,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             Assert.AreEqual(new PackageVersionNotFound(), existence);
         }
 
+
         [DataTestMethod]
         [DataRow("pkg:nuget/razorengine@4.2.3-beta1", "2015-10-06T17:53:46.37+00:00")]
         [DataRow("pkg:nuget/razorengine@4.5.1-alpha001", "2017-09-02T05:17:55.973-04:00")]
@@ -556,6 +556,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             Assert.AreEqual(expectedReserved, isReserved);
         }
 
+        [TestMethod]
         public async Task SkipsRepositoryMetadataFetchSuccessfully()
         {
             PackageURL purl = new("pkg:nuget/newtonsoft.json@13.0.1");
@@ -592,16 +593,16 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
         public async Task GetArtifactDownloadUrisSucceeds_Async(string purlString, string expectedNuPkgUrl, string expectedNuSpecUri)
         {
             PackageURL purl = new(purlString);
-            List<ArtifactUri<NuGetProjectManager.NuGetArtifactType>> uris = _projectManager.GetArtifactDownloadUris(purl).ToList();
+            List<ArtifactUri<BaseNuGetProjectManager.NuGetArtifactType>> uris = _projectManager.GetArtifactDownloadUris(purl).ToList();
 
             var nupkgArtifactUri = uris
-                .First(it => it.Type == NuGetProjectManager.NuGetArtifactType.Nupkg);
+                .First(it => it.Type == BaseNuGetProjectManager.NuGetArtifactType.Nupkg);
 
             Assert.AreEqual(expectedNuPkgUrl, nupkgArtifactUri.Uri.ToString());
             Assert.IsTrue(await _projectManager.UriExistsAsync(nupkgArtifactUri.Uri));
 
             var nuspecArtifactUrl = uris
-                .First(it => it.Type == NuGetProjectManager.NuGetArtifactType.Nuspec);
+                .First(it => it.Type == BaseNuGetProjectManager.NuGetArtifactType.Nuspec);
             
             Assert.AreEqual(expectedNuSpecUri, nuspecArtifactUrl.Uri.ToString());
             Assert.IsTrue(await _projectManager.UriExistsAsync(nuspecArtifactUrl.Uri));

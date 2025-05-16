@@ -3,6 +3,7 @@
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using Contracts;
+    using Microsoft.CST.OpenSource.Extensions;
     using Microsoft.CST.OpenSource.Helpers;
     using Microsoft.CST.OpenSource.Model;
     using Microsoft.CST.OpenSource.PackageActions;
@@ -48,7 +49,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 throw new ArgumentException("Invalid package URL for Conda.");
             }
 
-            string? type = purl?.Qualifiers?.GetValueOrDefault(TypeQualifier);
+            string? type = purl?.GetQualifierValueOrDefault(TypeQualifier);
             if (type is null)
             {
                 string condaFileUrl = GetPackageDownloadUrl(purl!, CondaFileType);
@@ -94,9 +95,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         {
             string? name = purl?.Name;
             string? version = purl?.Version;
-            string? build = purl?.Qualifiers?.GetValueOrDefault(BuildQualifier);
-            string? subDir = purl?.Qualifiers?.GetValueOrDefault(SubdirQualifier);
-            string? type = purl?.Qualifiers?.GetValueOrDefault(TypeQualifier);
+            string? build = purl?.GetQualifierValueOrDefault(BuildQualifier);
+            string? subDir = purl?.GetQualifierValueOrDefault(SubdirQualifier);
+            string? type = purl?.GetQualifierValueOrDefault(TypeQualifier);
 
             if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(version) || string.IsNullOrEmpty(build) || string.IsNullOrEmpty(subDir))
             {
@@ -119,9 +120,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             string build = purl.Qualifiers[BuildQualifier];
             string subDir = purl.Qualifiers[SubdirQualifier];
 
-            string channel = purl?.Qualifiers?.GetValueOrDefault("channel") ?? DefaultChannel;
-            string type = purl?.Qualifiers?.GetValueOrDefault(TypeQualifier) ?? defaultType;
-            string feedUrl = (purl.Qualifiers?.GetValueOrDefault("repository_url") ?? DEFAULT_CONDA_ENDPOINT).EnsureTrailingSlash();
+            string channel = purl?.GetQualifierValueOrDefault("channel", DefaultChannel)!;
+            string type = purl?.GetQualifierValueOrDefault(TypeQualifier, defaultType)!;
+            string feedUrl = purl?.GetRepositoryUrlOrDefault(DEFAULT_CONDA_ENDPOINT)?.EnsureTrailingSlash()!;
 
             // Check https://docs.conda.io/projects/conda-build/en/latest/concepts/package-naming-conv.html#index-4
             // for details on Conda naming conventions.

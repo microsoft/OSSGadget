@@ -140,6 +140,7 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("pkg:nuget/RandomType@2.0.0", "RandomType.nuspec", 1)]
         [DataRow("pkg:nuget/d3.TypeScript.DefinitelyTyped", "d3.TypeScript.DefinitelyTyped.nuspec", 1)]
         [DataRow("pkg:nuget/boxer@0.1.0-preview1", "boxer.nuspec", 1)]
+        [DataRow("pkg:nuget/PSScriptAnalyzer@1.23.0?repository_url=https://www.powershellgallery.com/api/v2/", "PSScriptAnalyzer.nuspec", 1)]
         public async Task NuGet_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
         {
             await TestDownload(purl, targetFilename, expectedDirectoryCount);
@@ -149,6 +150,7 @@ namespace Microsoft.CST.OpenSource.Tests
         [DataRow("pkg:npm/moment@*", "package.json")]
         [DataRow("pkg:nuget/RandomType@*", "RandomType.nuspec")]
         [DataRow("pkg:nuget/Newtonsoft.Json@*", "newtonsoft.json.nuspec")]
+        [DataRow("pkg:nuget/PSScriptAnalyzer@*?repository_url=https://www.powershellgallery.com/api/v2/", "PSScriptAnalyzer.nuspec")]
         public async Task Wildcard_Download_Version_Succeeds(string packageUrl, string targetFilename)
         {
             PackageURL purl = new(packageUrl);

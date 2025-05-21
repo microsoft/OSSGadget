@@ -37,9 +37,18 @@ extends:
           poolName: MSSecurity-1ES-Build-Agents-Pool
           poolImage: MSSecurity-1ES-Windows-2022
           poolOs: windows
-          projectPath: 'src/oss-tests/oss-tests.csproj'
-          dotnetTestArgs: '-- --coverage --report-trx'
-          
+          projectPath: 'src/oss-tests/oss-tests.csproj'     
+          dotnetTestArgs: '--logger:"console;verbosity=detailed" --logger:"trx;LogFileName=test_results.trx" -- --coverage'
+          postTest:
+          - task: PublishTestResults@2
+            displayName: 'Publish Test Results'
+            inputs:
+              testResultsFormat: 'VSTest'
+              testResultsFiles: '**/*.trx'
+              failTaskOnFailedTests: true
+              testRunTitle: 'OSS Gadget Tests'
+              publishRunAttachments: true
+
     - stage: Build
       jobs:
         - template: dotnet-build-job.yml@templates

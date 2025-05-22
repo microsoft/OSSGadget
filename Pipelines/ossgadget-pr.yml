@@ -40,14 +40,8 @@ extends:
           projectPath: 'src/oss-tests/oss-tests.csproj'     
           dotnetTestArgs: '--logger:"console;verbosity=detailed" --logger:"trx;LogFileName=test_results.trx" -- --coverage'
           postTest:
-          - task: PublishTestResults@2
-            displayName: 'Publish Test Results'
-            inputs:
-              testResultsFormat: 'VSTest'
-              testResultsFiles: '**/*.trx'
-              failTaskOnFailedTests: true
-              testRunTitle: 'OSS Gadget Tests'
-              publishRunAttachments: true
+          - script: type $(Build.SourcesDirectory)/src/oss-tests/bin/Debug/net8.0/TestResults/oss-tests_net8.0_x64.log
+            displayName: 'Print test log'
 
     - stage: Build
       jobs:

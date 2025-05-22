@@ -40,7 +40,7 @@ extends:
           projectPath: 'src/oss-tests/oss-tests.csproj'     
           dotnetTestArgs: '--logger:"console;verbosity=detailed" --logger:"trx;LogFileName=test_results.trx" -- --coverage'
           postTest:
-          - script: type $(Build.SourcesDirectory)/src/oss-tests/bin/Debug/net8.0/TestResults/oss-tests_net8.0_x64.log
+          - script: type $(Build.SourcesDirectory)\src\oss-tests\bin\Debug\net8.0\TestResults\oss-tests_net8.0_x64.log
             displayName: 'Print test log'
 
     - stage: Build

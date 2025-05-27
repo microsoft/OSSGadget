@@ -217,14 +217,44 @@
   <data name="maven_ant_1.6_pom" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\TestData\Maven\maven_ant_1.6.pom;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="maven_microsoft_fluentui_listitem_0.0.8_html" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\TestData\Maven\maven_microsoft_fluentui_listitem_0.0.8.html;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="maven_core_metadata_xml" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\Maven\maven_core_metadata.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="maven_microsoft_fluentui_listitem_all_html" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\TestData\Maven\maven_microsoft_fluentui_listitem_all.html;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="maven_core_1.0.0_alpha2_aar" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\Maven\maven_core_1.0.0_alpha2.aar;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="maven_microsoft_fluentui_listitem_metadata_xml" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\TestData\Maven\maven_microsoft_fluentui_listitem_metadata.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="maven_core_1.0.0_alpha2_html" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\Maven\maven_core_1.0.0_alpha2.html;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="maven_core_1.0.0_alpha2_pom" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\Maven\maven_core_1.0.0_alpha2.pom;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="maven_core_1.0.0_alpha2_sources_jar" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\Maven\maven_core_1.0.0_alpha2-sources.jar;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="maven_cose_metadata_xml" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\Maven\maven_cose_metadata.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="maven_cose_20230908_pom" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\Maven\maven_cose_20230908.pom;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="maven_cose_20230908_jar" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\Maven\maven_cose_20230908.jar;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="maven_cose_20230908_javadoc_jar" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\Maven\maven_cose_20230908-javadoc.jar;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="maven_cose_20230908_artifact_metadata_json" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\Maven\maven_cose_20230908_artifact_metadata.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="maven_fluentui_listitem_0.0.8_html" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\Maven\maven_fluentui_listitem_0.0.8.html;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="maven_fluentui_listitem_all_html" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\Maven\maven_fluentui_listitem_all.html;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="maven_fluentui_listitem_metadata_xml" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\TestData\Maven\maven_fluentui_listitem_metadata.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="maven_fluentui_listitem_0.0.8_pom" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\TestData\Maven\maven_fluentui_listitem_0.0.8.pom;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>

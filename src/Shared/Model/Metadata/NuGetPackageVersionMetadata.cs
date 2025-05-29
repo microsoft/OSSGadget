@@ -182,7 +182,7 @@ public record NuGetPackageVersionMetadata : IManagerPackageVersionMetadata
         DownloadCount = metadata.Properties?.DownloadCount;
         Name = metadata.Name;
         Version = metadata.Version;
-        Published = metadata.Updated;
+        Published = metadata.Properties?.Published;
         Owners = metadata.Properties?.Owners ?? string.Empty;
         Tags = metadata.Properties?.Tags;
         Title = metadata.Title;

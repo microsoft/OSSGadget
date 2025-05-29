@@ -93,9 +93,9 @@ public class ProjectManagerFactoryTests
     public void OverrideManagerSucceeds()
     {
         _managerOverrides[BaseNuGetProjectManager.Type] =
-            (destinationDirectory, timeout, packageUrl) => new NuGetProjectManager("nugetTestDirectory", null, _httpClientFactory); // Override the default entry for nuget, and override the destinationDirectory.
+            (destinationDirectory, timeout, _) => new NuGetProjectManager("nugetTestDirectory", null, _httpClientFactory); // Override the default entry for nuget, and override the destinationDirectory.
         _managerOverrides[NPMProjectManager.Type] =
-            (destinationDirectory, timeout, packageUrl) => new NPMProjectManager("npmTestDirectory", null, _httpClientFactory); // Override the default entry for npm, and override the destinationDirectory.
+            (destinationDirectory, timeout, _) => new NPMProjectManager("npmTestDirectory", null, _httpClientFactory); // Override the default entry for npm, and override the destinationDirectory.
 
         ProjectManagerFactory projectManagerFactory = new(_managerOverrides);
 

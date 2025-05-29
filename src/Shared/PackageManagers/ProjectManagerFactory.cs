@@ -18,6 +18,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <remarks>The only runtime parameter we need is the destination directory. Everything else can be defined in the constructor call itself.</remarks>
         /// <param name="destinationDirectory">The destination that any files should be saved to when downloading from this ProjectManager, defaults to the runtime directory.</param>
         /// <param name="timeout">The <see cref="TimeSpan"/> to wait before the request times out.</param>
+        /// <param name="packageUrl">Optional <see cref="PackageURL"/> The pURL being for which a project manager is being constructred.  Currently only necessary for NuGet in order to discriminate between NuGet v2 and v3 APIs.</param>
         /// <returns>An implementation of the <see cref="BaseProjectManager"/> class, or null if unable to construct.</returns>
         /// <example>
         /// destinationDirectory =>

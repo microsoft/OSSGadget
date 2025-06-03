@@ -231,6 +231,17 @@ public class CargoProjectManagerTests
 
     [Theory]
     [InlineData("pkg:cargo/rand@0.7.3")]
+    public async Task PackageExistsAsyncSucceeds(string purlString)
+    {
+        PackageURL purl = new(purlString);
+
+        bool result = await _projectManager.PackageExistsAsync(purl, useCache: false);
+
+        result.Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData("pkg:cargo/rand@0.7.3")]
     public async Task PackageVersionExistsAsyncSucceeds(string purlString)
     {
         PackageURL purl = new(purlString);

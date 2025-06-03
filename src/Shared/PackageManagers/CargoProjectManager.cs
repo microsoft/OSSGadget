@@ -157,6 +157,26 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
             string packageName = purl.Name;
             HttpClient httpClient = CreateHttpClient();
+
+            try
+            {
+                string rssFeedUrl = $"{ENV_CARGO_ENDPOINT_STATIC}/rss/crates/{packageName}.xml";
+                string? rssFeedContent = await GetHttpStringCache(httpClient, rssFeedUrl, useCache);
+
+                if (!string.IsNullOrEmpty(rssFeedContent))
+                {
+                    XDocument doc = XDocument.Parse(rssFeedContent);
+                    if (doc.Descendants("title").Any(e => e.Value.Contains(packageName)))
+                    {
+                        Logger.Debug("Package {0} exists and found in RSS feed.", packageName);
+                        return true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Debug(ex, "Unable to find package {0} in RSS feed with exception {1}. Fall back to checking using raw github endpoint.", packageName, ex.Message);
+            }
             // NOTE: The file isn't valid json, so use the custom rule.
             return await CheckJsonCacheForPackage(httpClient, $"{ENV_CARGO_INDEX_ENDPOINT}/{CreatePath(packageName)}", useCache: useCache, jsonParsingOption: JsonParsingOption.NotInArrayNotCsv);
         }

@@ -5,6 +5,7 @@ namespace Microsoft.CST.OpenSource.PackageActions;
 using Microsoft.CST.OpenSource.Contracts;
 using Microsoft.CST.OpenSource.Helpers;
 using Microsoft.CST.OpenSource.Model.Metadata;
+using Microsoft.CST.OpenSource.PackageManagers;
 using Microsoft.CST.OpenSource.Utilities;
 using NLog;
 using NuGet.Packaging.Core;
@@ -14,7 +15,6 @@ using NuGet.Versioning;
 using PackageUrl;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -23,8 +23,34 @@ using System.Threading.Tasks;
 public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMetadata>
 {
     private readonly SourceCacheContext _sourceCacheContext = new();
-    private readonly SourceRepository _sourceRepository = Repository.Factory.GetCoreV3("https://api.nuget.org/v3/index.json");
     private readonly NuGetLogger _logger = new(LogManager.GetCurrentClassLogger());
+    private readonly SourceRepository _sourceRepository;
+
+    /// <summary>
+    /// Creates a new instance of <see cref="NuGetPackageActions"/> using a V2 source repository.
+    /// </summary>
+    /// <param name="source">The source URL for the V2 repository. Defaults to the PowerShell Gallery index.</param>
+    /// <returns>A new instance of <see cref="NuGetPackageActions"/>.</returns>
+    public static NuGetPackageActions CreateV2(string source = NuGetV2ProjectManager.POWER_SHELL_GALLERY_DEFAULT_INDEX) => new(Repository.Factory.GetCoreV2(new(source)));
+
+    /// <summary>
+    /// Creates a new instance of <see cref="NuGetPackageActions"/> using a V3 source repository.
+    /// </summary>
+    /// <param name="source">The source URL for the V3 repository. Defaults to the NuGet default index.</param>
+    /// <returns>A new instance of <see cref="NuGetPackageActions"/>.</returns>
+    public static NuGetPackageActions CreateV3(string source = NuGetProjectManager.NUGET_DEFAULT_INDEX) => new(Repository.Factory.GetCoreV3(source));
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="NuGetPackageActions"/> class.
+    /// </summary>
+    /// <param name="sourceRepository">The source repository to use for package actions.</param>
+    /// <remarks>
+    /// This constructor also retrieves the <see cref="FindPackageByIdResource"/> from the provided repository.
+    /// </remarks>
+    public NuGetPackageActions(SourceRepository sourceRepository)
+    {
+        _sourceRepository = sourceRepository;
+    }
 
     /// <inheritdoc />
     public async Task<string?> DownloadAsync(
@@ -42,7 +68,7 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
 
         // Create a new FileStream to populate with the contents of the .nupkg from CopyNupkgToStreamAsync.
         int bufferSize = 4096;
-        await using FileStream packageStream = new FileStream(
+        await using FileStream packageStream = new(
             filePath,
             FileMode.Create,
             FileAccess.ReadWrite,
@@ -56,15 +82,15 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
             NuGetVersion.Parse(packageUrl.Version),
             packageStream,
             _sourceCacheContext,
-            _logger, 
+            _logger,
             cancellationToken);
-        
+
         // If the download failed, return null.
         if (!downloaded)
         {
             return null;
         }
-        
+
         // If we want to extract the contents of the .nupkg, send it to ArchiveHelper.ExtractArchiveAsync.
         if (doExtract)
         {
@@ -89,17 +115,17 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
                 packageUrl.Name,
                 NuGetVersion.Parse(packageUrl.Version),
                 _sourceCacheContext,
-                _logger, 
+                _logger,
                 cancellationToken);
 
             return exists;
         }
-        
+
         // If no version is provided, check to see if any versions exist on a package with the given name.
         IEnumerable<NuGetVersion> versions = await resource.GetAllVersionsAsync(
             packageUrl.Name,
             _sourceCacheContext,
-            _logger, 
+            _logger,
             cancellationToken);
 
         return versions.Any();
@@ -117,7 +143,7 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
         IEnumerable<NuGetVersion> versionsAscending = await resource.GetAllVersionsAsync(
             packageUrl.Name,
             _sourceCacheContext,
-            _logger, 
+            _logger,
             cancellationToken);
 
         return versionsAscending
@@ -125,7 +151,7 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
             .Select(v => v.ToString())
             .Reverse(); // We want the versions in descending order.
     }
-    
+
     /// <inheritdoc />
     public async Task<string?> GetLatestVersionAsync(
         PackageURL packageUrl,
@@ -138,7 +164,7 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
         IEnumerable<NuGetVersion> versionsAscending = await resource.GetAllVersionsAsync(
             packageUrl.Name,
             _sourceCacheContext,
-            _logger, 
+            _logger,
             cancellationToken);
 
         return versionsAscending
@@ -161,13 +187,19 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
 
         PackageIdentity packageIdentity = new(packageUrl.Name, NuGetVersion.Parse(version));
 
-        PackageSearchMetadataRegistration? packageVersion = await resource.GetMetadataAsync(
+        // Get the metadata
+        IPackageSearchMetadata packageSearchMetadata = await resource.GetMetadataAsync(
             packageIdentity,
             _sourceCacheContext,
-            _logger, 
-            cancellationToken) as PackageSearchMetadataRegistration;
+            _logger,
+            cancellationToken);
 
-        return packageVersion != null ? new NuGetPackageVersionMetadata(packageVersion) : null;
+        return packageSearchMetadata switch
+        {
+            PackageSearchMetadataRegistration packageSearchMetadataRegistration => new NuGetPackageVersionMetadata(packageSearchMetadataRegistration),
+            not null => new NuGetPackageVersionMetadata(packageSearchMetadata),
+            _ => null
+        };
     }
 
     /// <inheritdoc />
@@ -177,16 +209,20 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
 
         SearchFilter searchFilter = new(includePrerelease: true);
 
-        IPackageSearchMetadata result = (await resource.SearchAsync(
+        IPackageSearchMetadata? result = (await resource.SearchAsync(
             packageUrl.Name,
             searchFilter,
             skip: 0,
             take: 1,
             _logger,
-            cancellationToken)).First();
+            cancellationToken)).FirstOrDefault();
 
-        return result.Identity.Id
-                   .Equals(packageUrl.Name, StringComparison.InvariantCultureIgnoreCase) &&
-               result.PrefixReserved;
+        if (result == null)
+        {
+            // If no results were found, the package does not exist or is not reserved.
+            return false;
+        }
+
+        return result.Identity.Id.Equals(packageUrl.Name, StringComparison.InvariantCultureIgnoreCase) && result.PrefixReserved;
     }
 }

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. Licensed under the MIT License.
 
 // ReSharper disable FieldCanBeMadeReadOnly.Global
+using Microsoft.CST.OpenSource.Extensions;
+
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
     using Contracts;
@@ -20,22 +22,16 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Text.Json;
     using System.Threading.Tasks;
 
-    public class NuGetProjectManager : TypedManager<NuGetPackageVersionMetadata, NuGetProjectManager.NuGetArtifactType>
+    public class NuGetProjectManager : BaseNuGetProjectManager
     {
-        /// <summary>
-        /// The type of the project manager from the package-url type specifications.
-        /// </summary>
-        /// <seealso href="https://www.github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst"/>
-        public const string Type = "nuget";
-
         public override string ManagerType => Type;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public string ENV_NUGET_ENDPOINT_API { get; set; } = "https://api.nuget.org";
-        
+
         // Unused currently.
         public string ENV_NUGET_ENDPOINT { get; set; } = "https://www.nuget.org";
-        
+
         // These are named Default, do they need to be overridden as well?
         public const string NUGET_DEFAULT_REGISTRATION_ENDPOINT = "https://api.nuget.org/v3/registration5-gz-semver2/";
         public const string NUGET_DEFAULT_CONTENT_ENDPOINT = "https://api.nuget.org/v3-flatcontainer/";
@@ -48,7 +44,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             IManagerPackageActions<NuGetPackageVersionMetadata>? actions = null,
             IHttpClientFactory? httpClientFactory = null,
             TimeSpan? timeout = null)
-            : base(actions ?? new NuGetPackageActions(), httpClientFactory ?? new DefaultHttpClientFactory(), directory, timeout)
+            : base(actions ?? NuGetPackageActions.CreateV3(), httpClientFactory ?? new DefaultHttpClientFactory(), directory, timeout)
         {
             GetRegistrationEndpointAsync().Wait();
         }
@@ -57,22 +53,15 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public override async IAsyncEnumerable<ArtifactUri<NuGetArtifactType>> GetArtifactDownloadUrisAsync(PackageURL purl, bool useCache = true)
         {
             Check.NotNull(nameof(purl.Version), purl.Version);
-            if (purl.Qualifiers?.TryGetValue("repository_url", out var repositoryUrlQualifier) == true && repositoryUrlQualifier != NUGET_DEFAULT_INDEX)
+            if (purl.TryGetRepositoryUrl(out string? repositoryUrlQualifier) && repositoryUrlQualifier != NUGET_DEFAULT_INDEX)
             {
                 // Throw an exception until we implement proper support for service indices other than nuget.org
                 throw new NotImplementedException(
                     $"NuGet package URLs having a repository URL other than '{NUGET_DEFAULT_INDEX}' are not currently supported.");
             }
-            
+
             yield return new ArtifactUri<NuGetArtifactType>(NuGetArtifactType.Nupkg, GetNupkgUrl(purl.Name, purl.Version));
             yield return new ArtifactUri<NuGetArtifactType>(NuGetArtifactType.Nuspec, GetNuspecUrl(purl.Name, purl.Version));
-        }
-
-        /// <inheritdoc />
-        public override async IAsyncEnumerable<PackageURL> GetPackagesFromOwnerAsync(string owner, bool useCache = true)
-        {
-            throw new NotImplementedException("Haven't found a way to implement this yet!");
-            yield break;
         }
 
         /// <summary>
@@ -153,8 +142,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     packageVersion = latestVersion;
                 }
                 // Construct a new PackageURL that's guaranteed to have a version.
-                PackageURL purlWithVersion = new (purl.Type, purl.Namespace, packageName, packageVersion, purl.Qualifiers, purl.Subpath);
-                
+                PackageURL purlWithVersion = new(purl.Type, purl.Namespace, packageName, packageVersion, purl.Qualifiers, purl.Subpath);
+
                 NuGetPackageVersionMetadata? packageVersionMetadata =
                     await Actions.GetMetadataAsync(purlWithVersion, useCache: useCache);
 
@@ -172,17 +161,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             return new Uri($"{ENV_NUGET_HOMEPAGE}/{purl?.Name}");
         }
 
-        /// <summary>
-        /// Gets if the package is a part of a reserved prefix.
-        /// </summary>
-        /// <param name="purl">The package url to check.</param>
-        /// <param name="useCache">If the cache should be used.</param>
-        /// <returns>True if the package is verified to be in a reserved prefix, false if not.</returns>
-        public async Task<bool> GetHasReservedNamespaceAsync(PackageURL purl, bool useCache = true)
-        {
-            return await Actions.GetHasReservedNamespaceAsync(purl, useCache: useCache);
-        }
-        
         /// <inheritdoc />
         public override async Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool includePrerelease = false, bool useCache = true, bool includeRepositoryMetadata = true)
         {
@@ -200,26 +178,27 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 return null;
             }
 
-            PackageMetadata metadata = new();
+            PackageMetadata metadata = new()
+            {
+                Name = packageVersionMetadata.Name,
+                Description = packageVersionMetadata.Description,
 
-            metadata.Name = packageVersionMetadata.Name;
-            metadata.Description = packageVersionMetadata.Description;
+                PackageManagerUri = ENV_NUGET_ENDPOINT_API,
+                Platform = "NUGET",
+                Language = "C#",
+                PackageUri = $"{ENV_NUGET_HOMEPAGE}/{packageVersionMetadata.Name.ToLowerInvariant()}",
+                ApiPackageUri = $"{RegistrationEndpoint}{packageVersionMetadata.Name.ToLowerInvariant()}/index.json",
 
-            metadata.PackageManagerUri = ENV_NUGET_ENDPOINT_API;
-            metadata.Platform = "NUGET";
-            metadata.Language = "C#";
-            metadata.PackageUri = $"{ENV_NUGET_HOMEPAGE}/{packageVersionMetadata.Name.ToLowerInvariant()}";
-            metadata.ApiPackageUri = $"{RegistrationEndpoint}{packageVersionMetadata.Name.ToLowerInvariant()}/index.json";
-
-            metadata.PackageVersion = purlWithVersion.Version;
-            metadata.LatestPackageVersion = latestVersion;
+                PackageVersion = purlWithVersion.Version,
+                LatestPackageVersion = latestVersion
+            };
 
             // Get the metadata for either the specified package version, or the latest package version
             await UpdateVersionMetadata(metadata, packageVersionMetadata, includeRepositoryMetadata);
 
             return metadata;
         }
-        
+
         /// <inheritdoc/>
         public override async Task<bool> PackageExistsAsync(PackageURL purl, bool useCache = true)
         {
@@ -261,7 +240,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             // Set the version specific URI values.
             metadata.VersionUri = $"{metadata.PackageManagerUri}/packages/{packageVersionMetadata.Name}/{metadata.PackageVersion}";
             metadata.ApiVersionUri = packageVersionMetadata.CatalogUri.ToString();
-            
+
             // Construct the artifact contents url.
             metadata.VersionDownloadUri = GetNupkgUrl(packageVersionMetadata.Name, metadata.PackageVersion);
 
@@ -274,15 +253,15 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             UpdateMetadataAuthorsAndMaintainers(metadata, packageVersionMetadata);
 
             // Repository
-            if(includeRepositoryMetadata)
+            if (includeRepositoryMetadata)
             {
                 await UpdateMetadataRepository(metadata);
             }
 
             // Dependencies
             IList<PackageDependencyGroup> dependencyGroups = packageVersionMetadata.DependencySets?.ToList() ?? new List<PackageDependencyGroup>();
-            metadata.Dependencies ??= dependencyGroups.SelectMany(group => group.Packages, (dependencyGroup, package) => new { dependencyGroup, package})
-                .Select(dependencyGroupAndPackage => new Dependency() { Package = dependencyGroupAndPackage.package.ToString(), Framework = dependencyGroupAndPackage.dependencyGroup.TargetFramework?.ToString()})
+            metadata.Dependencies ??= dependencyGroups.SelectMany(group => group.Packages, (dependencyGroup, package) => new { dependencyGroup, package })
+                .Select(dependencyGroupAndPackage => new Dependency() { Package = dependencyGroupAndPackage.package.ToString(), Framework = dependencyGroupAndPackage.dependencyGroup.TargetFramework?.ToString() })
                 .ToList();
 
             // Keywords
@@ -337,7 +316,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 {
                     Type = "github"
                 };
-                
+
                 await ghRepository.ExtractRepositoryMetadata(githubPurl!);
 
                 metadata.Repository ??= new List<Repository>();
@@ -401,7 +380,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                         mapping.Add(githubPurl, 1.0F);
                     }
                 }
-                
+
                 return mapping;
             }
             catch (Exception ex)
@@ -412,7 +391,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             // If nothing worked, return the default empty dictionary
             return mapping;
         }
-        
+
         private NuspecReader? GetNuspec(string id, string version)
         {
             string lowerId = id.ToLowerInvariant();
@@ -436,11 +415,5 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public string ENV_NUGET_HOMEPAGE { get; set; } = "https://www.nuget.org/packages";
 
-        public enum NuGetArtifactType
-        {
-            Unknown = 0,
-            Nupkg,
-            Nuspec,
-        }
     }
 }

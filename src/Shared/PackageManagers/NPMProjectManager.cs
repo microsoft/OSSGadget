@@ -53,7 +53,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public override async IAsyncEnumerable<ArtifactUri<NPMArtifactType>> GetArtifactDownloadUrisAsync(PackageURL purl, bool useCache = true)
         {
             Check.NotNull(nameof(purl.Version), purl.Version);
-            string feedUrl = (purl.Qualifiers?["repository_url"] ?? ENV_NPM_API_ENDPOINT).EnsureTrailingSlash();
+            string? feedUrl = purl?.GetRepositoryUrlOrDefault(ENV_NPM_API_ENDPOINT)?.EnsureTrailingSlash();
 
             string artifactUri = purl.HasNamespace() ? 
                 $"{feedUrl}{purl.GetNamespaceFormatted()}/{purl.Name}/-/{purl.Name}-{purl.Version}.tgz" : // If there's a namespace.

@@ -700,6 +700,101 @@ namespace oss {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &lt;service xmlns=&quot;http://www.w3.org/2007/app&quot; xmlns:atom=&quot;http://www.w3.org/2005/Atom&quot; xml:base=&quot;https://www.powershellgallery.com/api/v2&quot;&gt;
+        ///  &lt;workspace&gt;
+        ///    &lt;atom:title type=&quot;text&quot;&gt;Default&lt;/atom:title&gt;
+        ///    &lt;collection href=&quot;Packages&quot;&gt;
+        ///      &lt;atom:title type=&quot;text&quot;&gt;Packages&lt;/atom:title&gt;
+        ///    &lt;/collection&gt;
+        ///  &lt;/workspace&gt;
+        ///&lt;/service&gt;
+        ///.
+        /// </summary>
+        internal static string powershell_gallery_v2_xml {
+            get {
+                return ResourceManager.GetString("powershell_gallery_v2.xml", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+        ///&lt;entry xml:base=&quot;https://www.powershellgallery.com/api/v2&quot; xmlns=&quot;http://www.w3.org/2005/Atom&quot; xmlns:d=&quot;http://schemas.microsoft.com/ado/2007/08/dataservices&quot; xmlns:m=&quot;http://schemas.microsoft.com/ado/2007/08/dataservices/metadata&quot; xmlns:georss=&quot;http://www.georss.org/georss&quot; xmlns:gml=&quot;http://www.opengis.net/gml&quot;&gt;
+        ///  &lt;id&gt;https://www.powershellgallery.com/api/v2/Packages(Id=&apos;PSReadLine&apos;,Version=&apos;2.4.1-beta1&apos;)&lt;/id&gt;
+        ///  &lt;category term=&quot;NuGetGallery.OData.V2FeedPackage&quot; sc [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string psreadline_v2_4_1_beta_xml {
+            get {
+                return ResourceManager.GetString("psreadline_v2_4_1_beta.xml", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [
+        ///  &quot;1.0.0&quot;,
+        ///  &quot;1.1.0&quot;,
+        ///  &quot;1.2.0&quot;,
+        ///  &quot;1.2.1&quot;,
+        ///  &quot;1.2.2&quot;,
+        ///  &quot;1.2.3&quot;,
+        ///  &quot;1.2.4&quot;,
+        ///  &quot;1.2.5&quot;,
+        ///  &quot;1.2.6&quot;,
+        ///  &quot;1.2.7&quot;,
+        ///  &quot;1.2.8&quot;,
+        ///  &quot;1.2.9&quot;,
+        ///  &quot;2.0.0&quot;,
+        ///  &quot;2.0.1&quot;,
+        ///  &quot;2.0.2&quot;,
+        ///  &quot;2.0.3&quot;,
+        ///  &quot;2.0.4&quot;,
+        ///  &quot;2.0.5&quot;,
+        ///  &quot;2.0.6&quot;,
+        ///  &quot;2.0.7&quot;,
+        ///  &quot;2.0.8&quot;,
+        ///  &quot;2.0.9&quot;,
+        ///  &quot;2.1.0&quot;,
+        ///  &quot;2.2.0&quot;,
+        ///  &quot;2.2.1&quot;,
+        ///  &quot;2.2.2&quot;,
+        ///  &quot;2.2.3&quot;,
+        ///  &quot;2.2.4&quot;,
+        ///  &quot;2.2.5&quot;,
+        ///  &quot;2.2.6&quot;,
+        ///  &quot;2.2.7&quot;,
+        ///  &quot;2.2.8&quot;,
+        ///  &quot;2.2.9&quot;,
+        ///  &quot;2.3.0&quot;,
+        ///  &quot;2.3.1&quot;,
+        ///  &quot;2.3.2&quot;,
+        ///  &quot;2.3.3&quot;,
+        ///  &quot;2.3.4&quot;,
+        ///  &quot;2.3.5&quot;,
+        ///  &quot;2.3.6&quot;,
+        ///  &quot;2.3.7&quot;,
+        ///  &quot;2.3.8&quot;,
+        ///  &quot;2. [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string psreadline_versions_json {
+            get {
+                return ResourceManager.GetString("psreadline_versions.json", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+        ///&lt;feed xml:base=&quot;https://www.powershellgallery.com/api/v2&quot; xmlns=&quot;http://www.w3.org/2005/Atom&quot; xmlns:d=&quot;http://schemas.microsoft.com/ado/2007/08/dataservices&quot; xmlns:m=&quot;http://schemas.microsoft.com/ado/2007/08/dataservices/metadata&quot; xmlns:georss=&quot;http://www.georss.org/georss&quot; xmlns:gml=&quot;http://www.opengis.net/gml&quot;&gt;
+        ///  &lt;id&gt;http://schemas.datacontract.org/2004/07/&lt;/id&gt;
+        ///  &lt;title /&gt;
+        ///  &lt;updated&gt;2025-04-23T17:57:54Z&lt;/updated&gt;
+        ///  &lt;link rel=&quot;self&quot; href=&quot;https://www.powershell [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string psreadline_xml {
+            get {
+                return ResourceManager.GetString("psreadline.xml", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {
         ///  &quot;@id&quot;: &quot;https://api.nuget.org/v3/catalog0/data/2022.03.11.23.17.27/razorengine.4.2.3-beta1.json&quot;,
         ///  &quot;@type&quot;: [
@@ -761,7 +856,7 @@ namespace oss {
                 return ResourceManager.GetString("razorengine.latest.metadata.json", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to [&quot;2.1.0&quot;,&quot;3.0.0&quot;,&quot;3.0.3&quot;,&quot;3.0.4&quot;,&quot;3.0.5&quot;,&quot;3.0.6&quot;,&quot;3.0.7&quot;,&quot;3.0.8&quot;,&quot;3.1.0&quot;,&quot;3.2.0&quot;,&quot;3.3.0&quot;,&quot;3.4.0&quot;,&quot;3.4.1&quot;,&quot;3.4.2&quot;,&quot;3.5.0-beta1&quot;,&quot;3.5.0-beta2&quot;,&quot;3.5.0-beta3&quot;,&quot;3.5.0&quot;,&quot;3.5.1&quot;,&quot;3.5.2&quot;,&quot;3.5.3&quot;,&quot;3.6.0&quot;,&quot;3.6.1&quot;,&quot;3.6.2&quot;,&quot;3.6.3-beta1&quot;,&quot;3.6.3-beta2&quot;,&quot;3.6.3&quot;,&quot;3.6.4&quot;,&quot;3.6.5-beta1&quot;,&quot;3.6.5&quot;,&quot;3.6.6-beta1&quot;,&quot;3.6.6-beta2&quot;,&quot;3.6.6&quot;,&quot;3.7.0-beta1&quot;,&quot;3.7.0&quot;,&quot;3.7.1-alpha1&quot;,&quot;3.7.2&quot;,&quot;3.7.3&quot;,&quot;3.7.4&quot;,&quot;3.7.5-beta1&quot;,&quot;3.7.5-beta2&quot;,&quot;3.7.5&quot;,&quot;3.7.6&quot;,&quot;3.7.7&quot;,&quot;3.8.0&quot;,&quot;3.8.1&quot;,&quot;3.8.2&quot;,&quot;3.9.0&quot;,&quot;3.9.1&quot;,&quot;3.9.2&quot;,&quot;3.9.3&quot;,&quot;3.10.0&quot;,&quot;3.10....
         /// </summary>

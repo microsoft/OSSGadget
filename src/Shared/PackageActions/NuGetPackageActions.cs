@@ -217,8 +217,12 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
             _logger,
             cancellationToken)).FirstOrDefault();
 
-        return result.Identity.Id
-                   .Equals(packageUrl.Name, StringComparison.InvariantCultureIgnoreCase) &&
-               result.PrefixReserved;
+        if (result == null)
+        {
+            // If no results were found, the package does not exist or is not reserved.
+            return false;
+        }
+
+        return result.Identity.Id.Equals(packageUrl.Name, StringComparison.InvariantCultureIgnoreCase) && result.PrefixReserved;
     }
 }

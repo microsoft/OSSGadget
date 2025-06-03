@@ -45,7 +45,7 @@ public class FindSquatsTest
 
         // Override the NuGet constructor to add the mocked NuGetPackageActions.
         managerOverrides[BaseNuGetProjectManager.Type] =
-            (destinationDirectory, timeout, packageUrl) => new NuGetProjectManagerV3(".", nugetPackageActions, httpClientFactory);
+            (destinationDirectory, timeout, packageUrl) => new NuGetProjectManager(".", nugetPackageActions, httpClientFactory);
         
         ProjectManagerFactory projectManagerFactory = new(managerOverrides);
         FindSquatsTool fst = new(projectManagerFactory);
@@ -550,7 +550,7 @@ public class FindSquatsTest
         Dictionary<string, ProjectManagerFactory.ConstructProjectManager> overrideDict = ProjectManagerFactory.GetDefaultManagers(httpClientFactory);
 
         overrideDict[BaseNuGetProjectManager.Type] = (destinationDirectory, timeout, packageUrl) =>
-            new NuGetProjectManagerV3(destinationDirectory, packageActions, httpClientFactory);
+            new NuGetProjectManager(destinationDirectory, packageActions, httpClientFactory);
         
         FindPackageSquats findPackageSquats = new(new ProjectManagerFactory(overrideDict), newtonsoft);
 

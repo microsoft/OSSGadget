@@ -23,9 +23,8 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-    [TestClass]
-    public class NuGetProjectManagerTests
-    {
+    public class NuGetProjectManagerV3Tests
+{
         private JsonSerializerSettings NugetJsonSerializationSettings = JsonExtensions.ObjectSerializationSettings;
         private readonly IDictionary<string, string> _packages = new Dictionary<string, string>()
         {
@@ -101,7 +100,7 @@ using System.Threading.Tasks;
     public async Task TestNugetCaseInsensitiveHandlingPackageExistsSucceeds(string purlString)
     {
         PackageURL purl = new(purlString);
-        _projectManager = new NuGetProjectManagerV3(".", null, _httpFactory);
+        _projectManager = new NuGetProjectManager(".", null, _httpFactory);
 
         bool exists = await _projectManager.PackageVersionExistsAsync(purl, useCache: false);
 
@@ -123,7 +122,7 @@ using System.Threading.Tasks;
     public async Task TestNugetPackageWithNormalizedVersionInPurlExists()
     {
         PackageURL purl = new("pkg:nuget/Pulumi@3.29.0-alpha.1649173720");
-        _projectManager = new NuGetProjectManagerV3(".", null, _httpFactory);
+        _projectManager = new NuGetProjectManager(".", null, _httpFactory);
 
         bool exists = await _projectManager.PackageVersionExistsAsync(purl, useCache: false);
 

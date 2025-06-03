@@ -21,9 +21,8 @@
     using System.Net.Http;
     using System.Threading.Tasks;
     using System.Xml.Serialization;
-    using VisualStudio.TestTools.UnitTesting;
+    using Xunit;
 
-    [TestClass]
     public class NuGetProjectManagerV2Tests
     {
         private NuGetV2ProjectManager _projectManager;
@@ -69,22 +68,22 @@
             _projectManager = new NuGetV2ProjectManager(".", NuGetPackageActions.CreateV2(), _httpFactory);
         }
 
-        [DataTestMethod]
-        [DataRow("pkg:nuget/PSReadLine@2.4.1-beta1?repository_url=https://www.powershellgallery.com/api/v2/")]
-        [DataRow("pkg:nuget/psreadline@2.4.1-beta1?repository_url=https://www.powershellgallery.com/api/v2/")]
-        [DataRow("pkg:nuget/Az.Accounts@4.0.0?repository_url=https://www.powershellgallery.com/api/v2/")]
+        [Theory]
+        [InlineData("pkg:nuget/PSReadLine@2.4.1-beta1?repository_url=https://www.powershellgallery.com/api/v2/")]
+        [InlineData("pkg:nuget/psreadline@2.4.1-beta1?repository_url=https://www.powershellgallery.com/api/v2/")]
+        [InlineData("pkg:nuget/Az.Accounts@4.0.0?repository_url=https://www.powershellgallery.com/api/v2/")]
         public async Task TestNugetCaseInsensitiveHandlingPackageExistsSucceeds(string purlString)
         {
             PackageURL purl = new(purlString);
 
             bool exists = await _projectManager.PackageVersionExistsAsync(purl, useCache: false);
 
-            Assert.IsTrue(exists);
+            Assert.True(exists);
         }
 
-        [DataTestMethod]
-        [DataRow("pkg:nuget/PSReadLine@2.4.1-beta1?repository_url=https://www.powershellgallery.com/api/v2/", true)]
-        [DataRow("pkg:nuget/NonExistentPackageXYZ@0.0.0?repository_url=https://www.powershellgallery.com/api/v2/", false)]
+        [Theory]
+        [InlineData("pkg:nuget/PSReadLine@2.4.1-beta1?repository_url=https://www.powershellgallery.com/api/v2/", true)]
+        [InlineData("pkg:nuget/NonExistentPackageXYZ@0.0.0?repository_url=https://www.powershellgallery.com/api/v2/", false)]
         public async Task PackageExistsSucceeds(string purlString, bool expected)
         {
             PackageURL purl = new(purlString);
@@ -94,8 +93,8 @@
             exists.Should().Be(expected);
         }
 
-        [DataTestMethod]
-        [DataRow("pkg:nuget/Az.Accounts@4.0.0?repository_url=https://www.powershellgallery.com/api/v2/", "https://www.powershellgallery.com/api/v2/package/az.accounts/4.0.0")]
+        [Theory]
+        [InlineData("pkg:nuget/Az.Accounts@4.0.0?repository_url=https://www.powershellgallery.com/api/v2/", "https://www.powershellgallery.com/api/v2/package/az.accounts/4.0.0")]
         public async Task GetArtifactDownloadUrisSucceeds_Async(string purlString, string expectedNuPkgUrl)
         {
             PackageURL purl = new(purlString);
@@ -104,17 +103,16 @@
             var nupkgArtifactUri = await uris
                 .FirstAsync(it => it.Type == BaseNuGetProjectManager.NuGetArtifactType.Nupkg);
 
-            Assert.AreEqual(expectedNuPkgUrl, nupkgArtifactUri.Uri.ToString());
-            Assert.IsTrue(await _projectManager.UriExistsAsync(nupkgArtifactUri.Uri));
+            Assert.Equal(expectedNuPkgUrl, nupkgArtifactUri.Uri.ToString());
+            Assert.True(await _projectManager.UriExistsAsync(nupkgArtifactUri.Uri));
         }
 
-        [DataTestMethod]
-        [DataRow("pkg:nuget/PSReadLine@2.4.1-beta1?repository_url=https://www.powershellgallery.com/api/v2/", false, "Great command line editing in the PowerShell console host")]
-        [DataRow("pkg:nuget/PSReadLine?repository_url=https://www.powershellgallery.com/api/v2/", true, "Great command line editing in the PowerShell console host", "2.4.1-beta1")]
+        [Theory]
+        [InlineData("pkg:nuget/PSReadLine@2.4.1-beta1?repository_url=https://www.powershellgallery.com/api/v2/", false, "Great command line editing in the PowerShell console host")]
+        [InlineData("pkg:nuget/PSReadLine?repository_url=https://www.powershellgallery.com/api/v2/", true, "Great command line editing in the PowerShell console host", "2.4.1-beta1")]
         public async Task MetadataSucceeds(string purlString, bool includePrerelease = false, string? description = null, string? latestVersion = null)
         {
             PackageURL purl = new(purlString);
-
 
             NuGetPackageVersionMetadata? setupMetadata = null;
             IEnumerable<string>? setupVersions = null;
@@ -140,17 +138,17 @@
 
             PackageMetadata metadata = await _projectManager.GetPackageMetadataAsync(purl, includePrerelease: includePrerelease, useCache: false);
 
-            Assert.AreEqual(purl.Name, metadata.Name, ignoreCase: true);
+            Assert.Equal(purl.Name, metadata.Name, ignoreCase: true);
 
             // If a version was specified, assert the response is for this version, otherwise assert for the latest version.
-            Assert.AreEqual(!string.IsNullOrWhiteSpace(purl.Version) ? purl.Version : latestVersion,
+            Assert.Equal(!string.IsNullOrWhiteSpace(purl.Version) ? purl.Version : latestVersion,
                 metadata.PackageVersion);
-            Assert.AreEqual(description, metadata.Description);
+            Assert.Equal(description, metadata.Description);
         }
 
-        [DataTestMethod]
-        [DataRow("pkg:nuget/PSReadLine@2.4.1-beta1?repository_url=https://www.powershellgallery.com/api/v2/", 45, "2.4.1-beta1")]
-        [DataRow("pkg:nuget/PSReadLine?repository_url=https://www.powershellgallery.com/api/v2/", 45, "2.4.1-beta1")]
+        [Theory]
+        [InlineData("pkg:nuget/PSReadLine@2.4.1-beta1?repository_url=https://www.powershellgallery.com/api/v2/", 45, "2.4.1-beta1")]
+        [InlineData("pkg:nuget/PSReadLine?repository_url=https://www.powershellgallery.com/api/v2/", 45, "2.4.1-beta1")]
         public async Task EnumerateVersionsSucceeds(
             string purlString,
             int count,
@@ -181,29 +179,28 @@
 
             List<string> versions = (await _projectManager.EnumerateVersionsAsync(purl, false, includePrerelease)).ToList();
 
-            Assert.AreEqual(count, versions.Count);
-            Assert.AreEqual(latestVersion, versions.FirstOrDefault());
+            Assert.Equal(count, versions.Count);
+            Assert.Equal(latestVersion, versions.FirstOrDefault());
         }
 
-
-        [DataTestMethod]
-        [DataRow("pkg:nuget/PSReadLine@2.0.0?repository_url=https://www.powershellgallery.com/api/v2/", true)]
-        [DataRow("pkg:nuget/PSReadLine?repository_url=https://www.powershellgallery.com/api/v2/", false)] // no version provided
-        [DataRow("pkg:nuget/Az.Accounts@2.5.3?repository_url=https://www.powershellgallery.com/api/v2/", true)]
-        [DataRow("pkg:nuget/PowerShellGet@2.2.5?repository_url=https://www.powershellgallery.com/api/v2/", true)]
-        [DataRow("pkg:nuget/notarealpackage@0.0.0?repository_url=https://www.powershellgallery.com/api/v2/", false)] // not a real package
+        [Theory]
+        [InlineData("pkg:nuget/PSReadLine@2.0.0?repository_url=https://www.powershellgallery.com/api/v2/", true)]
+        [InlineData("pkg:nuget/PSReadLine?repository_url=https://www.powershellgallery.com/api/v2/", false)] // no version provided
+        [InlineData("pkg:nuget/Az.Accounts@2.5.3?repository_url=https://www.powershellgallery.com/api/v2/", true)]
+        [InlineData("pkg:nuget/PowerShellGet@2.2.5?repository_url=https://www.powershellgallery.com/api/v2/", true)]
+        [InlineData("pkg:nuget/notarealpackage@0.0.0?repository_url=https://www.powershellgallery.com/api/v2/", false)] // not a real package
         public async Task DetailedPackageVersionExistsAsync_ExistsSucceeds(string purlString, bool exists)
         {
             PackageURL purl = new(purlString);
 
             IPackageExistence existence = await _projectManager.DetailedPackageVersionExistsAsync(purl, useCache: false);
 
-            Assert.AreEqual(exists, existence.Exists);
+            Assert.Equal(exists, existence.Exists);
         }
 
-        [DataTestMethod]
-        [DataRow("pkg:nuget/PSReadLine@2.0.0?repository_url=https://www.powershellgallery.com/api/v2/", "2020-02-11T18:22:59.793")]
-        [DataRow("pkg:nuget/Az.Accounts@2.5.3?repository_url=https://www.powershellgallery.com/api/v2/", "2021-09-07T05:57:05.487")]
+        [Theory]
+        [InlineData("pkg:nuget/PSReadLine@2.0.0?repository_url=https://www.powershellgallery.com/api/v2/", "2020-02-11T18:22:59.793")]
+        [InlineData("pkg:nuget/Az.Accounts@2.5.3?repository_url=https://www.powershellgallery.com/api/v2/", "2021-09-07T05:57:05.487")]
         public async Task GetPublishedAtSucceeds(string purlString, string? expectedTime = null)
         {
             PackageURL purl = new(purlString);
@@ -211,31 +208,31 @@
 
             if (expectedTime == null)
             {
-                Assert.IsNull(time);
+                Assert.Null(time);
             }
             else
             {
-                Assert.AreEqual(DateTime.Parse(expectedTime), time);
+                Assert.Equal(DateTime.Parse(expectedTime), time);
             }
         }
 
-        [DataTestMethod]
-        [DataRow("pkg:nuget/PSReadLine@2.4.1-beta1?repository_url=https://www.powershellgallery.com/api/v2/")]
-        [DataRow("pkg:nuget/Az.Accounts?repository_url=https://www.powershellgallery.com/api/v2/")]
-        [DataRow("pkg:nuget/Microsoft.Graph.Authentication?repository_url=https://www.powershellgallery.com/api/v2/")]
+        [Theory]
+        [InlineData("pkg:nuget/PSReadLine@2.4.1-beta1?repository_url=https://www.powershellgallery.com/api/v2/")]
+        [InlineData("pkg:nuget/Az.Accounts?repository_url=https://www.powershellgallery.com/api/v2/")]
+        [InlineData("pkg:nuget/Microsoft.Graph.Authentication?repository_url=https://www.powershellgallery.com/api/v2/")]
         public async Task GetPackagePrefixReserved_ReturnsFalse(string purlString)
         {
             PackageURL purl = new(purlString);
             _projectManager = new NuGetV2ProjectManager(".", null, _httpFactory);
             bool isReserved = await _projectManager.GetHasReservedNamespaceAsync(purl, useCache: false);
 
-            Assert.IsFalse(isReserved); // Reserved namespaces are not supported in NuGet V2
+            Assert.False(isReserved); // Reserved namespaces are not supported in NuGet V2
         }
 
-        [DataTestMethod]
-        [DataRow("pkg:nuget/PSReadLine@2.4.1-beta1?repository_url=https://www.powershellgallery.com/api/v2/", true)]
-        [DataRow("pkg:nuget/PSReadLine?repository_url=https://www.powershellgallery.com/api/v2/", true)]
-        [DataRow("pkg:nuget/notarealpackage?repository_url=https://www.powershellgallery.com/api/v2/", false)]
+        [Theory]
+        [InlineData("pkg:nuget/PSReadLine@2.4.1-beta1?repository_url=https://www.powershellgallery.com/api/v2/", true)]
+        [InlineData("pkg:nuget/PSReadLine?repository_url=https://www.powershellgallery.com/api/v2/", true)]
+        [InlineData("pkg:nuget/notarealpackage?repository_url=https://www.powershellgallery.com/api/v2/", false)]
         public async Task DetailedPackageExistsAsync_Succeeds(string purlString, bool exists)
         {
             PackageURL purl = new(purlString);
@@ -263,7 +260,7 @@
 
             IPackageExistence existence = await _projectManager.DetailedPackageExistsAsync(purl, useCache: false);
 
-            Assert.AreEqual(exists, existence.Exists);
+            Assert.Equal(exists, existence.Exists);
         }
 
         private static void MockHttpFetchResponse(
@@ -284,5 +281,4 @@
             return (T)serializer.Deserialize(reader);
         }
     }
-
 }

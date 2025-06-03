@@ -3,33 +3,27 @@
 namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 {
     using Microsoft.CST.OpenSource.PackageManagers;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Moq;
     using PackageUrl;
     using System;
     using System.Net.Http;
+    using Xunit;
 
-    [TestClass]
     public class BaseNuGetProjectManagerTests
     {
-        [DataTestMethod]
-        [DataRow(
+        [Theory]
+        [InlineData(
             "pkg:nuget/TestPackage?repository_url=https://www.powershellgallery.com/api/v2",
-            typeof(NuGetV2ProjectManager),
-            DisplayName = "PowerShellGallery - Returns NuGetV2ProjectManager")]
-        [DataRow(
+            typeof(NuGetV2ProjectManager))]
+        [InlineData(
             "pkg:nuget/TestPackage?repository_url=https://api.nuget.org/v3/index.json",
-            typeof(NuGetProjectManager),
-            DisplayName = "NuGetV3 - Returns NuGetProjectManager")]
-        [DataRow(
+            typeof(NuGetProjectManager))]
+        [InlineData(
             "pkg:nuget/TestPackage?repository_url=https://example.com",
-            typeof(NuGetProjectManager),
-            DisplayName = "CustomRepository - Returns NuGetProjectManager")]
-        [DataRow(
+            typeof(NuGetProjectManager))]
+        [InlineData(
             "pkg:nuget/TestPackage",
-            typeof(NuGetProjectManager),
-            DisplayName = "NoRepositoryUrl - Defaults to NuGetProjectManager")]
-
+            typeof(NuGetProjectManager))]
         public void Create_ReturnsExpectedManagerType(string purlString, Type expectedType)
         {
             // Arrange
@@ -40,8 +34,7 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
             BaseNuGetProjectManager result = BaseNuGetProjectManager.Create(".", mockHttpClientFactory.Object, TimeSpan.Zero, packageUrl);
 
             // Assert
-            Assert.IsInstanceOfType(result, expectedType);
+            Assert.IsType(expectedType, result);
         }
     }
-        
 }

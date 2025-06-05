@@ -157,7 +157,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
             string packageName = purl.Name;
             HttpClient httpClient = CreateHttpClient();
-
             // NOTE: The file isn't valid json, so use the custom rule.
             return await CheckJsonCacheForPackage(httpClient, $"{ENV_CARGO_INDEX_ENDPOINT}/{CreatePath(packageName)}", useCache: useCache, jsonParsingOption: JsonParsingOption.NotInArrayNotCsv);
         }

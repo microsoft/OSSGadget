@@ -243,7 +243,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 return false;
             }
 
-            string? packageName = purl.Name;
+            string packageName = purl.Name;
             string requestedVersion = purl.Version;
             HttpClient httpClient = CreateHttpClient();
             string rssFeedUrl = $"{ENV_CARGO_ENDPOINT_STATIC}/rss/crates/{packageName}.xml";

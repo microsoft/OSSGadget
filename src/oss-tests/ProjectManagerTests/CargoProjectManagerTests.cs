@@ -252,13 +252,13 @@ public class CargoProjectManagerTests
         var mockFactory = new Mock<IHttpClientFactory>();
         mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
 
-        var projectManager = new CargoProjectManager(".", new NoOpPackageActions(), mockFactory.Object);
+        var _projectManager = new CargoProjectManager(".", new NoOpPackageActions(), mockFactory.Object);
 
-        bool result = await projectManager.PackageVersionExistsAsync(purl, useCache: false);
+        bool result = await _projectManager.PackageVersionExistsAsync(purl, useCache: false);
 
         result.Should().BeTrue();
 
-        staticEndpointCalled.Should().BeTrue("The static endpoint should have been called");
+        staticEndpointCalled.Should().BeTrue("The static endpoint should have been called.");
     }
 
 

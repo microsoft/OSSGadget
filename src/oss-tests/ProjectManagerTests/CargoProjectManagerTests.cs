@@ -230,15 +230,37 @@ public class CargoProjectManagerTests
     }
 
     [Theory]
-    [InlineData("pkg:cargo/rand@0.7.3")]
-    public async Task PackageExistsAsyncSucceeds(string purlString)
-    {
+    [InlineData("pkg:cargo/rand@0.8.5")]
+    public async Task PackageVersionExistsStaticEndpointAsyncSucceeds(string purlString)
+    {  
+        var mockHttp = new MockHttpMessageHandler();
         PackageURL purl = new(purlString);
+        string packageName = purl.Name;
+        string expectedStaticEndpoint = $"https://static.crates.io/rss/crates/{packageName}.xml";
+        bool staticEndpointCalled = false;
 
-        bool result = await _projectManager.PackageExistsAsync(purl, useCache: false);
+        mockHttp
+            .When(HttpMethod.Get, expectedStaticEndpoint)
+            .Respond(req => {
+                staticEndpointCalled = true;
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(Resources.cargo_rss_rand_xml)
+                };
+            });
+
+        var mockFactory = new Mock<IHttpClientFactory>();
+        mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
+
+        var projectManager = new CargoProjectManager(".", new NoOpPackageActions(), mockFactory.Object);
+
+        bool result = await projectManager.PackageVersionExistsAsync(purl, useCache: false);
 
         result.Should().BeTrue();
+
+        staticEndpointCalled.Should().BeTrue("The static endpoint should have been called");
     }
+
 
     [Theory]
     [InlineData("pkg:cargo/rand@0.7.3")]

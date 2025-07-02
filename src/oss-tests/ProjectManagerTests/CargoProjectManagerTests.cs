@@ -230,14 +230,68 @@ public class CargoProjectManagerTests
     }
 
     [Theory]
-    [InlineData("pkg:cargo/rand@0.7.3")]
-    public async Task PackageVersionExistsAsyncSucceeds(string purlString)
-    {
+    [InlineData("pkg:cargo/rand@0.8.5")]
+    public async Task PackageVersionExistsStaticEndpointAsyncSucceeds(string purlString)
+    {  
+        var mockHttp = new MockHttpMessageHandler();
         PackageURL purl = new(purlString);
+        string packageName = purl.Name;
+        string expectedStaticEndpoint = $"https://static.crates.io/rss/crates/{packageName}.xml";
+        bool staticEndpointCalled = false;
+
+        mockHttp
+            .When(HttpMethod.Get, expectedStaticEndpoint)
+            .Respond(req => {
+                staticEndpointCalled = true;
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(Resources.cargo_rss_rand_xml)
+                };
+            });
+
+        var mockFactory = new Mock<IHttpClientFactory>();
+        mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
+
+        var _projectManager = new CargoProjectManager(".", new NoOpPackageActions(), mockFactory.Object);
 
         bool result = await _projectManager.PackageVersionExistsAsync(purl, useCache: false);
 
         result.Should().BeTrue();
+
+        staticEndpointCalled.Should().BeTrue("The static endpoint should have been called.");
+    }
+
+
+    [Theory]
+    [InlineData("pkg:cargo/rand@0.7.3")]
+    public async Task PackageVersionExistsAsycRawGithubEndpointSucceeds(string purlString)
+    {
+        var mockHttp = new MockHttpMessageHandler();
+        PackageURL purl = new(purlString);
+        string packageName = purl.Name;
+        string expectedGithubRawEndpoint = $"https://raw.githubusercontent.com/rust-lang/crates.io-index/master/ra/nd/rand";
+        bool githubEndpointCalled = false;
+
+        mockHttp
+            .When(HttpMethod.Get, expectedGithubRawEndpoint)
+            .Respond(req => {
+                githubEndpointCalled = true;
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(Resources.cargo_rand)
+                };
+            });
+
+        var mockFactory = new Mock<IHttpClientFactory>();
+        mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
+
+        var _projectManager = new CargoProjectManager(".", new NoOpPackageActions(), mockFactory.Object);
+
+        bool result = await _projectManager.PackageVersionExistsAsync(purl, useCache: false);
+
+        result.Should().BeTrue();
+
+        githubEndpointCalled.Should().BeTrue("The raw Github endpoint should have been called.");
     }
 
     [Theory]

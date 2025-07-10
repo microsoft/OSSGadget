@@ -126,7 +126,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 List<string> versionList = new();
                 HttpClient httpClient = CreateHttpClient();
 
-                string? html = await GetHttpStringCache(httpClient, $"{ENV_CPAN_ENDPOINT}/release/{packageName}");
+                string? html = await GetHttpStringCache(httpClient, $"{ENV_CPAN_ENDPOINT}/dist/{packageName}");
                 HtmlParser parser = new();
                 AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(html);
                 foreach (AngleSharp.Dom.IElement option in document.QuerySelectorAll("div.release select.extend option"))

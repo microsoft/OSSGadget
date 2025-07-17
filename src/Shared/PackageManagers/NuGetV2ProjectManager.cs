@@ -16,7 +16,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Project manager for NuGet V2 API endpoints, primarily used for PowerShell Gallery integration.
+    /// Project manager for NuGet V2 API endpoints, supports PowerShell Gallery and other V2 endpoints.
     /// </summary>
     public class NuGetV2ProjectManager : BaseNuGetProjectManager
     {
@@ -38,7 +38,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             IManagerPackageActions<NuGetPackageVersionMetadata>? actions = null,
             IHttpClientFactory? httpClientFactory = null,
             TimeSpan? timeout = null)
-            : base(actions ?? NuGetPackageActions.CreateV2(), httpClientFactory ?? new DefaultHttpClientFactory(), directory, timeout)
+            : base(actions ?? NuGetPackageActions.CreateV2(POWER_SHELL_GALLERY_DEFAULT_INDEX), httpClientFactory ?? new DefaultHttpClientFactory(), directory, timeout)
         {
         }
 
@@ -49,18 +49,15 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <param name="useCache">Whether to use cached data if available.</param>
         /// <returns>An async enumerable of artifact URIs.</returns>
         /// <exception cref="ArgumentNullException">Thrown when package version is null.</exception>
-        /// <exception cref="NotImplementedException">Thrown when repository URL is not PowerShell Gallery.</exception>
         public override async IAsyncEnumerable<ArtifactUri<NuGetArtifactType>> GetArtifactDownloadUrisAsync(PackageURL purl, bool useCache = true)
         {
             Check.NotNull(nameof(purl.Version), purl.Version);
-            if (purl.TryGetRepositoryUrl(out string? repositoryUrlQualifier) && repositoryUrlQualifier?.Trim('/') != POWER_SHELL_GALLERY_DEFAULT_INDEX)
-            {
-                // Throw an exception until we implement proper support for service indices other than nuget.org  
-                throw new NotImplementedException(
-                    $"NuGet package URLs having a repository URL other than '{POWER_SHELL_GALLERY_DEFAULT_INDEX}' are not currently supported.");
-            }
 
-            yield return new ArtifactUri<NuGetArtifactType>(NuGetArtifactType.Nupkg, NuGetV2ProjectManager.GetNupkgUrl(purl.Name, purl.Version));
+            // Get the repository URL from the package URL or use the default
+            string repositoryUrl = purl.GetRepositoryUrlOrDefault(POWER_SHELL_GALLERY_DEFAULT_INDEX) ?? POWER_SHELL_GALLERY_DEFAULT_INDEX;
+
+            await Task.CompletedTask; // Placeholder for any async setup if needed
+            yield return new ArtifactUri<NuGetArtifactType>(NuGetArtifactType.Nupkg, GetNupkgUrl(purl.Name, purl.Version, repositoryUrl));
         }
 
         /// <summary>
@@ -72,7 +69,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public async Task<DateTime?> GetPublishedAtAsync(PackageURL purl, bool useCache = true)
         {
             Check.NotNull(nameof(purl.Version), purl.Version);
-            DateTime? uploadTime = (await this.GetPackageMetadataAsync(purl, useCache))?.UploadTime;
+            DateTime? uploadTime = (await GetPackageMetadataAsync(purl, useCache))?.UploadTime;
             return uploadTime;
         }
 
@@ -81,13 +78,16 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// </summary>
         /// <param name="id">The package ID.</param>
         /// <param name="version">The package version.</param>
+        /// <param name="repositoryUrl">The repository URL to use for constructing the download URL.</param>
         /// <returns>The URL to download the .nupkg file.</returns>
-        private static string GetNupkgUrl(string id, string version)
+        private static string GetNupkgUrl(string id, string version, string repositoryUrl)
         {
             string lowerId = id.ToLowerInvariant();
             string lowerVersion = NuGetVersion.Parse(version).ToNormalizedString().ToLowerInvariant();
-            return $"{POWER_SHELL_GALLERY_DEFAULT_INDEX.TrimEnd('/')}/package/{lowerId}/{lowerVersion}";
+            return $"{repositoryUrl.TrimEnd('/')}/package/{lowerId}/{lowerVersion}";
         }
+
+
 
         /// <summary>
         /// Gets packages owned by a specific user or organization.
@@ -97,6 +97,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         /// <returns>An async enumerable of package URLs.</returns>
         /// <exception cref="NotImplementedException">This operation is not currently implemented.</exception>
         public override IAsyncEnumerable<PackageURL> GetPackagesFromOwnerAsync(string owner, bool useCache = true) => throw new NotImplementedException();
+
 
         /// <inheritdoc />
         public override async Task<PackageMetadata?> GetPackageMetadataAsync(PackageURL purl, bool includePrerelease = false, bool useCache = true, bool includeRepositoryMetadata = true)

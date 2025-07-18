@@ -130,6 +130,12 @@ public class DownloadTests
     [InlineData("pkg:nuget/RandomType@2.0.0", "RandomType.nuspec", 1)]
     [InlineData("pkg:nuget/d3.TypeScript.DefinitelyTyped", "d3.TypeScript.DefinitelyTyped.nuspec", 1)]
     [InlineData("pkg:nuget/boxer@0.1.0-preview1", "boxer.nuspec", 1)]
+    [InlineData("pkg:nuget/Newtonsoft.Json@12.0.3?repository_url=https://www.nuget.org/api/v2/", "newtonsoft.json.nuspec", 1)]
+    [InlineData("pkg:nuget/Microsoft.Extensions.Logging@8.0.0?repository_url=https://www.nuget.org/api/v2/", "microsoft.extensions.logging.nuspec", 1)]
+    [InlineData("pkg:nuget/System.Text.Json@8.0.0?repository_url=https://www.nuget.org/api/v2/", "system.text.json.nuspec", 1)]
+    [InlineData("pkg:nuget/PSReadLine@2.0.0?repository_url=https://www.powershellgallery.com/api/v2/", "psreadline.nuspec", 1)]
+    [InlineData("pkg:nuget/Az.Accounts@2.5.3?repository_url=https://www.powershellgallery.com/api/v2/", "az.accounts.nuspec", 1)]
+    [InlineData("pkg:nuget/PowerShellGet@2.2.5?repository_url=https://www.powershellgallery.com/api/v2/", "powershellget.nuspec", 1)]
     public async Task NuGet_Download_Version_Succeeds(string purl, string targetFilename, int expectedDirectoryCount)
     {
         await TestDownload(purl, targetFilename, expectedDirectoryCount);
@@ -139,6 +145,8 @@ public class DownloadTests
     [InlineData("pkg:npm/moment@*", "package.json")]
     [InlineData("pkg:nuget/RandomType@*", "RandomType.nuspec")]
     [InlineData("pkg:nuget/Newtonsoft.Json@*", "newtonsoft.json.nuspec")]
+    [InlineData("pkg:nuget/Newtonsoft.Json@*?repository_url=https://www.nuget.org/api/v2/", "newtonsoft.json.nuspec")]
+    [InlineData("pkg:nuget/PSReadLine@*?repository_url=https://www.powershellgallery.com/api/v2/", "psreadline.nuspec")]
     public async Task Wildcard_Download_Version_Succeeds(string packageUrl, string targetFilename)
     {
         PackageURL purl = new(packageUrl);

@@ -26,7 +26,6 @@
 
     public class NuGetProjectManagerV2Tests
     {
-        private NuGetV2ProjectManager _projectManager;
         private readonly IHttpClientFactory _httpFactory;
 
         private readonly IDictionary<string, string> _packages = new Dictionary<string, string>()
@@ -71,7 +70,6 @@
 
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
             _httpFactory = mockFactory.Object;
-            _projectManager = new NuGetV2ProjectManager(".", NuGetPackageActions.CreateV2(NuGetV2ProjectManager.POWER_SHELL_GALLERY_DEFAULT_INDEX), _httpFactory);
         }
 
         /// <summary>
@@ -82,7 +80,7 @@
         private NuGetV2ProjectManager CreateRepositorySpecificProjectManager(PackageURL purl)
         {
             var repositoryUrl = purl.GetRepositoryUrlOrDefault(NuGetV2ProjectManager.POWER_SHELL_GALLERY_DEFAULT_INDEX) ?? NuGetV2ProjectManager.POWER_SHELL_GALLERY_DEFAULT_INDEX;
-            return new NuGetV2ProjectManager(".", NuGetPackageActions.CreateV2(repositoryUrl));
+            return new NuGetV2ProjectManager(".", NuGetPackageActions.CreateV2(repositoryUrl), _httpFactory);
         }
 
         [Theory]
@@ -177,9 +175,9 @@
                 setupVersions?.Reverse());
 
             // Use mocked response if version is not provided.
-            _projectManager = string.IsNullOrWhiteSpace(purl.Version) ? new NuGetV2ProjectManager(".", nugetPackageActions, _httpFactory) : _projectManager;
+            var projectManager = string.IsNullOrWhiteSpace(purl.Version) ? new NuGetV2ProjectManager(".", nugetPackageActions, _httpFactory) : CreateRepositorySpecificProjectManager(purl);
 
-            PackageMetadata? metadata = await _projectManager.GetPackageMetadataAsync(purl, includePrerelease: includePrerelease, useCache: false);
+            PackageMetadata? metadata = await projectManager.GetPackageMetadataAsync(purl, includePrerelease: includePrerelease, useCache: false);
 
             Assert.NotNull(metadata);
             Assert.Equal(purl.Name, metadata!.Name, ignoreCase: true);
@@ -236,9 +234,9 @@
                 setupMetadata,
                 setupVersions?.Reverse(),
                 includePrerelease: includePrerelease);
-            _projectManager = new NuGetV2ProjectManager(".", nugetPackageActions, _httpFactory);
+            var projectManager = new NuGetV2ProjectManager(".", nugetPackageActions, _httpFactory);
 
-            List<string> versions = (await _projectManager.EnumerateVersionsAsync(purl, false, includePrerelease)).ToList();
+            List<string> versions = (await projectManager.EnumerateVersionsAsync(purl, false, includePrerelease)).ToList();
 
             Assert.Equal(count, versions.Count);
             Assert.Equal(latestVersion, versions.FirstOrDefault());
@@ -316,8 +314,8 @@
         public async Task GetPackagePrefixReserved_ReturnsFalse(string purlString)
         {
             PackageURL purl = new(purlString);
-            _projectManager = new NuGetV2ProjectManager(".", null, _httpFactory);
-            bool isReserved = await _projectManager.GetHasReservedNamespaceAsync(purl, useCache: false);
+            var projectManager = new NuGetV2ProjectManager(".", null, _httpFactory);
+            bool isReserved = await projectManager.GetHasReservedNamespaceAsync(purl, useCache: false);
 
             Assert.False(isReserved); // Reserved namespaces are not supported in NuGet V2
         }
@@ -326,12 +324,9 @@
         [InlineData("pkg:nuget/PSReadLine@2.4.1-beta1?repository_url=https://www.powershellgallery.com/api/v2/", true)]
         [InlineData("pkg:nuget/PSReadLine?repository_url=https://www.powershellgallery.com/api/v2/", true)]
         [InlineData("pkg:nuget/notarealpackage?repository_url=https://www.powershellgallery.com/api/v2/", false)]
-        public async Task DetailedPackageExistsAsync_Succeeds(string purlString, bool exists)
+        public async Task DetailedPackageExistsAsync_Succeeds_WithMockedData(string purlString, bool exists)
         {
             PackageURL purl = new(purlString);
-
-            // Create repository-specific project manager
-            var projectManager = CreateRepositorySpecificProjectManager(purl);
 
             IManagerPackageActions<NuGetPackageVersionMetadata>? nugetPackageActions;
 
@@ -352,7 +347,7 @@
                 nugetPackageActions = PackageActionsHelper<NuGetPackageVersionMetadata>.SetupPackageActions();
             }
 
-            projectManager = new NuGetV2ProjectManager(".", nugetPackageActions, _httpFactory);
+            var projectManager = new NuGetV2ProjectManager(".", nugetPackageActions, _httpFactory);
 
             IPackageExistence existence = await projectManager.DetailedPackageExistsAsync(purl, useCache: false);
 
@@ -363,11 +358,10 @@
         [InlineData("pkg:nuget/Newtonsoft.Json@12.0.3?repository_url=https://www.nuget.org/api/v2/", true)]
         [InlineData("pkg:nuget/Microsoft.Extensions.Logging@8.0.0?repository_url=https://www.nuget.org/api/v2/", true)]
         [InlineData("pkg:nuget/nonexistentpackage123xyz@0.0.0?repository_url=https://www.nuget.org/api/v2/", false)]
-        public async Task DetailedPackageExistsAsync_Live_NuGetOrg(string purlString, bool exists)
+        public async Task DetailedPackageExistsAsync_NuGetOrg(string purlString, bool exists)
         {
             PackageURL purl = new(purlString);
 
-            // Create repository-specific project manager for live API calls
             var projectManager = CreateRepositorySpecificProjectManager(purl);
 
             IPackageExistence existence = await projectManager.DetailedPackageExistsAsync(purl, useCache: false);
@@ -390,7 +384,8 @@
         {
             XmlSerializer serializer = new(typeof(T));
             using StringReader reader = new(xml);
-            return (T)serializer.Deserialize(reader);
+            object? result = serializer.Deserialize(reader) ?? throw new InvalidOperationException("Deserialization returned null.");
+            return (T)result;
         }
     }
 }

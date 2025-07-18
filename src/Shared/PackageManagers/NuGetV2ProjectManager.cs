@@ -56,7 +56,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             // Get the repository URL from the package URL or use the default
             string repositoryUrl = purl.GetRepositoryUrlOrDefault(POWER_SHELL_GALLERY_DEFAULT_INDEX) ?? POWER_SHELL_GALLERY_DEFAULT_INDEX;
 
-            await Task.CompletedTask; // Placeholder for any async setup if needed
             yield return new ArtifactUri<NuGetArtifactType>(NuGetArtifactType.Nupkg, GetNupkgUrl(purl.Name, purl.Version, repositoryUrl));
         }
 

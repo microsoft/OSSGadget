@@ -1,6 +1,7 @@
 ﻿namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
 {
     using Contracts;
+    using Extensions;
     using FluentAssertions;
     using Helpers;
     using Model;
@@ -25,7 +26,6 @@
 
     public class NuGetProjectManagerV2Tests
     {
-        private NuGetV2ProjectManager _projectManager;
         private readonly IHttpClientFactory _httpFactory;
 
         private readonly IDictionary<string, string> _packages = new Dictionary<string, string>()
@@ -59,24 +59,54 @@
             }
 
             mockHttp.When(HttpMethod.Get, "https://www.powershellgallery.com/api/v2/package/*").Respond(HttpStatusCode.OK);
+            
+            // Add mock setup for NuGet.org URLs
+            mockHttp.When(HttpMethod.Get, "https://www.nuget.org/api/v2/package/*").Respond(HttpStatusCode.OK);
+            mockHttp.When(HttpMethod.Get, "https://www.nuget.org/api/v2/FindPackagesById*").Respond(HttpStatusCode.OK);
+            mockHttp.When(HttpMethod.Get, "https://www.nuget.org/api/v2/Packages*").Respond(HttpStatusCode.OK);
 
             // Set fallback to throw an exception for unmatched requests
             mockHttp.Fallback.Throw(new InvalidOperationException("Unmatched HTTP request. Ensure all requests are properly mocked."));
 
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
             _httpFactory = mockFactory.Object;
-            _projectManager = new NuGetV2ProjectManager(".", NuGetPackageActions.CreateV2(), _httpFactory);
+        }
+
+        /// <summary>
+        /// Creates a repository-specific NuGetV2ProjectManager based on the PackageURL's repository_url qualifier.
+        /// </summary>
+        /// <param name="purl">The PackageURL to extract the repository URL from.</param>
+        /// <returns>A new NuGetV2ProjectManager configured for the specified repository.</returns>
+        private NuGetV2ProjectManager CreateRepositorySpecificProjectManager(PackageURL purl)
+        {
+            var repositoryUrl = purl.GetRepositoryUrlOrDefault(NuGetV2ProjectManager.POWER_SHELL_GALLERY_DEFAULT_INDEX) ?? NuGetV2ProjectManager.POWER_SHELL_GALLERY_DEFAULT_INDEX;
+            return new NuGetV2ProjectManager(".", NuGetPackageActions.CreateV2(repositoryUrl), _httpFactory);
+        }
+
+        [Theory]
+        [InlineData("pkg:nuget/PSReadLine?repository_url=https://www.powershellgallery.com/api/v2/", "pkg:nuget/PSReadLine?repository_url=https%3A//www.powershellgallery.com/api/v2/")]
+        public void TestPackageUrlEncoding(string input, string expected)
+        {
+            PackageURL purl = new(input);
+            string actual = purl.ToString();
+            Assert.Equal(expected, actual);
         }
 
         [Theory]
         [InlineData("pkg:nuget/PSReadLine@2.4.1-beta1?repository_url=https://www.powershellgallery.com/api/v2/")]
         [InlineData("pkg:nuget/psreadline@2.4.1-beta1?repository_url=https://www.powershellgallery.com/api/v2/")]
         [InlineData("pkg:nuget/Az.Accounts@4.0.0?repository_url=https://www.powershellgallery.com/api/v2/")]
+        [InlineData("pkg:nuget/Newtonsoft.Json@12.0.3?repository_url=https://www.nuget.org/api/v2/")]
+        [InlineData("pkg:nuget/newtonsoft.json@12.0.3?repository_url=https://www.nuget.org/api/v2/")]
+        [InlineData("pkg:nuget/Microsoft.Extensions.Logging@8.0.0?repository_url=https://www.nuget.org/api/v2/")]
         public async Task TestNugetCaseInsensitiveHandlingPackageExistsSucceeds(string purlString)
         {
             PackageURL purl = new(purlString);
 
-            bool exists = await _projectManager.PackageVersionExistsAsync(purl, useCache: false);
+            // Create repository-specific project manager
+            var projectManager = CreateRepositorySpecificProjectManager(purl);
+
+            bool exists = await projectManager.PackageVersionExistsAsync(purl, useCache: false);
 
             Assert.True(exists);
         }
@@ -84,33 +114,44 @@
         [Theory]
         [InlineData("pkg:nuget/PSReadLine@2.4.1-beta1?repository_url=https://www.powershellgallery.com/api/v2/", true)]
         [InlineData("pkg:nuget/NonExistentPackageXYZ@0.0.0?repository_url=https://www.powershellgallery.com/api/v2/", false)]
+        [InlineData("pkg:nuget/Newtonsoft.Json@12.0.3?repository_url=https://www.nuget.org/api/v2/", true)]
+        [InlineData("pkg:nuget/NonExistentPackageXYZ@0.0.0?repository_url=https://www.nuget.org/api/v2/", false)]
         public async Task PackageExistsSucceeds(string purlString, bool expected)
         {
             PackageURL purl = new(purlString);
 
-            bool exists = await _projectManager.PackageVersionExistsAsync(purl, useCache: false);
+            // Create repository-specific project manager
+            var projectManager = CreateRepositorySpecificProjectManager(purl);
+
+            bool exists = await projectManager.PackageVersionExistsAsync(purl, useCache: false);
 
             exists.Should().Be(expected);
         }
 
         [Theory]
         [InlineData("pkg:nuget/Az.Accounts@4.0.0?repository_url=https://www.powershellgallery.com/api/v2/", "https://www.powershellgallery.com/api/v2/package/az.accounts/4.0.0")]
+        [InlineData("pkg:nuget/Newtonsoft.Json@12.0.3?repository_url=https://www.nuget.org/api/v2/", "https://www.nuget.org/api/v2/package/newtonsoft.json/12.0.3")]
+        [InlineData("pkg:nuget/Microsoft.Extensions.Logging@8.0.0?repository_url=https://www.nuget.org/api/v2/", "https://www.nuget.org/api/v2/package/microsoft.extensions.logging/8.0.0")]
         public async Task GetArtifactDownloadUrisSucceeds_Async(string purlString, string expectedNuPkgUrl)
         {
             PackageURL purl = new(purlString);
-            var uris = _projectManager.GetArtifactDownloadUrisAsync(purl);
+
+            // Create repository-specific project manager
+            var projectManager = CreateRepositorySpecificProjectManager(purl);
+
+            var uris = projectManager.GetArtifactDownloadUrisAsync(purl);
 
             var nupkgArtifactUri = await uris
                 .FirstAsync(it => it.Type == BaseNuGetProjectManager.NuGetArtifactType.Nupkg);
 
             Assert.Equal(expectedNuPkgUrl, nupkgArtifactUri.Uri.ToString());
-            Assert.True(await _projectManager.UriExistsAsync(nupkgArtifactUri.Uri));
+            Assert.True(await projectManager.UriExistsAsync(nupkgArtifactUri.Uri));
         }
 
         [Theory]
         [InlineData("pkg:nuget/PSReadLine@2.4.1-beta1?repository_url=https://www.powershellgallery.com/api/v2/", false, "Great command line editing in the PowerShell console host")]
         [InlineData("pkg:nuget/PSReadLine?repository_url=https://www.powershellgallery.com/api/v2/", true, "Great command line editing in the PowerShell console host", "2.4.1-beta1")]
-        public async Task MetadataSucceeds(string purlString, bool includePrerelease = false, string? description = null, string? latestVersion = null)
+        public async Task MetadataSucceeds_Mocked_PowerShellGallery(string purlString, bool includePrerelease = false, string? description = null, string? latestVersion = null)
         {
             PackageURL purl = new(purlString);
 
@@ -134,11 +175,12 @@
                 setupVersions?.Reverse());
 
             // Use mocked response if version is not provided.
-            _projectManager = string.IsNullOrWhiteSpace(purl.Version) ? new NuGetV2ProjectManager(".", nugetPackageActions, _httpFactory) : _projectManager;
+            var projectManager = string.IsNullOrWhiteSpace(purl.Version) ? new NuGetV2ProjectManager(".", nugetPackageActions, _httpFactory) : CreateRepositorySpecificProjectManager(purl);
 
-            PackageMetadata metadata = await _projectManager.GetPackageMetadataAsync(purl, includePrerelease: includePrerelease, useCache: false);
+            PackageMetadata? metadata = await projectManager.GetPackageMetadataAsync(purl, includePrerelease: includePrerelease, useCache: false);
 
-            Assert.Equal(purl.Name, metadata.Name, ignoreCase: true);
+            Assert.NotNull(metadata);
+            Assert.Equal(purl.Name, metadata!.Name, ignoreCase: true);
 
             // If a version was specified, assert the response is for this version, otherwise assert for the latest version.
             Assert.Equal(!string.IsNullOrWhiteSpace(purl.Version) ? purl.Version : latestVersion,
@@ -147,9 +189,26 @@
         }
 
         [Theory]
+        [InlineData("pkg:nuget/Newtonsoft.Json@12.0.3?repository_url=https://www.nuget.org/api/v2/", false, "Json.NET is a popular high-performance JSON framework for .NET")]
+        [InlineData("pkg:nuget/Microsoft.Extensions.Logging@8.0.0?repository_url=https://www.nuget.org/api/v2/", false, "Logging infrastructure default implementation for Microsoft.Extensions.Logging.")]
+        public async Task MetadataSucceeds_Live_NuGetOrg(string purlString, bool includePrerelease = false, string? expectedDescription = null)
+        {
+            PackageURL purl = new(purlString);
+
+            // Create repository-specific project manager for live API calls
+            var projectManager = CreateRepositorySpecificProjectManager(purl);
+
+            PackageMetadata? metadata = await projectManager.GetPackageMetadataAsync(purl, includePrerelease: includePrerelease, useCache: false);
+
+            Assert.Equal(purl.Name, metadata!.Name);
+            Assert.Equal(purl.Version, metadata.PackageVersion);
+            Assert.Equal(expectedDescription, metadata.Description);
+        }
+
+        [Theory]
         [InlineData("pkg:nuget/PSReadLine@2.4.1-beta1?repository_url=https://www.powershellgallery.com/api/v2/", 45, "2.4.1-beta1")]
         [InlineData("pkg:nuget/PSReadLine?repository_url=https://www.powershellgallery.com/api/v2/", 45, "2.4.1-beta1")]
-        public async Task EnumerateVersionsSucceeds(
+        public async Task EnumerateVersionsSucceeds_Mocked_PowerShellGallery(
             string purlString,
             int count,
             string? latestVersion,
@@ -175,12 +234,36 @@
                 setupMetadata,
                 setupVersions?.Reverse(),
                 includePrerelease: includePrerelease);
-            _projectManager = new NuGetV2ProjectManager(".", nugetPackageActions, _httpFactory);
+            var projectManager = new NuGetV2ProjectManager(".", nugetPackageActions, _httpFactory);
 
-            List<string> versions = (await _projectManager.EnumerateVersionsAsync(purl, false, includePrerelease)).ToList();
+            List<string> versions = (await projectManager.EnumerateVersionsAsync(purl, false, includePrerelease)).ToList();
 
             Assert.Equal(count, versions.Count);
             Assert.Equal(latestVersion, versions.FirstOrDefault());
+        }
+
+        [Theory]
+        [InlineData("pkg:nuget/Newtonsoft.Json@12.0.3?repository_url=https://www.nuget.org/api/v2/", false)]
+        [InlineData("pkg:nuget/Microsoft.Extensions.Logging@8.0.0?repository_url=https://www.nuget.org/api/v2/", false)]
+        [InlineData("pkg:nuget/Newtonsoft.Json?repository_url=https://www.nuget.org/api/v2/", true)]
+        [InlineData("pkg:nuget/Microsoft.Extensions.Logging?repository_url=https://www.nuget.org/api/v2/", true)]
+        public async Task EnumerateVersionsSucceeds_Live_NuGetOrg(string purlString, bool includePrerelease = false)
+        {
+            PackageURL purl = new(purlString);
+
+            // Create repository-specific project manager for live API calls
+            var projectManager = CreateRepositorySpecificProjectManager(purl);
+
+            List<string> versions = (await projectManager.EnumerateVersionsAsync(purl, false, includePrerelease)).ToList();
+
+            Assert.True(versions.Count > 0, "Should return at least one version");
+            Assert.All(versions, version => Assert.False(string.IsNullOrWhiteSpace(version)));
+            
+            // For packages with a specific version, verify that version is in the list
+            if (!string.IsNullOrWhiteSpace(purl.Version))
+            {
+                Assert.Contains(purl.Version, versions);
+            }
         }
 
         [Theory]
@@ -189,11 +272,17 @@
         [InlineData("pkg:nuget/Az.Accounts@2.5.3?repository_url=https://www.powershellgallery.com/api/v2/", true)]
         [InlineData("pkg:nuget/PowerShellGet@2.2.5?repository_url=https://www.powershellgallery.com/api/v2/", true)]
         [InlineData("pkg:nuget/notarealpackage@0.0.0?repository_url=https://www.powershellgallery.com/api/v2/", false)] // not a real package
+        [InlineData("pkg:nuget/Newtonsoft.Json@12.0.3?repository_url=https://www.nuget.org/api/v2/", true)]
+        [InlineData("pkg:nuget/Microsoft.Extensions.Logging@8.0.0?repository_url=https://www.nuget.org/api/v2/", true)]
+        [InlineData("pkg:nuget/nonexistentpackage@0.0.0?repository_url=https://www.nuget.org/api/v2/", false)] // not a real package
         public async Task DetailedPackageVersionExistsAsync_ExistsSucceeds(string purlString, bool exists)
         {
             PackageURL purl = new(purlString);
 
-            IPackageExistence existence = await _projectManager.DetailedPackageVersionExistsAsync(purl, useCache: false);
+            // Create repository-specific project manager
+            var projectManager = CreateRepositorySpecificProjectManager(purl);
+
+            IPackageExistence existence = await projectManager.DetailedPackageVersionExistsAsync(purl, useCache: false);
 
             Assert.Equal(exists, existence.Exists);
         }
@@ -201,30 +290,32 @@
         [Theory]
         [InlineData("pkg:nuget/PSReadLine@2.0.0?repository_url=https://www.powershellgallery.com/api/v2/", "2020-02-11T18:22:59.793")]
         [InlineData("pkg:nuget/Az.Accounts@2.5.3?repository_url=https://www.powershellgallery.com/api/v2/", "2021-09-07T05:57:05.487")]
-        public async Task GetPublishedAtSucceeds(string purlString, string? expectedTime = null)
+        [InlineData("pkg:nuget/Newtonsoft.Json@12.0.3?repository_url=https://www.nuget.org/api/v2/", "2019-11-09T01:27:30.723")]
+        [InlineData("pkg:nuget/Microsoft.Extensions.Logging@8.0.0?repository_url=https://www.nuget.org/api/v2/", "2023-11-14T13:23:26.98")]
+        public async Task GetPublishedAtSucceeds(string purlString, string expectedTime)
         {
             PackageURL purl = new(purlString);
-            DateTime? time = await _projectManager.GetPublishedAtAsync(purl, useCache: false);
+            
+            // Create repository-specific project manager
+            var projectManager = CreateRepositorySpecificProjectManager(purl);
+            
+            DateTime? time = await projectManager.GetPublishedAtAsync(purl, useCache: false);
 
-            if (expectedTime == null)
-            {
-                Assert.Null(time);
-            }
-            else
-            {
-                Assert.Equal(DateTime.Parse(expectedTime), time);
-            }
+            Assert.Equal(DateTime.Parse(expectedTime), time);
         }
 
         [Theory]
         [InlineData("pkg:nuget/PSReadLine@2.4.1-beta1?repository_url=https://www.powershellgallery.com/api/v2/")]
         [InlineData("pkg:nuget/Az.Accounts?repository_url=https://www.powershellgallery.com/api/v2/")]
         [InlineData("pkg:nuget/Microsoft.Graph.Authentication?repository_url=https://www.powershellgallery.com/api/v2/")]
+        [InlineData("pkg:nuget/Newtonsoft.Json@12.0.3?repository_url=https://www.nuget.org/api/v2/")]
+        [InlineData("pkg:nuget/Microsoft.Extensions.Logging@8.0.0?repository_url=https://www.nuget.org/api/v2/")]
+        [InlineData("pkg:nuget/System.Text.Json?repository_url=https://www.nuget.org/api/v2/")]
         public async Task GetPackagePrefixReserved_ReturnsFalse(string purlString)
         {
             PackageURL purl = new(purlString);
-            _projectManager = new NuGetV2ProjectManager(".", null, _httpFactory);
-            bool isReserved = await _projectManager.GetHasReservedNamespaceAsync(purl, useCache: false);
+            var projectManager = new NuGetV2ProjectManager(".", null, _httpFactory);
+            bool isReserved = await projectManager.GetHasReservedNamespaceAsync(purl, useCache: false);
 
             Assert.False(isReserved); // Reserved namespaces are not supported in NuGet V2
         }
@@ -233,7 +324,7 @@
         [InlineData("pkg:nuget/PSReadLine@2.4.1-beta1?repository_url=https://www.powershellgallery.com/api/v2/", true)]
         [InlineData("pkg:nuget/PSReadLine?repository_url=https://www.powershellgallery.com/api/v2/", true)]
         [InlineData("pkg:nuget/notarealpackage?repository_url=https://www.powershellgallery.com/api/v2/", false)]
-        public async Task DetailedPackageExistsAsync_Succeeds(string purlString, bool exists)
+        public async Task DetailedPackageExistsAsync_Succeeds_WithMockedData(string purlString, bool exists)
         {
             PackageURL purl = new(purlString);
 
@@ -256,9 +347,24 @@
                 nugetPackageActions = PackageActionsHelper<NuGetPackageVersionMetadata>.SetupPackageActions();
             }
 
-            _projectManager = new NuGetV2ProjectManager(".", nugetPackageActions, _httpFactory);
+            var projectManager = new NuGetV2ProjectManager(".", nugetPackageActions, _httpFactory);
 
-            IPackageExistence existence = await _projectManager.DetailedPackageExistsAsync(purl, useCache: false);
+            IPackageExistence existence = await projectManager.DetailedPackageExistsAsync(purl, useCache: false);
+
+            Assert.Equal(exists, existence.Exists);
+        }
+
+        [Theory]
+        [InlineData("pkg:nuget/Newtonsoft.Json@12.0.3?repository_url=https://www.nuget.org/api/v2/", true)]
+        [InlineData("pkg:nuget/Microsoft.Extensions.Logging@8.0.0?repository_url=https://www.nuget.org/api/v2/", true)]
+        [InlineData("pkg:nuget/nonexistentpackage123xyz@0.0.0?repository_url=https://www.nuget.org/api/v2/", false)]
+        public async Task DetailedPackageExistsAsync_NuGetOrg(string purlString, bool exists)
+        {
+            PackageURL purl = new(purlString);
+
+            var projectManager = CreateRepositorySpecificProjectManager(purl);
+
+            IPackageExistence existence = await projectManager.DetailedPackageExistsAsync(purl, useCache: false);
 
             Assert.Equal(exists, existence.Exists);
         }
@@ -278,7 +384,8 @@
         {
             XmlSerializer serializer = new(typeof(T));
             using StringReader reader = new(xml);
-            return (T)serializer.Deserialize(reader);
+            object? result = serializer.Deserialize(reader) ?? throw new InvalidOperationException("Deserialization returned null.");
+            return (T)result;
         }
     }
 }

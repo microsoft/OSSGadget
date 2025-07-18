@@ -29,9 +29,9 @@ public class NuGetPackageActions : IManagerPackageActions<NuGetPackageVersionMet
     /// <summary>
     /// Creates a new instance of <see cref="NuGetPackageActions"/> using a V2 source repository.
     /// </summary>
-    /// <param name="source">The source URL for the V2 repository. Defaults to the PowerShell Gallery index.</param>
+    /// <param name="source">The source URL for the V2 repository.</param>
     /// <returns>A new instance of <see cref="NuGetPackageActions"/>.</returns>
-    public static NuGetPackageActions CreateV2(string source = NuGetV2ProjectManager.POWER_SHELL_GALLERY_DEFAULT_INDEX) => new(Repository.Factory.GetCoreV2(new(source)));
+    public static NuGetPackageActions CreateV2(string source) => new(Repository.Factory.GetCoreV2(new(source)));
 
     /// <summary>
     /// Creates a new instance of <see cref="NuGetPackageActions"/> using a V3 source repository.

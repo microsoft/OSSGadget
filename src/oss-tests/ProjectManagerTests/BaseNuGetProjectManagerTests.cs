@@ -12,9 +12,18 @@ namespace Microsoft.CST.OpenSource.Tests.ProjectManagerTests
     public class BaseNuGetProjectManagerTests
     {
         [Theory]
+        // Backwards compatibility - PowerShell Gallery V2
         [InlineData(
             "pkg:nuget/TestPackage?repository_url=https://www.powershellgallery.com/api/v2",
             typeof(NuGetV2ProjectManager))]
+        // New functionality - Generic V2 APIs
+        [InlineData(
+            "pkg:nuget/TestPackage?repository_url=https://www.nuget.org/api/v2",
+            typeof(NuGetV2ProjectManager))]
+        [InlineData(
+            "pkg:nuget/TestPackage?repository_url=https://private.example.com/api/v2",
+            typeof(NuGetV2ProjectManager))]
+        // V3 APIs continue to work
         [InlineData(
             "pkg:nuget/TestPackage?repository_url=https://api.nuget.org/v3/index.json",
             typeof(NuGetProjectManager))]

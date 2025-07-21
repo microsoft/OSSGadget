@@ -35,21 +35,32 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         
     
+        /// <summary>
         /// Creates an instance of a BaseNuGetProjectManager based on the provided PackageURL.
-        /// If the repository URL matches the PowerShell Gallery URL, a NuGetV2ProjectManager is created.
+        /// If the repository URL ends with /api/v2, a NuGetV2ProjectManager is created.
         /// Otherwise, a default NuGetProjectManager (V3) is created.
+        /// </summary>
         internal static BaseNuGetProjectManager Create(string destinationDirectory, IHttpClientFactory httpClientFactory, TimeSpan? timeout, PackageURL? packageUrl)
         {
-            // Check if the repository_url exists and matches the PowerShell Gallery URL
+            // Check if the repository_url exists and is a NuGet V2 API endpoint
             if (packageUrl?.TryGetRepositoryUrl(out string? repositoryUrlQualifier) == true &&
-                repositoryUrlQualifier!.TrimEnd('/') == NuGetV2ProjectManager.POWER_SHELL_GALLERY_DEFAULT_INDEX)
+                IsNuGetV2Endpoint(repositoryUrlQualifier))
             {
-                return new NuGetV2ProjectManager(destinationDirectory, NuGetPackageActions.CreateV2(), httpClientFactory, timeout);
+                return new NuGetV2ProjectManager(destinationDirectory, NuGetPackageActions.CreateV2(repositoryUrlQualifier), httpClientFactory, timeout);
             }
 
             // Default case: Use NuGetProjectManager (V3)
             return new NuGetProjectManager(destinationDirectory, NuGetPackageActions.CreateV3(), httpClientFactory, timeout);
         }
+
+        /// <summary>
+        /// Determines if the given repository URL represents a NuGet V2 API endpoint.
+        /// NuGet V2 API endpoints follow the pattern of ending with /api/v2.
+        /// </summary>
+        /// <param name="repositoryUrl">The repository URL to check.</param>
+        /// <returns>True if the URL represents a NuGet V2 endpoint, false otherwise.</returns>
+        private static bool IsNuGetV2Endpoint(string? repositoryUrl) =>
+            repositoryUrl?.TrimEnd('/').EndsWith("/api/v2", StringComparison.OrdinalIgnoreCase) == true;
 
         /// <inheritdoc />
         public override async IAsyncEnumerable<PackageURL> GetPackagesFromOwnerAsync(string owner, bool useCache = true)

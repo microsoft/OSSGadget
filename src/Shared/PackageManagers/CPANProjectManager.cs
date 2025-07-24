@@ -2,8 +2,8 @@
 
 namespace Microsoft.CST.OpenSource.PackageManagers
 {
-    using AngleSharp.Html.Parser;
     using Helpers;
+    using Microsoft.CST.OpenSource.PackageManagers.CPAN;
     using PackageUrl;
     using System;
     using System.Collections.Generic;
@@ -12,11 +12,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Net;
     using System.Net.Http;
     using System.Text.Json;
-    using System.Text.RegularExpressions;
+    using System.Threading;
     using System.Threading.Tasks;
 
     internal class CPANProjectManager : BaseProjectManager
     {
+        private readonly ICPANMetadataClient _metadataClient;
+
         /// <summary>
         /// The type of the project manager from the package-url type specifications.
         /// </summary>
@@ -26,9 +28,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public override string ManagerType => Type;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
-        public string ENV_CPAN_BINARY_ENDPOINT { get; set; } = "https://cpan.metacpan.org";
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
         public string ENV_CPAN_ENDPOINT { get; set; } = "https://metacpan.org";
         
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Modified through reflection.")]
@@ -36,10 +35,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         public CPANProjectManager(IHttpClientFactory httpClientFactory, string destinationDirectory, TimeSpan? timeout = null) : base(httpClientFactory, destinationDirectory, timeout)
         {
-        }
-
-        public CPANProjectManager(string destinationDirectory, TimeSpan? timeout = null) : base(destinationDirectory, timeout)
-        {
+            // TODO: consider moving to ctor and using dependency injection
+            _metadataClient = new CPANMetadataClient(httpClientFactory);
         }
 
         /// <inheritdoc />
@@ -122,30 +119,22 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             try
             {
-                string packageName = purl.Name;
-                List<string> versionList = new();
-                HttpClient httpClient = CreateHttpClient();
-
-                string? html = await GetHttpStringCache(httpClient, $"{ENV_CPAN_ENDPOINT}/dist/{packageName}");
-                HtmlParser parser = new();
-                AngleSharp.Html.Dom.IHtmlDocument document = await parser.ParseDocumentAsync(html);
-                foreach (AngleSharp.Dom.IElement option in document.QuerySelectorAll("div.release select.extend option"))
+                // TODO: cancellationToken should be pulled up as parameter to this method and created by callers
+                CancellationToken cancellationToken = CancellationToken.None;
+                if(Timeout.HasValue)
                 {
-                    if (!option.HasAttribute("value"))
-                    {
-                        continue;
-                    }
-                    string? value = option.GetAttribute("value");
-                    Match? match = Regex.Match(value, @".*-([^-]+)$");
-                    if (match.Success)
-                    {
-                        Logger.Debug("Identified {0} version {1}.", packageName, match.Groups[1].Value);
-                        versionList.Add(match.Groups[1].Value);
-                    }
+                    CancellationTokenSource cts = new();
+                    cts.CancelAfter(Timeout.Value);
+                    cancellationToken = cts.Token;
                 }
 
-                IEnumerable<string> result = SortVersions(versionList.Distinct());
-                return result;
+                VersionsResult versionsResult = await _metadataClient.GetPackageVersions(purl.Name, cancellationToken);
+                if (versionsResult.PackageFound)
+                {
+                    IEnumerable<string> result = SortVersions(versionsResult.Versions.Distinct());
+                    return result;
+                }
+                return Array.Empty<string>();
             }
             catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
             {

@@ -177,7 +177,7 @@ public class CargoProjectManagerTests
         artifactUri.Type.Should().Be(CargoProjectManager.CargoArtifactType.Tarball);
     }
 
-    [Fact(Skip = "Test fails in pipeline")]
+    [SkipInADOFact]
     public async Task EnumerateVersionsSucceeds()
     {
         string purlString = "pkg:cargo/rand@0.7.3";

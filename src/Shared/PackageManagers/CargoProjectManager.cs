@@ -177,7 +177,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     string? packageName = purl.Name;
                     HttpClient httpClient = CreateHttpClient();
                     // NOTE: The file isn't valid json, so use the custom rule.
-                    JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_CARGO_INDEX_ENDPOINT}/{CreatePath(packageName)}", jsonParsingOption: JsonParsingOption.NotInArrayNotCsv);
+                    string cargoUrl = $"{ENV_CARGO_INDEX_ENDPOINT}/{CreatePath(packageName)}";
+                    JsonDocument doc = await GetJsonCache(httpClient, cargoUrl, useCache: useCache, jsonParsingOption: JsonParsingOption.NotInArrayNotCsv);
                     List<string> versionList = new();
                     foreach (JsonElement versionObject in doc.RootElement.EnumerateArray())
                     {

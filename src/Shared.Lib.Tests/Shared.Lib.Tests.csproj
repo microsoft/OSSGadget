@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+	<RootNamespace>Microsoft.CST.OpenSource.Tests</RootNamespace>
+	<Description>OSS Gadget - Shared Library Functionality Tests</Description>
+	<RepositoryType>GitHub</RepositoryType>
+	<RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>
+	<AssemblyName>OSSGadget.Shared.Lib.Tests</AssemblyName>
+	<Nullable>enable</Nullable>
+	<copyright>© Microsoft Corporation. All rights reserved.</copyright>
+	<Authors>Microsoft</Authors>
+	<Company>Microsoft</Company>
+  </PropertyGroup>
+
+  <ItemGroup>
+	  <PackageReference Include="AutoFixture" Version="4.18.1" />
+	  <PackageReference Include="AwesomeAssertions" Version="8.2.0" />
+	  <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
+	  <PackageReference Include="NSubstitute" Version="5.3.0" />
+	  <PackageReference Include="xunit" Version="2.9.3" />
+	  <PackageReference Include="xunit.runner.visualstudio" Version="3.1.0">
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		  <PrivateAssets>all</PrivateAssets>
+	  </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Shared.CLI\Shared.CLI.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+</Project>

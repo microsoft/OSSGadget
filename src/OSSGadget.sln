@@ -24,6 +24,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{F57911B9-C26
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared.Lib.Tests", "Shared.Lib.Tests\Shared.Lib.Tests.csproj", "{5BC950E8-32DB-4973-A5A6-E78739741D28}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".pipelines", ".pipelines", "{50C0C454-F0D7-45CB-B4AC-487F50E361BF}"
+	ProjectSection(SolutionItems) = preProject
+		..\Pipelines\core-pipeline.yml = ..\Pipelines\core-pipeline.yml
+		..\Pipelines\ossgadget-pr.yml = ..\Pipelines\ossgadget-pr.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

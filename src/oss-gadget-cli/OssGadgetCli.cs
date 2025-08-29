@@ -3,6 +3,7 @@
 using CommandLine;
 using Microsoft.CST.OpenSource;
 using Microsoft.CST.OpenSource.DomainSquats;
+using Microsoft.CST.OpenSource.FindSquats;
 using Microsoft.CST.OpenSource.OssGadget.Options;
 using Microsoft.CST.OpenSource.OssGadget.CLI.Tools;
 using Microsoft.CST.OpenSource.OssGadget.Tools;
@@ -43,6 +44,9 @@ class OssGadgetCli : OSSGadget
             DiffToolOptions diffToolOptions => await new DiffTool(ProjectManagerFactory).RunAsync(diffToolOptions),
             MetadataToolOptions metadataToolOptions => await new MetadataTool(ProjectManagerFactory).RunAsync(metadataToolOptions),
             DetectBackdoorToolOptions detectBackdoorToolOptions => await new DetectBackdoorTool(ProjectManagerFactory).RunAsync(detectBackdoorToolOptions),
+            DetectCryptographyToolOptions detectCryptographyToolOptions => await new DetectCryptographyTool(ProjectManagerFactory).RunAsync(detectCryptographyToolOptions),
+            DefogToolOptions defogToolOptions => await new DefoggerTool(ProjectManagerFactory).RunAsync(defogToolOptions),
+            FindSquatsToolOptions findSquatsToolOptions => await new FindSquatsTool(ProjectManagerFactory).RunAsync(findSquatsToolOptions),
             ReproducibleToolOptions reproducibleToolOptions => await new ReproducibleTool(ProjectManagerFactory).RunAsync(reproducibleToolOptions),
             FindDomainSquatsToolOptions findDomainSquatsToolOptions => await new FindDomainSquatsTool(new DefaultHttpClientFactory()).RunAsync(findDomainSquatsToolOptions),
             FindSourceToolOptions findSourceToolOptions => await new FindSourceTool(ProjectManagerFactory).RunAsync(findSourceToolOptions),

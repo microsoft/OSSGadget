@@ -127,6 +127,20 @@ namespace Microsoft.CST.OpenSource
             }
         }
 
+        protected void ConfigureLogging(BaseToolOptions options)
+        {
+            if (options.EnableTraceLogging)
+            {
+                var config = NLog.LogManager.Configuration;
+                var rule = config.LoggingRules.FirstOrDefault();
+                if (rule != null)
+                {
+                    rule.SetLoggingLevels(NLog.LogLevel.Trace, NLog.LogLevel.Fatal);
+                    NLog.LogManager.ReconfigExistingLoggers();
+                }
+            }
+        }
+
         private bool redirectConsole = false;
     }
 }

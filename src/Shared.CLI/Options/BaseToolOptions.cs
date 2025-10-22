@@ -8,4 +8,7 @@ using System.Collections.Generic;
 
 public class BaseToolOptions
 {
+    [Option('t', "trace", Required = false, Default = false,
+        HelpText = "Enable trace-level logging")]
+    public bool EnableTraceLogging { get; set; }
 }

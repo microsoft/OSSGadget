@@ -6,6 +6,7 @@ using Microsoft.ApplicationInspector.Commands;
 using Microsoft.ApplicationInspector.RulesEngine;
 using Microsoft.CodeAnalysis.Sarif;
 using Microsoft.CST.OpenSource.Shared;
+using Microsoft.CST.RecursiveExtractor;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -31,42 +32,250 @@ namespace Microsoft.CST.OpenSource.OssGadget.Tools
         {
         }
 
-        public async Task<AnalyzeResult?> AnalyzeFile(CharacteristicToolOptions options, string file)
+        public async Task<AnalyzeResult?> AnalyzeFile(CharacteristicToolOptions options, string file, RuleSet? embeddedRules = null)
         {
             Logger.Trace("AnalyzeFile({0})", file);
-            return await AnalyzeDirectory(options, file);
+            return await AnalyzeDirectory(options, file, embeddedRules);
         }
 
         /// <summary>
         ///     Analyzes a directory of files.
         /// </summary>
         /// <param name="directory"> directory to analyze. </param>
+        /// <param name="embeddedRules"> Optional embedded rules to use instead of file-based rules. </param>
         /// <returns> List of tags identified </returns>
-        public async Task<AnalyzeResult?> AnalyzeDirectory(CharacteristicToolOptions options, string directory)
+        public async Task<AnalyzeResult?> AnalyzeDirectory(CharacteristicToolOptions options, string directory, RuleSet? embeddedRules = null)
         {
             Logger.Trace("AnalyzeDirectory({0})", directory);
 
             AnalyzeResult? analysisResult = null;
 
-            // Call Application Inspector using the NuGet package
-            AnalyzeOptions? analyzeOptions = new AnalyzeOptions()
-            {
-                SourcePath = new[] { directory },
-                IgnoreDefaultRules = options.DisableDefaultRules,
-                CustomRulesPath = options.CustomRuleDirectory,
-                ConfidenceFilters = new [] { Confidence.High | Confidence.Medium | Confidence.Low },
-                ScanUnknownTypes = true,
-                AllowAllTagsInBuildFiles = options.AllowTagsInBuildFiles,
-                SingleThread = options.SingleThread,
-                FilePathExclusions = options.FilePathExclusions?.Split(',') ?? Array.Empty<string>(),
-                EnableNonBacktrackingRegex = !options.EnableBacktracking
-            };
-
             try
             {
-                AnalyzeCommand? analyzeCommand = new AnalyzeCommand(analyzeOptions);
-                analysisResult = analyzeCommand.GetResult();
-                Logger.Debug("Operation Complete: {0} files analyzed.", analysisResult?.Metadata?.TotalFiles);
+                // Build the RuleSet
+                RuleSet rules = new RuleSet();
+
+                if (embeddedRules != null && embeddedRules.Any())
+                {
+                    // Use the embedded rules directly
+                    rules.AddRange(embeddedRules);
+                    Logger.Debug("Using {0} embedded rules", rules.Count());
+                }
+                else
+                {
+                    // Load from custom directory or use defaults
+                    if (!options.DisableDefaultRules)
+                    {
+                        // Load default ApplicationInspector rules
+                        var aiAssembly = typeof(AnalyzeCommand).Assembly;
+                        foreach (string? resourceName in aiAssembly.GetManifestResourceNames())
+                        {
+                            if (resourceName.EndsWith(".json"))
+                            {
+                                try
+                                {
+                                    using var stream = aiAssembly.GetManifestResourceStream(resourceName);
+                                    using var reader = new StreamReader(stream ?? new MemoryStream());
+                                    rules.AddString(reader.ReadToEnd(), resourceName);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Logger.Warn(ex, "Error loading default rule {0}: {1}", resourceName, ex.Message);
+                                }
+                            }
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(options.CustomRuleDirectory))
+                    {
+                        rules.AddDirectory(options.CustomRuleDirectory);
+                    }
+                }
+
+                if (!rules.Any())
+                {
+                    Logger.Error("No rules were loaded, unable to continue.");
+                    return null;
+                }
+
+                Logger.Debug("Loaded {0} total rules for analysis", rules.Count());
+
+                // Create RuleProcessor with empty options (like DetectCryptographyTool does)
+                RuleProcessor processor = new RuleProcessor(rules, new RuleProcessorOptions());
+
+                // Get list of files to analyze
+                string[] fileList;
+                string[] exclusions = options.FilePathExclusions?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
+
+                if (System.IO.Directory.Exists(directory))
+                {
+                    fileList = System.IO.Directory.GetFiles(directory, "*", SearchOption.AllDirectories);
+                }
+                else if (File.Exists(directory))
+                {
+                    fileList = new string[] { directory };
+                }
+                else
+                {
+                    Logger.Warn("{0} is neither a directory nor a file.", directory);
+                    return null;
+                }
+
+                // Filter out excluded files
+                if (exclusions.Any())
+                {
+                    fileList = fileList.Where(f => !exclusions.Any(exc => f.Contains(exc, StringComparison.OrdinalIgnoreCase))).ToArray();
+                }
+
+                Logger.Debug("Analyzing {0} files in {1}", fileList.Length, directory);
+
+                // Analyze files
+                List<MatchRecord> allMatches = new List<MatchRecord>();
+                Dictionary<string, int> languageCounts = new Dictionary<string, int>();
+
+                foreach (string filename in fileList)
+                {
+                    try
+                    {
+                        Logger.Trace("Processing {0}", filename);
+
+                        byte[] fileContents = File.ReadAllBytes(filename);
+
+                        // Create a FileEntry for the processor
+                        FileEntry fileEntry = new FileEntry(filename, new MemoryStream(fileContents));
+                        
+                        // Determine language
+                        LanguageInfo languageInfo = new LanguageInfo();
+                        var languages = new Languages();
+                        languages.FromFileName(filename, ref languageInfo);
+
+                        // DEBUG: Log file processing details
+                        Logger.Debug("File: {0}, Language: {1}, Size: {2} bytes", 
+                            Path.GetFileName(filename), 
+                            languageInfo.Name ?? "unknown", 
+                            fileContents.Length);
+
+                        // Track language statistics
+                        if (!string.IsNullOrEmpty(languageInfo.Name))
+                        {
+                            if (languageCounts.ContainsKey(languageInfo.Name))
+                                languageCounts[languageInfo.Name]++;
+                            else
+                                languageCounts[languageInfo.Name] = 1;
+                        }
+
+                        // Analyze the file
+                        List<MatchRecord> fileMatches;
+
+                        if (options.SingleThread)
+                        {
+                            fileMatches = processor.AnalyzeFile(fileEntry, languageInfo);
+                        }
+                        else
+                        {
+                            // Run with timeout for safety
+                            var task = Task.Run(() => processor.AnalyzeFile(fileEntry, languageInfo));
+                            if (task.Wait(TimeSpan.FromSeconds(30)))
+                            {
+                                fileMatches = task.Result;
+                            }
+                            else
+                            {
+                                Logger.Warn("Analysis timed out for {0}", filename);
+                                continue;
+                            }
+                        }
+
+                        // DEBUG: Log match results
+                        Logger.Debug("File {0} produced {1} matches", 
+                            Path.GetFileName(filename), 
+                            fileMatches?.Count ?? 0);
+
+                        if (fileMatches != null && fileMatches.Any())
+                        {
+                            allMatches.AddRange(fileMatches);
+                            Logger.Trace("Found {0} matches in {1}", fileMatches.Count, filename);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Warn(ex, "Error analyzing file {0}: {1}", filename, ex.Message);
+                    }
+                }
+
+                // Build the AnalyzeResult  
+                // Note: We can't use MetaData directly because many properties are read-only
+                // and Languages dictionary might be null. We'll just pass the matches to AnalyzeResult
+                // and let ApplicationInspector handle the metadata construction.
+
+                // Create a simple AnalyzeResult without complex MetaData manipulation
+                analysisResult = new AnalyzeResult()
+                {
+                    ResultCode = AnalyzeResult.ExitCode.Success
+                };
+
+                // Try to set basic metadata if the Metadata property allows it
+                try
+                {
+                    MetaData metadata = new MetaData(directory, directory);
+                    
+                    // Try to set matches via reflection
+                    var matchesField = typeof(MetaData).GetField("_matches", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    if (matchesField != null)
+                    {
+                        matchesField.SetValue(metadata, allMatches);
+                    }
+                    
+                    // Try to set properties via reflection on backing fields
+                    var metadataType = typeof(MetaData);
+                    
+                    metadataType.GetField("<TotalFiles>k__BackingField", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                        ?.SetValue(metadata, fileList.Length);
+                    
+                    metadataType.GetField("<FilesAnalyzed>k__BackingField", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                        ?.SetValue(metadata, fileList.Length);
+                    
+                    metadataType.GetField("<TotalMatchesCount>k__BackingField", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                        ?.SetValue(metadata, allMatches.Count);
+                    
+                    metadataType.GetField("<UniqueMatchesCount>k__BackingField", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                        ?.SetValue(metadata, allMatches.Select(m => m.RuleId).Distinct().Count());
+                    
+                    // Try to initialize and set Languages dictionary
+                    if (languageCounts.Any())
+                    {
+                        var languagesField = metadataType.GetField("<Languages>k__BackingField", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                        if (languagesField != null)
+                        {
+                            var existingDict = languagesField.GetValue(metadata) as System.Collections.Concurrent.ConcurrentDictionary<string, int>;
+                            if (existingDict == null)
+                            {
+                                // Create new dictionary and set it
+                                existingDict = new System.Collections.Concurrent.ConcurrentDictionary<string, int>();
+                                languagesField.SetValue(metadata, existingDict);
+                            }
+                            
+                            // Add language counts
+                            foreach (var kvp in languageCounts)
+                            {
+                                existingDict.TryAdd(kvp.Key, kvp.Value);
+                            }
+                        }
+                    }
+                    
+                    // Set the metadata on the result
+                    var metadataProperty = typeof(AnalyzeResult).GetProperty("Metadata");
+                    if (metadataProperty != null && metadataProperty.CanWrite)
+                    {
+                        metadataProperty.SetValue(analysisResult, metadata);
+                    }
+                }
+                catch (Exception metadataEx)
+                {
+                    Logger.Warn(metadataEx, "Unable to set full metadata, continuing with basic result: {0}", metadataEx.Message);
+                }
+
+                Logger.Debug("Operation Complete: {0} files analyzed, {1} matches found.", fileList.Length, allMatches.Count);
             }
             catch (Exception ex)
             {
@@ -77,13 +286,162 @@ namespace Microsoft.CST.OpenSource.OssGadget.Tools
         }
 
         /// <summary>
+        ///     Analyzes a directory and returns raw match records (like DetectCryptographyTool).
+        /// </summary>
+        /// <param name="options">Analysis options</param>
+        /// <param name="directory">Directory to analyze</param>
+        /// <param name="embeddedRules">Optional embedded rules</param>
+        /// <returns>List of MatchRecord objects found during analysis</returns>
+        public async Task<List<MatchRecord>> AnalyzeDirectoryRaw(CharacteristicToolOptions options, string directory, RuleSet? embeddedRules = null)
+        {
+            Logger.Trace("AnalyzeDirectoryRaw({0})", directory);
+
+            List<MatchRecord> allMatches = new List<MatchRecord>();
+
+            try
+            {
+                // Build the RuleSet
+                RuleSet rules = new RuleSet();
+
+                if (embeddedRules != null && embeddedRules.Any())
+                {
+                    rules.AddRange(embeddedRules);
+                    Logger.Debug("Using {0} embedded rules", rules.Count());
+                }
+                else
+                {
+                    // Load from custom directory or use defaults
+                    if (!options.DisableDefaultRules)
+                    {
+                        var aiAssembly = typeof(AnalyzeCommand).Assembly;
+                        foreach (string? resourceName in aiAssembly.GetManifestResourceNames())
+                        {
+                            if (resourceName.EndsWith(".json"))
+                            {
+                                try
+                                {
+                                    using var stream = aiAssembly.GetManifestResourceStream(resourceName);
+                                    using var reader = new StreamReader(stream ?? new MemoryStream());
+                                    rules.AddString(reader.ReadToEnd(), resourceName);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Logger.Warn(ex, "Error loading default rule {0}: {1}", resourceName, ex.Message);
+                                }
+                            }
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(options.CustomRuleDirectory))
+                    {
+                        rules.AddDirectory(options.CustomRuleDirectory);
+                    }
+                }
+
+                if (!rules.Any())
+                {
+                    Logger.Error("No rules were loaded, unable to continue.");
+                    return allMatches;
+                }
+
+                Logger.Debug("Loaded {0} total rules for analysis", rules.Count());
+
+                // Create RuleProcessor
+                RuleProcessor processor = new RuleProcessor(rules, new RuleProcessorOptions());
+
+                // Get list of files to analyze
+                string[] fileList;
+                string[] exclusions = options.FilePathExclusions?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
+
+                if (System.IO.Directory.Exists(directory))
+                {
+                    fileList = System.IO.Directory.GetFiles(directory, "*", SearchOption.AllDirectories);
+                }
+                else if (File.Exists(directory))
+                {
+                    fileList = new string[] { directory };
+                }
+                else
+                {
+                    Logger.Warn("{0} is neither a directory nor a file.", directory);
+                    return allMatches;
+                }
+
+                // Filter out excluded files
+                if (exclusions.Any())
+                {
+                    fileList = fileList.Where(f => !exclusions.Any(exc => f.Contains(exc, StringComparison.OrdinalIgnoreCase))).ToArray();
+                }
+
+                Logger.Debug("Analyzing {0} files in {1}", fileList.Length, directory);
+
+                // Analyze files
+                foreach (string filename in fileList)
+                {
+                    try
+                    {
+                        Logger.Trace("Processing {0}", filename);
+
+                        byte[] fileContents = File.ReadAllBytes(filename);
+                        FileEntry fileEntry = new FileEntry(filename, new MemoryStream(fileContents));
+                        
+                        // Determine language
+                        LanguageInfo languageInfo = new LanguageInfo();
+                        var languages = new Languages();
+                        languages.FromFileName(filename, ref languageInfo);
+
+                        // Analyze the file
+                        List<MatchRecord> fileMatches;
+                
+                        if (options.SingleThread)
+                        {
+                            fileMatches = processor.AnalyzeFile(fileEntry, languageInfo);
+                        }
+                        else
+                        {
+                            var task = Task.Run(() => processor.AnalyzeFile(fileEntry, languageInfo));
+                            if (task.Wait(TimeSpan.FromSeconds(30)))
+                            {
+                                fileMatches = task.Result;
+                            }
+                            else
+                            {
+                                Logger.Warn("Analysis timed out for {0}", filename);
+                                continue;
+                            }
+                        }
+
+                        if (fileMatches != null && fileMatches.Any())
+                        {
+                            allMatches.AddRange(fileMatches);
+                            Logger.Debug("Found {0} matches in {1}", fileMatches.Count, filename);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Warn(ex, "Error analyzing file {0}: {1}", filename, ex.Message);
+                    }
+                }
+
+                Logger.Debug("Operation Complete: {0} files analyzed, {1} matches found.", fileList.Length, allMatches.Count);
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn("Error analyzing {0}: {1}", directory, ex.Message);
+            }
+
+            return allMatches;
+        }
+
+        /// <summary>
         ///     Analyze a package by downloading it first.
         /// </summary>
         /// <param name="purl"> The package-url of the package to analyze. </param>
         /// <returns> List of tags identified </returns>
         public async Task<Dictionary<string, AnalyzeResult?>> AnalyzePackage(CharacteristicToolOptions options, PackageURL purl,
             string? targetDirectoryName,
-            bool doCaching = false)
+            bool doCaching = false,
+            RuleSet? embeddedRules = null)
         {
             Logger.Trace("AnalyzePackage({0})", purl.ToString());
 
@@ -98,7 +456,7 @@ namespace Microsoft.CST.OpenSource.OssGadget.Tools
             {
                 foreach (string? directoryName in directoryNames)
                 {
-                    AnalyzeResult? singleResult = await AnalyzeDirectory(options, directoryName);
+                    AnalyzeResult? singleResult = await AnalyzeDirectory(options, directoryName, embeddedRules);
                     analysisResults[directoryName] = singleResult;
                 }
             }
@@ -195,7 +553,7 @@ namespace Microsoft.CST.OpenSource.OssGadget.Tools
                     stringOutput.Add("Unique Tags (Confidence): ");
                     bool hasTags = false;
                     Dictionary<string, List<Confidence>>? dict = new Dictionary<string, List<Confidence>>();
-                    foreach ((string[]? tags, Confidence confidence) in metadata?.Matches?.Where(x => x is not null).Select(x => (x.Tags, x.Confidence)) ?? Array.Empty<(string[], Confidence)>())
+                    foreach ((string[]? tags, Confidence confidence) in metadata?.Matches?.Where(x => x is not null).Select(x => (x.Tags ?? Array.Empty<string>(), x.Confidence)) ?? Array.Empty<(string[], Confidence)>())
                     {
                         foreach (string? tag in tags)
                         {
@@ -260,7 +618,7 @@ namespace Microsoft.CST.OpenSource.OssGadget.Tools
             return ErrorCode.Ok;
         }
         
-        public async Task<List<Dictionary<string, AnalyzeResult?>>> LegacyRunAsync(CharacteristicToolOptions options)
+        public async Task<List<Dictionary<string, AnalyzeResult?>>> LegacyRunAsync(CharacteristicToolOptions options, RuleSet? embeddedRules = null)
         {
             // select output destination and format
             SelectOutput(options.OutputFile);
@@ -280,14 +638,15 @@ namespace Microsoft.CST.OpenSource.OssGadget.Tools
                             string downloadDirectory = options.DownloadDirectory == "." ? System.IO.Directory.GetCurrentDirectory() : options.DownloadDirectory;
                             Dictionary<string, AnalyzeResult?>? analysisResult = await AnalyzePackage(options, purl,
                                 downloadDirectory,
-                                options.UseCache == true);
+                                options.UseCache == true,
+                                embeddedRules);
 
                             AppendOutput(outputBuilder, purl, analysisResult, options);
                             finalResults.Add(analysisResult);
                         }
                         else if (System.IO.Directory.Exists(target))
                         {
-                            AnalyzeResult? analysisResult = await AnalyzeDirectory(options, target);
+                            AnalyzeResult? analysisResult = await AnalyzeDirectory(options, target, embeddedRules);
                             if (analysisResult != null)
                             {
                                 Dictionary<string, AnalyzeResult?>? analysisResults = new Dictionary<string, AnalyzeResult?>()
@@ -302,7 +661,7 @@ namespace Microsoft.CST.OpenSource.OssGadget.Tools
                         }
                         else if (File.Exists(target))
                         {
-                            AnalyzeResult? analysisResult = await AnalyzeFile(options, target);
+                            AnalyzeResult? analysisResult = await AnalyzeFile(options, target, embeddedRules);
                             if (analysisResult != null)
                             {
                                 Dictionary<string, AnalyzeResult?>? analysisResults = new Dictionary<string, AnalyzeResult?>()

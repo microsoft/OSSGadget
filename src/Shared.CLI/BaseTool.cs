@@ -129,16 +129,68 @@ namespace Microsoft.CST.OpenSource
 
         protected void ConfigureLogging(BaseToolOptions options)
         {
-            if (options.EnableTraceLogging)
+            var config = NLog.LogManager.Configuration;
+            var rule = config.LoggingRules.FirstOrDefault();
+            
+            if (rule != null)
             {
-                var config = NLog.LogManager.Configuration;
-                var rule = config.LoggingRules.FirstOrDefault();
-                if (rule != null)
+                NLog.LogLevel? targetLevel = ParseLogLevel(options.LogLevel);
+
+                if (targetLevel != null)
                 {
-                    rule.SetLoggingLevels(NLog.LogLevel.Trace, NLog.LogLevel.Fatal);
+                    rule.SetLoggingLevels(targetLevel, NLog.LogLevel.Fatal);
                     NLog.LogManager.ReconfigExistingLoggers();
+                    Logger.Debug("Log level set to: {0}", targetLevel);
+                }
+                else
+                {
+                    Logger.Warn("Invalid log level '{0}'. Using default (Info). Valid values: Trace(0), Debug(1), Info(2), Warn(3), Error(4), Fatal(5), Off(6)", options.LogLevel);
                 }
             }
+        }
+
+        /// <summary>
+        /// Parses a log level from either a string name or numeric value.
+        /// Supports NLog log levels: Trace, Debug, Info, Warn, Error, Fatal, Off (case-insensitive).
+        /// Also supports numeric values: 0=Trace, 1=Debug, 2=Info, 3=Warn, 4=Error, 5=Fatal, 6=Off.
+        /// </summary>
+        /// <param name="logLevel">The log level as a string or number.</param>
+        /// <returns>The corresponding NLog.LogLevel, or null if invalid.</returns>
+        private NLog.LogLevel? ParseLogLevel(string logLevel)
+        {
+            if (string.IsNullOrWhiteSpace(logLevel))
+            {
+                return null;
+            }
+
+            // Try parsing as a number first
+            if (int.TryParse(logLevel, out int numericLevel))
+            {
+                return numericLevel switch
+                {
+                    0 => NLog.LogLevel.Trace,
+                    1 => NLog.LogLevel.Debug,
+                    2 => NLog.LogLevel.Info,
+                    3 => NLog.LogLevel.Warn,
+                    4 => NLog.LogLevel.Error,
+                    5 => NLog.LogLevel.Fatal,
+                    6 => NLog.LogLevel.Off,
+                    _ => null
+                };
+            }
+
+            // Try parsing as a string (case-insensitive)
+            return logLevel.ToLowerInvariant() switch
+            {
+                "trace" => NLog.LogLevel.Trace,
+                "debug" => NLog.LogLevel.Debug,
+                "info" => NLog.LogLevel.Info,
+                "warn" or "warning" => NLog.LogLevel.Warn,
+                "error" => NLog.LogLevel.Error,
+                "fatal" => NLog.LogLevel.Fatal,
+                "off" or "none" => NLog.LogLevel.Off,
+                _ => null
+            };
         }
 
         private bool redirectConsole = false;

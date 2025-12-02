@@ -32,7 +32,7 @@
         <PackageReference Include="AngleSharp" Version="1.4.0" />
         <PackageReference Include="CommandLineParser" Version="2.9.1" />
         <PackageReference Include="Crayon" Version="2.0.69" />
-        <PackageReference Include="F23.StringSimilarity" Version="7.0.1" />
+        <PackageReference Include="F23.StringSimilarity" Version="7.0.0" />
         <PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
         <PackageReference Include="Microsoft.CST.RecursiveExtractor" Version="1.2.45" />
         <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.4" />

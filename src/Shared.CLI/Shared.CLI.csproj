@@ -81,7 +81,7 @@
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
     <PackageReference Include="Crayon" Version="2.0.69" />
     <PackageReference Include="DiffPlex" Version="1.9.0" />
-    <PackageReference Include="F23.StringSimilarity" Version="7.0.1" />
+    <PackageReference Include="F23.StringSimilarity" Version="7.0.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
     <PackageReference Include="MediaTypeMap.Core" Version="2.3.3" />
     <PackageReference Include="Microsoft.CST.ApplicationInspector.Common" Version="1.9.53" />

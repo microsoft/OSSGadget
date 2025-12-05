@@ -49,20 +49,22 @@ extends:
             nugetConfigPath: 'nuget.config.azure'
             includeNuGetOrg: false
 
+        - script: dir
+          workingDirectory: '$(Build.SourcesDirectory)/src'
+          displayName: List contents of a folder
+
         - task: DotNetCoreCLI@2
           displayName: Build
           inputs:
             command: 'build'
             displayName: 'dotnet build'
-            workingDirectory: $(Build.SourcesDirectory)
+            workingDirectory: '$(Build.SourcesDirectory)/src'
             includeNuGetOrg: false
             arguments: >
-              'src\OSSGadget.sln'
               --configuration $(buildConfiguration)
-              --framework ${dotnetVersion}
+              --framework $(dotnetVersion)
               --no-restore
-              --configfile $(Build.SourcesDirectory)/nuget.config.azure                  
-
+              --configfile $(Build.SourcesDirectory)/nuget.config.azure
 
         - task: DotNetCoreCLI@2
           displayName: Test

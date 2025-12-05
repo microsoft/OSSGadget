@@ -62,7 +62,6 @@ extends:
             includeNuGetOrg: false
             arguments: >
               --configuration $(buildConfiguration)
-              --framework $(dotnetVersion)
               --no-restore
               --configfile $(Build.SourcesDirectory)/nuget.config.azure
 

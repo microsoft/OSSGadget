@@ -38,7 +38,7 @@ extends:
           displayName: Install Dotnet SDK
           inputs:
             packageType: 'sdk'
-            version: dotnetVersion
+            version: ${dotnetVersion}
 
         - task: NuGetAuthenticate@1
         - task: NuGetCommand@2

@@ -55,7 +55,7 @@ extends:
             command: 'build'
             displayName: 'dotnet build'
             arguments: >
-              '$(Build.SourcesDirectory)/src/OSSGadget.sln'
+              '**/OSSGadget.sln'
               --configuration $(buildConfiguration)
               --framework ${dotnetVersion}
               --no-restore

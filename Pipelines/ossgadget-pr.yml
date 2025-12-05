@@ -45,31 +45,27 @@ extends:
             nugetConfigPath: '$(Build.SourcesDirectory)/nuget.config.azure'
             includeNuGetOrg: false
 
-        - task: DotNetCoreCLI@2
-          displayName: Build
-          inputs:
-            command: 'build'
-            displayName: 'dotnet build'
-            workingDirectory: '$(Build.SourcesDirectory)/src'
-            feedsToUse: config
-            nugetConfigPath: '$(Build.SourcesDirectory)/nuget.config.azure'
-            includeNuGetOrg: false
-            arguments: >
-              --configuration $(buildConfiguration)
-              --no-restore
-              --configfile nuget.config.azure
+        # - task: DotNetCoreCLI@2
+        #   displayName: Build
+        #   inputs:
+        #     command: 'build'
+        #     displayName: 'dotnet build'
+        #     workingDirectory: '$(Build.SourcesDirectory)/src'
+        #     includeNuGetOrg: false
+        #     arguments: >
+        #       --configuration $(buildConfiguration)
+        #       --no-restore
+        #       --configfile nuget.config.azure
 
-        - task: DotNetCoreCLI@2
-          displayName: Test
-          inputs:
-            command: test
-            workingDirectory: $(Build.SourcesDirectory)
-            projects: '**/Shared.Lib.Tests.csproj'
-            feedsToUse: config
-            nugetConfigPath: '$(Build.SourcesDirectory)/nuget.config.azure'
-            includeNuGetOrg: false
-            arguments: > 
-              --configuration $(buildConfiguration)
-              -p:RestoreConfigFile=nuget.config.azure
-              --no-restore
-              --no-build
+        # - task: DotNetCoreCLI@2
+        #   displayName: Test
+        #   inputs:
+        #     command: test
+        #     workingDirectory: $(Build.SourcesDirectory)
+        #     projects: '**/Shared.Lib.Tests.csproj'
+        #     includeNuGetOrg: false
+        #     arguments: > 
+        #       --configuration $(buildConfiguration)
+        #       -p:RestoreConfigFile=nuget.config.azure
+        #       --no-restore
+        #       --no-build

@@ -27,48 +27,48 @@ extends:
     - stage: Build
       jobs:
       - job: Build
-        templateContext:
-          outputs:
-          - output: pipelineArtifact
-            path: $(Build.SourcesDirectory)/src/oss-gadget-cli/bin/$(buildConfiguration)
-            artifact: 'build_$(System.JobId)_$(System.JobAttempt)'
+#        templateContext:
+#          outputs:
+#          - output: pipelineArtifact
+#            path: $(Build.SourcesDirectory)/src/oss-gadget-cli/bin/$(buildConfiguration)
+#            artifact: 'build_$(System.JobId)_$(System.JobAttempt)'
 
-          steps:
-            - task: UseDotNet@2
-              displayName: Install Dotnet SDK
-              inputs:
-                packageType: 'sdk'
-                version: dotnetVersion
+        steps:
+        - task: UseDotNet@2
+          displayName: Install Dotnet SDK
+          inputs:
+            packageType: 'sdk'
+            version: dotnetVersion
 
-            - task: NuGetAuthenticate@1
-            - task: NuGetCommand@2
-              inputs:
-                command: restore
-                restoreSolution: '**/*.csproj'
-                feedsToUse: config
-                nugetConfigPath: 'nuget.config.azure'
-                includeNuGetOrg: false
+        - task: NuGetAuthenticate@1
+        - task: NuGetCommand@2
+          inputs:
+            command: restore
+            restoreSolution: '**/*.csproj'
+            feedsToUse: config
+            nugetConfigPath: 'nuget.config.azure'
+            includeNuGetOrg: false
 
-            - task: DotNetCoreCLI@2
-              displayName: Build
-              inputs:
-                command: 'build'
-                displayName: 'dotnet build'
-                arguments: >
-                  'src/OSSGadget.sln'
-                  --configuration $(buildConfiguration)
-                  --framework ${dotnetVersion}
-                  --no-restore
-                  --configfile $(Build.SourcesDirectory)/nuget.config.azure                  
-                includeNuGetOrg: false
+        - task: DotNetCoreCLI@2
+          displayName: Build
+          inputs:
+            command: 'build'
+            displayName: 'dotnet build'
+            arguments: >
+              'src/OSSGadget.sln'
+              --configuration $(buildConfiguration)
+              --framework ${dotnetVersion}
+              --no-restore
+              --configfile $(Build.SourcesDirectory)/nuget.config.azure                  
+            includeNuGetOrg: false
 
-            - task: DotNetCoreCLI@2
-              displayName: Test
-              inputs:
-                command: test
-                projects: '**/Shared.Lib.Tests.csproj'
-                arguments: > 
-                  --configuration $(buildConfiguration)
-                  -p:RestoreConfigFile=$(Build.SourcesDirectory)/nuget.config.azure
-                  --no-restore
-                  --no-build
+        - task: DotNetCoreCLI@2
+          displayName: Test
+          inputs:
+            command: test
+            projects: '**/Shared.Lib.Tests.csproj'
+            arguments: > 
+              --configuration $(buildConfiguration)
+              -p:RestoreConfigFile=$(Build.SourcesDirectory)/nuget.config.azure
+              --no-restore
+              --no-build

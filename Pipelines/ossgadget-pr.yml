@@ -23,16 +23,12 @@ extends:
       name: MSSecurity-1ES-Build-Agents-Pool
       image: MSSecurity-1ES-Windows-2022
       os: windows
+    settings:
+      networkIsolationPolicy: Permissive,CFSClean
     stages:
     - stage: Build
       jobs:
       - job: Build
-#        templateContext:
-#          outputs:
-#          - output: pipelineArtifact
-#            path: $(Build.SourcesDirectory)/src/oss-gadget-cli/bin/$(buildConfiguration)
-#            artifact: 'build_$(System.JobId)_$(System.JobAttempt)'
-
         steps:
         - task: UseDotNet@2
           displayName: Install Dotnet SDK
@@ -48,10 +44,6 @@ extends:
             feedsToUse: config
             nugetConfigPath: 'nuget.config.azure'
             includeNuGetOrg: false
-
-        - script: dir
-          workingDirectory: '$(Build.SourcesDirectory)/src'
-          displayName: List contents of a folder
 
         - task: DotNetCoreCLI@2
           displayName: Build

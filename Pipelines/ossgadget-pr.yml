@@ -54,18 +54,21 @@ extends:
           inputs:
             command: 'build'
             displayName: 'dotnet build'
+            workingDirectory: $(Build.SourcesDirectory)
+            includeNuGetOrg: false
             arguments: >
-              '**/OSSGadget.sln'
+              'src\OSSGadget.sln'
               --configuration $(buildConfiguration)
               --framework ${dotnetVersion}
               --no-restore
               --configfile $(Build.SourcesDirectory)/nuget.config.azure                  
-            includeNuGetOrg: false
+
 
         - task: DotNetCoreCLI@2
           displayName: Test
           inputs:
             command: test
+            workingDirectory: $(Build.SourcesDirectory)
             projects: '**/Shared.Lib.Tests.csproj'
             arguments: > 
               --configuration $(buildConfiguration)

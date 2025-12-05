@@ -40,9 +40,9 @@ extends:
         - task: NuGetCommand@2
           inputs:
             command: restore
-            restoreSolution: '**/*.csproj'
+            restoreSolution: '**/*.sln'
             feedsToUse: config
-            nugetConfigPath: 'nuget.config.azure'
+            nugetConfigPath: '$(Build.SourcesDirectory)/nuget.config.azure'
             includeNuGetOrg: false
 
         - task: DotNetCoreCLI@2
@@ -51,11 +51,13 @@ extends:
             command: 'build'
             displayName: 'dotnet build'
             workingDirectory: '$(Build.SourcesDirectory)/src'
+            feedsToUse: config
+            nugetConfigPath: '$(Build.SourcesDirectory)/nuget.config.azure'
             includeNuGetOrg: false
             arguments: >
               --configuration $(buildConfiguration)
               --no-restore
-              --configfile $(Build.SourcesDirectory)/nuget.config.azure
+              --configfile nuget.config.azure
 
         - task: DotNetCoreCLI@2
           displayName: Test
@@ -63,8 +65,11 @@ extends:
             command: test
             workingDirectory: $(Build.SourcesDirectory)
             projects: '**/Shared.Lib.Tests.csproj'
+            feedsToUse: config
+            nugetConfigPath: '$(Build.SourcesDirectory)/nuget.config.azure'
+            includeNuGetOrg: false
             arguments: > 
               --configuration $(buildConfiguration)
-              -p:RestoreConfigFile=$(Build.SourcesDirectory)/nuget.config.azure
+              -p:RestoreConfigFile=nuget.config.azure
               --no-restore
               --no-build

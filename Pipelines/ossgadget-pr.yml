@@ -69,4 +69,4 @@ extends:
               -p:RestoreConfigFile=$(Build.SourcesDirectory)/nuget.config.azure
               --no-restore
               --no-build
-              --verbosity detailed
+              --verbosity Diagnostic

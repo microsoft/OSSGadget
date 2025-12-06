@@ -30,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Shared.CLI\Shared.CLI.csproj" />
+    <ProjectReference Include="..\Shared\Shared.Lib.csproj" />
   </ItemGroup>
 
   <ItemGroup>

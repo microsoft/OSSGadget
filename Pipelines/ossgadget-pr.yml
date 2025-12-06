@@ -55,18 +55,18 @@ extends:
               OssGadget.sln
               --configuration $(buildConfiguration)
               --no-restore
-              --configfile $(Build.SourcesDirectory)/nuget.config.azure
-              --verbosity detailed
+              --configfile $(Build.SourcesDirectory)/nuget.config.azure              
 
-        # - task: DotNetCoreCLI@2
-        #   displayName: Test
-        #   inputs:
-        #     command: test
-        #     workingDirectory: $(Build.SourcesDirectory)
-        #     projects: '**/Shared.Lib.Tests.csproj'
-        #     includeNuGetOrg: false
-        #     arguments: > 
-        #       --configuration $(buildConfiguration)
-        #       -p:RestoreConfigFile=nuget.config.azure
-        #       --no-restore
-        #       --no-build
+        - task: DotNetCoreCLI@2
+          displayName: Test
+          inputs:
+            command: test
+            workingDirectory: $(Build.SourcesDirectory)
+            projects: '**/Shared.Lib.Tests.csproj'
+            includeNuGetOrg: false
+            arguments: > 
+              --configuration $(buildConfiguration)
+              -p:RestoreConfigFile=$(Build.SourcesDirectory)/nuget.config.azure
+              --no-restore
+              --no-build
+              --verbosity detailed

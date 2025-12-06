@@ -45,17 +45,17 @@ extends:
             nugetConfigPath: '$(Build.SourcesDirectory)/nuget.config.azure'
             includeNuGetOrg: false
 
-        # - task: DotNetCoreCLI@2
-        #   displayName: Build
-        #   inputs:
-        #     command: 'build'
-        #     displayName: 'dotnet build'
-        #     workingDirectory: '$(Build.SourcesDirectory)/src'
-        #     includeNuGetOrg: false
-        #     arguments: >
-        #       --configuration $(buildConfiguration)
-        #       --no-restore
-        #       --configfile nuget.config.azure
+        - task: DotNetCoreCLI@2
+          displayName: Build
+          inputs:
+            command: 'build'
+            displayName: 'dotnet build'
+            workingDirectory: '$(Build.SourcesDirectory)/src'
+            includeNuGetOrg: false
+            arguments: >
+              --configuration $(buildConfiguration)
+              --no-restore
+              --configfile nuget.config.azure
 
         # - task: DotNetCoreCLI@2
         #   displayName: Test

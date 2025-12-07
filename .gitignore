@@ -325,6 +325,9 @@ __pycache__/
 *.odx.cs
 *.xsd.cs
 
+# NLog auto-generated schema files
+NLog.xsd
+
 # OpenCover UI analysis results
 OpenCover/
 

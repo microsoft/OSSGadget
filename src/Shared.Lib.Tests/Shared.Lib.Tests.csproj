@@ -7,7 +7,7 @@
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
 	<RootNamespace>Microsoft.CST.OpenSource.Tests</RootNamespace>
-	<Description>OSS Gadget - Shared Library Functionality Tests</Description>
+	<Description>OSS Gadget - Shared Library Unit Tests</Description>
 	<RepositoryType>GitHub</RepositoryType>
 	<RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>
 	<AssemblyName>OSSGadget.Shared.Lib.Tests</AssemblyName>
@@ -20,7 +20,7 @@
   <ItemGroup>
 	  <PackageReference Include="AutoFixture" Version="4.18.1" />
 	  <PackageReference Include="AwesomeAssertions" Version="9.3.0" />
-	  <PackageReference Include="FluentAssertions" Version="7.0.2" />
+	  <PackageReference Include="FluentAssertions" Version="8.8.0" />
 	  <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
 	  <PackageReference Include="NSubstitute" Version="5.3.0" />
 	  <PackageReference Include="xunit" Version="2.9.3" />

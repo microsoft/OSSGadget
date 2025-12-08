@@ -15,7 +15,6 @@ resources:
 variables:
   buildConfiguration: 'Release'
   dotnetVersion: '8.0.x'
-  nugetConfig: '$(Build.SourcesDirectory)/nuget.config.azure'
 
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1esPipelines
@@ -39,16 +38,15 @@ extends:
 
         - task: NuGetAuthenticate@1
         - task: NuGetCommand@2
-          displayName: Restore
           inputs:
             command: restore
             restoreSolution: '**/*.sln'
             feedsToUse: config
-            nugetConfigPath: $(nugetConfig)
+            nugetConfigPath: '$(Build.SourcesDirectory)/nuget.config.azure'
             includeNuGetOrg: false
 
         - task: DotNetCoreCLI@2
-          displayName: Build OSSGadget
+          displayName: Build
           inputs:
             command: 'build'
             displayName: 'dotnet build'
@@ -57,7 +55,7 @@ extends:
               OssGadget.sln
               --configuration $(buildConfiguration)
               --no-restore
-              --configfile $(nugetConfig)              
+              --configfile $(Build.SourcesDirectory)/nuget.config.azure      
 
         # TODO: add running of unit tests in CI but need to prevent inadvertent connections to to api.nuget.org
         # - task: DotNetCoreCLI@2

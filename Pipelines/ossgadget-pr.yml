@@ -39,6 +39,7 @@ extends:
 
         - task: NuGetAuthenticate@1
         - task: NuGetCommand@2
+          displayName: Restore
           inputs:
             command: restore
             restoreSolution: '**/*.sln'
@@ -47,7 +48,7 @@ extends:
             includeNuGetOrg: false
 
         - task: DotNetCoreCLI@2
-          displayName: Build
+          displayName: Build OSSGadget
           inputs:
             command: 'build'
             displayName: 'dotnet build'
@@ -60,17 +61,17 @@ extends:
 
         # troubleshoot test connecting to api.nuget.org
         - task: DotNetCoreCLI@2
-          displayName: Build
+          displayName: Build Tests
           inputs:
             command: 'build'
             displayName: 'dotnet build'
             workingDirectory: '$(Build.SourcesDirectory)/src'
+            projects: '**/Shared.Lib.Tests.csproj'
             arguments: >
-              Shared.Lib.Tests/Shared.Lib.Tests.csproj
               --configuration $(buildConfiguration)
               --no-restore
               --configfile $(nugetConfig)              
-              --verbosity Diagnostic
+              --verbosity Detailed
 
         - task: DotNetCoreCLI@2
           displayName: Test

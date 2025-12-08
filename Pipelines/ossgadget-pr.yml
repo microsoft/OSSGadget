@@ -59,14 +59,6 @@ extends:
               --configfile $(nugetConfig)              
 
         # troubleshoot test connecting to api.nuget.org
-        - task: NuGetCommand@2
-          inputs:
-            command: restore
-            restoreSolution: '**/Shared.Lib.Tests.csproj'
-            feedsToUse: config
-            nugetConfigPath: $(nugetConfig)
-            includeNuGetOrg: false
-
         - task: DotNetCoreCLI@2
           displayName: Build
           inputs:
@@ -78,7 +70,7 @@ extends:
               --configuration $(buildConfiguration)
               --no-restore
               --configfile $(nugetConfig)              
-
+              --verbosity Diagnostic
 
         - task: DotNetCoreCLI@2
           displayName: Test

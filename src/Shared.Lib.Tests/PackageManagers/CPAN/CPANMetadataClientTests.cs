@@ -1,10 +1,9 @@
 ﻿namespace Microsoft.CST.OpenSource.Tests.PackageManagers.CPAN;
 
 using AutoFixture;
-using FluentAssertions;
+using AwesomeAssertions;
 using Microsoft.CST.OpenSource.PackageManagers.CPAN;
 using Microsoft.CST.OpenSource.Tests.Fakes;
-using Microsoft.Extensions.Configuration;
 using NSubstitute;
 using System.Net.Http;
 using System.Threading.Tasks;

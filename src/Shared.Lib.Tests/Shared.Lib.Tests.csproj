@@ -11,7 +11,6 @@
 	<RepositoryType>GitHub</RepositoryType>
 	<RepositoryUrl>https://github.com/Microsoft/OSSGadget</RepositoryUrl>
 	<AssemblyName>OSSGadget.Shared.Lib.Tests</AssemblyName>
-	<Nullable>enable</Nullable>
 	<copyright>© Microsoft Corporation. All rights reserved.</copyright>
 	<Authors>Microsoft</Authors>
 	<Company>Microsoft</Company>
@@ -20,7 +19,6 @@
   <ItemGroup>
 	  <PackageReference Include="AutoFixture" Version="4.18.1" />
 	  <PackageReference Include="AwesomeAssertions" Version="9.3.0" />
-	  <PackageReference Include="FluentAssertions" Version="8.8.0" />
 	  <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
 	  <PackageReference Include="NSubstitute" Version="5.3.0" />
 	  <PackageReference Include="xunit" Version="2.9.3" />

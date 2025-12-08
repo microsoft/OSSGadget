@@ -53,6 +53,8 @@ extends:
             command: 'build'
             displayName: 'dotnet build'
             workingDirectory: '$(Build.SourcesDirectory)/src'
+            includeNuGetOrg: false
+            feedsToUse: config
             arguments: >
               OssGadget.sln
               --configuration $(buildConfiguration)
@@ -67,6 +69,8 @@ extends:
             displayName: 'dotnet build'
             workingDirectory: '$(Build.SourcesDirectory)/src'
             projects: '**/Shared.Lib.Tests.csproj'
+            includeNuGetOrg: false
+            feedsToUse: config
             arguments: >
               --configuration $(buildConfiguration)
               --no-restore
@@ -78,6 +82,8 @@ extends:
           inputs:
             command: test
             projects: '**/Shared.Lib.Tests.csproj'
+            includeNuGetOrg: false
+            feedsToUse: config
             arguments: > 
               --configuration $(buildConfiguration)
               -p:RestoreConfigFile=$(nugetConfig)

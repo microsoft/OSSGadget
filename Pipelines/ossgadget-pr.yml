@@ -53,40 +53,20 @@ extends:
             command: 'build'
             displayName: 'dotnet build'
             workingDirectory: '$(Build.SourcesDirectory)/src'
-            includeNuGetOrg: false
-            feedsToUse: config
             arguments: >
               OssGadget.sln
               --configuration $(buildConfiguration)
               --no-restore
               --configfile $(nugetConfig)              
 
-        # troubleshoot test connecting to api.nuget.org
-        - task: DotNetCoreCLI@2
-          displayName: Build Tests
-          inputs:
-            command: 'build'
-            displayName: 'dotnet build'
-            workingDirectory: '$(Build.SourcesDirectory)/src'
-            projects: '**/Shared.Lib.Tests.csproj'
-            includeNuGetOrg: false
-            feedsToUse: config
-            arguments: >
-              --configuration $(buildConfiguration)
-              --no-restore
-              --configfile $(nugetConfig)              
-              --verbosity Detailed
-
-        - task: DotNetCoreCLI@2
-          displayName: Test
-          inputs:
-            command: test
-            projects: '**/Shared.Lib.Tests.csproj'
-            includeNuGetOrg: false
-            feedsToUse: config
-            arguments: > 
-              --configuration $(buildConfiguration)
-              -p:RestoreConfigFile=$(nugetConfig)
-              --no-restore
-              --no-build
-              --verbosity Diagnostic
+        # TODO: add running of unit tests in CI but need to prevent inadvertent connections to to api.nuget.org
+        # - task: DotNetCoreCLI@2
+        #   displayName: Test
+        #   inputs:
+        #     command: test
+        #     projects: '**/Shared.Lib.Tests.csproj'
+        #     arguments: > 
+        #       --configuration $(buildConfiguration)
+        #       -p:RestoreConfigFile=$(nugetConfig)
+        #       --no-restore
+        #       --no-build

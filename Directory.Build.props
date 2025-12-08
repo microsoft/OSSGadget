@@ -6,7 +6,4 @@
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
 	</ItemGroup>
-	<PropertyGroup>
-		<NuGetAudit>false</NuGetAudit>
-	</PropertyGroup>
 </Project>

@@ -51,12 +51,11 @@ extends:
             command: 'build'
             displayName: 'dotnet build'
             workingDirectory: '$(Build.SourcesDirectory)/src'
+            includeNuGetOrg: false
             arguments: >
-              OssGadget.sln
               --configuration $(buildConfiguration)
               --no-restore
-              --configfile $(Build.SourcesDirectory)/nuget.config.azure
-              --verbosity detailed
+              --configfile nuget.config.azure
 
         # - task: DotNetCoreCLI@2
         #   displayName: Test

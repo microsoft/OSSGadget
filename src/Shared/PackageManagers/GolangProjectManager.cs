@@ -92,7 +92,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
                 System.Net.Http.HttpResponseMessage result = await httpClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
-                Logger.Debug("Downloading {0}...", purl);
+                LogDownload(purl, url.ToString());
 
                 string targetName = $"golang-{packageNamespace}-{packageName}-{packageSubpath}@{packageVersion}";
                 string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);

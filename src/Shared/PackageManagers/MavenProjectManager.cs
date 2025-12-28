@@ -111,7 +111,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
                     System.Net.Http.HttpResponseMessage result = await httpClient.GetAsync(artifact.Uri);
                     result.EnsureSuccessStatusCode();
-                    Logger.Debug($"Downloading {purl}...");
+                    LogDownload(purl, artifact.Uri.ToString());
+
 
                     string targetName = $"maven-{packageNamespace}-{packageName}{artifact.Type}@{packageVersion}";
                     targetName = targetName.Replace('/', '-');

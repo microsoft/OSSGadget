@@ -42,7 +42,7 @@ extends:
             command: restore
             restoreSolution: '**/*.sln'
             feedsToUse: config
-            nugetConfigPath: '$(Build.SourcesDirectory)/nuget.config.azure'
+            nugetConfigPath: '$(Build.SourcesDirectory)/nuget.config'
             includeNuGetOrg: false
 
         - task: DotNetCoreCLI@2
@@ -55,7 +55,7 @@ extends:
             arguments: >
               --configuration $(buildConfiguration)
               --no-restore
-              --configfile nuget.config.azure
+              --configfile nuget.config
 
         # - task: DotNetCoreCLI@2
         #   displayName: Test
@@ -66,6 +66,6 @@ extends:
         #     includeNuGetOrg: false
         #     arguments: > 
         #       --configuration $(buildConfiguration)
-        #       -p:RestoreConfigFile=nuget.config.azure
+        #       -p:RestoreConfigFile=nuget.config
         #       --no-restore
         #       --no-build

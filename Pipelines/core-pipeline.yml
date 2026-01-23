@@ -412,6 +412,11 @@ extends:
 
         - powershell: 'Get-ChildItem -Path ''$(Build.BinariesDirectory)'' -Recurse CodeSign* | foreach { Remove-Item -Path $_.FullName }'
           displayName: 'Delete Code Sign Summaries'
+
+        # removing CodeCoverage directories is necessary to avoid binskim warnings against code coverage binaries that aren't relevant (not shipped with OssGadget)
+        - powershell: 'Get-ChildItem -Path ''$(Build.BinariesDirectory)'' -Directory -Recurse -Filter "CodeCoverage" | foreach { Remove-Item -Path $_.FullName -Recurse -Force }'
+          displayName: 'Delete CodeCoverage Dir'
+
         - task: ArchiveFiles@2
           displayName: Archive Artifact - Linux
           inputs:

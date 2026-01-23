@@ -116,7 +116,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                         downloadedPaths.Add(extractionPath);
                         return;
                     }
-                    Logger.Debug("Downloading {0}", url);
+                    LogDownload(purl, url.ToString());
 
                     HttpClient httpClient = CreateHttpClient();
 

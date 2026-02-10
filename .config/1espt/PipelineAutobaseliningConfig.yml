@@ -31,3 +31,13 @@ pipelines:
           lastModifiedDate: 2025-01-08
         armory:
           lastModifiedDate: 2025-01-08
+  148:
+    usedNonDefaultBranch: true
+    retail:
+      source:
+        eslint:
+          lastModifiedDate: 2026-02-10
+        psscriptanalyzer:
+          lastModifiedDate: 2026-02-10
+        armory:
+          lastModifiedDate: 2026-02-10

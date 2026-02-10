@@ -382,7 +382,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             DateTime? uploadTime = await GetPackageVersionPublishedTimestampFromRssFeed(purl, useCache);
             if (uploadTime == null && allowUseOfRateLimitedRegistryAPIs)
             {
-                uploadTime = (await GetPackageMetadataAsync(purl, useCache))?.UploadTime;
+                uploadTime = (await GetPackageMetadataAsync(purl, useCache, includeRepositoryMetadata: false))?.UploadTime;
             }
             return uploadTime?.ToUniversalTime();
         }

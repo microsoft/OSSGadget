@@ -456,7 +456,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public virtual async Task<DateTime?> GetPublishedAtUtcAsync(PackageURL purl, bool useCache = true)
         {
             Check.NotNull(nameof(purl.Version), purl.Version);
-            DateTime? uploadTime = (await GetPackageMetadataAsync(purl, useCache))?.UploadTime?.ToUniversalTime();
+            DateTime? uploadTime = (await GetPackageMetadataAsync(purl, useCache, includeRepositoryMetadata: false))?.UploadTime?.ToUniversalTime();
             return uploadTime;
         }
 

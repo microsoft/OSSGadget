@@ -476,6 +476,23 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         protected static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
         /// <summary>
+        /// Logs the download operation with package details and download URL.
+        /// </summary>
+        /// <param name="purl">The PackageURL being downloaded.</param>
+        /// <param name="downloadUrl">The actual download URL.</param>
+        protected static void LogDownload(PackageURL? purl, string? downloadUrl)
+        {
+            if (string.IsNullOrWhiteSpace(downloadUrl))
+            {
+                Logger.Debug("Downloading {0}...", purl?.ToString());
+            }
+            else
+            {
+                Logger.Debug("Downloading {0} from {1}", purl?.ToString(), downloadUrl);
+            }
+        }
+
+        /// <summary>
         /// Rank the source repo entry candidates by their edit distance.
         /// </summary>
         /// <param name="purl">the package</param>

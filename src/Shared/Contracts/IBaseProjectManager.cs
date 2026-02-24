@@ -128,6 +128,14 @@ public interface IBaseProjectManager
     /// <returns></returns>
     public JsonElement? GetVersionElement(JsonDocument contentJSON, Version version);
 
+     /// <summary>
+    /// Gets the JSON element for a package version using string comparison (for non-standard formats like "1.0.2010022026").
+    /// </summary>
+    /// <param name="metadata"></param>
+    /// <param name="version"></param>
+    /// <returns></returns>
+    public JsonElement? GetVersionElement(JsonDocument contentJSON, String version);
+
     /// <summary>
     /// Gets all the versions of a package
     /// </summary>

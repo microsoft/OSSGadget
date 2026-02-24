@@ -522,6 +522,12 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         public override JsonElement? GetVersionElement(JsonDocument? contentJSON, Version version)
         {
+            return GetVersionElement(contentJSON, version.ToString());
+        }
+
+
+        public override JsonElement? GetVersionElement(JsonDocument? contentJSON, string version)
+        {
             if (contentJSON is null) { return null; }
             JsonElement root = contentJSON.RootElement;
 
@@ -530,9 +536,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 JsonElement versionsJSON = root.GetProperty("versions");
                 foreach (JsonProperty versionProperty in versionsJSON.EnumerateObject())
                 {
-                    if (string.Equals(versionProperty.Name, version.ToString(), StringComparison.InvariantCultureIgnoreCase))
+                    if (string.Equals(versionProperty.Name, version, StringComparison.InvariantCultureIgnoreCase))
                     {
-                        return versionsJSON.GetProperty(version.ToString());
+                        return versionsJSON.GetProperty(version);
                     }
                 }
             }

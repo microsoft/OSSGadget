@@ -84,6 +84,7 @@ public class NPMProjectManagerTests
         { "https://registry.npmjs.org/%40somosme/webflowutils", Resources.unpublishedpackage_json },
         { "https://registry.npmjs.org/%40angular/core", Resources.angular_core_json },
         { "https://registry.npmjs.org/%40achievementify/client", Resources.achievementify_client_json },
+        { "https://registry.npmjs.org/%40adguard/dnr-rulesets", Resources.adguard_dnr_rulesets_json },
         { "https://registry.npmjs.org/ds-modal", Resources.ds_modal_json },
         { "https://registry.npmjs.org/monorepolint", Resources.monorepolint_json },
         { "https://registry.npmjs.org/rly-cli", Resources.rly_cli_json },
@@ -412,6 +413,20 @@ public class NPMProjectManagerTests
 
         packages.Should().OnlyHaveUniqueItems();
         packages.Select(p => p.ToString()).Should().Contain(expectedPackage);
+    }
+
+    [Fact]
+    public async Task GetVersionElement_WithNonStandardVersionFormatAsync()
+    {
+        // Test non-standard version format like "4.0.20260218200111" (can't be parsed as SemVer but can be compared as strings)
+        PackageURL purl = new("pkg:npm/%40adguard/dnr-rulesets");
+        string? content = await _projectManager.Object.GetMetadataAsync(purl, useCache: false);
+        JsonDocument contentJSON = JsonDocument.Parse(content);
+
+        JsonElement? versionElement = _projectManager.Object.GetVersionElement(contentJSON, "4.0.20260218200111");
+
+        Assert.NotNull(versionElement);
+        Assert.Equal("4.0.20260218200111", versionElement?.GetProperty("version").GetString());
     }
 
     private static void MockHttpFetchResponse(

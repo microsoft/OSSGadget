@@ -10,8 +10,8 @@
 
 namespace oss {
     using System;
-
-
+    
+    
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -66,6 +66,15 @@ namespace oss {
         internal static string achievementify_client_json {
             get {
                 return ResourceManager.GetString("achievementify_client.json", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;_id&quot;:&quot;@adguard/dnr-rulesets&quot;,&quot;name&quot;:&quot;@adguard/dnr-rulesets&quot;,&quot;dist-tags&quot;:{&quot;latest&quot;:&quot;4.0.20260218200111&quot;},&quot;versions&quot;:{&quot;4.0.20260218200111&quot;:{&quot;name&quot;:&quot;@adguard/dnr-rulesets&quot;,&quot;version&quot;:&quot;4.0.20260218200111&quot;,&quot;_id&quot;:&quot;@adguard/dnr-rulesets@4.0.20260218200111&quot;,&quot;_npmVersion&quot;:&quot;10.0.0&quot;,&quot;_npmUser&quot;:{&quot;name&quot;:&quot;adguard&quot;,&quot;email&quot;:&quot;support@adguard.com&quot;},&quot;description&quot;:&quot;AdGuard DNS filtering rules&quot;},&quot;4.0.20260217190530&quot;:{&quot;name&quot;:&quot;@adguard/dnr-rulesets&quot;,&quot;version&quot;:&quot;4.0.20260217190530&quot;,&quot;_id&quot;:&quot;@adguard/dnr-rulesets@4.0.20260217190530&quot;, [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string adguard_dnr_rulesets_json {
+            get {
+                return ResourceManager.GetString("adguard_dnr_rulesets.json", resourceCulture);
             }
         }
         
@@ -327,7 +336,7 @@ namespace oss {
                 return ResourceManager.GetString("maven_core_1.0.0_alpha2_aar", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;
         ///&lt;html lang=&quot;en&quot;&gt;
@@ -348,7 +357,7 @@ namespace oss {
                 return ResourceManager.GetString("maven_core_1.0.0_alpha2_html", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
         ///&lt;project xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot; xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot;
@@ -465,7 +474,7 @@ namespace oss {
                 return ResourceManager.GetString("maven_cose_20230908_javadoc_jar", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to &lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot;
         ///    xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
@@ -822,7 +831,7 @@ namespace oss {
                 return ResourceManager.GetString("razorengine.4.2.3-beta1.metadata.json", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to {&quot;@id&quot;:&quot;https://api.nuget.org/v3/registration5-gz-semver2/razorengine/index.json&quot;,&quot;@type&quot;:[&quot;catalog:CatalogRoot&quot;,&quot;PackageRegistration&quot;,&quot;catalog:Permalink&quot;],&quot;commitId&quot;:&quot;b44e2827-f5db-4ba2-bb8c-5e538ad0e7b1&quot;,&quot;commitTimeStamp&quot;:&quot;2022-03-11T23:18:21.9196828+00:00&quot;,&quot;count&quot;:2,&quot;items&quot;:[{&quot;@id&quot;:&quot;https://api.nuget.org/v3/registration5-gz-semver2/razorengine/index.json#page/2.1.0/4.1.5-beta1&quot;,&quot;@type&quot;:&quot;catalog:CatalogPage&quot;,&quot;commitId&quot;:&quot;b44e2827-f5db-4ba2-bb8c-5e538ad0e7b1&quot;,&quot;commitTimeStamp&quot;:&quot;2022-03-11T23:18:21.9196828+0 [rest of string was truncated]&quot;;.
         /// </summary>
@@ -856,7 +865,7 @@ namespace oss {
                 return ResourceManager.GetString("razorengine.latest.metadata.json", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to [&quot;2.1.0&quot;,&quot;3.0.0&quot;,&quot;3.0.3&quot;,&quot;3.0.4&quot;,&quot;3.0.5&quot;,&quot;3.0.6&quot;,&quot;3.0.7&quot;,&quot;3.0.8&quot;,&quot;3.1.0&quot;,&quot;3.2.0&quot;,&quot;3.3.0&quot;,&quot;3.4.0&quot;,&quot;3.4.1&quot;,&quot;3.4.2&quot;,&quot;3.5.0-beta1&quot;,&quot;3.5.0-beta2&quot;,&quot;3.5.0-beta3&quot;,&quot;3.5.0&quot;,&quot;3.5.1&quot;,&quot;3.5.2&quot;,&quot;3.5.3&quot;,&quot;3.6.0&quot;,&quot;3.6.1&quot;,&quot;3.6.2&quot;,&quot;3.6.3-beta1&quot;,&quot;3.6.3-beta2&quot;,&quot;3.6.3&quot;,&quot;3.6.4&quot;,&quot;3.6.5-beta1&quot;,&quot;3.6.5&quot;,&quot;3.6.6-beta1&quot;,&quot;3.6.6-beta2&quot;,&quot;3.6.6&quot;,&quot;3.7.0-beta1&quot;,&quot;3.7.0&quot;,&quot;3.7.1-alpha1&quot;,&quot;3.7.2&quot;,&quot;3.7.3&quot;,&quot;3.7.4&quot;,&quot;3.7.5-beta1&quot;,&quot;3.7.5-beta2&quot;,&quot;3.7.5&quot;,&quot;3.7.6&quot;,&quot;3.7.7&quot;,&quot;3.8.0&quot;,&quot;3.8.1&quot;,&quot;3.8.2&quot;,&quot;3.9.0&quot;,&quot;3.9.1&quot;,&quot;3.9.2&quot;,&quot;3.9.3&quot;,&quot;3.10.0&quot;,&quot;3.10....
         /// </summary>

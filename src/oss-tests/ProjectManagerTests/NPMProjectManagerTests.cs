@@ -84,7 +84,7 @@ public class NPMProjectManagerTests
         { "https://registry.npmjs.org/%40somosme/webflowutils", Resources.unpublishedpackage_json },
         { "https://registry.npmjs.org/%40angular/core", Resources.angular_core_json },
         { "https://registry.npmjs.org/%40achievementify/client", Resources.achievementify_client_json },
-        { "https://registry.npmjs.org/%40adguard/dnr-rulesets", Resources.adguard_dnr_rulesets_json },
+        { "https://registry.npmjs.org/%40adguard/dnr-rulesets", Resources.adguard_dnr_rulesets_json },  
         { "https://registry.npmjs.org/ds-modal", Resources.ds_modal_json },
         { "https://registry.npmjs.org/monorepolint", Resources.monorepolint_json },
         { "https://registry.npmjs.org/rly-cli", Resources.rly_cli_json },
@@ -427,6 +427,34 @@ public class NPMProjectManagerTests
 
         Assert.NotNull(versionElement);
         Assert.Equal("4.0.20260218200111", versionElement?.GetProperty("version").GetString());
+    }
+
+    [Theory]
+    [InlineData("pkg:npm/lodash", "4.17.21")]
+    [InlineData("pkg:npm/%40angular/core", "13.2.6")]
+    [InlineData("pkg:npm/%40adguard/dnr-rulesets", "4.0.20260218200111")]
+    public async Task GetLatestVersionElement_WithValidJsonDocument_ReturnsLatestVersionElement(string purlString, string expectedLatestVersion)
+    {
+        // Test that GetLatestVersionElement returns the version element with the latest publish time
+        PackageURL purl = new(purlString);
+        string? content = await _projectManager.Object.GetMetadataAsync(purl, useCache: false);
+        JsonDocument contentJSON = JsonDocument.Parse(content);
+
+        JsonElement? latestVersionElement = _projectManager.Object.GetLatestVersionElement(contentJSON);
+
+        Assert.NotNull(latestVersionElement);
+        
+        string? latestVersion = latestVersionElement?.GetProperty("version").GetString();
+        Assert.Equal(expectedLatestVersion, latestVersion);
+    }
+
+    [Fact]
+    public void GetLatestVersionElement_WithNullJsonDocument_ReturnsNull()
+    {
+        // Test that GetLatestVersionElement returns null when given a null document
+        JsonElement? result = _projectManager.Object.GetLatestVersionElement(null);
+
+        Assert.Null(result);
     }
 
     private static void MockHttpFetchResponse(

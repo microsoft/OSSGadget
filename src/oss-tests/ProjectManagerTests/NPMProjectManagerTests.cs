@@ -422,7 +422,6 @@ public class NPMProjectManagerTests
         PackageURL purl = new("pkg:npm/%40adguard/dnr-rulesets");
         string? content = await _projectManager.Object.GetMetadataAsync(purl, useCache: false);
         JsonDocument contentJSON = JsonDocument.Parse(content);
-
         JsonElement? versionElement = _projectManager.Object.GetVersionElement(contentJSON, "4.0.20260218200111");
 
         Assert.NotNull(versionElement);

@@ -406,7 +406,14 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public virtual JsonElement? GetVersionElement(JsonDocument contentJSON, Version version)
         {
             string typeName = GetType().Name;
-            throw new NotImplementedException($"{typeName} does not implement GetVersions.");
+            throw new NotImplementedException($"{typeName} does not implement GetVersionElement.");
+        }
+
+            /// <inheritdoc />
+        public virtual JsonElement? GetVersionElement(JsonDocument contentJSON, string version)
+        {
+            string typeName = GetType().Name;
+            throw new NotImplementedException($"{typeName} does not implement GetVersionElement.");
         }
 
         /// <inheritdoc />

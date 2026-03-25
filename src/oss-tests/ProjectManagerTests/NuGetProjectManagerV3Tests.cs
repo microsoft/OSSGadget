@@ -23,22 +23,22 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-public class NuGetProjectManagerTests
+    public class NuGetProjectManagerV3Tests
 {
-    private JsonSerializerSettings NugetJsonSerializationSettings = JsonExtensions.ObjectSerializationSettings;
-    private readonly IDictionary<string, string> _packages = new Dictionary<string, string>()
-    {
-        { "https://api.nuget.org/v3/registration5-gz-semver2/razorengine/index.json", Resources.razorengine_json },
-        { "https://api.nuget.org/v3/catalog0/data/2022.03.11.23.17.27/razorengine.4.2.3-beta1.json", Resources.razorengine_4_2_3_beta1_json },
-        { "https://api.nuget.org/v3/registration5-gz-semver2/slipeserver.scripting/index.json", Resources.slipeserver_scripting_json },
-        { "https://api.nuget.org/v3/catalog0/data/2022.06.07.08.44.59/slipeserver.scripting.0.1.0-ci-20220607-083949.json", Resources.slipeserver_scripting_0_1_0_ci_20220607_083949_json },
-    }.ToImmutableDictionary();
-    
-    private readonly IDictionary<string, string> _catalogPages = new Dictionary<string, string>()
-    {
-        { "https://api.nuget.org/v3/registration5-gz-semver2/slipeserver.scripting/page/0.1.0-ci-20220325-215611/0.1.0-ci-20220807-160739.json", Resources.slipeserver_scripting_catalogpage_2_json },
-        { "https://api.nuget.org/v3/registration5-gz-semver2/slipeserver.scripting/page/0.1.0-ci-20221013-182634/0.1.0-ci-20221120-180516.json", Resources.slipeserver_scripting_catalogpage_3_json },
-    }.ToImmutableDictionary();
+        private JsonSerializerSettings NugetJsonSerializationSettings = JsonExtensions.ObjectSerializationSettings;
+        private readonly IDictionary<string, string> _packages = new Dictionary<string, string>()
+        {
+            { "https://api.nuget.org/v3/registration5-gz-semver2/razorengine/index.json", Resources.razorengine_json },
+            { "https://api.nuget.org/v3/catalog0/data/2022.03.11.23.17.27/razorengine.4.2.3-beta1.json", Resources.razorengine_4_2_3_beta1_json },
+            { "https://api.nuget.org/v3/registration5-gz-semver2/slipeserver.scripting/index.json", Resources.slipeserver_scripting_json },
+            { "https://api.nuget.org/v3/catalog0/data/2022.06.07.08.44.59/slipeserver.scripting.0.1.0-ci-20220607-083949.json", Resources.slipeserver_scripting_0_1_0_ci_20220607_083949_json },
+        }.ToImmutableDictionary();
+        
+        private readonly IDictionary<string, string> _catalogPages = new Dictionary<string, string>()
+        {
+            { "https://api.nuget.org/v3/registration5-gz-semver2/slipeserver.scripting/page/0.1.0-ci-20220325-215611/0.1.0-ci-20220807-160739.json", Resources.slipeserver_scripting_catalogpage_2_json },
+            { "https://api.nuget.org/v3/registration5-gz-semver2/slipeserver.scripting/page/0.1.0-ci-20221013-182634/0.1.0-ci-20221120-180516.json", Resources.slipeserver_scripting_catalogpage_3_json },
+        }.ToImmutableDictionary();
 
     // Map PackageURLs to metadata as json.
     private readonly IDictionary<string, string> _metadata = new Dictionary<string, string>()
@@ -58,12 +58,12 @@ public class NuGetProjectManagerTests
         { "pkg:nuget/slipeserver.scripting", Resources.slipeserver_scripting_versions_json },
     }.ToImmutableDictionary();
 
-    private NuGetProjectManager _projectManager;
-    private readonly IHttpClientFactory _httpFactory;
+        private NuGetProjectManager _projectManager;
+        private readonly IHttpClientFactory _httpFactory;
 
-    public NuGetProjectManagerTests()
-    {
-        Mock<IHttpClientFactory> mockFactory = new();
+        public NuGetProjectManagerV3Tests()
+        {
+            Mock<IHttpClientFactory> mockFactory = new();
 
         MockHttpMessageHandler mockHttp = new();
 
@@ -86,10 +86,10 @@ public class NuGetProjectManagerTests
         mockHttp.When(HttpMethod.Get, "https://api.nuget.org/v3-flatcontainer/*.nupkg").Respond(HttpStatusCode.OK);
         mockHttp.When(HttpMethod.Get, "https://api.nuget.org/v3-flatcontainer/*.nuspec").Respond(HttpStatusCode.OK);
 
-        mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
-        _httpFactory = mockFactory.Object;
-        _projectManager = new NuGetProjectManager(".", new NuGetPackageActions(), _httpFactory);
-    }
+            mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
+            _httpFactory = mockFactory.Object;
+            _projectManager = new NuGetProjectManager(".", NuGetPackageActions.CreateV3(), _httpFactory);
+        }
 
     [Theory]
     [InlineData("pkg:nuget/razorengine@4.2.3-beta1")]
@@ -257,8 +257,8 @@ public class NuGetProjectManagerTests
             setupMetadata,
             setupVersions);
 
-        // Use mocked response if version is not provided.
-        _projectManager = string.IsNullOrWhiteSpace(purl.Version) ? new NuGetProjectManager(".", nugetPackageActions, _httpFactory) : _projectManager;
+            // Use mocked response if version is not provided.
+            _projectManager = string.IsNullOrWhiteSpace(purl.Version) ? new NuGetProjectManager(".", nugetPackageActions, _httpFactory) : _projectManager;
 
         // Act
         PackageMetadata? metadata = await _projectManager.GetPackageMetadataAsync(purl, includePrerelease: includePrerelease, useCache: false);
@@ -396,12 +396,12 @@ public class NuGetProjectManagerTests
             setupVersions = _versions;
         }
 
-        IManagerPackageActions<NuGetPackageVersionMetadata>? nugetPackageActions = PackageActionsHelper<NuGetPackageVersionMetadata>.SetupPackageActions(
-            purl,
-            setupMetadata,
-            setupVersions,
-            includePrerelease: includePrerelease);
-        _projectManager = new NuGetProjectManager(".", nugetPackageActions, _httpFactory);
+            IManagerPackageActions<NuGetPackageVersionMetadata>? nugetPackageActions = PackageActionsHelper<NuGetPackageVersionMetadata>.SetupPackageActions(
+                purl,
+                setupMetadata,
+                setupVersions,
+                includePrerelease: includePrerelease);
+            _projectManager = new NuGetProjectManager(".", nugetPackageActions, _httpFactory);
 
         // Act
         List<string> versions = (await _projectManager.EnumerateVersionsAsync(purl, false, includePrerelease)).ToList();
@@ -489,7 +489,7 @@ public class NuGetProjectManagerTests
             nugetPackageActions = PackageActionsHelper<NuGetPackageVersionMetadata>.SetupPackageActions();
         }
 
-        _projectManager = new NuGetProjectManager(".", nugetPackageActions, _httpFactory);
+            _projectManager = new NuGetProjectManager(".", nugetPackageActions, _httpFactory);
 
         // Act
         IPackageExistence existence = await _projectManager.DetailedPackageExistsAsync(purl, useCache: false);
@@ -589,16 +589,16 @@ public class NuGetProjectManagerTests
     public async Task GetArtifactDownloadUrisSucceeds_Async(string purlString, string expectedNuPkgUrl, string expectedNuSpecUri)
     {
         PackageURL purl = new(purlString);
-        List<ArtifactUri<NuGetProjectManager.NuGetArtifactType>> uris = _projectManager.GetArtifactDownloadUris(purl).ToList();
+        List<ArtifactUri<BaseNuGetProjectManager.NuGetArtifactType>> uris = _projectManager.GetArtifactDownloadUris(purl).ToList();
 
         var nupkgArtifactUri = uris
-            .First(it => it.Type == NuGetProjectManager.NuGetArtifactType.Nupkg);
+            .First(it => it.Type == BaseNuGetProjectManager.NuGetArtifactType.Nupkg);
 
         Assert.Equal(expectedNuPkgUrl, nupkgArtifactUri.Uri.ToString());
         Assert.True(await _projectManager.UriExistsAsync(nupkgArtifactUri.Uri));
 
         var nuspecArtifactUrl = uris
-            .First(it => it.Type == NuGetProjectManager.NuGetArtifactType.Nuspec);
+            .First(it => it.Type == BaseNuGetProjectManager.NuGetArtifactType.Nuspec);
         
         Assert.Equal(expectedNuSpecUri, nuspecArtifactUrl.Uri.ToString());
         Assert.True(await _projectManager.UriExistsAsync(nuspecArtifactUrl.Uri));

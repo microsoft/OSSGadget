@@ -498,7 +498,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             // If we got null from cache, it could mean:
             // 1. Version doesn't exist
             // 2. Cache is stale (version was published after cache was populated)
-            // Re-fetch once to distinguish. Evict cache so next request gets fresh data.
+            // Re-fetch and evict cache so next request gets fresh data.
             if (publishTime == null && useCache)
             {
                 DataCache.Remove($"{cacheUrl}/json");

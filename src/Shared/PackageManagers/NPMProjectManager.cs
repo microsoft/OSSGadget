@@ -494,20 +494,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             JsonDocument jsonDoc = await GetJsonCache(client, cacheUrl, useCache);
             DateTime? publishTime = ParseUploadTime(jsonDoc, purl.Version);
 
-            if (publishTime == null)
-            {
-                (bool hasTimeObject, bool hasVersionsObject, bool hasVersionInTime, bool hasVersionInVersions)
-                    = GetPublishTimestampDiagnostics(jsonDoc, purl.Version);
-                Logger.Debug(
-                    "NPM publish timestamp was null (initial fetch). package={0}, version={1}, useCache={2}, hasTimeObject={3}, hasVersionsObject={4}, hasVersionInTime={5}, hasVersionInVersions={6}",
-                    packageName,
-                    purl.Version,
-                    useCache,
-                    hasTimeObject,
-                    hasVersionsObject,
-                    hasVersionInTime,
-                    hasVersionInVersions);
-            }
             
             // If we got null from cache, it could mean:
             // 1. Version doesn't exist
@@ -518,18 +504,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 DataCache.Remove($"{cacheUrl}/json");
                 jsonDoc = await GetJsonCache(client, cacheUrl, useCache: false);
                 publishTime = ParseUploadTime(jsonDoc, purl.Version);
-
-                (bool hasTimeObject, bool hasVersionsObject, bool hasVersionInTime, bool hasVersionInVersions)
-                    = GetPublishTimestampDiagnostics(jsonDoc, purl.Version);
-                Logger.Debug(
-                    "NPM publish timestamp after cache refresh. package={0}, version={1}, hasPublishTime={2}, hasTimeObject={3}, hasVersionsObject={4}, hasVersionInTime={5}, hasVersionInVersions={6}",
-                    packageName,
-                    purl.Version,
-                    publishTime != null,
-                    hasTimeObject,
-                    hasVersionsObject,
-                    hasVersionInTime,
-                    hasVersionInVersions);
             }
             
             return publishTime;
@@ -560,20 +534,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
             return null;
 
-        }
-
-        private static (bool hasTimeObject, bool hasVersionsObject, bool hasVersionInTime, bool hasVersionInVersions)
-            GetPublishTimestampDiagnostics(JsonDocument jsonDoc, string versionKey)
-        {
-            bool hasTimeObject = jsonDoc.RootElement.TryGetProperty("time", out JsonElement timeElement) &&
-                timeElement.ValueKind == JsonValueKind.Object;
-            bool hasVersionsObject = jsonDoc.RootElement.TryGetProperty("versions", out JsonElement versionsElement) &&
-                versionsElement.ValueKind == JsonValueKind.Object;
-
-            bool hasVersionInTime = hasTimeObject && timeElement.TryGetProperty(versionKey, out _);
-            bool hasVersionInVersions = hasVersionsObject && versionsElement.TryGetProperty(versionKey, out _);
-
-            return (hasTimeObject, hasVersionsObject, hasVersionInTime, hasVersionInVersions);
         }
 
         public override JsonElement? GetVersionElement(JsonDocument? contentJSON, Version version)

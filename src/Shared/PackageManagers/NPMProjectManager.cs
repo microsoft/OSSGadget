@@ -599,8 +599,24 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             Check.NotNull(nameof(purl.Version), purl.Version);
             HttpClient client = CreateHttpClient();
             string? packageName = purl.HasNamespace() ? $"{purl.GetNamespaceFormatted()}/{purl.Name}" : purl.Name;
-            JsonDocument jsonDoc = await GetJsonCache(client, $"{ENV_NPM_API_ENDPOINT}/{packageName}", useCache);
-            return ParseUploadTime(jsonDoc, purl.Version);
+            string cacheUrl = $"{ENV_NPM_API_ENDPOINT}/{packageName}";
+            
+            JsonDocument jsonDoc = await GetJsonCache(client, cacheUrl, useCache);
+            DateTime? publishTime = ParseUploadTime(jsonDoc, purl.Version);
+
+            
+            // If we got null from cache, it could mean:
+            // 1. Version doesn't exist
+            // 2. Cache is stale (version was published after cache was populated)
+            // Re-fetch and evict cache so next request gets fresh data.
+            if (publishTime == null && useCache)
+            {
+                DataCache.Remove($"{cacheUrl}/json");
+                jsonDoc = await GetJsonCache(client, cacheUrl, useCache: false);
+                publishTime = ParseUploadTime(jsonDoc, purl.Version);
+            }
+            
+            return publishTime;
         }
 
         private DateTime? ParseCreatedTime(JsonDocument jsonDoc)

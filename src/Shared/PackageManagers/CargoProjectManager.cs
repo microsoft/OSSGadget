@@ -177,7 +177,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                     string? packageName = purl.Name;
                     HttpClient httpClient = CreateHttpClient();
                     // NOTE: The file isn't valid json, so use the custom rule.
-                    JsonDocument doc = await GetJsonCache(httpClient, $"{ENV_CARGO_INDEX_ENDPOINT}/{CreatePath(packageName)}", jsonParsingOption: JsonParsingOption.NotInArrayNotCsv);
+                    string cargoUrl = $"{ENV_CARGO_INDEX_ENDPOINT}/{CreatePath(packageName)}";
+                    JsonDocument doc = await GetJsonCache(httpClient, cargoUrl, useCache: useCache, jsonParsingOption: JsonParsingOption.NotInArrayNotCsv);
                     List<string> versionList = new();
                     foreach (JsonElement versionObject in doc.RootElement.EnumerateArray())
                     {
@@ -208,6 +209,65 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 Logger.Debug("Unable to enumerate versions: {0}", ex.Message);
                 throw;
             }      
+        }
+
+        /// <inheritdoc />
+        public override async Task<bool> PackageVersionExistsAsync(PackageURL purl, bool useCache = true)
+        {
+            Logger.Trace("PackageExists {0}", purl?.ToString());
+            if (purl is null)
+            {
+                Logger.Trace("Provided PackageURL was null.");
+                return false;
+            }
+
+            if (purl.Version.IsBlank())
+            {
+                Logger.Trace("Provided PackageURL version was null or blank.");
+                return false;
+            }
+
+            bool existsInStaticEndpoint = await CheckVersionExistsInStaticEndpoint(purl, useCache);
+            if (existsInStaticEndpoint)
+            {
+                return true;
+            }
+
+            return (await EnumerateVersionsAsync(purl, useCache)).Contains(purl.Version);
+        }
+
+        private async Task<bool> CheckVersionExistsInStaticEndpoint(PackageURL purl, bool useCache = true)
+        {
+            if (purl == null || purl.Name is null || purl.Version.IsBlank())
+            {
+                return false;
+            }
+
+            string packageName = purl.Name;
+            string requestedVersion = purl.Version;
+            HttpClient httpClient = CreateHttpClient();
+            string rssFeedUrl = $"{ENV_CARGO_ENDPOINT_STATIC}/rss/crates/{packageName}.xml";
+
+            try
+            {
+                string? rssContent = await GetHttpStringCache(httpClient, rssFeedUrl, useCache);
+                if (string.IsNullOrEmpty(rssContent))
+                {
+                    return false;
+                }
+
+                XDocument doc = XDocument.Parse(rssContent);
+                XNamespace cratesNs = "https://crates.io/";
+
+                return doc.Descendants("item").Any(item =>
+                    item.Element(cratesNs + "name")?.Value == packageName &&
+                    item.Element(cratesNs + "version")?.Value == requestedVersion);
+            }
+            catch (Exception ex)
+            {
+                Logger.Debug($"Error checking version in RSS feed: {ex.Message}. Falling back to raw github endpoint.");
+                return false;
+            }
         }
 
         /// <summary>
@@ -322,7 +382,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             DateTime? uploadTime = await GetPackageVersionPublishedTimestampFromRssFeed(purl, useCache);
             if (uploadTime == null && allowUseOfRateLimitedRegistryAPIs)
             {
-                uploadTime = (await GetPackageMetadataAsync(purl, useCache))?.UploadTime;
+                uploadTime = (await GetPackageMetadataAsync(purl, useCache, includeRepositoryMetadata: false))?.UploadTime;
             }
             return uploadTime?.ToUniversalTime();
         }

@@ -272,7 +272,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public async Task<DateTime?> GetPublishedAtAsync(PackageURL purl, bool useCache = true)
         {
             Check.NotNull(nameof(purl.Version), purl.Version);
-            DateTime? uploadTime = (await this.GetPackageMetadataAsync(purl, useCache))?.UploadTime;
+            DateTime? uploadTime = (await this.GetPackageMetadataAsync(purl, useCache, includeRepositoryMetadata: false))?.UploadTime;
             return uploadTime;
         }
 

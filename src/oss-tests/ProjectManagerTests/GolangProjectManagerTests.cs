@@ -58,7 +58,7 @@ public class GolangProjectManagerTests
         Assert.Equal(GolangProjectManager.GolangArtifactType.Zip, uris.First().Type);
     }
 
-    [Fact(Skip = "Test fails in pipeline")]
+    [SkipInADOFact]
     public async Task MetadataSucceeds()
     {
         const string purlString = "pkg:golang/sigs.k8s.io/yaml@v1.3.0";

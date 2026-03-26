@@ -10,8 +10,8 @@
 
 namespace oss {
     using System;
-
-
+    
+    
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -66,6 +66,15 @@ namespace oss {
         internal static string achievementify_client_json {
             get {
                 return ResourceManager.GetString("achievementify_client.json", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;_id&quot;:&quot;@adguard/dnr-rulesets&quot;,&quot;name&quot;:&quot;@adguard/dnr-rulesets&quot;,&quot;dist-tags&quot;:{&quot;latest&quot;:&quot;4.0.20260218200111&quot;},&quot;versions&quot;:{&quot;4.0.20260218200111&quot;:{&quot;name&quot;:&quot;@adguard/dnr-rulesets&quot;,&quot;version&quot;:&quot;4.0.20260218200111&quot;,&quot;_id&quot;:&quot;@adguard/dnr-rulesets@4.0.20260218200111&quot;,&quot;_npmVersion&quot;:&quot;10.0.0&quot;,&quot;_npmUser&quot;:{&quot;name&quot;:&quot;adguard&quot;,&quot;email&quot;:&quot;support@adguard.com&quot;},&quot;description&quot;:&quot;AdGuard DNS filtering rules&quot;},&quot;4.0.20260217190530&quot;:{&quot;name&quot;:&quot;@adguard/dnr-rulesets&quot;,&quot;version&quot;:&quot;4.0.20260217190530&quot;,&quot;_id&quot;:&quot;@adguard/dnr-rulesets@4.0.20260217190530&quot;, [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string adguard_dnr_rulesets_json {
+            get {
+                return ResourceManager.GetString("adguard_dnr_rulesets.json", resourceCulture);
             }
         }
         
@@ -327,7 +336,7 @@ namespace oss {
                 return ResourceManager.GetString("maven_core_1.0.0_alpha2_aar", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;
         ///&lt;html lang=&quot;en&quot;&gt;
@@ -348,7 +357,7 @@ namespace oss {
                 return ResourceManager.GetString("maven_core_1.0.0_alpha2_html", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
         ///&lt;project xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot; xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot;
@@ -465,7 +474,7 @@ namespace oss {
                 return ResourceManager.GetString("maven_cose_20230908_javadoc_jar", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to &lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot;
         ///    xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
@@ -700,6 +709,101 @@ namespace oss {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &lt;service xmlns=&quot;http://www.w3.org/2007/app&quot; xmlns:atom=&quot;http://www.w3.org/2005/Atom&quot; xml:base=&quot;https://www.powershellgallery.com/api/v2&quot;&gt;
+        ///  &lt;workspace&gt;
+        ///    &lt;atom:title type=&quot;text&quot;&gt;Default&lt;/atom:title&gt;
+        ///    &lt;collection href=&quot;Packages&quot;&gt;
+        ///      &lt;atom:title type=&quot;text&quot;&gt;Packages&lt;/atom:title&gt;
+        ///    &lt;/collection&gt;
+        ///  &lt;/workspace&gt;
+        ///&lt;/service&gt;
+        ///.
+        /// </summary>
+        internal static string powershell_gallery_v2_xml {
+            get {
+                return ResourceManager.GetString("powershell_gallery_v2.xml", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+        ///&lt;entry xml:base=&quot;https://www.powershellgallery.com/api/v2&quot; xmlns=&quot;http://www.w3.org/2005/Atom&quot; xmlns:d=&quot;http://schemas.microsoft.com/ado/2007/08/dataservices&quot; xmlns:m=&quot;http://schemas.microsoft.com/ado/2007/08/dataservices/metadata&quot; xmlns:georss=&quot;http://www.georss.org/georss&quot; xmlns:gml=&quot;http://www.opengis.net/gml&quot;&gt;
+        ///  &lt;id&gt;https://www.powershellgallery.com/api/v2/Packages(Id=&apos;PSReadLine&apos;,Version=&apos;2.4.1-beta1&apos;)&lt;/id&gt;
+        ///  &lt;category term=&quot;NuGetGallery.OData.V2FeedPackage&quot; sc [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string psreadline_v2_4_1_beta_xml {
+            get {
+                return ResourceManager.GetString("psreadline_v2_4_1_beta.xml", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [
+        ///  &quot;1.0.0&quot;,
+        ///  &quot;1.1.0&quot;,
+        ///  &quot;1.2.0&quot;,
+        ///  &quot;1.2.1&quot;,
+        ///  &quot;1.2.2&quot;,
+        ///  &quot;1.2.3&quot;,
+        ///  &quot;1.2.4&quot;,
+        ///  &quot;1.2.5&quot;,
+        ///  &quot;1.2.6&quot;,
+        ///  &quot;1.2.7&quot;,
+        ///  &quot;1.2.8&quot;,
+        ///  &quot;1.2.9&quot;,
+        ///  &quot;2.0.0&quot;,
+        ///  &quot;2.0.1&quot;,
+        ///  &quot;2.0.2&quot;,
+        ///  &quot;2.0.3&quot;,
+        ///  &quot;2.0.4&quot;,
+        ///  &quot;2.0.5&quot;,
+        ///  &quot;2.0.6&quot;,
+        ///  &quot;2.0.7&quot;,
+        ///  &quot;2.0.8&quot;,
+        ///  &quot;2.0.9&quot;,
+        ///  &quot;2.1.0&quot;,
+        ///  &quot;2.2.0&quot;,
+        ///  &quot;2.2.1&quot;,
+        ///  &quot;2.2.2&quot;,
+        ///  &quot;2.2.3&quot;,
+        ///  &quot;2.2.4&quot;,
+        ///  &quot;2.2.5&quot;,
+        ///  &quot;2.2.6&quot;,
+        ///  &quot;2.2.7&quot;,
+        ///  &quot;2.2.8&quot;,
+        ///  &quot;2.2.9&quot;,
+        ///  &quot;2.3.0&quot;,
+        ///  &quot;2.3.1&quot;,
+        ///  &quot;2.3.2&quot;,
+        ///  &quot;2.3.3&quot;,
+        ///  &quot;2.3.4&quot;,
+        ///  &quot;2.3.5&quot;,
+        ///  &quot;2.3.6&quot;,
+        ///  &quot;2.3.7&quot;,
+        ///  &quot;2.3.8&quot;,
+        ///  &quot;2. [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string psreadline_versions_json {
+            get {
+                return ResourceManager.GetString("psreadline_versions.json", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+        ///&lt;feed xml:base=&quot;https://www.powershellgallery.com/api/v2&quot; xmlns=&quot;http://www.w3.org/2005/Atom&quot; xmlns:d=&quot;http://schemas.microsoft.com/ado/2007/08/dataservices&quot; xmlns:m=&quot;http://schemas.microsoft.com/ado/2007/08/dataservices/metadata&quot; xmlns:georss=&quot;http://www.georss.org/georss&quot; xmlns:gml=&quot;http://www.opengis.net/gml&quot;&gt;
+        ///  &lt;id&gt;http://schemas.datacontract.org/2004/07/&lt;/id&gt;
+        ///  &lt;title /&gt;
+        ///  &lt;updated&gt;2025-04-23T17:57:54Z&lt;/updated&gt;
+        ///  &lt;link rel=&quot;self&quot; href=&quot;https://www.powershell [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string psreadline_xml {
+            get {
+                return ResourceManager.GetString("psreadline.xml", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {
         ///  &quot;@id&quot;: &quot;https://api.nuget.org/v3/catalog0/data/2022.03.11.23.17.27/razorengine.4.2.3-beta1.json&quot;,
         ///  &quot;@type&quot;: [
@@ -727,7 +831,7 @@ namespace oss {
                 return ResourceManager.GetString("razorengine.4.2.3-beta1.metadata.json", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to {&quot;@id&quot;:&quot;https://api.nuget.org/v3/registration5-gz-semver2/razorengine/index.json&quot;,&quot;@type&quot;:[&quot;catalog:CatalogRoot&quot;,&quot;PackageRegistration&quot;,&quot;catalog:Permalink&quot;],&quot;commitId&quot;:&quot;b44e2827-f5db-4ba2-bb8c-5e538ad0e7b1&quot;,&quot;commitTimeStamp&quot;:&quot;2022-03-11T23:18:21.9196828+00:00&quot;,&quot;count&quot;:2,&quot;items&quot;:[{&quot;@id&quot;:&quot;https://api.nuget.org/v3/registration5-gz-semver2/razorengine/index.json#page/2.1.0/4.1.5-beta1&quot;,&quot;@type&quot;:&quot;catalog:CatalogPage&quot;,&quot;commitId&quot;:&quot;b44e2827-f5db-4ba2-bb8c-5e538ad0e7b1&quot;,&quot;commitTimeStamp&quot;:&quot;2022-03-11T23:18:21.9196828+0 [rest of string was truncated]&quot;;.
         /// </summary>

@@ -53,7 +53,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         public override async IAsyncEnumerable<ArtifactUri<NPMArtifactType>> GetArtifactDownloadUrisAsync(PackageURL purl, bool useCache = true)
         {
             Check.NotNull(nameof(purl.Version), purl.Version);
-            string feedUrl = (purl.Qualifiers?["repository_url"] ?? ENV_NPM_API_ENDPOINT).EnsureTrailingSlash();
+            string? feedUrl = purl?.GetRepositoryUrlOrDefault(ENV_NPM_API_ENDPOINT)?.EnsureTrailingSlash();
 
             string artifactUri = purl.HasNamespace() ? 
                 $"{feedUrl}{purl.GetNamespaceFormatted()}/{purl.Name}/-/{purl.Name}-{purl.Version}.tgz" : // If there's a namespace.
@@ -246,16 +246,127 @@ namespace Microsoft.CST.OpenSource.PackageManagers
         }
 
         /// <summary>
-        /// Gets the latest version of the package
+        /// Helper method to find the latest version name, preferring dist-tags if available, 
+        /// otherwise falling back to time-based comparison
+        /// </summary>
+        /// <param name="contentJSON"></param>
+        /// <returns>The latest version name</returns>
+        private string? GetLatestVersionName(JsonDocument contentJSON)
+        {
+            if (contentJSON is null) { return null; }
+
+            JsonElement root = contentJSON.RootElement;
+
+            try
+            {
+                // Try to get the "latest" version from dist-tags first
+                if (root.TryGetProperty("dist-tags", out JsonElement distTags) && 
+                    distTags.TryGetProperty("latest", out JsonElement latestElement))
+                {
+                    string? latestFromDistTag = latestElement.GetString();
+                    if (!string.IsNullOrWhiteSpace(latestFromDistTag))
+                    {
+                        return latestFromDistTag;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Debug("Error getting latest version from dist-tags: {0}", ex.Message);
+            }
+
+            // Fallback to time-based comparison if dist-tags is empty or not available
+            return GetLatestVersionNameByTime(contentJSON);
+        }
+
+        /// <summary>
+        /// Helper method to find the latest version name based on published time
+        /// </summary>
+        /// <param name="contentJSON"></param>
+        /// <returns>The latest version name by published time</returns>
+        private string? GetLatestVersionNameByTime(JsonDocument contentJSON)
+        {
+            if (contentJSON is null) { return null; }
+
+            JsonElement root = contentJSON.RootElement;
+            string? latestVersionByTime = null;
+            DateTime? latestTime = null;
+
+            try
+            {
+                // Get the time metadata for all versions
+                if (!root.TryGetProperty("time", out JsonElement timeElement))
+                {
+                    return null;
+                }
+
+                // Get all versions
+                if (!root.TryGetProperty("versions", out JsonElement versionsElement))
+                {
+                    return null;
+                }
+
+                // Iterate through all versions and find the one with the latest publish time
+                foreach (JsonProperty versionProperty in versionsElement.EnumerateObject())
+                {
+                    string versionName = versionProperty.Name;
+
+                    // Get the publish time for this version
+                    if (timeElement.TryGetProperty(versionName, out JsonElement versionTime))
+                    {
+                        try
+                        {
+                            string? timeString = versionTime.GetString();
+                            if (!string.IsNullOrEmpty(timeString) && DateTime.TryParse(timeString, out DateTime publishTime))
+                            {
+                                if (latestTime is null || publishTime > latestTime)
+                                {
+                                    latestTime = publishTime;
+                                    latestVersionByTime = versionName;
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Debug("Error parsing publish time for version {0}: {1}", versionName, ex.Message);
+                        }
+                    }
+                }
+
+                return latestVersionByTime;
+            }
+            catch (Exception ex)
+            {
+                Logger.Debug("Error getting latest version name by time: {0}", ex.Message);
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the latest version element based on dist-tags if available, otherwise by published time
         /// </summary>
         /// <param name="contentJSON"></param>
         /// <returns></returns>
         public JsonElement? GetLatestVersionElement(JsonDocument contentJSON)
         {
-            List<Version> versions = GetVersions(contentJSON);
-            Version? maxVersion = GetLatestVersion(versions);
-            if (maxVersion is null) { return null; }
-            return GetVersionElement(contentJSON, maxVersion);
+            if (contentJSON is null) { return null; }
+
+            try
+            {
+                string? latestVersion = GetLatestVersionName(contentJSON);
+
+                if (!string.IsNullOrEmpty(latestVersion))
+                {
+                    return GetVersionElement(contentJSON, latestVersion);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Debug("Error getting latest version element: {0}", ex.Message);
+            }
+
+            return null;
         }
 
         /// <inheritdoc />
@@ -303,8 +414,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             metadata.ApiPackageUri = $"{ENV_NPM_API_ENDPOINT}/{metadata.Name}";
             metadata.CreatedTime = ParseCreatedTime(contentJSON);
 
-            List<Version> versions = GetVersions(contentJSON);
-            Version? latestVersion = GetLatestVersion(versions);
+            // Get the latest version, preferring dist-tags if available, otherwise using time-based comparison
+            string? latestVersion = GetLatestVersionName(contentJSON);
 
             if (purl.Version != null)
             {
@@ -313,14 +424,13 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             }
             else
             {
-                metadata.PackageVersion = latestVersion is null ? purl.Version : latestVersion?.ToString();
+                metadata.PackageVersion = latestVersion ?? purl.Version;
             }
 
             // if we found any version at all, get the information
             if (metadata.PackageVersion != null)
             {
-                Version versionToGet = new(metadata.PackageVersion);
-                JsonElement? versionElement = GetVersionElement(contentJSON, versionToGet);
+                JsonElement? versionElement = GetVersionElement(contentJSON, metadata.PackageVersion);
                 metadata.UploadTime = ParseUploadTime(contentJSON, metadata.PackageVersion);
 
                 if (versionElement != null)
@@ -478,7 +588,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             if (latestVersion is not null)
             {
-                metadata.LatestPackageVersion = latestVersion.ToString();
+                metadata.LatestPackageVersion = latestVersion;
             }
 
             return metadata;
@@ -538,6 +648,12 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
         public override JsonElement? GetVersionElement(JsonDocument? contentJSON, Version version)
         {
+            return GetVersionElement(contentJSON, version.ToString());
+        }
+
+
+        public override JsonElement? GetVersionElement(JsonDocument? contentJSON, string version)
+        {
             if (contentJSON is null) { return null; }
             JsonElement root = contentJSON.RootElement;
 
@@ -546,9 +662,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 JsonElement versionsJSON = root.GetProperty("versions");
                 foreach (JsonProperty versionProperty in versionsJSON.EnumerateObject())
                 {
-                    if (string.Equals(versionProperty.Name, version.ToString(), StringComparison.InvariantCultureIgnoreCase))
+                    if (string.Equals(versionProperty.Name, version, StringComparison.InvariantCultureIgnoreCase))
                     {
-                        return versionsJSON.GetProperty(version.ToString());
+                        return versionsJSON.GetProperty(version);
                     }
                 }
             }
@@ -556,26 +672,6 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             catch (InvalidOperationException) { return null; }
 
             return null;
-        }
-
-        public override List<Version> GetVersions(JsonDocument? contentJSON)
-        {
-            List<Version> allVersions = new();
-            if (contentJSON is null) { return allVersions; }
-
-            JsonElement root = contentJSON.RootElement;
-            try
-            {
-                JsonElement versions = root.GetProperty("versions");
-                foreach (JsonProperty version in versions.EnumerateObject())
-                {
-                    allVersions.Add(new Version(version.Name));
-                }
-            }
-            catch (KeyNotFoundException) { return allVersions; }
-            catch (InvalidOperationException) { return allVersions; }
-
-            return allVersions;
         }
 
         public override async Task<IPackageExistence> DetailedPackageExistsAsync(PackageURL purl, bool useCache = true)
@@ -804,7 +900,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             // TODO: If the latest version JSONElement doesnt have the repo infor, should we search all elements
             // on that chance that one of them might have it?
             JsonElement? versionJSON = string.IsNullOrEmpty(purl?.Version) ? GetLatestVersionElement(contentJSON) :
-                GetVersionElement(contentJSON, new Version(purl.Version));
+                GetVersionElement(contentJSON, purl.Version);
 
             if (versionJSON is JsonElement notNullVersionJSON)
             {

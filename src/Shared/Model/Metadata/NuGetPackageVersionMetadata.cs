@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Protocol;
+using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
@@ -145,4 +146,45 @@ public record NuGetPackageVersionMetadata : IManagerPackageVersionMetadata
         Vulnerabilities = registration.Vulnerabilities;
         CatalogUri = registration.CatalogUri;
     }
-} 
+
+    // a constructor that takes IPackageSearchMetadata
+    public NuGetPackageVersionMetadata(IPackageSearchMetadata metadata)
+    {
+        Authors = metadata.Authors;
+        DependencySetsInternal = metadata.DependencySets;
+        Description = metadata.Description;
+        DownloadCount = metadata.DownloadCount;
+        IconUrl = metadata.IconUrl;
+        Name = metadata.Identity.Id;
+        Version = metadata.Identity.Version.ToString();
+        LicenseUrl = metadata.LicenseUrl;
+        ProjectUrl = metadata.ProjectUrl;
+        ReadmeUrl = metadata.ReadmeUrl;
+        ReportAbuseUrl = metadata.ReportAbuseUrl;
+        PackageDetailsUrl = metadata.PackageDetailsUrl;
+        Published = metadata.Published;
+        Owners = metadata.Owners;
+        RequireLicenseAcceptance = metadata.RequireLicenseAcceptance;
+        Summary = metadata.Summary;
+        Tags = metadata.Tags;
+        Title = metadata.Title;
+        IsListed = metadata.IsListed;
+        PrefixReserved = metadata.PrefixReserved;
+        LicenseMetadata = metadata.LicenseMetadata;
+        Vulnerabilities = metadata.Vulnerabilities;
+        CatalogUri = metadata.PackageDetailsUrl;
+    }
+
+    public NuGetPackageVersionMetadata(NuGetV2PackageVersionMetadata metadata)
+    {
+        Authors = metadata.Author?.Name ?? string.Empty;
+        Description = metadata.Properties?.Description ?? string.Empty;
+        DownloadCount = metadata.Properties?.DownloadCount;
+        Name = metadata.Name;
+        Version = metadata.Version;
+        Published = metadata.Properties?.Published;
+        Owners = metadata.Properties?.Owners ?? string.Empty;
+        Tags = metadata.Properties?.Tags;
+        Title = metadata.Title;
+    }
+}

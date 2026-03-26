@@ -97,7 +97,7 @@ namespace Microsoft.CST.OpenSource.FindSquats.ExtensionMethods
         /// <returns>An IEnumerable of the recommended IMutators.</returns>
         public static IEnumerable<IMutator> GetDefaultMutators(this IBaseProjectManager manager) => manager switch
         {
-            NuGetProjectManager => NugetMutators,
+            BaseNuGetProjectManager => NugetMutators,
             NPMProjectManager => NpmMutators,
             PyPIProjectManager => PythonMutators,
             _ => BaseMutators

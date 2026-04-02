@@ -274,7 +274,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 var baseUrl = $"{feedUrl.EnsureTrailingSlash()}{packageNamespace}/{packageName}/{purl.Version}/{packageName}-{purl.Version}.pom";
                 return await GetHttpStringCache(httpClient, baseUrl, useCache);
             }
-            catch (Exception ex)
+            catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
             {
                 Logger.Warn(ex, $"Error fetching Maven metadata: {ex.Message}");
                 return null;

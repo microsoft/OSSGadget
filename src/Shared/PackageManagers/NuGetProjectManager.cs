@@ -16,6 +16,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Net;
     using System.Net.Http;
     using System.Text.Json;
     using System.Threading.Tasks;
@@ -154,13 +155,18 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 }
                 // Construct a new PackageURL that's guaranteed to have a version.
                 PackageURL purlWithVersion = new (purl.Type, purl.Namespace, packageName, packageVersion, purl.Qualifiers, purl.Subpath);
-                
+
                 NuGetPackageVersionMetadata? packageVersionMetadata =
                     await Actions.GetMetadataAsync(purlWithVersion, useCache: useCache);
 
                 return JsonSerializer.Serialize(packageVersionMetadata);
             }
-            catch (Exception ex)
+            catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+            {
+                Logger.Debug(ex, $"Error fetching NuGet metadata: {ex.Message}");
+                return null;
+            }
+            catch (InvalidOperationException ex) when (purl.Version == null)
             {
                 Logger.Debug(ex, $"Error fetching NuGet metadata: {ex.Message}");
                 return null;

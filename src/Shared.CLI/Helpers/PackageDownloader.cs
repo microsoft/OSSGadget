@@ -289,8 +289,6 @@ namespace Microsoft.CST.OpenSource
 
         private string destinationDirectory { get; set; }
 
-        private bool usingTempDir;
-
         // folders created
         private List<string> downloadPaths { get; set; } = new List<string>();
 

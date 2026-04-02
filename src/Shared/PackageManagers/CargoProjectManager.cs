@@ -357,14 +357,9 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 return null;
 
             }
-            catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.InternalServerError)
+            catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
             {
-                Logger.Debug($"Unable to get published timestamp for package: {purl}, error: {ex.Message}");
-                return null;
-            }
-            catch (Exception ex)
-            {
-                Logger.Debug(ex, "Error fetching PublishedTimeStamp: {0}", ex.Message);
+                Logger.Debug($"RSS feed not found for package: {purl}, error: {ex.Message}");
                 return null;
             }
         }

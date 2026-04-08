@@ -468,4 +468,25 @@ public class NPMProjectManagerTests
         httpMock.When(HttpMethod.Get, $"{url}/*.tgz").Respond(statusCode);
 
     }
+
+    [Fact]
+    public async Task GetPublishedAt_StaleCacheEvictsAndRetries()
+    {
+        string stale = @"{""name"":""test-pkg"",""versions"":{""1.0.0"":{}},""time"":{""1.0.0"":""2026-01-01T00:00:00Z""}}";
+        string fresh = @"{""name"":""test-pkg"",""versions"":{""1.0.0"":{},""1.0.1"":{}},""time"":{""1.0.0"":""2026-01-01T00:00:00Z"",""1.0.1"":""2026-03-18T17:35:00Z""}}";
+
+        var mockHttp = new MockHttpMessageHandler();
+        // Expect() is order-sensitive: 1st request gets stale, 2nd gets fresh
+        mockHttp.Expect("https://registry.npmjs.org/test-pkg").Respond("application/json", stale);
+        mockHttp.Expect("https://registry.npmjs.org/test-pkg").Respond("application/json", fresh);
+
+        Mock<IHttpClientFactory> mockFactory = new();
+        mockFactory.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(mockHttp.ToHttpClient());
+        var manager = new NPMProjectManager(".", new NoOpPackageActions(), mockFactory.Object, null);
+
+        DateTime? result = await manager.GetPublishedAtUtcAsync(new PackageURL("pkg:npm/test-pkg@1.0.1"), useCache: true);
+
+        Assert.NotNull(result);
+        Assert.Equal(DateTime.Parse("2026-03-18T17:35:00Z").ToUniversalTime(), result.Value);
+    }
 }

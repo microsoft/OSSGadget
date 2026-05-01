@@ -613,7 +613,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             if (publishTime == null && useCache)
             {
                 DataCache.Remove($"{cacheUrl}/json");
-                jsonDoc = await GetJsonCache(client, cacheUrl, useCache: true);
+                jsonDoc = await GetJsonCache(client, cacheUrl, useCache);
                 publishTime = ParseUploadTime(jsonDoc, purl.Version);
             }
             

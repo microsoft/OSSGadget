@@ -608,11 +608,12 @@ namespace Microsoft.CST.OpenSource.PackageManagers
             // If we got null from cache, it could mean:
             // 1. Version doesn't exist
             // 2. Cache is stale (version was published after cache was populated)
-            // Re-fetch and evict cache so next request gets fresh data.
+            // Evict the stale entry and re-fetch; passing useCache: true repopulates
+            // the cache with the fresh value so subsequent callers benefit.
             if (publishTime == null && useCache)
             {
                 DataCache.Remove($"{cacheUrl}/json");
-                jsonDoc = await GetJsonCache(client, cacheUrl, useCache: false);
+                jsonDoc = await GetJsonCache(client, cacheUrl, useCache);
                 publishTime = ParseUploadTime(jsonDoc, purl.Version);
             }
             

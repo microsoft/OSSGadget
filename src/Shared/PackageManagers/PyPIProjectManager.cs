@@ -289,7 +289,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
                 return await GetHttpStringCache(httpClient, $"{ENV_PYPI_ENDPOINT}/pypi/{purl.Name}/json", useCache);
             }
-            catch (Exception ex)
+            catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
             {
                 Logger.Debug(ex, "Error fetching PyPI metadata: {0}", ex.Message);
                 return null;

@@ -1,0 +1,50 @@
+# Dependabot configuration for OSS Gadget.
+# Docs: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+#
+# Scope (be precise — GitHub Dependabot has three independent features):
+#
+#   This file enables ONLY: Dependabot version updates
+#     -> scheduled scans (weekly Mon 06:00 PT below) that open PRs for any
+#        newer version available on the registry, security-related or not.
+#
+#   This file does NOT enable:
+#     - Dependabot alerts — already on by default for public repos.
+#     - Dependabot security updates — the reactive "open a PR within hours
+#       of a CVE advisory" flow. That is a repo-settings UI toggle, not a
+#       yaml field: Settings -> Code security -> "Dependabot security updates".
+#       Highly recommended to enable for SLA-sensitive CVE response;
+#       without it, CVE patches still get PR'd but only on the weekly cadence.
+#
+# Ecosystems present in this repo:
+#   - NuGet  (2 solutions, 7 csproj — scanned recursively from root). Covered below.
+#   - Docker (root Dockerfile + .devcontainer/Dockerfile). INTENTIONALLY NOT covered here
+#            — base images are managed separately. Re-add a `docker` ecosystem block
+#            if/when that policy changes.
+#
+# No GitHub Actions workflows, npm, pip, or other ecosystems present at time of authoring.
+# Add new sections here if those are introduced later.
+
+version: 2
+updates:
+  # ----- NuGet (.NET / C#) -----
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Los_Angeles"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "nuget"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    # Group minor + patch bumps to keep PR volume manageable.
+    # Major bumps still get their own PR so breaking-change review stays explicit.
+    groups:
+      nuget-minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"

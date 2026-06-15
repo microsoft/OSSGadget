@@ -33,6 +33,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- SFI-ES5.2: pin vulnerable transitive -->
+    <PackageReference Include="Microsoft.Bcl.Memory" Version="10.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="" />
     <None Include="..\..\icon-128.png" Pack="true" PackagePath="" />
   </ItemGroup>

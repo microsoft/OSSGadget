@@ -238,7 +238,7 @@ namespace Microsoft.CST.OpenSource.Reproducibility
             // Note that we're not using something like .CreateFromDirectory, or .AddDirectory,
             // since both of these had problems with permissions. Instead, we'll try to add each
             // file separately, and continue on any failures.
-            using (ZipArchive? archive = ZipArchive.Create())
+            using (ZipArchive? archive = (ZipArchive)ZipArchive.CreateArchive())
             {
                 using (archive.PauseEntryRebuilding())
                 {

@@ -111,7 +111,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 string? tarball = doc.RootElement.GetProperty("versions").GetProperty(packageVersion).GetProperty("dist").GetProperty("tarball").GetString();
                 HttpResponseMessage result = await httpClient.GetAsync(tarball);
                 result.EnsureSuccessStatusCode();
-                Logger.Debug("Downloading {0}...", purl?.ToString());
+                LogDownload(purl, tarball);
+                //Logger.Debug("Downloading {0}...", purl?.ToString());
                 string targetName = $"npm-{packageName}@{packageVersion}";
                 string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
                 if (doExtract && Directory.Exists(extractionPath) && cached == true)

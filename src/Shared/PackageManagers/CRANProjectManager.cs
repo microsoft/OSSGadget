@@ -61,7 +61,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 string url = $"{ENV_CRAN_ENDPOINT}/src/contrib/{packageName}_{packageVersion}.tar.gz";
                 System.Net.Http.HttpResponseMessage? result = await httpClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
-                Logger.Debug("Downloading {0}...", purl);
+                LogDownload(purl, url);
 
                 string targetName = $"cran-{packageName}@{packageVersion}";
                 string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
@@ -96,7 +96,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 string url = $"{ENV_CRAN_ENDPOINT}/src/contrib/Archive/{packageName}/{packageName}_{packageVersion}.tar.gz";
                 System.Net.Http.HttpResponseMessage? result = await httpClient.GetAsync(url);
                 result.EnsureSuccessStatusCode();
-                Logger.Debug("Downloading {0}...", purl);
+                LogDownload(purl, url);
 
                 string targetName = $"cran-{packageName}@{packageVersion}";
                 string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);

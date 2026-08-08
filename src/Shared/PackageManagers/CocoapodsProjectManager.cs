@@ -98,7 +98,8 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
                 if (url != null)
                 {
-                    Logger.Debug("Downloading {0}...", purl);
+                    //Logger.Debug("Downloading {0}...", purl);
+                    LogDownload(purl, url);
                     System.Net.Http.HttpResponseMessage result = await httpClient.GetAsync(url);
                     result.EnsureSuccessStatusCode();
 

@@ -16,6 +16,13 @@ resources:
 variables:
   DotnetVersion: '8.0.x'
   BinaryFiles: 'oss-gadget-cli.exe, oss-find-squats-lib.dll, OSSGadget.Shared.Cli.dll, OSSGadget.Shared.Lib.dll'
+  EsrpConnectedServiceName: 'oss-esrp-signing-gadget-v5-connection'
+  EsrpAppRegistrationClientId: '8efe2bf9-b4d7-4058-8982-bfc87dcdb034'
+  EsrpAppRegistrationTenantId: '33e01921-4d64-4f8c-a055-5bdaffd5e33d'
+  EsrpAuthAKVName: 'oss-signing-vault'
+  EsrpClientId: '8efe2bf9-b4d7-4058-8982-bfc87dcdb034'
+  EsrpAuthSignCertName: 'oss-gadget-signing-cert'
+  EsrpServiceEndpointUrl: 'https://api.esrp.microsoft.com/api/v2'
 
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1esPipelines
@@ -223,17 +230,19 @@ extends:
             cleanDestinationFolder: false
             overwriteExistingFiles: true
 
-        - task: EsrpCodeSigning@5
+        - task: EsrpCodeSigning@6
           displayName: Code Sign Linux
           inputs:
-            ConnectedServiceName: 'oss-esrp-signing-gadget-v5-connection'
-            AppRegistrationClientId: '8efe2bf9-b4d7-4058-8982-bfc87dcdb034'
-            AppRegistrationTenantId: '33e01921-4d64-4f8c-a055-5bdaffd5e33d'
-            AuthAKVName: 'oss-signing-vault'
-            AuthCertName: 'oss-gadget-auth-cert'
-            AuthSignCertName: 'oss-gadget-signing-cert'
+            ConnectedServiceName: '$(EsrpConnectedServiceName)'
+            AppRegistrationClientId: '$(EsrpAppRegistrationClientId)'
+            AppRegistrationTenantId: '$(EsrpAppRegistrationTenantId)'
+            AuthAKVName: '$(EsrpAuthAKVName)'
+            useMsiAuthentication: true
+            esrpClientId: '$(EsrpClientId)'
+            AuthSignCertName: '$(EsrpAuthSignCertName)'
             FolderPath: '$(Build.BinariesDirectory)/linux/oss-gadget-cli_linux_$(ReleaseVersion)'
             Pattern: ${{ variables.BinaryFiles }}
+            ServiceEndpointUrl: '$(EsrpServiceEndpointUrl)'
             signConfigType: 'inlineSignParams'
             inlineOperation: |
               [
@@ -261,17 +270,19 @@ extends:
             SessionTimeout: '60'
             MaxConcurrency: '50'
             MaxRetryAttempts: '5'
-        - task: EsrpCodeSigning@5
+        - task: EsrpCodeSigning@6
           displayName: Code Sign MacOS
           inputs:
-            ConnectedServiceName: 'oss-esrp-signing-gadget-v5-connection'
-            AppRegistrationClientId: '8efe2bf9-b4d7-4058-8982-bfc87dcdb034'
-            AppRegistrationTenantId: '33e01921-4d64-4f8c-a055-5bdaffd5e33d'
-            AuthAKVName: 'oss-signing-vault'
-            AuthCertName: 'oss-gadget-auth-cert'
-            AuthSignCertName: 'oss-gadget-signing-cert'
+            ConnectedServiceName: '$(EsrpConnectedServiceName)'
+            AppRegistrationClientId: '$(EsrpAppRegistrationClientId)'
+            AppRegistrationTenantId: '$(EsrpAppRegistrationTenantId)'
+            AuthAKVName: '$(EsrpAuthAKVName)'
+            useMsiAuthentication: true
+            esrpClientId: '$(EsrpClientId)'
+            AuthSignCertName: '$(EsrpAuthSignCertName)'
             FolderPath: '$(Build.BinariesDirectory)/macos/oss-gadget-cli_macos_$(ReleaseVersion)'
             Pattern: ${{ variables.BinaryFiles }}
+            ServiceEndpointUrl: '$(EsrpServiceEndpointUrl)'
             signConfigType: 'inlineSignParams'
             inlineOperation: |
               [
@@ -299,17 +310,19 @@ extends:
             SessionTimeout: '60'
             MaxConcurrency: '50'
             MaxRetryAttempts: '5'
-        - task: EsrpCodeSigning@5
+        - task: EsrpCodeSigning@6
           displayName: Code Sign Windows
           inputs:
-            ConnectedServiceName: 'oss-esrp-signing-gadget-v5-connection'
-            AppRegistrationClientId: '8efe2bf9-b4d7-4058-8982-bfc87dcdb034'
-            AppRegistrationTenantId: '33e01921-4d64-4f8c-a055-5bdaffd5e33d'
-            AuthAKVName: 'oss-signing-vault'
-            AuthCertName: 'oss-gadget-auth-cert'
-            AuthSignCertName: 'oss-gadget-signing-cert'
+            ConnectedServiceName: '$(EsrpConnectedServiceName)'
+            AppRegistrationClientId: '$(EsrpAppRegistrationClientId)'
+            AppRegistrationTenantId: '$(EsrpAppRegistrationTenantId)'
+            AuthAKVName: '$(EsrpAuthAKVName)'
+            useMsiAuthentication: true
+            esrpClientId: '$(EsrpClientId)'
+            AuthSignCertName: '$(EsrpAuthSignCertName)'
             FolderPath: '$(Build.BinariesDirectory)/win/oss-gadget-cli_win_$(ReleaseVersion)'
             Pattern: ${{ variables.BinaryFiles }}
+            ServiceEndpointUrl: '$(EsrpServiceEndpointUrl)'
             signConfigType: 'inlineSignParams'
             inlineOperation: |
               [
@@ -337,17 +350,19 @@ extends:
             SessionTimeout: '60'
             MaxConcurrency: '50'
             MaxRetryAttempts: '5'
-        - task: EsrpCodeSigning@5
+        - task: EsrpCodeSigning@6
           displayName: Code Sign .NET Core App
           inputs:
-            ConnectedServiceName: 'oss-esrp-signing-gadget-v5-connection'
-            AppRegistrationClientId: '8efe2bf9-b4d7-4058-8982-bfc87dcdb034'
-            AppRegistrationTenantId: '33e01921-4d64-4f8c-a055-5bdaffd5e33d'
-            AuthAKVName: 'oss-signing-vault'
-            AuthCertName: 'oss-gadget-auth-cert'
-            AuthSignCertName: 'oss-gadget-signing-cert'
+            ConnectedServiceName: '$(EsrpConnectedServiceName)'
+            AppRegistrationClientId: '$(EsrpAppRegistrationClientId)'
+            AppRegistrationTenantId: '$(EsrpAppRegistrationTenantId)'
+            AuthAKVName: '$(EsrpAuthAKVName)'
+            useMsiAuthentication: true
+            esrpClientId: '$(EsrpClientId)'
+            AuthSignCertName: '$(EsrpAuthSignCertName)'
             FolderPath: '$(Build.BinariesDirectory)/netcoreapp/oss-gadget-cli_netcoreapp_$(ReleaseVersion)'
             Pattern: ${{ variables.BinaryFiles }}
+            ServiceEndpointUrl: '$(EsrpServiceEndpointUrl)'
             signConfigType: 'inlineSignParams'
             inlineOperation: |
               [
@@ -377,17 +392,19 @@ extends:
             MaxRetryAttempts: '5'
 
         # Code Signing - NuGet Package
-        - task: EsrpCodeSigning@5
+        - task: EsrpCodeSigning@6
           displayName: Code Sign Nuget Packages
           inputs:
-            ConnectedServiceName: 'oss-esrp-signing-gadget-v5-connection'
-            AppRegistrationClientId: '8efe2bf9-b4d7-4058-8982-bfc87dcdb034'
-            AppRegistrationTenantId: '33e01921-4d64-4f8c-a055-5bdaffd5e33d'
-            AuthAKVName: 'oss-signing-vault'
-            AuthCertName: 'oss-gadget-auth-cert'
-            AuthSignCertName: 'oss-gadget-signing-cert'
+            ConnectedServiceName: '$(EsrpConnectedServiceName)'
+            AppRegistrationClientId: '$(EsrpAppRegistrationClientId)'
+            AppRegistrationTenantId: '$(EsrpAppRegistrationTenantId)'
+            AuthAKVName: '$(EsrpAuthAKVName)'
+            useMsiAuthentication: true
+            esrpClientId: '$(EsrpClientId)'
+            AuthSignCertName: '$(EsrpAuthSignCertName)'
             FolderPath: '$(Build.BinariesDirectory)'
             Pattern: '*.nupkg, *.snupkg'
+            ServiceEndpointUrl: '$(EsrpServiceEndpointUrl)'
             signConfigType: 'inlineSignParams'
             inlineOperation: |
               [

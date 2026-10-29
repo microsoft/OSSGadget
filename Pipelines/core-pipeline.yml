@@ -16,8 +16,8 @@ resources:
 variables:
   DotnetVersion: '8.0.x'
   BinaryFiles: 'oss-gadget-cli.exe, oss-find-squats-lib.dll, OSSGadget.Shared.Cli.dll, OSSGadget.Shared.Lib.dll'
-  EsrpConnectedServiceName: 'oss-esrp-signing-gadget-v5-connection'
-  EsrpAppRegistrationClientId: '234bc70b-55bd-4385-b3f4-2563141d1e71'
+  EsrpConnectedServiceName: 'oss-signing-v6-gadget-connection'
+  EsrpAppRegistrationClientId: 'd8220624-a7d1-499a-8258-6c8246734781'
   EsrpAppRegistrationTenantId: '33e01921-4d64-4f8c-a055-5bdaffd5e33d'
   EsrpAuthAKVName: 'oss-signing-vault'
   EsrpClientId: '8efe2bf9-b4d7-4058-8982-bfc87dcdb034'

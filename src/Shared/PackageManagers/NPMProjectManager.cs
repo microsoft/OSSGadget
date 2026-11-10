@@ -380,7 +380,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                 string? content = await GetHttpStringCache(httpClient, $"{ENV_NPM_API_ENDPOINT}/{packageName}", useCache);
                 return content;
             }
-            catch (Exception ex)
+            catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
             {
                 Logger.Debug(ex, $"Error fetching NPM metadata: {ex.Message}");
                 return null;

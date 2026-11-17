@@ -10,3 +10,5 @@
 /*.svg
 /*.txt
 .editorconfig
+**/bin/
+**/obj/

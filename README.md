@@ -69,6 +69,22 @@ See [Building from Source](https://github.com/microsoft/OSSGadget/wiki/Building-
 ### Docker Image
 See [Docker Image](https://github.com/microsoft/OSSGadget/wiki/Docker-Image) in the wiki for information on how to use the included Dockerfile.
 
+The xUnit Docker smoke test builds the image and verifies that the container displays
+the unified CLI help by default. It requires Docker running in Linux container mode
+and access to the image and NuGet registries. It removes its test container and image
+afterward and is skipped unless `RUN_DOCKER_TESTS=1` is set.
+
+Run it from the repository root in PowerShell:
+
+```powershell
+$env:RUN_DOCKER_TESTS = '1'
+try {
+    dotnet test .\src\Shared.Lib.Tests\Shared.Lib.Tests.csproj -c Release --filter "Category=Docker"
+} finally {
+    Remove-Item Env:\RUN_DOCKER_TESTS
+}
+```
+
 ### Advanced Usage
 See [Advanced Usage](https://github.com/microsoft/OSSGadget/wiki/Advanced-Usage) in the wiki for advanced usage information like changing API endpoints.
 

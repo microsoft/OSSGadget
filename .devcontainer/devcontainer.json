@@ -1,30 +1,25 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
-// https://github.com/microsoft/vscode-dev-containers/tree/v0.236.0/containers/dotnet
 {
-	"name": "C# (.NET)",
-	"build": {
-		"dockerfile": "Dockerfile",
-		"args": { 
-			// Update 'VARIANT' to pick a .NET Core version: 3.1, 6.0
-			// Append -bullseye or -focal to pin to an OS version.
-			"VARIANT": "6.0-bullseye",
-			// Options
-			"NODE_VERSION": "none"
+	"name": "OSSGadget (.NET 8 + 6)",
+	"image": "mcr.microsoft.com/devcontainers/dotnet:1-8.0-bookworm",
+
+	// The projects multi-target net6.0 and net8.0, so the .NET 6 runtime is needed to run net6.0 tests.
+	"features": {
+		"ghcr.io/devcontainers/features/dotnet:2": {
+			"version": "8.0",
+			"additionalVersions": "6.0"
 		}
 	},
 
-	// Configure tool-specific properties.
 	"customizations": {
-		// Configure properties specific to VS Code.
-		"vscode": {	
-			// Add the IDs of extensions you want installed when the container is created.
+		"vscode": {
 			"extensions": [
-				"ms-dotnettools.csharp"
+				"ms-dotnettools.csharp",
+				"ms-dotnettools.csdevkit"
 			]
 		}
 	},
 
-	"postCreateCommand": "cd \"${workspaceFolder}/src\" && dotnet restore",
+	"postCreateCommand": "cd \"${containerWorkspaceFolder}/src\" && dotnet restore OSSGadget.sln",
 
 	"remoteUser": "vscode"
 }

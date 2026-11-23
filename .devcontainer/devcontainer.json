@@ -1,6 +1,17 @@
 {
 	"name": "OSSGadget (.NET 8 + 6)",
-	"image": "mcr.microsoft.com/devcontainers/dotnet:1-8.0-bookworm",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+
+	// The projects multi-target net6.0 and net8.0, so the .NET 6 runtime is needed to run net6.0 tests.
+	"features": {
+		"ghcr.io/devcontainers/features/dotnet:2": {
+			"version": "8.0",
+			"additionalVersions": "6.0"
+		},
+		"ghcr.io/devcontainers/features/sshd:1": {}
+	},
 
 	"customizations": {
 		"vscode": {
@@ -11,9 +22,7 @@
 		}
 	},
 
-	// The projects multi-target net6.0 and net8.0. The image provides the .NET 8 SDK; add the .NET 6 runtime
-	// directly because the dotnet dev container feature fails on this image's stale Yarn apt key.
-	"postCreateCommand": "(curl -sSL https://dot.net/v1/dotnet-install.sh | sudo bash -s -- --channel 6.0 --runtime dotnet --install-dir \"$(dirname \"$(readlink -f \"$(which dotnet)\")\")\" || echo 'Skipping .NET 6 runtime install') && cd \"${containerWorkspaceFolder}/src\" && dotnet restore OSSGadget.sln",
+	"postCreateCommand": "cd \"${containerWorkspaceFolder}/src\" && dotnet restore OSSGadget.sln",
 
 	"remoteUser": "vscode"
 }

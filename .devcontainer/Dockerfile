@@ -1,16 +1,4 @@
-# See here for image contents: https://github.com/microsoft/vscode-dev-containers/tree/v0.236.0/containers/dotnet/.devcontainer/base.Dockerfile
-
-# [Choice] .NET version: 6.0, 3.1, 6.0-bullseye, 3.1-bullseye, 6.0-focal, 3.1-focal
-ARG VARIANT="6.0-bullseye-slim"
-FROM mcr.microsoft.com/vscode/devcontainers/dotnet:0-${VARIANT}
-
-# [Choice] Node.js version: none, lts/*, 18, 16, 14
-ARG NODE_VERSION="none"
-RUN if [ "${NODE_VERSION}" != "none" ]; then su vscode -c "umask 0002 && . /usr/local/share/nvm/nvm.sh && nvm install ${NODE_VERSION} 2>&1"; fi
-
-# [Optional] Uncomment this section to install additional OS packages.
-# RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-#     && apt-get -y install --no-install-recommends <your-package-list-here>
-
-# [Optional] Uncomment this line to install global node packages.
-# RUN su vscode -c "source /usr/local/share/nvm/nvm.sh && npm install -g <your-package-here>" 2>&1
+# The base image ships a Yarn apt source with an expired signing key, which makes `apt-get update`
+# fail (exit 100) and breaks every dev container feature that installs packages.
+FROM mcr.microsoft.com/devcontainers/dotnet:1-8.0-bookworm
+RUN rm -f /etc/apt/sources.list.d/yarn.list

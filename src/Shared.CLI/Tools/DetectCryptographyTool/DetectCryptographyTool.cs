@@ -19,15 +19,40 @@ using static Crayon.Output;
 using Microsoft.ApplicationInspector.RulesEngine;
 using Microsoft.CST.RecursiveExtractor;
 using OpCode = WebAssembly.OpCode;
+using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
+using SarifResult = Microsoft.CodeAnalysis.Sarif.Result;
+using Microsoft.CodeAnalysis.Sarif;
+using SarifLocation = Microsoft.CodeAnalysis.Sarif.Location;
+using AILocation = Microsoft.ApplicationInspector.RulesEngine.Location;
 
 namespace Microsoft.CST.OpenSource.OssGadget.Tools
 {
+    using Crayon;
     using Helpers;
+    using ICSharpCode.Decompiler;
+    using ICSharpCode.Decompiler.CSharp;
+    using Microsoft.ApplicationInspector.Commands;
+    using Microsoft.ApplicationInspector.RulesEngine;
+    using Microsoft.CodeAnalysis.Sarif;
+    using Microsoft.CodeAnalysis.Sarif.Processors;
     using Microsoft.CST.OpenSource.PackageManagers;
+    using Microsoft.CST.OpenSource.Shared;
+    using Microsoft.CST.RecursiveExtractor;
     using Octokit;
     using Options;
     using PackageUrl;
+    using SharpDisasm;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
     using System.Reflection;
+    using System.Text;
+    using System.Text.RegularExpressions;
+    using System.Threading.Tasks;
+    using WebAssembly;
+    using WebAssembly.Instructions;
+    using static Microsoft.CST.OpenSource.Shared.OutputBuilderFactory;
 
     public class DetectCryptographyTool : BaseTool<DetectCryptographyToolOptions>
     {
@@ -60,20 +85,19 @@ namespace Microsoft.CST.OpenSource.OssGadget.Tools
             // select output destination and format
             SelectOutput(options.OutputFile);
             IOutputBuilder outputBuilder = SelectFormat(options.Format);
+
             if (options.Targets is IList<string> targetList && targetList.Count > 0)
             {
-                StringBuilder? sb = new StringBuilder();
                 foreach (string? target in targetList)
                 {
-                    sb.Clear();
                     try
                     {
-                        sb.AppendLine($"{target}");
-
                         List<IssueRecord>? results = null;
+                        PackageURL? purl = null;
+
                         if (target.StartsWith("pkg:", StringComparison.InvariantCulture))
                         {
-                            PackageURL? purl = new PackageURL(target);
+                            purl = new PackageURL(target);
                             results = await (AnalyzePackage(purl,
                                 options.DownloadDirectory,
                                 options.UseCache) ??
@@ -81,11 +105,13 @@ namespace Microsoft.CST.OpenSource.OssGadget.Tools
                         }
                         else if (System.IO.Directory.Exists(target))
                         {
+                            purl = new PackageURL("generic", target);
                             results = await (AnalyzeDirectory(target) ??
                                                                 Task.FromResult(new List<IssueRecord>()));
                         }
                         else if (File.Exists(target))
                         {
+                            purl = new PackageURL("generic", target);
                             string? targetDirectoryName = null;
                             while (targetDirectoryName == null || System.IO.Directory.Exists(targetDirectoryName))
                             {
@@ -95,9 +121,6 @@ namespace Microsoft.CST.OpenSource.OssGadget.Tools
                             string? path = await ArchiveHelper.ExtractArchiveAsync(targetDirectoryName, Path.GetFileName(target), File.OpenRead(target));
 
                             results = await AnalyzeDirectory(path);
-
-                            // Clean up after ourselves
-
                         }
                         else
                         {
@@ -110,113 +133,12 @@ namespace Microsoft.CST.OpenSource.OssGadget.Tools
                             Logger.Warn("No results were generated.");
                             continue;
                         }
-                        else
+
+                        // Append results to output builder based on format
+                        if (purl != null)
                         {
-                            sb.AppendLine("Summary Results:");
-                            sb.AppendLine(Blue("Cryptographic Implementations:"));
-                            IOrderedEnumerable<string>? implementations = results.SelectMany(r => r.Issue.Rule.Tags ?? Array.Empty<string>())
-                                                         .Distinct()
-                                                         .Where(t => t.StartsWith("Cryptography.Implementation."))
-                                                         .Select(t => t.Replace("Cryptography.Implementation.", ""))
-                                                         .OrderBy(s => s);
-                            if (implementations.Any())
-                            {
-                                foreach (string? tag in implementations)
-                                {
-                                    sb.AppendLine(Bright.Blue($" * {tag}"));
-                                }
-                            }
-                            else
-                            {
-                                sb.AppendLine(Bright.Black("  No implementations found."));
-                            }
-
-                            sb.AppendLine();
-                            sb.AppendLine(Red("Cryptographic Library References:"));
-                            IOrderedEnumerable<string>? references = results.SelectMany(r => r.Issue.Rule.Tags ?? Array.Empty<string>())
-                                                    .Distinct()
-                                                    .Where(t => t.StartsWith("Cryptography.Reference."))
-                                                    .Select(t => t.Replace("Cryptography.Reference.", ""))
-                                                    .OrderBy(s => s);
-
-                            if (references.Any())
-                            {
-                                foreach (string? tag in references)
-                                {
-                                    sb.AppendLine(Bright.Red($" * {tag}"));
-                                }
-                            }
-                            else
-                            {
-                                sb.AppendLine(Bright.Black("  No library references found."));
-                            }
-
-                            sb.AppendLine();
-                            sb.AppendLine(Green("Other Cryptographic Characteristics:"));
-                            IOrderedEnumerable<string>? characteristics = results.SelectMany(r => r.Issue.Rule.Tags ?? Array.Empty<string>())
-                                                         .Distinct()
-                                                         .Where(t => t.Contains("Crypto", StringComparison.InvariantCultureIgnoreCase)&&
-                                                                     !t.StartsWith("Cryptography.Implementation.") &&
-                                                                     !t.StartsWith("Cryptography.Reference."))
-                                                         .Select(t => t.Replace("Cryptography.", ""))
-                                                         .OrderBy(s => s);
-                            if (characteristics.Any())
-                            {
-                                foreach (string? tag in characteristics)
-                                {
-                                    sb.AppendLine(Bright.Green($" * {tag}"));
-                                }
-                            }
-                            else
-                            {
-                                sb.AppendLine(Bright.Black("  No additional characteristics found."));
-                            }
-
-                            if (options.Verbose)
-                            {
-                                IOrderedEnumerable<IGrouping<string, IssueRecord>>? items = results.GroupBy(k => k.Issue.Rule.Name).OrderByDescending(k => k.Count());
-                                foreach (IGrouping<string, IssueRecord>? item in items)
-                                {
-                                    sb.AppendLine();
-                                    sb.AppendLine($"There were {item.Count()} finding(s) of type [{item.Key}].");
-
-                                    foreach (IssueRecord? result in results)
-                                    {
-                                        if (result.Issue.Rule.Name == item.Key)
-                                        {
-                                            sb.AppendLine($" {result.Filename}:");
-                                            if (result.Issue.Rule.Id == "_CRYPTO_DENSITY")
-                                            {
-                                                // No excerpt for cryptographic density
-                                                // TODO: We stuffed the density in the unused 'Description' field. This is code smell.
-                                                sb.AppendLine($"  | The maximum cryptographic density is {result.Issue.Rule.Description}.");
-                                            }
-                                            else
-                                            {
-                                                // Show the excerpt
-                                                foreach (string? line in result.TextSample.Split(new char[] { '\n', '\r' }))
-                                                {
-                                                    if (!string.IsNullOrWhiteSpace(line))
-                                                    {
-                                                        sb.AppendLine($"  | {line.Trim()}");
-                                                    }
-                                                }
-                                            }
-                                            sb.AppendLine();
-                                        }
-                                    }
-                                }
-                            }
-
-                            if (Logger.IsDebugEnabled)
-                            {
-                                foreach (IssueRecord? result in results)
-                                {
-                                    Logger.Debug($"Result: {result.Filename} {result.Issue.Rule.Name} {result.TextSample}");
-                                }
-                            }
+                            AppendOutput(outputBuilder, purl, results, options);
                         }
-                        Console.WriteLine(sb.ToString());
                     }
                     catch (Exception ex)
                     {
@@ -224,6 +146,9 @@ namespace Microsoft.CST.OpenSource.OssGadget.Tools
                         Logger.Warn(ex.StackTrace);
                     }
                 }
+
+                // Print the output once after processing all targets
+                outputBuilder.PrintOutput();
             }
             else
             {
@@ -231,6 +156,7 @@ namespace Microsoft.CST.OpenSource.OssGadget.Tools
                 return ErrorCode.NoTargets;
             }
 
+            RestoreOutput();
             return ErrorCode.Ok;
         }
 
@@ -240,6 +166,213 @@ namespace Microsoft.CST.OpenSource.OssGadget.Tools
 
         public DetectCryptographyTool() : this(new ProjectManagerFactory())
         {
+        }
+
+        /// <summary>
+        /// Build and return a list of Sarif Result list from the cryptography detection results
+        /// </summary>
+        /// <param name="purl">Package URL</param>
+        /// <param name="results">List of issue records</param>
+        /// <param name="options">Tool options</param>
+        /// <returns>List of SARIF results</returns>
+        private static List<SarifResult> GetSarifResults(PackageURL purl, List<IssueRecord> results, DetectCryptographyToolOptions options)
+        {
+            List<SarifResult> sarifResults = new List<SarifResult>();
+
+            foreach (IssueRecord issueRecord in results)
+            {
+                SarifResult? sarifResult = new SarifResult()
+                {
+                    Message = new Message()
+                    {
+                        Text = issueRecord.Issue.Rule.Name,
+                        Id = issueRecord.Issue.Rule.Id
+                    },
+                    Kind = ResultKind.Review,
+                    Level = FailureLevel.Note,
+                    Locations = SarifOutputBuilder.BuildPurlLocation(purl),
+                    Rule = new ReportingDescriptorReference() { Id = issueRecord.Issue.Rule.Id },
+                };
+
+                // Add rule tags as properties
+                if (issueRecord.Issue.Rule.Tags != null && issueRecord.Issue.Rule.Tags.Any())
+                {
+                    sarifResult.SetProperty("Tags", issueRecord.Issue.Rule.Tags);
+                }
+
+                // Add crypto density if available
+                if (issueRecord.Issue.Rule.Id == "_CRYPTO_DENSITY")
+                {
+                    sarifResult.SetProperty("CryptoDensity", issueRecord.Issue.Rule.Description);
+                }
+
+                // Add physical location with file details
+                sarifResult.Locations.Add(new SarifLocation()
+                {
+                    PhysicalLocation = new PhysicalLocation()
+                    {
+                        Address = new Address()
+                        {
+                            FullyQualifiedName = issueRecord.Filename
+                        },
+                        Region = new Region()
+                        {
+                            StartLine = issueRecord.Issue.StartLocation.Line,
+                            EndLine = issueRecord.Issue.EndLocation.Line,
+                            StartColumn = issueRecord.Issue.StartLocation.Column,
+                            EndColumn = issueRecord.Issue.EndLocation.Column,
+                            Snippet = new ArtifactContent()
+                            {
+                                Text = issueRecord.TextSample,
+                                Rendered = new MultiformatMessageString(issueRecord.TextSample, $"`{issueRecord.TextSample}`", null)
+                            }
+                        }
+                    }
+                });
+
+                sarifResults.Add(sarifResult);
+            }
+
+            return sarifResults;
+        }
+
+        /// <summary>
+        /// Convert cryptography detection results into text format
+        /// </summary>
+        /// <param name="purl">Package URL</param>
+        /// <param name="results">List of issue records</param>
+        /// <param name="options">Tool options</param>
+        /// <returns>List of formatted text lines</returns>
+        private static List<string> GetTextResults(PackageURL purl, List<IssueRecord> results, DetectCryptographyToolOptions options)
+        {
+            List<string> output = new List<string>();
+            StringBuilder sb = new StringBuilder();
+
+            sb.AppendLine($"{purl}");
+            sb.AppendLine("Summary Results:");
+
+            sb.AppendLine("Cryptographic Implementations:");
+            IOrderedEnumerable<string>? implementations = results
+                .SelectMany(r => r.Issue.Rule.Tags ?? Array.Empty<string>())
+                .Distinct()
+                .Where(t => t.StartsWith("Cryptography.Implementation."))
+                .Select(t => t.Replace("Cryptography.Implementation.", ""))
+                .OrderBy(s => s);
+
+            if (implementations.Any())
+            {
+                foreach (string? tag in implementations)
+                {
+                    sb.AppendLine($" * {tag}");
+                }
+            }
+            else
+            {
+                sb.AppendLine("  No implementations found.");
+            }
+
+            sb.AppendLine();
+            sb.AppendLine("Cryptographic Library References:");
+            IOrderedEnumerable<string>? references = results
+                .SelectMany(r => r.Issue.Rule.Tags ?? Array.Empty<string>())
+                .Distinct()
+                .Where(t => t.StartsWith("Cryptography.Reference."))
+                .Select(t => t.Replace("Cryptography.Reference.", ""))
+                .OrderBy(s => s);
+
+            if (references.Any())
+            {
+                foreach (string? tag in references)
+                {
+                    sb.AppendLine($" * {tag}");
+                }
+            }
+            else
+            {
+                sb.AppendLine("  No library references found.");
+            }
+
+            sb.AppendLine();
+            sb.AppendLine("Other Cryptographic Characteristics:");
+            IOrderedEnumerable<string>? characteristics = results
+                .SelectMany(r => r.Issue.Rule.Tags ?? Array.Empty<string>())
+                .Distinct()
+                .Where(t => t.Contains("Crypto", StringComparison.InvariantCultureIgnoreCase) &&
+                           !t.StartsWith("Cryptography.Implementation.") &&
+                           !t.StartsWith("Cryptography.Reference."))
+                .Select(t => t.Replace("Cryptography.", ""))
+                .OrderBy(s => s);
+
+            if (characteristics.Any())
+            {
+                foreach (string? tag in characteristics)
+                {
+                    sb.AppendLine($" * {tag}");
+                }
+            }
+            else
+            {
+                sb.AppendLine("  No additional characteristics found.");
+            }
+
+            if (options.Verbose)
+            {
+                IOrderedEnumerable<IGrouping<string, IssueRecord>>? items = results
+                    .GroupBy(k => k.Issue.Rule.Name)
+                    .OrderByDescending(k => k.Count());
+
+                foreach (IGrouping<string, IssueRecord>? item in items)
+                {
+                    sb.AppendLine();
+                    sb.AppendLine($"There were {item.Count()} finding(s) of type [{item.Key}].");
+
+                    foreach (IssueRecord? result in results.Where(r => r.Issue.Rule.Name == item.Key))
+                    {
+                        sb.AppendLine($" {result.Filename}:");
+                        if (result.Issue.Rule.Id == "_CRYPTO_DENSITY")
+                        {
+                            sb.AppendLine($"  | The maximum cryptographic density is {result.Issue.Rule.Description}.");
+                        }
+                        else
+                        {
+                            foreach (string? line in result.TextSample.Split(new char[] { '\n', '\r' }))
+                            {
+                                if (!string.IsNullOrWhiteSpace(line))
+                                {
+                                    sb.AppendLine($"  | {line.Trim()}");
+                                }
+                            }
+                        }
+                        sb.AppendLine();
+                    }
+                }
+            }
+
+            output.Add(sb.ToString());
+            return output;
+        }
+
+        /// <summary>
+        /// Convert cryptography detection results into output format
+        /// </summary>
+        /// <param name="outputBuilder">Output builder instance</param>
+        /// <param name="purl">Package URL</param>
+        /// <param name="results">List of issue records</param>
+        /// <param name="options">Tool options</param>
+        private void AppendOutput(IOutputBuilder outputBuilder, PackageURL purl, List<IssueRecord> results, DetectCryptographyToolOptions options)
+        {
+            switch (currentOutputFormat)
+            {
+                case OutputFormat.text:
+                default:
+                    outputBuilder.AppendOutput(GetTextResults(purl, results, options));
+                    break;
+
+                case OutputFormat.sarifv1:
+                case OutputFormat.sarifv2:
+                    outputBuilder.AppendOutput(GetSarifResults(purl, results, options));
+                    break;
+            }
         }
 
         /// <summary>
@@ -405,7 +538,7 @@ namespace Microsoft.CST.OpenSource.OssGadget.Tools
 
             return rules;
         }
-        
+
         /// <summary>
         /// Analyzes a directory of files.
         /// </summary>
@@ -421,7 +554,7 @@ namespace Microsoft.CST.OpenSource.OssGadget.Tools
             if (Options["disable-default-rules"] is false)
             {
                 rules.AddRange(GetEmbeddedRules());
-                
+
                 // Add Application Inspector cryptography rules
                 var assembly = typeof(AnalyzeCommand).Assembly;
                 foreach (string? resourceName in assembly.GetManifestResourceNames())
@@ -510,8 +643,8 @@ namespace Microsoft.CST.OpenSource.OssGadget.Tools
                             TextSample: "n/a",
                             Issue: new Issue(
                                 Boundary: new Boundary(),
-                                StartLocation: new Location(),
-                                EndLocation: new Location(),
+                                StartLocation: new AILocation(),
+                                EndLocation: new AILocation(),
                                 Rule: new Rule()
                                 {
                                     Id = "_CRYPTO_DENSITY",
@@ -533,7 +666,7 @@ namespace Microsoft.CST.OpenSource.OssGadget.Tools
                     LanguageInfo languageInfo = new LanguageInfo();
                     var languages = new Languages();
                     languages.FromFileName(filename, ref languageInfo);
-                    Task<List<MatchRecord>>? task = Task.Run(() => processor.AnalyzeFile(holderEntry,languageInfo));
+                    Task<List<MatchRecord>>? task = Task.Run(() => processor.AnalyzeFile(holderEntry, languageInfo));
                     if (task.Wait(TimeSpan.FromSeconds(30)))
                     {
                         fileResults = task.Result;
@@ -561,17 +694,17 @@ namespace Microsoft.CST.OpenSource.OssGadget.Tools
                             Filesize: buffer.Length,
                             TextSample: issue.StartLocationLine + " => " + string.Join(Environment.NewLine, excerpt),
                             Issue: new Issue(
-                                issue.Boundary, 
-                                new Location() 
-                                { 
-                                    Column = issue.StartLocationColumn, 
-                                    Line = issue.StartLocationLine 
-                                }, 
-                                new Location() 
-                                { 
-                                    Column = issue.EndLocationColumn, 
-                                    Line = issue.EndLocationLine 
-                                }, 
+                                issue.Boundary,
+                                new AILocation()
+                                {
+                                    Column = issue.StartLocationColumn,
+                                    Line = issue.StartLocationLine
+                                },
+                                new AILocation()
+                                {
+                                    Column = issue.EndLocationColumn,
+                                    Line = issue.EndLocationLine
+                                },
                                 issue.Rule)
                             )
                         );

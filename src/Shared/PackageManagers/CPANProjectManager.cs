@@ -84,9 +84,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
             string binaryUrl = root.GetProperty("download_url").GetString();
 
+            LogDownload(purl, binaryUrl);
+
             HttpResponseMessage result = await httpClient.GetAsync(binaryUrl);
             result.EnsureSuccessStatusCode();
-            Logger.Debug("Downloading {0}...", purl);
 
             string targetName = $"cpan-{packageName}@{packageVersion}";
             string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);

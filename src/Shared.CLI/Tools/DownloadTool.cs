@@ -27,6 +27,8 @@ public class DownloadTool : BaseTool<DownloadToolOptions>
     
     public override async Task<ErrorCode> RunAsync(DownloadToolOptions options)
     {
+        ConfigureLogging(options);
+
         if (options.Targets is IEnumerable<string> targetList && targetList.Any())
         {
             foreach (string? target in targetList)

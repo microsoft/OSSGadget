@@ -70,7 +70,7 @@ namespace Microsoft.CST.OpenSource.PackageManagers
                         string? url = versionObject.Value.GetProperty("dist").GetProperty("url").GetString();
                         System.Net.Http.HttpResponseMessage? result = await httpClient.GetAsync(url);
                         result.EnsureSuccessStatusCode();
-                        Logger.Debug("Downloading {0}...", purl);
+                        LogDownload(purl, url);
 
                         string fsNamespace = OssUtilities.NormalizeStringForFileSystem(packageNamespace);
                         string fsName = OssUtilities.NormalizeStringForFileSystem(packageName);

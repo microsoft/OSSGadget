@@ -134,7 +134,10 @@ namespace Microsoft.CST.OpenSource.PackageManagers
 
                                 try
                                 {
-                                    HttpResponseMessage downloadResult = await httpClient.GetAsync(source.GetString());
+                                    string? downloadUrl = source.GetString();
+                                    LogDownload(purl, downloadUrl);
+                                    
+                                    HttpResponseMessage downloadResult = await httpClient.GetAsync(downloadUrl);
                                     downloadResult.EnsureSuccessStatusCode();
                                     string? targetName = $"vsm-{packageName}@{packageVersion}-{assetType}";
                                     string extractionPath = Path.Combine(TopLevelExtractionDirectory, targetName);
